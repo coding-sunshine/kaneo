@@ -210,7 +210,7 @@ function TaskRow({
         // The indent and the toggle sit beside the draggable region rather
         // than inside it: dnd-kit gives its activator role="button", and a
         // button nested in one is an ambiguous control for assistive tech.
-        "group/row flex items-stretch border-b border-border/50 transition-colors duration-150",
+        "group/row flex items-stretch transition-colors duration-150",
         (isDragging || isTaskDragging) && "opacity-50",
         isTaskSelected &&
           "bg-accent/60 shadow-sm ring-1 ring-inset ring-ring/30",
@@ -271,8 +271,8 @@ function TaskRow({
           <div
             onClick={handleClick}
             className={cn(
-              "group relative flex h-10 min-w-0 flex-1 cursor-pointer items-center gap-3 pr-3.5 outline-none transition-colors",
-              showToggleColumn ? "pl-2" : "pl-3.5",
+              "group relative flex h-11 min-w-0 flex-1 cursor-pointer items-center gap-2 pr-6 outline-none transition-colors",
+              showToggleColumn ? "pl-2" : "pl-4",
               isTaskSelected ? "bg-accent/45" : "group-hover/row:bg-accent/60",
             )}
             data-task-id={task.id}

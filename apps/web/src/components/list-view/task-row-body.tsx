@@ -64,6 +64,7 @@ export function TaskRowBody({
 
   return (
     <>
+      <span aria-hidden="true" className="w-[18px] shrink-0" />
       {showPriority && (
         <TaskPriorityPopover task={task}>
           <button
@@ -72,7 +73,7 @@ export function TaskRowBody({
             title={priorityLabel}
             className={cn(
               rowButtonClass,
-              "size-5.5 justify-center [&_svg]:size-3.5",
+              "size-4 justify-center [&_svg]:size-4",
             )}
             {...stopCardEvents}
           >
@@ -81,7 +82,7 @@ export function TaskRowBody({
         </TaskPriorityPopover>
       )}
       {showTaskNumbers && (
-        <span className="w-13 shrink-0 truncate font-mono text-muted-foreground text-xs">
+        <span className="w-15 shrink-0 truncate font-[450] text-[13px] text-muted-foreground">
           {projectSlug}-{task.number}
         </span>
       )}
@@ -91,7 +92,7 @@ export function TaskRowBody({
           <button
             type="button"
             title={column?.name ?? task.status}
-            className={cn(rowButtonClass, "size-5.5 justify-center")}
+            className={cn(rowButtonClass, "size-4 justify-center")}
             {...stopCardEvents}
           >
             {getColumnIcon(task.status, column?.isFinal, column?.icon)}
@@ -99,7 +100,9 @@ export function TaskRowBody({
         </TaskStatusPopover>
       )}
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span className="truncate text-foreground text-sm">{task.title}</span>
+        <span className="truncate font-medium text-[13px] text-foreground">
+          {task.title}
+        </span>
         <div className="flex shrink-0 items-center gap-0.5">
           <SubtasksChip
             task={task}
@@ -143,7 +146,7 @@ export function TaskRowBody({
       )}
 
       {showCreatedDates && (
-        <span className="w-12 shrink-0 text-right text-muted-foreground text-xs tabular-nums">
+        <span className="w-12 shrink-0 text-right font-[450] text-muted-foreground text-xs tabular-nums">
           {formatDateShort(task.createdAt)}
         </span>
       )}

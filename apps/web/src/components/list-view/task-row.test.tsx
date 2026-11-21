@@ -421,7 +421,7 @@ describe("TaskRow", () => {
     const { container } = render(<TaskRow task={task} projectSlug="kan" />);
     const draggable = container.querySelector('[role="button"]');
 
-    expect(draggable?.className).toContain("pl-3.5");
+    expect(draggable?.className).toContain("pl-4");
   });
 
   it("announces the nesting level, which the indent cannot", () => {
