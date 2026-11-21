@@ -1,20 +1,26 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import { ShortcutTestWrapper } from "@/lib/shortcuts/shortcut-test-wrapper";
 import CommentThread, { type ThreadComment } from "./comment-thread";
 
 afterEach(cleanup);
 
 vi.mock("./comment-card", () => ({
   default: (props: { commentId: string; isResolution: boolean }) => (
-    <p>
-      {props.commentId}
-      {props.isResolution && " (resolution)"}
-    </p>
+    <div>
+      <p>
+        {props.commentId}
+        {props.isResolution && " (resolution)"}
+      </p>
+      {props.commentId === "root" && <textarea aria-label="typing" />}
+    </div>
   ),
 }));
 
 vi.mock("./reply-composer", () => ({
-  default: () => <p>reply row</p>,
+  default: ({ focusRequest }: { focusRequest?: number }) => (
+    <p>reply row {focusRequest}</p>
+  ),
 }));
 
 vi.mock("@/hooks/queries/workspace/use-active-workspace", () => ({
@@ -77,5 +83,55 @@ describe("CommentThread", () => {
       }),
     );
     expect(screen.getByText("r1")).toBeVisible();
+  });
+
+  it("folds every reply when resolved from the root", () => {
+    render(
+      <CommentThread
+        root={comment("root", {
+          resolvedAt: "2026-11-14T17:17:40.570Z",
+          resolvingCommentId: null,
+        })}
+        replies={[comment("r1"), comment("r2")]}
+      />,
+    );
+    expect(screen.queryByText("r1")).not.toBeInTheDocument();
+    expect(screen.queryByText("r2")).not.toBeInTheDocument();
+    expect(screen.queryByText(/reply row/)).not.toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /activity:comment\.foldedReplies 2/,
+      }),
+    );
+    expect(screen.getByText("r1")).toBeVisible();
+    expect(screen.getByText("r2")).toBeVisible();
+  });
+
+  it("replies with r on a focused comment", () => {
+    render(
+      <ShortcutTestWrapper>
+        <CommentThread root={comment("root")} replies={[comment("r1")]} />
+      </ShortcutTestWrapper>,
+    );
+    const typing = screen.getByLabelText("typing");
+    fireEvent.focus(typing);
+
+    // Typing an "r" into an editor must not trigger the shortcut.
+    fireEvent.keyDown(typing, { key: "r" });
+    expect(screen.getByText(/reply row/)).toHaveTextContent(/^reply row 0$/);
+
+    fireEvent.keyDown(screen.getByText("r1"), { key: "r" });
+    expect(screen.getByText(/reply row/)).toHaveTextContent(/^reply row 1$/);
+  });
+
+  it("ignores r when no comment is hovered or focused", () => {
+    render(
+      <ShortcutTestWrapper>
+        <CommentThread root={comment("root")} replies={[]} />
+      </ShortcutTestWrapper>,
+    );
+    fireEvent.keyDown(document.body, { key: "r" });
+    expect(screen.getByText(/reply row/)).toHaveTextContent(/^reply row 0$/);
   });
 });

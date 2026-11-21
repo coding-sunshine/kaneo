@@ -1,5 +1,5 @@
 import { ArrowUp, Paperclip } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/components/providers/auth-provider/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,6 +9,8 @@ import CommentInput from "./comment-input";
 type ReplyComposerProps = {
   taskId: string;
   parentId: string;
+  /** Bump to open the editor and focus it (the "r" shortcut). */
+  focusRequest?: number;
 };
 
 // Every open thread ends in a one-line "Leave a reply..." row, as in Linear.
@@ -16,10 +18,14 @@ type ReplyComposerProps = {
 export default function ReplyComposer({
   taskId,
   parentId,
+  focusRequest = 0,
 }: ReplyComposerProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (focusRequest > 0) setOpen(true);
+  }, [focusRequest]);
 
   if (!user?.id) return null;
 

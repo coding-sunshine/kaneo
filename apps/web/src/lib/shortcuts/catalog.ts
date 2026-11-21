@@ -74,6 +74,7 @@ export const SHORTCUTS = {
 
   toggleLayout: { keys: ["mod+b"], category: "views", scope: "view" },
 
+  replyToComment: { keys: ["r"], category: "tasks", scope: "task" },
   changeStatus: { keys: ["s"], category: "tasks", scope: "task" },
   changePriority: { keys: ["p"], category: "tasks", scope: "task" },
   assignTask: { keys: ["a"], category: "tasks", scope: "task" },

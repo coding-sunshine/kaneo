@@ -3024,6 +3024,7 @@
 				"openFocusedTask": "Open focused item",
 				"selectAll": "Select all",
 				"clearSelection": "Clear selection",
+				"replyToComment": "Reply to comment",
 				"changeStatus": "Change status",
 				"changePriority": "Change priority",
 				"assignTask": "Assign",

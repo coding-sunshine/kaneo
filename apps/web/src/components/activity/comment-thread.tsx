@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import useGetWorkspaceUsers from "@/hooks/queries/workspace-users/use-get-workspace-users";
+import { useShortcut } from "@/lib/shortcuts/use-shortcut";
 import { getInitials } from "@/lib/get-initials";
 import CommentCard from "./comment-card";
 import { commentAuthor } from "./comment-author";
@@ -38,6 +39,14 @@ export default function CommentThread({ root, replies }: CommentThreadProps) {
   });
   const [expanded, setExpanded] = useState(false);
   const resolved = Boolean(root.resolvedAt);
+  // "r" replies to the thread under the pointer or holding focus. Only that
+  // thread registers, since the shortcut registry runs a single handler.
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [replyRequest, setReplyRequest] = useState(0);
+  useShortcut("replyToComment", () => setReplyRequest((n) => n + 1), {
+    enabled: (hovered || focused) && !resolved,
+  });
   const labels = {
     someone: t("common:people.someone"),
     externalUser: t("activity:githubUser"),
@@ -85,6 +94,13 @@ export default function CommentThread({ root, replies }: CommentThreadProps) {
     <div
       id={`comment-${root.id}`}
       className="w-full scroll-mt-16 rounded-lg border border-border/80 bg-foreground/2"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget))
+          setFocused(false);
+      }}
     >
       {card(root, "root")}
       {folded.length > 0 && (
@@ -126,7 +142,13 @@ export default function CommentThread({ root, replies }: CommentThreadProps) {
           {card(reply, "reply")}
         </div>
       ))}
-      {!resolved && <ReplyComposer taskId={root.taskId} parentId={root.id} />}
+      {!resolved && (
+        <ReplyComposer
+          taskId={root.taskId}
+          parentId={root.id}
+          focusRequest={replyRequest}
+        />
+      )}
     </div>
   );
 }
