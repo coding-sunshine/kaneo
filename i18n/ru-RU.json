@@ -783,7 +783,9 @@
 			"priority": "Приоритет",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Показывать изображение, которое проект задаёт за своей доской.",
-			"advancedTitle": "Дополнительно"
+			"advancedTitle": "Дополнительно",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Управляется вашей организацией.",

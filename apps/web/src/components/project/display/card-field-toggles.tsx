@@ -26,6 +26,18 @@ export function CardFieldToggles() {
       onPressedChange: preferences.setShowDueDates,
     },
     {
+      id: "status",
+      label: t("settings:preferencesPage.status"),
+      pressed: preferences.showStatus,
+      onPressedChange: preferences.setShowStatus,
+    },
+    {
+      id: "createdDates",
+      label: t("settings:preferencesPage.createdDates"),
+      pressed: preferences.showCreatedDates,
+      onPressedChange: preferences.setShowCreatedDates,
+    },
+    {
       id: "labels",
       label: t("settings:preferencesPage.labels"),
       pressed: preferences.showLabels,

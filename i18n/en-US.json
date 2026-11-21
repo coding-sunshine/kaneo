@@ -1192,6 +1192,8 @@
 			"taskNumbers": "Task numbers",
 			"assignees": "Assignees",
 			"dueDates": "Due dates",
+			"status": "Status",
+			"createdDates": "Created",
 			"labels": "Labels",
 			"priority": "Priority",
 			"projectBackgrounds": "Project backgrounds",

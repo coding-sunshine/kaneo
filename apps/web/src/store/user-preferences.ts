@@ -38,6 +38,10 @@ type UserPreferencesStore = {
   setShowAssignees: (show: boolean) => void;
   toggleAssignees: () => void;
   showDueDates: boolean;
+  showStatus: boolean;
+  setShowStatus: (show: boolean) => void;
+  showCreatedDates: boolean;
+  setShowCreatedDates: (show: boolean) => void;
   setShowDueDates: (show: boolean) => void;
   toggleDueDates: () => void;
   showLabels: boolean;
@@ -120,6 +124,10 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
       setShowDueDates: (show) => set({ showDueDates: show }),
       toggleDueDates: () =>
         set((state) => ({ showDueDates: !state.showDueDates })),
+      showStatus: true,
+      setShowStatus: (show) => set({ showStatus: show }),
+      showCreatedDates: true,
+      setShowCreatedDates: (show) => set({ showCreatedDates: show }),
       showLabels: true,
       setShowLabels: (show) => set({ showLabels: show }),
       toggleLabels: () => set((state) => ({ showLabels: !state.showLabels })),
@@ -146,6 +154,8 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
           hiddenCardFieldIds: [],
           showAssignees: true,
           showDueDates: true,
+          showStatus: true,
+          showCreatedDates: true,
           showLabels: true,
           showTaskNumbers: true,
           showPriority: true,

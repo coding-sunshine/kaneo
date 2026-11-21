@@ -775,7 +775,9 @@
 			"priority": "Prioridade",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Mostrar a imagem que um projeto define atrás do quadro.",
-			"advancedTitle": "Avançado"
+			"advancedTitle": "Avançado",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Gerenciado pela sua organização.",

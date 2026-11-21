@@ -759,7 +759,9 @@
 			"priority": "Mức ưu tiên",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Hiển thị hình ảnh mà dự án đặt làm nền bảng.",
-			"advancedTitle": "Nâng cao"
+			"advancedTitle": "Nâng cao",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Được quản lý bởi tổ chức của bạn.",

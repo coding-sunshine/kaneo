@@ -645,7 +645,9 @@
 			"priority": "Prioriteit",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Toon de afbeelding die een project achter het bord instelt.",
-			"advancedTitle": "Geavanceerd"
+			"advancedTitle": "Geavanceerd",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Beheerd door je organisatie.",

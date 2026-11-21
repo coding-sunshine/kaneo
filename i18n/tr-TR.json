@@ -767,7 +767,9 @@
 			"priority": "Öncelik",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Projenin panosunun arkasına ayarladığı görseli göster.",
-			"advancedTitle": "Gelişmiş"
+			"advancedTitle": "Gelişmiş",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Kuruluşunuz tarafından yönetiliyor.",

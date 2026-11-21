@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import TaskStatusPopover from "@/components/task/task-status-popover";
 import { CardFieldList } from "@/components/custom-fields/card-field-list";
 import { useTaskCardFields } from "@/components/custom-fields/use-task-card-fields";
 import TaskPriorityPopover from "@/components/task/task-priority-popover";
@@ -12,7 +13,10 @@ import { stopCardEvents } from "@/components/task-chips/stop-card-events";
 import { SubtasksChip } from "@/components/task-chips/subtasks-chip";
 import { cn } from "@/lib/cn";
 import { getPriorityLabel } from "@/lib/i18n/domain";
+import { formatDateShort } from "@/lib/format";
+import { getColumnIcon } from "@/lib/column";
 import { getPriorityIcon } from "@/lib/priority";
+import useProjectStore from "@/store/project";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 import type Task from "@/types/task";
 
@@ -46,10 +50,15 @@ export function TaskRowBody({
     showAssignees,
     showPriority,
     showDueDates,
+    showStatus,
+    showCreatedDates,
     showLabels,
     showTaskNumbers,
     showTaskItemCounts,
   } = useUserPreferencesStore();
+  const column = useProjectStore((state) =>
+    state.project?.columns?.find((c) => c.id === task.status),
+  );
   const cardFields = useTaskCardFields(task.projectId, task.id);
   const priorityLabel = `${t("tasks:priority.label")}: ${getPriorityLabel(task.priority ?? "")}`;
 
@@ -77,6 +86,18 @@ export function TaskRowBody({
         </span>
       )}
 
+      {showStatus && (
+        <TaskStatusPopover task={task}>
+          <button
+            type="button"
+            title={column?.name ?? task.status}
+            className={cn(rowButtonClass, "size-5.5 justify-center")}
+            {...stopCardEvents}
+          >
+            {getColumnIcon(task.status, column?.isFinal, column?.icon)}
+          </button>
+        </TaskStatusPopover>
+      )}
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <span className="truncate text-foreground text-sm">{task.title}</span>
         <div className="flex shrink-0 items-center gap-0.5">
@@ -119,6 +140,12 @@ export function TaskRowBody({
           image={assigneeImage}
           avatarClassName="size-5.5 text-[9px]"
         />
+      )}
+
+      {showCreatedDates && (
+        <span className="w-12 shrink-0 text-right text-muted-foreground text-xs tabular-nums">
+          {formatDateShort(task.createdAt)}
+        </span>
       )}
     </>
   );

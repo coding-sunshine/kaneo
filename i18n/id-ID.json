@@ -759,7 +759,9 @@
 			"priority": "Prioritas",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Tampilkan gambar yang diatur proyek di belakang papannya.",
-			"advancedTitle": "Lanjutan"
+			"advancedTitle": "Lanjutan",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Dikelola oleh organisasi Anda.",

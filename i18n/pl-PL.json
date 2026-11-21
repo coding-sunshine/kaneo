@@ -1701,7 +1701,9 @@
 			"weekStartsOnSunday": "Niedziela",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Pokazuj obraz ustawiony przez projekt za jego tablicą.",
-			"advancedTitle": "Zaawansowane"
+			"advancedTitle": "Zaawansowane",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Zarządzane przez Twoją organizację.",

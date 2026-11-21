@@ -759,7 +759,9 @@
 			"priority": "优先级",
 			"projectBackgrounds": "项目背景",
 			"projectBackgroundsDescription": "显示项目为看板设置的背景图片。",
-			"advancedTitle": "高级"
+			"advancedTitle": "高级",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "由你的组织管理。",

@@ -767,7 +767,9 @@
 			"priority": "Приоритет",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Прикажи ја сликата што проектот ја поставува зад својата табла.",
-			"advancedTitle": "Напредно"
+			"advancedTitle": "Напредно",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Се управува од твојата организација.",

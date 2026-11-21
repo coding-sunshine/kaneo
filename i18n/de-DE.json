@@ -930,7 +930,9 @@
 			"priority": "Priorität",
 			"projectBackgrounds": "Projekthintergründe",
 			"projectBackgroundsDescription": "Das Hintergrundbild eines Projekts hinter seinem Board anzeigen.",
-			"advancedTitle": "Erweitert"
+			"advancedTitle": "Erweitert",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Von deiner Organisation verwaltet.",

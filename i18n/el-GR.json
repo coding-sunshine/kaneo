@@ -767,7 +767,9 @@
 			"priority": "Προτεραιότητα",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Εμφάνιση της εικόνας που ορίζει ένα έργο πίσω από τον πίνακά του.",
-			"advancedTitle": "Σύνθετα"
+			"advancedTitle": "Σύνθετα",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Διαχειρίζεται από τον οργανισμό σας.",
