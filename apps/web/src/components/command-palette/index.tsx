@@ -37,6 +37,7 @@ import CreateProjectModal from "../shared/modals/create-project-modal";
 type PaletteActionItem = {
   value: string;
   label: string;
+  badge?: string;
   shortcutId?: ShortcutId;
   onRun: () => void;
 };
@@ -94,6 +95,7 @@ function CommandPalette() {
       projectId?: string;
       taskNumber?: number;
       projectSlug?: string;
+      archivedAt?: string | null;
     }[];
     return results
       .filter((r) => r.type === "task" && r.projectId && workspace?.id)
@@ -101,6 +103,7 @@ function CommandPalette() {
         // Starts with the query so the palette's own filter keeps the row.
         value: `${query} ${r.id}`,
         label: `${r.projectSlug ?? ""}-${r.taskNumber ?? ""} ${r.title}`.trim(),
+        badge: r.archivedAt ? t("tasks:detail.archived.badge") : undefined,
         onRun: () =>
           navigate({
             to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
@@ -111,7 +114,7 @@ function CommandPalette() {
             },
           }),
       }));
-  }, [query, searchData?.results, navigate, workspace?.id]);
+  }, [query, searchData?.results, navigate, workspace?.id, t]);
 
   const groupedItems = useMemo<PaletteGroup[]>(
     () => [
@@ -256,6 +259,11 @@ function CommandPalette() {
                               className="px-3"
                             >
                               <span className="flex-1">{item.label}</span>
+                              {item.badge && (
+                                <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                                  {item.badge}
+                                </span>
+                              )}
                               {item.shortcutId && (
                                 <CommandShortcut>
                                   <ShortcutKeys
