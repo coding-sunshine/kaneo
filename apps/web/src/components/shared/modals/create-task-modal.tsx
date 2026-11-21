@@ -73,6 +73,7 @@ import { uploadDraftAsset } from "@/lib/upload-draft-asset";
 import { formatDateMedium } from "@/lib/format";
 import { getInitials } from "@/lib/get-initials";
 import { resolveLabelColor } from "@/lib/label-color";
+import { CreateTaskWorkProjectPicker } from "@/components/work-project/create-task-work-project-picker";
 import { getPriorityIcon } from "@/lib/priority";
 import { toast } from "@/lib/toast";
 import { useAutoGrowTextarea } from "@/hooks/use-auto-grow-textarea";
@@ -248,6 +249,10 @@ function CreateTaskModalContent({
   const [dueDateOpen, setDueDateOpen] = useState(false);
   const [projectOpen, setProjectOpen] = useState(false);
   const [priorityOpen, setPriorityOpen] = useState(false);
+  const [workProjectId, setWorkProjectId] = useState<string | null>(null);
+  const [workProjectMilestoneId, setWorkProjectMilestoneId] = useState<
+    string | null
+  >(null);
   const [assigneeOpen, setAssigneeOpen] = useState(false);
   const [createMore, setCreateMore] = useState(false);
   const [labels, setLabels] = useState<Label[]>([]);
@@ -571,6 +576,8 @@ function CreateTaskModalContent({
           startDate: startDate ? startDate.toISOString() : undefined,
           dueDate: dueDate ? dueDate.toISOString() : undefined,
           recurrence: canSetRecurrence ? (recurrence ?? undefined) : undefined,
+          workProjectId: workProjectId ?? undefined,
+          workProjectMilestoneId: workProjectMilestoneId ?? undefined,
           status: submitStatus,
           draftAssetIds: stagedAssetsRef.current.filter((id) =>
             description.includes(`/asset/${id}`),
@@ -614,6 +621,8 @@ function CreateTaskModalContent({
         setTitle("");
         setDescription("");
         setPriority("no-priority");
+        setWorkProjectId(null);
+        setWorkProjectMilestoneId(null);
         setAssigneeId("");
         setStartDate(undefined);
         setDueDate(undefined);
@@ -1012,6 +1021,16 @@ function CreateTaskModalContent({
                   </div>
                 </PopoverContent>
               </Popover>
+
+              <CreateTaskWorkProjectPicker
+                workspaceId={workspace?.id ?? ""}
+                workProjectId={workProjectId}
+                milestoneId={workProjectMilestoneId}
+                onChange={(projectId, milestoneId) => {
+                  setWorkProjectId(projectId);
+                  setWorkProjectMilestoneId(milestoneId);
+                }}
+              />
 
               <Popover open={assigneeOpen} onOpenChange={setAssigneeOpen}>
                 <PopoverTrigger asChild>

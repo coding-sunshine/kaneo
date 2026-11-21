@@ -44,6 +44,8 @@ type Task = {
   assigneeName: string | null;
   assigneeImage?: string | null;
   projectId: string;
+  workProjectId?: string | null;
+  workProjectMilestoneId?: string | null;
   columnId?: string | null;
   isSubtask?: boolean;
   subtaskCounts?: { completed: number; total: number };

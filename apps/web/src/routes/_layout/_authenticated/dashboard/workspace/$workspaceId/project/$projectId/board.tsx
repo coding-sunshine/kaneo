@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/empty";
 import { SearchXIcon } from "lucide-react";
 import ListView from "@/components/list-view";
+import { useGetWorkProjects } from "@/hooks/queries/work-project/use-get-work-projects";
 import { groupProjectBy } from "@/lib/group-project";
 import PageTitle from "@/components/page-title";
 import { BoardLoadError } from "@/components/project/board-load-error";
@@ -191,16 +192,21 @@ function RouteComponent() {
 
   const groupBy = useUserPreferencesStore((state) => state.listGroupBy);
   const grouped = viewMode === "list" && groupBy !== "status";
+  const { data: workProjects } = useGetWorkProjects(workspaceId);
   const listProject = useMemo(
     () =>
       sortedProject && grouped
-        ? groupProjectBy(sortedProject, groupBy, (key) =>
-            key === "display.unassigned"
-              ? t("tasks:display.noAssignee")
-              : t(`tasks:${key}`),
+        ? groupProjectBy(
+            sortedProject,
+            groupBy,
+            (key) =>
+              key === "display.unassigned"
+                ? t("tasks:display.noAssignee")
+                : t(`tasks:${key}`),
+            (id) => workProjects?.find((item) => item.id === id)?.name,
           )
         : sortedProject,
-    [sortedProject, grouped, groupBy, t],
+    [sortedProject, grouped, groupBy, t, workProjects],
   );
 
   return (

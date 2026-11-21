@@ -125,6 +125,11 @@ export function taskMatchesFilters(
         }) ?? false,
     ],
     [
+      "workProject",
+      filters.workProject,
+      () => filters.workProject?.includes(task.workProjectId ?? "") ?? false,
+    ],
+    [
       "labels",
       filters.labels,
       () =>

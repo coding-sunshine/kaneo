@@ -82,7 +82,10 @@ function ListView({
     isLoading: relationsLoading,
     isError: relationsFailed,
     refetch: refetchRelations,
-  } = useGetProjectTaskRelations(project?.id ?? "");
+    // A merged cross-team board (project issues tab) has no relations endpoint.
+  } = useGetProjectTaskRelations(
+    project?.id.startsWith("work-project:") ? "" : (project?.id ?? ""),
+  );
 
   const subtaskChildren = useMemo(
     () => buildSubtaskChildren(relations ?? []),

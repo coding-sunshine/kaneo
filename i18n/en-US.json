@@ -2889,7 +2889,9 @@
 			"yourTeams": "Your teams",
 			"newIssue": "New issue",
 			"active": "Active",
-			"backlog": "Backlog"
+			"backlog": "Backlog",
+			"workProjects": "Projects",
+			"teamProjects": "Projects"
 		},
 		"projectList": {
 			"viewProject": "View Project",
@@ -3500,7 +3502,12 @@
 			"startDate": "Start date",
 			"noDate": "No date",
 			"dates": "Dates",
-			"project": "Project"
+			"project": "Project",
+			"team": "Team",
+			"workProject": "Project",
+			"addWorkProject": "Add to project",
+			"milestone": "Milestone",
+			"addMilestone": "Add to milestone"
 		},
 		"move": {
 			"title": "Move issue",
@@ -3583,6 +3590,16 @@
 					"orchid": "Orchid"
 				},
 				"editLabels": "Edit labels"
+			},
+			"workProject": {
+				"placeholder": "Set project...",
+				"none": "No project",
+				"updateError": "Could not update the project"
+			},
+			"milestone": {
+				"placeholder": "Set milestone...",
+				"none": "No milestone",
+				"updateError": "Could not update the milestone"
 			}
 		},
 		"backlog": {
@@ -3630,7 +3647,8 @@
 				"priority": "Priority",
 				"assignee": "Assignee",
 				"dueDate": "Due date",
-				"labels": "Labels"
+				"labels": "Labels",
+				"workProject": "Project"
 			},
 			"operators": {
 				"isAnyOf": "is any of",
@@ -3861,7 +3879,8 @@
 				"status": "Status",
 				"priority": "Priority",
 				"assignee": "Assignee",
-				"label": "Label"
+				"label": "Label",
+				"project": "Project"
 			},
 			"completedIssues": "Completed issues",
 			"completed": {
@@ -3887,7 +3906,8 @@
 			"columnOptions": "Column options",
 			"hideColumn": "Hide column",
 			"selectAllInColumn": "Select all in column",
-			"useProjectDefault": "Use project default"
+			"useProjectDefault": "Use project default",
+			"noProject": "No project"
 		},
 		"filterBar": {
 			"label": "Active filters",
@@ -3960,6 +3980,10 @@
 			"durationSeconds": "{{seconds, number}}s",
 			"durationMinutes": "{{minutes, number}}m",
 			"durationHoursMinutes": "{{hours, number}}h {{minutes, number}}m"
+		},
+		"createModal": {
+			"project": "Project",
+			"milestone": "Milestone"
 		}
 	},
 	"invitations": {
@@ -4127,6 +4151,98 @@
 			"description": "Contact an administrator to restore access.",
 			"otherWorkspaces": "Go to workspaces",
 			"manage": "Manage workspaces"
+		},
+		"workProject": {
+			"pageTitle": "Projects",
+			"newProject": "New project",
+			"allProjects": "All projects",
+			"noUpdates": "No updates",
+			"loadError": "Could not load projects.",
+			"notFound": "Project not found.",
+			"empty": "No projects yet",
+			"emptyDescription": "Projects group issues across teams toward a shared goal.",
+			"columns": {
+				"name": "Name",
+				"health": "Health",
+				"priority": "Priority",
+				"lead": "Lead",
+				"targetDate": "Target date",
+				"issues": "Issues",
+				"status": "Status"
+			},
+			"health": {
+				"onTrack": "On track",
+				"atRisk": "At risk",
+				"offTrack": "Off track"
+			},
+			"status": {
+				"backlog": "Backlog",
+				"planned": "Planned",
+				"started": "In progress",
+				"paused": "Paused",
+				"completed": "Completed",
+				"canceled": "Canceled"
+			},
+			"noLead": "No lead",
+			"noDate": "No date",
+			"create": {
+				"title": "New project",
+				"name": "Project name",
+				"summary": "Add a short summary...",
+				"description": "Write a description, a project brief, or collect ideas...",
+				"submit": "Create project",
+				"cancel": "Cancel",
+				"error": "Could not create the project",
+				"created": "Project created"
+			},
+			"fields": {
+				"status": "Status",
+				"priority": "Priority",
+				"lead": "Lead",
+				"members": "Members",
+				"teams": "Teams",
+				"startDate": "Start date",
+				"targetDate": "Target date",
+				"health": "Health",
+				"search": "Search...",
+				"none": "None",
+				"membersCount_one": "{{count}} member",
+				"membersCount_other": "{{count}} members",
+				"teamsCount_one": "{{count}} team",
+				"teamsCount_other": "{{count}} teams"
+			},
+			"tabs": {
+				"overview": "Overview",
+				"issues": "Issues"
+			},
+			"detail": {
+				"titleLabel": "Project name",
+				"summaryPlaceholder": "Add a short summary...",
+				"descriptionPlaceholder": "Write a description, a project brief, or collect ideas...",
+				"properties": "Properties",
+				"updateError": "Could not save the project",
+				"delete": "Delete project",
+				"deleteConfirmTitle": "Delete this project?",
+				"deleteConfirmDescription": "Issues stay in their teams but lose this project and its milestones.",
+				"deleted": "Project deleted",
+				"progress": "{{done}} of {{total}} issues done"
+			},
+			"issues": {
+				"empty": "No issues in this project",
+				"emptyDescription": "Add an issue to this project from its detail panel or the new issue dialog."
+			},
+			"milestones": {
+				"title": "Milestones",
+				"add": "Add milestone",
+				"name": "Milestone name",
+				"empty": "No milestones yet",
+				"edit": "Edit milestone",
+				"delete": "Delete milestone",
+				"save": "Save",
+				"cancel": "Cancel",
+				"error": "Could not save the milestone",
+				"noDate": "No target date"
+			}
 		}
 	},
 	"team": {

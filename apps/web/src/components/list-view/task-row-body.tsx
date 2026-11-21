@@ -6,6 +6,7 @@ import TaskPriorityPopover from "@/components/task/task-priority-popover";
 import { TaskPullRequests } from "@/components/task/task-pull-requests";
 import { TaskRecurrenceBadge } from "@/components/task/task-recurrence-badge";
 import { AssigneeButton } from "@/components/task-chips/assignee-button";
+import { WorkProjectChip } from "@/components/work-project/work-project-chip";
 import { ChecklistChip } from "@/components/task-chips/checklist-chip";
 import { DueDateChip } from "@/components/task-chips/due-date-chip";
 import { LabelChips } from "@/components/task-chips/label-chips";
@@ -124,6 +125,10 @@ export function TaskRowBody({
 
       <div className="flex shrink-0 items-center justify-end gap-1">
         <CardFieldList fields={cardFields} max={3} />
+        <WorkProjectChip
+          workProjectId={task.workProjectId}
+          workspaceId={workspaceId}
+        />
         {showLabels && (
           <LabelChips task={task} workspaceId={workspaceId} max={2} />
         )}

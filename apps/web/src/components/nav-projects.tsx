@@ -33,6 +33,7 @@ import {
   ChevronRight,
   CircleArrowDown,
   Folder,
+  Box,
   Layers,
   ArchiveIcon,
   Forward,
@@ -561,6 +562,20 @@ function ProjectSubNav({
         >
           <Layers aria-hidden="true" />
           <span>{t("navigation:sidebar.issues")}</span>
+        </SidebarMenuSubButton>
+      </SidebarMenuSubItem>
+      <SidebarMenuSubItem>
+        <SidebarMenuSubButton
+          isActive={isCurrent && pathname.endsWith("/projects")}
+          render={
+            <Link
+              to="/dashboard/workspace/$workspaceId/project/$projectId/projects"
+              params={{ workspaceId, projectId }}
+            />
+          }
+        >
+          <Box aria-hidden="true" />
+          <span>{t("navigation:sidebar.teamProjects")}</span>
         </SidebarMenuSubButton>
       </SidebarMenuSubItem>
     </SidebarMenuSub>

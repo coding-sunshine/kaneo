@@ -29,6 +29,7 @@ vi.mock("@/components/project/task-filters/use-task-filter-options", () => ({
   useTaskFilterOptions: () => ({
     members: [{ userId: "member", user: { name: "Member" } }],
     labels: [{ id: "label", name: "Label", color: "red" }],
+    workProjects: [],
     customFields: [],
     usedCustomFieldValues: {},
   }),

@@ -1,6 +1,13 @@
 import { parseDateCondition } from "@/lib/task-filters/date-condition";
 import { formatDateCondition } from "./format-date-condition";
-import { CalendarDays, CircleDot, Layers, Tag, UserRound } from "lucide-react";
+import {
+  Box,
+  CalendarDays,
+  CircleDot,
+  Layers,
+  Tag,
+  UserRound,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getColumnIcon } from "@/lib/column";
 import { getPriorityLabel } from "@/lib/i18n/domain";
@@ -18,6 +25,7 @@ import type { ProjectWithTasks } from "@/types/project";
 import type Task from "@/types/task";
 import { customFieldIcon } from "@/components/custom-fields/custom-field-icon";
 import { formatCustomFieldValue } from "@/components/custom-fields/format-custom-field-value";
+import { WorkProjectIcon } from "@/components/work-project/work-project-icon";
 import { PriorityGlyph } from "@/components/task-chips/priority-glyph";
 import type { FilterSubject, TaskFilterControls } from "./filter-subject";
 import { LabelFilterDot } from "./label-filter-dot";
@@ -125,6 +133,7 @@ export function useFilterSubjects({
     status: countValues(tasks, (task) => [task.status]),
     assignee: countValues(tasks, (task) => [task.userId]),
     priority: countValues(tasks, (task) => [task.priority]),
+    workProject: countValues(tasks, (task) => [task.workProjectId]),
     labels: countValues(tasks, (task) =>
       (task.labels ?? []).map((label) =>
         groupIdByLabel.get(labelGroupKey(label)),
@@ -209,6 +218,19 @@ export function useFilterSubjects({
       },
       "include",
     ),
+    subject("workProject", {
+      label: t("tasks:boardFilters.subjects.workProject"),
+      icon: <Box />,
+      options: (options.workProjects ?? []).map((project) => ({
+        value: project.id,
+        label: project.name,
+        icon: <WorkProjectIcon icon={project.icon} color={project.color} />,
+        count: counts.workProject[project.id],
+      })),
+      selected: filters.workProject ?? [],
+      onToggle: (value) => toggleFilter("workProject", value),
+      onClear: () => updateFilter("workProject", null),
+    }),
     ...(projectGroups.length > 0
       ? [
           subject(

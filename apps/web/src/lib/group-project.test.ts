@@ -33,3 +33,29 @@ describe("groupProjectBy", () => {
     expect(columns[0].tasks).toHaveLength(2);
   });
 });
+
+const wpTask = (id: string, workProjectId?: string) => ({ id, workProjectId });
+const wpBoard = {
+  columns: [
+    { id: "a", tasks: [wpTask("1", "p1"), wpTask("2")] },
+    { id: "b", tasks: [wpTask("3", "p1"), wpTask("4", "p2")] },
+  ],
+} as never;
+
+describe("groupProjectBy project", () => {
+  it("buckets tasks by work project, no project last", () => {
+    const grouped = groupProjectBy(
+      wpBoard,
+      "project",
+      (key) => key,
+      (id) => ({ p1: "Zeta", p2: "Alpha" })[id],
+    );
+    expect(
+      grouped.columns.map((c) => [c.name, c.tasks.map((t) => t.id)]),
+    ).toEqual([
+      ["Alpha", ["4"]],
+      ["Zeta", ["1", "3"]],
+      ["display.noProject", ["2"]],
+    ]);
+  });
+});

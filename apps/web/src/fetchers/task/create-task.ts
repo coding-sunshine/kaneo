@@ -19,6 +19,10 @@ async function createTask(
   customFields?: { fieldId: string; value: string }[],
   draftAssetIds?: string[],
   recurrence?: CreateTaskRequest["recurrence"],
+  workProject?: {
+    workProjectId?: string | null;
+    workProjectMilestoneId?: string | null;
+  },
 ) {
   if (!projectId) {
     throw new Error("No project selected for task creation");
@@ -36,6 +40,13 @@ async function createTask(
       recurrence,
       customFields,
       draftAssetIds,
+      ...(workProject?.workProjectId
+        ? {
+            workProjectId: workProject.workProjectId,
+            workProjectMilestoneId:
+              workProject.workProjectMilestoneId ?? undefined,
+          }
+        : {}),
     },
     param: { projectId },
   });

@@ -20,6 +20,7 @@ import { dueDateTextClass } from "./due-date-text-class";
 import { LabelsValue } from "./labels-value";
 import { PropertyRow } from "./property-row";
 import { PropertyValue } from "./property-value";
+import { WorkProjectRows } from "./work-project-rows";
 import { useTaskProperties } from "./use-task-properties";
 
 type PropertiesRailProps = {
@@ -113,6 +114,8 @@ export function PropertiesRail({
           </TaskLabelsPopover>
         </PropertyRow>
 
+        <WorkProjectRows task={task} workspaceId={workspaceId} />
+
         <PropertyRow label={t("tasks:properties.dates")} align="start">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <TaskStartDatePopover task={task}>
@@ -154,7 +157,7 @@ export function PropertiesRail({
           </div>
         </PropertyRow>
 
-        <PropertyRow label={t("tasks:properties.project")}>
+        <PropertyRow label={t("tasks:properties.team")}>
           {canMoveTask ? (
             <TaskMovePopover task={task} workspaceId={workspaceId}>
               <PropertyValue data-task-action="move" shortcutId="moveToProject">

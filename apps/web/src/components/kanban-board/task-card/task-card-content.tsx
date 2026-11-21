@@ -1,6 +1,7 @@
 import { Trash2Icon } from "lucide-react";
 import { memo, type TouchEvent, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { WorkProjectChip } from "@/components/work-project/work-project-chip";
 import { TaskPullRequests } from "@/components/task/task-pull-requests";
 import { TaskRecurrenceBadge } from "@/components/task/task-recurrence-badge";
 import {
@@ -217,6 +218,10 @@ function TaskCardContent({
                 {showLabels && (
                   <LabelChips task={task} workspaceId={workspaceId} />
                 )}
+                <WorkProjectChip
+                  workProjectId={task.workProjectId}
+                  workspaceId={workspaceId}
+                />
                 <TaskPullRequests
                   externalLinks={task.externalLinks}
                   className={cn(taskChipClass, "font-normal")}

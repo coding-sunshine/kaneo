@@ -27,6 +27,9 @@ vi.mock("react-i18next", async (importOriginal) => ({
 vi.mock("@/hooks/queries/label/use-get-labels-by-workspace", () => ({
   default: () => ({ data: [] }),
 }));
+vi.mock("@/hooks/queries/work-project/use-get-work-projects", () => ({
+  useGetWorkProjects: () => ({ data: [] }),
+}));
 vi.mock("@/hooks/queries/task/use-get-tasks", () => ({
   useGetTasks: () => ({
     data: m.project,

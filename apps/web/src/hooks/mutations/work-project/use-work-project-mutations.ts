@@ -1,0 +1,63 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import createWorkProject from "@/fetchers/work-project/create-work-project";
+import deleteWorkProject from "@/fetchers/work-project/delete-work-project";
+import {
+  createMilestone,
+  deleteMilestone,
+  type UpdateMilestoneInput,
+  updateMilestone,
+  type CreateMilestoneInput,
+} from "@/fetchers/work-project/milestones";
+import type { UpdateWorkProjectInput } from "@/fetchers/work-project/types";
+import updateWorkProject from "@/fetchers/work-project/update-work-project";
+import { invalidateWorkProjects } from "./invalidate-work-projects";
+
+export function useCreateWorkProject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createWorkProject,
+    onSuccess: () => invalidateWorkProjects(queryClient),
+  });
+}
+
+export function useUpdateWorkProject(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (json: UpdateWorkProjectInput) => updateWorkProject(id, json),
+    onSuccess: () => invalidateWorkProjects(queryClient, id),
+  });
+}
+
+export function useDeleteWorkProject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteWorkProject,
+    onSuccess: () => invalidateWorkProjects(queryClient),
+  });
+}
+
+export function useCreateMilestone(workProjectId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (json: CreateMilestoneInput) =>
+      createMilestone(workProjectId, json),
+    onSuccess: () => invalidateWorkProjects(queryClient, workProjectId),
+  });
+}
+
+export function useUpdateMilestone(workProjectId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...json }: UpdateMilestoneInput & { id: string }) =>
+      updateMilestone(id, json),
+    onSuccess: () => invalidateWorkProjects(queryClient, workProjectId),
+  });
+}
+
+export function useDeleteMilestone(workProjectId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteMilestone,
+    onSuccess: () => invalidateWorkProjects(queryClient, workProjectId),
+  });
+}

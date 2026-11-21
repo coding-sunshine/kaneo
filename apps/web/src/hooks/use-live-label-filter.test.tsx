@@ -144,6 +144,7 @@ describe("saved label filters", () => {
             options: {
               labels: [label],
               members: [],
+              workProjects: [],
               customFields: [],
               usedCustomFieldValues: {},
             },

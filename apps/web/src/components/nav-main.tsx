@@ -41,7 +41,9 @@ function NavItems({ items, pathname }: { items: NavItem[]; pathname: string }) {
         <SidebarMenuItem key={item.url}>
           <SidebarMenuButton
             tooltip={item.title}
-            isActive={pathname === item.url}
+            isActive={
+              pathname === item.url || pathname.startsWith(`${item.url}/`)
+            }
             onClick={() => navigate({ to: item.url })}
           >
             <item.icon aria-hidden="true" />
@@ -105,7 +107,7 @@ export function NavMain() {
     {
       title: t("navigation:sidebar.projects"),
       icon: Box,
-      url: `${homeUrl}/projects`,
+      url: `${homeUrl}/work-projects`,
     },
   ];
 
