@@ -4,6 +4,7 @@ import {
   ChevronRight,
   CircleUserRound,
   Box,
+  FileText,
   Inbox,
   Layers2,
   type LucideIcon,
@@ -91,6 +92,11 @@ export function NavMain() {
       icon: CircleUserRound,
       url: `${homeUrl}/my-tasks`,
       count: assignedTasks?.total,
+    },
+    {
+      title: t("navigation:sidebar.documents"),
+      icon: FileText,
+      url: `${homeUrl}/documents`,
     },
   ];
 

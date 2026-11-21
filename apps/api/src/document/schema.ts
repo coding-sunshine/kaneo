@@ -18,9 +18,9 @@ export const documentCommentParam = documentParam.extend({
 });
 
 export const listDocumentsQuery = z.object({
-  filter: z.enum(["mine", "shared"]).optional().openapi({
+  filter: z.enum(["recent", "mine", "shared"]).optional().openapi({
     description:
-      "mine: your private and workspace documents. shared: documents others shared with you or the workspace.",
+      "recent: documents you own, edited or were shared. mine: documents you own. shared: documents shared with you directly.",
   }),
   projectId: z.string().optional().openapi({ description: "Team documents" }),
   workProjectId: z.string().optional(),
@@ -95,6 +95,9 @@ const documentFields = {
   projectId: z.string().nullable(),
   workProjectId: z.string().nullable(),
   taskId: z.string().nullable(),
+  parentName: z.string().nullable().openapi({
+    description: "Team name, project name or issue key of the parent.",
+  }),
   ...person,
   createdAt: responseTimestamp,
   updatedAt: responseTimestamp,

@@ -3,8 +3,10 @@ import db from "../../database";
 import {
   documentShareTable,
   documentSubscriberTable,
+  documentTable,
   userTable,
 } from "../../database/schema";
+import { documentParentName } from "./list-documents";
 import { loadDocument } from "./load-document";
 
 export async function getDocument(
@@ -13,7 +15,7 @@ export async function getDocument(
   userId: string,
 ) {
   const doc = await loadDocument(workspaceId, id, userId);
-  const [shares, subscribers] = await Promise.all([
+  const [shares, subscribers, [parent]] = await Promise.all([
     db
       .select({
         userId: documentShareTable.userId,
@@ -29,6 +31,10 @@ export async function getDocument(
       .select({ userId: documentSubscriberTable.userId })
       .from(documentSubscriberTable)
       .where(eq(documentSubscriberTable.documentId, id)),
+    db
+      .select({ name: documentParentName })
+      .from(documentTable)
+      .where(eq(documentTable.id, id)),
   ]);
   const personIds = [doc.creatorId, doc.updatedById].filter(
     (value): value is string => value !== null,
@@ -57,6 +63,7 @@ export async function getDocument(
     projectId: doc.projectId,
     workProjectId: doc.workProjectId,
     taskId: doc.taskId,
+    parentName: parent?.name ?? null,
     generalAccess: doc.generalAccess,
     creatorId: doc.creatorId,
     creatorName: person(doc.creatorId)?.name ?? null,

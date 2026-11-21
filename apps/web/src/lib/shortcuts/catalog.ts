@@ -153,6 +153,10 @@ export const SHORTCUTS = {
     scope: "view",
   },
 
+  documentsRecent: { keys: ["1"], category: "views", scope: "view" },
+  documentsMine: { keys: ["2"], category: "views", scope: "view" },
+  documentsShared: { keys: ["3"], category: "views", scope: "view" },
+
   addFilter: { keys: ["f"], category: "filters", scope: "view" },
   clearAllFilters: {
     keys: ["alt+shift+f"],

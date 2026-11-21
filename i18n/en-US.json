@@ -2928,7 +2928,8 @@
 			"upcomingCycle": "Upcoming",
 			"views": "Views",
 			"favorites": "Favorites",
-			"teamHome": "Home"
+			"teamHome": "Home",
+			"documents": "Documents"
 		},
 		"projectList": {
 			"viewProject": "View Project",
@@ -3098,7 +3099,10 @@
 				"editorNumberedList": "Numbered list",
 				"editorCodeBlock": "Code block",
 				"editorUndo": "Undo",
-				"editorRedo": "Redo"
+				"editorRedo": "Redo",
+				"documentsRecent": "View Recent documents",
+				"documentsMine": "View My documents",
+				"documentsShared": "View Shared with me"
 			},
 			"title": "Keyboard Shortcuts",
 			"searchPlaceholder": "Search shortcuts",
@@ -3152,6 +3156,110 @@
 		},
 		"header": {
 			"filter": "Filter"
+		},
+		"documents": {
+			"title": "Documents",
+			"pageTitle": "Documents",
+			"newDocument": "New document",
+			"untitled": "Untitled",
+			"tabs": {
+				"recent": "Recent",
+				"mine": "My documents",
+				"shared": "Shared with me"
+			},
+			"tabHints": {
+				"recent": "Documents you work on and documents shared with you",
+				"mine": "Documents you own, private or in a team",
+				"shared": "Documents shared with you directly, including personal documents and documents from private teams you're not in"
+			},
+			"viewTab": "View {{name}}",
+			"empty": {
+				"recent": "Pick up where you left off. Documents you work on and documents shared with you appear here.",
+				"mine": "Draft on your own or write for your team. Documents you own appear here, private or in a team.",
+				"shared": "Work on documents with others. Documents people share with you appear here, including private ones and ones from teams you're not in."
+			},
+			"updated": "Updated {{time}}",
+			"metadata": "Document metadata; Updated {{time}}; Owned by {{owner}}",
+			"titlePlaceholder": "Document title",
+			"bodyPlaceholder": "Write something, or press / for commands…",
+			"options": "Document options",
+			"moveTo": "Move to",
+			"rename": "Rename…",
+			"shareMenu": "Share…",
+			"copyLink": "Copy link",
+			"copyUrl": "Copy document URL",
+			"linkCopied": "Document URL copied to clipboard",
+			"favorite": "Favorite",
+			"unfavorite": "Unfavorite",
+			"showHistory": "Show document history",
+			"hideHistory": "Hide document history",
+			"delete": "Delete",
+			"deleted": "Document deleted",
+			"undo": "Undo",
+			"restored": "Document restored",
+			"showComments": "Show comments",
+			"closeComments": "Close comments",
+			"subscribers": "Change document subscribers",
+			"subscribe": "Subscribe",
+			"unsubscribe": "Unsubscribe",
+			"subscribed": "You'll be notified about changes",
+			"unsubscribed": "You won't be notified about changes",
+			"notFound": "Document not found",
+			"notFoundHint": "It may have been deleted, or you don't have access to it.",
+			"viewOnly": "View only",
+			"saving": "Saving…",
+			"saveFailed": "Couldn't save changes",
+			"retry": "Retry",
+			"scopes": {
+				"private": "My documents",
+				"workspace": "Workspace",
+				"teams": "Teams",
+				"projects": "Projects"
+			},
+			"moved": "Document moved",
+			"share": {
+				"title": "Share",
+				"peopleWithAccess": "People with access",
+				"owner": "Owner",
+				"generalAccess": "General access",
+				"everyoneIn": "Everyone in {{name}}",
+				"private": "Private",
+				"privateHint": "Only people invited can open this document",
+				"addPeople": "Add people…",
+				"noPeople": "No people found",
+				"remove": "Remove access",
+				"access": {
+					"edit": "Can edit",
+					"comment": "Can comment",
+					"view": "Can view"
+				}
+			},
+			"comments": {
+				"title": "Comments",
+				"empty": "No comments yet",
+				"placeholder": "Leave a comment…",
+				"reply": "Reply…",
+				"send": "Send",
+				"resolve": "Resolve thread",
+				"reopen": "Reopen thread",
+				"resolved": "Resolved",
+				"showResolved": "Show resolved",
+				"hideResolved": "Hide resolved",
+				"options": "Comment options",
+				"edit": "Edit",
+				"delete": "Delete comment",
+				"save": "Save",
+				"cancel": "Cancel"
+			},
+			"history": {
+				"title": "Document history",
+				"empty": "No earlier versions",
+				"restore": "Restore this version",
+				"restored": "Version restored",
+				"close": "Close history",
+				"viewing": "Version from {{time}} by {{name}}",
+				"current": "Current"
+			}
 		}
 	},
 	"notifications": {

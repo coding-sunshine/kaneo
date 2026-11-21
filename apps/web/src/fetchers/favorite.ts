@@ -1,7 +1,10 @@
 import { client } from "@kaneo/libs";
 import { HttpError } from "@/lib/http-error";
 
-export type FavoriteTarget = { type: "project" | "view"; targetId: string };
+export type FavoriteTarget = {
+  type: "project" | "view" | "document";
+  targetId: string;
+};
 
 export async function getFavorites(workspaceId: string) {
   const response = await client.favorite.workspace[":workspaceId"].$get({

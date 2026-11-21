@@ -22,6 +22,8 @@ import { cn } from "@/lib/cn";
 
 type WorkspaceLayoutProps = {
   title: string;
+  /** Replaces the workspace › title breadcrumb, e.g. a document's parent. */
+  crumbs?: ReactNode;
   headerActions?: ReactNode;
   children: ReactNode;
   onCreateProject?: () => void;
@@ -30,6 +32,7 @@ type WorkspaceLayoutProps = {
 
 export default function WorkspaceLayout({
   title,
+  crumbs,
   headerActions,
   children,
   className,
@@ -56,36 +59,38 @@ export default function WorkspaceLayout({
               </Tooltip>
             </TooltipProvider>
             <div className="mx-1.5 h-4 w-px shrink-0 bg-border/80" />
-            <Breadcrumb className="flex min-w-0 items-center gap-1 text-xs">
-              <BreadcrumbList className="min-w-0 flex-nowrap">
-                {workspace?.name && (
-                  <>
-                    {/* The page title alone identifies the page on phones. */}
-                    <BreadcrumbItem className="hidden min-w-0 sm:inline-flex">
-                      <BreadcrumbLink
-                        render={
-                          <Link
-                            to="/dashboard/workspace/$workspaceId"
-                            params={{ workspaceId: workspace.id }}
-                          />
-                        }
-                        className="min-w-0 truncate"
-                      >
-                        <span className="text-xs font-normal text-card-foreground">
-                          {workspace.name}
-                        </span>
-                      </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator className="hidden sm:block" />
-                  </>
-                )}
-                <BreadcrumbItem className="min-w-0">
-                  <span className="truncate text-xs font-normal text-card-foreground">
-                    {title}
-                  </span>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+            {crumbs ?? (
+              <Breadcrumb className="flex min-w-0 items-center gap-1 text-xs">
+                <BreadcrumbList className="min-w-0 flex-nowrap">
+                  {workspace?.name && (
+                    <>
+                      {/* The page title alone identifies the page on phones. */}
+                      <BreadcrumbItem className="hidden min-w-0 sm:inline-flex">
+                        <BreadcrumbLink
+                          render={
+                            <Link
+                              to="/dashboard/workspace/$workspaceId"
+                              params={{ workspaceId: workspace.id }}
+                            />
+                          }
+                          className="min-w-0 truncate"
+                        >
+                          <span className="text-xs font-normal text-card-foreground">
+                            {workspace.name}
+                          </span>
+                        </BreadcrumbLink>
+                      </BreadcrumbItem>
+                      <BreadcrumbSeparator className="hidden sm:block" />
+                    </>
+                  )}
+                  <BreadcrumbItem className="min-w-0">
+                    <span className="truncate text-xs font-normal text-card-foreground">
+                      {title}
+                    </span>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+            )}
           </div>
           <div className={cn("flex shrink-0 items-center gap-1.5", className)}>
             {headerActions}

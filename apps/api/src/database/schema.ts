@@ -740,7 +740,7 @@ export const savedViewTable = pgTable(
   (table) => [index("saved_view_workspaceId_idx").on(table.workspaceId)],
 );
 
-// Per-user sidebar favorites. `type` is "project" (a team) or "view".
+// Per-user sidebar favorites. `type` is "project" (a team), "view" or "document".
 export const favoriteTable = pgTable(
   "favorite",
   {
@@ -759,7 +759,7 @@ export const favoriteTable = pgTable(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
-    type: text("type").$type<"project" | "view">().notNull(),
+    type: text("type").$type<"project" | "view" | "document">().notNull(),
     targetId: text("target_id").notNull(),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)

@@ -1437,6 +1437,36 @@ input:-webkit-autofill:active {
     padding-bottom: 0.8rem;
   }
 
+  /* Linear's document scale, measured from its editor: 15px body, roomy headings. */
+  .kaneo-document-body .kaneo-comment-editor-prose > p + p {
+    margin-top: 1rem;
+  }
+
+  .kaneo-document-body .kaneo-comment-editor-prose :is(h1, h2, h3) {
+    margin: 2rem 0 1rem;
+    font-weight: 600;
+  }
+
+  .kaneo-document-body .kaneo-comment-editor-prose > :first-child {
+    margin-top: 0;
+  }
+
+  .kaneo-document-body .kaneo-comment-editor-prose h1 {
+    font-size: 22px;
+    line-height: 30px;
+  }
+
+  .kaneo-document-body .kaneo-comment-editor-prose h2 {
+    font-size: 19px;
+    line-height: 28px;
+  }
+
+  .kaneo-document-body .kaneo-comment-editor-prose h3 {
+    margin: 1.5rem 0 0.375rem;
+    font-size: 17px;
+    line-height: 24px;
+  }
+
   .kaneo-comment-editor-prose p {
     margin: 0;
   }

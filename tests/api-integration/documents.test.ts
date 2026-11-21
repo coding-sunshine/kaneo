@@ -131,12 +131,20 @@ describe("API integration: documents", () => {
     const one = `/workspace/${ws}/${doc.id}`;
     await as(owner)(`${one}/location`, json("PUT", { scope: "workspace" }));
 
-    expect(
-      await (await as(other)(`/workspace/${ws}?filter=shared`)).json(),
-    ).toMatchObject([{ id: doc.id, scope: "workspace" }]);
+    // Linear's tabs: a workspace document is not "shared with me" and only
+    // reaches Recent once I work on it.
+    const list = async (filter: string) =>
+      (await as(other)(`/workspace/${ws}?filter=${filter}`)).json();
+    expect(await list("shared")).toEqual([]);
+    expect(await list("recent")).toEqual([]);
+    expect((await (await as(other)(one)).json()).role).toBe("edit");
     expect(
       (await as(other)(one, json("PATCH", { content: "<p>edit</p>" }))).status,
     ).toBe(200);
+    expect(await list("recent")).toMatchObject([
+      { id: doc.id, scope: "workspace" },
+    ]);
+    expect(await list("mine")).toEqual([]);
 
     await as(owner)(one, json("PATCH", { generalAccess: "view" }));
     expect((await (await as(other)(one)).json()).role).toBe("view");
@@ -154,12 +162,16 @@ describe("API integration: documents", () => {
         json("POST", { workspaceId: ws, title: "Team", projectId: project.id }),
       )
     ).json();
-    expect(doc).toMatchObject({ scope: "team", projectId: project.id });
+    expect(doc).toMatchObject({
+      scope: "team",
+      projectId: project.id,
+      parentName: project.name,
+    });
     expect(
       await (
         await as(other)(`/workspace/${ws}?projectId=${project.id}`)
       ).json(),
-    ).toHaveLength(1);
+    ).toMatchObject([{ id: doc.id, parentName: project.name }]);
 
     await db.insert(schema.workspaceMemberAccessTable).values({
       workspaceId: ws,

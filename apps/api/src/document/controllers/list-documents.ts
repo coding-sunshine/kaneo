@@ -5,6 +5,17 @@ import { documentTable, userTable } from "../../database/schema";
 import type { listDocumentsQuery } from "../schema";
 import { documentVisibility } from "../visibility";
 
+// Team name, project name or issue key, for breadcrumbs and list rows.
+export const documentParentName = sql<string | null>`CASE ${documentTable.scope}
+  WHEN 'team' THEN (SELECT name FROM project WHERE id = ${documentTable.projectId})
+  WHEN 'project' THEN (SELECT name FROM work_project WHERE id = ${documentTable.workProjectId})
+  WHEN 'issue' THEN (
+    SELECT p.slug || '-' || t.number FROM task AS t
+    JOIN project AS p ON p.id = t.project_id
+    WHERE t.id = ${documentTable.taskId}
+  )
+END`;
+
 export const documentSummaryColumns = {
   id: documentTable.id,
   workspaceId: documentTable.workspaceId,
@@ -15,6 +26,7 @@ export const documentSummaryColumns = {
   projectId: documentTable.projectId,
   workProjectId: documentTable.workProjectId,
   taskId: documentTable.taskId,
+  parentName: documentParentName,
   creatorId: documentTable.creatorId,
   creatorName: userTable.name,
   creatorImage: userTable.image,
@@ -44,23 +56,30 @@ function filterCondition(
       eq(documentTable.taskId, query.taskId),
     );
   }
+  const sharedWithMe = sql`EXISTS (
+    SELECT 1 FROM document_share AS shared_with_me
+    WHERE shared_with_me.document_id = ${documentTable.id}
+      AND shared_with_me.user_id = ${userId}
+  )`;
   if (query.filter === "mine") {
-    return and(
-      eq(documentTable.creatorId, userId),
-      sql`${documentTable.scope} IN ('private', 'workspace')`,
-    );
+    return eq(documentTable.creatorId, userId);
   }
   if (query.filter === "shared") {
     return and(
       or(isNull(documentTable.creatorId), ne(documentTable.creatorId, userId)),
-      or(
-        eq(documentTable.scope, "workspace"),
-        sql`EXISTS (
-          SELECT 1 FROM document_share AS shared_with_me
-          WHERE shared_with_me.document_id = ${documentTable.id}
-            AND shared_with_me.user_id = ${userId}
-        )`,
-      ),
+      sharedWithMe,
+    );
+  }
+  if (query.filter === "recent") {
+    return or(
+      eq(documentTable.creatorId, userId),
+      eq(documentTable.updatedById, userId),
+      sharedWithMe,
+      sql`EXISTS (
+        SELECT 1 FROM document_version AS my_edit
+        WHERE my_edit.document_id = ${documentTable.id}
+          AND my_edit.author_id = ${userId}
+      )`,
     );
   }
   return undefined;
