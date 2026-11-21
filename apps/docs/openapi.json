@@ -20228,6 +20228,16 @@
               }
             }
           },
+          "409": {
+            "description": "A milestone with this name already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "429": {
             "$ref": "#/components/responses/ApiKeyRateLimited"
           }

@@ -218,6 +218,13 @@ describe("API integration: work projects", () => {
         )
       ).status,
     ).toBe(409);
+    const rename = (name: string) =>
+      app.request(
+        `/api/work-project/milestone/${m2.id}`,
+        json("PUT", { name }),
+      );
+    expect((await rename("Alpha")).status).toBe(409);
+    expect((await rename("Beta")).status).toBe(200);
 
     const set = (
       id: string,

@@ -181,6 +181,7 @@ const updateMilestoneRoute = createRoute({
     200: jsonResponse("Milestone updated", workProjectMilestoneSchema),
     403: noAccess,
     404: errorResponse("Milestone not found"),
+    409: errorResponse("A milestone with this name already exists"),
   },
 });
 
