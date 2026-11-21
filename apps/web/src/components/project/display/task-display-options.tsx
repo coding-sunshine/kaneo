@@ -48,6 +48,13 @@ export function TaskDisplayOptions({
     (state) => state.setShowEmptyColumns,
   );
 
+  const showSubIssues = useUserPreferencesStore((s) => s.showSubIssues);
+  const setShowSubIssues = useUserPreferencesStore((s) => s.setShowSubIssues);
+  const showTriageIssues = useUserPreferencesStore((s) => s.showTriageIssues);
+  const setShowTriageIssues = useUserPreferencesStore(
+    (s) => s.setShowTriageIssues,
+  );
+
   const hiddenColumnIds = useUserPreferencesStore(
     (state) => state.hiddenColumnIds,
   );
@@ -84,6 +91,28 @@ export function TaskDisplayOptions({
           </div>
         </DisplaySection>
       )}
+      <DisplaySection>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm">{t("tasks:display.showSubIssues")}</span>
+            <Switch
+              checked={showSubIssues}
+              onCheckedChange={setShowSubIssues}
+              aria-label={t("tasks:display.showSubIssues")}
+            />
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm">
+              {t("tasks:display.showTriageIssues")}
+            </span>
+            <Switch
+              checked={showTriageIssues}
+              onCheckedChange={setShowTriageIssues}
+              aria-label={t("tasks:display.showTriageIssues")}
+            />
+          </div>
+        </div>
+      </DisplaySection>
       {layout === "cards" && (
         <DisplaySection>
           <div className="flex items-center justify-between gap-3">

@@ -3846,6 +3846,8 @@
 			"layout": "Layout",
 			"includeSubtasks": "Include sub-issues",
 			"showEmptyColumns": "Show empty columns",
+			"showSubIssues": "Show sub-issues",
+			"showTriageIssues": "Show triage issues",
 			"hiddenColumns": "Hidden columns",
 			"showColumn": "Show",
 			"showOptions": "Show options",

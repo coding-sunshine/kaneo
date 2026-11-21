@@ -43,6 +43,10 @@ type UserPreferencesStore = {
   toggleAssignees: () => void;
   showDueDates: boolean;
   showEmptyColumns: boolean;
+  showSubIssues: boolean;
+  setShowSubIssues: (show: boolean) => void;
+  showTriageIssues: boolean;
+  setShowTriageIssues: (show: boolean) => void;
   setShowEmptyColumns: (show: boolean) => void;
   listGroupBy: "status" | "priority" | "assignee";
   setListGroupBy: (groupBy: "status" | "priority" | "assignee") => void;
@@ -152,6 +156,10 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
         })),
       showEmptyColumns: false,
       setShowEmptyColumns: (show) => set({ showEmptyColumns: show }),
+      showSubIssues: false,
+      setShowSubIssues: (show) => set({ showSubIssues: show }),
+      showTriageIssues: false,
+      setShowTriageIssues: (show) => set({ showTriageIssues: show }),
       listGroupBy: "status",
       setListGroupBy: (listGroupBy) => set({ listGroupBy }),
       showStatus: true,
@@ -188,6 +196,8 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
           showStatus: true,
           listGroupBy: "status",
           showEmptyColumns: false,
+          showSubIssues: false,
+          showTriageIssues: false,
           showCreatedDates: true,
           showLabels: true,
           showTaskNumbers: true,

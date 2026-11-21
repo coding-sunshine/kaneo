@@ -40,8 +40,12 @@ const VIEW_CATEGORIES: Record<IssueView, StatusCategory[]> = {
 export function scopeProjectToView<T extends Pick<ProjectWithTasks, "columns">>(
   project: T,
   view: IssueView,
+  showTriage = false,
 ): T {
-  const allowed = VIEW_CATEGORIES[view];
+  const allowed: StatusCategory[] =
+    showTriage && view === "all"
+      ? ["triage", ...VIEW_CATEGORIES.all]
+      : VIEW_CATEGORIES[view];
   return {
     ...project,
     columns: project.columns.filter((column) =>
@@ -57,4 +61,26 @@ export function triageTasks(project: Pick<ProjectWithTasks, "columns">) {
     .filter(
       (task) => !task.snoozedUntil || new Date(task.snoozedUntil) <= new Date(),
     );
+}
+
+/**
+ * Linear hides sub-issues unless "Show sub-issues" is on. Returns the project
+ * without them and how many were dropped.
+ */
+export function hideSubIssues<T extends Pick<ProjectWithTasks, "columns">>(
+  project: T,
+  relations: readonly { targetTaskId: string; relationType: string }[],
+): { project: T; hidden: number } {
+  const children = new Set(
+    relations
+      .filter((r) => r.relationType === "subtask")
+      .map((r) => r.targetTaskId),
+  );
+  let hidden = 0;
+  const columns = project.columns.map((column) => {
+    const tasks = column.tasks.filter((task) => !children.has(task.id));
+    hidden += column.tasks.length - tasks.length;
+    return { ...column, tasks };
+  });
+  return { project: { ...project, columns }, hidden };
 }

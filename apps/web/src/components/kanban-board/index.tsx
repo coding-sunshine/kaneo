@@ -49,6 +49,8 @@ type KanbanBoardProps = {
   disableCollectionActions?: boolean;
   sortedByNumber?: boolean;
   sortedByPriority?: boolean;
+  /** Issues dropped upstream by display options (sub-issues, triage). */
+  hiddenIssueCount?: number;
 };
 
 function KanbanBoard({
@@ -57,6 +59,7 @@ function KanbanBoard({
   disableCollectionActions = false,
   sortedByNumber = false,
   sortedByPriority = false,
+  hiddenIssueCount: hiddenByDisplay = 0,
 }: KanbanBoardProps) {
   const isAutomaticallySorted = sortedByNumber || sortedByPriority;
   const queryClient = useQueryClient();
@@ -329,9 +332,11 @@ function KanbanBoard({
   const shownColumns = boardColumns.filter(
     (c) => !hiddenColumnIds.includes(columnKey(project.id, c.id)),
   );
-  const hiddenIssueCount = boardColumns
-    .filter((c) => hiddenColumnIds.includes(columnKey(project.id, c.id)))
-    .reduce((sum, c) => sum + c.tasks.length, 0);
+  const hiddenIssueCount =
+    hiddenByDisplay +
+    boardColumns
+      .filter((c) => hiddenColumnIds.includes(columnKey(project.id, c.id)))
+      .reduce((sum, c) => sum + c.tasks.length, 0);
   const visibleColumns =
     showEmptyColumns || shownColumns.every((c) => c.tasks.length === 0)
       ? shownColumns

@@ -30,7 +30,12 @@ import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
 import { useBoardSort } from "@/hooks/use-board-sort";
 import { cn } from "@/lib/cn";
 import { sortTasks } from "@/lib/sort-tasks";
-import { scopeProjectToView } from "@/lib/status-category";
+import {
+  hideSubIssues,
+  scopeProjectToView,
+  statusCategory,
+} from "@/lib/status-category";
+import useGetProjectTaskRelations from "@/hooks/queries/task-relation/use-get-project-task-relations";
 import { countColumnTasks } from "@/lib/task-filters/count-tasks";
 import { useBackgroundStore } from "@/store/background";
 import useProjectStore from "@/store/project";
@@ -111,10 +116,29 @@ function RouteComponent() {
   const { project: storedProject, setProject } = useProjectStore();
   const fullProject: ProjectWithTasks | undefined =
     storedProject?.id === projectId ? storedProject : data;
-  const project = useMemo(
-    () => fullProject && scopeProjectToView(fullProject, presetView ?? "all"),
-    [fullProject, presetView],
-  );
+  const showSubIssues = useUserPreferencesStore((s) => s.showSubIssues);
+  const showTriageIssues = useUserPreferencesStore((s) => s.showTriageIssues);
+  const { data: relations } = useGetProjectTaskRelations(projectId);
+  const { project, hiddenIssueCount } = useMemo(() => {
+    if (!fullProject) return { project: undefined, hiddenIssueCount: 0 };
+    const view = presetView ?? "all";
+    const scoped = scopeProjectToView(fullProject, view, showTriageIssues);
+    // Linear counts triage and sub-issues together in its "hidden" footer.
+    const triageHidden =
+      view === "all" && !showTriageIssues
+        ? fullProject.columns
+            .filter((c) => statusCategory(c) === "triage")
+            .reduce((sum, c) => sum + c.tasks.length, 0)
+        : 0;
+    if (showSubIssues || !relations) {
+      return { project: scoped, hiddenIssueCount: triageHidden };
+    }
+    const hidden = hideSubIssues(scoped, relations);
+    return {
+      project: hidden.project,
+      hiddenIssueCount: hidden.hidden + triageHidden,
+    };
+  }, [fullProject, presetView, showSubIssues, showTriageIssues, relations]);
   const viewMode = useUserPreferencesStore((state) => state.viewMode);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const { sort, setSort } = useBoardSort(projectId);
@@ -279,6 +303,7 @@ function RouteComponent() {
                 }
                 sortedByNumber={sort.field === "number"}
                 sortedByPriority={sort.field === "priority"}
+                hiddenIssueCount={hiddenIssueCount}
               />
             ) : (
               <ListView
