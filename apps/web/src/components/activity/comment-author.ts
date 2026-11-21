@@ -37,8 +37,11 @@ export function commentAuthor(
         email: undefined,
         image: comment.externalUserAvatar ?? undefined,
       },
+      // Once the comment belongs to its author, there is no importer to name.
       importedBy:
-        comment.userId && comment.externalSource !== "github"
+        comment.userId &&
+        comment.externalSource !== "github" &&
+        memberName !== comment.externalUserName
           ? memberName
           : undefined,
     };

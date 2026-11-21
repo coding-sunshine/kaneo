@@ -30,6 +30,16 @@ describe("commentAuthor", () => {
     });
   });
 
+  it("does not name an importer once the author owns the comment", () => {
+    expect(
+      commentAuthor(
+        { userId: "u1", externalSource: "linear", externalUserName: "Hardik" },
+        members,
+        labels,
+      ).importedBy,
+    ).toBeUndefined();
+  });
+
   it("does not name an importer for synced GitHub comments", () => {
     expect(
       commentAuthor({ userId: "u1", externalSource: "github" }, members, labels)
