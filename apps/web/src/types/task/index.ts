@@ -40,6 +40,11 @@ type Task = {
   updatedAt?: string;
   archivedAt?: string | null;
   snoozedUntil?: string | null;
+  /** Linear's workflow timestamps, stamped by the database on status changes. */
+  startedAt?: string | null;
+  completedAt?: string | null;
+  startedTriageAt?: string | null;
+  triagedAt?: string | null;
   creatorId?: string | null;
   userId: string | null;
   assigneeId: string | null;

@@ -2,9 +2,20 @@ import type { GroupBy } from "@/lib/group-project";
 import type { ProjectWithTasks } from "@/types/project";
 import type Task from "@/types/task";
 
-/** Linear's Insights measures that Kaneo has data for. */
-export type InsightMeasure = "count" | "age";
-export const INSIGHT_MEASURES: InsightMeasure[] = ["count", "age"];
+/** Linear's Insights measures that Kaneo has data for (no Effort: no estimates). */
+export type InsightMeasure =
+  | "count"
+  | "cycleTime"
+  | "leadTime"
+  | "triageTime"
+  | "age";
+export const INSIGHT_MEASURES: InsightMeasure[] = [
+  "count",
+  "cycleTime",
+  "leadTime",
+  "triageTime",
+  "age",
+];
 
 export type GroupFn = (
   project: ProjectWithTasks,
@@ -21,7 +32,7 @@ export type InsightSlice = {
   /** Sum of counts: the bar height. */
   value: number;
   points: InsightPoint[];
-  medianAge: number;
+  medianDays: number;
 };
 
 export type Insights = {
@@ -29,10 +40,27 @@ export type Insights = {
   slices: InsightSlice[];
   issueCount: number;
   maxValue: number;
-  maxAge: number;
+  maxDays: number;
 };
 
 const DAY = 86_400_000;
+
+const span = (from?: string | null, to?: string | null) =>
+  from && to ? Math.max(0, (Date.parse(to) - Date.parse(from)) / DAY) : null;
+
+/** Days per issue; null leaves the issue out, like Linear's automatic filters. */
+function measureDays(measure: InsightMeasure, task: Task, now: number) {
+  switch (measure) {
+    case "cycleTime":
+      return span(task.startedAt, task.completedAt);
+    case "leadTime":
+      return span(task.createdAt, task.completedAt);
+    case "triageTime":
+      return span(task.startedTriageAt, task.triagedAt);
+    default:
+      return Math.max(0, (now - Date.parse(task.createdAt)) / DAY);
+  }
+}
 
 function median(values: number[]) {
   if (values.length === 0) return 0;
@@ -46,12 +74,25 @@ function median(values: number[]) {
  * `segment`, reusing the list view's grouping so names match it.
  */
 export function computeInsights(
-  project: ProjectWithTasks,
+  source: ProjectWithTasks,
+  measure: InsightMeasure,
   slice: GroupBy,
   segment: GroupBy,
   group: GroupFn,
   now = Date.now(),
 ): Insights {
+  const days = new Map<string, number>();
+  for (const task of source.columns.flatMap((column) => column.tasks)) {
+    const value = measureDays(measure, task, now);
+    if (value !== null) days.set(task.id, value);
+  }
+  const project = {
+    ...source,
+    columns: source.columns.map((column) => ({
+      ...column,
+      tasks: column.tasks.filter((task) => days.has(task.id)),
+    })),
+  };
   const segmentColumns = group(project, segment).columns.filter(
     (column) => column.tasks.length > 0,
   );
@@ -69,8 +110,7 @@ export function computeInsights(
       const points = column.tasks.map((task) => {
         const segments = membership.get(task.id) ?? [0];
         for (const index of segments) counts[index] += 1;
-        const days = Math.max(0, (now - Date.parse(task.createdAt)) / DAY);
-        return { task, days, segment: segments[0] };
+        return { task, days: days.get(task.id) ?? 0, segment: segments[0] };
       });
       return {
         key: column.id,
@@ -78,7 +118,7 @@ export function computeInsights(
         counts,
         value: counts.reduce((sum, count) => sum + count, 0),
         points,
-        medianAge: median(points.map((point) => point.days)),
+        medianDays: median(points.map((point) => point.days)),
       };
     });
 
@@ -94,7 +134,7 @@ export function computeInsights(
     slices,
     issueCount: issueIds.size,
     maxValue: Math.max(0, ...slices.map((item) => item.value)),
-    maxAge: Math.max(
+    maxDays: Math.max(
       0,
       ...slices.flatMap((item) => item.points.map((point) => point.days)),
     ),

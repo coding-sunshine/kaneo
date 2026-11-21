@@ -4236,13 +4236,18 @@
 			"noSegment": "No segment",
 			"measures": {
 				"count": "Issue count",
+				"cycleTime": "Cycle time",
+				"leadTime": "Lead time",
+				"triageTime": "Triage time",
 				"age": "Issue age"
 			},
 			"issues": "Issues",
 			"share": "Share",
-			"medianAge": "Median age",
+			"median": "Median",
 			"days_one": "{{count}} day",
 			"days_other": "{{count}} days",
+			"hours_one": "{{count}} hour",
+			"hours_other": "{{count}} hours",
 			"empty": "No issues in this view",
 			"chartLabel": "{{measure}} by {{slice}}"
 		},

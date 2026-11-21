@@ -35,8 +35,8 @@ export function InsightsPanel({ project, group }: InsightsPanelProps) {
   const [slice, setSlice] = useState<GroupBy>("status");
   const [segment, setSegment] = useState<GroupBy>("none");
   const insights = useMemo(
-    () => computeInsights(project, slice, segment, group),
-    [project, slice, segment, group],
+    () => computeInsights(project, measure, slice, segment, group),
+    [project, measure, slice, segment, group],
   );
   const groupLabel = (option: GroupBy) =>
     option === "none"

@@ -1,9 +1,12 @@
+import { useTranslation } from "react-i18next";
 import type { Insights } from "@/lib/insights/compute-insights";
+import { formatDuration } from "@/lib/insights/format-duration";
 import { segmentColor } from "./segment-color";
 
-/** Issue age per issue, one column per slice. */
+/** The measured time per issue, one column per slice. */
 export function InsightsScatter({ insights }: { insights: Insights }) {
-  const max = insights.maxAge || 1;
+  const { t } = useTranslation();
+  const max = insights.maxDays || 1;
 
   return (
     <div className="flex h-44 gap-1.5 border-border/80 border-b">
@@ -12,7 +15,7 @@ export function InsightsScatter({ insights }: { insights: Insights }) {
           {slice.points.map((point, index) => (
             <span
               key={point.task.id}
-              title={`${point.task.title} · ${Math.round(point.days)}d`}
+              title={`${point.task.title} · ${formatDuration(t, point.days)}`}
               className="absolute size-1.5 -translate-x-1/2 translate-y-1/2 rounded-full"
               style={{
                 // Spread points across the column so equal ages stay visible.

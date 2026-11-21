@@ -971,6 +971,12 @@ export const taskTable = pgTable(
     archivedAt: timestamp("archived_at", { mode: "date" }),
     // Linear-style triage snooze: hides the task from the triage inbox until this time.
     snoozedUntil: timestamp("snoozed_until", { mode: "date" }),
+    // Linear's workflow timestamps for Insights (cycle, lead and triage time).
+    // The task_stamp_status_times trigger keeps them in step with status.
+    startedAt: timestamp("started_at", { mode: "date" }),
+    completedAt: timestamp("completed_at", { mode: "date" }),
+    startedTriageAt: timestamp("started_triage_at", { mode: "date" }),
+    triagedAt: timestamp("triaged_at", { mode: "date" }),
     creatorId: text("creator_id").references(() => userTable.id, {
       onDelete: "set null",
       onUpdate: "cascade",

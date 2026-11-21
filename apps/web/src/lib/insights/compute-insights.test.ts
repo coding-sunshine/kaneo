@@ -56,7 +56,14 @@ const group: GroupFn = (p, by) => groupProjectBy(p, by, (key) => key);
 
 describe("computeInsights", () => {
   it("counts issues per slice and drops empty slices", () => {
-    const result = computeInsights(project, "status", "none", group, now);
+    const result = computeInsights(
+      project,
+      "count",
+      "status",
+      "none",
+      group,
+      now,
+    );
 
     expect(result.slices.map((s) => [s.name, s.value])).toEqual([
       ["Todo", 2],
@@ -67,7 +74,14 @@ describe("computeInsights", () => {
   });
 
   it("splits each slice by segment", () => {
-    const result = computeInsights(project, "status", "priority", group, now);
+    const result = computeInsights(
+      project,
+      "count",
+      "status",
+      "priority",
+      group,
+      now,
+    );
 
     expect(result.segments.map((s) => s.name)).toEqual([
       "priority.high",
@@ -80,7 +94,14 @@ describe("computeInsights", () => {
   });
 
   it("counts a multi-label issue once per label slice", () => {
-    const result = computeInsights(project, "label", "none", group, now);
+    const result = computeInsights(
+      project,
+      "count",
+      "label",
+      "none",
+      group,
+      now,
+    );
 
     expect(result.slices.map((s) => [s.name, s.value])).toEqual([
       ["Bug", 1],
@@ -90,11 +111,63 @@ describe("computeInsights", () => {
   });
 
   it("measures issue age in days with a median per slice", () => {
-    const result = computeInsights(project, "priority", "none", group, now);
+    const result = computeInsights(
+      project,
+      "age",
+      "priority",
+      "none",
+      group,
+      now,
+    );
 
     const high = result.slices.find((s) => s.name === "priority.high");
     expect(high?.points.map((p) => p.days)).toEqual([1, 5]);
-    expect(high?.medianAge).toBe(3);
-    expect(result.maxAge).toBe(5);
+    expect(high?.medianDays).toBe(3);
+    expect(result.maxDays).toBe(5);
+  });
+
+  it("plots only the issues each time measure applies to", () => {
+    const iso = (daysAgo: number) =>
+      new Date(now - daysAgo * DAY).toISOString();
+    const timed = {
+      columns: [
+        column("done", "Done", [
+          // Started, then done: every measure but triage.
+          task("s", {
+            createdAt: iso(10),
+            startedAt: iso(6),
+            completedAt: iso(2),
+          }),
+          // Done straight from Todo: lead time only, like Linear.
+          task("d", { createdAt: iso(8), completedAt: iso(1) }),
+          // Left triage after 6 hours.
+          task("t", {
+            createdAt: iso(4),
+            startedTriageAt: iso(4),
+            triagedAt: iso(4 - 0.25),
+          }),
+        ]),
+      ],
+    } as unknown as ProjectWithTasks;
+    const days = (measure: Parameters<typeof computeInsights>[1]) =>
+      computeInsights(
+        timed,
+        measure,
+        "status",
+        "none",
+        group,
+        now,
+      ).slices.flatMap((s) => s.points.map((p) => [p.task.id, p.days]));
+
+    expect(days("cycleTime")).toEqual([["s", 4]]);
+    expect(days("leadTime")).toEqual([
+      ["s", 8],
+      ["d", 7],
+    ]);
+    expect(days("triageTime")).toEqual([["t", 0.25]]);
+    expect(
+      computeInsights(timed, "cycleTime", "status", "none", group, now)
+        .issueCount,
+    ).toBe(1);
   });
 });

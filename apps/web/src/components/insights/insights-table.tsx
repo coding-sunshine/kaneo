@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import type { InsightMeasure, Insights } from "@/lib/insights/compute-insights";
+import { formatDuration } from "@/lib/insights/format-duration";
 
 type InsightsTableProps = {
   insights: Insights;
@@ -27,7 +28,7 @@ export function InsightsTable({
           <th className="py-1.5 text-right font-normal">
             {measure === "count"
               ? t("tasks:insights.share")
-              : t("tasks:insights.medianAge")}
+              : t("tasks:insights.median")}
           </th>
         </tr>
       </thead>
@@ -39,9 +40,7 @@ export function InsightsTable({
             <td className="py-1.5 text-right text-muted-foreground tabular-nums">
               {measure === "count"
                 ? `${Math.round((slice.value / (total || 1)) * 100)}%`
-                : t("tasks:insights.days", {
-                    count: Math.round(slice.medianAge),
-                  })}
+                : formatDuration(t, slice.medianDays)}
             </td>
           </tr>
         ))}

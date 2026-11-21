@@ -285,6 +285,38 @@
             ],
             "format": "date-time"
           },
+          "startedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the task last entered a started status; cleared when it moves back before started."
+          },
+          "completedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the task entered a completed status; null unless completed."
+          },
+          "startedTriageAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the task most recently entered triage."
+          },
+          "triagedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the task last left triage; null while in triage."
+          },
           "userId": {
             "type": [
               "string",
@@ -363,6 +395,10 @@
           "workProjectMilestoneId",
           "cycleId",
           "snoozedUntil",
+          "startedAt",
+          "completedAt",
+          "startedTriageAt",
+          "triagedAt",
           "userId",
           "assigneeName",
           "assigneeId",

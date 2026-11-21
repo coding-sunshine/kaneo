@@ -131,6 +131,20 @@ export const boardTaskSchema = z
     workProjectMilestoneId: z.string().nullable(),
     cycleId: z.string().nullable(),
     snoozedUntil: nullableResponseTimestamp,
+    startedAt: nullableResponseTimestamp.openapi({
+      description:
+        "When the task last entered a started status; cleared when it moves back before started.",
+    }),
+    completedAt: nullableResponseTimestamp.openapi({
+      description:
+        "When the task entered a completed status; null unless completed.",
+    }),
+    startedTriageAt: nullableResponseTimestamp.openapi({
+      description: "When the task most recently entered triage.",
+    }),
+    triagedAt: nullableResponseTimestamp.openapi({
+      description: "When the task last left triage; null while in triage.",
+    }),
     userId: z.string().nullable(),
     assigneeName: z.string().nullable(),
     assigneeId: z.string().nullable(),
