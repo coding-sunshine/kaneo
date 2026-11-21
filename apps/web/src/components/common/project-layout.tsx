@@ -1,10 +1,10 @@
 import { ShortcutKeys } from "@/components/shortcuts/shortcut-keys";
-import { useLocation, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { Bell, ChevronRight, Plus } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import MobileProjectNav from "@/components/common/header/mobile-project-nav";
 import ProjectCrumbSelect from "@/components/common/header/project-crumb-select";
-import WorkspaceCrumbSelect from "@/components/common/header/workspace-crumb-select";
 import Layout from "@/components/common/layout";
 import { ProjectScopeToggle } from "@/components/project/views/project-scope-toggle";
 import {
@@ -28,6 +28,7 @@ import { useProjectWebSocket } from "@/hooks/use-project-websocket";
 import { cn } from "@/lib/cn";
 import { getProjectUnavailableReason } from "@/lib/project-unavailable-reason";
 import { useBackgroundStore } from "@/store/background";
+import { useCreateIssueStore } from "@/store/create-issue";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 import ProjectUnavailable from "./project-unavailable";
 
@@ -64,6 +65,7 @@ export default function ProjectLayout({
     useState(false);
   const { background } = useBackgroundStore();
   const viewMode = useUserPreferencesStore((state) => state.viewMode);
+  const setCreateIssueOpen = useCreateIssueStore((state) => state.setOpen);
 
   useProjectWebSocket(unavailableReason ? "" : projectId);
 
@@ -121,8 +123,6 @@ export default function ProjectLayout({
           <div className="h-4 w-px shrink-0 bg-border/80" />
 
           <div className="hidden min-w-0 items-center gap-1 md:flex">
-            <WorkspaceCrumbSelect />
-            <span className="text-foreground/30 text-xs">/</span>
             <ProjectCrumbSelect
               workspaceId={workspaceId}
               projectId={projectId}
@@ -130,6 +130,10 @@ export default function ProjectLayout({
               onSelectProject={handleProjectSwitch}
               onAddProject={() => setIsCreateProjectModalOpen(true)}
             />
+            <ChevronRight className="size-3 text-muted-foreground" />
+            <span className="px-1 text-[13px] text-muted-foreground">
+              {t("navigation:sidebar.issues")}
+            </span>
           </div>
 
           <div className="min-w-0 md:hidden">
@@ -140,6 +144,25 @@ export default function ProjectLayout({
               onSelectProject={handleProjectSwitch}
               onAddProject={() => setIsCreateProjectModalOpen(true)}
             />
+          </div>
+
+          <div className="ml-auto flex shrink-0 items-center gap-1">
+            <Link
+              to="/dashboard/workspace/$workspaceId/inbox"
+              params={{ workspaceId }}
+              aria-label={t("navigation:sidebar.inbox")}
+              className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Bell className="size-4" />
+            </Link>
+            <button
+              type="button"
+              onClick={() => setCreateIssueOpen(true)}
+              className="inline-flex h-7 items-center gap-1 rounded-md bg-primary px-2.5 text-[13px] font-medium text-primary-foreground outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Plus className="size-3.5" />
+              {t("navigation:sidebar.newIssue")}
+            </button>
           </div>
         </div>
       </Layout.Header>

@@ -60,9 +60,6 @@ vi.mock("@/components/common/header/mobile-project-nav", () => ({
 vi.mock("@/components/common/header/project-crumb-select", () => ({
   default: () => null,
 }));
-vi.mock("@/components/common/header/workspace-crumb-select", () => ({
-  default: () => null,
-}));
 vi.mock("@/components/shared/modals/create-project-modal", () => ({
   default: () => null,
 }));

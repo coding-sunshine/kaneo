@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/menu";
+import icons from "@/constants/project-icons";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 
 type ProjectCrumbSelectProps = {
@@ -29,6 +30,11 @@ export default function ProjectCrumbSelect({
 }: ProjectCrumbSelectProps) {
   const { t } = useTranslation();
   const { data: projects = [] } = useGetProjects({ workspaceId });
+  const TeamIcon =
+    icons[
+      projects?.find((project) => project.id === projectId)
+        ?.icon as keyof typeof icons
+    ] || icons.Layout;
 
   return (
     <DropdownMenu>
@@ -37,10 +43,11 @@ export default function ProjectCrumbSelect({
           <Button
             variant="ghost"
             size="xs"
-            className="h-7 justify-between gap-2.5 px-2 text-xs text-foreground"
+            className="h-7 justify-between gap-1.5 px-1.5 text-[13px] font-medium text-foreground"
           />
         }
       >
+        <TeamIcon className="size-4 shrink-0 text-muted-foreground" />
         <span className="truncate text-left">
           {projectName || t("settings:projectSwitcher.selectProject")}
         </span>

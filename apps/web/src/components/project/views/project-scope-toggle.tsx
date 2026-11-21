@@ -31,7 +31,7 @@ export function ProjectScopeToggle({
   return (
     <nav
       aria-label={t("tasks:view.heading")}
-      className="flex h-7 shrink-0 items-center gap-0.5 rounded-lg border border-border/80 bg-background p-0.5 dark:bg-input/32"
+      className="flex h-7 shrink-0 items-center gap-1"
     >
       {TABS.map(([view, label]) => {
         const active = highlight && current === view;
@@ -43,10 +43,10 @@ export function ProjectScopeToggle({
             search={view === "all" ? {} : { view }}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "inline-flex h-6 items-center rounded-[calc(var(--radius-lg)-3px)] px-2.5 text-[13px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+              "inline-flex h-7 items-center rounded-md border px-2.5 text-[13px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
               active
-                ? "bg-accent text-foreground shadow-xs/5"
-                : "text-muted-foreground hover:text-foreground",
+                ? "border-border bg-accent text-foreground"
+                : "border-transparent text-muted-foreground hover:bg-accent/60 hover:text-foreground",
             )}
           >
             {t(label)}
