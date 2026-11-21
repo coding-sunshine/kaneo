@@ -5,6 +5,7 @@ import {
   workspaceRoleTable,
   workspaceUserTable,
 } from "../database/schema";
+import { documentVisibility } from "../document/visibility";
 import { projectAccessCondition } from "../project-access/project-access-condition";
 import { hasInstanceAdminRole } from "../utils/instance-admin-role";
 import { type PermissionMap, rolesAllow } from "../utils/role-permissions";
@@ -31,6 +32,12 @@ export function notificationResourceAccess(
   const workspaceRead = readGrants
     ? inArray(sql`notification_member.workspace_id`, readGrants.workspaceIds)
     : sql`true`;
+  const documentRead = readGrants
+    ? inArray(
+        sql`notification_document.workspace_id`,
+        readGrants.taskWorkspaceIds,
+      )
+    : sql`true`;
   return sql<boolean>`(
     (${resourceId}::text IS NULL AND ${resourceType}::text IS NULL)
     OR (${resourceType}::text = 'task' AND EXISTS (
@@ -49,6 +56,22 @@ export function notificationResourceAccess(
       WHERE notification_member.workspace_id = ${resourceId} AND notification_member.user_id = ${userId}
         AND notification_workspace.archived_at IS NULL
         AND ${workspaceRead}
+    ))
+    OR (${resourceType}::text = 'document' AND EXISTS (
+      SELECT 1 FROM document AS notification_document
+      JOIN workspace_member AS notification_member ON notification_member.workspace_id = notification_document.workspace_id
+      JOIN workspace AS notification_workspace ON notification_workspace.id = notification_document.workspace_id
+      WHERE notification_document.id = ${resourceId} AND notification_member.user_id = ${userId}
+        AND notification_workspace.archived_at IS NULL
+        AND notification_document.deleted_at IS NULL
+        AND ${documentVisibility(userId, {
+          id: sql`notification_document.id`,
+          creatorId: sql`notification_document.creator_id`,
+          scope: sql`notification_document.scope`,
+          projectId: sql`notification_document.project_id`,
+          taskId: sql`notification_document.task_id`,
+        })}
+        AND ${documentRead}
     ))
   )`;
 }
@@ -92,6 +115,10 @@ export async function canReceiveResourceNotification(
       JOIN project AS recipient_project ON recipient_project.id = recipient_task.project_id
       WHERE recipient_task.id = ${resourceId ?? null}
     )
+    WHEN ${resourceType ?? null}::text = 'document' THEN (
+      SELECT recipient_document.workspace_id FROM document AS recipient_document
+      WHERE recipient_document.id = ${resourceId ?? null}
+    )
   END`;
   const rows = await database
     .select({
@@ -128,7 +155,9 @@ export async function canReceiveResourceNotification(
   if (!resourceId && !resourceType) return true;
   if (hasInstanceAdminRole(rows[0]?.instanceRole)) return true;
   const required: PermissionMap =
-    resourceType === "task" ? { task: ["read"] } : { workspace: ["read"] };
+    resourceType === "task" || resourceType === "document"
+      ? { task: ["read"] }
+      : { workspace: ["read"] };
   return rolesAllow(
     splitRoles(rows[0]?.memberRole),
     rows.flatMap((row) =>

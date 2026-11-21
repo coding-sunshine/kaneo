@@ -589,6 +589,13 @@
       "when": 1795261417915,
       "tag": "0083_short_joshua_kane",
       "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1795272472100,
+      "tag": "0084_yielding_marten_broadcloak",
+      "breakpoints": true
     }
   ]
 }

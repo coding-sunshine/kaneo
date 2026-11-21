@@ -64,6 +64,7 @@ import label from "./label";
 import cycle from "./cycle";
 import workProject from "./work-project";
 import savedView from "./saved-view";
+import document from "./document";
 import favorite from "./favorite";
 import mattermostIntegration from "./mattermost-integration";
 import mcpRoutes, { mcpWellKnownRoutes } from "./mcp";
@@ -829,6 +830,7 @@ export function createApp() {
   const cycleApi = api.route("/cycle", cycle);
   const workProjectApi = api.route("/work-project", workProject);
   const savedViewApi = api.route("/view", savedView);
+  const documentApi = api.route("/document", document);
   const favoriteApi = api.route("/favorite", favorite);
   const notificationApi = api.route("/notification", notification);
   const notificationPreferencesApi = api.route(
@@ -1010,6 +1012,7 @@ export function createApp() {
     cycleApi,
     workProjectApi,
     savedViewApi,
+    documentApi,
     favoriteApi,
     notificationApi,
     notificationPreferencesApi,
@@ -1150,6 +1153,7 @@ const {
   cycleApi,
   workProjectApi,
   savedViewApi,
+  documentApi,
   favoriteApi,
   mattermostIntegrationApi,
   notificationApi,
@@ -1197,6 +1201,7 @@ export type AppType =
   | typeof cycleApi
   | typeof workProjectApi
   | typeof savedViewApi
+  | typeof documentApi
   | typeof favoriteApi
   | typeof notificationApi
   | typeof notificationPreferencesApi

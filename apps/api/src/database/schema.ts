@@ -3,6 +3,7 @@ import { relations, sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
   boolean,
+  check,
   customType,
   foreignKey,
   index,
@@ -2056,3 +2057,227 @@ export const dataMigrationTable = pgTable("data_migration", {
     .default(utcNow)
     .notNull(),
 });
+
+// Linear-style documents. A document lives in one place: the creator's private
+// documents, the whole workspace, a team, a work project or an issue.
+export const DOCUMENT_SCOPES = [
+  "private",
+  "workspace",
+  "team",
+  "project",
+  "issue",
+] as const;
+export type DocumentScope = (typeof DOCUMENT_SCOPES)[number];
+export const DOCUMENT_ACCESS = ["edit", "comment", "view"] as const;
+export type DocumentAccess = (typeof DOCUMENT_ACCESS)[number];
+
+export const documentTable = pgTable(
+  "document",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    title: text("title").notNull().default(""),
+    icon: text("icon"),
+    color: text("color"),
+    content: text("content").notNull().default(""),
+    scope: text("scope").$type<DocumentScope>().notNull().default("private"),
+    // Team (Kaneo project) for scope "team".
+    projectId: text("project_id").references(() => projectTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    workProjectId: text("work_project_id").references(
+      () => workProjectTable.id,
+      { onDelete: "cascade", onUpdate: "cascade" },
+    ),
+    taskId: text("task_id").references(() => taskTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    // What everyone who can see the parent (or the workspace) may do.
+    generalAccess: text("general_access")
+      .$type<DocumentAccess>()
+      .notNull()
+      .default("edit"),
+    creatorId: text("creator_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    updatedById: text("updated_by_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    deletedAt: timestamp("deleted_at", { mode: "date" }),
+    externalSource: text("external_source"),
+    externalId: text("external_id"),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("document_workspace_idx").on(table.workspaceId),
+    index("document_project_idx").on(table.projectId),
+    index("document_work_project_idx").on(table.workProjectId),
+    index("document_task_idx").on(table.taskId),
+    index("document_creator_idx").on(table.creatorId),
+    uniqueIndex("document_external_unique").on(
+      table.workspaceId,
+      table.externalSource,
+      table.externalId,
+    ),
+    check(
+      "document_scope_parent",
+      sql`CASE ${table.scope}
+        WHEN 'team' THEN ${table.projectId} IS NOT NULL AND num_nonnulls(${table.workProjectId}, ${table.taskId}) = 0
+        WHEN 'project' THEN ${table.workProjectId} IS NOT NULL AND num_nonnulls(${table.projectId}, ${table.taskId}) = 0
+        WHEN 'issue' THEN ${table.taskId} IS NOT NULL AND num_nonnulls(${table.projectId}, ${table.workProjectId}) = 0
+        WHEN 'private' THEN num_nonnulls(${table.projectId}, ${table.workProjectId}, ${table.taskId}) = 0
+        WHEN 'workspace' THEN num_nonnulls(${table.projectId}, ${table.workProjectId}, ${table.taskId}) = 0
+        ELSE false END`,
+    ),
+  ],
+);
+
+// People invited directly through Share.
+export const documentShareTable = pgTable(
+  "document_share",
+  {
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documentTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    access: text("access").$type<DocumentAccess>().notNull().default("edit"),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.documentId, table.userId] }),
+    index("document_share_user_idx").on(table.userId),
+  ],
+);
+
+export const documentSubscriberTable = pgTable(
+  "document_subscriber",
+  {
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documentTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.documentId, table.userId] }),
+    index("document_subscriber_user_idx").on(table.userId),
+  ],
+);
+
+// Version history. An author's edits within a few minutes fold into one row.
+export const documentVersionTable = pgTable(
+  "document_version",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documentTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    authorId: text("author_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    title: text("title").notNull(),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("document_version_document_idx").on(
+      table.documentId,
+      table.createdAt,
+    ),
+  ],
+);
+
+export const documentCommentTable = pgTable(
+  "document_comment",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documentTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    parentId: text("parent_id").references(
+      (): AnyPgColumn => documentCommentTable.id,
+      { onDelete: "cascade", onUpdate: "cascade" },
+    ),
+    content: text("content").notNull(),
+    // The document text an inline comment was left on.
+    quotedText: text("quoted_text"),
+    resolvedAt: timestamp("resolved_at", { mode: "date" }),
+    resolvedById: text("resolved_by_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    externalSource: text("external_source"),
+    externalId: text("external_id"),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("document_comment_document_idx").on(table.documentId),
+    uniqueIndex("document_comment_external_unique").on(
+      table.documentId,
+      table.externalSource,
+      table.externalId,
+    ),
+  ],
+);
