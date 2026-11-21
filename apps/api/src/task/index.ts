@@ -67,6 +67,7 @@ import {
   deleteTaskAttachment,
   listTaskAttachments,
 } from "./controllers/task-attachments";
+import { listArchivedTasks, unarchiveTask } from "./controllers/task-archive";
 import updateTaskStatus from "./controllers/update-task-status";
 import updateTaskTitle from "./controllers/update-task-title";
 import {
@@ -75,6 +76,7 @@ import {
 } from "./description-pages";
 import "./recurrence/subscribe";
 import {
+  archivedTasksSchema,
   assignedTasksSchema,
   boardSchema,
   bulkResultSchema,
@@ -816,6 +818,47 @@ const deleteTaskAttachmentRoute = createRoute({
   },
 });
 
+const listArchivedTasksRoute = createRoute({
+  method: "get",
+  operationId: "listArchivedTasks",
+  path: "/archived/{projectId}",
+  tags: ["Tasks"],
+  summary: "List archived tasks",
+  description:
+    "A project's archived tasks (up to 500, newest archive first). Archived tasks are hidden from every other list and keep their real status.",
+  middleware: [
+    workspaceAccess.fromProject("projectId"),
+    requireWorkspacePermission({ task: ["read"] }),
+  ] as const,
+  request: { params: projectIdParam },
+  responses: {
+    200: jsonResponse("The archived tasks", archivedTasksSchema),
+    403: errorResponse("No access to the project, or missing read permission"),
+  },
+});
+
+const unarchiveTaskRoute = createRoute({
+  method: "put",
+  operationId: "unarchiveTask",
+  path: "/unarchive/{id}",
+  tags: ["Tasks"],
+  summary: "Restore an archived task",
+  description: "Clear the archive flag so the task shows in lists again.",
+  middleware: [
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["update"] }),
+    requireEntitlement,
+  ] as const,
+  request: { params: taskParam },
+  responses: {
+    200: jsonResponse("The restored task", z.object({ id: z.string() })),
+    403: errorResponse(
+      "No access to the project, or missing task:update permission",
+    ),
+    404: errorResponse("Archived task not found"),
+  },
+});
+
 const updateTaskDescriptionRoute = createRoute({
   method: "put",
   operationId: "updateTaskDescription",
@@ -1402,6 +1445,14 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
   .openapi(deleteTaskAttachmentRoute, async (c) => {
     const { id, assetId } = c.req.valid("param");
     return c.json(await deleteTaskAttachment(id, assetId), 200);
+  })
+  .openapi(listArchivedTasksRoute, async (c) => {
+    const { projectId } = c.req.valid("param");
+    return c.json(await listArchivedTasks(projectId), 200);
+  })
+  .openapi(unarchiveTaskRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    return c.json(await unarchiveTask(id), 200);
   })
   .openapi(updateTaskDescriptionRoute, async (c) => {
     const { id } = c.req.valid("param");

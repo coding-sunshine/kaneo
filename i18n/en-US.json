@@ -2876,6 +2876,7 @@
 			"viewProject": "View Project",
 			"shareProject": "Share Project",
 			"projectSettings": "Project settings",
+			"archive": "Archive",
 			"linkCopied": "Project link copied to clipboard",
 			"addProject": "Add project",
 			"deleteConfirmTitle": "Delete Project?",
@@ -3276,6 +3277,15 @@
 			"openInFullPage": "Open in full page",
 			"titlePlaceholder": "Click to add a title",
 			"addDescription": "Add a description...",
+			"archived": {
+				"banner": "This issue was archived on {{date}}. It stays hidden from lists until restored.",
+				"restore": "Restore",
+				"restoreFailed": "Failed to restore the issue",
+				"title": "Archive",
+				"empty": "No archived issues",
+				"badge": "Archived",
+				"autoArchive": "Auto-archive closed issues after (months, 0 = never)"
+			},
 			"attachments": {
 				"title": "Attachments",
 				"add": "Attach files",

@@ -40,6 +40,7 @@ async function getAssignedTasks(
     isNull(projectTable.archivedAt),
     eq(taskTable.userId, userId),
     ne(taskTable.status, "archived"),
+    isNull(taskTable.archivedAt),
     sql`not coalesce((
       select ${columnTable.isFinal} from ${columnTable}
       where ${columnTable.id} = ${taskTable.columnId}

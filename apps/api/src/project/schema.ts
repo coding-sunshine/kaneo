@@ -25,6 +25,7 @@ export const updateProjectBody = z.object({
   description: z.string(),
   isPublic: z.boolean(),
   includeSubtasks: z.boolean().optional(),
+  autoArchiveMonths: z.number().int().min(0).max(120).optional(),
 });
 
 export const reorderProjectsBody = z.object({

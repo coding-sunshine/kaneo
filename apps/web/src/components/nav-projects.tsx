@@ -25,6 +25,7 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import {
   ChevronRight,
   Folder,
+  ArchiveIcon,
   Forward,
   MoreHorizontal,
   Plus,
@@ -359,6 +360,23 @@ export function NavProjects() {
                                 <Settings className="text-muted-foreground" />
                                 <span>
                                   {t("navigation:projectList.projectSettings")}
+                                </span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="h-7 items-start cursor-pointer text-sm"
+                                onClick={() => {
+                                  navigate({
+                                    to: "/dashboard/workspace/$workspaceId/project/$projectId/archive",
+                                    params: {
+                                      workspaceId: workspace?.id ?? "",
+                                      projectId: project.id,
+                                    },
+                                  });
+                                }}
+                              >
+                                <ArchiveIcon className="text-muted-foreground" />
+                                <span>
+                                  {t("navigation:projectList.archive")}
                                 </span>
                               </DropdownMenuItem>
                               {canDeleteProject && (

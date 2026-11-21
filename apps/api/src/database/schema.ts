@@ -520,6 +520,8 @@ export const projectTable = pgTable(
     includeSubtasks: boolean("include_subtasks").notNull().default(true),
     archivedAt: timestamp("archived_at", { mode: "date" }),
     lastTaskNumber: integer("last_task_number").notNull().default(0),
+    // Closed tasks untouched this many months are archived by the scheduler; 0 turns it off.
+    autoArchiveMonths: integer("auto_archive_months").notNull().default(6),
     position: integer("position").notNull().default(0),
     backgroundObjectKey: text("background_object_key"),
     backgroundMimeType: text("background_mime_type"),
@@ -712,6 +714,8 @@ export const taskTable = pgTable(
     startDate: timestamp("start_date", { mode: "date" }),
     dueDate: timestamp("due_date", { mode: "date" }),
     recurrence: jsonb("recurrence").$type<TaskRecurrence>(),
+    // Linear-style archive flag: separate from status, hides the task from lists until restored.
+    archivedAt: timestamp("archived_at", { mode: "date" }),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),

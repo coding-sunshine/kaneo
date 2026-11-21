@@ -204,6 +204,7 @@ export async function getCalendarFeed(token: string) {
           .where(
             and(
               eq(taskTable.projectId, project.id),
+              isNull(taskTable.archivedAt),
               after ? gt(taskTable.id, after) : undefined,
               or(isNotNull(taskTable.startDate), isNotNull(taskTable.dueDate)),
               feed.labelIds.length

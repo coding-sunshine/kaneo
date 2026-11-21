@@ -10,6 +10,7 @@ import useGetTaskRelations from "@/hooks/queries/task-relation/use-get-task-rela
 import { cn } from "@/lib/cn";
 import type { ExternalLink } from "@/types/external-link";
 import { TaskActivity } from "./task-activity";
+import TaskArchivedBanner from "./task-archived-banner";
 import TaskAttachments from "./task-attachments";
 import TaskDescription from "./task-description";
 import TaskRelations from "./task-relations";
@@ -80,6 +81,9 @@ export default function TaskDetailsContent({
               {parentTask.title}
             </span>
           </button>
+        )}
+        {task?.archivedAt && (
+          <TaskArchivedBanner taskId={taskId} archivedAt={task.archivedAt} />
         )}
         <TaskTitle taskId={taskId} size={variant === "page" ? "lg" : "md"} />
       </div>

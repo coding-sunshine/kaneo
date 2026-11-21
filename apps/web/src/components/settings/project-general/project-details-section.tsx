@@ -1,5 +1,6 @@
 import { type UseFormReturn, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+import { AutoArchiveRow } from "@/components/settings/project-general/auto-archive-row";
 import { ProjectBackgroundRow } from "@/components/settings/project-general/project-background-row";
 import type { ProjectFormValues } from "@/components/settings/project-general/project-form-values";
 import { ProjectIconPicker } from "@/components/settings/project-general/project-icon-picker";
@@ -15,12 +16,14 @@ import type { ProjectWithTasks } from "@/types/project";
 type ProjectDetailsSectionProps = {
   form: UseFormReturn<ProjectFormValues>;
   project: ProjectWithTasks | undefined;
+  workspaceId: string;
   canEdit: boolean;
 };
 
 export function ProjectDetailsSection({
   form,
   project,
+  workspaceId,
   canEdit,
 }: ProjectDetailsSectionProps) {
   const { t } = useTranslation();
@@ -119,6 +122,13 @@ export function ProjectDetailsSection({
               />
             </SettingsRow>
             <ProjectBackgroundRow project={project} canEdit={canEdit} />
+            {project && (
+              <AutoArchiveRow
+                project={project}
+                workspaceId={workspaceId}
+                canEdit={canEdit}
+              />
+            )}
           </SettingsCard>
         </form>
       </Form>

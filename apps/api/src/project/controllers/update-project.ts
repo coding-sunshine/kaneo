@@ -18,6 +18,7 @@ async function updateProject(
   workspaceId: string,
   canShare: boolean,
   includeSubtasks?: boolean,
+  autoArchiveMonths?: number,
 ) {
   return db.transaction(async (tx) => {
     await tx.execute(
@@ -66,6 +67,7 @@ async function updateProject(
         description,
         isPublic,
         ...(includeSubtasks === undefined ? {} : { includeSubtasks }),
+        ...(autoArchiveMonths === undefined ? {} : { autoArchiveMonths }),
       })
       .where(eq(projectTable.id, id))
       .returning();

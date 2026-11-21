@@ -39,6 +39,7 @@ type SearchResultItem = {
   projectSlug?: string;
   priority?: string;
   status?: string;
+  archivedAt?: string | null;
 };
 
 type SearchGroup = {
@@ -223,6 +224,11 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-sm truncate">
                                 {item.title}
+                                {item.archivedAt && (
+                                  <span className="ml-2 rounded bg-muted px-1.5 py-0.5 font-normal text-[10px] text-muted-foreground">
+                                    {t("tasks:detail.archived.badge")}
+                                  </span>
+                                )}
                               </div>
                               {item.description && (
                                 <div className="text-xs text-muted-foreground truncate mt-1">

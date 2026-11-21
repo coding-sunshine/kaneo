@@ -6,6 +6,7 @@ import {
   getTableColumns,
   gte,
   inArray,
+  isNull,
   lte,
   type SQL,
   type SQLWrapper,
@@ -119,7 +120,10 @@ async function getTasksPage(
     });
   }
 
-  const conditions = [eq(taskTable.projectId, projectId)];
+  const conditions = [
+    eq(taskTable.projectId, projectId),
+    isNull(taskTable.archivedAt),
+  ];
 
   if (options.status) {
     conditions.push(eq(taskTable.status, options.status));

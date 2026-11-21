@@ -47,6 +47,7 @@ type SearchResult = {
   projectSlug?: string;
   priority?: string;
   status?: string;
+  archivedAt?: Date | null;
 };
 
 function toDisplayCase(value: string) {
@@ -192,6 +193,7 @@ async function globalSearch(params: SearchParams): Promise<{
           taskNumber: taskTable.number,
           priority: taskTable.priority,
           status: taskTable.status,
+          archivedAt: taskTable.archivedAt,
         })
         .from(taskTable)
         .leftJoin(projectTable, eq(taskTable.projectId, projectTable.id))
@@ -233,6 +235,7 @@ async function globalSearch(params: SearchParams): Promise<{
           taskNumber: task.taskNumber || undefined,
           priority: task.priority || undefined,
           status: task.status,
+          archivedAt: task.archivedAt,
         });
       }
     }
@@ -262,6 +265,7 @@ async function globalSearch(params: SearchParams): Promise<{
         taskNumber: taskTable.number,
         priority: taskTable.priority,
         status: taskTable.status,
+        archivedAt: taskTable.archivedAt,
         relevanceScore: taskRelevanceScore.as("relevanceScore"),
       })
       .from(taskTable)
@@ -302,6 +306,7 @@ async function globalSearch(params: SearchParams): Promise<{
         taskNumber: task.taskNumber || undefined,
         priority: task.priority || undefined,
         status: task.status,
+        archivedAt: task.archivedAt,
       });
     }
   }

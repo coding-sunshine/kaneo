@@ -5,6 +5,7 @@ import { boardColumnSchema, boardTaskSchema } from "../task/response";
 export const projectSchema = z
   .object({
     includeSubtasks: z.boolean().optional(),
+    autoArchiveMonths: z.number().optional(),
     id: z.string(),
     workspaceId: z.string(),
     backgroundVersion: z.string().nullable(),

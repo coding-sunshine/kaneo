@@ -30,6 +30,7 @@ export const taskSchema = z
     startDate: nullableResponseTimestamp,
     dueDate: nullableResponseTimestamp,
     recurrence: z.union([taskRecurrenceSchema, z.null()]).optional(),
+    archivedAt: nullableResponseTimestamp.optional(),
     createdAt: responseTimestamp,
     customFields: z
       .array(z.object({ fieldId: z.string(), value: z.string() }))
@@ -321,6 +322,18 @@ export const assignedTasksSchema = z
     }),
   })
   .openapi("AssignedTasks");
+
+export const archivedTasksSchema = z.array(
+  z.object({
+    id: z.string(),
+    number: z.number().nullable(),
+    title: z.string(),
+    status: z.string(),
+    priority: z.string(),
+    userId: z.string().nullable(),
+    archivedAt: nullableResponseTimestamp,
+  }),
+);
 
 export const taskAttachmentsSchema = z.array(
   z.object({

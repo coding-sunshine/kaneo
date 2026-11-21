@@ -51,6 +51,7 @@ export function ProjectGeneralPage() {
         <ProjectDetailsSection
           form={form}
           project={project}
+          workspaceId={workspace?.id ?? ""}
           canEdit={canEdit}
         />
         {project ? (

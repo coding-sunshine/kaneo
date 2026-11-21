@@ -1,4 +1,4 @@
-import { responseTimestamp, z } from "../openapi";
+import { nullableResponseTimestamp, responseTimestamp, z } from "../openapi";
 
 export const searchResultSchema = z
   .object({
@@ -25,6 +25,7 @@ export const searchResultSchema = z
     taskNumber: z.number().optional(),
     priority: z.string().optional(),
     status: z.string().optional(),
+    archivedAt: nullableResponseTimestamp.optional(),
   })
   .openapi("SearchResult");
 

@@ -4,6 +4,7 @@ import { replayDeferredIssueEdits } from "../plugins/github/services/deferred-is
 import { replayDeferredLabelFields } from "../plugins/sync/replay-deferred-label-fields";
 import * as Sentry from "@sentry/node";
 import { Cron } from "croner";
+import { autoArchiveClosedTasks } from "../task/controllers/task-archive";
 import { checkDueDateReminders } from "./due-date-reminders";
 import { checkProjectWebhookReminders } from "./project-webhook-reminders";
 import { reconcileWorkspaceSeats } from "./seat-reconciliation";
@@ -69,6 +70,15 @@ export function initializeScheduler(): void {
       withCheckIn("storage-cleanup", retryStorageCleanup),
     ),
   );
+  // Runs once at start-up, then daily.
+  jobs.push(
+    new Cron(
+      "23 3 * * *",
+      { protect: true },
+      withCheckIn("auto-archive", autoArchiveClosedTasks),
+    ),
+  );
+  void withCheckIn("auto-archive", autoArchiveClosedTasks)();
   jobs.push(
     new Cron(
       "31 * * * *",
