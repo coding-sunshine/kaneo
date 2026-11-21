@@ -10,12 +10,29 @@ type AssignedTaskRowProps = {
   task: AssignedTask;
   workspaceId: string;
   showLabels?: boolean;
+  showActivity?: boolean;
 };
+
+const ACTIVITY_VERBS: Record<string, string> = {
+  created: "Created",
+  comment: "Commented",
+  status_changed: "Changed status",
+};
+
+function activityText(task: AssignedTask) {
+  if (!task.lastActivityAt) return "";
+  const on = new Date(task.lastActivityAt).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+  return `${ACTIVITY_VERBS[task.lastActivityType ?? ""] ?? "Updated"} on ${on}`;
+}
 
 export function AssignedTaskRow({
   task,
   workspaceId,
   showLabels = false,
+  showActivity = false,
 }: AssignedTaskRowProps) {
   return (
     <Link
@@ -60,10 +77,16 @@ export function AssignedTaskRow({
       <span className="hidden w-28 shrink-0 truncate text-muted-foreground text-xs sm:block">
         {task.projectName}
       </span>
-      <DueDateText
-        dueDate={task.dueDate}
-        className="shrink-0 text-right sm:w-20"
-      />
+      {showActivity ? (
+        <span className="hidden w-44 shrink-0 truncate text-right text-muted-foreground text-xs sm:block">
+          {activityText(task)}
+        </span>
+      ) : (
+        <DueDateText
+          dueDate={task.dueDate}
+          className="shrink-0 text-right sm:w-20"
+        />
+      )}
     </Link>
   );
 }

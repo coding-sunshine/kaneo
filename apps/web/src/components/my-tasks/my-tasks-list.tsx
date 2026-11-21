@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { AssignedTaskRow } from "@/components/my-work/assigned-task-row";
 import type { DueBucket } from "@/components/my-work/due-bucket";
 import {
+  groupAssignedTasksByActivity,
   groupAssignedTasksByDueDate,
   groupAssignedTasksByProject,
   groupAssignedTasksByStatus,
@@ -17,6 +18,7 @@ type MyTasksListProps = {
   tasks: AssignedTask[];
   total: number;
   groupBy: MyTasksGroupBy;
+  activity?: boolean;
   workspaceId: string;
 };
 
@@ -24,18 +26,21 @@ export function MyTasksList({
   tasks,
   total,
   groupBy,
+  activity = false,
   workspaceId,
 }: MyTasksListProps) {
   const { t } = useTranslation();
   const day = useLocalDay();
   const groups = useMemo(
     () =>
-      groupBy === "project"
-        ? groupAssignedTasksByProject(tasks)
-        : groupBy === "status"
-          ? groupAssignedTasksByStatus(tasks)
-          : groupAssignedTasksByDueDate(tasks, new Date(day)),
-    [tasks, groupBy, day],
+      activity
+        ? groupAssignedTasksByActivity(tasks, new Date(day))
+        : groupBy === "project"
+          ? groupAssignedTasksByProject(tasks)
+          : groupBy === "status"
+            ? groupAssignedTasksByStatus(tasks)
+            : groupAssignedTasksByDueDate(tasks, new Date(day)),
+    [tasks, groupBy, activity, day],
   );
 
   const bucketTitles: Record<DueBucket, string> = {
@@ -74,6 +79,7 @@ export function MyTasksList({
                 task={task}
                 workspaceId={workspaceId}
                 showLabels
+                showActivity={activity}
               />
             ))}
           </div>

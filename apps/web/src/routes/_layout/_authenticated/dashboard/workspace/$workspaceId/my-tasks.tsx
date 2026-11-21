@@ -41,56 +41,55 @@ function RouteComponent() {
   return (
     <>
       <PageTitle title={t("workspace:myTasks.pageTitle")} />
-      <WorkspaceLayout
-        title={t("workspace:myTasks.pageTitle")}
-        headerActions={
-          <div className="flex items-center gap-3">
+      <WorkspaceLayout title={t("workspace:myTasks.pageTitle")}>
+        <div className="flex h-full min-h-0 flex-col">
+          <div className="flex h-11 shrink-0 items-center justify-between border-border/50 border-b px-4">
             <MyTasksTabs value={tab} onChange={setTab} />
-            {assigned?.tasks.length ? (
+            {tab !== "activity" && assigned?.tasks.length ? (
               <MyTasksGroupByToggle value={groupBy} onChange={setGroupBy} />
             ) : null}
           </div>
-        }
-      >
-        <div className="h-full overflow-y-auto">
-          {isLoading ? (
-            <div className="flex flex-col px-4">
-              {[1, 2, 3, 4].map((row) => (
-                <div
-                  key={row}
-                  className="flex h-11 items-center gap-3 border-border/50 border-b px-1"
-                >
-                  <Skeleton className="size-4 rounded-full" />
-                  <Skeleton className="h-3.5 w-14" />
-                  <Skeleton className="h-3.5 flex-1" />
-                  <Skeleton className="h-3.5 w-16" />
-                </div>
-              ))}
-            </div>
-          ) : isError && !assigned ? (
-            <p role="alert" className="p-6 text-muted-foreground text-sm">
-              {t("workspace:myWork.loadError")}
-            </p>
-          ) : !assigned?.tasks.length ? (
-            <Empty className="min-h-[60vh]">
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <CircleCheck />
-                </EmptyMedia>
-                <EmptyTitle>{t("workspace:myWork.empty")}</EmptyTitle>
-                <EmptyDescription>
-                  {t("workspace:myTasks.emptyDescription")}
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          ) : (
-            <MyTasksList
-              tasks={assigned.tasks}
-              total={assigned.total}
-              groupBy={groupBy}
-              workspaceId={workspaceId}
-            />
-          )}
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {isLoading ? (
+              <div className="flex flex-col px-4">
+                {[1, 2, 3, 4].map((row) => (
+                  <div
+                    key={row}
+                    className="flex h-11 items-center gap-3 border-border/50 border-b px-1"
+                  >
+                    <Skeleton className="size-4 rounded-full" />
+                    <Skeleton className="h-3.5 w-14" />
+                    <Skeleton className="h-3.5 flex-1" />
+                    <Skeleton className="h-3.5 w-16" />
+                  </div>
+                ))}
+              </div>
+            ) : isError && !assigned ? (
+              <p role="alert" className="p-6 text-muted-foreground text-sm">
+                {t("workspace:myWork.loadError")}
+              </p>
+            ) : !assigned?.tasks.length ? (
+              <Empty className="min-h-[60vh]">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <CircleCheck />
+                  </EmptyMedia>
+                  <EmptyTitle>{t("workspace:myWork.empty")}</EmptyTitle>
+                  <EmptyDescription>
+                    {t("workspace:myTasks.emptyDescription")}
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <MyTasksList
+                tasks={assigned.tasks}
+                total={assigned.total}
+                groupBy={groupBy}
+                activity={tab === "activity"}
+                workspaceId={workspaceId}
+              />
+            )}
+          </div>
         </div>
       </WorkspaceLayout>
     </>

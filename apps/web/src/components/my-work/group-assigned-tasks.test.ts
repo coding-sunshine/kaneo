@@ -2,6 +2,7 @@ import { describe, expect, it } from "vite-plus/test";
 import type { AssignedTask } from "@/fetchers/task/get-assigned-tasks";
 import { getDueBucket } from "./due-bucket";
 import {
+  groupAssignedTasksByActivity,
   groupAssignedTasksByDueDate,
   groupAssignedTasksByProject,
 } from "./group-assigned-tasks";
@@ -86,5 +87,24 @@ describe("groupAssignedTasksByProject", () => {
 
     expect(groups.map((group) => group.id)).toEqual(["api", "web"]);
     expect(groups[0].tasks.map((item) => item.id)).toEqual(["a", "c"]);
+  });
+});
+
+describe("groupAssignedTasksByActivity", () => {
+  it("groups by days since last activity, newest first", () => {
+    const at = (d: number) =>
+      ({
+        ...task(`t${d}`, null),
+        lastActivityAt: new Date(2026, 9, 2 - d, 9, 0).toISOString(),
+      }) as AssignedTask;
+    const groups = groupAssignedTasksByActivity(
+      [at(0), at(1), at(4), at(4)],
+      now,
+    );
+    expect(groups.map((g) => [g.title, g.tasks.length])).toEqual([
+      ["Today", 1],
+      ["Yesterday", 1],
+      ["4 days ago", 2],
+    ]);
   });
 });

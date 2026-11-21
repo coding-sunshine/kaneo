@@ -76,3 +76,31 @@ export function groupAssignedTasksByStatus(
   };
   return [...byStatus.values()].sort((a, b) => rank(a.id) - rank(b.id));
 }
+
+// Activity tab: newest first, one group per local calendar day.
+export function groupAssignedTasksByActivity(
+  tasks: AssignedTask[],
+  now = new Date(),
+): AssignedTaskGroup[] {
+  const startOfDay = (d: Date) =>
+    new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const today = startOfDay(now);
+  const groups = new Map<number, AssignedTaskGroup>();
+  for (const task of tasks) {
+    const days = Math.max(
+      0,
+      Math.round(
+        (today - startOfDay(new Date(task.lastActivityAt ?? now))) / 864e5,
+      ),
+    );
+    const group = groups.get(days) ?? {
+      id: `activity-${days}`,
+      title:
+        days === 0 ? "Today" : days === 1 ? "Yesterday" : `${days} days ago`,
+      tasks: [],
+    };
+    group.tasks.push(task);
+    groups.set(days, group);
+  }
+  return [...groups.entries()].sort(([a], [b]) => a - b).map(([, g]) => g);
+}
