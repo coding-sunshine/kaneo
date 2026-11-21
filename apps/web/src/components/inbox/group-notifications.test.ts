@@ -27,10 +27,15 @@ describe("filterNotifications", () => {
   const notifications = [
     notification("unread-comment"),
     notification("read-mention", { type: "task_mention", isRead: true }),
+    notification("doc-mention", {
+      type: "document_mention",
+      resourceType: "document",
+      isRead: true,
+    }),
   ];
 
   it("keeps everything for the all filter", () => {
-    expect(filterNotifications(notifications, "all")).toHaveLength(2);
+    expect(filterNotifications(notifications, "all")).toHaveLength(3);
   });
 
   it("narrows to unread or to mentions", () => {
@@ -39,7 +44,10 @@ describe("filterNotifications", () => {
     ).toEqual(["unread-comment"]);
     expect(
       filterNotifications(notifications, "mentions").map((item) => item.id),
-    ).toEqual(["read-mention"]);
+    ).toEqual(["read-mention", "doc-mention"]);
+    expect(
+      filterNotifications(notifications, "priority").map((item) => item.id),
+    ).toEqual(["read-mention", "doc-mention"]);
   });
 });
 

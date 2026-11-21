@@ -1079,7 +1079,7 @@
 			"eventPreferencesDescription": "Your own comments, mentions, and status changes never notify you.",
 			"eventTaskAssignments": "Assignments",
 			"eventComments": "Comments and mentions",
-			"eventCommentsHint": "New comments on your issues, and anyone who @mentions you.",
+			"eventCommentsHint": "New comments on your issues and documents, and anyone who @mentions you.",
 			"eventStatusChanges": "Status changes",
 			"eventDueDateReminders": "Due date reminders",
 			"reminderLeadTimeLabel": "Remind me before the due date",
@@ -3337,9 +3337,11 @@
 			"unreadCount_other": "{{count}} unread notifications",
 			"back": "Inbox",
 			"openTask": "Open issue",
+			"openDocument": "Open document",
 			"recentActivity": "Recent activity",
 			"taskUnavailable": "This issue is no longer available.",
 			"taskLoadError": "This issue couldn’t be loaded.",
+			"documentUnavailable": "This document is no longer available.",
 			"actionError": "Couldn't update your inbox. Try again.",
 			"readCleared": "Deleted read notifications"
 		}

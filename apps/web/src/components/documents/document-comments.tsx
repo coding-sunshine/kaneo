@@ -3,14 +3,12 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import type {
-  DocumentComment,
-  DocumentDetail,
-} from "@/fetchers/document/documents";
+import type { DocumentDetail } from "@/fetchers/document/documents";
 import { useCreateDocumentComment } from "@/hooks/mutations/document/use-document-mutations";
 import { useDocumentComments } from "@/hooks/queries/document/use-documents";
 import { DocumentCommentComposer } from "./document-comment-composer";
 import { DocumentCommentThread } from "./document-comment-thread";
+import { groupDocumentThreads } from "./group-document-threads";
 
 type DocumentCommentsProps = {
   document: DocumentDetail;
@@ -29,15 +27,7 @@ export function DocumentComments({ document, onClose }: DocumentCommentsProps) {
   const [showResolved, setShowResolved] = useState(false);
   const canComment = document.role !== "view";
 
-  const replies = new Map<string, DocumentComment[]>();
-  for (const comment of comments) {
-    if (!comment.parentId) continue;
-    replies.set(comment.parentId, [
-      ...(replies.get(comment.parentId) ?? []),
-      comment,
-    ]);
-  }
-  const roots = comments.filter((comment) => !comment.parentId);
+  const { roots, replies } = groupDocumentThreads(comments);
   const resolvedCount = roots.filter((root) => root.resolvedAt).length;
   const visible = roots.filter((root) => showResolved || !root.resolvedAt);
 

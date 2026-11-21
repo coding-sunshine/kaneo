@@ -55,12 +55,15 @@ export function InboxListItem({
   const snooze = useSnooze(notification.id);
   const snoozed = isSnoozed(notification);
   const data = getEventDataRecord(notification.eventData);
-  // Linear rows: issue title on top, "who did what: snippet" underneath.
+  // Linear rows: issue or document title on top, "who did what: snippet" underneath.
   const issueTitle =
-    typeof data?.taskTitle === "string" ? data.taskTitle : null;
-  const preview = [data?.commentPreview, data?.mentionPreview].find(
-    (x): x is string => typeof x === "string" && x.length > 0,
-  );
+    [data?.taskTitle, data?.documentTitle].find(
+      (x): x is string => typeof x === "string" && x.length > 0,
+    ) ?? null;
+  // Previews are raw comment source; drop tags so mentions read as "@name".
+  const preview = [data?.commentPreview, data?.mentionPreview]
+    .find((x): x is string => typeof x === "string" && x.length > 0)
+    ?.replace(/<[^>]+>/g, "");
   const heading = issueTitle ?? getNotificationTitle(notification, t);
   const snippet = issueTitle
     ? [getNotificationTitle(notification, t), preview]

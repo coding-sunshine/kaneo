@@ -15,6 +15,8 @@ import { cn } from "@/lib/cn";
 const icons: Record<string, LucideIcon> = {
   task_mention: AtSign,
   task_comment: MessageSquare,
+  document_mention: AtSign,
+  document_comment: MessageSquare,
   task_assignee_changed: UserRound,
   task_status_changed: History,
   task_created: SquarePlus,

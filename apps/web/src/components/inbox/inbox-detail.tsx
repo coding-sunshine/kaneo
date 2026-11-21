@@ -1,12 +1,14 @@
 import { ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
+  getEventDataRecord,
   getNotificationContent,
   getNotificationTitle,
 } from "@/components/notification/notification-text";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, formatRelativeTime } from "@/lib/format";
 import type { Notification } from "@/types/notification";
+import { InboxDocument } from "./inbox-document";
 import { InboxTask } from "./inbox-task";
 import { NotificationIcon } from "./notification-icon";
 
@@ -24,6 +26,11 @@ export function InboxDetail({
   const { t } = useTranslation();
   const taskId =
     notification.resourceType === "task" ? notification.resourceId : null;
+  const documentId =
+    notification.resourceType === "document" ? notification.resourceId : null;
+  const eventWorkspaceId = getEventDataRecord(
+    notification.eventData,
+  )?.workspaceId;
   const content = getNotificationContent(notification, t);
 
   return (
@@ -64,6 +71,17 @@ export function InboxDetail({
 
           {taskId && (
             <InboxTask key={taskId} taskId={taskId} workspaceId={workspaceId} />
+          )}
+          {documentId && (
+            <InboxDocument
+              key={documentId}
+              documentId={documentId}
+              workspaceId={
+                typeof eventWorkspaceId === "string"
+                  ? eventWorkspaceId
+                  : workspaceId
+              }
+            />
           )}
         </div>
       </div>

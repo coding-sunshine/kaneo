@@ -28,6 +28,7 @@ function send(
   recipients: string[],
   type: "document_comment" | "document_mention",
   actorName: string | null,
+  commentPreview?: string,
 ) {
   const title =
     type === "document_mention"
@@ -45,6 +46,7 @@ function send(
           documentTitle: doc.title,
           actorName,
           workspaceId: doc.workspaceId,
+          ...(commentPreview && { commentPreview }),
         },
         resourceId: doc.id,
         resourceType: "document",
@@ -86,6 +88,7 @@ export async function notifyComment(
     .map((row) => row.userId)
     .filter((id) => id !== actorId && !mentioned.includes(id));
   const actorName = await userName(actorId);
-  await send(doc, mentioned, "document_mention", actorName);
-  await send(doc, others, "document_comment", actorName);
+  const preview = content.slice(0, 160);
+  await send(doc, mentioned, "document_mention", actorName, preview);
+  await send(doc, others, "document_comment", actorName, preview);
 }

@@ -285,7 +285,11 @@ describe("API integration: documents", () => {
       )
     ).json();
     expect(await notifications()).toMatchObject([
-      { type: "document_mention", resourceId: doc.id },
+      {
+        type: "document_mention",
+        resourceId: doc.id,
+        eventData: { documentTitle: "Spec", commentPreview: mention },
+      },
     ]);
 
     expect(

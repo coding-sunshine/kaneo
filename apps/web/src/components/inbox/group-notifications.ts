@@ -6,14 +6,17 @@ export type InboxFilter = "all" | "unread" | "mentions" | "priority" | "other";
 // Linear's priority inbox: things aimed at you land in Priority, the rest in Other.
 export const PRIORITY_TYPES = [
   "task_mention",
+  "document_mention",
   "task_assignee_changed",
   "due_date_reminder",
   "task_overdue",
 ];
 
+const MENTION_TYPES = ["task_mention", "document_mention"];
+
 export const NOTIFICATION_TYPE_FILTERS = [
-  { label: "Mentions", types: ["task_mention"] },
-  { label: "Comments", types: ["task_comment"] },
+  { label: "Mentions", types: MENTION_TYPES },
+  { label: "Comments", types: ["task_comment", "document_comment"] },
   { label: "Status changes", types: ["task_status_changed"] },
   { label: "Assignments", types: ["task_assignee_changed"] },
   { label: "Reminders", types: ["due_date_reminder", "task_overdue"] },
@@ -32,8 +35,8 @@ export function filterNotifications(
     return notifications.filter((notification) => !notification.isRead);
   }
   if (filter === "mentions") {
-    return notifications.filter(
-      (notification) => notification.type === "task_mention",
+    return notifications.filter((notification) =>
+      MENTION_TYPES.includes(notification.type),
     );
   }
   return notifications;
