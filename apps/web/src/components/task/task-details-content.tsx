@@ -117,6 +117,7 @@ export default function TaskDetailsContent({
             )}
             <TaskTimeTracking key={taskId} taskId={taskId} />
             <ExternalLinksAccordion
+              workspaceId={workspaceId}
               taskId={taskId}
               externalLinks={externalLinks as ExternalLink[]}
               isLoading={isLoadingExternalLinks}

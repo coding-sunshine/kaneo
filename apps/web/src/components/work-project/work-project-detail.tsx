@@ -18,6 +18,7 @@ import { WorkProjectFields } from "./work-project-fields";
 import { WorkProjectIcon } from "./work-project-icon";
 import { WorkProjectIssues } from "./work-project-issues";
 import { WorkProjectMilestones } from "./work-project-milestones";
+import { WorkProjectResources } from "./work-project-resources";
 
 type Tab = "overview" | "issues";
 
@@ -166,6 +167,12 @@ export function WorkProjectDetail({ workspaceId, workProjectId }: Props) {
                 ({percent}%)
               </p>
             </section>
+
+            <WorkProjectResources
+              workspaceId={workspaceId}
+              workProjectId={workProjectId}
+              editable={editable}
+            />
 
             <Textarea
               value={description}

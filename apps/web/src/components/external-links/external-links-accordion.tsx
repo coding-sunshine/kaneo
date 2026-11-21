@@ -1,5 +1,6 @@
 import {
   ChevronRight,
+  FileText,
   FolderGit,
   GitMerge,
   GitPullRequest,
@@ -8,8 +9,11 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { DocumentResourceRow } from "@/components/documents/document-resource-row";
+import { useNewDocument } from "@/components/documents/use-new-document";
 import { GithubIcon } from "@/components/icons/github-icon";
 import { GitlabIcon } from "@/components/icons/gitlab-icon";
+import { ShortcutKeys } from "@/components/shortcuts/shortcut-keys";
 import { SectionAddButton } from "@/components/task/sections/section-add-button";
 import { SectionHeader } from "@/components/task/sections/section-header";
 import { sectionRowClass } from "@/components/task/sections/section-row-class";
@@ -28,14 +32,23 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Menu,
+  MenuItem,
+  MenuPopup,
+  MenuShortcut,
+  MenuTrigger,
+} from "@/components/ui/menu";
 import useCreateExternalLink from "@/hooks/mutations/external-link/use-create-external-link";
 import useDeleteExternalLink from "@/hooks/mutations/external-link/use-delete-external-link";
+import { useDocuments } from "@/hooks/queries/document/use-documents";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { cn } from "@/lib/cn";
 import type { ExternalLink } from "@/types/external-link";
 import { linkHost } from "./link-host";
 
 interface ExternalLinksAccordionProps {
+  workspaceId: string;
   taskId: string;
   externalLinks: ExternalLink[];
   isLoading?: boolean;
@@ -59,6 +72,7 @@ function isGitlabResourceLink(link: ExternalLink) {
 }
 
 export function ExternalLinksAccordion({
+  workspaceId,
   taskId,
   externalLinks,
   isLoading,
@@ -73,6 +87,8 @@ export function ExternalLinksAccordion({
 
   const createExternalLink = useCreateExternalLink();
   const deleteExternalLink = useDeleteExternalLink();
+  const { data: documents = [] } = useDocuments(workspaceId, { taskId });
+  const newDocument = useNewDocument(workspaceId);
 
   const linksWithoutRedundantBranches = useMemo(() => {
     const hasPR = externalLinks.some(
@@ -85,6 +101,8 @@ export function ExternalLinksAccordion({
 
     return externalLinks;
   }, [externalLinks]);
+
+  const resourceCount = documents.length + linksWithoutRedundantBranches.length;
 
   const resetForm = () => {
     setUrl("");
@@ -200,27 +218,65 @@ export function ExternalLinksAccordion({
               </CollapsibleTrigger>
             }
             meta={
-              linksWithoutRedundantBranches.length > 0 && (
+              resourceCount > 0 && (
                 <span className="text-muted-foreground text-xs tabular-nums">
-                  {linksWithoutRedundantBranches.length}
+                  {resourceCount}
                 </span>
               )
             }
             action={
               canAddResource && (
-                <SectionAddButton
-                  data-task-action="addLink"
-                  aria-label={t("settings:externalLinks.addResource")}
-                  title={t("settings:externalLinks.addResource")}
-                  onClick={() => setIsDialogOpen(true)}
-                />
+                <>
+                  {/* Ctrl+L opens the link form directly, as in Linear. */}
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    aria-hidden="true"
+                    data-task-action="addLink"
+                    className="sr-only"
+                    onClick={() => setIsDialogOpen(true)}
+                  />
+                  <Menu>
+                    <MenuTrigger
+                      render={
+                        <SectionAddButton
+                          aria-label={t("settings:externalLinks.addResource")}
+                          title={t("settings:externalLinks.addResource")}
+                        />
+                      }
+                    />
+                    <MenuPopup align="end" className="min-w-44">
+                      <MenuItem onClick={() => setIsDialogOpen(true)}>
+                        <Link aria-hidden="true" />
+                        {t("settings:externalLinks.addLink")}
+                        <MenuShortcut>
+                          <ShortcutKeys id="addLink" tone="muted" />
+                        </MenuShortcut>
+                      </MenuItem>
+                      <MenuItem
+                        disabled={newDocument.isPending}
+                        onClick={() => newDocument.create({ taskId })}
+                      >
+                        <FileText aria-hidden="true" />
+                        {t("settings:externalLinks.addDocument")}
+                      </MenuItem>
+                    </MenuPopup>
+                  </Menu>
+                </>
               )
             }
           />
 
           <CollapsibleContent>
-            {isLoading ? null : linksWithoutRedundantBranches.length > 0 ? (
+            {isLoading ? null : resourceCount > 0 ? (
               <div className="flex flex-col">
+                {documents.map((document) => (
+                  <DocumentResourceRow
+                    key={document.id}
+                    workspaceId={workspaceId}
+                    document={document}
+                  />
+                ))}
                 {linksWithoutRedundantBranches.map((link) => {
                   const isUrl = link.resourceType === "url";
                   const removable =

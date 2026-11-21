@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Layers, Layers2, Box } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import ProjectLayout from "@/components/common/project-layout";
+import { TeamResources } from "@/components/documents/team-resources";
 import PageTitle from "@/components/page-title";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import icons from "@/constants/project-icons";
@@ -88,6 +89,8 @@ function RouteComponent() {
               ))}
             </ul>
           </section>
+
+          <TeamResources workspaceId={workspaceId} projectId={projectId} />
 
           <section className="flex flex-col gap-2">
             <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
