@@ -76,6 +76,7 @@ import useDeleteProject from "@/hooks/mutations/project/use-delete-project";
 import useReorderProjects from "@/hooks/mutations/project/use-reorder-projects";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
+import { useUserPreferencesStore } from "@/store/user-preferences";
 import { useBoardHoverPrefetch } from "@/hooks/use-board-hover-prefetch";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { EASE_OUT_CSS } from "@/lib/motion";
@@ -137,6 +138,8 @@ export function NavProjects() {
   const { t } = useTranslation();
   const { isMobile } = useSidebar();
   const { data: workspace } = useActiveWorkspace();
+  const collapsedNavIds = useUserPreferencesStore((s) => s.collapsedNavIds);
+  const setNavOpen = useUserPreferencesStore((s) => s.setNavOpen);
   const { data: projects } = useGetProjects(
     {
       workspaceId: workspace?.id || "",
@@ -238,7 +241,11 @@ export function NavProjects() {
 
   return (
     <>
-      <Collapsible defaultOpen className="group/collapsible">
+      <Collapsible
+        open={!collapsedNavIds.includes("your-teams")}
+        onOpenChange={(open) => setNavOpen("your-teams", open)}
+        className="group/collapsible"
+      >
         <SidebarGroup className="group-data-[collapsible=icon]:hidden gap-1 p-2 pt-1">
           <CollapsibleTrigger
             className="data-panel-open:[&_svg]:rotate-90"
@@ -290,7 +297,15 @@ export function NavProjects() {
                           id={project.id}
                           canReorder={canReorder}
                         >
-                          <Collapsible defaultOpen className="group/team">
+                          <Collapsible
+                            open={
+                              !collapsedNavIds.includes(`team:${project.id}`)
+                            }
+                            onOpenChange={(open) =>
+                              setNavOpen(`team:${project.id}`, open)
+                            }
+                            className="group/team"
+                          >
                             <CollapsibleTrigger
                               className="data-panel-open:[&_.team-chevron]:rotate-90"
                               render={

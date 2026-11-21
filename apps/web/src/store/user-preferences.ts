@@ -65,6 +65,8 @@ type UserPreferencesStore = {
   toggleTaskItemCounts: () => void;
   hiddenCardFieldIds: string[];
   hiddenColumnIds: string[];
+  collapsedNavIds: string[];
+  setNavOpen: (navId: string, open: boolean) => void;
   toggleColumnHidden: (columnId: string) => void;
   toggleCardFieldHidden: (fieldId: string) => void;
   resetDisplayPreferences: () => void;
@@ -134,6 +136,13 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
       setShowDueDates: (show) => set({ showDueDates: show }),
       toggleDueDates: () =>
         set((state) => ({ showDueDates: !state.showDueDates })),
+      collapsedNavIds: [],
+      setNavOpen: (navId, open) =>
+        set((state) => ({
+          collapsedNavIds: open
+            ? state.collapsedNavIds.filter((id) => id !== navId)
+            : [...new Set([...state.collapsedNavIds, navId])],
+        })),
       hiddenColumnIds: [],
       toggleColumnHidden: (columnId) =>
         set((state) => ({
