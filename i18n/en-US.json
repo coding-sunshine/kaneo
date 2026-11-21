@@ -3260,6 +3260,10 @@
 			"high": "High",
 			"urgent": "Urgent"
 		},
+		"subscription": {
+			"subscribe": "Subscribe",
+			"unsubscribe": "Unsubscribe"
+		},
 		"triage": {
 			"title": "Triage",
 			"accept": "Accept",
@@ -4060,6 +4064,11 @@
 		"myTasks": {
 			"pageTitle": "My tasks",
 			"emptyDescription": "Tasks assigned to you across this workspace show up here.",
+			"tabs": {
+				"assigned": "Assigned",
+				"created": "Created",
+				"subscribed": "Subscribed"
+			},
 			"groupBy": {
 				"label": "Group by",
 				"dueDate": "Due date",

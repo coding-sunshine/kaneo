@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import type { MyTasksTab } from "@/fetchers/task/get-assigned-tasks";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 
@@ -35,5 +36,32 @@ export function MyTasksGroupByToggle({ value, onChange }: MyTasksGroupByProps) {
         </Button>
       ))}
     </fieldset>
+  );
+}
+
+export function MyTasksTabs({
+  value,
+  onChange,
+}: {
+  value: MyTasksTab;
+  onChange: (value: MyTasksTab) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div role="tablist" className="inline-flex items-center gap-0.5">
+      {(["assigned", "created", "subscribed"] as const).map((tab) => (
+        <Button
+          key={tab}
+          role="tab"
+          aria-selected={value === tab}
+          variant={value === tab ? "secondary" : "ghost"}
+          size="xs"
+          onClick={() => onChange(tab)}
+          className={cn(value !== tab && "text-muted-foreground")}
+        >
+          {t(`workspace:myTasks.tabs.${tab}`)}
+        </Button>
+      ))}
+    </div>
   );
 }

@@ -6,6 +6,7 @@ import WorkspaceLayout from "@/components/common/workspace-layout";
 import {
   type MyTasksGroupBy,
   MyTasksGroupByToggle,
+  MyTasksTabs,
 } from "@/components/my-tasks/my-tasks-group-by";
 import { MyTasksList } from "@/components/my-tasks/my-tasks-list";
 import PageTitle from "@/components/page-title";
@@ -17,6 +18,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { MyTasksTab } from "@/fetchers/task/get-assigned-tasks";
 import useGetAssignedTasks from "@/hooks/queries/task/use-get-assigned-tasks";
 
 export const Route = createFileRoute(
@@ -28,11 +30,12 @@ export const Route = createFileRoute(
 function RouteComponent() {
   const { t } = useTranslation();
   const { workspaceId } = Route.useParams();
+  const [tab, setTab] = useState<MyTasksTab>("assigned");
   const {
     data: assigned,
     isLoading,
     isError,
-  } = useGetAssignedTasks(workspaceId);
+  } = useGetAssignedTasks(workspaceId, false, tab);
   const [groupBy, setGroupBy] = useState<MyTasksGroupBy>("status");
 
   return (
@@ -41,9 +44,12 @@ function RouteComponent() {
       <WorkspaceLayout
         title={t("workspace:myTasks.pageTitle")}
         headerActions={
-          assigned?.tasks.length ? (
-            <MyTasksGroupByToggle value={groupBy} onChange={setGroupBy} />
-          ) : null
+          <div className="flex items-center gap-3">
+            <MyTasksTabs value={tab} onChange={setTab} />
+            {assigned?.tasks.length ? (
+              <MyTasksGroupByToggle value={groupBy} onChange={setGroupBy} />
+            ) : null}
+          </div>
         }
       >
         <div className="h-full overflow-y-auto">
