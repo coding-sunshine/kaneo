@@ -34,6 +34,8 @@ import { toast } from "@/lib/toast";
 import useBulkSelectionStore from "@/store/bulk-selection";
 import useProjectStore from "@/store/project";
 import { useUserPreferencesStore } from "@/store/user-preferences";
+import { formatDateShort } from "@/lib/format";
+import { getColumnIcon } from "@/lib/column";
 import type Task from "@/types/task";
 import TaskCardContextMenuContent from "../task-card-context-menu/task-card-context-menu-content";
 import { useTaskCardClick } from "./use-task-card-click";
@@ -60,6 +62,9 @@ function TaskCardContent({
   );
   const projectId = useProjectStore((state) => state.project?.id);
   const projectSlug = useProjectStore((state) => state.project?.slug);
+  const column = useProjectStore((state) =>
+    state.project?.columns?.find((c) => c.id === task.status),
+  );
   const taskIsCompleted =
     isFinalColumn ?? isTaskCompleted(task.status, columns);
   const hasPriority = Boolean(task.priority) && task.priority !== "no-priority";
@@ -73,6 +78,8 @@ function TaskCardContent({
     showLabels,
     showTaskNumbers,
     showTaskItemCounts,
+    showStatus,
+    showCreatedDates,
   } = useUserPreferencesStore();
 
   const [isDeleteTaskModalOpen, setIsDeleteTaskModalOpen] = useState<
@@ -86,7 +93,7 @@ function TaskCardContent({
   const isTaskFocused = useBulkSelectionStore(
     (state) => state.focusedTaskId === task.id,
   );
-  const showIdRow = showTaskNumbers || showAssignees || isTaskSelected;
+  const showIdRow = showTaskNumbers || isTaskSelected;
 
   const cardFields = useTaskCardFields(task.projectId, task.id);
 
@@ -134,86 +141,101 @@ function TaskCardContent({
             onPointerLeave={() => setIsPressed(false)}
             onPointerCancel={() => setIsPressed(false)}
             className={cn(
-              "group relative flex flex-col rounded-lg border p-2 transition-[background-color,border-color,box-shadow,scale] duration-150 ease-out",
+              "group relative flex flex-col rounded-[8px] border border-transparent p-[7px] transition-[background-color,border-color,box-shadow,scale] duration-150 ease-out",
               isPressed && "scale-[0.98]",
               disableDragDrop ? "cursor-default" : "cursor-move",
               taskIsCompleted
                 ? "border-board-card-done-border bg-board-card-done"
-                : "border-board-card-border bg-board-card shadow-board-card",
+                : "bg-board-card shadow-board-card hover:bg-board-card-hover",
               isDragging
                 ? "border-board-card-border-hover bg-board-card shadow-[0_8px_24px_rgb(0_0_0/0.12)]"
-                : !isTaskFocused && "hover:border-board-card-border-hover",
+                : null,
               isTaskSelected &&
                 "border-board-card-selected-border bg-board-card-selected",
               isTaskFocused && "border-board-card-focus",
             )}
           >
-            {showIdRow && (
-              <div className="flex h-4.5 items-center justify-between gap-2">
-                <div className="flex min-w-0 items-center gap-1.5">
-                  {isTaskSelected && (
-                    <CheckboxMark checked className="size-3.5 shrink-0" />
+            {showAssignees && (
+              <div className="absolute top-[7px] right-[7px]">
+                <AssigneeButton
+                  task={task}
+                  workspaceId={workspaceId}
+                  name={assignee?.user?.name ?? task.assigneeName}
+                  image={assignee?.user?.image}
+                  avatarFallbackClassName={cn(
+                    isTaskSelected && "bg-avatar-selected",
+                    taskIsCompleted &&
+                      "bg-avatar-done text-avatar-foreground-done",
                   )}
-                  {showTaskNumbers && (
-                    <span
-                      className={cn(
-                        "truncate font-mono text-[11px] leading-3.5",
-                        taskIsCompleted
-                          ? "text-board-id-done"
-                          : "text-board-id",
-                      )}
-                    >
-                      {projectSlug}-{task.number}
-                    </span>
-                  )}
-                </div>
-                {showAssignees && (
-                  <AssigneeButton
-                    task={task}
-                    workspaceId={workspaceId}
-                    name={assignee?.user?.name ?? task.assigneeName}
-                    image={assignee?.user?.image}
-                    avatarFallbackClassName={cn(
-                      isTaskSelected && "bg-avatar-selected",
-                      taskIsCompleted &&
-                        "bg-avatar-done text-avatar-foreground-done",
+                />
+              </div>
+            )}
+            {(showTaskNumbers || isTaskSelected) && (
+              <div className="flex h-[15px] items-center gap-1.5 pr-[34px] pl-1">
+                {isTaskSelected && (
+                  <CheckboxMark checked className="size-3.5 shrink-0" />
+                )}
+                {showTaskNumbers && (
+                  <span
+                    className={cn(
+                      "truncate font-[450] text-xs leading-[15px]",
+                      taskIsCompleted ? "text-board-id-done" : "text-board-id",
                     )}
-                  />
+                  >
+                    {projectSlug}-{task.number}
+                  </span>
                 )}
               </div>
             )}
 
             <div
               className={cn(
-                "line-clamp-3 break-words text-[13px] leading-[18px]",
-                showIdRow && "mt-1",
-                taskIsCompleted
-                  ? "text-board-title-done"
-                  : "font-medium text-board-title",
+                "flex items-start gap-1.5 pr-[34px] pl-1",
+                showIdRow && "mt-1.5",
               )}
             >
-              {task.title}
+              {showStatus && (
+                <span className="mt-px shrink-0 [&_svg]:size-3.5">
+                  {getColumnIcon(task.status, column?.isFinal, column?.icon)}
+                </span>
+              )}
+              <div
+                className={cn(
+                  "line-clamp-2 min-w-0 break-words text-[13px] leading-4",
+                  taskIsCompleted
+                    ? "text-board-title-done"
+                    : "font-medium text-board-title",
+                )}
+              >
+                {task.title}
+              </div>
             </div>
 
             {!taskIsCompleted && (
               <div className="mt-2.5 flex flex-wrap items-center gap-1 empty:hidden">
                 {showPriority && hasPriority && <PriorityChip task={task} />}
+                {showLabels && (
+                  <LabelChips task={task} workspaceId={workspaceId} />
+                )}
+                <TaskPullRequests
+                  externalLinks={task.externalLinks}
+                  className={cn(taskChipClass, "font-normal")}
+                />
                 {showDueDates && <DueDateChip task={task} />}
                 <TaskRecurrenceBadge task={task} />
                 <SubtasksChip task={task} workspaceId={workspaceId} />
                 {showTaskItemCounts && <ChecklistChip task={task} />}
-                <TaskPullRequests
-                  externalLinks={task.externalLinks}
-                  className={cn(taskChipClass, "bg-transparent font-normal")}
-                />
-                {showLabels && (
-                  <LabelChips task={task} workspaceId={workspaceId} />
-                )}
                 <CardFieldList
                   fields={cardFields}
                   max={2}
                   className="contents"
                 />
+              </div>
+            )}
+            {showCreatedDates && (
+              <div className="mt-1.5 flex h-6 items-center text-board-id text-xs font-[450]">
+                {t("settings:preferencesPage.createdDates")}{" "}
+                {formatDateShort(task.createdAt)}
               </div>
             )}
           </div>

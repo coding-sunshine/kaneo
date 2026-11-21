@@ -19,7 +19,7 @@ export function PriorityChip({ task }: { task: Task }) {
         title={label}
         className={cn(
           taskChipClass,
-          "w-5.5 justify-center px-0 [&_svg]:size-3.5",
+          "w-[25px] justify-center px-0 [&_svg]:size-3.5",
         )}
         {...stopCardEvents}
       >

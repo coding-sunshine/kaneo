@@ -161,6 +161,7 @@ input:-webkit-autofill:active {
   --color-code: var(--code);
   --color-board-lane: var(--board-lane);
   --color-board-card: var(--board-card);
+  --color-board-card-hover: var(--board-card-hover);
   --color-board-card-border: var(--board-card-border);
   --color-board-card-border-hover: var(--board-card-border-hover);
   --color-board-card-selected: var(--board-card-selected);
@@ -305,6 +306,7 @@ input:-webkit-autofill:active {
   --code-highlight: --alpha(var(--color-black) / 4%);
   --board-lane: transparent;
   --board-card: #ffffff;
+  --board-card-hover: #f4f4f5;
   --board-card-border: #00000014;
   --board-card-border-hover: #0000002e;
   --board-card-selected: #f2f2f2;
@@ -314,7 +316,7 @@ input:-webkit-autofill:active {
   --board-card-shadow: 0 0 0 1px #0000000a, 0 3px 6px -2px #00000005, 0 1px 1px #0000000a;
   --board-card-done: #ffffff99;
   --board-card-done-border: #0000000f;
-  --board-id: #8a8a8a;
+  --board-id: #5e5e63;
   --board-id-done: #a3a3a3;
   --board-title: #171717;
   --board-title-done: #737373;
@@ -415,6 +417,7 @@ input:-webkit-autofill:active {
   --code-highlight: --alpha(var(--color-white) / 4%);
   --board-lane: transparent;
   --board-card: #1c1c1c;
+  --board-card-hover: #232323;
   --board-card-border: transparent;
   --board-card-border-hover: #ffffff2e;
   --board-card-selected: #262626;
