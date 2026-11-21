@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { InboxIcon } from "lucide-react";
+import { Ban, CheckCheck, Clock, Copy, InboxIcon, Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ProjectLayout from "@/components/common/project-layout";
 import PageTitle from "@/components/page-title";
-import TaskDetailsSheet from "@/components/task/task-details-sheet";
+import { PropertyChips } from "@/components/task/properties/property-chips";
+import TaskDetailsContent from "@/components/task/task-details-content";
 import {
   DuplicateDialog,
   SnoozeDialog,
@@ -17,7 +18,10 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
+import { useCreateIssueStore } from "@/store/create-issue";
 import useCreateTaskRelation from "@/hooks/mutations/task-relation/use-create-task-relation";
 import { useSnoozeTask } from "@/hooks/mutations/task/use-snooze-task";
 import { useUpdateTaskStatus } from "@/hooks/mutations/task/use-update-task-status";
@@ -47,22 +51,20 @@ function RouteComponent() {
   const { mutate: setStatus } = useUpdateTaskStatus();
   const { mutate: snooze } = useSnoozeTask(projectId);
   const { mutate: createRelation } = useCreateTaskRelation();
-  const [selectedId, setSelectedId] = useState<string>();
+  const { data: workspaceUsers } = useGetActiveWorkspaceUsers(workspaceId);
+  const setCreateOpen = useCreateIssueStore((state) => state.setOpen);
   const [dialog, setDialog] = useState<{
     kind: "snooze" | "duplicate";
     task: Task;
   }>();
 
   const tasks = useMemo(() => (data ? triageTasks(data) : []), [data]);
-  const selectedIndex = tasks.findIndex((task) => task.id === selectedId);
+  const selectedIndex = tasks.findIndex((task) => task.id === taskId);
+  const selected = tasks[selectedIndex];
 
   const open = useCallback(
     (id: string) =>
       navigate({ to: ".", search: { taskId: id }, replace: true }),
-    [navigate],
-  );
-  const close = useCallback(
-    () => navigate({ to: ".", search: {}, replace: true }),
     [navigate],
   );
 
@@ -112,14 +114,13 @@ function RouteComponent() {
         event.metaKey ||
         event.ctrlKey ||
         event.altKey ||
-        taskId ||
         target.closest("input, textarea, [contenteditable], [role=dialog]")
       )
         return;
       const step = event.key === "j" ? 1 : event.key === "k" ? -1 : 0;
       if (step) {
         const next = tasks[Math.max(0, selectedIndex + step)];
-        if (next) setSelectedId(next.id);
+        if (next) open(next.id);
         return;
       }
       const current = tasks[selectedIndex];
@@ -133,9 +134,9 @@ function RouteComponent() {
         setDialog({ kind: "snooze", task: current });
         return;
       } else return;
-      setSelectedId(
-        tasks[selectedIndex + 1]?.id ?? tasks[selectedIndex - 1]?.id,
-      );
+      const after = tasks[selectedIndex + 1] ?? tasks[selectedIndex - 1];
+      if (after) open(after.id);
+      else navigate({ to: ".", search: {}, replace: true });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -162,48 +163,123 @@ function RouteComponent() {
           project ? `${project.name} / ${t("tasks:triage.title")}` : undefined
         }
       />
-      <div className="h-full overflow-y-auto">
-        {isLoading && !data ? (
-          <div className="flex flex-col px-5">
-            {[1, 2, 3].map((row) => (
-              <div
-                key={row}
-                className="flex h-10 items-center gap-3 border-border/50 border-b"
-              >
-                <Skeleton className="size-4 rounded-full" />
-                <Skeleton className="h-3.5 w-14" />
-                <Skeleton className="h-3.5 flex-1" />
+      <div className="flex h-full min-h-0">
+        <div className="w-full shrink-0 overflow-y-auto border-border border-r py-2 md:w-[400px]">
+          {isLoading && !data ? (
+            <div className="flex flex-col gap-2 px-5">
+              {[1, 2, 3].map((row) => (
+                <Skeleton key={row} className="h-[51px] w-full" />
+              ))}
+            </div>
+          ) : tasks.length === 0 ? (
+            <Empty className="min-h-[60vh]">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <InboxIcon />
+                </EmptyMedia>
+                <EmptyTitle>{t("tasks:triage.empty")}</EmptyTitle>
+                <EmptyDescription>
+                  {t("tasks:triage.emptyDescription")}
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          ) : (
+            tasks.map((task) => (
+              <TriageRow
+                key={task.id}
+                task={task}
+                slug={project?.slug}
+                creator={
+                  workspaceUsers?.members?.find(
+                    (member) => member.userId === task.creatorId,
+                  )?.user ?? undefined
+                }
+                selected={task.id === taskId}
+                onOpen={() => open(task.id)}
+              />
+            ))
+          )}
+        </div>
+        <div className="hidden min-w-0 flex-1 flex-col md:flex">
+          {selected ? (
+            <>
+              <div className="flex h-12 shrink-0 items-center gap-2 px-6 text-[13px]">
+                <span className="text-muted-foreground tabular-nums">
+                  {project?.slug}-{selected.number}
+                </span>
+                <span className="min-w-0 flex-1 truncate">
+                  {selected.title}
+                </span>
+                <div className="flex shrink-0 items-center gap-0.5">
+                  {(
+                    [
+                      [
+                        "1",
+                        CheckCheck,
+                        "triage.accept",
+                        () => accept(selected),
+                      ],
+                      [
+                        "2",
+                        Copy,
+                        "triage.duplicate",
+                        () => setDialog({ kind: "duplicate", task: selected }),
+                      ],
+                      ["3", Ban, "triage.decline", () => decline(selected)],
+                      [
+                        "H",
+                        Clock,
+                        "triage.snooze",
+                        () => setDialog({ kind: "snooze", task: selected }),
+                      ],
+                    ] as const
+                  ).map(([key, Icon, label, run]) => (
+                    <Button
+                      key={key}
+                      variant="ghost"
+                      size="icon-sm"
+                      title={`${t(`tasks:${label}`)} (${key})`}
+                      aria-label={t(`tasks:${label}`)}
+                      onClick={run}
+                    >
+                      <Icon />
+                    </Button>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
-        ) : tasks.length === 0 ? (
-          <Empty className="min-h-[60vh]">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <InboxIcon />
-              </EmptyMedia>
-              <EmptyTitle>{t("tasks:triage.empty")}</EmptyTitle>
-              <EmptyDescription>
-                {t("tasks:triage.emptyDescription")}
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        ) : (
-          tasks.map((task) => (
-            <TriageRow
-              key={task.id}
-              task={task}
-              slug={project?.slug}
-              workspaceId={workspaceId}
-              selected={task.id === selectedId}
-              onOpen={() => open(task.id)}
-              onAccept={() => accept(task)}
-              onDuplicate={() => setDialog({ kind: "duplicate", task })}
-              onDecline={() => decline(task)}
-              onSnooze={() => setDialog({ kind: "snooze", task })}
-            />
-          ))
-        )}
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <TaskDetailsContent
+                  key={selected.id}
+                  taskId={selected.id}
+                  projectId={projectId}
+                  workspaceId={workspaceId}
+                  className="mx-auto max-w-3xl px-9 pt-4 pb-10"
+                  properties={
+                    <PropertyChips
+                      taskId={selected.id}
+                      projectId={projectId}
+                      workspaceId={workspaceId}
+                      className="pb-5"
+                    />
+                  }
+                />
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 text-[13px]">
+              <span>{t("tasks:triage.toTriage", { count: tasks.length })}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full"
+                onClick={() => setCreateOpen(true)}
+              >
+                <Plus />
+                {t("tasks:triage.create")}
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
       <SnoozeDialog
         open={dialog?.kind === "snooze"}
@@ -217,12 +293,6 @@ function RouteComponent() {
         slug={project?.slug}
         excludeId={dialog?.task.id}
         onPick={markDuplicate}
-      />
-      <TaskDetailsSheet
-        taskId={taskId}
-        projectId={projectId}
-        workspaceId={workspaceId}
-        onClose={close}
       />
     </ProjectLayout>
   );

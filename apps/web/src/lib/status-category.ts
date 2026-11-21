@@ -67,7 +67,9 @@ export function triageTasks(project: Pick<ProjectWithTasks, "columns">) {
  * Linear hides sub-issues unless "Show sub-issues" is on. Returns the project
  * without them and how many were dropped.
  */
-export function hideSubIssues<T extends Pick<ProjectWithTasks, "columns">>(
+export function hideSubIssues<
+  T extends { columns: { tasks: { id: string }[] }[] },
+>(
   project: T,
   relations: readonly { targetTaskId: string; relationType: string }[],
 ): { project: T; hidden: number } {

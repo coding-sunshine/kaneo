@@ -1,48 +1,30 @@
-import { Ban, CheckCheck, Clock, Copy } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { LabelChips } from "@/components/task-chips/label-chips";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/cn";
-import { formatDateShort } from "@/lib/format";
-import { getPriorityIcon } from "@/lib/priority";
 import type Task from "@/types/task";
 
 type TriageRowProps = {
   task: Task;
   slug: string | undefined;
-  workspaceId: string;
+  creator?: { name?: string | null; image?: string | null };
   selected: boolean;
   onOpen: () => void;
-  onAccept: () => void;
-  onDuplicate: () => void;
-  onDecline: () => void;
-  onSnooze: () => void;
 };
 
-/** One incoming issue in the team Triage inbox, with Linear's four actions. */
+/** One incoming issue in Linear's two-line triage list: title and key, then creator and age. */
 export function TriageRow({
   task,
   slug,
-  workspaceId,
+  creator,
   selected,
   onOpen,
-  onAccept,
-  onDuplicate,
-  onDecline,
-  onSnooze,
 }: TriageRowProps) {
-  const { t } = useTranslation();
-  const actions = [
-    ["1", CheckCheck, "triage.accept", onAccept],
-    ["2", Copy, "triage.duplicate", onDuplicate],
-    ["3", Ban, "triage.decline", onDecline],
-    ["H", Clock, "triage.snooze", onSnooze],
-  ] as const;
-
+  const name = creator?.name ?? "";
   return (
-    // biome-ignore lint/a11y/useSemanticElements: row hosts nested buttons
+    // biome-ignore lint/a11y/useSemanticElements: row hosts nested content
     <div
       role="button"
       tabIndex={0}
+      data-triage-row={task.id}
       data-selected={selected || undefined}
       onClick={onOpen}
       onKeyDown={(event) => {
@@ -50,42 +32,55 @@ export function TriageRow({
           onOpen();
       }}
       className={cn(
-        "group flex h-10 cursor-pointer items-center gap-2.5 border-border/50 border-b px-5 outline-none transition-colors hover:bg-accent/50",
-        selected && "bg-accent/60",
+        "mx-2 flex h-[59px] cursor-pointer flex-col justify-center gap-1 rounded-lg px-3 outline-none transition-colors hover:bg-accent/50 focus-visible:ring-2 focus-visible:ring-ring",
+        selected && "bg-accent",
       )}
     >
-      <span className="flex w-4 shrink-0 justify-center [&_svg]:size-3.5">
-        {getPriorityIcon(task.priority ?? "")}
-      </span>
-      <span className="w-16 shrink-0 truncate font-medium text-muted-foreground text-xs">
-        {slug}-{task.number}
-      </span>
-      <span className="min-w-0 flex-1 truncate text-foreground text-sm">
-        {task.title}
-      </span>
-      <span className="hidden shrink-0 lg:flex">
-        <LabelChips task={task} workspaceId={workspaceId} max={2} />
-      </span>
-      <span className="w-12 shrink-0 text-right text-muted-foreground text-xs tabular-nums group-hover:hidden group-data-selected:hidden">
-        {formatDateShort(task.createdAt)}
-      </span>
-      <span className="hidden shrink-0 items-center gap-0.5 group-hover:flex group-data-selected:flex">
-        {actions.map(([key, Icon, label, run]) => (
-          <button
-            key={key}
-            type="button"
-            title={`${t(`tasks:${label}`)} (${key})`}
-            aria-label={t(`tasks:${label}`)}
-            onClick={(event) => {
-              event.stopPropagation();
-              run();
-            }}
-            className="flex size-6 cursor-pointer items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <Icon className="size-3.5" />
-          </button>
-        ))}
-      </span>
+      <div className="flex items-center gap-3">
+        <span className="min-w-0 flex-1 truncate text-[13px] text-foreground">
+          {task.title}
+        </span>
+        <span className="shrink-0 text-[13px] text-muted-foreground tabular-nums">
+          {slug}-{task.number}
+        </span>
+      </div>
+      <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+        <Avatar className="size-4 text-[8px]">
+          <AvatarImage src={creator?.image ?? undefined} alt={name} />
+          <AvatarFallback>{initials(name)}</AvatarFallback>
+        </Avatar>
+        <span className="min-w-0 flex-1 truncate">{name}</span>
+        <span className="shrink-0">{formatRelativeAge(task.createdAt)}</span>
+      </div>
     </div>
   );
+}
+
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
+
+/** Linear's compact age: "9w ago", "3d ago", "just now". */
+export function formatRelativeAge(value: string | Date, now = new Date()) {
+  const seconds = Math.max(
+    0,
+    Math.round((now.getTime() - new Date(value).getTime()) / 1000),
+  );
+  const units: Array<[string, number]> = [
+    ["y", 31536000],
+    ["mo", 7776000],
+    ["w", 604800],
+    ["d", 86400],
+    ["h", 3600],
+    ["m", 60],
+  ];
+  for (const [label, size] of units) {
+    if (seconds >= size) return `${Math.floor(seconds / size)}${label} ago`;
+  }
+  return "just now";
 }

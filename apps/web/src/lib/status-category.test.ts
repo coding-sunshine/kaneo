@@ -47,14 +47,12 @@ describe("hideSubIssues", () => {
   it("drops subtask targets and counts them", () => {
     const project = {
       columns: [{ id: "todo", tasks: [{ id: "a" }, { id: "b" }, { id: "c" }] }],
-    } as never;
+    };
     const out = hideSubIssues(project, [
       { targetTaskId: "b", relationType: "subtask" },
       { targetTaskId: "c", relationType: "blocks" },
     ]);
     expect(out.hidden).toBe(1);
-    expect(
-      out.project.columns[0].tasks.map((t: { id: string }) => t.id),
-    ).toEqual(["a", "c"]);
+    expect(out.project.columns[0].tasks.map((t) => t.id)).toEqual(["a", "c"]);
   });
 });
