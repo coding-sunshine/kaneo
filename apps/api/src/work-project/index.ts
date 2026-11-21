@@ -80,6 +80,7 @@ const getRoute = createRoute({
     200: jsonResponse("Project details", workProjectDetailSchema),
     403: noAccess,
     404: errorResponse("Project not found"),
+    409: errorResponse("A project with this name already exists"),
   },
 });
 

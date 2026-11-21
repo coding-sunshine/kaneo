@@ -1,4 +1,4 @@
-import { and, eq, max } from "drizzle-orm";
+import { and, eq, max, ne } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
 import db from "../../database";
@@ -56,6 +56,31 @@ export async function updateMilestone(
         ? body.targetDate
         : validateAndParseDate(body.targetDate, "targetDate"),
   };
+  if (body.name !== undefined) {
+    const [milestone] = await db
+      .select({ workProjectId: workProjectMilestoneTable.workProjectId })
+      .from(workProjectMilestoneTable)
+      .where(eq(workProjectMilestoneTable.id, id));
+    const [clash] = milestone
+      ? await db
+          .select({ id: workProjectMilestoneTable.id })
+          .from(workProjectMilestoneTable)
+          .where(
+            and(
+              eq(
+                workProjectMilestoneTable.workProjectId,
+                milestone.workProjectId,
+              ),
+              eq(workProjectMilestoneTable.name, body.name),
+              ne(workProjectMilestoneTable.id, id),
+            ),
+          )
+      : [];
+    if (clash)
+      throw new HTTPException(409, {
+        message: "A milestone with this name already exists",
+      });
+  }
   if (Object.values(set).some((value) => value !== undefined))
     await db
       .update(workProjectMilestoneTable)

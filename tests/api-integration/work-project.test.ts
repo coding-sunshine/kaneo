@@ -143,6 +143,17 @@ describe("API integration: work projects", () => {
     expect((await create({ targetDate: "not a date" })).status).toBe(400);
     expect((await create({})).status).toBe(200);
     expect((await create({})).status).toBe(409);
+    const second = await (await create({ name: "Q" })).json();
+    const rename = await app.request(
+      `/api/work-project/${second.id}`,
+      json("PUT", { name: "P" }),
+    );
+    expect(rename.status).toBe(409);
+    const keep = await app.request(
+      `/api/work-project/${second.id}`,
+      json("PUT", { name: "Q" }),
+    );
+    expect(keep.status).toBe(200);
   });
 
   it("keeps a workspace's projects hidden from other workspaces", async () => {

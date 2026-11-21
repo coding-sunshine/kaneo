@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, ne } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
 import db from "../../database";
@@ -82,6 +82,22 @@ export async function saveWorkProject(body: Body, existingId?: string) {
   const id = await db.transaction(async (tx) => {
     let projectId = existing?.id;
     if (projectId) {
+      if (body.name !== undefined) {
+        const [clash] = await tx
+          .select({ id: workProjectTable.id })
+          .from(workProjectTable)
+          .where(
+            and(
+              eq(workProjectTable.workspaceId, workspaceId),
+              eq(workProjectTable.name, body.name),
+              ne(workProjectTable.id, projectId),
+            ),
+          );
+        if (clash)
+          throw new HTTPException(409, {
+            message: "A project with this name already exists",
+          });
+      }
       await tx
         .update(workProjectTable)
         .set(values)

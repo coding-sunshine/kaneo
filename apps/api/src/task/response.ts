@@ -325,6 +325,8 @@ export const assignedTasksSchema = z
           statusIcon: z.string().nullable(),
           priority: z.string().openapi({ description: priorityDescription }),
           dueDate: nullableResponseTimestamp,
+          workProjectId: z.string().nullable(),
+          workProjectMilestoneId: z.string().nullable(),
           projectName: z.string(),
           projectSlug: z.string(),
           projectIcon: z.string().nullable(),
