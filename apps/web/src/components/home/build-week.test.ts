@@ -20,6 +20,10 @@ function task(id: string, dueDate: Date | null): AssignedTask {
     projectSlug: "WEB",
     projectIcon: null,
     labels: [],
+    lastActivityAt: null,
+    lastActivityType: null,
+    workProjectId: null,
+    workProjectMilestoneId: null,
   };
 }
 

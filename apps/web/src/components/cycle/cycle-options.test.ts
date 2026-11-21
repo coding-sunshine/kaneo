@@ -43,6 +43,7 @@ describe("cycle helpers", () => {
     const local = {
       startsAt: new Date(2026, 10, 9).toISOString(),
       endsAt: new Date(2026, 10, 23).toISOString(),
+      completedAt: null,
     };
     expect(cycleRange(local)).toMatch(/22$/);
   });
