@@ -284,7 +284,9 @@ function RouteComponent() {
               <ListView
                 key={projectId}
                 project={listProject ?? sortedProject}
-                groupedAddStatus={sortedProject.columns[0]?.id}
+                groupedAddStatus={
+                  sortedProject.columns.find((c) => c.slug !== "triage")?.id
+                }
                 disableCollectionActions={boardFetching || boardError}
                 disableDragDrop={
                   boardFetching ||

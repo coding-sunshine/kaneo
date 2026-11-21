@@ -11,6 +11,10 @@ export function getInitialTaskColumn<T extends WorkflowColumn>(
   }
   // Creation accepts slugs, so an ambiguous legacy slug cannot pick a column.
   return columns?.find(
-    (column) => !column.isFinal && counts.get(column.slug) === 1,
+    // Triage is an inbox for incoming work, never the default for new issues.
+    (column) =>
+      !column.isFinal &&
+      column.slug !== "triage" &&
+      counts.get(column.slug) === 1,
   );
 }
