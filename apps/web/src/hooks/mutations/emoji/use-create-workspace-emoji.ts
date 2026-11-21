@@ -13,6 +13,9 @@ function useCreateWorkspaceEmoji() {
     onSuccess: () =>
       queryClient.invalidateQueries({
         queryKey: workspaceEmojiKey(workspace?.id),
+        // The picker is closed while the dialog is open, and queries skip
+        // refetch on mount, so refetch the inactive list now.
+        refetchType: "all",
       }),
   });
 }
