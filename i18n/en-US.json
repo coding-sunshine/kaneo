@@ -3178,7 +3178,7 @@
 		"changedTitle": "changed title from \"{{from}}\" to \"{{to}}\"",
 		"moved": "moved issue from \"{{from}}\" to \"{{to}}\"",
 		"movedFromOtherProject": "moved issue from another project to \"{{to}}\"",
-		"created": "created this issue",
+		"created": "created",
 		"githubUser": "GitHub User",
 		"comment": {
 			"viewGithubProfile": "View GitHub Profile",
