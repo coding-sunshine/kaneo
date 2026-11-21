@@ -14,11 +14,23 @@ const project = vi.hoisted(() => ({
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
   useLocation: () => ({ pathname: "/board" }),
+  useRouterState: ({ select }: { select: (s: unknown) => unknown }) =>
+    select({ location: { search: {} } }),
   useRouter: () => ({
     buildLocation: ({ to }: { to: string }) => ({ href: to }),
   }),
-  Link: ({ children, to }: { children: ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
+  Link: ({
+    children,
+    to,
+    "aria-current": ariaCurrent,
+  }: {
+    children: ReactNode;
+    to: string;
+    "aria-current"?: "page";
+  }) => (
+    <a href={to} aria-current={ariaCurrent}>
+      {children}
+    </a>
   ),
 }));
 vi.mock("@/components/project/views/use-project-view-shortcuts", () => ({
@@ -111,19 +123,21 @@ describe("ProjectLayout access states", () => {
     expect(screen.getByText("5 tasks")).toBeVisible();
   });
 
-  it("marks tasks as current and links the backlog", () => {
+  it("marks all issues as current and links the backlog view", () => {
     project.current = { data: { name: "Alpha" }, error: null };
     renderLayout();
 
     expect(
       screen
-        .getByRole("link", { name: "tasks:title" })
+        .getByRole("link", { name: "navigation:sidebar.allIssues" })
         .getAttribute("aria-current"),
     ).toBe("page");
-    const backlog = screen.getByRole("link", { name: "tasks:view.backlog" });
+    const backlog = screen.getByRole("link", {
+      name: "navigation:sidebar.backlog",
+    });
     expect(backlog.getAttribute("aria-current")).toBeNull();
     expect(backlog.getAttribute("href")).toBe(
-      "/dashboard/workspace/$workspaceId/project/$projectId/backlog",
+      "/dashboard/workspace/$workspaceId/project/$projectId/board",
     );
   });
 });
