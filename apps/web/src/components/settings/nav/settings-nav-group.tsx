@@ -27,7 +27,7 @@ export function SettingsNavGroup({ group, pathname }: SettingsNavGroupProps) {
               <SidebarMenuButton
                 isActive={pathname === link.to}
                 className="h-8 text-sm"
-                render={<Link to={link.to} />}
+                render={<Link to={link.to} activeOptions={{ exact: true }} />}
               >
                 <link.icon aria-hidden="true" />
                 <span>{link.label}</span>

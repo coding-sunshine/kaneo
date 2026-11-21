@@ -1794,7 +1794,7 @@
 				"finishedNote": "Imported issues did not send notifications. Comments keep their original author and date.",
 				"finishedNoteNoComments": "Imported issues did not send notifications.",
 				"importMore": "Import more",
-				"goToProjects": "Go to projects",
+				"goToProjects": "Go to teams",
 				"open": "Open",
 				"openProject": "Open {{name}}",
 				"waiting": "Waiting",
@@ -4293,9 +4293,9 @@
 				"viewAll": "View all"
 			},
 			"projects": {
-				"title": "Your projects",
-				"all": "All projects",
-				"loadError": "Projects couldn't be loaded.",
+				"title": "Your teams",
+				"all": "All teams",
+				"loadError": "Teams couldn't be loaded.",
 				"tasks_one": "{{count}} issue",
 				"tasks_other": "{{count}} issues"
 			},
