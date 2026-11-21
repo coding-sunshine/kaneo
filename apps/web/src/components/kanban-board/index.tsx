@@ -34,9 +34,10 @@ import { EASE_OUT_CSS } from "@/lib/motion";
 import { useBackgroundStore } from "@/store/background";
 import useBulkSelectionStore from "@/store/bulk-selection";
 import useProjectStore from "@/store/project";
-import { useUserPreferencesStore } from "@/store/user-preferences";
+import { columnKey, useUserPreferencesStore } from "@/store/user-preferences";
 import type { ProjectWithTasks } from "@/types/project";
 import BulkToolbar from "../bulk-selection/bulk-toolbar";
+import { OPEN_DISPLAY_OPTIONS } from "../project/display/display-menu";
 import Column from "./column";
 import TaskCardContent from "./task-card/task-card-content";
 import { useBoardMoveQueue } from "./use-board-move-queue";
@@ -278,6 +279,7 @@ function KanbanBoard({
   });
 
   const showEmptyColumns = useUserPreferencesStore((s) => s.showEmptyColumns);
+  const hiddenColumnIds = useUserPreferencesStore((s) => s.hiddenColumnIds);
 
   if (!project?.columns) {
     return (
@@ -324,10 +326,16 @@ function KanbanBoard({
   const boardColumns = (dragPreview.preview ?? queuedProject).columns;
   // Linear hides empty columns unless "Show empty columns" is on; a dragged
   // task's origin and an all-empty board keep their columns.
+  const shownColumns = boardColumns.filter(
+    (c) => !hiddenColumnIds.includes(columnKey(project.id, c.id)),
+  );
+  const hiddenIssueCount = boardColumns
+    .filter((c) => hiddenColumnIds.includes(columnKey(project.id, c.id)))
+    .reduce((sum, c) => sum + c.tasks.length, 0);
   const visibleColumns =
-    showEmptyColumns || boardColumns.every((c) => c.tasks.length === 0)
-      ? boardColumns
-      : boardColumns.filter((c) => c.tasks.length > 0 || activeId !== null);
+    showEmptyColumns || shownColumns.every((c) => c.tasks.length === 0)
+      ? shownColumns
+      : shownColumns.filter((c) => c.tasks.length > 0 || activeId !== null);
 
   const activeTask = activeId
     ? queuedProject.columns
@@ -396,6 +404,22 @@ function KanbanBoard({
             ))}
           </div>
         </div>
+        {hiddenIssueCount > 0 && (
+          <div className="flex h-11 shrink-0 items-center justify-center gap-2 text-board-id text-xs">
+            <span>
+              {t("tasks:display.issuesHidden", { count: hiddenIssueCount })}
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                window.dispatchEvent(new Event(OPEN_DISPLAY_OPTIONS))
+              }
+              className="cursor-pointer rounded-md px-1.5 py-0.5 font-medium text-board-title outline-none transition-colors hover:bg-chip-hover focus-visible:ring-[3px] focus-visible:ring-board-card-ring"
+            >
+              {t("tasks:display.showOptions")}
+            </button>
+          </div>
+        )}
       </div>
       <DragOverlay dropAnimation={reduceMotion ? null : dropAnimation}>
         {activeTask ? (

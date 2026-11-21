@@ -1,5 +1,5 @@
 import { SlidersHorizontal } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,11 +16,18 @@ import {
 } from "@/components/ui/tooltip";
 import { useShortcut } from "@/lib/shortcuts/use-shortcut";
 
+export const OPEN_DISPLAY_OPTIONS = "kaneo:open-display-options";
+
 export function DisplayMenu({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   const title = t("tasks:display.title");
   const [open, setOpen] = useState(false);
   useShortcut("showDisplayOptions", () => setOpen((value) => !value));
+  useEffect(() => {
+    const openMenu = () => setOpen(true);
+    window.addEventListener(OPEN_DISPLAY_OPTIONS, openMenu);
+    return () => window.removeEventListener(OPEN_DISPLAY_OPTIONS, openMenu);
+  }, []);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

@@ -8,6 +8,10 @@ export function isWeekStartDay(value: number): value is WeekStartDay {
   return WEEK_START_DAYS.some((day) => day === value);
 }
 
+// Column ids are slugs shared across projects, so hidden state is keyed per project.
+export const columnKey = (projectId: string | undefined, columnId: string) =>
+  `${projectId}:${columnId}`;
+
 export type TaskLayout = "board" | "list" | "calendar" | "gantt";
 
 export type PriorityIconStyle = "marks" | "classic";
@@ -60,6 +64,8 @@ type UserPreferencesStore = {
   setShowTaskItemCounts: (show: boolean) => void;
   toggleTaskItemCounts: () => void;
   hiddenCardFieldIds: string[];
+  hiddenColumnIds: string[];
+  toggleColumnHidden: (columnId: string) => void;
   toggleCardFieldHidden: (fieldId: string) => void;
   resetDisplayPreferences: () => void;
 
@@ -128,6 +134,13 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
       setShowDueDates: (show) => set({ showDueDates: show }),
       toggleDueDates: () =>
         set((state) => ({ showDueDates: !state.showDueDates })),
+      hiddenColumnIds: [],
+      toggleColumnHidden: (columnId) =>
+        set((state) => ({
+          hiddenColumnIds: state.hiddenColumnIds.includes(columnId)
+            ? state.hiddenColumnIds.filter((id) => id !== columnId)
+            : [...state.hiddenColumnIds, columnId],
+        })),
       showEmptyColumns: false,
       setShowEmptyColumns: (show) => set({ showEmptyColumns: show }),
       listGroupBy: "status",
@@ -160,6 +173,7 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
       resetDisplayPreferences: () =>
         set({
           hiddenCardFieldIds: [],
+          hiddenColumnIds: [],
           showAssignees: true,
           showDueDates: true,
           showStatus: true,

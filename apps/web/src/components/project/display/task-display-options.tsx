@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/select";
 import type { SortConfig } from "@/lib/sort-tasks";
 import { Switch } from "@/components/ui/switch";
-import { useUserPreferencesStore } from "@/store/user-preferences";
+import useProjectStore from "@/store/project";
+import { columnKey, useUserPreferencesStore } from "@/store/user-preferences";
 import { GROUP_BY_OPTIONS, type GroupBy } from "@/lib/group-project";
 import { CardFieldToggles } from "./card-field-toggles";
 import { CustomFieldToggles } from "./custom-field-toggles";
@@ -47,8 +48,42 @@ export function TaskDisplayOptions({
     (state) => state.setShowEmptyColumns,
   );
 
+  const hiddenColumnIds = useUserPreferencesStore(
+    (state) => state.hiddenColumnIds,
+  );
+  const toggleColumnHidden = useUserPreferencesStore(
+    (state) => state.toggleColumnHidden,
+  );
+  const columns = useProjectStore((state) => state.project?.columns);
+  const hiddenColumns = columns?.filter((c) =>
+    hiddenColumnIds.includes(columnKey(projectId, c.id)),
+  );
+
   return (
     <>
+      {layout === "cards" && hiddenColumns && hiddenColumns.length > 0 && (
+        <DisplaySection title={t("tasks:display.hiddenColumns")}>
+          <div className="flex flex-col gap-1">
+            {hiddenColumns.map((column) => (
+              <div
+                key={column.id}
+                className="flex items-center justify-between gap-3"
+              >
+                <span className="truncate text-sm">{column.name}</span>
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  onClick={() =>
+                    toggleColumnHidden(columnKey(projectId, column.id))
+                  }
+                >
+                  {t("tasks:display.showColumn")}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </DisplaySection>
+      )}
       {layout === "cards" && (
         <DisplaySection>
           <div className="flex items-center justify-between gap-3">

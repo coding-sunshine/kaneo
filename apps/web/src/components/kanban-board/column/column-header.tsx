@@ -1,5 +1,5 @@
 import { produce } from "immer";
-import { Archive, Plus, ArchiveIcon } from "lucide-react";
+import { Archive, ArchiveIcon, MoreHorizontal, Plus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import CreateTaskModal from "@/components/shared/modals/create-task-modal";
@@ -7,7 +7,15 @@ import { useUpdateTask } from "@/hooks/mutations/task/use-update-task";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { getColumnIcon } from "@/lib/column";
 import { toast } from "@/lib/toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/menu";
+import useBulkSelectionStore from "@/store/bulk-selection";
 import useProjectStore from "@/store/project";
+import { columnKey, useUserPreferencesStore } from "@/store/user-preferences";
 import type { ProjectWithTasks } from "@/types/project";
 import { ArchiveTasksModal } from "../../shared/modals/archive-tasks-modal";
 
@@ -27,6 +35,10 @@ export function ColumnHeader({
   const canTask = canUpdateTasks();
   const canCreate = canCreateTasks();
 
+  const toggleColumnHidden = useUserPreferencesStore(
+    (state) => state.toggleColumnHidden,
+  );
+  const selectTasks = useBulkSelectionStore((state) => state.selectTasks);
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
@@ -83,6 +95,30 @@ export function ColumnHeader({
             <Archive className="size-3.5" />
           </button>
         )}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className="flex size-6 cursor-pointer items-center justify-center rounded-md text-chip-icon outline-none transition-colors hover:bg-chip-hover hover:text-board-title data-popup-open:bg-chip-hover"
+            title={t("tasks:display.columnOptions")}
+            aria-label={t("tasks:display.columnOptions")}
+          >
+            <MoreHorizontal className="size-3.5" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              disabled={column.tasks.length === 0}
+              onClick={() => selectTasks(column.tasks.map((task) => task.id))}
+            >
+              {t("tasks:display.selectAllInColumn")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                toggleColumnHidden(columnKey(project?.id, column.id))
+              }
+            >
+              {t("tasks:display.hideColumn")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         {canCreate && (
           <button
             type="button"

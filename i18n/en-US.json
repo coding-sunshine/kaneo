@@ -3846,6 +3846,14 @@
 			"layout": "Layout",
 			"includeSubtasks": "Include sub-issues",
 			"showEmptyColumns": "Show empty columns",
+			"hiddenColumns": "Hidden columns",
+			"showColumn": "Show",
+			"showOptions": "Show options",
+			"issuesHidden_one": "{{count}} issue hidden by display options",
+			"issuesHidden_other": "{{count}} issues hidden by display options",
+			"columnOptions": "Column options",
+			"hideColumn": "Hide column",
+			"selectAllInColumn": "Select all in column",
 			"useProjectDefault": "Use project default"
 		},
 		"filterBar": {
