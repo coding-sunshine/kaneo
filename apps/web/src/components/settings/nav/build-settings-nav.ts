@@ -16,6 +16,7 @@ import {
   SlidersHorizontal,
   Tag,
   User,
+  Users,
   Webhook,
 } from "lucide-react";
 import type { InstancePermission } from "@kaneo/permissions";
@@ -188,6 +189,12 @@ export function buildSettingsNav({
           label: t("settings:workspaceGeneral.title"),
           to: "/dashboard/settings/workspace/general",
           icon: Settings,
+        },
+        {
+          id: "workspace-teams",
+          label: t("settings:teams.title"),
+          to: "/dashboard/settings/projects",
+          icon: Users,
         },
         {
           id: "workspace-roles",

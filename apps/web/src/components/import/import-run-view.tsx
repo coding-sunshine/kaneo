@@ -141,12 +141,7 @@ export function ImportRunView({
               </Button>
               <Button
                 size="sm"
-                render={
-                  <Link
-                    to="/dashboard/workspace/$workspaceId/projects"
-                    params={{ workspaceId }}
-                  />
-                }
+                render={<Link to="/dashboard/settings/projects" />}
               >
                 {t("settings:workspaceImport.run.goToProjects")}
               </Button>

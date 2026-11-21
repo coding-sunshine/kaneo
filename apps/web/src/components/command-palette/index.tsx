@@ -176,7 +176,7 @@ function CommandPalette() {
             [
               ["inbox", InboxIcon, "goToInbox", "/inbox"],
               ["my-issues", UserIcon, "goToMyTasks", "/my-tasks"],
-              ["projects", BoxIcon, "goToProjects", "/projects"],
+              ["projects", BoxIcon, "goToProjects", "/work-projects"],
               ["members", UsersIcon, undefined, "/members"],
             ] as const
           ).map(([key, icon, shortcutId, path]) => ({

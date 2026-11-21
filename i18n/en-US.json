@@ -1546,6 +1546,17 @@
 			"emptyDescription": "Add labels to sort and filter issues across projects.",
 			"loadError": "Could not load labels. Please try again."
 		},
+		"teams": {
+			"title": "Teams",
+			"create": "Create team",
+			"empty": "No teams yet",
+			"columns": {
+				"name": "Name",
+				"identifier": "Identifier",
+				"issues": "Issues",
+				"created": "Created"
+			}
+		},
 		"workspaceImport": {
 			"pageTitle": "Import",
 			"title": "Import",

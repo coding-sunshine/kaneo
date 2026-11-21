@@ -42,7 +42,7 @@ describe("getSettingsBreadcrumb", () => {
   });
 
   it("returns null for paths outside the nav", () => {
-    expect(getSettingsBreadcrumb(nav, "/dashboard/settings/projects")).toBe(
+    expect(getSettingsBreadcrumb(nav, "/dashboard/settings/unknown")).toBe(
       null,
     );
   });

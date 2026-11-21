@@ -24,7 +24,7 @@ export function SettingsNavProjects({
   return (
     <SidebarGroup className="gap-0.5 px-2 py-1.5">
       <SidebarGroupLabel className="h-7 text-sidebar-foreground/70">
-        {t("navigation:sidebar.projects")}
+        {t("navigation:sidebar.yourTeams")}
       </SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu className="gap-0.5">

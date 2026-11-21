@@ -33,8 +33,7 @@ export function HomeProjects({
         title={t("workspace:home.projects.title")}
         action={
           <Link
-            to="/dashboard/workspace/$workspaceId/projects"
-            params={{ workspaceId }}
+            to="/dashboard/settings/projects"
             className="shrink-0 font-medium text-[13px] text-muted-foreground hover:text-foreground"
           >
             {t("workspace:home.projects.all")}
