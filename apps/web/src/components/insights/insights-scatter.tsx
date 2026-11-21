@@ -6,6 +6,10 @@ import type { Insights } from "@/lib/insights/compute-insights";
 import { formatDuration } from "@/lib/insights/format-duration";
 import { segmentColor } from "./segment-color";
 
+// Plot height (h-40) and marker label height, for lifting labels apart.
+const CHART_PX = 160;
+const LABEL_PX = 14;
+
 type InsightsScatterProps = {
   insights: Insights;
   /** Team key for issues that carry none (single-team boards). */
@@ -25,9 +29,24 @@ export function InsightsScatter({
 }: InsightsScatterProps) {
   const { t } = useTranslation();
   const { workspaceId = "" } = useParams({ strict: false });
+  // The percentile the y-axis is zoomed to, if any.
   const [zoom, setZoom] = useState<number | null>(null);
-  const max = zoom ?? (insights.maxDays || 1);
+  const ceiling = insights.percentiles.find((m) => m.percent === zoom)?.days;
+  const max = ceiling || insights.maxDays || 1;
   const height = (days: number) => `${(days / max) * 100}%`;
+
+  // Lines sit at their true height; labels on skewed data would overprint,
+  // so each label is lifted at least one label height above the one below.
+  const markers = insights.percentiles
+    .filter((marker) => marker.days <= max)
+    .reduce<
+      (Insights["percentiles"][number] & { label: number; lift: number })[]
+    >((placed, marker) => {
+      const line = (marker.days / max) * CHART_PX;
+      const below = placed.at(-1)?.label ?? Number.NEGATIVE_INFINITY;
+      const label = Math.max(line, below + LABEL_PX);
+      return [...placed, { ...marker, label, lift: label - line }];
+    }, []);
 
   return (
     <div className="group/scatter flex flex-col gap-1 border-border/80 border-b">
@@ -69,35 +88,36 @@ export function InsightsScatter({
               })}
           </div>
         ))}
-        {insights.percentiles
-          .filter((marker) => marker.days <= max)
-          .map((marker) => {
-            const zoomed = zoom === marker.days;
-            const duration = formatDuration(t, marker.days);
-            return (
-              <button
-                key={marker.percent}
-                type="button"
-                aria-pressed={zoomed}
-                aria-label={t("tasks:insights.percentile", {
-                  percent: marker.percent,
-                  duration,
-                })}
-                onClick={() => setZoom(zoomed ? null : marker.days)}
-                className={cn(
-                  // Only the label takes clicks, so points under the line stay reachable.
-                  "pointer-events-none absolute inset-x-0 flex h-3 translate-y-1/2 items-center opacity-0 outline-none transition-opacity focus-visible:opacity-100 group-hover/scatter:opacity-100",
-                  zoomed && "opacity-100",
-                )}
-                style={{ bottom: height(marker.days) }}
+        {markers.map((marker) => {
+          const zoomed = zoom === marker.percent;
+          const duration = formatDuration(t, marker.days);
+          return (
+            <button
+              key={marker.percent}
+              type="button"
+              aria-pressed={zoomed}
+              aria-label={t("tasks:insights.percentile", {
+                percent: marker.percent,
+                duration,
+              })}
+              onClick={() => setZoom(zoomed ? null : marker.percent)}
+              className={cn(
+                // Only the label takes clicks, so points under the line stay reachable.
+                "pointer-events-none absolute inset-x-0 flex h-3 translate-y-1/2 items-center opacity-0 outline-none transition-opacity focus-visible:opacity-100 group-hover/scatter:opacity-100",
+                zoomed && "opacity-100",
+              )}
+              style={{ bottom: height(marker.days) }}
+            >
+              <span className="h-px flex-1 border-muted-foreground/60 border-t border-dashed" />
+              <span
+                className="pointer-events-auto cursor-pointer rounded bg-popover px-1 text-[10px] text-muted-foreground tabular-nums shadow-xs"
+                style={{ transform: `translateY(-${marker.lift}px)` }}
               >
-                <span className="h-px flex-1 border-muted-foreground/60 border-t border-dashed" />
-                <span className="pointer-events-auto cursor-pointer rounded bg-popover px-1 text-[10px] text-muted-foreground tabular-nums shadow-xs">
-                  {marker.percent}% · {duration}
-                </span>
-              </button>
-            );
-          })}
+                {marker.percent}% · {duration}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
