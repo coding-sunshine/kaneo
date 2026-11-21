@@ -1,11 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  ExternalLink,
-  FolderGit,
-  Pencil,
-  Trash2,
-  MessageSquareIcon,
-} from "lucide-react";
+import { ExternalLink, FolderGit, MessageSquareIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import CommentEditor from "@/components/activity/comment-editor";
@@ -25,11 +19,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import useDeleteComment from "@/hooks/mutations/comment/use-delete-comment";
 import useUpdateComment from "@/hooks/mutations/comment/use-update-comment";
+import { cn } from "@/lib/cn";
 import { formatDateTime, formatRelativeTime } from "@/lib/format";
 import { getInitials } from "@/lib/get-initials";
 import { toast } from "@/lib/toast";
+import CommentActions from "./comment-actions";
+import CommentReactions from "./comment-reactions";
+import type { Reaction } from "./toggle-reaction";
 
 const forges = {
   github: { name: "GitHub", Icon: GithubIcon },
@@ -58,6 +55,12 @@ type CommentCardProps = {
   importedBy?: string;
   externalSource?: string | null;
   externalUrl?: string | null;
+  /** A reply indents its body under the author's name. */
+  variant?: "root" | "reply";
+  reactions?: Reaction[];
+  threadResolved?: boolean;
+  /** Marks the reply that resolved its thread. */
+  isResolution?: boolean;
 };
 
 export default function CommentCard({
@@ -69,14 +72,16 @@ export default function CommentCard({
   externalSource,
   externalUrl,
   importedBy,
+  variant = "root",
+  reactions = [],
+  threadResolved = false,
+  isResolution = false,
 }: CommentCardProps) {
   const { t } = useTranslation();
   const { user: currentUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(content);
   const { mutateAsync: updateComment, isPending } = useUpdateComment();
-  const { mutate: deleteComment, isPending: isDeleting } =
-    useDeleteComment(taskId);
   const queryClient = useQueryClient();
 
   const canEdit = currentUser?.id === user?.id;
@@ -150,7 +155,7 @@ export default function CommentCard({
 
   return (
     <TooltipProvider>
-      <div className="group relative w-full rounded-lg border border-border/80 bg-foreground/2">
+      <div className="group/comment relative w-full">
         <div className="flex flex-wrap items-center gap-2 px-3 pt-3">
           <HoverCard>
             <HoverCardTrigger>
@@ -236,6 +241,11 @@ export default function CommentCard({
               <p className="text-xs">{fullTimestamp}</p>
             </TooltipContent>
           </Tooltip>
+          {isResolution && (
+            <span className="font-medium text-green-600 text-xs dark:text-green-500">
+              {t("activity:comment.resolution")}
+            </span>
+          )}
 
           {commentUrl && forge && (
             <>
@@ -253,40 +263,16 @@ export default function CommentCard({
           )}
         </div>
 
-        {canEdit && !isEditing && (
-          <div className="absolute top-2 right-2 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleEdit}
-                  className="h-6 w-6 rounded-md p-0 text-muted-foreground hover:text-foreground"
-                >
-                  <Pencil className="size-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">{t("activity:comment.edit")}</p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => deleteComment({ activityId: commentId })}
-                  disabled={isDeleting}
-                  className="h-6 w-6 rounded-md p-0 text-muted-foreground hover:text-destructive"
-                >
-                  <Trash2 className="size-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">{t("common:actions.delete")}</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
+        {!isEditing && (
+          <CommentActions
+            commentId={commentId}
+            taskId={taskId}
+            content={content}
+            isReply={variant === "reply"}
+            threadResolved={threadResolved}
+            canEdit={canEdit}
+            onEdit={handleEdit}
+          />
         )}
 
         <div className="pt-0.5">
@@ -299,7 +285,17 @@ export default function CommentCard({
             className={
               isEditing
                 ? "[&_.kaneo-comment-editor-content_.ProseMirror]:min-h-[3rem] [&_.kaneo-comment-editor-content_.ProseMirror]:max-h-none [&_.kaneo-comment-editor-content_.ProseMirror]:overflow-visible [&_.kaneo-comment-editor-content_.ProseMirror]:px-3 [&_.kaneo-comment-editor-content_.ProseMirror]:pt-2.5 [&_.kaneo-comment-editor-content_.ProseMirror]:pb-2"
-                : "kaneo-comment-viewer [&_.kaneo-comment-editor-content_.ProseMirror]:pt-1.5 [&_.kaneo-comment-editor-content_.ProseMirror]:pr-3.5 [&_.kaneo-comment-editor-content_.ProseMirror]:pb-3.5 [&_.kaneo-comment-editor-content_.ProseMirror]:pl-10"
+                : cn(
+                    "kaneo-comment-viewer [&_.kaneo-comment-editor-content_.ProseMirror]:pt-1.5 [&_.kaneo-comment-editor-content_.ProseMirror]:pr-3.5",
+                    // Linear aligns a top-level comment's body with its avatar
+                    // and indents a reply's body under the author's name.
+                    variant === "reply"
+                      ? "[&_.kaneo-comment-editor-content_.ProseMirror]:pl-10"
+                      : "[&_.kaneo-comment-editor-content_.ProseMirror]:pl-3",
+                    reactions.length > 0
+                      ? "[&_.kaneo-comment-editor-content_.ProseMirror]:pb-2"
+                      : "[&_.kaneo-comment-editor-content_.ProseMirror]:pb-3.5",
+                  )
             }
             autoFocus={isEditing}
             readOnly={!isEditing}
@@ -307,6 +303,15 @@ export default function CommentCard({
             onCancelShortcut={isEditing ? handleCancel : undefined}
           />
         </div>
+
+        {reactions.length > 0 && !isEditing && (
+          <CommentReactions
+            commentId={commentId}
+            taskId={taskId}
+            reactions={reactions}
+            className={cn("pr-3 pb-3", variant === "reply" ? "pl-10" : "pl-3")}
+          />
+        )}
 
         {isEditing && (
           <div className="flex items-center justify-end gap-2 border-border/70 border-t bg-card/60 px-3 py-2">

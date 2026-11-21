@@ -11,21 +11,12 @@ import {
   HoverCardTrigger,
 } from "../ui/preview-card";
 import { TimelineContent, TimelineItem } from "../ui/timeline";
-import CommentCard from "./comment-card";
+import CommentThread, { type ThreadComment } from "./comment-thread";
 import { isCommentActivity } from "./utils";
 
-type ActivityItem = {
+type ActivityItem = ThreadComment & {
   type: string;
-  content: string | null;
   eventData?: unknown;
-  id: string;
-  createdAt: string;
-  userId: string | null;
-  taskId: string;
-  externalUserName?: string | null;
-  externalUserAvatar?: string | null;
-  externalSource?: string | null;
-  externalUrl?: string | null;
 };
 
 function getEventDataRecord(
@@ -395,9 +386,12 @@ function renderActivityContent({
 function Activity({
   activity,
   step,
+  replies = [],
 }: {
   activity: ActivityItem;
   step: number;
+  /** Replies shown inside a top-level comment's thread. */
+  replies?: ActivityItem[];
 }) {
   const { t } = useTranslation();
   const { data: workspace } = useActiveWorkspace();
@@ -411,41 +405,13 @@ function Activity({
       )
     : null;
 
-  const isExternalComment = Boolean(activity.externalSource);
   const actorName = user?.user?.name || t("common:people.someone");
 
   if (isCommentActivity(activity)) {
-    const commentUser = isExternalComment
-      ? {
-          id: undefined,
-          name: activity.externalUserName ?? t("activity:githubUser"),
-          email: undefined,
-          image: activity.externalUserAvatar ?? undefined,
-        }
-      : {
-          id: user?.user?.id,
-          name: user?.user?.name,
-          email: user?.user?.email,
-          image: user?.user?.image,
-        };
-
     return (
       <TimelineItem className="m-0! flex-row items-start py-1!" step={step}>
         <TimelineContent className="min-w-0 flex-1">
-          <CommentCard
-            commentId={activity.id}
-            taskId={activity.taskId}
-            content={activity.content || ""}
-            user={commentUser}
-            createdAt={activity.createdAt}
-            importedBy={
-              activity.userId && activity.externalSource !== "github"
-                ? actorName
-                : undefined
-            }
-            externalSource={activity.externalSource}
-            externalUrl={activity.externalUrl}
-          />
+          <CommentThread root={activity} replies={replies} />
         </TimelineContent>
       </TimelineItem>
     );

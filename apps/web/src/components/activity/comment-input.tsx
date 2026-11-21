@@ -18,9 +18,20 @@ import { toast } from "@/lib/toast";
 type CommentInputProps = {
   taskId: string;
   projectId?: string;
+  /** Set to post a reply inside this comment's thread. */
+  parentId?: string;
+  autoFocus?: boolean;
+  onCancel?: () => void;
 };
 
-export default function CommentInput({ taskId, projectId }: CommentInputProps) {
+export default function CommentInput({
+  taskId,
+  projectId,
+  parentId,
+  autoFocus,
+  onCancel,
+}: CommentInputProps) {
+  const isReply = Boolean(parentId);
   const { t } = useTranslation();
   const [content, setContent] = useState("");
   const [attachAction, setAttachAction] = useState<(() => void) | null>(null);
@@ -37,9 +48,11 @@ export default function CommentInput({ taskId, projectId }: CommentInputProps) {
       await createComment({
         taskId,
         comment: content,
+        parentId,
       });
 
       setContent("");
+      onCancel?.();
       await queryClient.invalidateQueries({ queryKey: ["activities", taskId] });
 
       toast.success(t("activity:comment.added"), { icon: MessageSquareIcon });
@@ -47,7 +60,7 @@ export default function CommentInput({ taskId, projectId }: CommentInputProps) {
       console.error("Failed to create comment:", error);
       toast.error(t("activity:comment.failedToAdd"));
     }
-  }, [content, createComment, queryClient, t, taskId]);
+  }, [content, createComment, onCancel, parentId, queryClient, t, taskId]);
 
   const handleAttachActionChange = useCallback(
     (nextAttachAction: (() => void) | null) => {
@@ -57,12 +70,36 @@ export default function CommentInput({ taskId, projectId }: CommentInputProps) {
   );
 
   return (
-    <div className="w-full" data-task-action="comment">
-      <div className="rounded-xl border border-border/80 bg-card/70 transition-colors focus-within:border-ring/60 focus-within:shadow-[0_0_0_2px_color-mix(in_srgb,var(--ring)_20%,transparent)]">
+    <div
+      className="w-full"
+      // The "comment" shortcut focuses the task's main composer, never a reply.
+      data-task-action={isReply ? undefined : "comment"}
+      onBlur={(event) => {
+        // A file dialog takes focus from the window; keep the reply open.
+        if (
+          onCancel &&
+          document.hasFocus() &&
+          !content.trim() &&
+          !event.currentTarget.contains(event.relatedTarget)
+        ) {
+          onCancel();
+        }
+      }}
+    >
+      <div
+        className={cn(
+          !isReply &&
+            "rounded-xl border border-border/80 bg-card/70 transition-colors focus-within:border-ring/60 focus-within:shadow-[0_0_0_2px_color-mix(in_srgb,var(--ring)_20%,transparent)]",
+        )}
+      >
         <CommentEditor
           value={content}
           onChange={setContent}
-          placeholder={t("activity:comment.leavePlaceholder")}
+          placeholder={t(
+            isReply
+              ? "activity:comment.leaveReply"
+              : "activity:comment.leavePlaceholder",
+          )}
           taskId={taskId}
           projectId={projectId}
           uploadSurface="comment"
@@ -70,8 +107,15 @@ export default function CommentInput({ taskId, projectId }: CommentInputProps) {
           onAttachActionChange={handleAttachActionChange}
           className="[&_.kaneo-comment-editor-content_.ProseMirror]:min-h-[3rem] [&_.kaneo-comment-editor-content_.ProseMirror]:max-h-none [&_.kaneo-comment-editor-content_.ProseMirror]:overflow-visible [&_.kaneo-comment-editor-content_.ProseMirror]:px-3 [&_.kaneo-comment-editor-content_.ProseMirror]:pt-3 [&_.kaneo-comment-editor-content_.ProseMirror]:pb-2"
           onSubmitShortcut={handleSubmit}
+          onCancelShortcut={onCancel}
+          autoFocus={autoFocus}
         />
-        <div className="flex items-center justify-end gap-2 border-border/70 border-t px-2 py-2">
+        <div
+          className={cn(
+            "flex items-center justify-end gap-2 px-2 py-2",
+            !isReply && "border-border/70 border-t",
+          )}
+        >
           <Button
             size="xs"
             variant="ghost"

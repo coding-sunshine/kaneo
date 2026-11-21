@@ -3332,7 +3332,38 @@
 				}
 			},
 			"importedFrom": "Imported from {{source}}",
-			"importedBy": "Imported by {{name}}"
+			"importedBy": "Imported by {{name}}",
+			"leaveReply": "Leave a reply...",
+			"actions": "Comment actions",
+			"editMenu": "Edit...",
+			"resolveThread": "Resolve thread",
+			"resolveThreadWithComment": "Resolve thread with comment",
+			"unresolveThread": "Unresolve thread",
+			"failedToResolve": "Failed to update thread",
+			"copyLink": "Copy link to comment",
+			"copyMarkdown": "Copy content as Markdown",
+			"linkCopied": "Link copied",
+			"markdownCopied": "Copied as Markdown",
+			"resolution": "Resolution",
+			"foldedReplies_one": "{{count}} comment from {{names}}",
+			"foldedReplies_other": "{{count}} comments from {{names}}"
+		},
+		"reactions": {
+			"add": "Add reaction",
+			"reactedBy": "{{names}} reacted with {{emoji}}",
+			"search": "Search emoji...",
+			"noResults": "No emoji found",
+			"frequentlyUsed": "Frequently used",
+			"groups": {
+				"smileys_people": "Smileys & People",
+				"animals_nature": "Animals & Nature",
+				"food_drink": "Food & Drink",
+				"travel_places": "Travel & Places",
+				"activities": "Activities",
+				"objects": "Objects",
+				"symbols": "Symbols",
+				"flags": "Flags"
+			}
 		}
 	},
 	"tasks": {

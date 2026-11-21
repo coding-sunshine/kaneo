@@ -3,6 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Activity from "@/components/activity";
 import CommentInput from "@/components/activity/comment-input";
+import { groupCommentThreads } from "@/components/activity/group-comment-threads";
 import { DueDateText } from "@/components/my-work/due-date-text";
 import { Button } from "@/components/ui/button";
 import { HttpError } from "@/lib/http-error";
@@ -104,7 +105,11 @@ export function InboxTask({ taskId, workspaceId }: InboxTaskProps) {
   }
 
   const linkWorkspaceId = task.workspaceId || workspaceId;
-  const recent = (activities ?? []).slice(0, VISIBLE_ACTIVITIES);
+  // Threads read oldest reply first, so group in time order, then flip back.
+  const { items: recentOldestFirst, repliesByRoot } = groupCommentThreads(
+    (activities ?? []).slice(0, VISIBLE_ACTIVITIES).reverse(),
+  );
+  const recent = recentOldestFirst.reverse();
 
   return (
     <div className="flex flex-col gap-7">
@@ -189,6 +194,7 @@ export function InboxTask({ taskId, workspaceId }: InboxTaskProps) {
                 <Activity
                   key={activity.id}
                   activity={activity}
+                  replies={repliesByRoot.get(activity.id)}
                   step={recent.length - index}
                 />
               ))}

@@ -1,6 +1,8 @@
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Activity from "@/components/activity";
 import CommentInput from "@/components/activity/comment-input";
+import { groupCommentThreads } from "@/components/activity/group-comment-threads";
 import useAuth from "@/components/providers/auth-provider/hooks/use-auth";
 import { Timeline } from "@/components/ui/timeline";
 import { useToggleTaskSubscription } from "@/hooks/mutations/task/use-toggle-task-subscription";
@@ -27,7 +29,20 @@ export function TaskActivity({
   const subscribed = Boolean(
     task && "isSubscribed" in task && task.isSubscribed,
   );
-  const activities = [...newestFirst].reverse();
+  const { items: activities, repliesByRoot } = groupCommentThreads(
+    [...newestFirst].reverse(),
+  );
+  const loaded = newestFirst.length > 0;
+
+  // Opens a copied comment link (`#comment-<id>`) at that comment.
+  useEffect(() => {
+    const { hash } = window.location;
+    if (loaded && hash.startsWith("#comment-")) {
+      document
+        .getElementById(hash.slice(1))
+        ?.scrollIntoView({ block: "center" });
+    }
+  }, [loaded]);
 
   return (
     <section
@@ -54,7 +69,12 @@ export function TaskActivity({
       {activities.length > 0 ? (
         <Timeline>
           {activities.map((activity, index) => (
-            <Activity key={activity.id} activity={activity} step={index + 1} />
+            <Activity
+              key={activity.id}
+              activity={activity}
+              replies={repliesByRoot.get(activity.id)}
+              step={index + 1}
+            />
           ))}
         </Timeline>
       ) : (
