@@ -38,6 +38,12 @@ type UserPreferencesStore = {
   setShowAssignees: (show: boolean) => void;
   toggleAssignees: () => void;
   showDueDates: boolean;
+  listGroupBy: "status" | "priority" | "assignee";
+  setListGroupBy: (groupBy: "status" | "priority" | "assignee") => void;
+  showStatus: boolean;
+  setShowStatus: (show: boolean) => void;
+  showCreatedDates: boolean;
+  setShowCreatedDates: (show: boolean) => void;
   setShowDueDates: (show: boolean) => void;
   toggleDueDates: () => void;
   showLabels: boolean;
@@ -96,7 +102,7 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
         }
       },
 
-      viewMode: "board",
+      viewMode: "list",
       setViewMode: (mode) => set({ viewMode: mode }),
 
       taskLayout: "board",
@@ -120,6 +126,12 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
       setShowDueDates: (show) => set({ showDueDates: show }),
       toggleDueDates: () =>
         set((state) => ({ showDueDates: !state.showDueDates })),
+      listGroupBy: "status",
+      setListGroupBy: (listGroupBy) => set({ listGroupBy }),
+      showStatus: true,
+      setShowStatus: (show) => set({ showStatus: show }),
+      showCreatedDates: true,
+      setShowCreatedDates: (show) => set({ showCreatedDates: show }),
       showLabels: true,
       setShowLabels: (show) => set({ showLabels: show }),
       toggleLabels: () => set((state) => ({ showLabels: !state.showLabels })),
@@ -146,6 +158,9 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
           hiddenCardFieldIds: [],
           showAssignees: true,
           showDueDates: true,
+          showStatus: true,
+          listGroupBy: "status",
+          showCreatedDates: true,
           showLabels: true,
           showTaskNumbers: true,
           showPriority: true,

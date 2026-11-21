@@ -759,7 +759,9 @@
 			"priority": "优先级",
 			"projectBackgrounds": "项目背景",
 			"projectBackgroundsDescription": "显示项目为看板设置的背景图片。",
-			"advancedTitle": "高级"
+			"advancedTitle": "高级",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "由你的组织管理。",
@@ -2821,7 +2823,10 @@
 			"home": "首页",
 			"inbox": "收件箱",
 			"invitePeople": "邀请成员",
-			"myTasks": "我的任务"
+			"myTasks": "我的任务",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "查看项目",
@@ -3515,7 +3520,8 @@
 				"priority": "优先级",
 				"assignee": "负责人",
 				"dueDate": "截止日期",
-				"labels": "标签"
+				"labels": "标签",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "为以下任一",
@@ -3729,7 +3735,14 @@
 			"projectBackground": "项目背景",
 			"layout": "布局",
 			"includeSubtasks": "包含子任务",
-			"useProjectDefault": "使用项目默认设置"
+			"useProjectDefault": "使用项目默认设置",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "已应用的筛选",
@@ -3920,7 +3933,8 @@
 			"groupBy": {
 				"dueDate": "截止日期",
 				"label": "分组方式",
-				"project": "项目"
+				"project": "项目",
+				"status": "Status"
 			},
 			"pageTitle": "我的任务",
 			"truncated": "共 {{total}} 个任务，只显示前 {{shown}} 个。"

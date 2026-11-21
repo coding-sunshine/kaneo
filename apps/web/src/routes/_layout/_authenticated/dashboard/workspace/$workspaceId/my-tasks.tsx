@@ -33,7 +33,7 @@ function RouteComponent() {
     isLoading,
     isError,
   } = useGetAssignedTasks(workspaceId);
-  const [groupBy, setGroupBy] = useState<MyTasksGroupBy>("dueDate");
+  const [groupBy, setGroupBy] = useState<MyTasksGroupBy>("status");
 
   return (
     <>

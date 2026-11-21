@@ -21,7 +21,12 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useParams } from "@tanstack/react-router";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "@tanstack/react-router";
 import {
   ChevronRight,
   Folder,
@@ -58,6 +63,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
 import icons from "@/constants/project-icons";
@@ -143,6 +151,7 @@ export function NavProjects() {
   // alone — not the create+update+delete bundle.
   const canReorder = canUpdateProjects();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const boardHoverPrefetch = useBoardHoverPrefetch(workspace?.id ?? "");
   const { workspaceId: currentWorkspaceId, projectId: currentProjectId } =
     useParams({
@@ -400,6 +409,43 @@ export function NavProjects() {
                               )}
                             </DropdownMenuContent>
                           </DropdownMenu>
+                          {isCurrentProject(project.id) && (
+                            <SidebarMenuSub className="mt-0.5 mb-1">
+                              {(
+                                [
+                                  ["issues", "board", undefined],
+                                  ["active", "board", "active"],
+                                  ["backlog", "backlog", undefined],
+                                ] as const
+                              ).map(([key, route, view]) => (
+                                <SidebarMenuSubItem key={key}>
+                                  <SidebarMenuSubButton
+                                    size="md"
+                                    isActive={
+                                      key === "backlog"
+                                        ? pathname.endsWith("/backlog")
+                                        : key === "issues" &&
+                                          pathname.endsWith("/board")
+                                    }
+                                    render={
+                                      <Link
+                                        to={`/dashboard/workspace/$workspaceId/project/$projectId/${route}`}
+                                        params={{
+                                          workspaceId: workspace.id,
+                                          projectId: project.id,
+                                        }}
+                                        search={view ? { view } : {}}
+                                      />
+                                    }
+                                  >
+                                    <span>
+                                      {t(`navigation:sidebar.${key}`)}
+                                    </span>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              ))}
+                            </SidebarMenuSub>
+                          )}
                         </SortableProjectItem>
                       );
                     })}

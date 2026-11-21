@@ -767,7 +767,9 @@
 			"priority": "Prioritet",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Layihənin öz lövhəsi üçün təyin etdiyi arxa fon şəklini göstər.",
-			"advancedTitle": "Qabaqcıl"
+			"advancedTitle": "Qabaqcıl",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Təşkilatınız tərəfindən idarə olunur.",
@@ -2870,7 +2872,10 @@
 			"home": "Home",
 			"inbox": "Inbox",
 			"invitePeople": "Invite people",
-			"myTasks": "My tasks"
+			"myTasks": "My tasks",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "Layihəyə bax",
@@ -3573,7 +3578,8 @@
 				"priority": "Prioritet",
 				"assignee": "İcraçı",
 				"dueDate": "Son tarix",
-				"labels": "Etiketlər"
+				"labels": "Etiketlər",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "Bunlardan biridir",
@@ -3798,7 +3804,14 @@
 			"projectBackground": "Layihə fonu",
 			"layout": "Düzən",
 			"includeSubtasks": "Alt tapşırıqları daxil et",
-			"useProjectDefault": "Layihənin standart ayarından istifadə et"
+			"useProjectDefault": "Layihənin standart ayarından istifadə et",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Aktiv süzgəclər",
@@ -3996,7 +4009,8 @@
 			"groupBy": {
 				"dueDate": "Due date",
 				"label": "Group by",
-				"project": "Project"
+				"project": "Project",
+				"status": "Status"
 			},
 			"pageTitle": "My tasks",
 			"truncated": "Showing the first {{shown}} of {{total}} tasks."

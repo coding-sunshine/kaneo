@@ -767,7 +767,9 @@
 			"priority": "प्राथमिकता",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "प्रोजेक्ट द्वारा अपने बोर्ड के पीछे सेट की गई छवि दिखाएँ।",
-			"advancedTitle": "उन्नत"
+			"advancedTitle": "उन्नत",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "आपके संगठन द्वारा प्रबंधित।",
@@ -2870,7 +2872,10 @@
 			"home": "Home",
 			"inbox": "Inbox",
 			"invitePeople": "Invite people",
-			"myTasks": "My tasks"
+			"myTasks": "My tasks",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "प्रोजेक्ट देखें",
@@ -3573,7 +3578,8 @@
 				"priority": "प्राथमिकता",
 				"assignee": "सौंपा गया",
 				"dueDate": "नियत तारीख",
-				"labels": "लेबल"
+				"labels": "लेबल",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "में से कोई है",
@@ -3798,7 +3804,14 @@
 			"projectBackground": "प्रोजेक्ट पृष्ठभूमि",
 			"layout": "लेआउट",
 			"includeSubtasks": "उपकार्य शामिल करें",
-			"useProjectDefault": "प्रोजेक्ट का डिफ़ॉल्ट इस्तेमाल करें"
+			"useProjectDefault": "प्रोजेक्ट का डिफ़ॉल्ट इस्तेमाल करें",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "सक्रिय फ़िल्टर",
@@ -3996,7 +4009,8 @@
 			"groupBy": {
 				"dueDate": "Due date",
 				"label": "Group by",
-				"project": "Project"
+				"project": "Project",
+				"status": "Status"
 			},
 			"pageTitle": "My tasks",
 			"truncated": "Showing the first {{shown}} of {{total}} tasks."

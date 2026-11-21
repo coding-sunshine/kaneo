@@ -215,8 +215,8 @@ describe("TaskRow", () => {
       useBulkSelectionStore.getState().setFocusedTask(task.id, "task-1"),
     );
     const rows = container.querySelectorAll<HTMLElement>("[data-task-row-id]");
-    expect(rows[0].parentElement).not.toHaveClass("ring-board-card-focus");
-    expect(rows[1].parentElement).toHaveClass("ring-board-card-focus");
+    expect(rows[0].parentElement).not.toHaveClass("bg-accent/70");
+    expect(rows[1].parentElement).toHaveClass("bg-accent/70");
   });
 
   it("restores the focused occurrence when repeated rows remount", () => {

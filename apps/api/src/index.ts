@@ -1058,7 +1058,7 @@ export async function runStartupTasks() {
 
 export async function startServer(
   injectWebSocket: ReturnType<typeof createNodeWebSocket>["injectWebSocket"],
-  port = 1337,
+  port = Number(process.env.PORT) || 1337,
 ) {
   try {
     await runStartupTasks();

@@ -767,7 +767,9 @@
 			"priority": "Προτεραιότητα",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Εμφάνιση της εικόνας που ορίζει ένα έργο πίσω από τον πίνακά του.",
-			"advancedTitle": "Σύνθετα"
+			"advancedTitle": "Σύνθετα",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Διαχειρίζεται από τον οργανισμό σας.",
@@ -2870,7 +2872,10 @@
 			"home": "Home",
 			"inbox": "Inbox",
 			"invitePeople": "Invite people",
-			"myTasks": "My tasks"
+			"myTasks": "My tasks",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "Προβολή έργου",
@@ -3573,7 +3578,8 @@
 				"priority": "Προτεραιότητα",
 				"assignee": "Ανατεθειμένος",
 				"dueDate": "Ημερομηνία λήξης",
-				"labels": "Ετικέτες"
+				"labels": "Ετικέτες",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "είναι ένα από",
@@ -3798,7 +3804,14 @@
 			"projectBackground": "Φόντο έργου",
 			"layout": "Διάταξη",
 			"includeSubtasks": "Συμπερίληψη υποεργασιών",
-			"useProjectDefault": "Χρήση προεπιλογής έργου"
+			"useProjectDefault": "Χρήση προεπιλογής έργου",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Ενεργά φίλτρα",
@@ -3996,7 +4009,8 @@
 			"groupBy": {
 				"dueDate": "Due date",
 				"label": "Group by",
-				"project": "Project"
+				"project": "Project",
+				"status": "Status"
 			},
 			"pageTitle": "My tasks",
 			"truncated": "Showing the first {{shown}} of {{total}} tasks."

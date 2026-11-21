@@ -1192,6 +1192,8 @@
 			"taskNumbers": "Task numbers",
 			"assignees": "Assignees",
 			"dueDates": "Due dates",
+			"status": "Status",
+			"createdDates": "Created",
 			"labels": "Labels",
 			"priority": "Priority",
 			"projectBackgrounds": "Project backgrounds",
@@ -2870,7 +2872,10 @@
 			"home": "Home",
 			"inbox": "Inbox",
 			"myTasks": "My tasks",
-			"invitePeople": "Invite people"
+			"invitePeople": "Invite people",
+			"issues": "Issues",
+			"active": "Active",
+			"backlog": "Backlog"
 		},
 		"projectList": {
 			"viewProject": "View Project",
@@ -3576,6 +3581,7 @@
 			"allCustomFieldValues": "All values",
 			"selectedCount": "{{count}} selected",
 			"subjects": {
+				"project": "Project",
 				"status": "Status",
 				"priority": "Priority",
 				"assignee": "Assignee",
@@ -3795,6 +3801,13 @@
 		"display": {
 			"title": "Display",
 			"sortBy": "Sort by",
+			"grouping": "Grouping",
+			"noAssignee": "No assignee",
+			"groupBy": {
+				"status": "Status",
+				"priority": "Priority",
+				"assignee": "Assignee"
+			},
 			"showOnCards": "Show on cards",
 			"showOnRows": "Show on rows",
 			"checklistProgress": "Checklist progress",
@@ -4026,7 +4039,8 @@
 			"groupBy": {
 				"label": "Group by",
 				"dueDate": "Due date",
-				"project": "Project"
+				"project": "Project",
+				"status": "Status"
 			},
 			"truncated": "Showing the first {{shown}} of {{total}} tasks."
 		},

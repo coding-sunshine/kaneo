@@ -21,21 +21,21 @@ export function AssignedTaskRow({
     <Link
       to="/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId"
       params={{ workspaceId, projectId: task.projectId, taskId: task.id }}
-      className="flex h-11 items-center gap-2.5 border-border/50 border-b px-1 outline-none transition-colors hover:bg-accent/50 focus-visible:bg-accent/50"
+      className="flex h-10 items-center gap-2.5 border-border/50 border-b px-1 outline-none transition-colors hover:bg-accent/50 focus-visible:bg-accent/50"
     >
       <span className="flex w-4 shrink-0 justify-center [&_svg]:size-3.5">
         {getPriorityIcon(task.priority)}
+      </span>
+      <span className="hidden w-16 shrink-0 truncate font-medium text-muted-foreground text-xs sm:block">
+        {task.number == null
+          ? task.projectSlug
+          : `${task.projectSlug}-${task.number}`}
       </span>
       <span
         className="shrink-0"
         title={getStatusDisplayLabel(task.status, task.statusName ?? undefined)}
       >
         {getColumnIcon(task.status, false, task.statusIcon)}
-      </span>
-      <span className="hidden w-16 shrink-0 truncate font-medium text-muted-foreground text-xs sm:block">
-        {task.number == null
-          ? task.projectSlug
-          : `${task.projectSlug}-${task.number}`}
       </span>
       <span className="min-w-0 flex-1 truncate text-foreground text-sm">
         {task.title}

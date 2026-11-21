@@ -214,7 +214,7 @@ function TaskRow({
         (isDragging || isTaskDragging) && "opacity-50",
         isTaskSelected &&
           "bg-accent/60 shadow-sm ring-1 ring-inset ring-ring/30",
-        isTaskFocused && "ring-1 ring-board-card-focus ring-inset",
+        isTaskFocused && "bg-accent/70 shadow-[inset_2px_0_0_0_var(--primary)]",
       )}
     >
       {showToggleColumn && (

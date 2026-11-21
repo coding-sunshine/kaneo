@@ -767,7 +767,9 @@
 			"priority": "Приоритет",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Прикажи ја сликата што проектот ја поставува зад својата табла.",
-			"advancedTitle": "Напредно"
+			"advancedTitle": "Напредно",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Се управува од твојата организација.",
@@ -2870,7 +2872,10 @@
 			"home": "Home",
 			"inbox": "Inbox",
 			"invitePeople": "Invite people",
-			"myTasks": "My tasks"
+			"myTasks": "My tasks",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "Погледни проект",
@@ -3573,7 +3578,8 @@
 				"priority": "Приоритет",
 				"assignee": "Доделен",
 				"dueDate": "Краен рок",
-				"labels": "Етикети"
+				"labels": "Етикети",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "е било кој од",
@@ -3798,7 +3804,14 @@
 			"projectBackground": "Позадина на проектот",
 			"layout": "Распоред",
 			"includeSubtasks": "Вклучи подзадачи",
-			"useProjectDefault": "Користи ја стандардната поставка на проектот"
+			"useProjectDefault": "Користи ја стандардната поставка на проектот",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Активни филтри",
@@ -3996,7 +4009,8 @@
 			"groupBy": {
 				"dueDate": "Due date",
 				"label": "Group by",
-				"project": "Project"
+				"project": "Project",
+				"status": "Status"
 			},
 			"pageTitle": "My tasks",
 			"truncated": "Showing the first {{shown}} of {{total}} tasks."

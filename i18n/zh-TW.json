@@ -758,7 +758,9 @@
 			"priority": "優先順序",
 			"projectBackgrounds": "專案背景",
 			"projectBackgroundsDescription": "顯示專案為看板設定的背景圖片。",
-			"advancedTitle": "進階"
+			"advancedTitle": "進階",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "由你的組織管理。",
@@ -2821,7 +2823,10 @@
 			"home": "首頁",
 			"inbox": "收件匣",
 			"myTasks": "我的任務",
-			"invitePeople": "邀請成員"
+			"invitePeople": "邀請成員",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "檢視專案",
@@ -3515,7 +3520,8 @@
 				"priority": "優先順序",
 				"assignee": "負責人",
 				"dueDate": "截止日期",
-				"labels": "標籤"
+				"labels": "標籤",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "為以下任一",
@@ -3729,7 +3735,14 @@
 			"projectBackground": "專案背景",
 			"layout": "版面配置",
 			"includeSubtasks": "包含子任務",
-			"useProjectDefault": "使用專案預設設定"
+			"useProjectDefault": "使用專案預設設定",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "已套用的篩選",
@@ -3933,7 +3946,8 @@
 			"groupBy": {
 				"label": "分組依據",
 				"dueDate": "截止日",
-				"project": "專案"
+				"project": "專案",
+				"status": "Status"
 			},
 			"truncated": "顯示 {{total}} 個任務中的前 {{shown}} 個。"
 		},

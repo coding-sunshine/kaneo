@@ -604,7 +604,10 @@
 			"home": "Home",
 			"inbox": "Inbox",
 			"invitePeople": "Invite people",
-			"myTasks": "My tasks"
+			"myTasks": "My tasks",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "Zobacz projekt",
@@ -970,7 +973,8 @@
 			"groupBy": {
 				"dueDate": "Due date",
 				"label": "Group by",
-				"project": "Project"
+				"project": "Project",
+				"status": "Status"
 			},
 			"pageTitle": "My tasks",
 			"truncated": "Showing the first {{shown}} of {{total}} tasks."
@@ -1701,7 +1705,9 @@
 			"weekStartsOnSunday": "Niedziela",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Pokazuj obraz ustawiony przez projekt za jego tablicą.",
-			"advancedTitle": "Zaawansowane"
+			"advancedTitle": "Zaawansowane",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Zarządzane przez Twoją organizację.",
@@ -3698,7 +3704,8 @@
 				"dueDate": "Termin",
 				"labels": "Etykiety",
 				"priority": "Priorytet",
-				"status": "Status"
+				"status": "Status",
+				"project": "Project"
 			},
 			"allCustomFieldValues": "All values",
 			"noCustomFieldValues": "No custom field values",
@@ -4224,7 +4231,14 @@
 			"projectBackground": "Tło projektu",
 			"layout": "Układ",
 			"includeSubtasks": "Uwzględnij podzadania",
-			"useProjectDefault": "Użyj domyślnego ustawienia projektu"
+			"useProjectDefault": "Użyj domyślnego ustawienia projektu",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Aktywne filtry",

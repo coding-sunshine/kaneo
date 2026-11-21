@@ -759,7 +759,9 @@
 			"priority": "Mức ưu tiên",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Hiển thị hình ảnh mà dự án đặt làm nền bảng.",
-			"advancedTitle": "Nâng cao"
+			"advancedTitle": "Nâng cao",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Được quản lý bởi tổ chức của bạn.",
@@ -2821,7 +2823,10 @@
 			"home": "Home",
 			"inbox": "Inbox",
 			"invitePeople": "Invite people",
-			"myTasks": "My tasks"
+			"myTasks": "My tasks",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "Xem dự án",
@@ -3515,7 +3520,8 @@
 				"priority": "Mức ưu tiên",
 				"assignee": "Người được giao",
 				"dueDate": "Ngày đến hạn",
-				"labels": "Nhãn"
+				"labels": "Nhãn",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "là một trong",
@@ -3729,7 +3735,14 @@
 			"projectBackground": "Hình nền dự án",
 			"layout": "Bố cục",
 			"includeSubtasks": "Bao gồm nhiệm vụ phụ",
-			"useProjectDefault": "Dùng thiết lập mặc định của dự án"
+			"useProjectDefault": "Dùng thiết lập mặc định của dự án",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Bộ lọc đang áp dụng",
@@ -3920,7 +3933,8 @@
 			"groupBy": {
 				"dueDate": "Due date",
 				"label": "Group by",
-				"project": "Project"
+				"project": "Project",
+				"status": "Status"
 			},
 			"pageTitle": "My tasks",
 			"truncated": "Showing the first {{shown}} of {{total}} tasks."

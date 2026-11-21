@@ -783,7 +783,9 @@
 			"priority": "Приоритет",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Показывать изображение, которое проект задаёт за своей доской.",
-			"advancedTitle": "Дополнительно"
+			"advancedTitle": "Дополнительно",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Управляется вашей организацией.",
@@ -2976,7 +2978,10 @@
 			"home": "Home",
 			"inbox": "Inbox",
 			"invitePeople": "Invite people",
-			"myTasks": "My tasks"
+			"myTasks": "My tasks",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "Открыть проект",
@@ -3704,7 +3709,8 @@
 				"priority": "Приоритет",
 				"assignee": "Исполнитель",
 				"dueDate": "Срок выполнения",
-				"labels": "Метки"
+				"labels": "Метки",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "любой из",
@@ -3988,7 +3994,14 @@
 			"projectBackground": "Фон проекта",
 			"layout": "Макет",
 			"includeSubtasks": "Включать подзадачи",
-			"useProjectDefault": "Использовать настройку проекта по умолчанию"
+			"useProjectDefault": "Использовать настройку проекта по умолчанию",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Активные фильтры",
@@ -4200,7 +4213,8 @@
 			"groupBy": {
 				"dueDate": "Due date",
 				"label": "Group by",
-				"project": "Project"
+				"project": "Project",
+				"status": "Status"
 			},
 			"pageTitle": "My tasks",
 			"truncated": "Showing the first {{shown}} of {{total}} tasks."

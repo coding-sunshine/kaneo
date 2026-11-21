@@ -759,7 +759,9 @@
 			"priority": "Prioritas",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Tampilkan gambar yang diatur proyek di belakang papannya.",
-			"advancedTitle": "Lanjutan"
+			"advancedTitle": "Lanjutan",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Dikelola oleh organisasi Anda.",
@@ -2821,7 +2823,10 @@
 			"home": "Home",
 			"inbox": "Inbox",
 			"invitePeople": "Invite people",
-			"myTasks": "My tasks"
+			"myTasks": "My tasks",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "Lihat Proyek",
@@ -3515,7 +3520,8 @@
 				"priority": "Prioritas",
 				"assignee": "Penanggung jawab",
 				"dueDate": "Tenggat",
-				"labels": "Label"
+				"labels": "Label",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "adalah salah satu dari",
@@ -3729,7 +3735,14 @@
 			"projectBackground": "Latar belakang proyek",
 			"layout": "Tata letak",
 			"includeSubtasks": "Sertakan subtugas",
-			"useProjectDefault": "Gunakan pengaturan bawaan proyek"
+			"useProjectDefault": "Gunakan pengaturan bawaan proyek",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Filter aktif",
@@ -3920,7 +3933,8 @@
 			"groupBy": {
 				"dueDate": "Due date",
 				"label": "Group by",
-				"project": "Project"
+				"project": "Project",
+				"status": "Status"
 			},
 			"pageTitle": "My tasks",
 			"truncated": "Showing the first {{shown}} of {{total}} tasks."

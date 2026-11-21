@@ -767,7 +767,9 @@
 			"priority": "Öncelik",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Projenin panosunun arkasına ayarladığı görseli göster.",
-			"advancedTitle": "Gelişmiş"
+			"advancedTitle": "Gelişmiş",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Kuruluşunuz tarafından yönetiliyor.",
@@ -2870,7 +2872,10 @@
 			"home": "Home",
 			"inbox": "Inbox",
 			"invitePeople": "Invite people",
-			"myTasks": "My tasks"
+			"myTasks": "My tasks",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "Projeyi Görüntüle",
@@ -3573,7 +3578,8 @@
 				"priority": "Öncelik",
 				"assignee": "Atanan",
 				"dueDate": "Bitiş tarihi",
-				"labels": "Etiketler"
+				"labels": "Etiketler",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "herhangi biri",
@@ -3798,7 +3804,14 @@
 			"projectBackground": "Proje arka planı",
 			"layout": "Düzen",
 			"includeSubtasks": "Alt görevleri dahil et",
-			"useProjectDefault": "Proje varsayılanını kullan"
+			"useProjectDefault": "Proje varsayılanını kullan",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Etkin filtreler",
@@ -3996,7 +4009,8 @@
 			"groupBy": {
 				"dueDate": "Due date",
 				"label": "Group by",
-				"project": "Project"
+				"project": "Project",
+				"status": "Status"
 			},
 			"pageTitle": "My tasks",
 			"truncated": "Showing the first {{shown}} of {{total}} tasks."

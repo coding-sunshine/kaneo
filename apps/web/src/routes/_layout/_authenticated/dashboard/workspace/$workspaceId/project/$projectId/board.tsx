@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import ProjectLayout from "@/components/common/project-layout";
 import KanbanBoard from "@/components/kanban-board";
 import ListView from "@/components/list-view";
+import { groupProjectBy } from "@/lib/group-project";
 import PageTitle from "@/components/page-title";
 import { BoardLoadError } from "@/components/project/board-load-error";
 import { BoardRefreshError } from "@/components/project/board-refresh-error";
@@ -17,6 +18,7 @@ import { LayoutSwitch } from "@/components/project/views/layout-switch";
 import CreateTaskModal from "@/components/shared/modals/create-task-modal";
 import TaskDetailsSheet from "@/components/task/task-details-sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import useGetLabelsByWorkspace from "@/hooks/queries/label/use-get-labels-by-workspace";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
 import { useBoardSort } from "@/hooks/use-board-sort";
 import { cn } from "@/lib/cn";
@@ -29,6 +31,7 @@ import type { ProjectWithTasks } from "@/types/project";
 
 type BoardSearchParams = {
   taskId?: string;
+  view?: "active";
 };
 
 export const Route = createFileRoute(
@@ -37,6 +40,7 @@ export const Route = createFileRoute(
   component: RouteComponent,
   validateSearch: (search: Record<string, unknown>): BoardSearchParams => ({
     taskId: typeof search.taskId === "string" ? search.taskId : undefined,
+    view: search.view === "active" ? "active" : undefined,
   }),
 });
 
@@ -84,7 +88,7 @@ function BoardSkeleton() {
 function RouteComponent() {
   const { t } = useTranslation();
   const { projectId, workspaceId } = Route.useParams();
-  const { taskId } = Route.useSearch();
+  const { taskId, view: presetView } = Route.useSearch();
   const navigate = useNavigate();
   const {
     data,
@@ -116,6 +120,19 @@ function RouteComponent() {
     });
   }, [navigate]);
 
+  // "Active" preset: filter to the current-cycle label, then drop the param so
+  // the filter bar owns the state.
+  const { data: workspaceLabels } = useGetLabelsByWorkspace(workspaceId);
+  const cycleLabelId = workspaceLabels?.find(
+    (label) => label.name.toLowerCase() === "cycle: current",
+  )?.id;
+  const { updateFilter } = filters;
+  useEffect(() => {
+    if (presetView !== "active" || !cycleLabelId) return;
+    updateFilter("labels", [cycleLabelId]);
+    navigate({ to: ".", search: {}, replace: true });
+  }, [presetView, cycleLabelId, updateFilter, navigate]);
+
   useEffect(() => {
     if (data) {
       setProject(data);
@@ -133,6 +150,20 @@ function RouteComponent() {
       })),
     };
   }, [filters.filteredProject, sort]);
+
+  const groupBy = useUserPreferencesStore((state) => state.listGroupBy);
+  const grouped = viewMode === "list" && groupBy !== "status";
+  const listProject = useMemo(
+    () =>
+      sortedProject && grouped
+        ? groupProjectBy(sortedProject, groupBy, (key) =>
+            key === "display.unassigned"
+              ? t("tasks:display.noAssignee")
+              : t(`tasks:${key}`),
+          )
+        : sortedProject,
+    [sortedProject, grouped, groupBy, t],
+  );
 
   return (
     <ProjectLayout
@@ -235,10 +266,14 @@ function RouteComponent() {
             ) : (
               <ListView
                 key={projectId}
-                project={sortedProject}
+                project={listProject ?? sortedProject}
+                groupedAddStatus={sortedProject.columns[0]?.id}
                 disableCollectionActions={boardFetching || boardError}
                 disableDragDrop={
-                  boardFetching || boardError || sort.field !== "position"
+                  boardFetching ||
+                  boardError ||
+                  grouped ||
+                  sort.field !== "position"
                 }
               />
             )

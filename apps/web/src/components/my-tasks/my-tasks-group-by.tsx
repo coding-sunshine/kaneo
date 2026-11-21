@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 
-export type MyTasksGroupBy = "dueDate" | "project";
+export type MyTasksGroupBy = "status" | "dueDate" | "project";
 
 type MyTasksGroupByProps = {
   value: MyTasksGroupBy;
@@ -12,6 +12,7 @@ type MyTasksGroupByProps = {
 export function MyTasksGroupByToggle({ value, onChange }: MyTasksGroupByProps) {
   const { t } = useTranslation();
   const options: Array<{ value: MyTasksGroupBy; label: string }> = [
+    { value: "status", label: t("workspace:myTasks.groupBy.status") },
     { value: "dueDate", label: t("workspace:myTasks.groupBy.dueDate") },
     { value: "project", label: t("workspace:myTasks.groupBy.project") },
   ];

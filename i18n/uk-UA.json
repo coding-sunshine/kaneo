@@ -783,7 +783,9 @@
 			"priority": "Пріоритет",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Показувати зображення, яке проєкт задає за своєю дошкою.",
-			"advancedTitle": "Додатково"
+			"advancedTitle": "Додатково",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Керується вашою організацією.",
@@ -2968,7 +2970,10 @@
 			"home": "Home",
 			"inbox": "Inbox",
 			"invitePeople": "Invite people",
-			"myTasks": "My tasks"
+			"myTasks": "My tasks",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "Переглянути проєкт",
@@ -3689,7 +3694,8 @@
 				"priority": "Пріоритет",
 				"assignee": "Виконавець",
 				"dueDate": "Дата завершення",
-				"labels": "Мітки"
+				"labels": "Мітки",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "є будь-яким з",
@@ -3936,7 +3942,14 @@
 			"projectBackground": "Фон проєкту",
 			"layout": "Макет",
 			"includeSubtasks": "Включати підзавдання",
-			"useProjectDefault": "Використовувати типове налаштування проєкту"
+			"useProjectDefault": "Використовувати типове налаштування проєкту",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Активні фільтри",
@@ -4148,7 +4161,8 @@
 			"groupBy": {
 				"dueDate": "Due date",
 				"label": "Group by",
-				"project": "Project"
+				"project": "Project",
+				"status": "Status"
 			},
 			"pageTitle": "My tasks",
 			"truncated": "Showing the first {{shown}} of {{total}} tasks."

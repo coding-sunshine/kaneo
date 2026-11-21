@@ -29,6 +29,10 @@ vi.mock("@/lib/shortcuts/use-shortcut", () => ({
 vi.mock("@/components/shortcuts/shortcut-keys", () => ({
   ShortcutKeys: () => null,
 }));
+vi.mock("@/hooks/queries/search/use-global-search", () => ({
+  default: () => ({ data: undefined }),
+}));
+
 vi.mock("@/hooks/queries/workspace/use-active-workspace", () => ({
   default: () => ({ data: m.workspace }),
 }));

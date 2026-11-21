@@ -650,7 +650,9 @@
 			"priority": "Prioridad",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Muestra la imagen que un proyecto pone detrás de su tablero.",
-			"advancedTitle": "Avanzado"
+			"advancedTitle": "Avanzado",
+			"createdDates": "Created",
+			"status": "Status"
 		},
 		"managedProfile": {
 			"note": "Gestionado por tu organización.",
@@ -2919,7 +2921,10 @@
 			"home": "Home",
 			"inbox": "Inbox",
 			"invitePeople": "Invite people",
-			"myTasks": "My tasks"
+			"myTasks": "My tasks",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "Ver Proyecto",
@@ -3620,7 +3625,8 @@
 				"priority": "Prioridad",
 				"assignee": "Asignado",
 				"dueDate": "Fecha de vencimiento",
-				"labels": "Etiquetas"
+				"labels": "Etiquetas",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "es alguno de",
@@ -3867,7 +3873,14 @@
 			"projectBackground": "Fondo del proyecto",
 			"layout": "Diseño",
 			"includeSubtasks": "Incluir subtareas",
-			"useProjectDefault": "Usar el valor predeterminado del proyecto"
+			"useProjectDefault": "Usar el valor predeterminado del proyecto",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Filtros activos",
@@ -4072,7 +4085,8 @@
 			"groupBy": {
 				"dueDate": "Due date",
 				"label": "Group by",
-				"project": "Project"
+				"project": "Project",
+				"status": "Status"
 			},
 			"pageTitle": "My tasks",
 			"truncated": "Showing the first {{shown}} of {{total}} tasks."

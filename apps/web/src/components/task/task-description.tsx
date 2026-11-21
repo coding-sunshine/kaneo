@@ -183,7 +183,8 @@ const SHIKI_LANGUAGE_ALIASES: Record<string, string> = {
 
 export default function TaskDescription({ taskId }: TaskDescriptionProps) {
   const { t } = useTranslation();
-  const { data: task } = useGetTask(taskId);
+  const { data: task, isPlaceholderData } = useGetTask(taskId);
+  const taskLoaded = Boolean(task) && !isPlaceholderData;
   const { mutateAsync: updateTaskDescription } = useUpdateTaskDescription();
   const { canUpdateTasks } = useWorkspacePermission();
   const ownerId = useContext(AuthContext).user?.id ?? "";
@@ -842,6 +843,9 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
     }
 
     const pendingSave = descriptionSaveQueue.get(taskId, ownerId);
+    // Hydrating before the task loads would mark the editor as synced to an
+    // empty description, and the first edit would then save over the real one.
+    if (!taskLoaded && !pendingSave) return;
     const incomingMarkdown = formatMarkdown(
       pendingSave && pendingSave.state !== "saved"
         ? pendingSave.value
@@ -871,7 +875,7 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
     requestAnimationFrame(() => {
       isSyncingExternalContentRef.current = false;
     });
-  }, [editor, taskId, task?.id, task?.description, ownerId]);
+  }, [editor, taskId, task?.id, taskLoaded, task?.description, ownerId]);
 
   useEffect(() => {
     if (!editor) return;
