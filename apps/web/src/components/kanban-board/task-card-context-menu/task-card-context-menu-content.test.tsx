@@ -33,6 +33,11 @@ vi.mock("@/components/ui/context-menu", () => ({
     </button>
   ),
   ContextMenuSeparator: (): React.JSX.Element => <div />,
+  ContextMenuShortcut: ({
+    children,
+  }: {
+    children?: React.ReactNode;
+  }): React.JSX.Element => <span>{children}</span>,
   ContextMenuSub: ({
     children,
   }: {

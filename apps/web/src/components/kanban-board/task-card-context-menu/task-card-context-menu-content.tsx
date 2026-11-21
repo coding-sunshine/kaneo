@@ -16,6 +16,7 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuShortcut,
   ContextMenuSub,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
@@ -181,6 +182,7 @@ export default function TaskCardContextMenuContent({
           <ContextMenuSubTrigger>
             <PriorityGlyph priority="high" />
             <span>{t("tasks:priority.label")}</span>
+            <ContextMenuShortcut>P</ContextMenuShortcut>
           </ContextMenuSubTrigger>
           <ContextMenuSubContent className="w-48">
             <ContextMenuCheckboxItem
@@ -214,6 +216,7 @@ export default function TaskCardContextMenuContent({
           <ContextMenuSubTrigger>
             <CircleDot className="size-3.5 text-muted-foreground" />
             <span>{t("tasks:status.label")}</span>
+            <ContextMenuShortcut>S</ContextMenuShortcut>
           </ContextMenuSubTrigger>
           <ContextMenuSubContent className="w-48">
             {columns.map((col) => (
@@ -239,6 +242,7 @@ export default function TaskCardContextMenuContent({
           <ContextMenuSubTrigger>
             <UserRound className="size-3.5 text-muted-foreground" />
             <span>{t("tasks:assignee.label")}</span>
+            <ContextMenuShortcut>A</ContextMenuShortcut>
           </ContextMenuSubTrigger>
           <ContextMenuSubContent className="w-48">
             <ContextMenuCheckboxItem
