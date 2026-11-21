@@ -925,6 +925,17 @@ function CreateTaskModalContent({
                 {statusLabel}
               </div>
 
+              {explicitProjectId && resolvedProject && (
+                // Project is fixed by the page the modal opened from; the
+                // chip mirrors Linear's property row without moving drafts.
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-accent/30 text-foreground rounded-md text-xs font-medium border border-border">
+                  <FolderKanban className="w-3.5 h-3.5" />
+                  <span className="truncate max-w-40">
+                    {resolvedProject.name}
+                  </span>
+                </div>
+              )}
+
               <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
                 <PopoverTrigger asChild>
                   <button
