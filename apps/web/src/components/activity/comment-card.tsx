@@ -19,6 +19,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import useDeleteComment from "@/hooks/mutations/comment/use-delete-comment";
 import useUpdateComment from "@/hooks/mutations/comment/use-update-comment";
 import { cn } from "@/lib/cn";
 import { formatDateTime, formatRelativeTime } from "@/lib/format";
@@ -26,6 +27,7 @@ import { getInitials } from "@/lib/get-initials";
 import { toast } from "@/lib/toast";
 import CommentActions from "./comment-actions";
 import CommentReactions from "./comment-reactions";
+import DeleteCommentDialog from "./delete-comment-dialog";
 import type { Reaction } from "./toggle-reaction";
 
 const forges = {
@@ -61,6 +63,8 @@ type CommentCardProps = {
   threadResolved?: boolean;
   /** Marks the reply that resolved its thread. */
   isResolution?: boolean;
+  /** Replies in this root comment's thread; deleting it deletes them too. */
+  replyCount?: number;
 };
 
 export default function CommentCard({
@@ -76,6 +80,7 @@ export default function CommentCard({
   reactions = [],
   threadResolved = false,
   isResolution = false,
+  replyCount = 0,
 }: CommentCardProps) {
   const { t } = useTranslation();
   const { user: currentUser } = useAuth();
@@ -83,6 +88,8 @@ export default function CommentCard({
   const [editedContent, setEditedContent] = useState(content);
   const { mutateAsync: updateComment, isPending } = useUpdateComment();
   const queryClient = useQueryClient();
+  const { mutate: deleteComment } = useDeleteComment(taskId);
+  const [confirmEmptyDelete, setConfirmEmptyDelete] = useState(false);
 
   const canEdit = currentUser?.id === user?.id;
   const forge = forgeOf(externalSource);
@@ -120,8 +127,9 @@ export default function CommentCard({
   }, [content]);
 
   const handleSave = useCallback(async () => {
+    // Linear treats a save that empties the comment as a delete, after asking.
     if (!editedContent.trim()) {
-      toast.error(t("activity:comment.cannotBeEmpty"));
+      setConfirmEmptyDelete(true);
       return;
     }
 
@@ -271,6 +279,7 @@ export default function CommentCard({
             isReply={variant === "reply"}
             threadResolved={threadResolved}
             canEdit={canEdit}
+            replyCount={replyCount}
             onEdit={handleEdit}
           />
         )}
@@ -328,13 +337,19 @@ export default function CommentCard({
               variant="default"
               size="sm"
               onClick={handleSave}
-              disabled={isPending || !editedContent.trim()}
+              disabled={isPending}
               className="h-7 px-2.5 text-xs"
             >
               {t("activity:comment.save")}
             </Button>
           </div>
         )}
+        <DeleteCommentDialog
+          open={confirmEmptyDelete}
+          onOpenChange={setConfirmEmptyDelete}
+          hasReplies={replyCount > 0}
+          onConfirm={() => deleteComment({ activityId: commentId })}
+        />
       </div>
     </TooltipProvider>
   );

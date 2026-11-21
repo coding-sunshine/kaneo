@@ -23,6 +23,7 @@ import useSetCommentThreadResolved from "@/hooks/mutations/comment/use-set-comme
 import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
 import AddReactionButton from "./add-reaction-button";
+import DeleteCommentDialog from "./delete-comment-dialog";
 
 type CommentActionsProps = {
   commentId: string;
@@ -31,6 +32,7 @@ type CommentActionsProps = {
   isReply: boolean;
   threadResolved: boolean;
   canEdit: boolean;
+  replyCount?: number;
   onEdit: () => void;
 };
 
@@ -46,11 +48,13 @@ export default function CommentActions({
   isReply,
   threadResolved,
   canEdit,
+  replyCount = 0,
   onEdit,
 }: CommentActionsProps) {
   const { t } = useTranslation();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const { mutate: setReaction } = useSetCommentReaction(taskId);
   const { mutate: setResolved } = useSetCommentThreadResolved(taskId);
   const { mutate: deleteComment } = useDeleteComment(taskId);
@@ -137,9 +141,7 @@ export default function CommentActions({
           {canEdit && (
             <>
               <MenuSeparator />
-              <MenuItem
-                onClick={() => deleteComment({ activityId: commentId })}
-              >
+              <MenuItem onClick={() => setDeleteOpen(true)}>
                 <Trash2 />
                 {t("common:actions.delete")}
               </MenuItem>
@@ -147,6 +149,12 @@ export default function CommentActions({
           )}
         </MenuPopup>
       </Menu>
+      <DeleteCommentDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        hasReplies={replyCount > 0}
+        onConfirm={() => deleteComment({ activityId: commentId })}
+      />
     </div>
   );
 }

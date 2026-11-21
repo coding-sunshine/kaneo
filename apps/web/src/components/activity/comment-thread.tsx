@@ -76,6 +76,7 @@ export default function CommentThread({ root, replies }: CommentThreadProps) {
         reactions={comment.reactions}
         threadResolved={resolved}
         isResolution={resolved && comment.id === root.resolvingCommentId}
+        replyCount={variant === "root" ? replies.length : 0}
       />
     );
   };
