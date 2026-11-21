@@ -47,7 +47,7 @@ const messages = {
     subtitle: "A notification matched your delivery preferences.",
     footer: "Kaneo notification",
     actionLabel: "Open in Kaneo",
-    openTask: "Open task",
+    openTask: "Open issue",
     manage: "Manage notifications",
     priority: {
       urgent: "Urgent priority",
@@ -189,7 +189,7 @@ const breadcrumbStyle = {
 };
 
 NotificationEmail.PreviewProps = {
-  title: "Sarah Chen assigned you a task",
+  title: "Sarah Chen assigned you an issue",
   message: "You were assigned to Redesign transactional emails.",
   actionUrl: "https://cloud.kaneo.app/acme/task/KAN-128",
   locale: "en-US",

@@ -53,6 +53,6 @@ describe("NotificationEmail", () => {
     expect(html).toContain('alt="High priority"');
     expect(html).toContain("Oct 14");
     expect(html).toContain("In progress");
-    expect(html).toContain("Open task");
+    expect(html).toContain("Open issue");
   });
 });

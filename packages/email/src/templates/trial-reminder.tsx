@@ -45,7 +45,7 @@ function subtitle(daysLeft: number) {
   if (daysLeft <= 0) {
     return "Your workspace is read-only until you choose a plan. Nothing has been deleted, and your data is still there.";
   }
-  return "Choose a plan to keep creating and editing when the trial ends. Your projects, tasks and members stay exactly as they are.";
+  return "Choose a plan to keep creating and editing when the trial ends. Your projects, issues and members stay exactly as they are.";
 }
 
 function remaining(daysLeft: number) {
