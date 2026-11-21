@@ -35,6 +35,9 @@ vi.mock("@/hooks/queries/task/use-get-tasks", () => ({
     refetch: m.retry,
   }),
 }));
+vi.mock("@/hooks/queries/task-relation/use-get-project-task-relations", () => ({
+  default: () => ({ data: [] }),
+}));
 vi.mock("@/store/project", () => ({
   default: () => ({ project: m.project, setProject: vi.fn() }),
 }));
