@@ -72,6 +72,36 @@ const skeletonColumns = [
   { key: "col-done", cards: 1 },
 ];
 
+// Linear's list skeleton: group header bars, each over a few issue rows.
+function ListSkeleton() {
+  return (
+    <div className="delayed-reveal flex h-full w-full flex-col gap-1 overflow-hidden py-2">
+      {["a", "b", "c"].map((group, groupIndex) => (
+        <div key={group} className="flex flex-col">
+          <div className="mx-2 mb-0.5 flex h-9 items-center gap-2 rounded-lg bg-muted/60 pl-3">
+            <Skeleton className="size-3.5 rounded-full" />
+            <Skeleton className="h-3 w-24" />
+          </div>
+          {Array.from(
+            { length: 4 - groupIndex },
+            (_, i) => `${group}-${i}`,
+          ).map((rowKey) => (
+            <div
+              key={rowKey}
+              className="flex h-10 items-center gap-3 border-b border-border/50 px-4"
+            >
+              <Skeleton className="size-3.5 rounded-sm" />
+              <Skeleton className="h-3 w-12" />
+              <Skeleton className="size-3.5 rounded-full" />
+              <Skeleton className="h-3.5 w-2/5" />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function BoardSkeleton() {
   return (
     <div className="delayed-reveal flex h-full w-full overflow-hidden bg-linear-to-b from-muted/20 to-background">
@@ -263,10 +293,12 @@ function RouteComponent() {
         />
       }
       summary={
-        <TaskCount
-          shown={countColumnTasks(filters.filteredProject)}
-          total={countColumnTasks(project)}
-        />
+        project ? (
+          <TaskCount
+            shown={countColumnTasks(filters.filteredProject)}
+            total={countColumnTasks(project)}
+          />
+        ) : undefined
       }
       filterBar={
         <ActiveFiltersBar
@@ -391,6 +423,8 @@ function RouteComponent() {
               isRetrying={boardFetching}
               onRetry={() => void retryBoard()}
             />
+          ) : viewMode === "list" ? (
+            <ListSkeleton />
           ) : (
             <BoardSkeleton />
           )}
