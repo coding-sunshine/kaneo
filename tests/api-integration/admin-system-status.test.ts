@@ -154,7 +154,20 @@ describe("admin system status", () => {
     const admin = await createInstanceAdmin();
     mockAuthenticatedSession(admin);
 
-    const response = await projectAccessApi()("/admin/system");
+    // A dev .env may point at local storage; blank it so this case stays unset.
+    const noStorage = Object.fromEntries(
+      [
+        "S3_ENDPOINT",
+        "S3_BUCKET",
+        "S3_ACCESS_KEY_ID",
+        "S3_SECRET_ACCESS_KEY",
+        "S3_ACCESS_KEY_ID_FILE",
+        "S3_SECRET_ACCESS_KEY_FILE",
+      ].map((name) => [name, ""]),
+    );
+    const response = await withEnv(noStorage, () =>
+      projectAccessApi()("/admin/system"),
+    );
 
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
