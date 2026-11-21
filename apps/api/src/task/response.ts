@@ -325,6 +325,11 @@ export const assignedTasksSchema = z
           statusIcon: z.string().nullable(),
           priority: z.string().openapi({ description: priorityDescription }),
           dueDate: nullableResponseTimestamp,
+          lastActivityAt: nullableResponseTimestamp.openapi({
+            description:
+              "The caller's latest activity on the task. Set on the activity tab only.",
+          }),
+          lastActivityType: z.string().nullable(),
           workProjectId: z.string().nullable(),
           workProjectMilestoneId: z.string().nullable(),
           projectName: z.string(),

@@ -11,6 +11,7 @@ import {
 } from "drizzle-orm";
 import db from "../../database";
 import {
+  activityTable,
   columnTable,
   labelTable,
   projectTable,
@@ -31,7 +32,7 @@ const priorityRank = sql<number>`CASE
   ELSE 0
 END`;
 
-export type MyTasksTab = "assigned" | "created" | "subscribed";
+export type MyTasksTab = "assigned" | "created" | "subscribed" | "activity";
 
 async function getAssignedTasks(
   workspaceId: string,
@@ -39,8 +40,10 @@ async function getAssignedTasks(
   countOnly = false,
   tab: MyTasksTab = "assigned",
 ) {
-  const relation =
-    tab === "created"
+  const isActivity = tab === "activity";
+  const relation = isActivity
+    ? sql`exists (select 1 from ${activityTable} where ${activityTable.taskId} = ${taskTable.id} and ${activityTable.userId} = ${userId})`
+    : tab === "created"
       ? eq(taskTable.creatorId, userId)
       : tab === "subscribed"
         ? sql`exists (select 1 from ${taskSubscriberTable} where ${taskSubscriberTable.taskId} = ${taskTable.id} and ${taskSubscriberTable.userId} = ${userId})`
@@ -52,7 +55,9 @@ async function getAssignedTasks(
     relation,
     ne(taskTable.status, "archived"),
     isNull(taskTable.archivedAt),
-    sql`not coalesce((
+    isActivity
+      ? sql`true`
+      : sql`not coalesce((
       select ${columnTable.isFinal} from ${columnTable}
       where ${columnTable.id} = ${taskTable.columnId}
         and ${columnTable.projectId} = ${taskTable.projectId}
@@ -103,6 +108,16 @@ async function getAssignedTasks(
         statusIcon: statusColumn.icon,
         priority: taskTable.priority,
         dueDate: taskTable.dueDate,
+        lastActivityAt: isActivity
+          ? sql<Date | null>`(select max(${activityTable.createdAt}) from ${activityTable} where ${activityTable.taskId} = ${taskTable.id} and ${activityTable.userId} = ${userId})`.as(
+              "last_activity_at",
+            )
+          : sql<Date | null>`null`.as("last_activity_at"),
+        lastActivityType: isActivity
+          ? sql<
+              string | null
+            >`(select ${activityTable.type} from ${activityTable} where ${activityTable.taskId} = ${taskTable.id} and ${activityTable.userId} = ${userId} order by ${activityTable.createdAt} desc limit 1)`
+          : sql<string | null>`null`,
         workProjectId: taskTable.workProjectId,
         workProjectMilestoneId: taskTable.workProjectMilestoneId,
         projectName: projectTable.name,
@@ -114,9 +129,13 @@ async function getAssignedTasks(
       .leftJoinLateral(statusColumn, sql`true`)
       .where(openAndMine)
       .orderBy(
-        sql`${taskTable.dueDate} asc nulls last`,
-        desc(priorityRank),
-        asc(taskTable.createdAt),
+        ...(isActivity
+          ? [sql`last_activity_at desc`]
+          : [
+              sql`${taskTable.dueDate} asc nulls last`,
+              desc(priorityRank),
+              asc(taskTable.createdAt),
+            ]),
         asc(taskTable.id),
       )
       .limit(ASSIGNED_TASKS_LIMIT),
@@ -155,6 +174,10 @@ async function getAssignedTasks(
   return {
     tasks: tasks.map((task) => ({
       ...task,
+      // Raw subselects skip drizzle's timestamp mapping; the column stores UTC.
+      lastActivityAt: task.lastActivityAt
+        ? new Date(`${String(task.lastActivityAt).replace(" ", "T")}Z`)
+        : null,
       labels: labelsByTask.get(task.id) ?? [],
     })),
     total: Number(totals?.total ?? 0),

@@ -37,10 +37,13 @@ export const projectIdParam = z.object({ projectId: z.string() });
 
 export const assignedTasksQuery = z.object({
   workspaceId: z.string().min(1),
-  tab: z.enum(["assigned", "created", "subscribed"]).optional().openapi({
-    description:
-      "Which of the caller's tasks to list: assigned to them (default), created by them, or followed by them.",
-  }),
+  tab: z
+    .enum(["assigned", "created", "subscribed", "activity"])
+    .optional()
+    .openapi({
+      description:
+        "Which of the caller's tasks to list: assigned to them (default), created by them, or followed by them, or ones they recently acted on (activity, includes completed).",
+    }),
   countOnly: z.enum(["true", "false"]).optional().openapi({
     description:
       "Return only the total, with an empty tasks array, without loading task rows or labels.",
