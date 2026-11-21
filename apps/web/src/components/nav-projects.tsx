@@ -297,6 +297,7 @@ export function NavProjects() {
                           >
                             <CollapsibleTrigger
                               className="data-panel-open:[&_.team-chevron]:rotate-90"
+                              nativeButton
                               render={
                                 <SidebarMenuButton
                                   size="default"

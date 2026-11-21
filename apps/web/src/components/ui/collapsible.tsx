@@ -24,7 +24,7 @@ function CollapsibleTrigger({
     <CollapsiblePrimitive.Trigger
       className={cn("cursor-pointer", className)}
       data-slot="collapsible-trigger"
-      nativeButton={render ? false : nativeButton}
+      nativeButton={nativeButton ?? (render ? false : undefined)}
       render={resolvedRender}
       {...props}
     >
