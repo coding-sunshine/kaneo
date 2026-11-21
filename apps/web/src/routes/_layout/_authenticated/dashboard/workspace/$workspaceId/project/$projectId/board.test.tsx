@@ -24,6 +24,9 @@ vi.mock("react-i18next", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react-i18next")>()),
   useTranslation: () => ({ t: (key: string) => key }),
 }));
+vi.mock("@/hooks/queries/label/use-get-labels-by-workspace", () => ({
+  default: () => ({ data: [] }),
+}));
 vi.mock("@/hooks/queries/task/use-get-tasks", () => ({
   useGetTasks: () => ({
     data: m.project,
