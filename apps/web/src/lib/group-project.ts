@@ -39,7 +39,8 @@ export function groupProjectBy(
     } else if (groupBy === "label") {
       const labels = task.labels?.length ? task.labels : [undefined];
       for (const l of labels) {
-        put(l?.id ?? "none", l?.name ?? label("display.noLabel"), task);
+        // Labels are stored per task, so the name is the only shared key.
+        put(l?.name ?? "none", l?.name ?? label("display.noLabel"), task);
       }
     } else if (groupBy === "priority") {
       const key = task.priority || "no-priority";
