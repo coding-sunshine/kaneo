@@ -9,7 +9,7 @@ import {
   Trash2,
   Undo2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +40,8 @@ type CommentActionsProps = {
   canEdit: boolean;
   replyCount?: number;
   onEdit: () => void;
+  /** Set by a right-click on the comment: open the menu at the pointer. */
+  contextPoint?: { x: number; y: number } | null;
 };
 
 export function commentLink(commentId: string) {
@@ -56,11 +58,22 @@ export default function CommentActions({
   canEdit,
   replyCount = 0,
   onEdit,
+  contextPoint,
 }: CommentActionsProps) {
   const { t } = useTranslation();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [pointerAnchor, setPointerAnchor] = useState<{
+    getBoundingClientRect: () => DOMRect;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!contextPoint) return;
+    const { x, y } = contextPoint;
+    setPointerAnchor({ getBoundingClientRect: () => new DOMRect(x, y, 0, 0) });
+    setMenuOpen(true);
+  }, [contextPoint]);
   const { mutate: setReaction } = useSetCommentReaction(taskId);
   const { mutate: setResolved } = useSetCommentThreadResolved(taskId);
   const { mutate: deleteComment } = useDeleteComment(taskId);
@@ -90,7 +103,13 @@ export default function CommentActions({
           setReaction({ activityId: commentId, emoji, reacted: true })
         }
       />
-      <Menu open={menuOpen} onOpenChange={setMenuOpen}>
+      <Menu
+        open={menuOpen}
+        onOpenChange={(open) => {
+          setMenuOpen(open);
+          if (!open) setPointerAnchor(null);
+        }}
+      >
         <MenuTrigger
           render={
             <Button
@@ -103,7 +122,11 @@ export default function CommentActions({
         >
           <MoreHorizontal className="size-3.5" />
         </MenuTrigger>
-        <MenuPopup align="end" className="min-w-56">
+        <MenuPopup
+          align={pointerAnchor ? "start" : "end"}
+          anchor={pointerAnchor ?? undefined}
+          className="min-w-56"
+        >
           {canEdit && (
             <>
               <MenuItem onClick={onEdit}>

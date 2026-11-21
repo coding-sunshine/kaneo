@@ -89,6 +89,10 @@ export default function CommentCard({
   const { mutateAsync: updateComment, isPending } = useUpdateComment();
   const queryClient = useQueryClient();
   const { mutate: deleteComment } = useDeleteComment(taskId);
+  const [contextPoint, setContextPoint] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const [confirmEmptyDelete, setConfirmEmptyDelete] = useState(false);
 
   const canEdit = currentUser?.id === user?.id;
@@ -163,7 +167,15 @@ export default function CommentCard({
 
   return (
     <TooltipProvider>
-      <div className="group/comment relative w-full">
+      <div
+        className="group/comment relative w-full"
+        onContextMenu={(event) => {
+          // Keep the browser's own menu for links, and while editing.
+          if (isEditing || (event.target as Element).closest("a[href]")) return;
+          event.preventDefault();
+          setContextPoint({ x: event.clientX, y: event.clientY });
+        }}
+      >
         <div className="flex flex-wrap items-center gap-2 px-3 pt-3">
           <HoverCard>
             <HoverCardTrigger>
@@ -281,6 +293,7 @@ export default function CommentCard({
             canEdit={canEdit}
             replyCount={replyCount}
             onEdit={handleEdit}
+            contextPoint={contextPoint}
           />
         )}
 

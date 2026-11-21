@@ -7,6 +7,14 @@ import CommentCard from "./comment-card";
 
 afterEach(cleanup);
 
+vi.mock("@/hooks/queries/task/use-get-task", () => ({
+  default: () => ({ data: undefined }),
+}));
+
+vi.mock("@/hooks/use-workspace-permission", () => ({
+  useWorkspacePermission: () => ({ canCreateTasks: () => false }),
+}));
+
 vi.mock("@/components/activity/comment-editor", () => ({
   default: ({ value }: { value: string }) => <div>{value}</div>,
 }));
@@ -158,5 +166,21 @@ describe("CommentCard", () => {
 
     fireEvent.focus(trigger);
     expect(await screen.findByText("Apr 5, 2026, 11:38 AM")).toBeVisible();
+  });
+
+  it("right-click opens the comment menu", async () => {
+    renderCommentCard();
+
+    expect(screen.queryByRole("menuitem")).not.toBeInTheDocument();
+    fireEvent.contextMenu(screen.getByText("Test comment"));
+
+    expect(
+      await screen.findByRole("menuitem", {
+        name: "activity:comment.copyLink",
+      }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("menuitem", { name: "activity:comment.resolveThread" }),
+    ).toBeVisible();
   });
 });
