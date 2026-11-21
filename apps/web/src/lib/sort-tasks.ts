@@ -3,6 +3,7 @@ import type Task from "@/types/task";
 export type SortField =
   | "position"
   | "createdAt"
+  | "updatedAt"
   | "priority"
   | "dueDate"
   | "title"
@@ -53,6 +54,12 @@ export function sortTasks(tasks: Task[], config: SortConfig): Task[] {
       case "createdAt": {
         comparison =
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        break;
+      }
+      case "updatedAt": {
+        comparison =
+          new Date(a.updatedAt ?? a.createdAt).getTime() -
+          new Date(b.updatedAt ?? b.createdAt).getTime();
         break;
       }
       case "title": {

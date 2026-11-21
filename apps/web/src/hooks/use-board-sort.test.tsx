@@ -36,8 +36,8 @@ describe("useBoardSort", () => {
 
     await waitFor(() => {
       expect(result.current.sort).toEqual({
-        field: "position",
-        direction: "asc",
+        field: "priority",
+        direction: "desc",
       });
     });
   });
@@ -66,8 +66,8 @@ describe("useBoardSort", () => {
 
     await waitFor(() => {
       expect(result.current.sort).toEqual({
-        field: "position",
-        direction: "asc",
+        field: "priority",
+        direction: "desc",
       });
     });
   });

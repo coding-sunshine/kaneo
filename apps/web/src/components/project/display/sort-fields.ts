@@ -3,6 +3,7 @@ import type { SortConfig, SortField } from "@/lib/sort-tasks";
 export const SORT_FIELDS: SortField[] = [
   "position",
   "createdAt",
+  "updatedAt",
   "priority",
   "dueDate",
   "title",

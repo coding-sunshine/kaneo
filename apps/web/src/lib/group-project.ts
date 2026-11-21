@@ -1,9 +1,16 @@
 import type { ProjectWithTasks } from "@/types/project";
 
-export type GroupBy = "status" | "priority" | "assignee";
+export type GroupBy = "none" | "status" | "priority" | "assignee" | "label";
 
-export const GROUP_BY_OPTIONS: GroupBy[] = ["status", "priority", "assignee"];
+export const GROUP_BY_OPTIONS: GroupBy[] = [
+  "none",
+  "status",
+  "assignee",
+  "priority",
+  "label",
+];
 export const GROUP_ID_PREFIX = "group:";
+export const FLAT_GROUP_ID = `${GROUP_ID_PREFIX}all`;
 
 const PRIORITY_ORDER = ["urgent", "high", "medium", "low", "no-priority"];
 
@@ -27,7 +34,14 @@ export function groupProjectBy(
   };
 
   for (const task of tasks) {
-    if (groupBy === "priority") {
+    if (groupBy === "none") {
+      put("all", label("display.allIssues"), task);
+    } else if (groupBy === "label") {
+      const labels = task.labels?.length ? task.labels : [undefined];
+      for (const l of labels) {
+        put(l?.id ?? "none", l?.name ?? label("display.noLabel"), task);
+      }
+    } else if (groupBy === "priority") {
       const key = task.priority || "no-priority";
       put(key, label(`priority.${key}`), task);
     } else {
@@ -55,7 +69,8 @@ export function groupProjectBy(
       ...base,
       id: `${GROUP_ID_PREFIX}${key}`,
       name: buckets.get(key)!.name,
-      icon: groupBy === "priority" ? "Flag" : "User",
+      icon:
+        groupBy === "priority" ? "Flag" : groupBy === "label" ? "Tag" : "User",
       isFinal: false,
       tasks: buckets.get(key)!.tasks,
     })),

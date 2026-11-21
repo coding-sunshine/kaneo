@@ -3612,6 +3612,7 @@
 			"fields": {
 				"position": "Manual (position)",
 				"createdAt": "Created date",
+				"updatedAt": "Updated",
 				"priority": "Priority",
 				"dueDate": "Due date",
 				"title": "Title",
@@ -3846,10 +3847,21 @@
 			"sortBy": "Sort by",
 			"grouping": "Grouping",
 			"noAssignee": "No assignee",
+			"allIssues": "All issues",
+			"noLabel": "No label",
 			"groupBy": {
+				"none": "No grouping",
 				"status": "Status",
 				"priority": "Priority",
-				"assignee": "Assignee"
+				"assignee": "Assignee",
+				"label": "Label"
+			},
+			"completedIssues": "Completed issues",
+			"completed": {
+				"all": "All",
+				"week": "Past week",
+				"month": "Past month",
+				"none": "None"
 			},
 			"showOnCards": "Show on cards",
 			"showOnRows": "Show on rows",

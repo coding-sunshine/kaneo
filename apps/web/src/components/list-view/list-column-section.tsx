@@ -8,6 +8,7 @@ import { Archive, ChevronRight, Plus } from "lucide-react";
 import { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/cn";
+import { FLAT_GROUP_ID } from "@/lib/group-project";
 import { getColumnIcon } from "@/lib/column";
 import { EASE_OUT } from "@/lib/motion";
 import type { SubtaskRow } from "@/lib/subtask-tree";
@@ -64,6 +65,8 @@ const ListColumnSection = memo(function ListColumnSection({
   const groupHasSubtasks =
     relationsLoading || rows.some((row) => row.childCount > 0 || row.depth > 0);
 
+  // "No grouping": one headerless, always-open section.
+  const flat = column.id === FLAT_GROUP_ID;
   return (
     <div
       className={cn(
@@ -71,60 +74,62 @@ const ListColumnSection = memo(function ListColumnSection({
         showDropIndicator && "border-l-4 border-l-ring bg-accent/35",
       )}
     >
-      <div className="mx-2 mb-0.5 flex h-9 items-center justify-between rounded-lg bg-muted/60 pr-2 pl-2.5">
-        <button
-          type="button"
-          onClick={() => {
-            setAnimateExpand(true);
-            onToggle(column.id);
-          }}
-          aria-expanded={isExpanded}
-          className="touch-hitbox relative flex items-center gap-2 text-[13px] font-medium text-foreground hover:text-foreground transition-colors"
-        >
-          <ChevronRight
-            className={cn(
-              "size-4 text-muted-foreground transition-transform duration-150 ease-out",
-              isExpanded && "rotate-90",
-            )}
-          />
-          <div className="flex items-center gap-2 h-4">
-            {getColumnIcon(column.id, column.isFinal, column.icon)}
-            <div className="flex items-center gap-1">
-              <span className="mt-1 mr-1">{column.name}</span>
-              <span className="font-[450] text-[13px] text-muted-foreground mt-0.5">
-                {column.tasks.length}
-              </span>
-            </div>
-          </div>
-        </button>
-
-        <div className="flex items-center gap-1 pointer-coarse:gap-6">
+      {!flat && (
+        <div className="mx-2 mb-0.5 flex h-9 items-center justify-between rounded-lg bg-muted/60 pr-2 pl-2.5">
           <button
             type="button"
-            onClick={() => onAddTask(column.id)}
-            className="touch-hitbox relative p-1 hover:bg-accent rounded text-muted-foreground hover:text-foreground transition-colors"
-            title={t("tasks:listView.addTask")}
-            aria-label={t("tasks:listView.addTask")}
+            onClick={() => {
+              setAnimateExpand(true);
+              onToggle(column.id);
+            }}
+            aria-expanded={isExpanded}
+            className="touch-hitbox relative flex items-center gap-2 text-[13px] font-medium text-foreground hover:text-foreground transition-colors"
           >
-            <Plus className="w-3 h-3" />
+            <ChevronRight
+              className={cn(
+                "size-4 text-muted-foreground transition-transform duration-150 ease-out",
+                isExpanded && "rotate-90",
+              )}
+            />
+            <div className="flex items-center gap-2 h-4">
+              {getColumnIcon(column.id, column.isFinal, column.icon)}
+              <div className="flex items-center gap-1">
+                <span className="mt-1 mr-1">{column.name}</span>
+                <span className="font-[450] text-[13px] text-muted-foreground mt-0.5">
+                  {column.tasks.length}
+                </span>
+              </div>
+            </div>
           </button>
 
-          {column.isFinal && column.tasks.length > 0 && (
+          <div className="flex items-center gap-1 pointer-coarse:gap-6">
             <button
               type="button"
-              disabled={disableCollectionActions}
-              onClick={() => onArchive(column)}
+              onClick={() => onAddTask(column.id)}
               className="touch-hitbox relative p-1 hover:bg-accent rounded text-muted-foreground hover:text-foreground transition-colors"
-              title={t("tasks:listView.archiveAllTooltip")}
-              aria-label={t("tasks:listView.archiveAllTooltip")}
+              title={t("tasks:listView.addTask")}
+              aria-label={t("tasks:listView.addTask")}
             >
-              <Archive className="w-3 h-3" />
+              <Plus className="w-3 h-3" />
             </button>
-          )}
-        </div>
-      </div>
 
-      {isExpanded && (
+            {column.isFinal && column.tasks.length > 0 && (
+              <button
+                type="button"
+                disabled={disableCollectionActions}
+                onClick={() => onArchive(column)}
+                className="touch-hitbox relative p-1 hover:bg-accent rounded text-muted-foreground hover:text-foreground transition-colors"
+                title={t("tasks:listView.archiveAllTooltip")}
+                aria-label={t("tasks:listView.archiveAllTooltip")}
+              >
+                <Archive className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {(isExpanded || flat) && (
         <div
           ref={setNodeRef}
           className={cn(

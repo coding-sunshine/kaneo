@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import type { GroupBy } from "@/lib/group-project";
+import type { CompletedIssues } from "@/lib/status-category";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 export const WEEK_START_DAYS = [0, 1, 6] as const;
@@ -48,8 +50,10 @@ type UserPreferencesStore = {
   showTriageIssues: boolean;
   setShowTriageIssues: (show: boolean) => void;
   setShowEmptyColumns: (show: boolean) => void;
-  listGroupBy: "status" | "priority" | "assignee";
-  setListGroupBy: (groupBy: "status" | "priority" | "assignee") => void;
+  listGroupBy: GroupBy;
+  setListGroupBy: (groupBy: GroupBy) => void;
+  completedIssues: CompletedIssues;
+  setCompletedIssues: (value: CompletedIssues) => void;
   showStatus: boolean;
   setShowStatus: (show: boolean) => void;
   showCreatedDates: boolean;
@@ -162,6 +166,8 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
       setShowTriageIssues: (show) => set({ showTriageIssues: show }),
       listGroupBy: "status",
       setListGroupBy: (listGroupBy) => set({ listGroupBy }),
+      completedIssues: "all",
+      setCompletedIssues: (completedIssues) => set({ completedIssues }),
       showStatus: true,
       setShowStatus: (show) => set({ showStatus: show }),
       showCreatedDates: true,
@@ -195,6 +201,7 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
           showDueDates: true,
           showStatus: true,
           listGroupBy: "status",
+          completedIssues: "all",
           showEmptyColumns: false,
           showSubIssues: false,
           showTriageIssues: false,

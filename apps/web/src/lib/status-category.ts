@@ -86,3 +86,37 @@ export function hideSubIssues<
   });
   return { project: { ...project, columns }, hidden };
 }
+
+export type CompletedIssues = "all" | "week" | "month" | "none";
+
+const COMPLETED_WINDOW_DAYS = { week: 7, month: 30 } as const;
+
+/** Linear's "Completed issues" display option; applies to done and canceled columns. */
+export function filterCompletedIssues<
+  T extends {
+    columns: {
+      id: string;
+      isFinal: boolean;
+      tasks: { updatedAt?: string }[];
+    }[];
+  },
+>(project: T, mode: CompletedIssues, now = Date.now()): T {
+  if (mode === "all") return project;
+  const cutoff =
+    mode === "none" ? Infinity : now - COMPLETED_WINDOW_DAYS[mode] * 864e5;
+  return {
+    ...project,
+    columns: project.columns.map((column) => {
+      const category = statusCategory(column);
+      if (category !== "completed" && category !== "canceled") return column;
+      return {
+        ...column,
+        tasks: column.tasks.filter(
+          (task) =>
+            cutoff !== Infinity &&
+            (!task.updatedAt || new Date(task.updatedAt).getTime() >= cutoff),
+        ),
+      };
+    }),
+  };
+}

@@ -26,6 +26,7 @@ export function SortOrderControl({
   const fieldLabels: Record<SortField, string> = {
     position: t("tasks:sort.fields.position"),
     createdAt: t("tasks:sort.fields.createdAt"),
+    updatedAt: t("tasks:sort.fields.updatedAt"),
     priority: t("tasks:sort.fields.priority"),
     dueDate: t("tasks:sort.fields.dueDate"),
     title: t("tasks:sort.fields.title"),

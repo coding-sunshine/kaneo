@@ -11,13 +11,16 @@ import type { SortConfig } from "@/lib/sort-tasks";
 import { Switch } from "@/components/ui/switch";
 import useProjectStore from "@/store/project";
 import { columnKey, useUserPreferencesStore } from "@/store/user-preferences";
+import type { CompletedIssues } from "@/lib/status-category";
 import { GROUP_BY_OPTIONS, type GroupBy } from "@/lib/group-project";
 import { CardFieldToggles } from "./card-field-toggles";
 import { CustomFieldToggles } from "./custom-field-toggles";
 import { DisplaySection } from "./display-section";
 import { ProjectBackgroundSwitch } from "./project-background-switch";
-import { MANUAL_SORT } from "./sort-fields";
+import { DEFAULT_SORT } from "@/hooks/use-board-sort";
 import { SortOrderControl } from "./sort-order-control";
+
+const COMPLETED_OPTIONS: CompletedIssues[] = ["all", "week", "month", "none"];
 
 type TaskDisplayOptionsProps = {
   projectId: string;
@@ -46,6 +49,11 @@ export function TaskDisplayOptions({
   );
   const setShowEmptyColumns = useUserPreferencesStore(
     (state) => state.setShowEmptyColumns,
+  );
+
+  const completedIssues = useUserPreferencesStore((s) => s.completedIssues);
+  const setCompletedIssues = useUserPreferencesStore(
+    (s) => s.setCompletedIssues,
   );
 
   const showSubIssues = useUserPreferencesStore((s) => s.showSubIssues);
@@ -91,6 +99,36 @@ export function TaskDisplayOptions({
           </div>
         </DisplaySection>
       )}
+      <DisplaySection>
+        <div className="flex items-center gap-2">
+          <span className="flex-1 text-sm">
+            {t("tasks:display.completedIssues")}
+          </span>
+          <Select
+            value={completedIssues}
+            onValueChange={(value) =>
+              value && setCompletedIssues(value as CompletedIssues)
+            }
+          >
+            <SelectTrigger
+              size="sm"
+              className="w-40"
+              aria-label={t("tasks:display.completedIssues")}
+            >
+              <SelectValue>
+                {t(`tasks:display.completed.${completedIssues}`)}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {COMPLETED_OPTIONS.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {t(`tasks:display.completed.${option}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </DisplaySection>
       <DisplaySection>
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
@@ -183,7 +221,7 @@ export function TaskDisplayOptions({
           size="xs"
           onClick={() => {
             resetDisplayPreferences();
-            onSortChange(MANUAL_SORT);
+            onSortChange(DEFAULT_SORT);
           }}
         >
           {t("common:actions.reset")}

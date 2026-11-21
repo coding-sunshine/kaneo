@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import {
+  type CompletedIssues,
+  filterCompletedIssues,
   hideSubIssues,
   scopeProjectToView,
   statusCategory,
@@ -54,5 +56,35 @@ describe("hideSubIssues", () => {
     ]);
     expect(out.hidden).toBe(1);
     expect(out.project.columns[0].tasks.map((t) => t.id)).toEqual(["a", "c"]);
+  });
+});
+
+describe("filterCompletedIssues", () => {
+  const now = Date.parse("2026-11-21T00:00:00Z");
+  const day = 864e5;
+  const project = {
+    columns: [
+      { id: "todo", isFinal: false, tasks: [{ updatedAt: "2020-01-01" }] },
+      {
+        id: "done",
+        isFinal: true,
+        tasks: [
+          { updatedAt: new Date(now - 2 * day).toISOString() },
+          { updatedAt: new Date(now - 20 * day).toISOString() },
+          { updatedAt: new Date(now - 90 * day).toISOString() },
+        ],
+      },
+    ],
+  };
+  const counts = (mode: CompletedIssues) =>
+    filterCompletedIssues(project, mode, now).columns.map(
+      (c) => c.tasks.length,
+    );
+
+  it("keeps everything for all, leaves open columns alone otherwise", () => {
+    expect(counts("all")).toEqual([1, 3]);
+    expect(counts("week")).toEqual([1, 1]);
+    expect(counts("month")).toEqual([1, 2]);
+    expect(counts("none")).toEqual([1, 0]);
   });
 });

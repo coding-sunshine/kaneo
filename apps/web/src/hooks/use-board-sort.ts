@@ -1,14 +1,16 @@
 import type { SortConfig, SortDirection, SortField } from "@/lib/sort-tasks";
 import { useStoredState } from "./use-stored-state";
 
-const DEFAULT_SORT: SortConfig = {
-  field: "position",
-  direction: "asc",
+// Linear orders by priority, highest first, until the user picks otherwise.
+export const DEFAULT_SORT: SortConfig = {
+  field: "priority",
+  direction: "desc",
 };
 
 const SORT_FIELD_MAP: Record<SortField, true> = {
   position: true,
   createdAt: true,
+  updatedAt: true,
   priority: true,
   dueDate: true,
   title: true,
