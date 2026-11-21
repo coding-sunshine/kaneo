@@ -152,9 +152,6 @@ export function InboxList({
         ) : (
           groups.map((group) => (
             <section key={group.id}>
-              <h2 className="px-5 pt-3.5 pb-1.5 font-medium text-muted-foreground text-xs">
-                {group.title}
-              </h2>
               <ul className="flex flex-col gap-0.5 px-2">
                 {group.items.map((notification) => (
                   <InboxListItem
