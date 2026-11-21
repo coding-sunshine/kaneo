@@ -277,8 +277,14 @@ export default function TaskCardContextMenuContent({
       {canEdit && (
         <>
           <ContextMenuSeparator />
-          <CreateRelatedSubmenu task={task} />
-          <MarkAsSubmenu task={task} />
+          <CreateRelatedSubmenu
+            task={task}
+            workspaceId={taskCardContext.worskpaceId}
+          />
+          <MarkAsSubmenu
+            task={task}
+            workspaceId={taskCardContext.worskpaceId}
+          />
           <RemoveSubmenu task={task} />
           <OpenInItem
             link={() =>

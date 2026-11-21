@@ -78,13 +78,16 @@ export function ProjectSubmenu({ task, workspaceId }: Props) {
   );
 }
 
-/** Opens the issue and queues the relation picker, which the task view consumes on mount. */
-function useOpenRelationPicker(task: Task) {
+/** Opens the full issue page (the sheet has no relations) and queues the relation picker, which the task view consumes on mount. */
+function useOpenRelationPicker(task: Task, workspaceId: string) {
   const navigate = useNavigate();
   const open = useRelationPickerStore((state) => state.open);
   return (mode: RelationPickerMode) => {
     open(task.id, mode);
-    navigate({ to: ".", search: { taskId: task.id } });
+    navigate({
+      to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+      params: { workspaceId, projectId: task.projectId, taskId: task.id },
+    });
   };
 }
 
@@ -94,9 +97,9 @@ const RELATED_ITEMS = [
   { mode: "blockedBy", key: "blockedBy", Icon: Ban },
 ] as const;
 
-export function CreateRelatedSubmenu({ task }: { task: Task }) {
+export function CreateRelatedSubmenu({ task, workspaceId }: Props) {
   const { t } = useTranslation();
-  const pick = useOpenRelationPicker(task);
+  const pick = useOpenRelationPicker(task, workspaceId);
   return (
     <ContextMenuSub>
       <ContextMenuSubTrigger>
@@ -115,9 +118,9 @@ export function CreateRelatedSubmenu({ task }: { task: Task }) {
   );
 }
 
-export function MarkAsSubmenu({ task }: { task: Task }) {
+export function MarkAsSubmenu({ task, workspaceId }: Props) {
   const { t } = useTranslation();
-  const pick = useOpenRelationPicker(task);
+  const pick = useOpenRelationPicker(task, workspaceId);
   return (
     <ContextMenuSub>
       <ContextMenuSubTrigger>
