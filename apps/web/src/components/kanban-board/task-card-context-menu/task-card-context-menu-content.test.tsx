@@ -60,6 +60,13 @@ vi.mock("@/components/ui/context-menu", () => ({
   }): React.JSX.Element => <div>{children}</div>,
 }));
 
+vi.mock("./extra-submenus", () => ({
+  LabelsSubmenu: () => <div>tasks:properties.labels</div>,
+  CopySubmenu: () => <div>tasks:contextMenu.copy</div>,
+  MoveSubmenu: () => <div>tasks:contextMenu.move</div>,
+  SubscribeItem: () => <div>tasks:subscription.subscribe</div>,
+}));
+
 vi.mock("@/hooks/queries/column/use-get-columns", () => ({
   useGetColumns: () => ({
     data: [],
@@ -191,15 +198,33 @@ describe("TaskCardContextMenuContent", () => {
 it("duplicates using the localized title suffix", () => {
   renderTask(task);
   fireEvent.click(
-    screen.getByRole("button", { name: "tasks:actions.duplicate" }),
+    screen.getByRole("button", { name: "tasks:contextMenu.makeCopy" }),
   );
   expect(duplicateTask).toHaveBeenCalledWith({
     taskId: task.id,
     title: `tasks:duplicate.titleSuffix|${task.title}`,
   });
 });
+it("lists Linear's entries in order", () => {
+  renderTask(task);
+  const text = document.body.textContent ?? "";
+  const order = [
+    "tasks:status.label",
+    "tasks:priority.label",
+    "tasks:assignee.label",
+    "tasks:properties.labels",
+    "tasks:contextMenu.copy",
+    "tasks:contextMenu.makeCopy",
+    "tasks:contextMenu.move",
+    "tasks:subscription.subscribe",
+    "tasks:actions.delete",
+  ].map((key) => text.indexOf(key));
+  expect(order.every((i, n) => i >= 0 && (n === 0 || i > order[n - 1]))).toBe(
+    true,
+  );
+});
 it("hides duplication without task-create permission", () => {
   canCreateTasks.mockReturnValue(false);
   renderTask(task);
-  expect(screen.queryByText("tasks:actions.duplicate")).toBeNull();
+  expect(screen.queryByText("tasks:contextMenu.makeCopy")).toBeNull();
 });

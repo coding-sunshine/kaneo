@@ -3745,7 +3745,14 @@
 		},
 		"contextMenu": {
 			"copyLink": "Copy link",
-			"copyLinkSuccess": "Issue link copied!"
+			"copyLinkSuccess": "Issue link copied!",
+			"copy": "Copy",
+			"copyId": "Copy ID",
+			"copyTitle": "Copy title",
+			"copyBranch": "Copy git branch name",
+			"copyMarkdown": "Copy as Markdown",
+			"makeCopy": "Make a copy…",
+			"move": "Move"
 		},
 		"actions": {
 			"duplicate": "Duplicate",

@@ -1,10 +1,8 @@
-import { useQueryClient } from "@tanstack/react-query";
 import {
   Archive,
   CircleDot,
   Clock,
   Copy,
-  LinkIcon,
   Trash2,
   UserRound,
 } from "lucide-react";
@@ -28,21 +26,24 @@ import { useUpdateTaskDescription } from "@/hooks/mutations/task/use-update-task
 import { useUpdateTaskStatus } from "@/hooks/mutations/task/use-update-task-status";
 import { useUpdateTaskPriority } from "@/hooks/mutations/task/use-update-task-status-priority";
 import { useUpdateTaskTitle } from "@/hooks/mutations/task/use-update-task-title";
-import type getProjects from "@/fetchers/project/get-projects";
 import { useGetColumns } from "@/hooks/queries/column/use-get-columns";
 import useGetProjectMembers from "@/hooks/queries/workspace-users/use-get-project-members";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { getColumnIcon } from "@/lib/column";
-import { generateLink } from "@/lib/generate-link";
 import { getInitials } from "@/lib/get-initials";
 import { getPriorityLabel } from "@/lib/i18n/domain";
 import { getPriorityIcon } from "@/lib/priority";
-import { getTaskPath } from "@/lib/task-link";
 import { toast } from "@/lib/toast";
 import useProjectStore from "@/store/project";
 import type Task from "@/types/task";
 import { PriorityGlyph } from "@/components/task-chips/priority-glyph";
 import { DueDateSubmenu } from "./due-date-submenu";
+import {
+  CopySubmenu,
+  LabelsSubmenu,
+  MoveSubmenu,
+  SubscribeItem,
+} from "./extra-submenus";
 
 type TaskCardContext = {
   worskpaceId: string;
@@ -63,7 +64,6 @@ export default function TaskCardContextMenuContent({
 }: TaskCardContextMenuContentProps) {
   const { t } = useTranslation();
   const { project } = useProjectStore();
-  const queryClient = useQueryClient();
   const { data: columnsData = [] } = useGetColumns(taskCardContext.projectId);
   const columns =
     project?.columns && project.columns.length > 0
@@ -105,27 +105,6 @@ export default function TaskCardContextMenuContent({
       name: member.name,
     }));
   }, [projectMembers]);
-
-  const handleCopyTaskLink = () => {
-    const path = getTaskPath({
-      workspaceId: taskCardContext.worskpaceId,
-      workspace: {
-        id: taskCardContext.worskpaceId,
-        slug: taskCardContext.workspaceSlug,
-      },
-      projectId: taskCardContext.projectId,
-      workspaceProjects: queryClient.getQueryData<
-        Awaited<ReturnType<typeof getProjects>>
-      >(["projects", taskCardContext.worskpaceId]),
-      taskId: task.id,
-      taskNumber: task.number,
-      title: task.title,
-    });
-    const taskLink = generateLink(path);
-
-    navigator.clipboard.writeText(taskLink);
-    toast.success(t("tasks:contextMenu.copyLinkSuccess"), { icon: LinkIcon });
-  };
 
   const handleDuplicateTask = () => {
     duplicateTask({
@@ -170,12 +149,29 @@ export default function TaskCardContextMenuContent({
 
   return (
     <ContextMenuContent className="w-46">
-      <ContextMenuItem className="[&>svg]:mx-0" onClick={handleCopyTaskLink}>
-        <LinkIcon className="size-3.5 text-muted-foreground" />
-        <span>{t("tasks:contextMenu.copyLink")}</span>
-      </ContextMenuItem>
-
-      {(canEdit || canAssign) && <ContextMenuSeparator />}
+      {canEdit && (
+        <ContextMenuSub>
+          <ContextMenuSubTrigger>
+            <CircleDot className="size-3.5 text-muted-foreground" />
+            <span>{t("tasks:status.label")}</span>
+            <ContextMenuShortcut>S</ContextMenuShortcut>
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent className="w-48">
+            {columns.map((col) => (
+              <ContextMenuCheckboxItem
+                key={col.slug}
+                checked={task.status === col.slug}
+                onCheckedChange={() => handleChange("status", col.slug)}
+                closeOnClick
+                className="[&_svg]:text-muted-foreground"
+              >
+                {getColumnIcon(col.slug, col.isFinal, col.icon)}
+                <span>{col.name}</span>
+              </ContextMenuCheckboxItem>
+            ))}
+          </ContextMenuSubContent>
+        </ContextMenuSub>
+      )}
 
       {canEdit && (
         <ContextMenuSub>
@@ -210,32 +206,6 @@ export default function TaskCardContextMenuContent({
           </ContextMenuSubContent>
         </ContextMenuSub>
       )}
-
-      {canEdit && (
-        <ContextMenuSub>
-          <ContextMenuSubTrigger>
-            <CircleDot className="size-3.5 text-muted-foreground" />
-            <span>{t("tasks:status.label")}</span>
-            <ContextMenuShortcut>S</ContextMenuShortcut>
-          </ContextMenuSubTrigger>
-          <ContextMenuSubContent className="w-48">
-            {columns.map((col) => (
-              <ContextMenuCheckboxItem
-                key={col.slug}
-                checked={task.status === col.slug}
-                onCheckedChange={() => handleChange("status", col.slug)}
-                closeOnClick
-                className="[&_svg]:text-muted-foreground"
-              >
-                {getColumnIcon(col.slug, col.isFinal, col.icon)}
-                <span>{col.name}</span>
-              </ContextMenuCheckboxItem>
-            ))}
-          </ContextMenuSubContent>
-        </ContextMenuSub>
-      )}
-
-      {canEdit && <DueDateSubmenu task={task} />}
 
       {canAssign && usersOptions && (
         <ContextMenuSub>
@@ -281,11 +251,22 @@ export default function TaskCardContextMenuContent({
         </ContextMenuSub>
       )}
 
+      {canEdit && <DueDateSubmenu task={task} />}
+
+      {canEdit && (
+        <LabelsSubmenu task={task} workspaceId={taskCardContext.worskpaceId} />
+      )}
+
       {(canCreate || canEdit || canDelete) && (
         <>
           {(canCreate || canEdit) && (
             <>
               <ContextMenuSeparator />
+
+              <CopySubmenu
+                task={task}
+                workspaceId={taskCardContext.worskpaceId}
+              />
 
               {canCreate && (
                 <ContextMenuItem
@@ -293,9 +274,18 @@ export default function TaskCardContextMenuContent({
                   onClick={handleDuplicateTask}
                 >
                   <Copy className="size-3.5 text-muted-foreground" />
-                  <span>{t("tasks:actions.duplicate")}</span>
+                  <span>{t("tasks:contextMenu.makeCopy")}</span>
                 </ContextMenuItem>
               )}
+
+              {canEdit && (
+                <MoveSubmenu
+                  task={task}
+                  workspaceId={taskCardContext.worskpaceId}
+                />
+              )}
+
+              <SubscribeItem task={task} />
 
               {canEdit && (
                 <>
