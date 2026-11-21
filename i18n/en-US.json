@@ -3358,7 +3358,10 @@
 			"markdownCopied": "Copied as Markdown",
 			"resolution": "Resolution",
 			"foldedReplies_one": "{{count}} comment from {{names}}",
-			"foldedReplies_other": "{{count}} comments from {{names}}"
+			"foldedReplies_other": "{{count}} comments from {{names}}",
+			"otherAuthors": "{{count}} others",
+			"collapse": "Collapse",
+			"collapseThread": "Collapse thread"
 		},
 		"reactions": {
 			"add": "Add reaction",
