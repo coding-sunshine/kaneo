@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import WorkspaceLayout from "@/components/common/workspace-layout";
 import {
   type MyTasksGroupBy,
+  type MyTasksLayout,
   MyTasksGroupByToggle,
   MyTasksTabs,
 } from "@/components/my-tasks/my-tasks-group-by";
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { MyTasksTab } from "@/fetchers/task/get-assigned-tasks";
+import { cn } from "@/lib/cn";
 import useGetAssignedTasks from "@/hooks/queries/task/use-get-assigned-tasks";
 
 export const Route = createFileRoute(
@@ -37,6 +39,7 @@ function RouteComponent() {
     isError,
   } = useGetAssignedTasks(workspaceId, false, tab);
   const [groupBy, setGroupBy] = useState<MyTasksGroupBy>("status");
+  const [layout, setLayout] = useState<MyTasksLayout>("list");
 
   return (
     <>
@@ -46,10 +49,22 @@ function RouteComponent() {
           <div className="flex h-11 shrink-0 items-center justify-between border-border/50 border-b px-4">
             <MyTasksTabs value={tab} onChange={setTab} />
             {tab !== "activity" && assigned?.tasks.length ? (
-              <MyTasksGroupByToggle value={groupBy} onChange={setGroupBy} />
+              <MyTasksGroupByToggle
+                value={groupBy}
+                onChange={setGroupBy}
+                layout={layout}
+                onLayoutChange={setLayout}
+              />
             ) : null}
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div
+            className={cn(
+              "min-h-0 flex-1",
+              layout === "board" && tab !== "activity"
+                ? "overflow-hidden"
+                : "overflow-y-auto",
+            )}
+          >
             {isLoading ? (
               <div className="flex flex-col px-4">
                 {[1, 2, 3, 4].map((row) => (
@@ -87,6 +102,7 @@ function RouteComponent() {
                 groupBy={groupBy}
                 activity={tab === "activity"}
                 workspaceId={workspaceId}
+                layout={tab === "activity" ? "list" : layout}
               />
             )}
           </div>

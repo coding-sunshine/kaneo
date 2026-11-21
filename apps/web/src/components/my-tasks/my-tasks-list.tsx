@@ -11,8 +11,36 @@ import {
 import type { AssignedTask } from "@/fetchers/task/get-assigned-tasks";
 import { useLocalDay } from "@/hooks/use-local-day";
 import { cn } from "@/lib/cn";
+import { Link } from "@tanstack/react-router";
 import { getColumnIcon } from "@/lib/column";
-import type { MyTasksGroupBy } from "./my-tasks-group-by";
+import { getPriorityIcon } from "@/lib/priority";
+import type { MyTasksGroupBy, MyTasksLayout } from "./my-tasks-group-by";
+
+function BoardCard({
+  task,
+  workspaceId,
+}: {
+  task: AssignedTask;
+  workspaceId: string;
+}) {
+  return (
+    <Link
+      to="/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId"
+      params={{ workspaceId, projectId: task.projectId, taskId: task.id }}
+      className="flex flex-col gap-1.5 rounded-lg border bg-card p-3 text-[13px] outline-none hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <span className="flex items-center gap-2 text-muted-foreground text-xs">
+        <span className="flex [&_svg]:size-3.5">
+          {getPriorityIcon(task.priority)}
+        </span>
+        {task.number == null
+          ? task.projectSlug
+          : `${task.projectSlug}-${task.number}`}
+      </span>
+      <span className="line-clamp-2 text-foreground">{task.title}</span>
+    </Link>
+  );
+}
 
 type MyTasksListProps = {
   tasks: AssignedTask[];
@@ -20,6 +48,7 @@ type MyTasksListProps = {
   groupBy: MyTasksGroupBy;
   activity?: boolean;
   workspaceId: string;
+  layout?: MyTasksLayout;
 };
 
 export function MyTasksList({
@@ -28,6 +57,7 @@ export function MyTasksList({
   groupBy,
   activity = false,
   workspaceId,
+  layout = "list",
 }: MyTasksListProps) {
   const { t } = useTranslation();
   const day = useLocalDay();
@@ -51,11 +81,28 @@ export function MyTasksList({
     noDueDate: t("workspace:myWork.due.noDueDate"),
   };
 
+  const board = layout === "board";
   return (
-    <div className="flex flex-col">
+    <div
+      className={
+        board ? "flex h-full gap-2 overflow-x-auto p-3" : "flex flex-col"
+      }
+    >
       {groups.map((group) => (
-        <section key={group.id}>
-          <h2 className="flex h-9 items-center gap-2 border-border/50 border-b bg-muted/40 px-5 text-[13px]">
+        <section
+          key={group.id}
+          className={
+            board
+              ? "flex w-72 shrink-0 flex-col rounded-lg bg-muted/30"
+              : undefined
+          }
+        >
+          <h2
+            className={cn(
+              "flex h-9 items-center gap-2 text-[13px]",
+              board ? "px-3" : "border-border/50 border-b bg-muted/40 px-5",
+            )}
+          >
             {group.status &&
               getColumnIcon(group.status, false, group.statusIcon)}
             <span
@@ -72,16 +119,29 @@ export function MyTasksList({
               {group.tasks.length}
             </span>
           </h2>
-          <div className="flex flex-col px-4">
-            {group.tasks.map((task) => (
-              <AssignedTaskRow
-                key={task.id}
-                task={task}
-                workspaceId={workspaceId}
-                showLabels
-                showActivity={activity}
-              />
-            ))}
+          <div
+            className={cn(
+              "flex flex-col",
+              board ? "min-h-0 gap-2 overflow-y-auto px-2 pb-2" : "px-4",
+            )}
+          >
+            {group.tasks.map((task) =>
+              board ? (
+                <BoardCard
+                  key={task.id}
+                  task={task}
+                  workspaceId={workspaceId}
+                />
+              ) : (
+                <AssignedTaskRow
+                  key={task.id}
+                  task={task}
+                  workspaceId={workspaceId}
+                  showLabels
+                  showActivity={activity}
+                />
+              ),
+            )}
           </div>
         </section>
       ))}
