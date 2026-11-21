@@ -1,4 +1,4 @@
-import { asc, eq, or } from "drizzle-orm";
+import { asc, eq, inArray, or } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
@@ -132,7 +132,17 @@ async function createComment(
   }
 
   // Notify any workspace members @mentioned in the comment (not the author).
-  const mentionedIds = parseMentionIds(content).filter((id) => id !== userId);
+  const mentioned = parseMentionIds(content).filter((id) => id !== userId);
+  // Ignore ids with no user (stale or forged markup); both notifications and
+  // thread subscriptions reference the user table.
+  const mentionedIds = mentioned.length
+    ? (
+        await db
+          .select({ id: userTable.id })
+          .from(userTable)
+          .where(inArray(userTable.id, mentioned))
+      ).map((row) => row.id)
+    : [];
   for (const mentionedId of mentionedIds) {
     await createNotification({
       userId: mentionedId,

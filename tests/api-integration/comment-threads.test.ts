@@ -290,6 +290,9 @@ describe("API integration: comment threads, resolve and reactions", () => {
 
       await comment("Plain reply", root.id);
       expect(await notified(owner.id, "task_comment")).toBe(1);
+
+      // A mention of an unknown user id must not fail the comment.
+      await comment(`Hi <kaneo-mention id="nope"></kaneo-mention>`, root.id);
     });
   });
 });
