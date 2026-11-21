@@ -1,4 +1,5 @@
 import type { ProjectWithTasks } from "@/types/project";
+import { type StatusCategory, statusCategory } from "./status-category";
 
 export type GroupBy =
   | "none"
@@ -7,7 +8,8 @@ export type GroupBy =
   | "assignee"
   | "label"
   | "project"
-  | "cycle";
+  | "cycle"
+  | "status-type";
 
 export const GROUP_BY_OPTIONS: GroupBy[] = [
   "none",
@@ -17,6 +19,7 @@ export const GROUP_BY_OPTIONS: GroupBy[] = [
   "label",
   "project",
   "cycle",
+  "status-type",
 ];
 export const GROUP_ID_PREFIX = "group:";
 export const FLAT_GROUP_ID = `${GROUP_ID_PREFIX}all`;
@@ -35,6 +38,7 @@ export function groupProjectBy(
   cycleName: (id: string) => string | undefined = () => undefined,
 ): ProjectWithTasks {
   if (groupBy === "status" || project.columns.length === 0) return project;
+  if (groupBy === "status-type") return groupByStatusType(project, label);
   const base = project.columns[0];
   const tasks = project.columns.flatMap((column) => column.tasks);
   const buckets = new Map<string, { name: string; tasks: typeof tasks }>();
@@ -113,4 +117,38 @@ export function groupProjectBy(
       tasks: buckets.get(key)!.tasks,
     })),
   };
+}
+
+const STATUS_TYPE_ORDER: StatusCategory[] = [
+  "triage",
+  "backlog",
+  "unstarted",
+  "started",
+  "completed",
+  "canceled",
+];
+
+/** One group per Linear workflow-state type, in workflow order. */
+function groupByStatusType(
+  project: ProjectWithTasks,
+  label: (key: string) => string,
+): ProjectWithTasks {
+  const base = project.columns[0];
+  const columns = STATUS_TYPE_ORDER.flatMap((category) => {
+    const tasks = project.columns
+      .filter((column) => statusCategory(column) === category)
+      .flatMap((column) => column.tasks);
+    if (tasks.length === 0) return [];
+    return [
+      {
+        ...base,
+        id: `${GROUP_ID_PREFIX}${category}`,
+        name: label(`display.statusType.${category}`),
+        icon: base.icon,
+        isFinal: category === "completed" || category === "canceled",
+        tasks,
+      },
+    ];
+  });
+  return { ...project, columns };
 }

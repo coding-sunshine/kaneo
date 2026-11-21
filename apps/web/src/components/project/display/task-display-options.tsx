@@ -56,6 +56,13 @@ export function TaskDisplayOptions({
     (s) => s.setCompletedIssues,
   );
 
+  const orderByRecency = useUserPreferencesStore(
+    (s) => s.orderCompletedByRecency,
+  );
+  const setOrderByRecency = useUserPreferencesStore(
+    (s) => s.setOrderCompletedByRecency,
+  );
+
   const showSubIssues = useUserPreferencesStore((s) => s.showSubIssues);
   const setShowSubIssues = useUserPreferencesStore((s) => s.setShowSubIssues);
   const showTriageIssues = useUserPreferencesStore((s) => s.showTriageIssues);
@@ -137,6 +144,16 @@ export function TaskDisplayOptions({
               checked={showSubIssues}
               onCheckedChange={setShowSubIssues}
               aria-label={t("tasks:display.showSubIssues")}
+            />
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm">
+              {t("tasks:display.orderCompletedByRecency")}
+            </span>
+            <Switch
+              checked={orderByRecency}
+              onCheckedChange={setOrderByRecency}
+              aria-label={t("tasks:display.orderCompletedByRecency")}
             />
           </div>
           <div className="flex items-center justify-between gap-3">

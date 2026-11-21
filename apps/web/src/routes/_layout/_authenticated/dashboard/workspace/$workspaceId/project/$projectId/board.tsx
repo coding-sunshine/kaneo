@@ -180,17 +180,29 @@ function RouteComponent() {
     }
   }, [data, setProject]);
 
+  const orderByRecency = useUserPreferencesStore(
+    (state) => state.orderCompletedByRecency,
+  );
   const sortedProject = useMemo(() => {
     const filteredProject = filters.filteredProject;
-    if (!filteredProject || sort.field === "position") return filteredProject;
+    if (!filteredProject) return filteredProject;
+    if (sort.field === "position" && !orderByRecency) return filteredProject;
     return {
       ...filteredProject,
-      columns: filteredProject.columns.map((column) => ({
-        ...column,
-        tasks: sortTasks(column.tasks, sort),
-      })),
+      columns: filteredProject.columns.map((column) => {
+        const done = ["completed", "canceled"].includes(statusCategory(column));
+        const tasks =
+          orderByRecency && done
+            ? [...column.tasks].sort((a, b) =>
+                (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""),
+              )
+            : sort.field === "position"
+              ? column.tasks
+              : sortTasks(column.tasks, sort);
+        return { ...column, tasks };
+      }),
     };
-  }, [filters.filteredProject, sort]);
+  }, [filters.filteredProject, sort, orderByRecency]);
 
   const groupBy = useUserPreferencesStore((state) => state.listGroupBy);
   const grouped = viewMode === "list" && groupBy !== "status";

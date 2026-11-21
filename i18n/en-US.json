@@ -3926,8 +3926,18 @@
 				"assignee": "Assignee",
 				"label": "Label",
 				"project": "Project",
-				"cycle": "Cycle"
+				"cycle": "Cycle",
+				"status-type": "Status type"
 			},
+			"statusType": {
+				"triage": "Triage",
+				"backlog": "Backlog",
+				"unstarted": "Unstarted",
+				"started": "Started",
+				"completed": "Completed",
+				"canceled": "Canceled"
+			},
+			"orderCompletedByRecency": "Order completed by recency",
 			"completedIssues": "Completed issues",
 			"completed": {
 				"all": "All",

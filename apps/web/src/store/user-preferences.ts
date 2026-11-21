@@ -48,6 +48,8 @@ type UserPreferencesStore = {
   showSubIssues: boolean;
   setShowSubIssues: (show: boolean) => void;
   showTriageIssues: boolean;
+  orderCompletedByRecency: boolean;
+  setOrderCompletedByRecency: (on: boolean) => void;
   setShowTriageIssues: (show: boolean) => void;
   setShowEmptyColumns: (show: boolean) => void;
   listGroupBy: GroupBy;
@@ -164,6 +166,8 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
       setShowSubIssues: (show) => set({ showSubIssues: show }),
       showTriageIssues: false,
       setShowTriageIssues: (show) => set({ showTriageIssues: show }),
+      orderCompletedByRecency: false,
+      setOrderCompletedByRecency: (on) => set({ orderCompletedByRecency: on }),
       listGroupBy: "status",
       setListGroupBy: (listGroupBy) => set({ listGroupBy }),
       completedIssues: "all",
@@ -205,6 +209,7 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
           showEmptyColumns: false,
           showSubIssues: false,
           showTriageIssues: false,
+          orderCompletedByRecency: false,
           showCreatedDates: true,
           showLabels: true,
           showTaskNumbers: true,
