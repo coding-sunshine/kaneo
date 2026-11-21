@@ -924,7 +924,8 @@ input:-webkit-autofill:active {
     display: none;
   }
 
-  .kaneo-tiptap-content .ProseMirror blockquote {
+  .kaneo-tiptap-content .ProseMirror blockquote,
+  .kaneo-comment-editor-prose blockquote {
     margin: 0.5rem 0;
     border-left: 2px solid var(--border);
     padding-left: 0.75rem;
