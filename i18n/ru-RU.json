@@ -3709,7 +3709,8 @@
 				"priority": "Приоритет",
 				"assignee": "Исполнитель",
 				"dueDate": "Срок выполнения",
-				"labels": "Метки"
+				"labels": "Метки",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "любой из",

@@ -1,6 +1,6 @@
 import { parseDateCondition } from "@/lib/task-filters/date-condition";
 import { formatDateCondition } from "./format-date-condition";
-import { CalendarDays, CircleDot, Tag, UserRound } from "lucide-react";
+import { CalendarDays, CircleDot, Layers, Tag, UserRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getColumnIcon } from "@/lib/column";
 import { getPriorityLabel } from "@/lib/i18n/domain";
@@ -106,7 +106,18 @@ export function useFilterSubjects({
     });
   };
 
-  const labelGroups = groupLabels(options.labels);
+  const allLabelGroups = groupLabels(options.labels);
+  // "project: X" labels (from the Linear import) get their own Project filter.
+  const isProjectGroup = (group: { name: string }) =>
+    /^project:/i.test(group.name);
+  const projectGroups = allLabelGroups.filter(isProjectGroup);
+  const labelGroups = allLabelGroups.filter((group) => !isProjectGroup(group));
+  const selectedGroups = (groups: typeof labelGroups) =>
+    groups
+      .filter((group) =>
+        isLabelGroupSelected(options.labels, group, filters.labels),
+      )
+      .map((group) => group.id);
   const groupIdByLabel = new Map(
     labelGroups.map((group) => [labelGroupKey(group), group.id]),
   );
@@ -119,6 +130,25 @@ export function useFilterSubjects({
         groupIdByLabel.get(labelGroupKey(label)),
       ),
     ),
+  };
+
+  const toggleGroup = (groups: typeof labelGroups) => (value: string) => {
+    const group = groups.find((item) => item.id === value);
+    if (!group) return;
+    updateFilter(
+      "labels",
+      toggleLabelGroup(options.labels, group, filters.labels),
+    );
+  };
+  // Clearing one subject must leave the other's selections in place.
+  const clearGroups = (groups: typeof labelGroups) => {
+    let next = filters.labels;
+    for (const group of groups) {
+      if (isLabelGroupSelected(options.labels, group, next)) {
+        next = toggleLabelGroup(options.labels, group, next);
+      }
+    }
+    updateFilter("labels", next && next.length > 0 ? next : null);
   };
 
   const core = [
@@ -172,24 +202,34 @@ export function useFilterSubjects({
           icon: <LabelFilterDot color={group.color} />,
           count: counts.labels[group.id],
         })),
-        selected: labelGroups
-          .filter((group) =>
-            isLabelGroupSelected(options.labels, group, filters.labels),
-          )
-          .map((group) => group.id),
-        onToggle: (value) => {
-          const group = labelGroups.find((item) => item.id === value);
-          if (!group) return;
-          updateFilter(
-            "labels",
-            toggleLabelGroup(options.labels, group, filters.labels),
-          );
-        },
-        onClear: () => updateFilter("labels", null),
+        selected: selectedGroups(labelGroups),
+        onToggle: toggleGroup(labelGroups),
+        onClear: () => clearGroups(labelGroups),
         emptyLabel: t("tasks:labels.empty"),
       },
       "include",
     ),
+    ...(projectGroups.length > 0
+      ? [
+          subject(
+            "project",
+            {
+              label: t("tasks:boardFilters.subjects.project"),
+              icon: <Layers />,
+              options: projectGroups.map((group) => ({
+                value: group.id,
+                label: group.name.replace(/^project:\s*/i, ""),
+                icon: <LabelFilterDot color={group.color} />,
+                count: counts.labels[group.id],
+              })),
+              selected: selectedGroups(projectGroups),
+              onToggle: toggleGroup(projectGroups),
+              onClear: () => clearGroups(projectGroups),
+            },
+            "include",
+          ),
+        ]
+      : []),
     dateSubject("startDate"),
     dateSubject("dueDate"),
   ];

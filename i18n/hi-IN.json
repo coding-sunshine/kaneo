@@ -3578,7 +3578,8 @@
 				"priority": "प्राथमिकता",
 				"assignee": "सौंपा गया",
 				"dueDate": "नियत तारीख",
-				"labels": "लेबल"
+				"labels": "लेबल",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "में से कोई है",

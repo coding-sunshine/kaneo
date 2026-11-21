@@ -3694,7 +3694,8 @@
 				"priority": "Пріоритет",
 				"assignee": "Виконавець",
 				"dueDate": "Дата завершення",
-				"labels": "Мітки"
+				"labels": "Мітки",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "є будь-яким з",

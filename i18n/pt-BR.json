@@ -3636,7 +3636,8 @@
 				"priority": "Prioridade",
 				"assignee": "Responsável",
 				"dueDate": "Data de vencimento",
-				"labels": "Etiquetas"
+				"labels": "Etiquetas",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "é qualquer um de",

@@ -3520,7 +3520,8 @@
 				"priority": "Prioritas",
 				"assignee": "Penanggung jawab",
 				"dueDate": "Tenggat",
-				"labels": "Label"
+				"labels": "Label",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "adalah salah satu dari",

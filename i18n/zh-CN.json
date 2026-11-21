@@ -3520,7 +3520,8 @@
 				"priority": "优先级",
 				"assignee": "负责人",
 				"dueDate": "截止日期",
-				"labels": "标签"
+				"labels": "标签",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "为以下任一",

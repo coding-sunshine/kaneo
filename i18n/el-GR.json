@@ -3578,7 +3578,8 @@
 				"priority": "Προτεραιότητα",
 				"assignee": "Ανατεθειμένος",
 				"dueDate": "Ημερομηνία λήξης",
-				"labels": "Ετικέτες"
+				"labels": "Ετικέτες",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "είναι ένα από",

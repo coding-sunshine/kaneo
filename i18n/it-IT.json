@@ -3636,7 +3636,8 @@
 				"priority": "Priorità",
 				"assignee": "Assegnatario",
 				"dueDate": "Data scadenza",
-				"labels": "Etichette"
+				"labels": "Etichette",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "è uno di",

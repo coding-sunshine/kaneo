@@ -3520,7 +3520,8 @@
 				"priority": "Mức ưu tiên",
 				"assignee": "Người được giao",
 				"dueDate": "Ngày đến hạn",
-				"labels": "Nhãn"
+				"labels": "Nhãn",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "là một trong",

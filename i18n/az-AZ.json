@@ -3578,7 +3578,8 @@
 				"priority": "Prioritet",
 				"assignee": "İcraçı",
 				"dueDate": "Son tarix",
-				"labels": "Etiketlər"
+				"labels": "Etiketlər",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "Bunlardan biridir",

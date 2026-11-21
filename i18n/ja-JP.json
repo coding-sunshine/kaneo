@@ -3520,7 +3520,8 @@
 				"priority": "優先度",
 				"assignee": "担当者",
 				"dueDate": "期限",
-				"labels": "ラベル"
+				"labels": "ラベル",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "次のいずれか",

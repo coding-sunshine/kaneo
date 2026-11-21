@@ -3578,7 +3578,8 @@
 				"priority": "Öncelik",
 				"assignee": "Atanan",
 				"dueDate": "Bitiş tarihi",
-				"labels": "Etiketler"
+				"labels": "Etiketler",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "herhangi biri",

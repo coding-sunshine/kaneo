@@ -3564,6 +3564,7 @@
 			"allCustomFieldValues": "All values",
 			"selectedCount": "{{count}} selected",
 			"subjects": {
+				"project": "Project",
 				"status": "Status",
 				"priority": "Priority",
 				"assignee": "Assignee",

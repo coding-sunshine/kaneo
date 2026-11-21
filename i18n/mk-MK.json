@@ -3578,7 +3578,8 @@
 				"priority": "Приоритет",
 				"assignee": "Доделен",
 				"dueDate": "Краен рок",
-				"labels": "Етикети"
+				"labels": "Етикети",
+				"project": "Project"
 			},
 			"operators": {
 				"isAnyOf": "е било кој од",
