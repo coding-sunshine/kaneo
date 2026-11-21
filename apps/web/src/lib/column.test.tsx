@@ -1,6 +1,6 @@
-import { CheckCircle2, Circle, CircleDot } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vite-plus/test";
+import { StatusIcon } from "@/components/icons/status-icon";
 import { getColumnIcon } from "./column";
 
 describe("stored column icons", () => {
@@ -11,16 +11,21 @@ describe("stored column icons", () => {
     "hasOwnProperty",
     "unknown-icon",
   ])("uses safe fallbacks for %s", (name) => {
-    expect(getColumnIcon("to-do", false, name).type).toBe(Circle);
-    expect(getColumnIcon("done", true, name).type).toBe(CheckCircle2);
-    expect(getColumnIcon(name, false).type).toBe(Circle);
+    expect(getColumnIcon("to-do", false, name).type).toBe(StatusIcon);
+    expect(getColumnIcon("done", true, name).props.kind).toBe("done");
+    expect(getColumnIcon(name, false).props.kind).toBe("todo");
     expect(() =>
       renderToStaticMarkup(getColumnIcon("to-do", false, name)),
     ).not.toThrow();
   });
-  it("keeps selected and default icons", () => {
-    expect(getColumnIcon("to-do", false, "CircleDot").type).toBe(CircleDot);
-    expect(getColumnIcon("in-progress").type).toBe(CircleDot);
-    expect(getColumnIcon("done").type).toBe(CheckCircle2);
+  it("maps stock icons to Linear-style status kinds", () => {
+    expect(getColumnIcon("to-do", false, "CircleDot").props.kind).toBe(
+      "started",
+    );
+    expect(getColumnIcon("in-progress").props.kind).toBe("started");
+    expect(getColumnIcon("in-review").props.kind).toBe("review");
+    expect(getColumnIcon("done").props.kind).toBe("done");
+    expect(getColumnIcon("planned").props.kind).toBe("backlog");
+    expect(getColumnIcon("canceled", true).props.kind).toBe("canceled");
   });
 });
