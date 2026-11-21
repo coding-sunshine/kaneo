@@ -11,6 +11,7 @@ import {
   ContextMenuCheckboxItem,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuShortcut,
   ContextMenuSub,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
@@ -48,6 +49,7 @@ export function DueDateSubmenu({ task }: { task: Task }) {
       <ContextMenuSubTrigger>
         <Calendar className="size-3.5 text-muted-foreground" />
         <span>{t("tasks:dueDate.label")}</span>
+        <ContextMenuShortcut>⇧D</ContextMenuShortcut>
       </ContextMenuSubTrigger>
       <ContextMenuSubContent className="w-60">
         {quickDates.map((item) => (
