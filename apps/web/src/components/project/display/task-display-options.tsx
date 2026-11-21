@@ -1,7 +1,15 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { SortConfig } from "@/lib/sort-tasks";
 import { useUserPreferencesStore } from "@/store/user-preferences";
+import { GROUP_BY_OPTIONS, type GroupBy } from "@/lib/group-project";
 import { CardFieldToggles } from "./card-field-toggles";
 import { CustomFieldToggles } from "./custom-field-toggles";
 import { DisplaySection } from "./display-section";
@@ -25,12 +33,44 @@ export function TaskDisplayOptions({
   showBackgroundSwitch = false,
 }: TaskDisplayOptionsProps) {
   const { t } = useTranslation();
+  const groupBy = useUserPreferencesStore((state) => state.listGroupBy);
+  const setGroupBy = useUserPreferencesStore((state) => state.setListGroupBy);
   const resetDisplayPreferences = useUserPreferencesStore(
     (state) => state.resetDisplayPreferences,
   );
 
   return (
     <>
+      {layout === "rows" && (
+        <DisplaySection>
+          <div className="flex items-center gap-2">
+            <span className="flex-1 text-sm">
+              {t("tasks:display.grouping")}
+            </span>
+            <Select
+              value={groupBy}
+              onValueChange={(value) => value && setGroupBy(value as GroupBy)}
+            >
+              <SelectTrigger
+                size="sm"
+                className="w-40"
+                aria-label={t("tasks:display.grouping")}
+              >
+                <SelectValue>
+                  {t(`tasks:display.groupBy.${groupBy}`)}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {GROUP_BY_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {t(`tasks:display.groupBy.${option}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </DisplaySection>
+      )}
       <DisplaySection>
         <SortOrderControl sort={sort} onSortChange={onSortChange} />
       </DisplaySection>

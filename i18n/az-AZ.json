@@ -3803,7 +3803,14 @@
 			"projectBackground": "Layihə fonu",
 			"layout": "Düzən",
 			"includeSubtasks": "Alt tapşırıqları daxil et",
-			"useProjectDefault": "Layihənin standart ayarından istifadə et"
+			"useProjectDefault": "Layihənin standart ayarından istifadə et",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Aktiv süzgəclər",

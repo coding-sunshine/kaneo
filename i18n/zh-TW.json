@@ -3734,7 +3734,14 @@
 			"projectBackground": "專案背景",
 			"layout": "版面配置",
 			"includeSubtasks": "包含子任務",
-			"useProjectDefault": "使用專案預設設定"
+			"useProjectDefault": "使用專案預設設定",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "已套用的篩選",

@@ -3872,7 +3872,14 @@
 			"projectBackground": "Fondo del proyecto",
 			"layout": "Diseño",
 			"includeSubtasks": "Incluir subtareas",
-			"useProjectDefault": "Usar el valor predeterminado del proyecto"
+			"useProjectDefault": "Usar el valor predeterminado del proyecto",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Filtros activos",

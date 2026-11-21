@@ -28,6 +28,7 @@ import {
   readExpandedRows,
   writeExpandedRows,
 } from "@/lib/expanded-rows-storage";
+import { GROUP_ID_PREFIX } from "@/lib/group-project";
 import { buildSubtaskChildren, flattenSubtaskRows } from "@/lib/subtask-tree";
 import { toast } from "@/lib/toast";
 import useBulkSelectionStore from "@/store/bulk-selection";
@@ -42,12 +43,15 @@ type ListViewProps = {
   project: ProjectWithTasks;
   disableDragDrop?: boolean;
   disableCollectionActions?: boolean;
+  // Status new tasks get when the sections are not statuses (grouped view).
+  groupedAddStatus?: string;
 };
 
 function ListView({
   project,
   disableDragDrop = false,
   disableCollectionActions = false,
+  groupedAddStatus,
 }: ListViewProps) {
   const { t } = useTranslation();
   const reduceMotion = useReducedMotion();
@@ -473,7 +477,11 @@ function ListView({
         open={isTaskModalOpen}
         projectId={project.id}
         onClose={() => setIsTaskModalOpen(false)}
-        status={activeColumn ?? "done"}
+        status={
+          (activeColumn?.startsWith(GROUP_ID_PREFIX)
+            ? groupedAddStatus
+            : activeColumn) ?? "done"
+        }
       />
       <ArchiveTasksModal
         open={isArchiveModalOpen}

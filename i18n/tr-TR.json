@@ -3803,7 +3803,14 @@
 			"projectBackground": "Proje arka planı",
 			"layout": "Düzen",
 			"includeSubtasks": "Alt görevleri dahil et",
-			"useProjectDefault": "Proje varsayılanını kullan"
+			"useProjectDefault": "Proje varsayılanını kullan",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Etkin filtreler",

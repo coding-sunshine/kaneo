@@ -3783,6 +3783,13 @@
 		"display": {
 			"title": "Display",
 			"sortBy": "Sort by",
+			"grouping": "Grouping",
+			"noAssignee": "No assignee",
+			"groupBy": {
+				"status": "Status",
+				"priority": "Priority",
+				"assignee": "Assignee"
+			},
 			"showOnCards": "Show on cards",
 			"showOnRows": "Show on rows",
 			"checklistProgress": "Checklist progress",

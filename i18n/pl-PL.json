@@ -4229,7 +4229,14 @@
 			"projectBackground": "Tło projektu",
 			"layout": "Układ",
 			"includeSubtasks": "Uwzględnij podzadania",
-			"useProjectDefault": "Użyj domyślnego ustawienia projektu"
+			"useProjectDefault": "Użyj domyślnego ustawienia projektu",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Aktywne filtry",

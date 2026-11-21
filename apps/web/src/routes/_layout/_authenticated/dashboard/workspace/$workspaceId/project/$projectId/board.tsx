@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import ProjectLayout from "@/components/common/project-layout";
 import KanbanBoard from "@/components/kanban-board";
 import ListView from "@/components/list-view";
+import { groupProjectBy } from "@/lib/group-project";
 import PageTitle from "@/components/page-title";
 import { BoardLoadError } from "@/components/project/board-load-error";
 import { BoardRefreshError } from "@/components/project/board-refresh-error";
@@ -150,6 +151,20 @@ function RouteComponent() {
     };
   }, [filters.filteredProject, sort]);
 
+  const groupBy = useUserPreferencesStore((state) => state.listGroupBy);
+  const grouped = viewMode === "list" && groupBy !== "status";
+  const listProject = useMemo(
+    () =>
+      sortedProject && grouped
+        ? groupProjectBy(sortedProject, groupBy, (key) =>
+            key === "display.unassigned"
+              ? t("tasks:display.noAssignee")
+              : t(`tasks:${key}`),
+          )
+        : sortedProject,
+    [sortedProject, grouped, groupBy, t],
+  );
+
   return (
     <ProjectLayout
       projectId={projectId}
@@ -251,10 +266,14 @@ function RouteComponent() {
             ) : (
               <ListView
                 key={projectId}
-                project={sortedProject}
+                project={listProject ?? sortedProject}
+                groupedAddStatus={sortedProject.columns[0]?.id}
                 disableCollectionActions={boardFetching || boardError}
                 disableDragDrop={
-                  boardFetching || boardError || sort.field !== "position"
+                  boardFetching ||
+                  boardError ||
+                  grouped ||
+                  sort.field !== "position"
                 }
               />
             )

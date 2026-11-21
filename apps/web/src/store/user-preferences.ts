@@ -38,6 +38,8 @@ type UserPreferencesStore = {
   setShowAssignees: (show: boolean) => void;
   toggleAssignees: () => void;
   showDueDates: boolean;
+  listGroupBy: "status" | "priority" | "assignee";
+  setListGroupBy: (groupBy: "status" | "priority" | "assignee") => void;
   showStatus: boolean;
   setShowStatus: (show: boolean) => void;
   showCreatedDates: boolean;
@@ -124,6 +126,8 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
       setShowDueDates: (show) => set({ showDueDates: show }),
       toggleDueDates: () =>
         set((state) => ({ showDueDates: !state.showDueDates })),
+      listGroupBy: "status",
+      setListGroupBy: (listGroupBy) => set({ listGroupBy }),
       showStatus: true,
       setShowStatus: (show) => set({ showStatus: show }),
       showCreatedDates: true,
@@ -155,6 +159,7 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
           showAssignees: true,
           showDueDates: true,
           showStatus: true,
+          listGroupBy: "status",
           showCreatedDates: true,
           showLabels: true,
           showTaskNumbers: true,

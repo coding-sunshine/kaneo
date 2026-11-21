@@ -3734,7 +3734,14 @@
 			"projectBackground": "プロジェクトの背景",
 			"layout": "レイアウト",
 			"includeSubtasks": "サブタスクを含める",
-			"useProjectDefault": "プロジェクトの既定値を使用"
+			"useProjectDefault": "プロジェクトの既定値を使用",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "適用中のフィルター",

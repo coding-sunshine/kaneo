@@ -3993,7 +3993,14 @@
 			"projectBackground": "Фон проекта",
 			"layout": "Макет",
 			"includeSubtasks": "Включать подзадачи",
-			"useProjectDefault": "Использовать настройку проекта по умолчанию"
+			"useProjectDefault": "Использовать настройку проекта по умолчанию",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Активные фильтры",

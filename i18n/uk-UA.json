@@ -3941,7 +3941,14 @@
 			"projectBackground": "Фон проєкту",
 			"layout": "Макет",
 			"includeSubtasks": "Включати підзавдання",
-			"useProjectDefault": "Використовувати типове налаштування проєкту"
+			"useProjectDefault": "Використовувати типове налаштування проєкту",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Активні фільтри",

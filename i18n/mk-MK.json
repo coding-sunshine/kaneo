@@ -3803,7 +3803,14 @@
 			"projectBackground": "Позадина на проектот",
 			"layout": "Распоред",
 			"includeSubtasks": "Вклучи подзадачи",
-			"useProjectDefault": "Користи ја стандардната поставка на проектот"
+			"useProjectDefault": "Користи ја стандардната поставка на проектот",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Активни филтри",

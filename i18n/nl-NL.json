@@ -3803,7 +3803,14 @@
 			"projectBackground": "Projectachtergrond",
 			"layout": "Indeling",
 			"includeSubtasks": "Subtaken opnemen",
-			"useProjectDefault": "Projectstandaard gebruiken"
+			"useProjectDefault": "Projectstandaard gebruiken",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Actieve filters",

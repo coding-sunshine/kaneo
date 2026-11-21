@@ -3734,7 +3734,14 @@
 			"projectBackground": "Hình nền dự án",
 			"layout": "Bố cục",
 			"includeSubtasks": "Bao gồm nhiệm vụ phụ",
-			"useProjectDefault": "Dùng thiết lập mặc định của dự án"
+			"useProjectDefault": "Dùng thiết lập mặc định của dự án",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Bộ lọc đang áp dụng",

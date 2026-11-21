@@ -3872,7 +3872,14 @@
 			"projectBackground": "Arrière-plan du projet",
 			"layout": "Disposition",
 			"includeSubtasks": "Inclure les sous-tâches",
-			"useProjectDefault": "Utiliser le réglage par défaut du projet"
+			"useProjectDefault": "Utiliser le réglage par défaut du projet",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "Filtres actifs",

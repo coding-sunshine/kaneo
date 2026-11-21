@@ -3734,7 +3734,14 @@
 			"projectBackground": "项目背景",
 			"layout": "布局",
 			"includeSubtasks": "包含子任务",
-			"useProjectDefault": "使用项目默认设置"
+			"useProjectDefault": "使用项目默认设置",
+			"groupBy": {
+				"assignee": "Assignee",
+				"priority": "Priority",
+				"status": "Status"
+			},
+			"grouping": "Grouping",
+			"noAssignee": "No assignee"
 		},
 		"filterBar": {
 			"label": "已应用的筛选",
