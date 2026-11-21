@@ -106,9 +106,24 @@ export async function resetTestDatabase() {
     );
   }
 
-  const formattedTableNames = tableNames.map(quoteIdentifier).join(", ");
-
-  await db.execute(
-    sql.raw(`TRUNCATE TABLE ${formattedTableNames} RESTART IDENTITY CASCADE`),
-  );
+  // TRUNCATE rewrites and fsyncs every table (~2s for 60 tables, per test).
+  // Tests leave a handful of rows, so deleting them with foreign-key triggers
+  // off is ~50x faster. That needs superuser; fall back to TRUNCATE without it.
+  try {
+    await db.transaction(async (tx) => {
+      await tx.execute(sql`SET LOCAL session_replication_role = replica`);
+      await tx.execute(
+        sql.raw(
+          tableNames
+            .map((name) => `DELETE FROM ${quoteIdentifier(name)};`)
+            .join(" "),
+        ),
+      );
+    });
+  } catch {
+    const formattedTableNames = tableNames.map(quoteIdentifier).join(", ");
+    await db.execute(
+      sql.raw(`TRUNCATE TABLE ${formattedTableNames} RESTART IDENTITY CASCADE`),
+    );
+  }
 }

@@ -6,9 +6,8 @@ export default defineConfig({
     environment: "node",
     include: ["../../tests/api-integration/**/*.test.ts"],
     setupFiles: ["../../tests/api-integration/setup.ts"],
-    fileParallelism: false,
-    maxWorkers: 1,
-    minWorkers: 1,
+    // setup.ts gives each worker its own database.
+    maxWorkers: 6,
     hookTimeout: 60_000,
     testTimeout: 60_000,
     coverage: {

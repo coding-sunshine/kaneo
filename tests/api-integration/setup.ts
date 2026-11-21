@@ -32,6 +32,19 @@ function deriveTestDatabaseUrl(connectionString: string) {
   return url.toString();
 }
 
+// Each Vitest worker gets its own database so test files can run in parallel
+// without resetting each other's rows: kaneo_test becomes kaneo_w3_test.
+function workerTestDatabaseUrl(connectionString: string) {
+  const poolId = process.env.VITEST_POOL_ID;
+  if (!poolId) {
+    return connectionString;
+  }
+
+  const url = new URL(connectionString);
+  url.pathname = url.pathname.replace(/_test$/, `_w${poolId}_test`);
+  return url.toString();
+}
+
 function assertTestDatabaseUrl(connectionString: string) {
   const url = new URL(connectionString);
   const databaseName = url.pathname.replace(/^\//, "");
@@ -62,7 +75,9 @@ const envDatabaseUrl = process.env.DATABASE_URL?.trim();
 const fromEnv = envDatabaseUrl ? stripEnvValueQuotes(envDatabaseUrl) : "";
 const rawDatabaseUrl =
   fromEnv || readDatabaseUrlFromEnvFile() || defaultTestDatabaseUrl;
-process.env.DATABASE_URL = deriveTestDatabaseUrl(rawDatabaseUrl);
+process.env.DATABASE_URL = workerTestDatabaseUrl(
+  deriveTestDatabaseUrl(rawDatabaseUrl),
+);
 assertTestDatabaseUrl(process.env.DATABASE_URL);
 
 process.env.NODE_ENV = "test";
