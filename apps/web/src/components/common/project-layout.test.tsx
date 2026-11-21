@@ -63,6 +63,12 @@ vi.mock("@/components/common/header/project-crumb-select", () => ({
 vi.mock("@/components/shared/modals/create-project-modal", () => ({
   default: () => null,
 }));
+vi.mock("@/components/common/favorite-star", () => ({
+  FavoriteStar: () => null,
+}));
+vi.mock("@/components/team/team-menu-items", () => ({
+  TeamMenuItems: () => null,
+}));
 vi.mock("@/components/page-title", () => ({ default: () => null }));
 
 afterEach(cleanup);

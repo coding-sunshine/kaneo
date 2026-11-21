@@ -27,6 +27,12 @@ vi.mock("react-i18next", async (importOriginal) => ({
 vi.mock("@/hooks/queries/label/use-get-labels-by-workspace", () => ({
   default: () => ({ data: [] }),
 }));
+vi.mock("@/components/views/save-view-dialog", () => ({
+  SaveViewDialog: () => null,
+}));
+vi.mock("@/hooks/queries/cycle/use-get-cycles", () => ({
+  useGetCycles: () => ({ data: [] }),
+}));
 vi.mock("@/hooks/queries/work-project/use-get-work-projects", () => ({
   useGetWorkProjects: () => ({ data: [] }),
 }));
@@ -75,6 +81,9 @@ vi.mock("@/components/kanban-board", () => ({
   ),
 }));
 vi.mock("@/components/list-view", () => ({ default: () => null }));
+vi.mock("@/components/common/favorite-star", () => ({
+  FavoriteStar: () => null,
+}));
 vi.mock("@/components/page-title", () => ({ default: () => null }));
 vi.mock("@/components/shared/modals/create-task-modal", () => ({
   default: () => null,

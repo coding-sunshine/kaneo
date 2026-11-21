@@ -62,11 +62,20 @@ vi.mock("@/components/ui/context-menu", () => ({
 
 vi.mock("./cycle-submenu", () => ({ CycleSubmenu: () => null }));
 
+vi.mock("./linked-submenus", () => ({
+  ProjectSubmenu: () => null,
+  CreateRelatedSubmenu: () => null,
+  MarkAsSubmenu: () => null,
+  RemoveSubmenu: () => null,
+  OpenInItem: () => null,
+  RemindMeSubmenu: () => null,
+}));
 vi.mock("./extra-submenus", () => ({
   LabelsSubmenu: () => <div>tasks:properties.labels</div>,
   CopySubmenu: () => <div>tasks:contextMenu.copy</div>,
   MoveSubmenu: () => <div>tasks:contextMenu.move</div>,
   SubscribeItem: () => <div>tasks:subscription.subscribe</div>,
+  MorePropertiesSubmenu: () => null,
 }));
 
 vi.mock("@/hooks/queries/column/use-get-columns", () => ({
