@@ -13,6 +13,7 @@ import TaskLabelsPopover from "../task-labels-popover";
 import TaskMovePopover from "../task-move-popover";
 import TaskPriorityPopover from "../task-priority-popover";
 import { TaskRecurrenceBadge } from "../task-recurrence-badge";
+import TaskRelations from "../task-relations";
 import TaskStartDatePopover from "../task-start-date-popover";
 import TaskStatusPopover from "../task-status-popover";
 import { AssigneeAvatar } from "./assignee-avatar";
@@ -175,6 +176,13 @@ export function PropertiesRail({
       <RailSection title={t("tasks:properties.workProject")}>
         <WorkProjectRows task={task} workspaceId={workspaceId} />
       </RailSection>
+
+      <TaskRelations
+        taskId={taskId}
+        projectId={projectId}
+        workspaceId={workspaceId}
+        layout="rail"
+      />
 
       <TaskCustomFieldRows taskId={taskId} projectId={projectId} />
     </aside>

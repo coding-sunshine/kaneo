@@ -47,6 +47,8 @@ import type Task from "@/types/task";
 import { ReferenceAssigneeButton } from "./sections/reference-assignee-button";
 import { ReferenceStatusButton } from "./sections/reference-status-button";
 import { type RelationKind, RelationTag } from "./sections/relation-tag";
+import { PropertyValue } from "./properties/property-value";
+import { RailSection } from "./properties/rail-section";
 import { SectionAddButton } from "./sections/section-add-button";
 import { SectionHeader } from "./sections/section-header";
 import { TaskReferenceRow } from "./sections/task-reference-row";
@@ -65,6 +67,8 @@ type TaskRelationsProps = {
   taskId: string;
   projectId: string;
   workspaceId: string;
+  // "rail" is Linear's right-rail placement: kind headings over icon + title rows.
+  layout?: "section" | "rail";
 };
 
 type TaskItem = {
@@ -80,10 +84,26 @@ type TaskGroup = {
   items: TaskItem[];
 };
 
+const relationOrderKinds: RelationKind[] = [
+  "blocked_by",
+  "blocks",
+  "related",
+  "duplicate_of",
+  "duplicated_by",
+];
+const relationKindLabel: Record<RelationKind, string> = {
+  blocked_by: "tasks:relations.blockedBy",
+  blocks: "tasks:relations.blocks",
+  related: "tasks:relations.related",
+  duplicate_of: "tasks:relations.duplicateOf",
+  duplicated_by: "tasks:relations.duplicatedBy",
+};
+
 export default function TaskRelations({
   taskId,
   projectId,
   workspaceId,
+  layout = "section",
 }: TaskRelationsProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -271,100 +291,165 @@ export default function TaskRelations({
 
   return (
     <>
-      <section className="flex flex-col gap-1">
-        <SectionHeader
-          title={t("tasks:relations.title")}
-          meta={
-            totalCount > 0 && (
-              <span className="text-muted-foreground text-xs tabular-nums">
-                {totalCount}
-              </span>
-            )
-          }
-          action={
-            canEdit && (
-              <SectionAddButton
-                aria-label={`${t("tasks:subtasks.addAction")} ${t("tasks:relations.title")}`}
-                onClick={() => setCommandOpen(true)}
-              />
-            )
-          }
-        />
-
-        <div className="flex flex-col">
-          {linkedRelations.map((item) => {
-            const assignee = getAssignee(item.task.userId);
-            const taskObj = buildTaskObject(item);
-            const isFinal = finalStatusSlugs.has(item.task.status);
-
-            return (
-              <ContextMenu key={item.id}>
-                <ContextMenuTrigger asChild>
-                  <TaskReferenceRow
-                    status={
-                      <SubtaskStatusPopover
-                        tasks={[taskObj]}
-                        projectId={item.task.projectId}
-                      >
-                        <ReferenceStatusButton
-                          aria-label={t("tasks:status.label")}
+      {layout === "rail" ? (
+        <div className="flex flex-col gap-6">
+          {relationOrderKinds
+            .filter((kind) => linkedRelations.some((i) => i.kind === kind))
+            .map((kind) => (
+              <RailSection key={kind} title={t(relationKindLabel[kind])}>
+                {linkedRelations
+                  .filter((item) => item.kind === kind)
+                  .map((item) => {
+                    const isFinal = finalStatusSlugs.has(item.task.status);
+                    return (
+                      <ContextMenu key={item.id}>
+                        <ContextMenuTrigger
+                          render={
+                            <PropertyValue
+                              className="flex-none"
+                              title={item.task.title}
+                              onClick={() => handleNavigateToTask(item.task.id)}
+                            />
+                          }
                         >
                           {getColumnIcon(
                             item.task.status,
                             isFinal,
                             columnIconBySlug.get(item.task.status),
                           )}
-                        </ReferenceStatusButton>
-                      </SubtaskStatusPopover>
-                    }
-                    displayId={displayIdOf(
-                      item.task.projectId,
-                      item.task.number,
-                    )}
-                    title={item.task.title}
-                    done={isFinal}
-                    onOpen={() => handleNavigateToTask(item.task.id)}
-                    tag={<RelationTag kind={item.kind} />}
-                    assignee={
-                      <ReferenceAssigneeButton
-                        tasks={[taskObj]}
-                        workspaceId={workspaceId}
-                        name={assignee?.user?.name ?? item.task.assigneeName}
-                        image={assignee?.user?.image}
-                      />
-                    }
-                  />
-                </ContextMenuTrigger>
-
-                <ContextMenuContent className="w-40">
-                  <ContextMenuItem
-                    onClick={() => handleNavigateToTask(item.task.id)}
-                  >
-                    <span>{t("tasks:relations.openTask")}</span>
-                  </ContextMenuItem>
-                  {canEdit && (
-                    <>
-                      <ContextMenuSeparator />
-                      <ContextMenuItem
-                        className="text-destructive"
-                        onClick={() => handleRemoveRelation(item.id)}
-                      >
-                        <span>{t("tasks:relations.removeRelation")}</span>
-                      </ContextMenuItem>
-                    </>
-                  )}
-                </ContextMenuContent>
-              </ContextMenu>
-            );
-          })}
-
-          {totalCount === 0 && (
-            <p className="px-2 py-1 text-muted-foreground text-xs">
-              {t("tasks:relations.empty")}
-            </p>
+                          <span className="truncate">{item.task.title}</span>
+                        </ContextMenuTrigger>
+                        <ContextMenuContent className="w-40">
+                          <ContextMenuItem
+                            onClick={() => handleNavigateToTask(item.task.id)}
+                          >
+                            <span>{t("tasks:relations.openTask")}</span>
+                          </ContextMenuItem>
+                          {canEdit && (
+                            <>
+                              <ContextMenuSeparator />
+                              <ContextMenuItem
+                                className="text-destructive"
+                                onClick={() => handleRemoveRelation(item.id)}
+                              >
+                                <span>
+                                  {t("tasks:relations.removeRelation")}
+                                </span>
+                              </ContextMenuItem>
+                            </>
+                          )}
+                        </ContextMenuContent>
+                      </ContextMenu>
+                    );
+                  })}
+              </RailSection>
+            ))}
+          {canEdit && (
+            <PropertyValue
+              className="text-muted-foreground"
+              onClick={() => setCommandOpen(true)}
+            >
+              <Link2 />
+              <span>{t("tasks:relations.add", "Add relation")}</span>
+            </PropertyValue>
           )}
         </div>
-      </section>
+      ) : (
+        <section className="flex flex-col gap-1">
+          <SectionHeader
+            title={t("tasks:relations.title")}
+            meta={
+              totalCount > 0 && (
+                <span className="text-muted-foreground text-xs tabular-nums">
+                  {totalCount}
+                </span>
+              )
+            }
+            action={
+              canEdit && (
+                <SectionAddButton
+                  aria-label={`${t("tasks:subtasks.addAction")} ${t("tasks:relations.title")}`}
+                  onClick={() => setCommandOpen(true)}
+                />
+              )
+            }
+          />
+
+          <div className="flex flex-col">
+            {linkedRelations.map((item) => {
+              const assignee = getAssignee(item.task.userId);
+              const taskObj = buildTaskObject(item);
+              const isFinal = finalStatusSlugs.has(item.task.status);
+
+              return (
+                <ContextMenu key={item.id}>
+                  <ContextMenuTrigger asChild>
+                    <TaskReferenceRow
+                      status={
+                        <SubtaskStatusPopover
+                          tasks={[taskObj]}
+                          projectId={item.task.projectId}
+                        >
+                          <ReferenceStatusButton
+                            aria-label={t("tasks:status.label")}
+                          >
+                            {getColumnIcon(
+                              item.task.status,
+                              isFinal,
+                              columnIconBySlug.get(item.task.status),
+                            )}
+                          </ReferenceStatusButton>
+                        </SubtaskStatusPopover>
+                      }
+                      displayId={displayIdOf(
+                        item.task.projectId,
+                        item.task.number,
+                      )}
+                      title={item.task.title}
+                      done={isFinal}
+                      onOpen={() => handleNavigateToTask(item.task.id)}
+                      tag={<RelationTag kind={item.kind} />}
+                      assignee={
+                        <ReferenceAssigneeButton
+                          tasks={[taskObj]}
+                          workspaceId={workspaceId}
+                          name={assignee?.user?.name ?? item.task.assigneeName}
+                          image={assignee?.user?.image}
+                        />
+                      }
+                    />
+                  </ContextMenuTrigger>
+
+                  <ContextMenuContent className="w-40">
+                    <ContextMenuItem
+                      onClick={() => handleNavigateToTask(item.task.id)}
+                    >
+                      <span>{t("tasks:relations.openTask")}</span>
+                    </ContextMenuItem>
+                    {canEdit && (
+                      <>
+                        <ContextMenuSeparator />
+                        <ContextMenuItem
+                          className="text-destructive"
+                          onClick={() => handleRemoveRelation(item.id)}
+                        >
+                          <span>{t("tasks:relations.removeRelation")}</span>
+                        </ContextMenuItem>
+                      </>
+                    )}
+                  </ContextMenuContent>
+                </ContextMenu>
+              );
+            })}
+
+            {totalCount === 0 && (
+              <p className="px-2 py-1 text-muted-foreground text-xs">
+                {t("tasks:relations.empty")}
+              </p>
+            )}
+          </div>
+        </section>
+      )}
 
       <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
         <CommandDialogPopup>

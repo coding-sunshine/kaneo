@@ -108,11 +108,13 @@ export default function TaskDetailsContent({
         )}
         {!isPeek && (
           <>
-            <TaskRelations
-              taskId={taskId}
-              projectId={projectId}
-              workspaceId={workspaceId}
-            />
+            {variant !== "page" && (
+              <TaskRelations
+                taskId={taskId}
+                projectId={projectId}
+                workspaceId={workspaceId}
+              />
+            )}
             <TaskTimeTracking key={taskId} taskId={taskId} />
             <ExternalLinksAccordion
               taskId={taskId}
