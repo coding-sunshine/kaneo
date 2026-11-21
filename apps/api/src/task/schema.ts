@@ -95,6 +95,12 @@ export const createTaskBody = z.object({
     .optional()
     .openapi({ description: "Omit to create a task that does not repeat." }),
   draftAssetIds: z.array(z.string()).max(100).optional(),
+  workProjectId: z.string().nullable().optional().openapi({
+    description: "Linear-style project the task belongs to.",
+  }),
+  workProjectMilestoneId: z.string().nullable().optional().openapi({
+    description: "Milestone of that project.",
+  }),
   customFields: z
     .array(z.object({ fieldId: z.string(), value: z.string() }))
     .optional(),
@@ -153,6 +159,16 @@ export const updateRecurrenceBody = z.object({
     .union([taskRecurrenceSchema, z.null()])
     .openapi({ description: "Null stops the task from repeating." }),
 });
+export const updateWorkProjectBody = z.object({
+  workProjectId: z.string().nullable().openapi({
+    description:
+      "Project to put the task in; null removes it from its project.",
+  }),
+  workProjectMilestoneId: z.string().nullable().optional().openapi({
+    description: "Milestone of that project; omitted or null clears it.",
+  }),
+});
+
 export const updateSnoozeBody = z.object({
   snoozedUntil: z
     .string()

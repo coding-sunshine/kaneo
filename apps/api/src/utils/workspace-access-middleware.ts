@@ -14,7 +14,9 @@ type LookupResource =
   | "comment"
   | "column"
   | "workflowRule"
-  | "customField";
+  | "customField"
+  | "workProject"
+  | "workProjectMilestone";
 
 type WorkspaceIdSource =
   | { type: "query"; key: string }
@@ -44,6 +46,8 @@ const RESOURCE_NOT_FOUND: Record<LookupResource, string> = {
   column: "Column not found",
   workflowRule: "Workflow rule not found",
   customField: "Custom field not found",
+  workProject: "Project not found",
+  workProjectMilestone: "Milestone not found",
 };
 
 type WorkspaceAccessMiddlewareConfig = {
@@ -342,6 +346,31 @@ async function lookupScope(
       return field ?? null;
     }
 
+    case "workProject": {
+      const [workProject] = await db
+        .select({ workspaceId: schema.workProjectTable.workspaceId })
+        .from(schema.workProjectTable)
+        .where(eq(schema.workProjectTable.id, id))
+        .limit(1);
+      return workProject ? { ...workProject, projectId: null } : null;
+    }
+
+    case "workProjectMilestone": {
+      const [milestone] = await db
+        .select({ workspaceId: schema.workProjectTable.workspaceId })
+        .from(schema.workProjectMilestoneTable)
+        .innerJoin(
+          schema.workProjectTable,
+          eq(
+            schema.workProjectMilestoneTable.workProjectId,
+            schema.workProjectTable.id,
+          ),
+        )
+        .where(eq(schema.workProjectMilestoneTable.id, id))
+        .limit(1);
+      return milestone ? { ...milestone, projectId: null } : null;
+    }
+
     default:
       return null;
   }
@@ -434,6 +463,16 @@ export const workspaceAccess = {
   fromCustomField: (idKey = "id") =>
     workspaceAccessMiddleware({
       sources: [{ type: "lookup", resource: "customField", idKey }],
+    }),
+
+  fromWorkProject: (idKey = "id") =>
+    workspaceAccessMiddleware({
+      sources: [{ type: "lookup", resource: "workProject", idKey }],
+    }),
+
+  fromWorkProjectMilestone: (idKey = "id") =>
+    workspaceAccessMiddleware({
+      sources: [{ type: "lookup", resource: "workProjectMilestone", idKey }],
     }),
 
   fromProjectId: (idKey = "projectId") =>

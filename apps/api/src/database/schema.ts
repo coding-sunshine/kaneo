@@ -686,6 +686,112 @@ export const calendarFeedTable = pgTable(
   (table) => [index("calendar_feed_project_id_idx").on(table.projectId)],
 );
 
+// Linear-style "Projects": a workspace-level grouping of issues across teams.
+// Kaneo's own `project` table is what Linear calls a team, hence `work_project`.
+export const workProjectTable = pgTable(
+  "work_project",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    icon: text("icon"),
+    color: text("color").notNull().default("#bec2c8"),
+    // backlog | planned | started | paused | completed | canceled
+    status: text("status").notNull().default("backlog"),
+    // Latest update health: onTrack | atRisk | offTrack; null = no updates.
+    health: text("health"),
+    // 0 none, 1 urgent, 2 high, 3 medium, 4 low (Linear's numbering).
+    priority: integer("priority").notNull().default(0),
+    leadId: text("lead_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    startDate: timestamp("start_date", { mode: "date" }),
+    targetDate: timestamp("target_date", { mode: "date" }),
+    summary: text("summary"),
+    description: text("description"),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("work_project_workspaceId_idx").on(table.workspaceId),
+    unique("work_project_workspace_name_unique").on(
+      table.workspaceId,
+      table.name,
+    ),
+  ],
+);
+
+export const workProjectTeamTable = pgTable(
+  "work_project_team",
+  {
+    workProjectId: text("work_project_id")
+      .notNull()
+      .references(() => workProjectTable.id, { onDelete: "cascade" }),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projectTable.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.workProjectId, table.projectId] }),
+    index("work_project_team_projectId_idx").on(table.projectId),
+  ],
+);
+
+export const workProjectMemberTable = pgTable(
+  "work_project_member",
+  {
+    workProjectId: text("work_project_id")
+      .notNull()
+      .references(() => workProjectTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.workProjectId, table.userId] }),
+    index("work_project_member_userId_idx").on(table.userId),
+  ],
+);
+
+export const workProjectMilestoneTable = pgTable(
+  "work_project_milestone",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workProjectId: text("work_project_id")
+      .notNull()
+      .references(() => workProjectTable.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description"),
+    targetDate: timestamp("target_date", { mode: "date" }),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("work_project_milestone_projectId_idx").on(table.workProjectId),
+    unique("work_project_milestone_name_unique").on(
+      table.workProjectId,
+      table.name,
+    ),
+  ],
+);
+
 export const taskTable = pgTable(
   "task",
   {
@@ -723,6 +829,14 @@ export const taskTable = pgTable(
       onDelete: "set null",
       onUpdate: "cascade",
     }),
+    workProjectId: text("work_project_id").references(
+      () => workProjectTable.id,
+      { onDelete: "set null", onUpdate: "cascade" },
+    ),
+    workProjectMilestoneId: text("work_project_milestone_id").references(
+      () => workProjectMilestoneTable.id,
+      { onDelete: "set null", onUpdate: "cascade" },
+    ),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),
@@ -732,6 +846,7 @@ export const taskTable = pgTable(
       .notNull(),
   },
   (table) => [
+    index("task_workProjectId_idx").on(table.workProjectId),
     index("task_projectId_idx").on(table.projectId),
     index("task_project_scheduled_id_idx")
       .on(table.projectId, table.id)

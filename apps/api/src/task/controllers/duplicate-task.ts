@@ -384,6 +384,8 @@ async function duplicateTask({
           projectId: sourceTask.projectId,
           userId,
           creatorId: currentUserId || null,
+          workProjectId: sourceTask.workProjectId,
+          workProjectMilestoneId: sourceTask.workProjectMilestoneId,
           title: title?.trim() || sourceTask.title,
           status,
           columnId: column?.id ?? null,

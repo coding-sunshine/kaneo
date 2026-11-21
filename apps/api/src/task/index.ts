@@ -69,6 +69,7 @@ import {
 } from "./controllers/task-attachments";
 import { listArchivedTasks, unarchiveTask } from "./controllers/task-archive";
 import updateTaskSnooze from "./controllers/update-task-snooze";
+import updateTaskWorkProject from "./controllers/update-task-work-project";
 import { setSubscription } from "./controllers/task-subscribers";
 import updateTaskStatus from "./controllers/update-task-status";
 import updateTaskTitle from "./controllers/update-task-title";
@@ -120,6 +121,7 @@ import {
   updatePriorityBody,
   updateRecurrenceBody,
   updateSnoozeBody,
+  updateWorkProjectBody,
   updateStatusBody,
   updateTaskBody,
   updateTitleBody,
@@ -654,6 +656,36 @@ const updateTaskSnoozeRoute = createRoute({
   },
 });
 
+const updateTaskWorkProjectRoute = createRoute({
+  method: "put",
+  operationId: "updateTaskWorkProject",
+  path: "/work-project/{id}",
+  tags: ["Tasks"],
+  summary: "Set a task's project and milestone",
+  description:
+    "Put the task in a Linear-style project of its workspace, optionally in one of its milestones, or send null to remove it from its project.",
+  middleware: [
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["update"] }),
+    requireEntitlement,
+  ] as const,
+  request: {
+    params: taskParam,
+    body: {
+      required: true,
+      content: { "application/json": { schema: updateWorkProjectBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("The updated task", taskSchema),
+    400: errorResponse("A milestone was given without a project"),
+    403: errorResponse(
+      "No access to the project, or missing task:update permission",
+    ),
+    404: errorResponse("Task, project or milestone not found"),
+  },
+});
+
 const subscriptionResponse = jsonResponse(
   "Subscription state",
   z.object({ isSubscribed: z.boolean() }),
@@ -1137,6 +1169,8 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       recurrence,
       customFields,
       draftAssetIds,
+      workProjectId: c.req.valid("json").workProjectId,
+      workProjectMilestoneId: c.req.valid("json").workProjectMilestoneId,
     });
 
     return c.json(task, 200);
@@ -1295,6 +1329,18 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
         : null,
     });
     return c.json(task, 200);
+  })
+  .openapi(updateTaskWorkProjectRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const { workProjectId, workProjectMilestoneId } = c.req.valid("json");
+    return c.json(
+      await updateTaskWorkProject({
+        id,
+        workProjectId,
+        workProjectMilestoneId: workProjectMilestoneId ?? null,
+      }),
+      200,
+    );
   })
   .openapi(subscribeTaskRoute, async (c) => {
     await setSubscription(c.req.valid("param").id, c.get("userId"), true);

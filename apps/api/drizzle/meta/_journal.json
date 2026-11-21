@@ -533,6 +533,13 @@
       "when": 1795235782356,
       "tag": "0075_magical_sphinx",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1795241543343,
+      "tag": "0076_work_projects",
+      "breakpoints": true
     }
   ]
 }

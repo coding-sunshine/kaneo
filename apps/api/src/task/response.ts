@@ -35,6 +35,8 @@ export const taskSchema = z
     creatorId: z.string().nullable().optional().openapi({
       description: "The user who created the task, if known.",
     }),
+    workProjectId: z.string().nullable().optional(),
+    workProjectMilestoneId: z.string().nullable().optional(),
     snoozedUntil: nullableResponseTimestamp.optional().openapi({
       description:
         "Triage snooze: the task resurfaces in triage after this time.",
@@ -124,6 +126,8 @@ export const boardTaskSchema = z
     position: z.number().nullable(),
     createdAt: responseTimestamp,
     creatorId: z.string().nullable(),
+    workProjectId: z.string().nullable(),
+    workProjectMilestoneId: z.string().nullable(),
     snoozedUntil: nullableResponseTimestamp,
     userId: z.string().nullable(),
     assigneeName: z.string().nullable(),

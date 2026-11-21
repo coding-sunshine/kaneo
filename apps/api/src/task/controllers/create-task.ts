@@ -28,6 +28,7 @@ import {
   assertValidTaskStatus,
   isCustomFieldValueEmpty,
 } from "../validate-task-fields";
+import { assertTaskWorkProject } from "../../work-project/assert-task-work-project";
 import { claimTaskNumber } from "./claim-task-numbers";
 import { nextTaskPosition } from "./next-task-position";
 import { subscribeUsers } from "./task-subscribers";
@@ -66,6 +67,8 @@ async function createTask({
   recurrence,
   customFields,
   draftAssetIds,
+  workProjectId,
+  workProjectMilestoneId,
 }: {
   projectId: string;
   currentUserId: string;
@@ -79,6 +82,8 @@ async function createTask({
   recurrence?: TaskRecurrence;
   customFields?: CustomFieldInput[];
   draftAssetIds?: string[];
+  workProjectId?: string | null;
+  workProjectMilestoneId?: string | null;
 }) {
   const resolvedStatus = status || "to-do";
   const resolvedPriority = priority || "no-priority";
@@ -87,6 +92,7 @@ async function createTask({
   const normalizedUserId = userId?.trim() || undefined;
 
   await assertValidTaskStatus(resolvedStatus, projectId);
+  await assertTaskWorkProject(projectId, workProjectId, workProjectMilestoneId);
 
   const allFields = await db
     .select()
@@ -176,6 +182,8 @@ async function createTask({
         projectId,
         userId: normalizedUserId ?? null,
         creatorId: currentUserId,
+        workProjectId: workProjectId ?? null,
+        workProjectMilestoneId: workProjectMilestoneId ?? null,
         title: title || "",
         status: resolvedStatus,
         columnId: column?.id ?? null,
