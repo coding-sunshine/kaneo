@@ -175,7 +175,7 @@ export default function TaskAttachments({ taskId }: { taskId: string }) {
           return (
             <li
               key={file.id}
-              className="group flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-accent/50"
+              className="group flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-accent"
             >
               <a
                 href={file.url}

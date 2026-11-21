@@ -15,7 +15,7 @@ export default function TaskArchivedBanner({
   const { canUpdateTasks } = useWorkspacePermission();
   const restore = useUnarchiveTask();
   return (
-    <div className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-3 py-2 text-muted-foreground text-sm">
+    <div className="flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-muted-foreground text-[13px]">
       <ArchiveIcon className="size-4 shrink-0" />
       <span className="flex-1">
         {t("tasks:detail.archived.banner", {
@@ -25,7 +25,7 @@ export default function TaskArchivedBanner({
       {canUpdateTasks() && (
         <Button
           size="sm"
-          variant="outline"
+          variant="ghost"
           disabled={restore.isPending}
           onClick={() => restore.mutate(taskId)}
         >

@@ -3,9 +3,12 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import ProjectLayout from "@/components/common/project-layout";
 import PageTitle from "@/components/page-title";
+import { getColumnIcon } from "@/lib/column";
+import { getPriorityIcon } from "@/lib/priority";
 import { Button } from "@/components/ui/button";
 import { listArchivedTasks } from "@/fetchers/task/task-archive";
 import useUnarchiveTask from "@/hooks/mutations/task/use-unarchive-task";
+import { useGetColumns } from "@/hooks/queries/column/use-get-columns";
 import useGetProject from "@/hooks/queries/project/use-get-project";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 
@@ -28,6 +31,9 @@ function RouteComponent() {
     refetchOnMount: "always",
   });
 
+  const { data: columns } = useGetColumns(projectId);
+  const column = (id: string) => columns?.find((c) => c.id === id);
+
   return (
     <>
       <PageTitle title={t("tasks:detail.archived.title")} />
@@ -48,7 +54,7 @@ function RouteComponent() {
           {tasks.map((task) => (
             <div
               key={task.id}
-              className="flex items-center gap-3 border-border border-b py-2 text-sm"
+              className="flex h-9 items-center gap-3 rounded-md px-2 text-sm hover:bg-accent"
             >
               <button
                 type="button"
@@ -60,13 +66,23 @@ function RouteComponent() {
                   })
                 }
               >
-                <span className="shrink-0 font-mono text-muted-foreground text-xs">
+                <span className="flex size-5.5 shrink-0 items-center justify-center [&_svg]:size-3.5">
+                  {getPriorityIcon(task.priority ?? "")}
+                </span>
+                <span className="w-13 shrink-0 truncate font-mono text-muted-foreground text-xs">
                   {project?.slug}-{task.number}
                 </span>
-                <span className="truncate">{task.title}</span>
-                <span className="shrink-0 text-muted-foreground text-xs">
-                  {task.status}
+                <span
+                  className="flex size-5.5 shrink-0 items-center justify-center"
+                  title={column(task.status)?.name ?? task.status}
+                >
+                  {getColumnIcon(
+                    task.status,
+                    column(task.status)?.isFinal,
+                    column(task.status)?.icon,
+                  )}
                 </span>
+                <span className="truncate text-foreground">{task.title}</span>
               </button>
               <span className="shrink-0 text-muted-foreground text-xs">
                 {task.archivedAt
@@ -76,7 +92,7 @@ function RouteComponent() {
               {canUpdateTasks() && (
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="ghost"
                   disabled={restore.isPending}
                   onClick={() => restore.mutate(task.id)}
                 >
