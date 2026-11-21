@@ -41,6 +41,7 @@ type ProjectLayoutProps = {
   children: ReactNode;
   showViewSwitcher?: boolean;
   activeView?: ProjectRoute;
+  crumb?: string;
 };
 
 export default function ProjectLayout({
@@ -52,6 +53,7 @@ export default function ProjectLayout({
   children,
   showViewSwitcher = true,
   activeView,
+  crumb,
 }: ProjectLayoutProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -132,7 +134,7 @@ export default function ProjectLayout({
             />
             <ChevronRight className="size-3 text-muted-foreground" />
             <span className="px-1 text-[13px] text-muted-foreground">
-              {t("navigation:sidebar.issues")}
+              {crumb ?? t("navigation:sidebar.issues")}
             </span>
           </div>
 
@@ -167,7 +169,8 @@ export default function ProjectLayout({
         </div>
       </Layout.Header>
 
-      {unavailableReason ? null : (
+      {unavailableReason ||
+      !(showViewSwitcher || summary || toolbar || filterBar) ? null : (
         <TooltipProvider>
           <div
             className={cn(

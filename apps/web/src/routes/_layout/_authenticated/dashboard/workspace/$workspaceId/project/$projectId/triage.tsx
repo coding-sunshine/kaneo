@@ -147,6 +147,7 @@ function RouteComponent() {
       projectId={projectId}
       workspaceId={workspaceId}
       showViewSwitcher={false}
+      crumb={t("tasks:triage.title")}
       summary={
         <h1 className="flex items-center gap-2 font-medium text-[13px]">
           {t("tasks:triage.title")}

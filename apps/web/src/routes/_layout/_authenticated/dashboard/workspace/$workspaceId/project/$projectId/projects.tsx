@@ -28,6 +28,7 @@ function RouteComponent() {
         projectId={projectId}
         workspaceId={workspaceId}
         showViewSwitcher={false}
+        crumb={t("navigation:sidebar.projects")}
       >
         {canUpdateTasks() && (
           <div className="flex justify-end px-4 py-2">
