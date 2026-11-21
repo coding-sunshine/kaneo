@@ -31,7 +31,7 @@ export default function Search() {
             <Button
               variant="ghost"
               size="icon"
-              className="size-8 shrink-0 text-muted-foreground hover:bg-sidebar-accent/70"
+              className="size-7 shrink-0 text-muted-foreground hover:bg-sidebar-accent/70"
               onClick={() => setOpen(true)}
             >
               <SearchIcon aria-hidden="true" className="size-4" />

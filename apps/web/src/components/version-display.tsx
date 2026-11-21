@@ -4,7 +4,7 @@ export function VersionDisplay() {
     "https://github.com/usekaneo/kaneo/blob/main/CHANGELOG.md";
 
   return (
-    <div className="flex items-center justify-center px-2 py-1.5">
+    <div className="flex items-center px-2 py-1">
       <a
         href={changelogUrl}
         target="_blank"

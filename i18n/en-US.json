@@ -2876,6 +2876,9 @@
 			"issues": "Issues",
 			"allIssues": "All issues",
 			"triage": "Triage",
+			"workspace": "Workspace",
+			"yourTeams": "Your teams",
+			"newIssue": "New issue",
 			"active": "Active",
 			"backlog": "Backlog"
 		},

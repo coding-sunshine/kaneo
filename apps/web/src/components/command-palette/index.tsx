@@ -1,3 +1,4 @@
+import { useCreateIssueStore } from "@/store/create-issue";
 import { ShortcutKeys } from "@/components/shortcuts/shortcut-keys";
 import { useShortcutsPanelStore } from "@/components/shortcuts/shortcuts-panel-store";
 import { useLocation, useNavigate } from "@tanstack/react-router";
@@ -68,7 +69,8 @@ function CommandPalette() {
     limit: 8,
   });
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
+  const isCreateTaskOpen = useCreateIssueStore((state) => state.open);
+  const setIsCreateTaskOpen = useCreateIssueStore((state) => state.setOpen);
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
   const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false);
   const projectIdFromRoute =
@@ -221,6 +223,7 @@ function CommandPalette() {
       workspace?.id,
       canCreateWorkspace,
       openShortcutsPanel,
+      setIsCreateTaskOpen,
     ],
   );
 
