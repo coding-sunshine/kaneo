@@ -1,7 +1,15 @@
 import { isSameDay } from "date-fns";
 import type { Notification } from "@/types/notification";
 
-export type InboxFilter = "all" | "unread" | "mentions";
+export type InboxFilter = "all" | "unread" | "mentions" | "priority" | "other";
+
+// Linear's priority inbox: things aimed at you land in Priority, the rest in Other.
+export const PRIORITY_TYPES = [
+  "task_mention",
+  "task_assignee_changed",
+  "due_date_reminder",
+  "task_overdue",
+];
 
 export const NOTIFICATION_TYPE_FILTERS = [
   { label: "Mentions", types: ["task_mention"] },
@@ -15,6 +23,11 @@ export function filterNotifications(
   notifications: Notification[],
   filter: InboxFilter,
 ) {
+  if (filter === "priority" || filter === "other") {
+    return notifications.filter(
+      (n) => PRIORITY_TYPES.includes(n.type) === (filter === "priority"),
+    );
+  }
   if (filter === "unread") {
     return notifications.filter((notification) => !notification.isRead);
   }

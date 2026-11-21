@@ -64,7 +64,7 @@ export function InboxList({
 }: InboxListProps) {
   const { t } = useTranslation();
   const day = useLocalDay();
-  const [filter, setFilter] = useState<InboxFilter>("all");
+  const [filter, setFilter] = useState<InboxFilter>("priority");
   const [showClearDialog, setShowClearDialog] = useState(false);
   const { mutate: markAllAsRead } = useMarkAllNotificationsAsRead(workspaceId);
   const { mutate: clearAll } = useClearNotifications(workspaceId);
@@ -83,9 +83,10 @@ export function InboxList({
       ),
     [notifications, display.showSnoozed, types],
   );
+  const activeFilter = display.priorityInbox ? filter : "all";
   const unreadCount = visible.filter((n) => !n.isRead).length;
   const { today, earlier } = useMemo(() => {
-    const sorted = [...filterNotifications(visible, filter)].sort(
+    const sorted = [...filterNotifications(visible, activeFilter)].sort(
       (a, b) =>
         (display.showUnreadFirst
           ? Number(!!a.isRead) - Number(!!b.isRead)
@@ -94,19 +95,14 @@ export function InboxList({
           (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
     );
     return groupNotifications(sorted, new Date(day));
-  }, [visible, filter, day, display.ordering, display.showUnreadFirst]);
+  }, [visible, activeFilter, day, display.ordering, display.showUnreadFirst]);
 
-  const filters: Array<{ value: InboxFilter; label: string; count?: number }> =
-    [
-      { value: "all", label: t("notifications:inbox.filters.all") },
-      {
-        value: "unread",
-        label: t("notifications:inbox.filters.unread"),
-        count: unreadCount,
-      },
-      { value: "mentions", label: t("notifications:inbox.filters.mentions") },
-    ];
-
+  const counts = (f: InboxFilter) =>
+    filterNotifications(visible, f).filter((n) => !n.isRead).length;
+  const filters: Array<{ value: InboxFilter; label: string; count: number }> = [
+    { value: "priority", label: "Priority", count: counts("priority") },
+    { value: "other", label: "Other", count: counts("other") },
+  ];
   const groups = [
     { id: "today", title: t("notifications:inbox.today"), items: today },
     { id: "earlier", title: t("notifications:inbox.earlier"), items: earlier },
@@ -123,32 +119,9 @@ export function InboxList({
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex h-12 shrink-0 items-center justify-between gap-2 border-border/60 border-b px-3">
-        <fieldset className="inline-flex items-center gap-0.5 rounded-lg bg-muted/70 p-0.5">
-          <legend className="sr-only">
-            {t("notifications:inbox.filters.label")}
-          </legend>
-          {filters.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              aria-pressed={filter === option.value}
-              onClick={() => setFilter(option.value)}
-              className={cn(
-                "flex h-6.5 cursor-pointer items-center gap-1.5 rounded-md px-2.5 font-medium text-[13px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
-                filter === option.value
-                  ? "bg-background text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {option.label}
-              {option.count ? (
-                <span className="font-normal text-muted-foreground text-xs tabular-nums">
-                  {option.count}
-                </span>
-              ) : null}
-            </button>
-          ))}
-        </fieldset>
+        <span className="px-1 font-medium text-sm">
+          {t("notifications:inbox.pageTitle")}
+        </span>
         <div className="flex items-center gap-0.5 text-muted-foreground">
           <Menu>
             <MenuTrigger
@@ -235,6 +208,15 @@ export function InboxList({
               <MenuSeparator />
               <MenuCheckboxItem
                 variant="switch"
+                checked={display.priorityInbox}
+                onCheckedChange={(priorityInbox) =>
+                  display.set({ priorityInbox })
+                }
+              >
+                Priority inbox
+              </MenuCheckboxItem>
+              <MenuCheckboxItem
+                variant="switch"
                 checked={display.showSnoozed}
                 onCheckedChange={(showSnoozed) => display.set({ showSnoozed })}
               >
@@ -290,6 +272,57 @@ export function InboxList({
           </Menu>
         </div>
       </div>
+
+      {display.priorityInbox && (
+        <div className="flex shrink-0 gap-1.5 px-3 pt-2.5 pb-1">
+          {filters.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={filter === option.value}
+              onClick={() => setFilter(option.value)}
+              className={cn(
+                "flex h-7 cursor-pointer items-center gap-1.5 rounded-full border px-3 font-medium text-[13px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+                filter === option.value
+                  ? "border-transparent bg-muted text-foreground"
+                  : "border-border text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {option.label}
+              {option.count > 0 && (
+                <span className="font-normal text-muted-foreground text-xs tabular-nums">
+                  {option.count > 99 ? "99+" : option.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+      {display.priorityInbox && !display.priorityBannerSeen && (
+        <div className="mx-3 mt-1.5 mb-1 flex flex-col items-center gap-2 rounded-lg bg-muted/60 px-3 py-3 text-center">
+          <p className="text-[13px]">
+            Important notifications now go to your priority inbox
+          </p>
+          <div className="flex items-center gap-1">
+            <Button
+              size="xs"
+              variant="outline"
+              onClick={() => display.set({ priorityBannerSeen: true })}
+            >
+              Keep priority inbox
+            </Button>
+            <Button
+              size="xs"
+              variant="ghost"
+              onClick={() =>
+                display.set({ priorityInbox: false, priorityBannerSeen: true })
+              }
+            >
+              Disable
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="min-h-0 flex-1 overflow-y-auto pb-3">
         {groups.length === 0 ? (

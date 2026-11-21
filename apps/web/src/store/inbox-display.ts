@@ -5,6 +5,8 @@ type InboxDisplayStore = {
   ordering: "newest" | "oldest";
   showSnoozed: boolean;
   showUnreadFirst: boolean;
+  priorityInbox: boolean;
+  priorityBannerSeen: boolean;
   set: (patch: Partial<Omit<InboxDisplayStore, "set">>) => void;
 };
 
@@ -14,6 +16,8 @@ export const useInboxDisplayStore = create<InboxDisplayStore>()(
       ordering: "newest",
       showSnoozed: false,
       showUnreadFirst: false,
+      priorityInbox: true,
+      priorityBannerSeen: false,
       set: (patch) => set(patch),
     }),
     { name: "inbox-display", storage: createJSONStorage(() => localStorage) },

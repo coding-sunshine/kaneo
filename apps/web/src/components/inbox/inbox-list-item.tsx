@@ -17,11 +17,24 @@ import useDeleteNotification from "@/hooks/mutations/notification/use-delete-not
 import useMarkNotificationAsRead from "@/hooks/mutations/notification/use-mark-notification-as-read";
 import useMarkNotificationAsUnread from "@/hooks/mutations/notification/use-mark-notification-as-unread";
 import { cn } from "@/lib/cn";
-import { formatDateTime, formatRelativeTime } from "@/lib/format";
+import { formatDateTime } from "@/lib/format";
 import type { Notification } from "@/types/notification";
+import { getEventDataRecord } from "@/components/notification/notification-text";
 import { NotificationIcon } from "./notification-icon";
 import { isSnoozed } from "./snooze";
 import { SnoozeButton, SnoozeRows, useSnooze } from "./snooze-menu";
+
+function shortAge(iso: string) {
+  const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+  const units: Array<[string, number]> = [
+    ["w", 604800],
+    ["d", 86400],
+    ["h", 3600],
+    ["m", 60],
+  ];
+  for (const [u, n] of units) if (s >= n) return `${Math.floor(s / n)}${u}`;
+  return "now";
+}
 
 type InboxListItemProps = {
   notification: Notification;
@@ -41,6 +54,19 @@ export function InboxListItem({
   const { mutate: markUnread } = useMarkNotificationAsUnread();
   const snooze = useSnooze(notification.id);
   const snoozed = isSnoozed(notification);
+  const data = getEventDataRecord(notification.eventData);
+  // Linear rows: issue title on top, "who did what: snippet" underneath.
+  const issueTitle =
+    typeof data?.taskTitle === "string" ? data.taskTitle : null;
+  const preview = [data?.commentPreview, data?.mentionPreview].find(
+    (x): x is string => typeof x === "string" && x.length > 0,
+  );
+  const heading = issueTitle ?? getNotificationTitle(notification, t);
+  const snippet = issueTitle
+    ? [getNotificationTitle(notification, t), preview]
+        .filter(Boolean)
+        .join(": ")
+    : content;
 
   return (
     <ContextMenu>
@@ -80,7 +106,7 @@ export function InboxListItem({
                     : "font-semibold text-foreground",
                 )}
               >
-                {getNotificationTitle(notification, t)}
+                {heading}
               </span>
               <time
                 dateTime={notification.createdAt}
@@ -88,10 +114,10 @@ export function InboxListItem({
                 className="flex shrink-0 items-center gap-1 text-muted-foreground text-xs group-focus-within/row:invisible group-hover/row:invisible"
               >
                 {snoozed && <Clock aria-hidden="true" className="size-3" />}
-                {formatRelativeTime(notification.createdAt)}
+                {shortAge(notification.createdAt)}
               </time>
             </span>
-            {content && (
+            {snippet && (
               <span
                 className={cn(
                   "truncate text-[13px]",
@@ -100,7 +126,7 @@ export function InboxListItem({
                     : "text-muted-foreground",
                 )}
               >
-                {content}
+                {snippet}
               </span>
             )}
           </span>
