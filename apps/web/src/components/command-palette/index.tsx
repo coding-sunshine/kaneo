@@ -2,7 +2,18 @@ import { useCreateIssueStore } from "@/store/create-issue";
 import { ShortcutKeys } from "@/components/shortcuts/shortcut-keys";
 import { useShortcutsPanelStore } from "@/components/shortcuts/shortcuts-panel-store";
 import { useLocation, useNavigate } from "@tanstack/react-router";
-import { ArrowDownIcon, ArrowUpIcon, CornerDownLeftIcon } from "lucide-react";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  BoxIcon,
+  CornerDownLeftIcon,
+  InboxIcon,
+  PlusIcon,
+  SettingsIcon,
+  UserIcon,
+  UsersIcon,
+} from "lucide-react";
+import type { ComponentType } from "react";
 import { Fragment, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import SearchCommandMenu from "@/components/search-command-menu";
@@ -36,6 +47,7 @@ import { useUserPreferencesStore } from "@/store/user-preferences";
 import CreateProjectModal from "../shared/modals/create-project-modal";
 
 type PaletteActionItem = {
+  icon?: ComponentType<{ className?: string }>;
   value: string;
   label: string;
   badge?: string;
@@ -130,51 +142,62 @@ function CommandPalette() {
           ]
         : []),
       {
-        value: "suggestions",
-        label: t("navigation:commandPalette.suggestions"),
+        value: "issues",
+        label: t("navigation:commandPalette.issues"),
         items: [
           {
-            value: "projects",
-            label: t("navigation:commandPalette.projects"),
-            shortcutId: "goToProjects",
-            onRun: () => {
-              if (!workspace?.id) return;
-              navigate({
-                to: "/dashboard/workspace/$workspaceId/projects",
-                params: { workspaceId: workspace.id },
-              });
-            },
-          },
-          {
-            value: "search",
-            label: t("navigation:commandPalette.search"),
-            shortcutId: "openSearch",
-            onRun: () => setIsSearchOpen(true),
-          },
-          {
-            value: "members",
-            label: t("navigation:commandPalette.members", {
-              defaultValue: "Members",
-            }),
-            onRun: () => {
-              if (!workspace?.id) return;
-              navigate({
-                to: "/dashboard/workspace/$workspaceId/members",
-                params: { workspaceId: workspace.id },
-              });
-            },
-          },
-          {
             value: "create-task",
+            icon: PlusIcon,
             label: t("navigation:commandPalette.createTask"),
             shortcutId: "createTask",
             onRun: () => setIsCreateTaskOpen(true),
           },
+        ],
+      },
+      {
+        value: "projects-group",
+        label: t("navigation:commandPalette.projects"),
+        items: [
           {
             value: "create-project",
+            icon: BoxIcon,
             label: t("navigation:commandPalette.createProject"),
             shortcutId: "createProject",
             onRun: () => setIsCreateProjectOpen(true),
+          },
+        ],
+      },
+      {
+        value: "navigation",
+        label: t("navigation:commandPalette.navigation"),
+        items: [
+          ...(
+            [
+              ["inbox", InboxIcon, "goToInbox", "/inbox"],
+              ["my-issues", UserIcon, "goToMyTasks", "/my-tasks"],
+              ["projects", BoxIcon, "goToProjects", "/projects"],
+              ["members", UsersIcon, undefined, "/members"],
+            ] as const
+          ).map(([key, icon, shortcutId, path]) => ({
+            value: `go-${key}`,
+            icon,
+            label: t(`navigation:commandPalette.go.${key}`),
+            shortcutId,
+            onRun: () => {
+              if (!workspace?.id) return;
+              navigate({
+                to: `/dashboard/workspace/$workspaceId${path}`,
+                params: { workspaceId: workspace.id },
+              });
+            },
+          })),
+          {
+            value: "go-settings",
+            icon: SettingsIcon,
+            label: t("navigation:commandPalette.go.settings"),
+            shortcutId: "goToSettings",
+            onRun: () =>
+              navigate({ to: "/dashboard/settings/account/information" }),
           },
         ],
       },
@@ -261,6 +284,9 @@ function CommandPalette() {
                               onClick={() => runCommand(item.onRun)}
                               className="px-3"
                             >
+                              {item.icon && (
+                                <item.icon className="size-4 text-muted-foreground" />
+                              )}
                               <span className="flex-1">{item.label}</span>
                               {item.badge && (
                                 <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">

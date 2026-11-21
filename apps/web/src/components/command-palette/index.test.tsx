@@ -69,7 +69,7 @@ describe("CommandPalette", () => {
     openPalette();
 
     fireEvent.click(
-      await screen.findByText("navigation:commandPalette.members"),
+      await screen.findByText("navigation:commandPalette.go.members"),
     );
 
     expect(m.navigate).toHaveBeenCalledWith({
@@ -83,7 +83,7 @@ describe("CommandPalette", () => {
     openPalette();
 
     fireEvent.click(
-      await screen.findByText("navigation:commandPalette.members"),
+      await screen.findByText("navigation:commandPalette.go.members"),
     );
 
     expect(m.navigate).not.toHaveBeenCalled();

@@ -2843,19 +2843,28 @@
 	},
 	"navigation": {
 		"commandPalette": {
+			"issues": "Issues",
+			"navigation": "Navigation",
+			"go": {
+				"inbox": "Go to inbox",
+				"my-issues": "Go to my issues",
+				"projects": "Go to projects",
+				"members": "Go to members",
+				"settings": "Go to settings"
+			},
 			"suggestions": "Suggestions",
 			"commands": "Commands",
 			"projects": "Projects",
 			"search": "Search",
 			"members": "Members",
-			"createTask": "Create issue",
-			"createProject": "Create project",
+			"createTask": "Create new issue…",
+			"createProject": "Create new project…",
 			"createWorkspace": "Create workspace",
 			"lightTheme": "Light theme",
 			"darkTheme": "Dark theme",
 			"systemTheme": "System theme",
 			"keyboardShortcuts": "Keyboard shortcuts",
-			"inputPlaceholder": "Search for apps and commands...",
+			"inputPlaceholder": "Type a command or search…",
 			"empty": "No results found.",
 			"footer": {
 				"navigate": "Navigate",
