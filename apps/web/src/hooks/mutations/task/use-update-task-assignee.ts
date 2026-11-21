@@ -2,6 +2,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { invalidateMyWork } from "@/lib/invalidate-my-work";
 import updateTaskAssignee from "@/fetchers/task/update-task-assignee";
 import { isPerTaskRelationQuery } from "@/lib/relation-query-keys";
+import {
+  applyOptimisticBoardPatch,
+  rollbackOptimisticBoardPatch,
+} from "@/lib/optimistic-board-task";
 import type Task from "@/types/task";
 
 export function useUpdateTaskAssignee() {
@@ -9,6 +13,23 @@ export function useUpdateTaskAssignee() {
 
   return useMutation({
     mutationFn: (task: Task) => updateTaskAssignee(task.id, task),
+    onMutate: (task: Task) => {
+      const member = queryClient
+        .getQueriesData<
+          { id: string; name?: string | null; image?: string | null }[]
+        >({
+          queryKey: ["workspace-users"],
+        })
+        .flatMap(([, members]) => members ?? [])
+        .find((m) => m.id === task.userId);
+      return applyOptimisticBoardPatch(queryClient, task, {
+        userId: task.userId,
+        assigneeName: member?.name ?? null,
+        assigneeImage: member?.image ?? null,
+      });
+    },
+    onError: (_error, _task, context) =>
+      rollbackOptimisticBoardPatch(queryClient, context),
     onSuccess: (_, variables) => {
       invalidateMyWork(queryClient);
       queryClient.invalidateQueries({

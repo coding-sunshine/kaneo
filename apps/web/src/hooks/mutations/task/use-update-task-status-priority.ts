@@ -5,6 +5,10 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { invalidateMyWork } from "@/lib/invalidate-my-work";
 import updateTaskPriority from "@/fetchers/task/update-task-priority";
+import {
+  applyOptimisticBoardPatch,
+  rollbackOptimisticBoardPatch,
+} from "@/lib/optimistic-board-task";
 import type Task from "@/types/task";
 import { updateBoardTaskCache } from "@/lib/update-board-task-cache";
 
@@ -13,12 +17,18 @@ export function useUpdateTaskPriority() {
 
   return useMutation({
     mutationFn: (task: Task) => updateTaskPriority(task.id, task),
-    onMutate: (task: Task) => {
+    onMutate: async (task: Task) => {
       markBoardCacheChanged(queryClient, task.projectId, task.id);
+      const rollback = await applyOptimisticBoardPatch(queryClient, task, {
+        priority: task.priority,
+      });
       return {
+        ...rollback,
         version: getBoardCacheVersion(queryClient, task.projectId, task.id),
       };
     },
+    onError: (_error, _task, context) =>
+      rollbackOptimisticBoardPatch(queryClient, context),
     onSuccess: (updated, variables, context) => {
       invalidateMyWork(queryClient);
       queryClient.invalidateQueries({

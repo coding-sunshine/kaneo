@@ -2,6 +2,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { invalidateMyWork } from "@/lib/invalidate-my-work";
 import updateTaskStatus from "@/fetchers/task/update-task-status";
 import { isPerTaskRelationQuery } from "@/lib/relation-query-keys";
+import {
+  applyOptimisticBoardPatch,
+  rollbackOptimisticBoardPatch,
+} from "@/lib/optimistic-board-task";
 import type Task from "@/types/task";
 
 export function useUpdateTaskStatus() {
@@ -9,6 +13,10 @@ export function useUpdateTaskStatus() {
 
   return useMutation({
     mutationFn: (task: Task) => updateTaskStatus(task.id, task),
+    onMutate: (task: Task) =>
+      applyOptimisticBoardPatch(queryClient, task, { status: task.status }),
+    onError: (_error, _task, context) =>
+      rollbackOptimisticBoardPatch(queryClient, context),
     onSuccess: (_, variables) => {
       invalidateMyWork(queryClient);
       queryClient.invalidateQueries({
