@@ -15,8 +15,7 @@ import ListView from "@/components/list-view";
 import { useGetWorkProjects } from "@/hooks/queries/work-project/use-get-work-projects";
 import { useGetCycles } from "@/hooks/queries/cycle/use-get-cycles";
 import { cycleTitle } from "@/lib/cycle/cycle-label";
-import { groupProjectBy } from "@/lib/group-project";
-import type { GroupFn } from "@/lib/insights/compute-insights";
+import { useGroupFor } from "@/hooks/use-group-for";
 import { InsightsPanel } from "@/components/insights/insights-panel";
 import PageTitle from "@/components/page-title";
 import { BoardLoadError } from "@/components/project/board-load-error";
@@ -243,23 +242,7 @@ function RouteComponent() {
   const grouped = viewMode === "list" && groupBy !== "status";
   const { data: workProjects } = useGetWorkProjects(workspaceId);
   const { data: cycles } = useGetCycles(projectId);
-  const groupFor = useCallback<GroupFn>(
-    (source, by) =>
-      groupProjectBy(
-        source,
-        by,
-        (key) =>
-          key === "display.unassigned"
-            ? t("tasks:display.noAssignee")
-            : t(`tasks:${key}`),
-        (id) => workProjects?.find((item) => item.id === id)?.name,
-        (id) => {
-          const c = cycles?.find((item) => item.id === id);
-          return c ? cycleTitle(c) : undefined;
-        },
-      ),
-    [t, workProjects, cycles],
-  );
+  const groupFor = useGroupFor(workspaceId, cycles);
   const listProject = useMemo(
     () =>
       sortedProject && grouped

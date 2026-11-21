@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PanelRight } from "lucide-react";
+import { ChartColumn, PanelRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FavoriteStar } from "@/components/common/favorite-star";
@@ -8,11 +8,14 @@ import ListView from "@/components/list-view";
 import PageTitle from "@/components/page-title";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ViewDetailsPanel } from "@/components/views/view-details-panel";
+import { ViewInsights } from "@/components/views/view-insights";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import { useViews } from "@/hooks/queries/view/use-views";
 import { applyViewFilters } from "@/lib/apply-view-filters";
 import { cn } from "@/lib/cn";
+import { useShortcut } from "@/lib/shortcuts/use-shortcut";
+import { useUserPreferencesStore } from "@/store/user-preferences";
 import type { BoardFilters } from "@/hooks/use-task-filters";
 
 export const Route = createFileRoute(
@@ -43,7 +46,15 @@ function RouteComponent() {
   const { data: views, isSuccess } = useViews(workspaceId);
   const { data: projects = [] } = useGetProjects({ workspaceId });
   const [panelOpen, setPanelOpen] = useState(true);
+  // Insights and view details share the right sidebar; one shows at a time.
+  const insightsOpen = useUserPreferencesStore((state) => state.insightsOpen);
+  const setInsightsOpen = useUserPreferencesStore(
+    (state) => state.setInsightsOpen,
+  );
   const view = views?.find((item) => item.id === viewId);
+  useShortcut("toggleInsights", () => setInsightsOpen(!insightsOpen), {
+    enabled: !!view,
+  });
 
   if (isSuccess && !view) {
     return (
@@ -58,6 +69,7 @@ function RouteComponent() {
   const teams = view.projectId
     ? projects.filter((project) => project.id === view.projectId)
     : projects;
+  const detailsOpen = panelOpen && !insightsOpen;
 
   return (
     <>
@@ -73,13 +85,29 @@ function RouteComponent() {
           />
           <button
             type="button"
-            aria-pressed={panelOpen}
-            aria-label={t("navigation:views.toggleDetails")}
-            title={t("navigation:views.toggleDetails")}
-            onClick={() => setPanelOpen((open) => !open)}
+            aria-pressed={insightsOpen}
+            aria-label={t("tasks:insights.toggle")}
+            title={t("tasks:insights.toggle")}
+            onClick={() => setInsightsOpen(!insightsOpen)}
             className={cn(
               "ml-auto inline-flex size-7 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring",
-              panelOpen && "bg-accent text-foreground",
+              insightsOpen && "bg-accent text-foreground",
+            )}
+          >
+            <ChartColumn className="size-4" />
+          </button>
+          <button
+            type="button"
+            aria-pressed={detailsOpen}
+            aria-label={t("navigation:views.toggleDetails")}
+            title={t("navigation:views.toggleDetails")}
+            onClick={() => {
+              setInsightsOpen(false);
+              setPanelOpen(!detailsOpen);
+            }}
+            className={cn(
+              "inline-flex size-7 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring",
+              detailsOpen && "bg-accent text-foreground",
             )}
           >
             <PanelRight className="size-4" />
@@ -100,7 +128,14 @@ function RouteComponent() {
               </section>
             ))}
           </div>
-          {panelOpen && (
+          {insightsOpen && (
+            <ViewInsights
+              workspaceId={workspaceId}
+              teamIds={teams.map((team) => team.id)}
+              filters={filters}
+            />
+          )}
+          {detailsOpen && (
             <ViewDetailsPanel
               view={view}
               workspaceId={workspaceId}
