@@ -6,6 +6,7 @@ import {
   commentThreadSubscriptionTable,
   taskTable,
 } from "../../database/schema";
+import { createdIssuesByComment } from "../created-issues";
 import { groupReactions } from "../group-reactions";
 import { redactInaccessibleMoves } from "../redact-inaccessible-moves";
 import {
@@ -95,6 +96,8 @@ async function getActivitiesFromTaskId(
       : [],
   );
 
+  const createdIssuesFor = await createdIssuesByComment(commentIds, viewerId);
+
   const subscribedTo = await viewerThreadSubscriptions(
     taskId,
     viewerId,
@@ -106,6 +109,7 @@ async function getActivitiesFromTaskId(
     activities.map((x) => ({
       ...x,
       reactions: reactionsFor(x.id),
+      createdIssues: createdIssuesFor(x.id),
       subscribedToThread: subscribedTo.get(x.id) ?? null,
     })),
   );

@@ -1,6 +1,7 @@
 import { createId } from "@paralleldrive/cuid2";
 import { relations, sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
   customType,
   foreignKey,
@@ -956,6 +957,11 @@ export const taskTable = pgTable(
       onDelete: "set null",
       onUpdate: "cascade",
     }),
+    // The comment this issue was created from; Linear lists it under that comment.
+    sourceCommentId: text("source_comment_id").references(
+      (): AnyPgColumn => activityTable.id,
+      { onDelete: "set null", onUpdate: "cascade" },
+    ),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),
@@ -976,6 +982,7 @@ export const taskTable = pgTable(
     index("task_dueDate_idx").on(table.dueDate),
     index("task_assigneeId_idx").on(table.userId),
     index("task_columnId_idx").on(table.columnId),
+    index("task_sourceCommentId_idx").on(table.sourceCommentId),
     unique("task_project_number_unique").on(table.projectId, table.number),
   ],
 );

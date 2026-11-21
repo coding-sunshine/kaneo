@@ -26,6 +26,9 @@ import { formatDateTime, formatRelativeTime } from "@/lib/format";
 import { getInitials } from "@/lib/get-initials";
 import { toast } from "@/lib/toast";
 import CommentActions from "./comment-actions";
+import CommentCreatedIssues, {
+  type CreatedIssue,
+} from "./comment-created-issues";
 import CommentReactions from "./comment-reactions";
 import DeleteCommentDialog from "./delete-comment-dialog";
 import type { Reaction } from "./toggle-reaction";
@@ -64,6 +67,7 @@ type CommentCardProps = {
   threadSubscribed?: boolean | null;
   /** Marks the reply that resolved its thread. */
   isResolution?: boolean;
+  createdIssues?: CreatedIssue[];
   /** Replies in this root comment's thread; deleting it deletes them too. */
   replyCount?: number;
 };
@@ -82,6 +86,7 @@ export default function CommentCard({
   threadResolved = false,
   threadSubscribed = null,
   isResolution = false,
+  createdIssues = [],
   replyCount = 0,
 }: CommentCardProps) {
   const { t } = useTranslation();
@@ -317,7 +322,7 @@ export default function CommentCard({
                     variant === "reply"
                       ? "[&_.kaneo-comment-editor-content_.ProseMirror]:pl-10"
                       : "[&_.kaneo-comment-editor-content_.ProseMirror]:pl-3",
-                    reactions.length > 0
+                    reactions.length > 0 || createdIssues.length > 0
                       ? "[&_.kaneo-comment-editor-content_.ProseMirror]:pb-2"
                       : "[&_.kaneo-comment-editor-content_.ProseMirror]:pb-3.5",
                   )
@@ -328,6 +333,17 @@ export default function CommentCard({
             onCancelShortcut={isEditing ? handleCancel : undefined}
           />
         </div>
+
+        {createdIssues.length > 0 && !isEditing && (
+          <CommentCreatedIssues
+            issues={createdIssues}
+            className={cn(
+              "pr-3",
+              variant === "reply" ? "pl-9" : "pl-2",
+              reactions.length > 0 ? "pb-2" : "pb-3",
+            )}
+          />
+        )}
 
         {reactions.length > 0 && !isEditing && (
           <CommentReactions

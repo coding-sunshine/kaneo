@@ -31,6 +31,7 @@ import {
 import { assertCycleInProject } from "./update-task-cycle";
 import { assertTaskWorkProject } from "../../work-project/assert-task-work-project";
 import { claimTaskNumber } from "./claim-task-numbers";
+import { findSourceComment } from "./find-source-comment";
 import { nextTaskPosition } from "./next-task-position";
 import { subscribeUsers } from "./task-subscribers";
 
@@ -71,6 +72,7 @@ async function createTask({
   workProjectId,
   workProjectMilestoneId,
   cycleId,
+  sourceCommentId,
 }: {
   projectId: string;
   currentUserId: string;
@@ -87,6 +89,7 @@ async function createTask({
   workProjectId?: string | null;
   workProjectMilestoneId?: string | null;
   cycleId?: string | null;
+  sourceCommentId?: string;
 }) {
   const resolvedStatus = status || "to-do";
   const resolvedPriority = priority || "no-priority";
@@ -97,6 +100,13 @@ async function createTask({
   await assertValidTaskStatus(resolvedStatus, projectId);
   await assertTaskWorkProject(projectId, workProjectId, workProjectMilestoneId);
   await assertCycleInProject(projectId, cycleId);
+  const sourceComment = sourceCommentId
+    ? await findSourceComment(
+        sourceCommentId,
+        await getProjectWorkspaceId(projectId),
+        currentUserId,
+      )
+    : null;
 
   const allFields = await db
     .select()
@@ -189,6 +199,7 @@ async function createTask({
         workProjectId: workProjectId ?? null,
         workProjectMilestoneId: workProjectMilestoneId ?? null,
         cycleId: cycleId ?? null,
+        sourceCommentId: sourceComment ? sourceCommentId : null,
         title: title || "",
         status: resolvedStatus,
         columnId: column?.id ?? null,
@@ -270,6 +281,14 @@ async function createTask({
     type: "created",
     content: null,
   });
+  // The comment now lists this task, so its viewers refresh.
+  if (sourceComment)
+    await publishEvent("comment.updated", {
+      id: sourceCommentId,
+      taskId: sourceComment.taskId,
+      projectId: sourceComment.projectId,
+      userId: currentUserId,
+    });
 
   return {
     ...createdTask,

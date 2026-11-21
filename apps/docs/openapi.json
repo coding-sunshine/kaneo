@@ -1955,6 +1955,13 @@
                 },
                 "description": "Emoji reactions on a comment, in the order each emoji was first used."
               },
+              "createdIssues": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CommentCreatedIssue"
+                },
+                "description": "Tasks created from this comment that you can see, oldest first. Empty on events."
+              },
               "subscribedToThread": {
                 "type": [
                   "boolean",
@@ -1965,9 +1972,74 @@
             },
             "required": [
               "reactions",
+              "createdIssues",
               "subscribedToThread"
             ]
           }
+        ]
+      },
+      "CommentCreatedIssue": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "projectSlug": {
+            "type": "string"
+          },
+          "number": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "statusIcon": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isCompleted": {
+            "type": "boolean"
+          },
+          "isSubIssue": {
+            "type": "boolean",
+            "description": "Whether the task has a parent task."
+          },
+          "creatorId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "creatorName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "projectSlug",
+          "number",
+          "title",
+          "status",
+          "statusIcon",
+          "isCompleted",
+          "isSubIssue",
+          "creatorId",
+          "creatorName"
         ]
       },
       "Activity": {
@@ -13546,6 +13618,10 @@
                       "null"
                     ],
                     "description": "Cycle of the task's team the task belongs to."
+                  },
+                  "sourceCommentId": {
+                    "type": "string",
+                    "description": "The comment the task is created from. The comment lists the task under its body."
                   },
                   "customFields": {
                     "type": "array",

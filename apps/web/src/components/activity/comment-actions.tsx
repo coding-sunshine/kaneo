@@ -89,7 +89,10 @@ export default function CommentActions({
   const openWithDraft = useCreateIssueStore((state) => state.openWithDraft);
   const canCreateIssue = Boolean(task) && canCreateTasks();
   const newIssue = (variant: "related" | "parent") => {
-    if (task) openWithDraft(buildIssueDraft(variant, task, content));
+    if (task)
+      openWithDraft(
+        buildIssueDraft(variant, task, { id: commentId, markdown: content }),
+      );
   };
 
   const copy = async (text: string, message: string) => {

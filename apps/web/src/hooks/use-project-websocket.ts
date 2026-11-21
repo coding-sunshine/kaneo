@@ -107,6 +107,10 @@ export function useProjectWebSocket(projectId: string) {
             queryKey: ["task-relations", message.sourceTaskId],
             refetchType: "all",
           });
+          // A comment lists an issue made from it as a sub-issue once linked.
+          queryClient.invalidateQueries({
+            queryKey: ["activities", message.sourceTaskId],
+          });
         }
         if (message.targetTaskId) {
           queryClient.invalidateQueries({

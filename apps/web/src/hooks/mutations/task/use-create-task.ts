@@ -24,6 +24,7 @@ function useCreateTask() {
       workProjectId,
       workProjectMilestoneId,
       cycleId,
+      sourceCommentId,
     }: CreateTaskRequest) =>
       createTask(
         title,
@@ -39,6 +40,7 @@ function useCreateTask() {
         recurrence,
         { workProjectId, workProjectMilestoneId },
         cycleId,
+        sourceCommentId,
       ),
     onSuccess: (_data, variables) => {
       invalidateMyWork(queryClient);
@@ -53,6 +55,9 @@ function useCreateTask() {
       void queryClient.invalidateQueries({
         queryKey: ["custom-field-values", variables.projectId],
       });
+      // The source comment now lists the new issue.
+      if (variables.sourceCommentId)
+        void queryClient.invalidateQueries({ queryKey: ["activities"] });
     },
   });
 }

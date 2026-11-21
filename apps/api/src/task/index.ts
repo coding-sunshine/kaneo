@@ -1201,6 +1201,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       workProjectId: c.req.valid("json").workProjectId,
       workProjectMilestoneId: c.req.valid("json").workProjectMilestoneId,
       cycleId: c.req.valid("json").cycleId,
+      sourceCommentId: c.req.valid("json").sourceCommentId,
     });
 
     return c.json(task, 200);

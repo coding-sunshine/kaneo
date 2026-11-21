@@ -107,6 +107,10 @@ export const createTaskBody = z.object({
   cycleId: z.string().nullable().optional().openapi({
     description: "Cycle of the task's team the task belongs to.",
   }),
+  sourceCommentId: z.string().optional().openapi({
+    description:
+      "The comment the task is created from. The comment lists the task under its body.",
+  }),
   customFields: z
     .array(z.object({ fieldId: z.string(), value: z.string() }))
     .optional(),

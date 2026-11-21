@@ -128,6 +128,7 @@ describe("CommentActions", () => {
           workProjectId: "wp1",
           workProjectMilestoneId: "m1",
           link: { taskId: "t1", type },
+          sourceCommentId: "c1",
         },
       });
       cleanup();

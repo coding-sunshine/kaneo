@@ -595,6 +595,7 @@ function CreateTaskModalContent({
           workProjectId: workProjectId ?? undefined,
           workProjectMilestoneId: workProjectMilestoneId ?? undefined,
           cycleId: validCycleId ?? undefined,
+          sourceCommentId: prefill?.sourceCommentId,
           status: submitStatus,
           draftAssetIds: stagedAssetsRef.current.filter((id) =>
             description.includes(`/asset/${id}`),

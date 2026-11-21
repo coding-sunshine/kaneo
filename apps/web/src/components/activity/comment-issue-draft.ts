@@ -17,13 +17,14 @@ export function buildIssueDraft(
     Task,
     "id" | "projectId" | "workProjectId" | "workProjectMilestoneId"
   >,
-  commentMarkdown: string,
+  comment: { id: string; markdown: string },
 ): CreateIssueDraft {
   return {
     projectId: task.projectId,
-    description: quoteMarkdown(commentMarkdown),
+    description: quoteMarkdown(comment.markdown),
     workProjectId: task.workProjectId,
     workProjectMilestoneId: task.workProjectMilestoneId,
     link: { taskId: task.id, type: variant },
+    sourceCommentId: comment.id,
   };
 }

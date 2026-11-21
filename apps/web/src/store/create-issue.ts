@@ -8,6 +8,8 @@ export type CreateIssueDraft = {
   workProjectMilestoneId?: string | null;
   /** The issue the comment is on; "parent" makes it the new issue's parent. */
   link?: { taskId: string; type: "related" | "parent" };
+  /** The comment the issue is made from; it then lists the issue. */
+  sourceCommentId?: string;
 };
 
 // Lets any "New issue" button open the global create modal owned by the command palette.

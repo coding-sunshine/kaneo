@@ -8,6 +8,7 @@ import { useShortcut } from "@/lib/shortcuts/use-shortcut";
 import { cn } from "@/lib/cn";
 import { getInitials } from "@/lib/get-initials";
 import CommentCard from "./comment-card";
+import type { CreatedIssue } from "./comment-created-issues";
 import { commentAuthor } from "./comment-author";
 import ReplyComposer from "./reply-composer";
 import {
@@ -32,6 +33,7 @@ export type ThreadComment = {
   resolvingCommentId?: string | null;
   subscribedToThread?: boolean | null;
   reactions?: Reaction[];
+  createdIssues?: CreatedIssue[];
 };
 
 type CommentThreadProps = {
@@ -131,6 +133,7 @@ export default function CommentThread({ root, replies }: CommentThreadProps) {
         externalSource={comment.externalSource}
         externalUrl={comment.externalUrl}
         reactions={comment.reactions}
+        createdIssues={comment.createdIssues}
         threadResolved={resolved}
         threadSubscribed={root.subscribedToThread ?? null}
         isResolution={resolved && comment.id === root.resolvingCommentId}

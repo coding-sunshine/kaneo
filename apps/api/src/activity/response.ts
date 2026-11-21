@@ -49,6 +49,30 @@ export const activityListSchema = z.array(
           description:
             "Emoji reactions on a comment, in the order each emoji was first used.",
         }),
+      createdIssues: z
+        .array(
+          z
+            .object({
+              id: z.string(),
+              projectId: z.string(),
+              projectSlug: z.string(),
+              number: z.number().nullable(),
+              title: z.string(),
+              status: z.string(),
+              statusIcon: z.string().nullable(),
+              isCompleted: z.boolean(),
+              isSubIssue: z.boolean().openapi({
+                description: "Whether the task has a parent task.",
+              }),
+              creatorId: z.string().nullable(),
+              creatorName: z.string().nullable(),
+            })
+            .openapi("CommentCreatedIssue"),
+        )
+        .openapi({
+          description:
+            "Tasks created from this comment that you can see, oldest first. Empty on events.",
+        }),
       subscribedToThread: z.boolean().nullable().openapi({
         description:
           "Whether you follow this comment's thread. Set on top-level comments only; null on replies and events.",

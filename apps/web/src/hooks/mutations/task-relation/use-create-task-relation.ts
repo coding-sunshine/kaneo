@@ -25,6 +25,10 @@ function useCreateTaskRelation() {
       queryClient.invalidateQueries({
         queryKey: ["task-relations", "project"],
       });
+      // A comment on the parent lists an issue made from it as a sub-issue.
+      queryClient.invalidateQueries({
+        queryKey: ["activities", variables.sourceTaskId],
+      });
     },
   });
 }

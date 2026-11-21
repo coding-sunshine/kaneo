@@ -3361,7 +3361,13 @@
 			"foldedReplies_other": "{{count}} comments from {{names}}",
 			"otherAuthors": "{{count}} others",
 			"collapse": "Collapse",
-			"collapseThread": "Collapse thread"
+			"collapseThread": "Collapse thread",
+			"createdIssue": "<name>{{name}}</name> created issue",
+			"createdSubIssue": "<name>{{name}}</name> created sub-issue",
+			"createdIssues_one": "<name>{{name}}</name> created {{count}} issue",
+			"createdIssues_other": "<name>{{name}}</name> created {{count}} issues",
+			"createdSubIssues_one": "<name>{{name}}</name> created {{count}} sub-issue",
+			"createdSubIssues_other": "<name>{{name}}</name> created {{count}} sub-issues"
 		},
 		"reactions": {
 			"add": "Add reaction",
