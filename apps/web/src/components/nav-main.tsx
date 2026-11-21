@@ -5,6 +5,7 @@ import {
   CircleUserRound,
   Box,
   Inbox,
+  Layers2,
   type LucideIcon,
   Mail,
 } from "lucide-react";
@@ -103,12 +104,16 @@ export function NavMain() {
     });
   }
 
-  // Linear's Views and More have no Kaneo page yet (UX-47).
   const workspaceItems: NavItem[] = [
     {
       title: t("navigation:sidebar.projects"),
       icon: Box,
       url: `${homeUrl}/work-projects`,
+    },
+    {
+      title: t("navigation:sidebar.views"),
+      icon: Layers2,
+      url: `${homeUrl}/views`,
     },
   ];
 

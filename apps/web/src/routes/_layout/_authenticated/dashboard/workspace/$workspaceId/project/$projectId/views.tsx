@@ -1,10 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Layers2, Plus } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import ProjectLayout from "@/components/common/project-layout";
 import PageTitle from "@/components/page-title";
 import { SaveViewDialog } from "@/components/views/save-view-dialog";
+import { ViewList } from "@/components/views/view-list";
 import { Button } from "@/components/ui/button";
 import { useViews } from "@/hooks/queries/view/use-views";
 
@@ -38,39 +39,7 @@ function RouteComponent() {
             {t("navigation:views.newView")}
           </Button>
         </div>
-        {visible.length === 0 ? (
-          <div className="flex flex-col items-center gap-1 py-16 text-center">
-            <p className="text-sm font-medium">{t("navigation:views.empty")}</p>
-            <p className="text-sm text-muted-foreground">
-              {t("navigation:views.emptyHint")}
-            </p>
-          </div>
-        ) : (
-          <ul className="flex flex-col">
-            {visible.map((view) => (
-              <li key={view.id}>
-                <Link
-                  to="/dashboard/workspace/$workspaceId/views/$viewId"
-                  params={{ workspaceId, viewId: view.id }}
-                  className="flex h-11 items-center gap-3 border-border/60 border-b px-4 text-[13px] hover:bg-accent/50"
-                >
-                  <Layers2 className="size-4 text-muted-foreground" />
-                  <span className="min-w-0 flex-1 truncate font-medium">
-                    {view.name}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {view.projectId === null
-                      ? t("navigation:views.scopeWorkspace")
-                      : t("navigation:views.scopeTeam")}
-                  </span>
-                  <span className="w-32 truncate text-right text-muted-foreground">
-                    {view.ownerName}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+        <ViewList workspaceId={workspaceId} views={visible} />
       </ProjectLayout>
       <SaveViewDialog
         open={saving}
