@@ -26,7 +26,10 @@ import {
   useLocation,
   useNavigate,
   useParams,
+  useRouterState,
 } from "@tanstack/react-router";
+import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
+import { triageTasks } from "@/lib/status-category";
 import {
   ChevronRight,
   Folder,
@@ -410,41 +413,11 @@ export function NavProjects() {
                             </DropdownMenuContent>
                           </DropdownMenu>
                           {isCurrentProject(project.id) && (
-                            <SidebarMenuSub className="mt-0.5 mb-1">
-                              {(
-                                [
-                                  ["issues", "board", undefined],
-                                  ["active", "board", "active"],
-                                  ["backlog", "backlog", undefined],
-                                ] as const
-                              ).map(([key, route, view]) => (
-                                <SidebarMenuSubItem key={key}>
-                                  <SidebarMenuSubButton
-                                    size="md"
-                                    isActive={
-                                      key === "backlog"
-                                        ? pathname.endsWith("/backlog")
-                                        : key === "issues" &&
-                                          pathname.endsWith("/board")
-                                    }
-                                    render={
-                                      <Link
-                                        to={`/dashboard/workspace/$workspaceId/project/$projectId/${route}`}
-                                        params={{
-                                          workspaceId: workspace.id,
-                                          projectId: project.id,
-                                        }}
-                                        search={view ? { view } : {}}
-                                      />
-                                    }
-                                  >
-                                    <span>
-                                      {t(`navigation:sidebar.${key}`)}
-                                    </span>
-                                  </SidebarMenuSubButton>
-                                </SidebarMenuSubItem>
-                              ))}
-                            </SidebarMenuSub>
+                            <ProjectSubNav
+                              workspaceId={workspace.id}
+                              projectId={project.id}
+                              pathname={pathname}
+                            />
                           )}
                         </SortableProjectItem>
                       );
@@ -522,5 +495,72 @@ export function NavProjects() {
         </AlertDialogContent>
       </AlertDialog>
     </>
+  );
+}
+
+const ISSUE_TABS = ["all", "active", "backlog"] as const;
+
+function ProjectSubNav({
+  workspaceId,
+  projectId,
+  pathname,
+}: {
+  workspaceId: string;
+  projectId: string;
+  pathname: string;
+}) {
+  const { t } = useTranslation();
+  const { data } = useGetTasks(projectId, { refetchOnMount: false });
+  const view = useRouterState({
+    select: (state) => (state.location.search as { view?: string }).view,
+  });
+  const triageCount = data ? triageTasks(data).length : 0;
+  const onBoard = pathname.endsWith("/board");
+
+  return (
+    <SidebarMenuSub className="mt-0.5 mb-1">
+      <SidebarMenuSubItem>
+        <SidebarMenuSubButton
+          size="md"
+          isActive={pathname.endsWith("/triage")}
+          render={
+            <Link
+              to="/dashboard/workspace/$workspaceId/project/$projectId/triage"
+              params={{ workspaceId, projectId }}
+            />
+          }
+        >
+          <span>{t("navigation:sidebar.triage")}</span>
+          {triageCount > 0 && (
+            <span className="ml-auto text-muted-foreground text-xs tabular-nums">
+              {triageCount}
+            </span>
+          )}
+        </SidebarMenuSubButton>
+      </SidebarMenuSubItem>
+      {ISSUE_TABS.map((tab) => (
+        <SidebarMenuSubItem key={tab}>
+          <SidebarMenuSubButton
+            size="md"
+            isActive={onBoard && (view ?? "all") === tab}
+            render={
+              <Link
+                to="/dashboard/workspace/$workspaceId/project/$projectId/board"
+                params={{ workspaceId, projectId }}
+                search={tab === "all" ? {} : { view: tab }}
+              />
+            }
+          >
+            <span>
+              {t(
+                tab === "all"
+                  ? "navigation:sidebar.issues"
+                  : `navigation:sidebar.${tab}`,
+              )}
+            </span>
+          </SidebarMenuSubButton>
+        </SidebarMenuSubItem>
+      ))}
+    </SidebarMenuSub>
   );
 }

@@ -2874,6 +2874,8 @@
 			"myTasks": "My tasks",
 			"invitePeople": "Invite people",
 			"issues": "Issues",
+			"allIssues": "All issues",
+			"triage": "Triage",
 			"active": "Active",
 			"backlog": "Backlog"
 		},
@@ -3258,6 +3260,26 @@
 			"high": "High",
 			"urgent": "Urgent"
 		},
+		"triage": {
+			"title": "Triage",
+			"accept": "Accept",
+			"duplicate": "Mark as duplicate",
+			"decline": "Decline",
+			"snooze": "Snooze",
+			"empty": "Nothing to triage",
+			"emptyDescription": "New issues from the team show up here for review.",
+			"accepted": "Moved to Backlog",
+			"declined": "Declined",
+			"duplicated": "Marked as duplicate of {{key}}",
+			"snoozed": "Snoozed until {{date}}",
+			"snoozeFor": {
+				"day": "Tomorrow",
+				"threeDays": "In 3 days",
+				"week": "In a week"
+			},
+			"duplicateOf": "Duplicate of...",
+			"searchIssues": "Search issues..."
+		},
 		"view": {
 			"board": "Board",
 			"list": "List",
@@ -3419,6 +3441,8 @@
 			"noTasksFound": "No tasks found",
 			"openTask": "Open task",
 			"removeRelation": "Remove relation",
+			"duplicateOf": "Duplicate of",
+			"duplicatedBy": "Duplicated by",
 			"related": "Related",
 			"blocks": "Blocks",
 			"selectTask": "Select a task to link",

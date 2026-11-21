@@ -18,11 +18,11 @@ import { LayoutSwitch } from "@/components/project/views/layout-switch";
 import CreateTaskModal from "@/components/shared/modals/create-task-modal";
 import TaskDetailsSheet from "@/components/task/task-details-sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import useGetLabelsByWorkspace from "@/hooks/queries/label/use-get-labels-by-workspace";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
 import { useBoardSort } from "@/hooks/use-board-sort";
 import { cn } from "@/lib/cn";
 import { sortTasks } from "@/lib/sort-tasks";
+import { scopeProjectToView } from "@/lib/status-category";
 import { countColumnTasks } from "@/lib/task-filters/count-tasks";
 import { useBackgroundStore } from "@/store/background";
 import useProjectStore from "@/store/project";
@@ -31,7 +31,7 @@ import type { ProjectWithTasks } from "@/types/project";
 
 type BoardSearchParams = {
   taskId?: string;
-  view?: "active";
+  view?: "active" | "backlog";
 };
 
 export const Route = createFileRoute(
@@ -40,7 +40,10 @@ export const Route = createFileRoute(
   component: RouteComponent,
   validateSearch: (search: Record<string, unknown>): BoardSearchParams => ({
     taskId: typeof search.taskId === "string" ? search.taskId : undefined,
-    view: search.view === "active" ? "active" : undefined,
+    view:
+      search.view === "active" || search.view === "backlog"
+        ? search.view
+        : undefined,
   }),
 });
 
@@ -98,8 +101,12 @@ function RouteComponent() {
     refetch: retryBoard,
   } = useGetTasks(projectId);
   const { project: storedProject, setProject } = useProjectStore();
-  const project: ProjectWithTasks | undefined =
+  const fullProject: ProjectWithTasks | undefined =
     storedProject?.id === projectId ? storedProject : data;
+  const project = useMemo(
+    () => fullProject && scopeProjectToView(fullProject, presetView ?? "all"),
+    [fullProject, presetView],
+  );
   const viewMode = useUserPreferencesStore((state) => state.viewMode);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const { sort, setSort } = useBoardSort(projectId);
@@ -115,23 +122,10 @@ function RouteComponent() {
   const handleCloseTaskSheet = useCallback(() => {
     navigate({
       to: ".",
-      search: {},
+      search: { view: presetView },
       replace: true,
     });
-  }, [navigate]);
-
-  // "Active" preset: filter to the current-cycle label, then drop the param so
-  // the filter bar owns the state.
-  const { data: workspaceLabels } = useGetLabelsByWorkspace(workspaceId);
-  const cycleLabelId = workspaceLabels?.find(
-    (label) => label.name.toLowerCase() === "cycle: current",
-  )?.id;
-  const { updateFilter } = filters;
-  useEffect(() => {
-    if (presetView !== "active" || !cycleLabelId) return;
-    updateFilter("labels", [cycleLabelId]);
-    navigate({ to: ".", search: {}, replace: true });
-  }, [presetView, cycleLabelId, updateFilter, navigate]);
+  }, [navigate, presetView]);
 
   useEffect(() => {
     if (data) {

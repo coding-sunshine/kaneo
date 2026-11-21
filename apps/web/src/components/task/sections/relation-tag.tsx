@@ -1,8 +1,13 @@
-import { Ban, Link2, OctagonAlert } from "lucide-react";
+import { Ban, Copy, Link2, OctagonAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/cn";
 
-export type RelationKind = "blocked_by" | "blocks" | "related";
+export type RelationKind =
+  | "blocked_by"
+  | "blocks"
+  | "related"
+  | "duplicate_of"
+  | "duplicated_by";
 
 const tones = {
   blocked_by: {
@@ -19,6 +24,16 @@ const tones = {
     className: "bg-accent text-muted-foreground",
     icon: Link2,
     labelKey: "tasks:relations.related",
+  },
+  duplicate_of: {
+    className: "bg-accent text-muted-foreground",
+    icon: Copy,
+    labelKey: "tasks:relations.duplicateOf",
+  },
+  duplicated_by: {
+    className: "bg-accent text-muted-foreground",
+    icon: Copy,
+    labelKey: "tasks:relations.duplicatedBy",
   },
 } as const;
 

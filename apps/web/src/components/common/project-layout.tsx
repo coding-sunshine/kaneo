@@ -155,8 +155,7 @@ export default function ProjectLayout({
               <ProjectScopeToggle
                 workspaceId={workspaceId}
                 projectId={projectId}
-                currentView={currentView}
-                onSelect={goToView}
+                highlight={resolvedRoute === "board"}
               />
             )}
             {summary}
