@@ -56,6 +56,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
 import { useGetColumns } from "@/hooks/queries/column/use-get-columns";
 import { getColumnIcon } from "@/lib/column";
 import { getStatusDisplayLabel } from "@/lib/i18n/domain";
@@ -788,7 +789,6 @@ function CreateTaskModalContent({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className="kaneo-create-task-modal max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
-        showCloseButton={false}
         instant={instant}
       >
         <DialogHeader className="flex-shrink-0">
@@ -945,41 +945,6 @@ function CreateTaskModalContent({
                 </div>
               )}
 
-              <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className={cn(
-                      "flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors border border-border hover:bg-accent/50",
-                      startDate
-                        ? "bg-accent/30 text-foreground"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    <CalendarIcon className="w-3.5 h-3.5" />
-                    <span>
-                      {startDate
-                        ? formatDateMedium(startDate)
-                        : t("common:modals.createTask.startDate")}
-                    </span>
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-65 p-0" align="start">
-                  <DatePickerMenu
-                    label={t("common:modals.createTask.startDate")}
-                    placeholder={t("tasks:datePicker.startDatePlaceholder")}
-                    clearLabel={t("common:modals.createTask.clearStartDate")}
-                    value={startDate ?? null}
-                    onChange={(date) => {
-                      setStartDate(date ?? undefined);
-                      setStartDateOpen(false);
-                    }}
-                    bounds={dueDate ? { after: dueDate } : undefined}
-                    formatLimit={(date) => t("tasks:due.fullDate", { date })}
-                  />
-                </PopoverContent>
-              </Popover>
-
               <Popover open={priorityOpen} onOpenChange={setPriorityOpen}>
                 <PopoverTrigger asChild>
                   <button
@@ -1021,16 +986,6 @@ function CreateTaskModalContent({
                   </div>
                 </PopoverContent>
               </Popover>
-
-              <CreateTaskWorkProjectPicker
-                workspaceId={workspace?.id ?? ""}
-                workProjectId={workProjectId}
-                milestoneId={workProjectMilestoneId}
-                onChange={(projectId, milestoneId) => {
-                  setWorkProjectId(projectId);
-                  setWorkProjectMilestoneId(milestoneId);
-                }}
-              />
 
               <Popover open={assigneeOpen} onOpenChange={setAssigneeOpen}>
                 <PopoverTrigger asChild>
@@ -1118,43 +1073,15 @@ function CreateTaskModalContent({
                 </PopoverContent>
               </Popover>
 
-              <Popover open={dueDateOpen} onOpenChange={setDueDateOpen}>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className={cn(
-                      "flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors border border-border hover:bg-accent/50",
-                      dueDate || recurrence
-                        ? "bg-accent/30 text-foreground"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    <CalendarIcon className="w-3.5 h-3.5" />
-                    <span>
-                      {dueDate
-                        ? formatDateMedium(dueDate)
-                        : t("common:modals.createTask.dueDate")}
-                    </span>
-                    <TaskRecurrenceBadge task={{ recurrence }} asText />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-65 p-0" align="start">
-                  <TaskDueDatePicker
-                    label={t("common:modals.createTask.dueDate")}
-                    clearLabel={t("tasks:popover.dueDate.clear")}
-                    dueDate={dueDate ?? null}
-                    startDate={startDate}
-                    recurrence={recurrence}
-                    onDateChange={(date) => {
-                      setDueDate(date ?? undefined);
-                      // Keep a repeating task's picker open to show its upcoming dates.
-                      if (!recurrence || !date) setDueDateOpen(false);
-                    }}
-                    onRecurrenceChange={setRecurrence}
-                    canSetRecurrence={canSetRecurrence}
-                  />
-                </PopoverContent>
-              </Popover>
+              <CreateTaskWorkProjectPicker
+                workspaceId={workspace?.id ?? ""}
+                workProjectId={workProjectId}
+                milestoneId={workProjectMilestoneId}
+                onChange={(projectId, milestoneId) => {
+                  setWorkProjectId(projectId);
+                  setWorkProjectMilestoneId(milestoneId);
+                }}
+              />
 
               <Popover open={labelsOpen} onOpenChange={setLabelsOpen}>
                 <PopoverTrigger asChild>
@@ -1294,6 +1221,79 @@ function CreateTaskModalContent({
                   )}
                 </PopoverContent>
               </Popover>
+
+              <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors border border-border hover:bg-accent/50",
+                      startDate
+                        ? "bg-accent/30 text-foreground"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    <CalendarIcon className="w-3.5 h-3.5" />
+                    <span>
+                      {startDate
+                        ? formatDateMedium(startDate)
+                        : t("common:modals.createTask.startDate")}
+                    </span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-65 p-0" align="start">
+                  <DatePickerMenu
+                    label={t("common:modals.createTask.startDate")}
+                    placeholder={t("tasks:datePicker.startDatePlaceholder")}
+                    clearLabel={t("common:modals.createTask.clearStartDate")}
+                    value={startDate ?? null}
+                    onChange={(date) => {
+                      setStartDate(date ?? undefined);
+                      setStartDateOpen(false);
+                    }}
+                    bounds={dueDate ? { after: dueDate } : undefined}
+                    formatLimit={(date) => t("tasks:due.fullDate", { date })}
+                  />
+                </PopoverContent>
+              </Popover>
+
+              <Popover open={dueDateOpen} onOpenChange={setDueDateOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors border border-border hover:bg-accent/50",
+                      dueDate || recurrence
+                        ? "bg-accent/30 text-foreground"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    <CalendarIcon className="w-3.5 h-3.5" />
+                    <span>
+                      {dueDate
+                        ? formatDateMedium(dueDate)
+                        : t("common:modals.createTask.dueDate")}
+                    </span>
+                    <TaskRecurrenceBadge task={{ recurrence }} asText />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-65 p-0" align="start">
+                  <TaskDueDatePicker
+                    label={t("common:modals.createTask.dueDate")}
+                    clearLabel={t("tasks:popover.dueDate.clear")}
+                    dueDate={dueDate ?? null}
+                    startDate={startDate}
+                    recurrence={recurrence}
+                    onDateChange={(date) => {
+                      setDueDate(date ?? undefined);
+                      // Keep a repeating task's picker open to show its upcoming dates.
+                      if (!recurrence || !date) setDueDateOpen(false);
+                    }}
+                    onRecurrenceChange={setRecurrence}
+                    canSetRecurrence={canSetRecurrence}
+                  />
+                </PopoverContent>
+              </Popover>
               {customFields.length > 0 && (
                 <div className="flex w-full flex-wrap items-center gap-2">
                   {customFields.map((field) => (
@@ -1334,11 +1334,10 @@ function CreateTaskModalContent({
           <DialogFooter className="flex-shrink-0 border-t border-border bg-background px-6 py-4">
             <div className="flex items-center gap-3 mr-auto">
               <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
-                <input
-                  type="checkbox"
+                <Switch
                   checked={createMore}
-                  onChange={(e) => setCreateMore(e.target.checked)}
-                  className="rounded border-border bg-background text-primary focus:ring-ring focus:ring-offset-0 focus:ring-2 transition-[border-color,box-shadow]"
+                  onCheckedChange={setCreateMore}
+                  className="[--thumb-size:--spacing(4)]"
                 />
                 {t("common:modals.createTask.createMore")}
               </label>
@@ -1355,15 +1354,6 @@ function CreateTaskModalContent({
                 })}
               </p>
             )}
-            <Button
-              type="button"
-              onClick={() => handleOpenChange(false)}
-              variant="outline"
-              size="sm"
-              className="border-border text-foreground hover:bg-accent"
-            >
-              {t("common:actions.cancel")}
-            </Button>
             <Button
               type="submit"
               disabled={
