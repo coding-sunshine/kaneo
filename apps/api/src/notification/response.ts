@@ -1,4 +1,4 @@
-import { responseTimestamp, z } from "../openapi";
+import { nullableResponseTimestamp, responseTimestamp, z } from "../openapi";
 
 export const notificationSchema = z
   .object({
@@ -18,6 +18,10 @@ export const notificationSchema = z
         "Type-specific payload, e.g. { taskTitle, oldStatus, newStatus, projectId, workspaceId }.",
     }),
     isRead: z.boolean().nullable(),
+    snoozedUntil: nullableResponseTimestamp.openapi({
+      description:
+        "Hidden from the inbox until this time. Null when not snoozed.",
+    }),
     resourceId: z.string().nullable().openapi({
       description:
         "The id of the task or workspace the notification points at.",

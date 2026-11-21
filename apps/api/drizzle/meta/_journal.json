@@ -540,6 +540,13 @@
       "when": 1795241543343,
       "tag": "0076_work_projects",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1795241544343,
+      "tag": "0077_notification_snooze",
+      "breakpoints": true
     }
   ]
 }

@@ -13,6 +13,7 @@ import createNotification from "./controllers/create-notification";
 import deleteNotification from "./controllers/delete-notification";
 import getNotifications from "./controllers/get-notifications";
 import markAllNotificationsAsRead from "./controllers/mark-all-notifications-as-read";
+import snoozeNotification from "./controllers/snooze-notification";
 import setNotificationRead from "./controllers/set-notification-read";
 import {
   bulkResultSchema,
@@ -23,6 +24,7 @@ import {
   createNotificationBody,
   notificationParam,
   notificationWorkspaceQuery,
+  snoozeNotificationBody,
 } from "./schema";
 
 const listNotificationsRoute = createRoute({
@@ -86,6 +88,27 @@ const markAsUnreadRoute = createRoute({
   description:
     "Mark one notification as unread again. Only the current user's notifications with current resource read permission and API key scope are accessible.",
   request: { params: notificationParam },
+  responses: {
+    200: jsonResponse("The updated notification", notificationSchema),
+    404: errorResponse("Notification not found"),
+  },
+});
+
+const snoozeRoute = createRoute({
+  method: "patch",
+  operationId: "snoozeNotification",
+  path: "/{id}/snooze",
+  tags: ["Notifications"],
+  summary: "Snooze notification",
+  description:
+    "Hide one notification from the inbox until the given time, or pass null to unsnooze it.",
+  request: {
+    params: notificationParam,
+    body: {
+      required: true,
+      content: { "application/json": { schema: snoozeNotificationBody } },
+    },
+  },
   responses: {
     200: jsonResponse("The updated notification", notificationSchema),
     404: errorResponse("Notification not found"),
@@ -204,6 +227,18 @@ const notification = apiRouter()
       200,
     ),
   )
+  .openapi(snoozeRoute, async (c) => {
+    const { until } = c.req.valid("json");
+    return c.json(
+      await snoozeNotification(
+        c.req.valid("param").id,
+        c.get("userId"),
+        until ? new Date(until) : null,
+        c.get("apiKey")?.permissions,
+      ),
+      200,
+    );
+  })
   .openapi(markAllAsReadRoute, async (c) =>
     c.json(
       await markAllNotificationsAsRead(

@@ -1,4 +1,11 @@
-import { CheckCheck, Inbox, Trash2 } from "lucide-react";
+import {
+  CheckCheck,
+  Ellipsis,
+  Inbox,
+  ListFilter,
+  SlidersHorizontal,
+  Trash2,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -11,17 +18,36 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Menu,
+  MenuCheckboxItem,
+  MenuGroupLabel,
+  MenuItem,
+  MenuPopup,
+  MenuRadioGroup,
+  MenuRadioItem,
+  MenuSeparator,
+  MenuShortcut,
+  MenuSub,
+  MenuSubPopup,
+  MenuSubTrigger,
+  MenuTrigger,
+} from "@/components/ui/menu";
 import useClearNotifications from "@/hooks/mutations/notification/use-clear-notifications";
+import useClearReadNotifications from "@/hooks/mutations/notification/use-clear-read-notifications";
 import useMarkAllNotificationsAsRead from "@/hooks/mutations/notification/use-mark-all-notifications-as-read";
 import { useLocalDay } from "@/hooks/use-local-day";
 import { cn } from "@/lib/cn";
+import { useInboxDisplayStore } from "@/store/inbox-display";
 import type { Notification } from "@/types/notification";
 import {
   filterNotifications,
   groupNotifications,
   type InboxFilter,
+  NOTIFICATION_TYPE_FILTERS,
 } from "./group-notifications";
 import { InboxListItem } from "./inbox-list-item";
+import { isSnoozed } from "./snooze";
 import { useInboxShortcuts } from "./use-inbox-shortcuts";
 
 type InboxListProps = {
@@ -44,17 +70,32 @@ export function InboxList({
   const { mutate: markAllAsRead } = useMarkAllNotificationsAsRead(workspaceId);
   const { mutate: clearAll } = useClearNotifications(workspaceId);
 
-  const unreadCount = notifications.filter(
-    (notification) => !notification.isRead,
-  ).length;
-  const { today, earlier } = useMemo(
+  const { mutate: clearRead } = useClearReadNotifications(workspaceId);
+  const display = useInboxDisplayStore();
+  const [types, setTypes] = useState<string[]>([]);
+
+  // Snoozed rows leave the inbox (and its unread count) until the snooze ends.
+  const visible = useMemo(
     () =>
-      groupNotifications(
-        filterNotifications(notifications, filter),
-        new Date(day),
+      notifications.filter(
+        (n) =>
+          (display.showSnoozed || !isSnoozed(n)) &&
+          (types.length === 0 || types.includes(n.type)),
       ),
-    [notifications, filter, day],
+    [notifications, display.showSnoozed, types],
   );
+  const unreadCount = visible.filter((n) => !n.isRead).length;
+  const { today, earlier } = useMemo(() => {
+    const sorted = [...filterNotifications(visible, filter)].sort(
+      (a, b) =>
+        (display.showUnreadFirst
+          ? Number(!!a.isRead) - Number(!!b.isRead)
+          : 0) ||
+        (display.ordering === "newest" ? -1 : 1) *
+          (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
+    );
+    return groupNotifications(sorted, new Date(day));
+  }, [visible, filter, day, display.ordering, display.showUnreadFirst]);
 
   const filters: Array<{ value: InboxFilter; label: string; count?: number }> =
     [
@@ -109,28 +150,136 @@ export function InboxList({
             </button>
           ))}
         </fieldset>
-        <div className="flex items-center gap-0.5">
-          <Button
-            variant="ghost"
-            size="xs"
-            disabled={unreadCount === 0}
-            onClick={() => markAllAsRead()}
-            className="text-muted-foreground"
-          >
-            <CheckCheck />
-            {t("common:actions.markAllRead")}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            disabled={notifications.length === 0}
-            onClick={() => setShowClearDialog(true)}
-            className="text-muted-foreground"
-            title={t("notifications:clearAll")}
-          >
-            <Trash2 />
-            <span className="sr-only">{t("notifications:clearAll")}</span>
-          </Button>
+        <div className="flex items-center gap-0.5 text-muted-foreground">
+          <Menu>
+            <MenuTrigger
+              render={<Button variant="ghost" size="icon-xs" />}
+              title={t("notifications:inbox.filter", "Filter")}
+            >
+              <ListFilter />
+              <span className="sr-only">
+                {t("notifications:inbox.filter", "Filter")}
+              </span>
+            </MenuTrigger>
+            <MenuPopup align="end" className="min-w-52">
+              <MenuSub>
+                <MenuSubTrigger>
+                  {t(
+                    "notifications:inbox.notificationType",
+                    "Notification type",
+                  )}
+                </MenuSubTrigger>
+                <MenuSubPopup>
+                  {NOTIFICATION_TYPE_FILTERS.map((option) => (
+                    <MenuCheckboxItem
+                      key={option.label}
+                      checked={option.types.every((x) => types.includes(x))}
+                      onCheckedChange={(checked) =>
+                        setTypes((current) =>
+                          checked
+                            ? [...current, ...option.types]
+                            : current.filter((x) => !option.types.includes(x)),
+                        )
+                      }
+                    >
+                      {option.label}
+                    </MenuCheckboxItem>
+                  ))}
+                </MenuSubPopup>
+              </MenuSub>
+              {types.length > 0 && (
+                <>
+                  <MenuSeparator />
+                  <MenuItem onClick={() => setTypes([])}>
+                    {t("notifications:inbox.clearFilters", "Clear filters")}
+                  </MenuItem>
+                </>
+              )}
+            </MenuPopup>
+          </Menu>
+          <Menu>
+            <MenuTrigger
+              render={<Button variant="ghost" size="icon-xs" />}
+              title={t("notifications:inbox.display", "Display options")}
+            >
+              <SlidersHorizontal />
+              <span className="sr-only">
+                {t("notifications:inbox.display", "Display options")}
+              </span>
+            </MenuTrigger>
+            <MenuPopup align="end" className="min-w-56">
+              <MenuGroupLabel>
+                {t("notifications:inbox.ordering", "Ordering")}
+              </MenuGroupLabel>
+              <MenuRadioGroup
+                value={display.ordering}
+                onValueChange={(value) =>
+                  display.set({ ordering: value as "newest" | "oldest" })
+                }
+              >
+                <MenuRadioItem value="newest">
+                  {t("notifications:inbox.newest", "Newest")}
+                </MenuRadioItem>
+                <MenuRadioItem value="oldest">
+                  {t("notifications:inbox.oldest", "Oldest")}
+                </MenuRadioItem>
+              </MenuRadioGroup>
+              <MenuSeparator />
+              <MenuCheckboxItem
+                variant="switch"
+                checked={display.showSnoozed}
+                onCheckedChange={(showSnoozed) => display.set({ showSnoozed })}
+              >
+                {t("notifications:inbox.showSnoozed", "Show snoozed")}
+              </MenuCheckboxItem>
+              <MenuCheckboxItem
+                variant="switch"
+                checked={display.showUnreadFirst}
+                onCheckedChange={(showUnreadFirst) =>
+                  display.set({ showUnreadFirst })
+                }
+              >
+                {t("notifications:inbox.showUnreadFirst", "Show unread first")}
+              </MenuCheckboxItem>
+            </MenuPopup>
+          </Menu>
+          <Menu>
+            <MenuTrigger
+              render={<Button variant="ghost" size="icon-xs" />}
+              title={t("notifications:inbox.moreActions", "More")}
+            >
+              <Ellipsis />
+              <span className="sr-only">
+                {t("notifications:inbox.moreActions", "More")}
+              </span>
+            </MenuTrigger>
+            <MenuPopup align="end" className="min-w-56">
+              <MenuItem
+                disabled={unreadCount === 0}
+                onClick={() => markAllAsRead()}
+              >
+                <CheckCheck />
+                {t("common:actions.markAllRead")}
+                <MenuShortcut>⌥U</MenuShortcut>
+              </MenuItem>
+              <MenuSeparator />
+              <MenuItem
+                disabled={notifications.length === 0}
+                onClick={() => setShowClearDialog(true)}
+              >
+                <Trash2 />
+                {t("notifications:clearAll")}
+              </MenuItem>
+              <MenuItem
+                disabled={!notifications.some((n) => n.isRead)}
+                onClick={() => clearRead()}
+              >
+                <Trash2 />
+                {t("notifications:inbox.deleteAllRead", "Delete all read")}
+                <MenuShortcut>⇧⌫</MenuShortcut>
+              </MenuItem>
+            </MenuPopup>
+          </Menu>
         </div>
       </div>
 

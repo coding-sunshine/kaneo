@@ -24,3 +24,9 @@ export const createNotificationBody = z.object({
     description: "Stored as resourceType: `task` or `workspace`.",
   }),
 });
+
+export const snoozeNotificationBody = z.object({
+  until: z.string().datetime().nullable().openapi({
+    description: "ISO time to snooze until, or null to unsnooze.",
+  }),
+});

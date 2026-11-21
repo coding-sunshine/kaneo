@@ -3,6 +3,14 @@ import type { Notification } from "@/types/notification";
 
 export type InboxFilter = "all" | "unread" | "mentions";
 
+export const NOTIFICATION_TYPE_FILTERS = [
+  { label: "Mentions", types: ["task_mention"] },
+  { label: "Comments", types: ["task_comment"] },
+  { label: "Status changes", types: ["task_status_changed"] },
+  { label: "Assignments", types: ["task_assignee_changed"] },
+  { label: "Reminders", types: ["due_date_reminder", "task_overdue"] },
+];
+
 export function filterNotifications(
   notifications: Notification[],
   filter: InboxFilter,

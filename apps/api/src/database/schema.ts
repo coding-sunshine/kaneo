@@ -1145,6 +1145,10 @@ export const notificationTable = pgTable(
     type: text("type").notNull().default("info"),
     eventData: jsonb("event_data"),
     isRead: boolean("is_read").default(false),
+    snoozedUntil: timestamp("snoozed_until", {
+      mode: "date",
+      withTimezone: true,
+    }),
     resourceId: text("resource_id"),
     resourceType: text("resource_type"),
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true })

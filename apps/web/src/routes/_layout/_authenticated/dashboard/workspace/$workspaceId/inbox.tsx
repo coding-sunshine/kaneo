@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import WorkspaceLayout from "@/components/common/workspace-layout";
 import { InboxDetail } from "@/components/inbox/inbox-detail";
+import { isSnoozed } from "@/components/inbox/snooze";
 import { InboxList } from "@/components/inbox/inbox-list";
 import { Button } from "@/components/ui/button";
 import PageTitle from "@/components/page-title";
@@ -28,7 +29,7 @@ function RouteComponent() {
   const [wentBack, setWentBack] = useState(false);
 
   const notifications = data ?? [];
-  const unread = notifications.filter((n) => !n.isRead).length;
+  const unread = notifications.filter((n) => !n.isRead && !isSnoozed(n)).length;
   const selected = notifications.find(
     (notification) => notification.id === selectedId,
   );
