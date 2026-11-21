@@ -76,6 +76,8 @@ type CommentEditorProps = {
   showBubbleMenu?: boolean;
   slashMenuPosition?: "absolute" | "fixed";
   onSubmitShortcut?: () => void;
+  /** mod+alt+Enter: submit and resolve the thread. */
+  onSubmitResolveShortcut?: () => void;
   onCancelShortcut?: () => void;
   taskId?: string;
   projectId?: string;
@@ -154,6 +156,7 @@ export default function CommentEditor({
   showBubbleMenu = true,
   slashMenuPosition = "absolute",
   onSubmitShortcut,
+  onSubmitResolveShortcut,
   onCancelShortcut,
   taskId,
   projectId,
@@ -213,6 +216,8 @@ export default function CommentEditor({
   const onSubmitShortcutRef = useRef(onSubmitShortcut);
   const onCancelShortcutRef = useRef(onCancelShortcut);
   onSubmitShortcutRef.current = onSubmitShortcut;
+  const onSubmitResolveShortcutRef = useRef(onSubmitResolveShortcut);
+  onSubmitResolveShortcutRef.current = onSubmitResolveShortcut;
   onCancelShortcutRef.current = onCancelShortcut;
   const linkShortcutRef = useRef(() => {});
   const attachShortcutRef = useRef(() => {});
@@ -765,6 +770,19 @@ export default function CommentEditor({
               event.preventDefault();
               event.stopPropagation();
               setSlashMenu(null);
+              return true;
+            }
+          }
+
+          if (
+            event.altKey &&
+            (event.metaKey || event.ctrlKey) &&
+            event.key === "Enter"
+          ) {
+            const submit = onSubmitResolveShortcutRef.current;
+            if (!readOnly && !disabled && submit) {
+              event.preventDefault();
+              submit();
               return true;
             }
           }

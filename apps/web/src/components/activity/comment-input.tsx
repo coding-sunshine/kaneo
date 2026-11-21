@@ -12,6 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import useCreateComment from "@/hooks/mutations/comment/use-create-comment";
+import useSetCommentThreadResolved from "@/hooks/mutations/comment/use-set-comment-thread-resolved";
 import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
 
@@ -20,6 +21,8 @@ type CommentInputProps = {
   projectId?: string;
   /** Set to post a reply inside this comment's thread. */
   parentId?: string;
+  /** Offer "submit and resolve" (an open thread's reply box). */
+  canResolve?: boolean;
   autoFocus?: boolean;
   onCancel?: () => void;
 };
@@ -28,6 +31,7 @@ export default function CommentInput({
   taskId,
   projectId,
   parentId,
+  canResolve,
   autoFocus,
   onCancel,
 }: CommentInputProps) {
@@ -36,31 +40,51 @@ export default function CommentInput({
   const [content, setContent] = useState("");
   const [attachAction, setAttachAction] = useState<(() => void) | null>(null);
   const { mutateAsync: createComment, isPending } = useCreateComment();
+  const { mutateAsync: setResolved } = useSetCommentThreadResolved(taskId);
   const queryClient = useQueryClient();
 
-  const handleSubmit = useCallback(async () => {
-    if (!content.trim()) {
-      toast.error(t("activity:comment.cannotBeEmpty"));
-      return;
-    }
+  const submit = useCallback(
+    async (resolve: boolean) => {
+      if (!content.trim()) {
+        toast.error(t("activity:comment.cannotBeEmpty"));
+        return;
+      }
 
-    try {
-      await createComment({
-        taskId,
-        comment: content,
-        parentId,
-      });
+      try {
+        const created = await createComment({
+          taskId,
+          comment: content,
+          parentId,
+        });
+        // The reply becomes the thread's resolution.
+        if (resolve)
+          await setResolved({ activityId: created.id, resolved: true });
 
-      setContent("");
-      onCancel?.();
-      await queryClient.invalidateQueries({ queryKey: ["activities", taskId] });
+        setContent("");
+        onCancel?.();
+        await queryClient.invalidateQueries({
+          queryKey: ["activities", taskId],
+        });
 
-      toast.success(t("activity:comment.added"), { icon: MessageSquareIcon });
-    } catch (error) {
-      console.error("Failed to create comment:", error);
-      toast.error(t("activity:comment.failedToAdd"));
-    }
-  }, [content, createComment, onCancel, parentId, queryClient, t, taskId]);
+        toast.success(t("activity:comment.added"), { icon: MessageSquareIcon });
+      } catch (error) {
+        console.error("Failed to create comment:", error);
+        toast.error(t("activity:comment.failedToAdd"));
+      }
+    },
+    [
+      content,
+      createComment,
+      onCancel,
+      parentId,
+      queryClient,
+      setResolved,
+      t,
+      taskId,
+    ],
+  );
+  const handleSubmit = useCallback(() => submit(false), [submit]);
+  const handleSubmitResolve = useCallback(() => submit(true), [submit]);
 
   const handleAttachActionChange = useCallback(
     (nextAttachAction: (() => void) | null) => {
@@ -107,6 +131,7 @@ export default function CommentInput({
           onAttachActionChange={handleAttachActionChange}
           className="[&_.kaneo-comment-editor-content_.ProseMirror]:min-h-[3rem] [&_.kaneo-comment-editor-content_.ProseMirror]:max-h-none [&_.kaneo-comment-editor-content_.ProseMirror]:overflow-visible [&_.kaneo-comment-editor-content_.ProseMirror]:px-3 [&_.kaneo-comment-editor-content_.ProseMirror]:pt-3 [&_.kaneo-comment-editor-content_.ProseMirror]:pb-2"
           onSubmitShortcut={handleSubmit}
+          onSubmitResolveShortcut={canResolve ? handleSubmitResolve : undefined}
           onCancelShortcut={onCancel}
           autoFocus={autoFocus}
         />
@@ -149,6 +174,12 @@ export default function CommentInput({
                   {t("activity:comment.submitShortcut")}
                   <ShortcutKeys id="submit" tone="tooltip" />
                 </span>
+                {canResolve && (
+                  <span className="mt-1 flex items-center gap-2">
+                    <ShortcutKeys id="submitAndResolve" tone="tooltip" />
+                    {t("activity:comment.submitAndResolveShortcut")}
+                  </span>
+                )}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

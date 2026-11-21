@@ -3252,6 +3252,7 @@
 			"leavePlaceholder": "Leave a comment...",
 			"attachFile": "Attach file",
 			"submitShortcut": "Submit comment",
+			"submitAndResolveShortcut": "to submit comment and resolve the thread",
 			"editor": {
 				"uploadsOnlyOnSavedTasks": "File uploads are only available on saved issues.",
 				"uploadingFile": "Uploading file...",

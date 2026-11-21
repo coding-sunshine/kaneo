@@ -29,6 +29,7 @@ export default function ReplyComposer({
         <CommentInput
           taskId={taskId}
           parentId={parentId}
+          canResolve
           autoFocus
           onCancel={() => setOpen(false)}
         />
