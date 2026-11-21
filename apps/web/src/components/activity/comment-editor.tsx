@@ -325,6 +325,11 @@ export default function CommentEditor({
               taskId: resolvedTaskId!,
               surface: uploadSurfaceRef.current,
               file,
+              onProgress: (percent) =>
+                toast.update(
+                  loadingToast,
+                  t("tasks:detail.editor.upload.progress", { percent }),
+                ),
             });
 
         // Reuse a replacement editor only while it still belongs to the task

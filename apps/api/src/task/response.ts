@@ -321,3 +321,17 @@ export const assignedTasksSchema = z
     }),
   })
   .openapi("AssignedTasks");
+
+export const taskAttachmentsSchema = z.array(
+  z.object({
+    id: z.string(),
+    url: z.string(),
+    filename: z.string(),
+    mimeType: z.string(),
+    size: z.number(),
+    kind: z.string(),
+    surface: z.string(),
+    createdBy: z.string().nullable(),
+    createdAt: z.coerce.date(),
+  }),
+);

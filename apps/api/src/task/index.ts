@@ -63,6 +63,10 @@ import updateTaskDescription from "./controllers/update-task-description";
 import updateTaskDueDate from "./controllers/update-task-due-date";
 import updateTaskPriority from "./controllers/update-task-priority";
 import updateTaskRecurrence from "./controllers/update-task-recurrence";
+import {
+  deleteTaskAttachment,
+  listTaskAttachments,
+} from "./controllers/task-attachments";
 import updateTaskStatus from "./controllers/update-task-status";
 import updateTaskTitle from "./controllers/update-task-title";
 import {
@@ -79,6 +83,7 @@ import {
   finalizedAssetSchema,
   imageUploadSchema,
   moveTaskResultSchema,
+  taskAttachmentsSchema,
   taskByTicketIdSchema,
   taskExportSchema,
   taskImportResultSchema,
@@ -87,6 +92,7 @@ import {
 } from "./response";
 import {
   assignedTasksQuery,
+  attachmentParam,
   bulkUpdateBody,
   createTaskBody,
   descriptionMatchesQuery,
@@ -767,6 +773,49 @@ const finalizeTaskImageUploadRoute = createRoute({
   },
 });
 
+const listTaskAttachmentsRoute = createRoute({
+  method: "get",
+  operationId: "listTaskAttachments",
+  path: "/attachments/{id}",
+  tags: ["Tasks"],
+  summary: "List task attachments",
+  description:
+    "List the files attached to a task: non-image files from the description or comments, and anything uploaded straight to the attachments area.",
+  middleware: [
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["read"] }),
+  ] as const,
+  request: { params: taskParam },
+  responses: {
+    200: jsonResponse("The task's attachments", taskAttachmentsSchema),
+    403: errorResponse("No access to the project, or missing read permission"),
+    404: errorResponse("Task not found"),
+  },
+});
+
+const deleteTaskAttachmentRoute = createRoute({
+  method: "delete",
+  operationId: "deleteTaskAttachment",
+  path: "/attachments/{id}/{assetId}",
+  tags: ["Tasks"],
+  summary: "Delete task attachment",
+  description:
+    "Delete an attached file and queue its stored object for removal.",
+  middleware: [
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["update"] }),
+    requireEntitlement,
+  ] as const,
+  request: { params: attachmentParam },
+  responses: {
+    200: jsonResponse("The deleted attachment", z.object({ id: z.string() })),
+    403: errorResponse(
+      "No access to the project, or missing task:update permission",
+    ),
+    404: errorResponse("Attachment not found"),
+  },
+});
+
 const updateTaskDescriptionRoute = createRoute({
   method: "put",
   operationId: "updateTaskDescription",
@@ -1338,6 +1387,21 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       },
       200,
     );
+  })
+  .openapi(listTaskAttachmentsRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const apiBaseUrl = normalizeApiServerUrl(
+      process.env.KANEO_API_URL || new URL(c.req.url).origin,
+    );
+    const rows = await listTaskAttachments(id);
+    return c.json(
+      rows.map((row) => ({ ...row, url: `${apiBaseUrl}/asset/${row.id}` })),
+      200,
+    );
+  })
+  .openapi(deleteTaskAttachmentRoute, async (c) => {
+    const { id, assetId } = c.req.valid("param");
+    return c.json(await deleteTaskAttachment(id, assetId), 200);
   })
   .openapi(updateTaskDescriptionRoute, async (c) => {
     const { id } = c.req.valid("param");

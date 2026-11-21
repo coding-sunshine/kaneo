@@ -3276,6 +3276,12 @@
 			"openInFullPage": "Open in full page",
 			"titlePlaceholder": "Click to add a title",
 			"addDescription": "Add a description...",
+			"attachments": {
+				"title": "Attachments",
+				"add": "Attach files",
+				"delete": "Delete attachment",
+				"deleteFailed": "Failed to delete attachment"
+			},
 			"editor": {
 				"ariaLabel": "Task description editor",
 				"placeholder": "Write a description...",
@@ -3294,7 +3300,8 @@
 					"loading": "Uploading file...",
 					"failed": "Failed to upload file",
 					"imageSuccess": "Image uploaded",
-					"fileSuccess": "File attached"
+					"fileSuccess": "File attached",
+					"progress": "Uploading file... {{percent}}%"
 				},
 				"slash": {
 					"groups": {

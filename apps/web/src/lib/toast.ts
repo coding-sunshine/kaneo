@@ -63,6 +63,8 @@ const loading: ToastFn = (title, options) =>
     description: options?.description,
     type: "loading",
   });
+const update = (id: ToastId, title: string) =>
+  toastManager.update(id, { title });
 const dismiss = (id?: ToastId) => {
   if (!id) return;
   toastManager.close(id);
@@ -75,6 +77,7 @@ const toast = Object.assign(message, {
   warning,
   message,
   loading,
+  update,
   dismiss,
 });
 

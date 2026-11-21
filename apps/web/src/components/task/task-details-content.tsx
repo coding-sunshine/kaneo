@@ -10,6 +10,7 @@ import useGetTaskRelations from "@/hooks/queries/task-relation/use-get-task-rela
 import { cn } from "@/lib/cn";
 import type { ExternalLink } from "@/types/external-link";
 import { TaskActivity } from "./task-activity";
+import TaskAttachments from "./task-attachments";
 import TaskDescription from "./task-description";
 import TaskRelations from "./task-relations";
 import TaskSubtasks from "./task-subtasks";
@@ -88,6 +89,7 @@ export default function TaskDetailsContent({
       <TaskDescription taskId={taskId} />
 
       <div className="mt-6 flex flex-col gap-6">
+        <TaskAttachments key={taskId} taskId={taskId} />
         {task && (
           <TaskSubtasks
             taskId={taskId}

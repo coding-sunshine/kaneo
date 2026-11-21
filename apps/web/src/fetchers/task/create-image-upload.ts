@@ -13,7 +13,7 @@ async function createImageUpload({
   filename: string;
   contentType: string;
   size: number;
-  surface: "description" | "comment";
+  surface: "description" | "comment" | "attachment";
 }) {
   const response = await client.task["image-upload"][":id"].$put({
     param: { id: taskId },
@@ -45,7 +45,7 @@ export async function finalizeImageUpload({
   filename: string;
   contentType: string;
   size: number;
-  surface: "description" | "comment";
+  surface: "description" | "comment" | "attachment";
 }) {
   const response = await client.task["image-upload"][":id"].finalize.$post({
     param: { id: taskId },

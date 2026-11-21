@@ -6,6 +6,11 @@ import { VALID_PRIORITIES } from "./validate-task-fields";
 
 export const taskParam = z.object({ id: z.string() });
 
+export const attachmentParam = z.object({
+  id: z.string(),
+  assetId: z.string(),
+});
+
 export const ticketIdParam = z.object({
   ticketId: z
     .string()
@@ -147,7 +152,7 @@ export const updateRecurrenceBody = z.object({
 export const updateTitleBody = z.object({ title: z.string() });
 export const updateDescriptionBody = z.object({ description: z.string() });
 
-const surface = z.enum(["description", "comment"]).openapi({
+const surface = z.enum(["description", "comment", "attachment"]).openapi({
   description: "Where the image is used, which decides how it is scoped.",
 });
 

@@ -315,6 +315,11 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
           taskId: uploadTaskId,
           surface: "description",
           file,
+          onProgress: (percent) =>
+            toast.update(
+              loadingToast,
+              t("tasks:detail.editor.upload.progress", { percent }),
+            ),
         });
 
         // The captured editor can be destroyed and replaced while the upload

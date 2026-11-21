@@ -21,7 +21,7 @@ import {
 
 config();
 
-const DEFAULT_MAX_IMAGE_UPLOAD_BYTES = 10 * 1024 * 1024;
+const DEFAULT_MAX_IMAGE_UPLOAD_BYTES = 50 * 1024 * 1024;
 const DEFAULT_PRESIGN_TTL_SECONDS = 300;
 
 const allowedImageMimeTypes = new Set([
@@ -40,7 +40,7 @@ export function isImageContentType(contentType: string) {
   return allowedImageMimeTypes.has(contentType.toLowerCase());
 }
 
-type UploadSurface = "description" | "comment";
+type UploadSurface = "description" | "comment" | "attachment";
 
 type StorageConfig = {
   endpoint: string;
@@ -260,8 +260,11 @@ export function getFileExtension(filename: string) {
 export function buildObjectKeyPrefix(
   context: Omit<TaskImageUploadContext, "filename" | "contentType">,
 ) {
-  const surfaceFolder =
-    context.surface === "comment" ? "comments" : "descriptions";
+  const surfaceFolder = {
+    comment: "comments",
+    attachment: "attachments",
+    description: "descriptions",
+  }[context.surface];
 
   return [
     "workspace",
