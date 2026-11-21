@@ -21,7 +21,6 @@ import { Button } from "@/components/ui/button";
 import {
   Menu,
   MenuCheckboxItem,
-  MenuGroupLabel,
   MenuItem,
   MenuPopup,
   MenuRadioGroup,
@@ -208,22 +207,31 @@ export function InboxList({
               </span>
             </MenuTrigger>
             <MenuPopup align="end" className="min-w-56">
-              <MenuGroupLabel>
-                {t("notifications:inbox.ordering", "Ordering")}
-              </MenuGroupLabel>
-              <MenuRadioGroup
-                value={display.ordering}
-                onValueChange={(value) =>
-                  display.set({ ordering: value as "newest" | "oldest" })
-                }
-              >
-                <MenuRadioItem value="newest">
-                  {t("notifications:inbox.newest", "Newest")}
-                </MenuRadioItem>
-                <MenuRadioItem value="oldest">
-                  {t("notifications:inbox.oldest", "Oldest")}
-                </MenuRadioItem>
-              </MenuRadioGroup>
+              <MenuSub>
+                <MenuSubTrigger>
+                  {t("notifications:inbox.ordering", "Ordering")}
+                  <span className="ms-auto text-muted-foreground text-xs">
+                    {display.ordering === "newest"
+                      ? t("notifications:inbox.newest", "Newest")
+                      : t("notifications:inbox.oldest", "Oldest")}
+                  </span>
+                </MenuSubTrigger>
+                <MenuSubPopup>
+                  <MenuRadioGroup
+                    value={display.ordering}
+                    onValueChange={(value) =>
+                      display.set({ ordering: value as "newest" | "oldest" })
+                    }
+                  >
+                    <MenuRadioItem value="newest">
+                      {t("notifications:inbox.newest", "Newest")}
+                    </MenuRadioItem>
+                    <MenuRadioItem value="oldest">
+                      {t("notifications:inbox.oldest", "Oldest")}
+                    </MenuRadioItem>
+                  </MenuRadioGroup>
+                </MenuSubPopup>
+              </MenuSub>
               <MenuSeparator />
               <MenuCheckboxItem
                 variant="switch"

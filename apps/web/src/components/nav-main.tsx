@@ -74,7 +74,7 @@ export function NavMain() {
 
   const homeUrl = `/dashboard/workspace/${workspace.id}`;
   const unreadCount = notifications.filter(
-    (notification) => !notification.isRead,
+    (notification) => !notification.isRead && !isSnoozed(notification),
   ).length;
 
   const personal: NavItem[] = [
