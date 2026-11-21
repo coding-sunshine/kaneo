@@ -4,9 +4,9 @@ import { cn } from "@/lib/cn";
 import type { IssueView } from "@/lib/status-category";
 
 const TABS: ReadonlyArray<[IssueView, string]> = [
-  ["all", "navigation:sidebar.allIssues"],
   ["active", "navigation:sidebar.active"],
   ["backlog", "navigation:sidebar.backlog"],
+  ["all", "navigation:sidebar.allIssues"],
 ];
 
 type ProjectScopeToggleProps = {
@@ -16,7 +16,7 @@ type ProjectScopeToggleProps = {
   highlight: boolean;
 };
 
-/** Linear's All issues / Active / Backlog tabs at the top of a team's issues. */
+/** Linear's Active / Backlog / All issues tabs at the top of a team's issues. */
 export function ProjectScopeToggle({
   workspaceId,
   projectId,

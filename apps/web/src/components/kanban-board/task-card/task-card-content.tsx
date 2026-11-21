@@ -134,7 +134,7 @@ function TaskCardContent({
             onPointerLeave={() => setIsPressed(false)}
             onPointerCancel={() => setIsPressed(false)}
             className={cn(
-              "group relative flex flex-col rounded-[10px] border p-3 transition-[background-color,border-color,box-shadow,scale] duration-150 ease-out",
+              "group relative flex flex-col rounded-lg border p-2 transition-[background-color,border-color,box-shadow,scale] duration-150 ease-out",
               isPressed && "scale-[0.98]",
               disableDragDrop ? "cursor-default" : "cursor-move",
               taskIsCompleted

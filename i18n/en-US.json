@@ -3842,6 +3842,7 @@
 			"projectBackground": "Project background",
 			"layout": "Layout",
 			"includeSubtasks": "Include sub-issues",
+			"showEmptyColumns": "Show empty columns",
 			"useProjectDefault": "Use project default"
 		},
 		"filterBar": {

@@ -34,6 +34,7 @@ import { EASE_OUT_CSS } from "@/lib/motion";
 import { useBackgroundStore } from "@/store/background";
 import useBulkSelectionStore from "@/store/bulk-selection";
 import useProjectStore from "@/store/project";
+import { useUserPreferencesStore } from "@/store/user-preferences";
 import type { ProjectWithTasks } from "@/types/project";
 import BulkToolbar from "../bulk-selection/bulk-toolbar";
 import Column from "./column";
@@ -276,6 +277,8 @@ function KanbanBoard({
     onMove: (activeId, overId) => queueMove({ activeId, overId }),
   });
 
+  const showEmptyColumns = useUserPreferencesStore((s) => s.showEmptyColumns);
+
   if (!project?.columns) {
     return (
       <div className="flex h-full w-full flex-col bg-linear-to-b from-muted/25 to-background">
@@ -318,6 +321,14 @@ function KanbanBoard({
     );
   }
 
+  const boardColumns = (dragPreview.preview ?? queuedProject).columns;
+  // Linear hides empty columns unless "Show empty columns" is on; a dragged
+  // task's origin and an all-empty board keep their columns.
+  const visibleColumns =
+    showEmptyColumns || boardColumns.every((c) => c.tasks.length === 0)
+      ? boardColumns
+      : boardColumns.filter((c) => c.tasks.length > 0 || activeId !== null);
+
   const activeTask = activeId
     ? queuedProject.columns
         .flatMap((col) => col.tasks)
@@ -351,11 +362,11 @@ function KanbanBoard({
             activeId === null && "snap-x snap-mandatory sm:snap-none",
           )}
         >
-          <div className="flex h-full min-w-max gap-4 px-4 py-4 md:px-5">
-            {(dragPreview.preview ?? queuedProject).columns.map((column) => (
+          <div className="flex h-full min-w-max gap-3 px-3 py-3 md:px-4">
+            {visibleColumns.map((column) => (
               <div
                 key={column.id}
-                className="h-full max-w-96 min-w-[min(20rem,calc(100vw-4.5rem))] shrink-0 flex-1 snap-start"
+                className="h-full w-[min(20.25rem,calc(100vw-4.5rem))] shrink-0 snap-start"
               >
                 <Column
                   column={column}

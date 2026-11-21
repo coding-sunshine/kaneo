@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { SortConfig } from "@/lib/sort-tasks";
+import { Switch } from "@/components/ui/switch";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 import { GROUP_BY_OPTIONS, type GroupBy } from "@/lib/group-project";
 import { CardFieldToggles } from "./card-field-toggles";
@@ -39,8 +40,29 @@ export function TaskDisplayOptions({
     (state) => state.resetDisplayPreferences,
   );
 
+  const showEmptyColumns = useUserPreferencesStore(
+    (state) => state.showEmptyColumns,
+  );
+  const setShowEmptyColumns = useUserPreferencesStore(
+    (state) => state.setShowEmptyColumns,
+  );
+
   return (
     <>
+      {layout === "cards" && (
+        <DisplaySection>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm">
+              {t("tasks:display.showEmptyColumns")}
+            </span>
+            <Switch
+              checked={showEmptyColumns}
+              onCheckedChange={setShowEmptyColumns}
+              aria-label={t("tasks:display.showEmptyColumns")}
+            />
+          </div>
+        </DisplaySection>
+      )}
       {layout === "rows" && (
         <DisplaySection>
           <div className="flex items-center gap-2">

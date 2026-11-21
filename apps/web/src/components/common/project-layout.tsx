@@ -13,6 +13,7 @@ import {
   resolveProjectView,
 } from "@/components/project/views/project-views";
 import { useGoToProjectView } from "@/components/project/views/use-go-to-project-view";
+import { ViewToggle } from "@/components/project/views/view-toggle";
 import { useProjectViewShortcuts } from "@/components/project/views/use-project-view-shortcuts";
 import CreateProjectModal from "@/components/shared/modals/create-project-modal";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -160,6 +161,14 @@ export default function ProjectLayout({
             )}
             {summary}
             <div className="ml-auto flex shrink-0 items-center gap-1">
+              {showViews && resolvedRoute === "board" && (
+                <ViewToggle
+                  workspaceId={workspaceId}
+                  projectId={projectId}
+                  currentRoute={resolvedRoute}
+                  currentView={currentView}
+                />
+              )}
               {toolbar}
             </div>
           </div>
