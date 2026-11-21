@@ -76,7 +76,7 @@ type UserPreferencesStore = {
 export const useUserPreferencesStore = create<UserPreferencesStore>()(
   persist(
     (set) => ({
-      theme: "dark",
+      theme: "system",
       setTheme: (
         theme: "light" | "dark" | "system",
         coordinates?: { x: number; y: number },
