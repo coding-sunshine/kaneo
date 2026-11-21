@@ -1,0 +1,13 @@
+CREATE TABLE "task_subscriber" (
+	"task_id" text NOT NULL,
+	"user_id" text NOT NULL,
+	"created_at" timestamp DEFAULT (now() AT TIME ZONE 'utc') NOT NULL,
+	CONSTRAINT "task_subscriber_task_id_user_id_pk" PRIMARY KEY("task_id","user_id")
+);
+--> statement-breakpoint
+ALTER TABLE "task" ADD COLUMN "snoozed_until" timestamp;--> statement-breakpoint
+ALTER TABLE "task" ADD COLUMN "creator_id" text;--> statement-breakpoint
+ALTER TABLE "task_subscriber" ADD CONSTRAINT "task_subscriber_task_id_task_id_fk" FOREIGN KEY ("task_id") REFERENCES "public"."task"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "task_subscriber" ADD CONSTRAINT "task_subscriber_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+CREATE INDEX "task_subscriber_userId_idx" ON "task_subscriber" USING btree ("user_id");--> statement-breakpoint
+ALTER TABLE "task" ADD CONSTRAINT "task_creator_id_user_id_fk" FOREIGN KEY ("creator_id") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE cascade;
