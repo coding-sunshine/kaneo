@@ -59,3 +59,23 @@ describe("groupProjectBy project", () => {
     ]);
   });
 });
+
+describe("groupProjectBy status-type", () => {
+  it("groups columns by workflow type in order, skipping empty types", () => {
+    const board = {
+      columns: [
+        { id: "done", isFinal: true, tasks: [{ id: "1" }] },
+        { id: "todo", isFinal: false, tasks: [{ id: "2" }] },
+        { id: "in-progress", isFinal: false, tasks: [{ id: "3" }] },
+        { id: "in-review", isFinal: false, tasks: [{ id: "4" }] },
+      ],
+    } as never;
+    const { columns } = groupProjectBy(board, "status-type", (k) => k);
+    expect(columns.map((c) => c.name)).toEqual([
+      "display.statusType.unstarted",
+      "display.statusType.started",
+      "display.statusType.completed",
+    ]);
+    expect(columns[1].tasks).toHaveLength(2);
+  });
+});
