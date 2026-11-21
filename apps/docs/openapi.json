@@ -1954,10 +1954,18 @@
                   ]
                 },
                 "description": "Emoji reactions on a comment, in the order each emoji was first used."
+              },
+              "subscribedToThread": {
+                "type": [
+                  "boolean",
+                  "null"
+                ],
+                "description": "Whether you follow this comment's thread. Set on top-level comments only; null on replies and events."
               }
             },
             "required": [
-              "reactions"
+              "reactions",
+              "subscribedToThread"
             ]
           }
         ]
@@ -17212,6 +17220,198 @@
           },
           "403": {
             "description": "No access to the project, or missing task:update permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Comment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/activity/comment/subscription": {
+      "post": {
+        "operationId": "subscribeCommentThread",
+        "tags": [
+          "Activity"
+        ],
+        "summary": "Subscribe to comment thread",
+        "description": "Get notified of replies in the thread containing a comment, without subscribing to the issue.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "activityId": {
+                    "type": "string",
+                    "description": "A comment in the thread. A reply acts on its top-level comment's thread."
+                  }
+                },
+                "required": [
+                  "activityId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The thread subscription state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "activityId": {
+                      "type": "string",
+                      "description": "The thread's top-level comment."
+                    },
+                    "subscribed": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "activityId",
+                    "subscribed"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing task:read permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Comment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "unsubscribeCommentThread",
+        "tags": [
+          "Activity"
+        ],
+        "summary": "Unsubscribe from comment thread",
+        "description": "Stop notifications for replies in the thread containing a comment, even if you wrote or were mentioned in it.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "activityId": {
+                    "type": "string",
+                    "description": "A comment in the thread. A reply acts on its top-level comment's thread."
+                  }
+                },
+                "required": [
+                  "activityId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The thread subscription state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "activityId": {
+                      "type": "string",
+                      "description": "The thread's top-level comment."
+                    },
+                    "subscribed": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "activityId",
+                    "subscribed"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing task:read permission",
             "content": {
               "application/json": {
                 "schema": {

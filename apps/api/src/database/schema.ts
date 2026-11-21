@@ -1205,6 +1205,37 @@ export const commentReactionTable = pgTable(
   ],
 );
 
+// Per-user overrides of a thread's default subscribers (authors, mentioned
+// users, assignee). Keyed by the thread's root comment.
+export const commentThreadSubscriptionTable = pgTable(
+  "comment_thread_subscription",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    activityId: text("activity_id")
+      .notNull()
+      .references(() => activityTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    subscribed: boolean("subscribed").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    unique("comment_thread_subscription_activity_user_unique").on(
+      table.activityId,
+      table.userId,
+    ),
+  ],
+);
+
 export const assetTable = pgTable(
   "asset",
   {

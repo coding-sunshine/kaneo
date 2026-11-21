@@ -61,6 +61,7 @@ type CommentCardProps = {
   variant?: "root" | "reply";
   reactions?: Reaction[];
   threadResolved?: boolean;
+  threadSubscribed?: boolean | null;
   /** Marks the reply that resolved its thread. */
   isResolution?: boolean;
   /** Replies in this root comment's thread; deleting it deletes them too. */
@@ -79,6 +80,7 @@ export default function CommentCard({
   variant = "root",
   reactions = [],
   threadResolved = false,
+  threadSubscribed = null,
   isResolution = false,
   replyCount = 0,
 }: CommentCardProps) {
@@ -290,6 +292,7 @@ export default function CommentCard({
             content={content}
             isReply={variant === "reply"}
             threadResolved={threadResolved}
+            threadSubscribed={threadSubscribed}
             canEdit={canEdit}
             replyCount={replyCount}
             onEdit={handleEdit}

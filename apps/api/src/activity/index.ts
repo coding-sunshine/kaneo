@@ -15,6 +15,7 @@ import setCommentReaction from "./controllers/comment-reaction";
 import deleteComment from "./controllers/delete-comment";
 import getActivities from "./controllers/get-activities";
 import getWorkspaceActivities from "./controllers/get-workspace-activities";
+import setThreadSubscription from "./controllers/set-thread-subscription";
 import resolveCommentThread from "./controllers/resolve-comment-thread";
 import updateComment from "./controllers/update-comment";
 import {
@@ -26,6 +27,7 @@ import {
   activitiesQuery,
   createActivityBody,
   commentReactionBody,
+  commentSubscriptionBody,
   commentThreadBody,
   createCommentBody,
   deleteCommentBody,
@@ -305,6 +307,75 @@ const removeCommentReactionRoute = createRoute({
   },
 });
 
+const commentSubscriptionResult = z.object({
+  activityId: z
+    .string()
+    .openapi({ description: "The thread's top-level comment." }),
+  subscribed: z.boolean(),
+});
+
+const subscribeCommentThreadRoute = createRoute({
+  method: "post",
+  operationId: "subscribeCommentThread",
+  path: "/comment/subscription",
+  tags: ["Activity"],
+  summary: "Subscribe to comment thread",
+  description:
+    "Get notified of replies in the thread containing a comment, without subscribing to the issue.",
+  middleware: [
+    workspaceAccess.fromActivity("activityId"),
+    requireWorkspacePermission({ task: ["read"] }),
+  ] as const,
+  request: {
+    body: {
+      required: true,
+      content: { "application/json": { schema: commentSubscriptionBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse(
+      "The thread subscription state",
+      commentSubscriptionResult,
+    ),
+    400: errorResponse("Invalid body"),
+    403: errorResponse(
+      "No access to the project, or missing task:read permission",
+    ),
+    404: errorResponse("Comment not found"),
+  },
+});
+
+const unsubscribeCommentThreadRoute = createRoute({
+  method: "delete",
+  operationId: "unsubscribeCommentThread",
+  path: "/comment/subscription",
+  tags: ["Activity"],
+  summary: "Unsubscribe from comment thread",
+  description:
+    "Stop notifications for replies in the thread containing a comment, even if you wrote or were mentioned in it.",
+  middleware: [
+    workspaceAccess.fromActivity("activityId"),
+    requireWorkspacePermission({ task: ["read"] }),
+  ] as const,
+  request: {
+    body: {
+      required: true,
+      content: { "application/json": { schema: commentSubscriptionBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse(
+      "The thread subscription state",
+      commentSubscriptionResult,
+    ),
+    400: errorResponse("Invalid body"),
+    403: errorResponse(
+      "No access to the project, or missing task:read permission",
+    ),
+    404: errorResponse("Comment not found"),
+  },
+});
+
 const activity = apiRouter()
   .openapi(getWorkspaceActivitiesRoute, async (c) =>
     c.json(
@@ -376,6 +447,26 @@ const activity = apiRouter()
   .openapi(unresolveCommentThreadRoute, async (c) =>
     c.json(
       await resolveCommentThread(
+        c.get("userId"),
+        c.req.valid("json").activityId,
+        false,
+      ),
+      200,
+    ),
+  )
+  .openapi(subscribeCommentThreadRoute, async (c) =>
+    c.json(
+      await setThreadSubscription(
+        c.get("userId"),
+        c.req.valid("json").activityId,
+        true,
+      ),
+      200,
+    ),
+  )
+  .openapi(unsubscribeCommentThreadRoute, async (c) =>
+    c.json(
+      await setThreadSubscription(
         c.get("userId"),
         c.req.valid("json").activityId,
         false,

@@ -1,4 +1,6 @@
 import {
+  Bell,
+  BellOff,
   Check,
   Copy,
   CornerDownRight,
@@ -23,6 +25,7 @@ import useDeleteComment from "@/hooks/mutations/comment/use-delete-comment";
 import useGetTask from "@/hooks/queries/task/use-get-task";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import useSetCommentReaction from "@/hooks/mutations/comment/use-set-comment-reaction";
+import useSetCommentThreadSubscribed from "@/hooks/mutations/comment/use-set-comment-thread-subscribed";
 import useSetCommentThreadResolved from "@/hooks/mutations/comment/use-set-comment-thread-resolved";
 import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
@@ -37,6 +40,8 @@ type CommentActionsProps = {
   content: string;
   isReply: boolean;
   threadResolved: boolean;
+  /** The viewer's thread subscription; null hides the item. */
+  threadSubscribed?: boolean | null;
   canEdit: boolean;
   replyCount?: number;
   onEdit: () => void;
@@ -55,6 +60,7 @@ export default function CommentActions({
   content,
   isReply,
   threadResolved,
+  threadSubscribed = null,
   canEdit,
   replyCount = 0,
   onEdit,
@@ -76,6 +82,7 @@ export default function CommentActions({
   }, [contextPoint]);
   const { mutate: setReaction } = useSetCommentReaction(taskId);
   const { mutate: setResolved } = useSetCommentThreadResolved(taskId);
+  const { mutate: setSubscribed } = useSetCommentThreadSubscribed(taskId);
   const { mutate: deleteComment } = useDeleteComment(taskId);
   const { data: task } = useGetTask(taskId);
   const { canCreateTasks } = useWorkspacePermission();
@@ -135,6 +142,31 @@ export default function CommentActions({
               </MenuItem>
               <MenuSeparator />
             </>
+          )}
+          {threadSubscribed !== null && (
+            <MenuItem
+              onClick={() =>
+                setSubscribed(
+                  { activityId: commentId, subscribed: !threadSubscribed },
+                  {
+                    onSuccess: () =>
+                      toast.success(
+                        threadSubscribed
+                          ? t("activity:comment.unsubscribedFromThread")
+                          : t("activity:comment.subscribedToThread"),
+                        { timeout: 2000 },
+                      ),
+                    onError: () =>
+                      toast.error(t("activity:comment.failedToSubscribe")),
+                  },
+                )
+              }
+            >
+              {threadSubscribed ? <BellOff /> : <Bell />}
+              {threadSubscribed
+                ? t("activity:comment.unsubscribeFromThread")
+                : t("activity:comment.subscribeToThread")}
+            </MenuItem>
           )}
           <MenuItem
             onClick={() =>

@@ -42,6 +42,13 @@ export const commentThreadBody = z.object({
   }),
 });
 
+export const commentSubscriptionBody = z.object({
+  activityId: z.string().openapi({
+    description:
+      "A comment in the thread. A reply acts on its top-level comment's thread.",
+  }),
+});
+
 export const commentReactionBody = z.object({
   activityId: z.string(),
   emoji: z.string().min(1).max(32),

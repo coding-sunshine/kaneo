@@ -23,6 +23,7 @@ export type ThreadComment = {
   externalUserAvatar?: string | null;
   resolvedAt?: string | null;
   resolvingCommentId?: string | null;
+  subscribedToThread?: boolean | null;
   reactions?: Reaction[];
 };
 
@@ -84,6 +85,7 @@ export default function CommentThread({ root, replies }: CommentThreadProps) {
         externalUrl={comment.externalUrl}
         reactions={comment.reactions}
         threadResolved={resolved}
+        threadSubscribed={root.subscribedToThread ?? null}
         isResolution={resolved && comment.id === root.resolvingCommentId}
         replyCount={variant === "root" ? replies.length : 0}
       />

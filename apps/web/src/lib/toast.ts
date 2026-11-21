@@ -15,6 +15,8 @@ type ToastOptions = {
   icon?: ToastIcon;
   action?: ToastAction;
   cancel?: ToastAction;
+  /** Milliseconds before it closes; the manager default when omitted. */
+  timeout?: number;
 };
 
 let repeat = 0;
@@ -33,6 +35,7 @@ function addToast(
     title,
     data: { repeat, icon: options?.icon },
     description: options?.description,
+    timeout: options?.timeout,
     type: variant,
     actionProps: action
       ? {

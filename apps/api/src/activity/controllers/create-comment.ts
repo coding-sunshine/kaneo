@@ -1,8 +1,9 @@
-import { eq } from "drizzle-orm";
+import { asc, eq, or } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
   activityTable,
+  commentThreadSubscriptionTable,
   projectTable,
   taskTable,
   userTable,
@@ -11,6 +12,35 @@ import { publishEvent } from "../../events";
 import createNotification from "../../notification/controllers/create-notification";
 import { subscribeUsers } from "../../task/controllers/task-subscribers";
 import { parseMentionIds } from "../../utils/parse-mentions";
+import {
+  applyThreadOverrides,
+  defaultThreadSubscribers,
+} from "../thread-subscribers";
+import { upsertThreadSubscription } from "./set-thread-subscription";
+
+/** Everyone following the thread: defaults plus each user's override. */
+async function threadSubscribers(rootId: string, assigneeId: string | null) {
+  const [comments, overrides] = await Promise.all([
+    db
+      .select({ userId: activityTable.userId, content: activityTable.content })
+      .from(activityTable)
+      .where(
+        or(eq(activityTable.id, rootId), eq(activityTable.parentId, rootId)),
+      )
+      .orderBy(asc(activityTable.createdAt)),
+    db
+      .select({
+        userId: commentThreadSubscriptionTable.userId,
+        subscribed: commentThreadSubscriptionTable.subscribed,
+      })
+      .from(commentThreadSubscriptionTable)
+      .where(eq(commentThreadSubscriptionTable.activityId, rootId)),
+  ]);
+  return applyThreadOverrides(
+    defaultThreadSubscribers(comments, assigneeId),
+    overrides,
+  );
+}
 
 /** The top-level comment a reply joins; replies to replies join the same thread. */
 async function threadRoot(taskId: string, parentId: string) {
@@ -118,12 +148,21 @@ async function createComment(
     });
   }
 
-  // The assignee hears about every comment; a reply also reaches the
-  // thread's author.
-  const recipients = new Set<string>();
-  for (const id of [task?.assigneeId, parent?.userId]) {
-    if (id && id !== userId && !mentionedIds.includes(id)) recipients.add(id);
+  // A mention in a thread subscribes you to it, even if you had opted out.
+  if (parent) {
+    for (const mentionedId of mentionedIds) {
+      await upsertThreadSubscription(parent.id, mentionedId, true);
+    }
   }
+
+  // The assignee hears about every top-level comment; a reply goes to the
+  // thread's subscribers.
+  const candidates = parent
+    ? await threadSubscribers(parent.id, task?.assigneeId ?? null)
+    : new Set(task?.assigneeId ? [task.assigneeId] : []);
+  const recipients = new Set(
+    [...candidates].filter((id) => id !== userId && !mentionedIds.includes(id)),
+  );
   for (const recipientId of task ? recipients : []) {
     await createNotification({
       userId: recipientId,

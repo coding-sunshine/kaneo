@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
@@ -18,6 +18,7 @@ type Activity = {
   resolvingCommentId: string | null;
   updatedAt: string;
   reactions: Array<{ emoji: string; userIds: string[] }>;
+  subscribedToThread: boolean | null;
 };
 
 async function createTask(workspaceId: string, title: string) {
@@ -188,5 +189,107 @@ describe("API integration: comment threads, resolve and reactions", () => {
     ] as const) {
       expect([403, 404]).toContain((await send(path, method, body)).status);
     }
+  });
+
+  describe("thread subscriptions", () => {
+    async function twoUsers() {
+      const ctx = await setup();
+      const [other] = await db
+        .insert(schema.userTable)
+        .values({
+          id: `user-other-${ctx.task.id}`,
+          email: `other-${ctx.task.id}@example.com`,
+          emailVerified: true,
+          name: "Other",
+        })
+        .returning();
+      await db.insert(schema.workspaceUserTable).values({
+        workspaceId: ctx.member.workspace.id,
+        userId: other.id,
+        role: "member",
+        joinedAt: new Date(),
+      });
+      const as = (user: typeof other) => mockAuthenticatedSession(user);
+      const notified = async (userId: string, type: string) =>
+        (
+          await db
+            .select()
+            .from(schema.notificationTable)
+            .where(
+              and(
+                eq(schema.notificationTable.userId, userId),
+                eq(schema.notificationTable.type, type),
+              ),
+            )
+        ).length;
+      return { ...ctx, owner: ctx.member.user, other, as, notified };
+    }
+
+    it("unsubscribe from thread stops reply notifications", async () => {
+      const { owner, other, as, send, comment, feed, notified } =
+        await twoUsers();
+      const root = await comment("Root");
+      expect((await feed()).get(root.id)?.subscribedToThread).toBe(true);
+
+      as(other);
+      await comment("First reply", root.id);
+      expect(await notified(owner.id, "task_comment")).toBe(1);
+
+      as(owner);
+      const reply = (await feed()).get(root.id);
+      expect(reply?.subscribedToThread).toBe(true);
+      expect(
+        (await send("comment/subscription", "DELETE", { activityId: root.id }))
+          .status,
+      ).toBe(200);
+      expect((await feed()).get(root.id)?.subscribedToThread).toBe(false);
+
+      as(other);
+      await comment("Second reply", root.id);
+      expect(await notified(owner.id, "task_comment")).toBe(1);
+    });
+
+    it("subscribe to thread adds reply notifications", async () => {
+      const { owner, other, as, send, comment, feed, notified } =
+        await twoUsers();
+      const root = await comment("Root");
+      const reply = await comment("Reply", root.id);
+      await comment("Quiet reply", root.id);
+      expect(await notified(other.id, "task_comment")).toBe(0);
+
+      as(other);
+      expect((await feed()).get(root.id)?.subscribedToThread).toBe(false);
+      // Subscribing from a reply acts on the thread's root.
+      const response = await send("comment/subscription", "POST", {
+        activityId: reply.id,
+      });
+      expect(await response.json()).toEqual({
+        activityId: root.id,
+        subscribed: true,
+      });
+      expect((await feed()).get(root.id)?.subscribedToThread).toBe(true);
+      expect((await feed()).get(reply.id)?.subscribedToThread).toBeNull();
+
+      as(owner);
+      await comment("Loud reply", root.id);
+      expect(await notified(other.id, "task_comment")).toBe(1);
+    });
+
+    it("mention in a reply resubscribes to the thread", async () => {
+      const { owner, other, as, send, comment, notified } = await twoUsers();
+      const root = await comment("Root");
+      await send("comment/subscription", "DELETE", { activityId: root.id });
+
+      as(other);
+      await comment(
+        `Ping <kaneo-mention id="${owner.id}"></kaneo-mention>`,
+        root.id,
+      );
+      expect(await notified(owner.id, "task_mention")).toBe(1);
+      expect(await notified(owner.id, "task_comment")).toBe(0);
+
+      await comment("Plain reply", root.id);
+      expect(await notified(owner.id, "task_comment")).toBe(1);
+    });
   });
 });

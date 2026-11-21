@@ -33,11 +33,14 @@ vi.mock("@/hooks/queries/task/use-get-task", () => ({
 vi.mock("@/hooks/use-workspace-permission", () => ({
   useWorkspacePermission: () => ({ canCreateTasks: () => true }),
 }));
+vi.mock("@/hooks/mutations/comment/use-set-comment-thread-subscribed", () => ({
+  default: () => ({ mutate: vi.fn() }),
+}));
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-function renderActions(replyCount: number) {
+function renderActions(replyCount: number, threadSubscribed?: boolean | null) {
   render(
     <CommentActions
       commentId="c1"
@@ -45,6 +48,7 @@ function renderActions(replyCount: number) {
       content="hello"
       isReply={false}
       threadResolved={false}
+      threadSubscribed={threadSubscribed}
       canEdit
       replyCount={replyCount}
       onEdit={vi.fn()}
@@ -129,5 +133,24 @@ describe("CommentActions", () => {
       cleanup();
       useCreateIssueStore.setState(useCreateIssueStore.getInitialState());
     }
+  });
+
+  it.each([
+    [true, "activity:comment.unsubscribeFromThread"],
+    [false, "activity:comment.subscribeToThread"],
+  ])("offers the thread subscription toggle (subscribed=%s)", async (subscribed, label) => {
+    renderActions(0, subscribed);
+    await clickItem(label);
+  });
+
+  it("hides the subscription item when the state is unknown", async () => {
+    renderActions(0, null);
+    fireEvent.click(
+      screen.getByRole("button", { name: "activity:comment.actions" }),
+    );
+    await screen.findByRole("menuitem", { name: "activity:comment.resolveThread" });
+    expect(
+      screen.queryByRole("menuitem", { name: /ThreadSub|subscribeToThread/i }),
+    ).toBeNull();
   });
 });

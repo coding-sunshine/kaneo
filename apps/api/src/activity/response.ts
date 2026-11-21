@@ -49,6 +49,10 @@ export const activityListSchema = z.array(
           description:
             "Emoji reactions on a comment, in the order each emoji was first used.",
         }),
+      subscribedToThread: z.boolean().nullable().openapi({
+        description:
+          "Whether you follow this comment's thread. Set on top-level comments only; null on replies and events.",
+      }),
     })
     .openapi("TaskActivity"),
 );
