@@ -154,32 +154,32 @@ const PERMISSION_LABELS: Record<
     description: "Make projects publicly accessible via share links.",
   },
   "task:create": {
-    label: "Create tasks",
-    description: "Create new tasks in any project.",
+    label: "Create issues",
+    description: "Create new issues in any project.",
   },
   "task:read": {
-    label: "View tasks",
-    description: "View tasks across projects.",
+    label: "View issues",
+    description: "View issues across projects.",
   },
   "task:update": {
-    label: "Edit tasks",
-    description: "Edit task content, status, priority, due date, and labels.",
+    label: "Edit issues",
+    description: "Edit issue content, status, priority, due date, and labels.",
   },
   "task:delete": {
-    label: "Delete tasks",
-    description: "Permanently delete tasks.",
+    label: "Delete issues",
+    description: "Permanently delete issues.",
   },
   "task:assign": {
-    label: "Assign tasks",
-    description: "Assign tasks to other workspace members.",
+    label: "Assign issues",
+    description: "Assign issues to other workspace members.",
   },
   "label:create": {
     label: "Create labels",
-    description: "Add new labels to tasks in this workspace.",
+    description: "Add new labels to issues in this workspace.",
   },
   "label:read": {
     label: "View labels",
-    description: "View labels attached to tasks.",
+    description: "View labels attached to issues.",
   },
   "label:update": {
     label: "Edit labels",
@@ -218,9 +218,9 @@ const DEFAULT_ROLE_NAME_SET = new Set<string>(DEFAULT_ROLE_NAMES);
 const RESERVED_ROLE_NAMES = [...DEFAULT_ROLE_NAMES, "owner"];
 
 const DEFAULT_ROLE_DESCRIPTIONS: Record<string, string> = {
-  viewer: "Read-only access to projects, tasks, and workspace.",
-  member: "Can create and update projects and tasks.",
-  admin: "Full project and task management plus workspace settings.",
+  viewer: "Read-only access to projects, issues, and workspace.",
+  member: "Can create and update projects and issues.",
+  admin: "Full project and issue management plus workspace settings.",
 };
 
 function isDefaultRole(name: string) {

@@ -106,18 +106,18 @@
 				"errorToast": "Failed to create workspace"
 			},
 			"createTask": {
-				"breadcrumbTask": "TASK",
+				"breadcrumbTask": "ISSUE",
 				"selectProject": "Select project",
-				"title": "New Task",
-				"description": "Create a new task by providing a title, description, and other details.",
+				"title": "New issue",
+				"description": "Create a new issue by providing a title, description, and other details.",
 				"statusLoadError": "Project statuses couldn’t be loaded.",
-				"taskTitlePlaceholder": "Task title",
-				"descriptionPlaceholder": "Add a description for your task...",
+				"taskTitlePlaceholder": "Issue title",
+				"descriptionPlaceholder": "Add a description for your issue...",
 				"chooseProjectForImages": "Choose a project before uploading images.",
-				"prepareTaskError": "Failed to prepare task",
-				"successCreated": "Task created successfully",
-				"successUpdated": "Task updated successfully",
-				"createError": "Failed to create task",
+				"prepareTaskError": "Failed to prepare issue",
+				"successCreated": "Issue created successfully",
+				"successUpdated": "Issue updated successfully",
+				"createError": "Failed to create issue",
 				"priority": "Priority",
 				"statusFallback": "In Progress",
 				"startDate": "Start date",
@@ -134,11 +134,11 @@
 				"labelCreated": "Label created",
 				"labelCreateError": "Failed to create label",
 				"createMore": "Create more",
-				"createButton": "Create Task",
-				"discardTitle": "Discard task?",
-				"discardDescription": "Your unsaved task details will be lost.",
-				"discardButton": "Discard task",
-				"untitledTask": "Untitled task",
+				"createButton": "Create issue",
+				"discardTitle": "Discard issue?",
+				"discardDescription": "Your unsaved issue details will be lost.",
+				"discardButton": "Discard issue",
+				"untitledTask": "Untitled issue",
 				"labelColors": {
 					"stone": "Stone",
 					"slate": "Slate",
@@ -363,7 +363,7 @@
 					"failed": "Couldn't invite {{email}}: {{message}}"
 				},
 				"plan": {
-					"trialUsed": "You've already used your free trial. Pick a plan to start creating projects and tasks.",
+					"trialUsed": "You've already used your free trial. Pick a plan to start creating projects and issues.",
 					"recommended": "Recommended",
 					"continueTrial": "Start free trial"
 				}
@@ -375,8 +375,8 @@
 					"description": "Cards move from column to column as work moves forward. Drag this one to the next column, or open it and change its status."
 				},
 				"details": {
-					"title": "Open this task and add a subtask",
-					"description": "A task can hold a description, subtasks, labels, an assignee and a due date. Add a subtask to this one to try it."
+					"title": "Open this issue and add a sub-issue",
+					"description": "An issue can hold a description, sub-issues, labels, an assignee and a due date. Add a sub-issue to this one to try it."
 				},
 				"invite": {
 					"title": "Invite your team",
@@ -384,11 +384,11 @@
 				},
 				"integrations": {
 					"title": "Connect GitHub, GitLab or Gitea",
-					"description": "Sync issues and move tasks automatically when pull requests are opened and merged. Set it up under **Project settings**."
+					"description": "Sync issues and move issues automatically when pull requests are opened and merged. Set it up under **Project settings**."
 				},
 				"create": {
-					"title": "Create your own task",
-					"description": "Use the **+** next to a column name, or press **T** then **C**. Delete these starter tasks whenever you're ready."
+					"title": "Create your own issue",
+					"description": "Use the **+** next to a column name, or press **T** then **C**. Delete these starter issues whenever you're ready."
 				}
 			},
 			"progress": "Step {{current}} of {{total}}",
@@ -405,9 +405,9 @@
 			},
 			"project": {
 				"title": "Start your first project",
-				"description": "We'll add a few starter tasks to show you around. Rename or delete them anytime.",
+				"description": "We'll add a few starter issues to show you around. Rename or delete them anytime.",
 				"label": "Project name",
-				"ticketStart": "Task IDs will start at {{ticket}}."
+				"ticketStart": "Issue IDs will start at {{ticket}}."
 			},
 			"invite": {
 				"title": "Bring your team",
@@ -419,8 +419,8 @@
 			},
 			"plan": {
 				"title": "How do you want to start?",
-				"descriptionTrial_one": "Every plan includes unlimited projects and tasks. Try {{name}} free for {{count}} day, or subscribe now.",
-				"descriptionTrial_other": "Every plan includes unlimited projects and tasks. Try {{name}} free for {{count}} days, or subscribe now.",
+				"descriptionTrial_one": "Every plan includes unlimited projects and issues. Try {{name}} free for {{count}} day, or subscribe now.",
+				"descriptionTrial_other": "Every plan includes unlimited projects and issues. Try {{name}} free for {{count}} days, or subscribe now.",
 				"choose": "Choose a plan",
 				"description": {
 					"team": "Unlimited members, roles and permissions",
@@ -438,8 +438,8 @@
 				"description": "Here's what we set up. You can change any of it later.",
 				"workspace": "Workspace",
 				"project": "First project",
-				"projectValue_one": "{{name}}, with {{count}} starter task",
-				"projectValue_other": "{{name}}, with {{count}} starter tasks",
+				"projectValue_one": "{{name}}, with {{count}} starter issue",
+				"projectValue_other": "{{name}}, with {{count}} starter issues",
 				"invitations": "Invitations",
 				"invitationsValue_one": "Sent to {{count}} person",
 				"invitationsValue_other": "Sent to {{count}} people",
@@ -571,9 +571,9 @@
 			"sharedHint": "These rules apply to everyone using this project. Hiding advanced settings does not disable them.",
 			"outgoing": "Kaneo → repository",
 			"incoming": "Repository → Kaneo",
-			"outgoingHint": "Choose which Kaneo tasks can sync. Losing a matching label pauses both directions for an existing task.",
-			"incomingHint": "Choose which issues can be imported or create tasks. Use exact repository label names. Existing links follow the Kaneo task rule.",
-			"all": "All tasks and issues",
+			"outgoingHint": "Choose which Kaneo issues can sync. Losing a matching label pauses both directions for an existing issue.",
+			"incomingHint": "Choose which provider issues can be imported or create issues. Use exact repository label names. Existing links follow the Kaneo issue rule.",
+			"all": "All issues and provider issues",
 			"filtered": "Only matching labels",
 			"any": "Any selected label",
 			"every": "All selected labels",
@@ -581,14 +581,14 @@
 			"repositoryLabel": "Repository label name",
 			"addLabel": "Add label",
 			"removeLabel": "Remove {{name}}",
-			"noLabels": "Create workspace labels before configuring a task filter.",
+			"noLabels": "Create workspace labels before configuring an issue filter.",
 			"selectLabel": "Select at least one label to preview this rule.",
 			"unavailableLabel": "Unavailable label",
 			"impactTitle": "What will change",
-			"impact": "Matching tasks: {{matching}} / {{total}} · New exports: {{create}} · Links to pause: {{pause}} · Links to review: {{review}}",
+			"impact": "Matching issues: {{matching}} / {{total}} · New exports: {{create}} · Links to pause: {{pause}} · Links to review: {{review}}",
 			"preserveHint": "Pausing keeps both records and their link. Resuming requires a comparison; historical comments are never replayed.",
 			"previewing": "Checking sync impact…",
-			"saveError": "Could not apply these rules. The integration or task scope may have changed. Refresh the preview and try again.",
+			"saveError": "Could not apply these rules. The integration or issue scope may have changed. Refresh the preview and try again.",
 			"refreshPreview": "Refresh preview",
 			"rulesChanged": "The saved rules changed while you were editing. Your draft is preserved. Review the current rules above before applying it, or load the saved rules.",
 			"loadSavedRules": "Load saved rules",
@@ -600,7 +600,7 @@
 			"loadError": "Sync rules could not be loaded.",
 			"advancedHint": "Enable Advanced settings in Preferences to edit these rules.",
 			"paused": "Sync paused",
-			"pausedHint": "Records and links are preserved. Tasks that match again need review before syncing resumes.",
+			"pausedHint": "Records and links are preserved. Issues that match again need review before syncing resumes.",
 			"reviewRequired": "Matches the rule · review required",
 			"excluded": "Outside the current rule",
 			"review": "Review and resume",
@@ -608,7 +608,7 @@
 			"next": "Next",
 			"reviewTitle": "Review before resuming sync",
 			"reviewHint": "Compare the current title, description and open/closed state. Choose which side to keep for these fields. Labels and historical comments remain unchanged.",
-			"resumeError": "Could not resume. The task, issue or rule may have changed, or the provider is unavailable. Sync remains paused; refresh the comparison.",
+			"resumeError": "Could not resume. The issue, provider issue or rule may have changed, or the provider is unavailable. Sync remains paused; refresh the comparison.",
 			"refreshComparison": "Refresh comparison",
 			"repository": "Repository",
 			"open": "Open",
@@ -616,21 +616,21 @@
 			"noDescription": "No description",
 			"useRepository": "Keep repository values",
 			"useKaneo": "Keep Kaneo values",
-			"exportPending": "Export matching tasks",
-			"inactiveHint": "This integration is paused. No tasks will be exported until it is reactivated.",
+			"exportPending": "Export matching issues",
+			"inactiveHint": "This integration is paused. No issues will be exported until it is reactivated.",
 			"allIssues": "All issues",
-			"allTasks": "All tasks",
+			"allTasks": "All issues",
 			"edit": "Edit",
 			"hidePaused": "Hide",
 			"issuesLabelled": "Issues labelled",
 			"joinAnd": "and",
 			"joinOr": "or",
 			"kaneoToProvider": "Kaneo to {{provider}}",
-			"pausedSummary_one": "{{count}} task stopped syncing because it no longer matched the sync rules.",
-			"pausedSummary_other": "{{count}} tasks stopped syncing because they no longer matched the sync rules.",
+			"pausedSummary_one": "{{count}} issue stopped syncing because it no longer matched the sync rules.",
+			"pausedSummary_other": "{{count}} issues stopped syncing because they no longer matched the sync rules.",
 			"providerToKaneo": "{{provider}} to Kaneo",
 			"reviewPaused": "Review",
-			"tasksLabelled": "Tasks labelled"
+			"tasksLabelled": "Issues labelled"
 		},
 		"account": "Account",
 		"administration": "Administration",
@@ -879,7 +879,7 @@
 				},
 				"delete": {
 					"title": "Delete {{name}}?",
-					"description": "Its projects, tasks, and files will be permanently deleted.",
+					"description": "Its projects, issues, and files will be permanently deleted.",
 					"typeName": "Type {{name}} to confirm",
 					"action": "Delete workspace"
 				}
@@ -1026,7 +1026,7 @@
 			"deleteAccount": {
 				"sectionTitle": "Danger zone",
 				"title": "Delete account",
-				"description": "Workspaces only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
+				"description": "Workspaces only you belong to are deleted with your account. Elsewhere, your issues stay and become unassigned, and your comments are removed.",
 				"modalTitle": "Delete your account?",
 				"modalDescription": "This permanently deletes your account and cannot be undone.",
 				"confirmLabel": "Type {{email}} to confirm",
@@ -1079,7 +1079,7 @@
 			"eventPreferencesDescription": "Your own comments, mentions, and status changes never notify you.",
 			"eventTaskAssignments": "Assignments",
 			"eventComments": "Comments and mentions",
-			"eventCommentsHint": "New comments on your tasks, and anyone who @mentions you.",
+			"eventCommentsHint": "New comments on your issues, and anyone who @mentions you.",
 			"eventStatusChanges": "Status changes",
 			"eventDueDateReminders": "Due date reminders",
 			"reminderLeadTimeLabel": "Remind me before the due date",
@@ -1110,9 +1110,9 @@
 			"toastRuleSavedGeneric": "Workspace notification rule saved",
 			"toastRuleRemovedGeneric": "Workspace notification rule removed",
 			"loadFailed": "Notification settings could not be loaded.",
-			"eventTaskAssignmentsHint": "When someone assigns a task to you.",
-			"eventStatusChangesHint": "When one of your tasks moves to another column.",
-			"eventDueDateRemindersHint": "Before one of your tasks is due. Overdue tasks notify you separately.",
+			"eventTaskAssignmentsHint": "When someone assigns an issue to you.",
+			"eventStatusChangesHint": "When one of your issues moves to another column.",
+			"eventDueDateRemindersHint": "Before one of your issues is due. Overdue issues notify you separately.",
 			"reminderLeadTimeUnitLabel": "Reminder unit",
 			"reminderLeadTimeUnitHoursBefore_one": "hour before",
 			"reminderLeadTimeUnitHoursBefore_other": "hours before",
@@ -1182,14 +1182,14 @@
 			"list": "List",
 			"gantt": "Gantt",
 			"priorityIcons": "Priority icons",
-			"priorityIconsDescription": "How task priority looks on cards, rows, and menus.",
+			"priorityIconsDescription": "How issue priority looks on cards, rows, and menus.",
 			"priorityIconsMarks": "Marks",
 			"priorityIconsClassic": "Classic",
 			"sidebarDefault": "Keep the sidebar open",
 			"sidebarDefaultDescription": "Start with the sidebar expanded.",
-			"displayOptions": "Task details",
+			"displayOptions": "Issue details",
 			"displayOptionsDescription": "What shows on cards and rows in your boards and lists.",
-			"taskNumbers": "Task numbers",
+			"taskNumbers": "Issue numbers",
 			"assignees": "Assignees",
 			"dueDates": "Due dates",
 			"status": "Status",
@@ -1273,9 +1273,9 @@
 			"descriptionPlaceholder": "What does your team work on?",
 			"dangerZone": "Danger zone",
 			"deleteWorkspace": "Delete workspace",
-			"deleteWorkspaceDescription": "Permanently deletes {{name}}, its projects, and tasks.",
+			"deleteWorkspaceDescription": "Permanently deletes {{name}}, its projects, and issues.",
 			"deleteModalTitle": "Delete workspace?",
-			"deleteModalDescription": "This permanently deletes {{name}} and all of its projects and tasks. You can't undo this.",
+			"deleteModalDescription": "This permanently deletes {{name}} and all of its projects and issues. You can't undo this.",
 			"deleteModalConfirm": "Delete workspace",
 			"toastUpdateError": "Failed to update workspace",
 			"toastDeleted": "Workspace deleted successfully",
@@ -1328,13 +1328,13 @@
 			"allChangesSaved": "All changes saved",
 			"saveChanges": "Save changes",
 			"defaultRoleDescriptions": {
-				"viewer": "Can view and comment on tasks.",
-				"member": "Can create and manage tasks and projects.",
+				"viewer": "Can view and comment on issues.",
+				"member": "Can create and manage issues and projects.",
 				"admin": "Has full access to the workspace."
 			},
 			"resources": {
 				"project": "Projects",
-				"task": "Tasks",
+				"task": "Issues",
 				"label": "Labels",
 				"workspace": "Workspace",
 				"organization": "Workspace administration",
@@ -1369,23 +1369,23 @@
 				"task": {
 					"create": {
 						"label": "Create",
-						"description": "Can create tasks"
+						"description": "Can create issues"
 					},
 					"read": {
 						"label": "Read",
-						"description": "Can view tasks"
+						"description": "Can view issues"
 					},
 					"update": {
 						"label": "Update",
-						"description": "Can edit tasks"
+						"description": "Can edit issues"
 					},
 					"delete": {
 						"label": "Delete",
-						"description": "Can delete tasks"
+						"description": "Can delete issues"
 					},
 					"assign": {
 						"label": "Assign",
-						"description": "Can assign tasks to members"
+						"description": "Can assign issues to members"
 					}
 				},
 				"label": {
@@ -1520,10 +1520,10 @@
 			"nameLabel": "Name",
 			"namePlaceholder": "Label name",
 			"colorLabel": "Color",
-			"createDescription": "Projects in this workspace can add it to their tasks.",
-			"editDescription": "Changes show up on every task with this label.",
+			"createDescription": "Projects in this workspace can add it to their issues.",
+			"editDescription": "Changes show up on every issue with this label.",
 			"deleteConfirmTitle": "Delete “{{name}}”?",
-			"deleteConfirmDescription": "The label is removed from every task that uses it. This can't be undone.",
+			"deleteConfirmDescription": "The label is removed from every issue that uses it. This can't be undone.",
 			"createSuccess": "Label created",
 			"updateSuccess": "Label updated",
 			"deleteSuccess": "Label deleted",
@@ -1531,19 +1531,19 @@
 			"updateError": "Failed to update label",
 			"deleteError": "Failed to delete label",
 			"nameRequired": "Label name is required",
-			"deletionPending": "Removing from tasks…",
+			"deletionPending": "Removing from issues…",
 			"resumeDeletion": "Resume deletion",
 			"subtitleWithWorkspace": "Labels are shared by every project in {{workspaceName}}.",
 			"newLabel": "New label",
 			"sectionTitle": "Workspace labels",
-			"sectionDescription": "Renaming a label or changing its color updates every task that uses it.",
+			"sectionDescription": "Renaming a label or changing its color updates every issue that uses it.",
 			"editNamed": "Edit {{name}}",
 			"rowActions": "Actions for {{name}}",
-			"preview": "On a task",
+			"preview": "On an issue",
 			"previewPlaceholder": "Label",
 			"resume": "Resume",
 			"emptyTitle": "No labels yet",
-			"emptyDescription": "Add labels to sort and filter tasks across projects.",
+			"emptyDescription": "Add labels to sort and filter issues across projects.",
 			"loadError": "Could not load labels. Please try again."
 		},
 		"workspaceImport": {
@@ -1566,7 +1566,7 @@
 					"intro": "Each Linear team becomes a project, with its workflow as columns."
 				},
 				"jira": {
-					"description": "Projects, issues, sub-tasks, links and comments. Cloud or Data Center.",
+					"description": "Projects, issues, sub-issues, links and comments. Cloud or Data Center.",
 					"intro": "Each Jira project becomes a project here, with its workflow as columns."
 				},
 				"trello": {
@@ -1694,9 +1694,9 @@
 				"back": "Back",
 				"commentsLabel": "Import comments",
 				"commentsDescription": "Keeps each comment's original author and date.",
-				"membersNote": "Assignees are matched to members of {{workspace}} by email. Invite your team first so their tasks stay assigned.",
-				"membersNoteTrello": "Assignees are matched to members of {{workspace}} by email, or by full name for Trello. Invite your team first so their tasks stay assigned.",
-				"membersNoteJira": "Assignees are matched to members of {{workspace}} by email, or by full name when Jira hides the email. Invite your team first so their tasks stay assigned.",
+				"membersNote": "Assignees are matched to members of {{workspace}} by email. Invite your team first so their issues stay assigned.",
+				"membersNoteTrello": "Assignees are matched to members of {{workspace}} by email, or by full name for Trello. Invite your team first so their issues stay assigned.",
+				"membersNoteJira": "Assignees are matched to members of {{workspace}} by email, or by full name when Jira hides the email. Invite your team first so their issues stay assigned.",
 				"inviteMembers": "Invite members"
 			},
 			"units": {
@@ -1759,8 +1759,8 @@
 				}
 			},
 			"counts": {
-				"tasks_one": "{{count, number}} task",
-				"tasks_other": "{{count, number}} tasks",
+				"tasks_one": "{{count, number}} issue",
+				"tasks_other": "{{count, number}} issues",
 				"columns_one": "{{count, number}} column",
 				"columns_other": "{{count, number}} columns",
 				"labels_one": "{{count, number}} label",
@@ -1780,8 +1780,8 @@
 				"totals": "{{parts, list}} imported",
 				"nothingImported": "Nothing was imported",
 				"keyInMemory": "Your {{source}} key is only kept in memory until this import finishes.",
-				"finishedNote": "Imported tasks did not send notifications. Comments keep their original author and date.",
-				"finishedNoteNoComments": "Imported tasks did not send notifications.",
+				"finishedNote": "Imported issues did not send notifications. Comments keep their original author and date.",
+				"finishedNoteNoComments": "Imported issues did not send notifications.",
 				"importMore": "Import more",
 				"goToProjects": "Go to projects",
 				"open": "Open",
@@ -1793,7 +1793,7 @@
 				"failedBadge": "Failed",
 				"warnings_one": "{{count}} warning",
 				"warnings_other": "{{count}} warnings",
-				"noTasks": "No tasks",
+				"noTasks": "No issues",
 				"notImported": "Not imported",
 				"failedNames_one": "{{names, list}} failed, so nothing was created for it.",
 				"failedNames_other": "{{names, list}} failed, so nothing was created for them.",
@@ -1822,7 +1822,7 @@
 			"projectNameLabel": "Name",
 			"projectNamePlaceholder": "Project name",
 			"keyLabel": "Key",
-			"keyHint": "Starts every task ID, like {{slug}}-123.",
+			"keyHint": "Starts every issue ID, like {{slug}}-123.",
 			"keyPlaceholder": "PRO",
 			"descriptionLabel": "Description",
 			"descriptionPlaceholder": "What is this project for?",
@@ -1838,9 +1838,9 @@
 			"backgroundRemoveError": "Failed to remove project background",
 			"dangerZone": "Danger zone",
 			"deleteProject": "Delete project",
-			"deleteProjectDescription": "Permanently deletes {{name}} and all of its tasks.",
+			"deleteProjectDescription": "Permanently deletes {{name}} and all of its issues.",
 			"deleteModalTitle": "Delete project?",
-			"deleteModalDescription": "This permanently deletes {{name}} and all of its tasks. You can't undo this.",
+			"deleteModalDescription": "This permanently deletes {{name}} and all of its issues. You can't undo this.",
 			"deleteModalConfirm": "Delete project",
 			"toastUpdateError": "Failed to update project",
 			"toastDeleted": "Project deleted successfully",
@@ -1852,18 +1852,18 @@
 				"iconRequired": "Icon is required"
 			},
 			"moveProject": "Move to another workspace",
-			"moveProjectDescription": "Tasks, columns, and labels move with it.",
+			"moveProjectDescription": "Issues, columns, and labels move with it.",
 			"moveProjectPlaceholder": "Choose a workspace",
 			"moveTargetsError": "Couldn't check which workspaces you can move this project to. Reload to try again.",
 			"moveProjectAction": "Move",
 			"moveModalConfirm": "Move project",
 			"toastMoved": "Project moved successfully",
-			"toastMovedWithUnassigned": "Project moved successfully. {{taskCount}} task(s) were unassigned.",
+			"toastMovedWithUnassigned": "Project moved successfully. {{taskCount}} issue(s) were unassigned.",
 			"toastMoveError": "Failed to move project",
-			"tasksTitle": "Tasks",
+			"tasksTitle": "Issues",
 			"moveTargetLabel": "Workspace",
 			"moveDialogTitle": "Move to another workspace?",
-			"moveDialogDescription": "Tasks assigned to people outside the new workspace become unassigned, and notification subscriptions for this project are cleared.",
+			"moveDialogDescription": "Issues assigned to people outside the new workspace become unassigned, and notification subscriptions for this project are cleared.",
 			"moving": "Moving..."
 		},
 		"projectIntegrations": {
@@ -1872,21 +1872,21 @@
 			"title": "Integrations",
 			"subtitle": "Connect this project to your code host and your team's chat.",
 			"githubSectionTitle": "GitHub Integration",
-			"githubSectionSubtitle": "Synchronize tasks with GitHub issues and enable two-way sync.",
+			"githubSectionSubtitle": "Synchronize issues with GitHub issues and enable two-way sync.",
 			"giteaSectionTitle": "Gitea Integration",
-			"giteaSectionSubtitle": "Synchronize tasks with a self-hosted Gitea instance (issues, PRs, webhooks).",
+			"giteaSectionSubtitle": "Synchronize issues with a self-hosted Gitea instance (issues, PRs, webhooks).",
 			"gitlabSectionTitle": "GitLab Integration",
-			"gitlabSectionSubtitle": "Synchronize tasks with GitLab.com or a self-managed instance.",
+			"gitlabSectionSubtitle": "Synchronize issues with GitLab.com or a self-managed instance.",
 			"discordSectionTitle": "Discord Integration",
-			"discordSectionSubtitle": "Send project task updates into a Discord channel with a webhook.",
+			"discordSectionSubtitle": "Send project issue updates into a Discord channel with a webhook.",
 			"genericWebhookSectionTitle": "Webhooks",
-			"genericWebhookSectionSubtitle": "Send project task events to any HTTP endpoint as JSON.",
+			"genericWebhookSectionSubtitle": "Send project issue events to any HTTP endpoint as JSON.",
 			"slackSectionTitle": "Slack Integration",
-			"slackSectionSubtitle": "Send project task updates into a Slack channel with an incoming webhook.",
+			"slackSectionSubtitle": "Send project issue updates into a Slack channel with an incoming webhook.",
 			"mattermostSectionTitle": "Mattermost Integration",
-			"mattermostSectionSubtitle": "Send project task updates into a Mattermost channel with an incoming webhook.",
+			"mattermostSectionSubtitle": "Send project issue updates into a Mattermost channel with an incoming webhook.",
 			"telegramSectionTitle": "Telegram Integration",
-			"telegramSectionSubtitle": "Send project task updates into a Telegram chat or topic with a bot.",
+			"telegramSectionSubtitle": "Send project issue updates into a Telegram chat or topic with a bot.",
 			"codeHostingTitle": "Code hosting",
 			"chatTitle": "Chat and webhooks",
 			"statusConnected": "Connected",
@@ -1901,7 +1901,7 @@
 			"subtitle": "Choose who can see {{project}} outside {{workspace}}.",
 			"sectionTitle": "Access",
 			"publicAccess": "Public link",
-			"publicAccessHint": "Anyone with the link can view the board and its tasks. They can't change anything.",
+			"publicAccessHint": "Anyone with the link can view the board and its issues. They can't change anything.",
 			"publicUrl": "Public URL",
 			"copy": "Copy link",
 			"toastUpdated": "Visibility updated",
@@ -1919,11 +1919,11 @@
 		"projectWorkflow": {
 			"pageTitle": "Workflow settings",
 			"title": "Workflow",
-			"subtitle": "The columns on your board, and what moves tasks between them.",
+			"subtitle": "The columns on your board, and what moves issues between them.",
 			"columnsTitle": "Columns",
-			"columnsDescription": "Drag to reorder. Tasks in a done column count as completed.",
+			"columnsDescription": "Drag to reorder. Issues in a done column count as completed.",
 			"automationTitle": "Automations",
-			"automationDescription": "Move a linked task when something happens in a connected repository."
+			"automationDescription": "Move a linked issue when something happens in a connected repository."
 		},
 		"projectSwitcher": {
 			"selectProject": "Select project",
@@ -1945,7 +1945,7 @@
 			"addColumn": "Add column",
 			"dragAria": "Reorder {{name}}",
 			"deleteTitle": "Delete “{{name}}”?",
-			"deleteDescription": "Columns that still have tasks can't be deleted. Move those tasks first.",
+			"deleteDescription": "Columns that still have issues can't be deleted. Move those issues first.",
 			"deleteConfirm": "Delete column",
 			"reorderError": "Failed to reorder columns"
 		},
@@ -1980,14 +1980,14 @@
 			"actionsAria": "Actions for {{name}}",
 			"edit": "Edit",
 			"emptyTitle": "No custom fields yet",
-			"emptyDescription": "Track things like size, customer, or launch date on every task.",
+			"emptyDescription": "Track things like size, customer, or launch date on every issue.",
 			"deleteTitle": "Delete “{{name}}”?",
-			"deleteDescription": "The field and its value on every task are removed. This can't be undone.",
+			"deleteDescription": "The field and its value on every issue are removed. This can't be undone.",
 			"deleteConfirm": "Delete field",
 			"newTitle": "New field",
 			"editTitle": "Edit field",
-			"dialogDescription": "Every task in {{project}} gets this field.",
-			"dialogDescriptionFallback": "Every task in this project gets this field.",
+			"dialogDescription": "Every issue in {{project}} gets this field.",
+			"dialogDescriptionFallback": "Every issue in this project gets this field.",
 			"typeLabel": "Type",
 			"typeLocked": "The type can't change after a field is created.",
 			"nameLabel": "Name",
@@ -1999,9 +1999,9 @@
 			"hideOptionAria": "Hide {{option}} from new selections",
 			"showOptionAria": "Offer {{option}} for new selections again",
 			"allowSeveral": "Allow several",
-			"allowSeveralDescription": "A task can pick more than one option.",
-			"requiredDescription": "Every task always has a value.",
-			"defaultDescription": "New tasks start with this.",
+			"allowSeveralDescription": "An issue can pick more than one option.",
+			"requiredDescription": "Every issue always has a value.",
+			"defaultDescription": "New issues start with this.",
 			"noDefault": "No default",
 			"checked": "Checked",
 			"unchecked": "Unchecked",
@@ -2027,15 +2027,15 @@
 				"removeError": "Failed to remove GitHub integration",
 				"issuesImported": "Issues imported successfully",
 				"importError": "Failed to import issues",
-				"commentOnEnabled": "Kaneo will comment with a task link on new issues",
-				"commentOnDisabled": "Task link comments on new issues are turned off",
+				"commentOnEnabled": "Kaneo will comment with a link on new provider issues",
+				"commentOnDisabled": "Link comments on new provider issues are turned off",
 				"settingsUpdateError": "Failed to update GitHub integration"
 			},
 			"commentTaskLinkTitle": "Comment a Kaneo link on new issues",
-			"commentTaskLinkHint": "So people on GitHub can jump to the task.",
+			"commentTaskLinkHint": "So people on GitHub can jump to the issue.",
 			"updatePermissions": "Update permissions",
 			"installGithubApp": "Install GitHub App",
-			"importSectionHint": "Import the repository's open issues as tasks.",
+			"importSectionHint": "Import the repository's open issues as Kaneo issues.",
 			"importDisabledHint": "Reconnect the repository to enable importing.",
 			"accountVerificationHint": "Connect your GitHub account to verify that you administer this repository.",
 			"enableGithubSignInHint": "Ask your instance administrator to enable GitHub sign-in.",
@@ -2043,7 +2043,7 @@
 			"resumeImport": "Resume import",
 			"importPaused": "This import has saved progress. You can resume it.",
 			"importSummary": "Created: {{imported}} · Updated: {{updated}} · Skipped: {{skipped}}",
-			"chooseRepositoryDescription": "Issues and pull requests from it will link to tasks here.",
+			"chooseRepositoryDescription": "Issues and pull requests from it will link to issues here.",
 			"linkAccountDescription": "Proves you can administer the repository.",
 			"linkAccountTitle": "Link your GitHub account",
 			"linkGithub": "Link GitHub",
@@ -2051,7 +2051,7 @@
 			"verifyMissingPermissions": "The Kaneo GitHub App is missing permissions: {{list}}.",
 			"verifyNotInstalled": "The Kaneo GitHub App isn't installed on this repository.",
 			"verifyReady": "The Kaneo GitHub App is installed with the permissions it needs.",
-			"workflowHint": "Move tasks when pull requests open or merge in",
+			"workflowHint": "Move issues when pull requests open or merge in",
 			"workflowLink": "Workflow"
 		},
 		"giteaIntegration": {
@@ -2068,18 +2068,18 @@
 				"removeError": "Failed to remove Gitea integration",
 				"issuesImported": "Issues imported successfully",
 				"importError": "Failed to import issues",
-				"commentOnEnabled": "Kaneo will comment with a task link on new issues",
-				"commentOnDisabled": "Task link comments on new issues are turned off",
+				"commentOnEnabled": "Kaneo will comment with a link on new provider issues",
+				"commentOnDisabled": "Link comments on new provider issues are turned off",
 				"settingsUpdateError": "Failed to update Gitea integration"
 			},
 			"commentTaskLinkTitle": "Comment a Kaneo link on new issues",
-			"commentTaskLinkHint": "So people on Gitea can jump to the task.",
+			"commentTaskLinkHint": "So people on Gitea can jump to the issue.",
 			"webhookHint": "Add this webhook in the repository settings so changes come back to Kaneo.",
 			"baseUrlLabel": "Gitea URL",
 			"tokenLabel": "Personal access token",
 			"tokenPlaceholder": "Paste token",
 			"tokenPlaceholderUpdate": "Paste new token to rotate",
-			"importSectionHint": "Import open issues and pull requests as tasks.",
+			"importSectionHint": "Import open issues and pull requests as Kaneo issues.",
 			"importDisabledHint": "Importing needs verified access. Check the token status above.",
 			"browseModalHint": "Repositories your token can access.",
 			"browseNeedsCredentials": "Enter the Gitea URL and a token to browse.",
@@ -2102,12 +2102,12 @@
 				"removeError": "Failed to remove GitLab integration",
 				"issuesImported": "Issues imported successfully",
 				"importError": "Failed to import issues",
-				"commentOnEnabled": "Kaneo will comment with a task link on issues opened in GitLab",
-				"commentOnDisabled": "Task link comments on issues opened in GitLab are turned off",
+				"commentOnEnabled": "Kaneo will comment with an issue link on issues opened in GitLab",
+				"commentOnDisabled": "Issue link comments on issues opened in GitLab are turned off",
 				"settingsUpdateError": "Failed to update GitLab integration"
 			},
 			"commentTaskLinkTitle": "Comment a Kaneo link on issues opened in GitLab",
-			"commentTaskLinkHint": "So people on GitLab can jump to the task.",
+			"commentTaskLinkHint": "So people on GitLab can jump to the issue.",
 			"webhookHint": "Add this webhook in the project settings so changes come back to Kaneo.",
 			"baseUrlLabel": "GitLab URL",
 			"tokenTypeLabel": "Token type",
@@ -2117,13 +2117,13 @@
 			"tokenPlaceholder": "Paste token",
 			"tokenPlaceholderUpdate": "Paste new token to rotate",
 			"projectPathLabel": "Project path",
-			"importSectionHint": "Import open issues and merge requests as tasks.",
+			"importSectionHint": "Import open issues and merge requests as Kaneo issues.",
 			"browseModalHint": "Projects your token is a member of.",
 			"searchProjects": "Search projects",
 			"browseNeedsCredentials": "Enter the GitLab URL and a token to browse.",
 			"loadProjectsError": "Couldn't load projects.",
 			"openInGitlab": "Open {{project}} in GitLab",
-			"importPermissionHint": "Importing requires permission to create and update tasks.",
+			"importPermissionHint": "Importing requires permission to create and update issues.",
 			"browseEmpty": "This token isn't a member of any projects.",
 			"chooseProjectDescription": "Type its path or pick one from the list.",
 			"noSearchMatchTitle": "No matching projects",
@@ -2207,24 +2207,24 @@
 			"secretHintConfigured": "Current secret: {{secret}}. Paste a new one to replace it.",
 			"eventsTitle": "Send when",
 			"events": {
-				"taskCreated": "Task created",
+				"taskCreated": "Issue created",
 				"taskStatusChanged": "Status changed",
 				"taskPriorityChanged": "Priority changed",
 				"taskTitleChanged": "Title changed",
 				"taskDescriptionChanged": "Description changed",
 				"taskCommentCreated": "New comment",
-				"taskDeleted": "Task deleted",
-				"taskMoved": "Task moved",
+				"taskDeleted": "Issue deleted",
+				"taskMoved": "Issue moved",
 				"taskDueDateChanged": "Due date changed",
 				"taskAssigneeChanged": "Assignee changed",
-				"taskUnassigned": "Task unassigned",
+				"taskUnassigned": "Issue unassigned",
 				"dueDateReminder": "Due date reminder"
 			},
-			"reminderLeadTimeLabel": "Hours before a task is due",
+			"reminderLeadTimeLabel": "Hours before an issue is due",
 			"connect": "Connect webhook",
 			"activeTitle": "Sending events",
 			"reminderLeadTimeBefore": "Send reminders",
-			"reminderLeadTimeAfter": "hours before a task is due",
+			"reminderLeadTimeAfter": "hours before an issue is due",
 			"disconnectTitle": "Disconnect webhook?",
 			"disconnectDescription": "Kaneo stops sending events and removes the saved endpoint and secret."
 		},
@@ -2277,26 +2277,26 @@
 			"useRepository": "Use repository"
 		},
 		"tasksImportExport": {
-			"exportTasks": "Export tasks",
-			"importTasks": "Import tasks",
-			"dialogTitle": "Import tasks",
-			"dialogDescription": "Upload a JSON file containing tasks to import into this project.",
+			"exportTasks": "Export issues",
+			"importTasks": "Import issues",
+			"dialogTitle": "Import issues",
+			"dialogDescription": "Upload a JSON file containing issues to import into this project.",
 			"expectedFormat": "Expected format:",
 			"dropHint": "Drag and drop your JSON file here",
 			"selectFile": "Select file",
-			"exporting": "Exporting tasks...",
-			"exportSuccess": "Tasks exported successfully",
-			"exportError": "Failed to export tasks",
-			"importing": "Importing tasks...",
-			"importSuccess": "Imported {{count}} tasks successfully",
-			"importPartialError": "Failed to import {{count}} tasks",
-			"importError": "Failed to import tasks",
+			"exporting": "Exporting issues...",
+			"exportSuccess": "Issues exported successfully",
+			"exportError": "Failed to export issues",
+			"importing": "Importing issues...",
+			"importSuccess": "Imported {{count}} issues successfully",
+			"importPartialError": "Failed to import {{count}} issues",
+			"importError": "Failed to import issues",
 			"invalidFormat": "Invalid import file format",
 			"noFileDropped": "No file was dropped",
 			"notJsonFile": "Please upload a JSON file",
-			"exportDescription": "Download every task in this project as a file.",
+			"exportDescription": "Download every issue in this project as a file.",
 			"export": "Export",
-			"importDescription": "Add tasks from a file you exported earlier.",
+			"importDescription": "Add issues from a file you exported earlier.",
 			"import": "Import"
 		},
 		"workflowEditor": {
@@ -2326,7 +2326,7 @@
 			"titleOptional": "Title (optional)",
 			"cancel": "Cancel",
 			"adding": "Adding...",
-			"empty": "No resources linked to this task.",
+			"empty": "No resources linked to this issue.",
 			"remove": "Remove {{title}}",
 			"removeError": "Failed to remove the resource link."
 		},
@@ -2372,18 +2372,18 @@
 		},
 		"calendarFeeds": {
 			"title": "Calendar feeds",
-			"subtitle": "Subscribe to scheduled project tasks in your calendar app.",
+			"subtitle": "Subscribe to scheduled project issues in your calendar app.",
 			"labels": "Only include labels",
 			"selectLabels": "Add label",
 			"noLabels": "No labels found.",
 			"timeZoneHint": "All-day dates use {{timeZone}}.",
-			"accessHint": "Anyone with a feed link can read the matching task titles, descriptions, and dates. Revoke a link to stop future access.",
+			"accessHint": "Anyone with a feed link can read the matching issue titles, descriptions, and dates. Revoke a link to stop future access.",
 			"create": "Create feed",
 			"creating": "Creating…",
 			"created": "Calendar feed created.",
 			"createError": "Could not create the calendar feed.",
 			"activeFeeds": "Feeds",
-			"allScheduledTasks": "All scheduled tasks",
+			"allScheduledTasks": "All scheduled issues",
 			"subscribeHint": "Add a link to your calendar app as a subscription. Updates appear when the app refreshes the feed.",
 			"copy": "Copy link",
 			"copyError": "Could not copy the link. Select the URL and copy it manually.",
@@ -2395,8 +2395,8 @@
 			"permissionRequired": "You need project-sharing permission to manage calendar feeds.",
 			"newFeed": "New feed",
 			"dialogTitle": "New calendar feed",
-			"dialogDescription": "Tasks with a start or due date show up in the feed.",
-			"labelsHint": "Leave empty to include every scheduled task.",
+			"dialogDescription": "Issues with a start or due date show up in the feed.",
+			"labelsHint": "Leave empty to include every scheduled issue.",
 			"copiedLabel": "Copied",
 			"feedActions": "Feed actions",
 			"revokeConfirmTitle": "Revoke this feed?",
@@ -2404,7 +2404,7 @@
 			"revokeConfirm": "Revoke feed",
 			"revoking": "Revoking…",
 			"emptyTitle": "No calendar feeds yet",
-			"emptyDescription": "Create a feed to see scheduled tasks in your calendar app."
+			"emptyDescription": "Create a feed to see scheduled issues in your calendar app."
 		},
 		"invitationEmailFailed": "Invitation saved, but email delivery failed. Check SMTP settings and resend the invitation.",
 		"billing": {
@@ -2470,7 +2470,7 @@
 			"features": {
 				"singleUser": "Single user",
 				"unlimitedMembers": "Unlimited team members",
-				"unlimitedProjects": "Unlimited projects and tasks",
+				"unlimitedProjects": "Unlimited projects and issues",
 				"roles": "Workspace roles and permissions",
 				"backups": "Automatic backups and updates",
 				"emailSupport": "Email support",
@@ -2517,7 +2517,7 @@
 			"channelHint": "Just a label for this list.",
 			"postWhen": "Post when",
 			"events": {
-				"taskCreated": "A task is created",
+				"taskCreated": "An issue is created",
 				"taskStatusChanged": "Status changes",
 				"taskPriorityChanged": "Priority changes",
 				"taskTitleChanged": "Title changes",
@@ -2546,7 +2546,7 @@
 			"copySecret": "Copy secret",
 			"copyUrl": "Copy webhook URL",
 			"disconnect": "Disconnect",
-			"disconnectDescription": "Tasks stop syncing with {{target}}. You can connect it again later.",
+			"disconnectDescription": "Issues stop syncing with {{target}}. You can connect it again later.",
 			"disconnectTitle": "Disconnect {{provider}}?",
 			"disconnecting": "Disconnecting…",
 			"hideSecret": "Hide secret",
@@ -2580,11 +2580,11 @@
 		"projectCustomFields": {
 			"pageTitle": "Custom fields",
 			"title": "Custom fields",
-			"subtitle": "Extra details every task in {{project}} can track, like size or customer.",
-			"subtitleFallback": "Extra details every task in this project can track, like size or customer.",
+			"subtitle": "Extra details every issue in {{project}} can track, like size or customer.",
+			"subtitleFallback": "Extra details every issue in this project can track, like size or customer.",
 			"newField": "New field",
 			"fieldsTitle": "Fields",
-			"fieldsDescription": "Drag to change the order they appear in on a task."
+			"fieldsDescription": "Drag to change the order they appear in on an issue."
 		},
 		"sessions": {
 			"device": "{{browser}} on {{os}}",
@@ -2848,7 +2848,7 @@
 			"projects": "Projects",
 			"search": "Search",
 			"members": "Members",
-			"createTask": "Create task",
+			"createTask": "Create issue",
 			"createProject": "Create project",
 			"createWorkspace": "Create workspace",
 			"lightTheme": "Light theme",
@@ -2871,7 +2871,7 @@
 			"backToBoard": "Back to board",
 			"home": "Home",
 			"inbox": "Inbox",
-			"myTasks": "My tasks",
+			"myTasks": "My issues",
 			"invitePeople": "Invite people",
 			"issues": "Issues",
 			"allIssues": "All issues",
@@ -2893,10 +2893,10 @@
 			"switcherLabel": "Switch project or view"
 		},
 		"search": {
-			"inputPlaceholder": "Search tasks, projects, comments...",
+			"inputPlaceholder": "Search issues, projects, comments...",
 			"minCharsHint": "Type at least 3 characters to search",
 			"groups": {
-				"task": "Tasks",
+				"task": "Issues",
 				"project": "Projects",
 				"workspace": "Workspaces",
 				"comment": "Comments",
@@ -2936,7 +2936,7 @@
 				"navigation": "Navigation",
 				"create": "Create",
 				"views": "Views",
-				"tasks": "Tasks",
+				"tasks": "Issues",
 				"list": "Board and list",
 				"inbox": "Inbox",
 				"filters": "Filters",
@@ -2955,19 +2955,19 @@
 				"toggleSidebar": "Toggle sidebar",
 				"goToHome": "Go to home",
 				"goToInbox": "Go to inbox",
-				"goToMyTasks": "Go to my tasks",
+				"goToMyTasks": "Go to my issues",
 				"goToProjects": "Go to projects",
 				"goToSettings": "Go to settings",
-				"goToTasks": "Go to tasks",
+				"goToTasks": "Go to issues",
 				"goToBacklog": "Go to backlog",
 				"goToProject": "Go to project 1–9",
-				"openTask": "Open task",
+				"openTask": "Open issue",
 				"openProject": "Open project",
-				"createTask": "Create task",
+				"createTask": "Create issue",
 				"createProject": "Create project",
 				"toggleLayout": "Switch between board and list",
-				"deleteTask": "Delete task",
-				"copyTaskUrl": "Copy task URL",
+				"deleteTask": "Delete issue",
+				"copyTaskUrl": "Copy issue URL",
 				"copyBranchName": "Copy branch name",
 				"nextTask": "Next item",
 				"previousTask": "Previous item",
@@ -2985,20 +2985,20 @@
 				"editDescription": "Edit description",
 				"commentOnTask": "Comment",
 				"moveToProject": "Move to another project",
-				"createSubtask": "Create subtask",
-				"setParent": "Set parent task",
-				"openParent": "Open parent task",
-				"openSubtask": "Open subtask",
+				"createSubtask": "Create sub-issue",
+				"setParent": "Set parent issue",
+				"openParent": "Open parent issue",
+				"openSubtask": "Open sub-issue",
 				"markBlockedBy": "Mark as blocked by",
 				"markBlocking": "Mark as blocking",
 				"markRelated": "Mark as related",
 				"addLink": "Add a link",
 				"toggleResources": "Show or hide resources",
-				"copyTaskId": "Copy task ID",
-				"copyTaskTitle": "Copy task title",
+				"copyTaskId": "Copy issue ID",
+				"copyTaskTitle": "Copy issue title",
 				"copyAsMarkdown": "Copy as Markdown",
-				"peekTask": "Preview focused task",
-				"selectTask": "Select task",
+				"peekTask": "Preview focused issue",
+				"selectTask": "Select issue",
 				"selectGroup": "Select all in group",
 				"copyPageUrl": "Copy page URL",
 				"focusRight": "Next column",
@@ -3066,41 +3066,41 @@
 		},
 		"events": {
 			"task_created": {
-				"title": "New task created",
-				"content": "Task \"{{taskTitle}}\" was created"
+				"title": "New issue created",
+				"content": "Issue \"{{taskTitle}}\" was created"
 			},
 			"workspace_created": {
 				"title": "Workspace created",
 				"content": "Your workspace \"{{workspaceName}}\" has been created successfully"
 			},
 			"task_status_changed": {
-				"title": "Task status changed",
-				"content": "Task \"{{taskTitle}}\" status changed from \"{{oldStatus}}\" to \"{{newStatus}}\""
+				"title": "Issue status changed",
+				"content": "Issue \"{{taskTitle}}\" status changed from \"{{oldStatus}}\" to \"{{newStatus}}\""
 			},
 			"task_assignee_changed": {
-				"title": "Task assigned to you",
-				"content": "You have been assigned to task: {{taskTitle}}"
+				"title": "Issue assigned to you",
+				"content": "You have been assigned to issue: {{taskTitle}}"
 			},
 			"task_mention": {
 				"title": "{{mentionerName}} mentioned you",
 				"content": "{{mentionerName}} mentioned you in: {{taskTitle}}"
 			},
 			"task_comment": {
-				"title": "{{commenterName}} commented on your task",
+				"title": "{{commenterName}} commented on your issue",
 				"content": "New comment on {{taskTitle}}: {{commentPreview}}"
 			},
 			"due_date_reminder": {
-				"title": "Task due soon",
+				"title": "Issue due soon",
 				"content": "{{taskTitle}} is due in {{leadTime}}"
 			},
 			"task_overdue": {
-				"title": "Task overdue",
+				"title": "Issue overdue",
 				"content": "{{taskTitle}} is past its due date"
 			},
 			"time_entry_created": {
 				"title": "Time tracking started",
-				"contentWithTask": "Time tracking started on task: {{taskTitle}}",
-				"contentWithoutTask": "Time tracking started on a task"
+				"contentWithTask": "Time tracking started on issue: {{taskTitle}}",
+				"contentWithoutTask": "Time tracking started on an issue"
 			}
 		},
 		"inbox": {
@@ -3118,27 +3118,27 @@
 			"loadError": "Notifications couldn't be loaded.",
 			"selectPrompt": "Select a notification to read it",
 			"back": "Inbox",
-			"openTask": "Open task",
+			"openTask": "Open issue",
 			"recentActivity": "Recent activity",
-			"taskUnavailable": "This task is no longer available.",
-			"taskLoadError": "This task couldn’t be loaded.",
+			"taskUnavailable": "This issue is no longer available.",
+			"taskLoadError": "This issue couldn’t be loaded.",
 			"actionError": "Couldn't update your inbox. Try again.",
 			"readCleared": "Deleted read notifications"
 		}
 	},
 	"activity": {
-		"assignedToSelf": "assigned the task to themselves",
-		"unassigned": "unassigned the task",
-		"assignedTo": "assigned the task to {{name}}",
+		"assignedToSelf": "assigned the issue to themselves",
+		"unassigned": "unassigned the issue",
+		"assignedTo": "assigned the issue to {{name}}",
 		"changedStatus": "changed status from {{from}} to {{to}}",
 		"changedPriority": "changed priority from {{from}} to {{to}}",
 		"clearedDueDate": "cleared the due date",
 		"setDueDate": "set due date to {{date}}",
 		"changedDueDate": "changed due date from {{from}} to {{to}}",
 		"changedTitle": "changed title from \"{{from}}\" to \"{{to}}\"",
-		"moved": "moved task from \"{{from}}\" to \"{{to}}\"",
-		"movedFromOtherProject": "moved task from another project to \"{{to}}\"",
-		"created": "created this task",
+		"moved": "moved issue from \"{{from}}\" to \"{{to}}\"",
+		"movedFromOtherProject": "moved issue from another project to \"{{to}}\"",
+		"created": "created this issue",
 		"githubUser": "GitHub User",
 		"comment": {
 			"viewGithubProfile": "View GitHub Profile",
@@ -3156,7 +3156,7 @@
 			"attachFile": "Attach file",
 			"submitShortcut": "Submit comment",
 			"editor": {
-				"uploadsOnlyOnSavedTasks": "File uploads are only available on saved tasks.",
+				"uploadsOnlyOnSavedTasks": "File uploads are only available on saved issues.",
 				"uploadingFile": "Uploading file...",
 				"imageUploaded": "Image uploaded",
 				"fileAttached": "File attached",
@@ -3178,7 +3178,7 @@
 				"searchParagraph": "text paragraph normal",
 				"searchHeading": "heading title h2",
 				"searchBulletList": "list bullet unordered",
-				"searchTaskList": "todo to-do checklist checkbox task list",
+				"searchTaskList": "todo to-do checklist checkbox issue list",
 				"searchOrderedList": "list ordered numbered",
 				"searchQuote": "quote blockquote",
 				"searchCodeBlock": "code snippet",
@@ -3242,7 +3242,7 @@
 	},
 	"tasks": {
 		"checklistProgress": "{{completed}} of {{total}} checklist items completed",
-		"title": "Tasks",
+		"title": "Issues",
 		"status": {
 			"label": "Status",
 			"to-do": "To Do",
@@ -3292,17 +3292,17 @@
 			"heading": "View"
 		},
 		"common": {
-			"selectTask": "Select task",
-			"loadingTask": "Loading task...",
-			"taskNotFound": "Task not found",
-			"taskNotFoundDescription": "The task you are looking for does not exist or has been deleted.",
-			"ticketAmbiguous": "Task ID matches more than one task",
-			"ticketAmbiguousDescription": "{{ticketId}} matches tasks in more than one project in this workspace. Give one of those projects a different key to fix the link.",
-			"ticketNotFoundDescription": "No task with the ID {{ticketId}} exists in this workspace, or you don't have access to it.",
+			"selectTask": "Select issue",
+			"loadingTask": "Loading issue...",
+			"taskNotFound": "Issue not found",
+			"taskNotFoundDescription": "The issue you are looking for does not exist or has been deleted.",
+			"ticketAmbiguous": "Issue ID matches more than one issue",
+			"ticketAmbiguousDescription": "{{ticketId}} matches issues in more than one project in this workspace. Give one of those projects a different key to fix the link.",
+			"ticketNotFoundDescription": "No issue with the ID {{ticketId}} exists in this workspace, or you don't have access to it.",
 			"customFields": "Custom Fields"
 		},
 		"detail": {
-			"subtaskOf": "Subtask of",
+			"subtaskOf": "Sub-issue of",
 			"activity": "Activity",
 			"noActivity": "No activity found",
 			"openInFullPage": "Open in full page",
@@ -3324,7 +3324,7 @@
 				"deleteFailed": "Failed to delete attachment"
 			},
 			"editor": {
-				"ariaLabel": "Task description editor",
+				"ariaLabel": "Issue description editor",
 				"placeholder": "Write a description...",
 				"previewImage": "Preview image",
 				"autoDetect": "Auto detect",
@@ -3334,8 +3334,8 @@
 				"attachFile": "Attach file",
 				"dropToUpload": "Drop image to upload",
 				"checkbox": {
-					"markIncomplete": "Mark task as incomplete",
-					"markComplete": "Mark task as complete"
+					"markIncomplete": "Mark issue as incomplete",
+					"markComplete": "Mark issue as complete"
 				},
 				"upload": {
 					"loading": "Uploading file...",
@@ -3434,52 +3434,52 @@
 			}
 		},
 		"entity": {
-			"task": "Task"
+			"task": "Issue"
 		},
 		"relations": {
 			"title": "Relations",
-			"tasksInProject": "Tasks in project",
-			"linkError": "Failed to link task",
-			"empty": "No related tasks",
-			"searchPlaceholder": "Search tasks to link...",
-			"noTasksFound": "No tasks found",
-			"openTask": "Open task",
+			"tasksInProject": "Issues in project",
+			"linkError": "Failed to link issue",
+			"empty": "No related issues",
+			"searchPlaceholder": "Search issues to link...",
+			"noTasksFound": "No issues found",
+			"openTask": "Open issue",
 			"removeRelation": "Remove relation",
 			"duplicateOf": "Duplicate of",
 			"duplicatedBy": "Duplicated by",
 			"related": "Related",
 			"blocks": "Blocks",
-			"selectTask": "Select a task to link",
+			"selectTask": "Select an issue to link",
 			"types": {
 				"blocks": "blocks",
 				"blocked_by": "blocked by",
 				"related": "relates to"
 			},
 			"blockedBy": "Blocked by",
-			"parentPlaceholder": "Set parent task…"
+			"parentPlaceholder": "Set parent issue…"
 		},
 		"subtasks": {
-			"progress": "{{completed}} of {{total}} subtasks completed",
-			"noCompletionColumn": "This project has no matching column for completing or reopening this subtask.",
+			"progress": "{{completed}} of {{total}} sub-issues completed",
+			"noCompletionColumn": "This project has no matching column for completing or reopening this sub-issue.",
 			"title": "Sub-issues",
-			"inputPlaceholder": "Subtask title...",
+			"inputPlaceholder": "Sub-issue title...",
 			"addAction": "Add",
-			"empty": "No subtasks yet",
-			"createError": "Failed to create subtask",
-			"deleteSuccess": "Task deleted successfully",
-			"deleteError": "Failed to delete task",
-			"deleteDialogTitle": "Delete Task?",
-			"deleteDialogDescription": "This will permanently remove the task and all its data. You can't undo this action.",
-			"deleteAction": "Delete Task",
-			"completeAria": "Mark subtask complete"
+			"empty": "No sub-issues yet",
+			"createError": "Failed to create sub-issue",
+			"deleteSuccess": "Issue deleted successfully",
+			"deleteError": "Failed to delete issue",
+			"deleteDialogTitle": "Delete issue?",
+			"deleteDialogDescription": "This will permanently remove the issue and all its data. You can't undo this action.",
+			"deleteAction": "Delete issue",
+			"completeAria": "Mark sub-issue complete"
 		},
 		"properties": {
 			"title": "Properties",
 			"labels": "Labels",
 			"addLabels": "Add labels",
-			"copyTaskLink": "Copy task link",
-			"copyTaskBranch": "Copy task branch",
-			"taskLinkCopied": "Copied task link",
+			"copyTaskLink": "Copy issue link",
+			"copyTaskBranch": "Copy issue branch",
+			"taskLinkCopied": "Copied issue link",
 			"taskBranchCopied": "Copied branch name",
 			"start": "Start",
 			"startDate": "Start date",
@@ -3488,29 +3488,29 @@
 			"project": "Project"
 		},
 		"move": {
-			"title": "Move task",
+			"title": "Move issue",
 			"projectLabel": "Destination project",
 			"projectPlaceholder": "Select a project",
 			"statusLabel": "Destination status",
 			"statusHintKeep": "This project's workflow already supports the current status.",
 			"statusHintAdjust": "Choose the status to use in the destination project.",
-			"action": "Move task",
-			"success": "Task moved successfully",
-			"error": "Failed to move task"
+			"action": "Move issue",
+			"success": "Issue moved successfully",
+			"error": "Failed to move issue"
 		},
 		"popover": {
 			"assignee": {
 				"unassigned": "Unassigned",
-				"updateError": "Failed to update task assignee"
+				"updateError": "Failed to update issue assignee"
 			},
 			"status": {
-				"updateError": "Failed to update task status"
+				"updateError": "Failed to update issue status"
 			},
 			"priority": {
-				"updateError": "Failed to update task priority"
+				"updateError": "Failed to update issue priority"
 			},
 			"dueDate": {
-				"updateError": "Failed to update task due date",
+				"updateError": "Failed to update issue due date",
 				"clear": "Clear date"
 			},
 			"recurrence": {
@@ -3537,11 +3537,11 @@
 					"years_other": "years"
 				},
 				"onDays": "On these days",
-				"hint": "When this task is done, the next one is created.",
-				"updateError": "Failed to update task repeat"
+				"hint": "When this issue is done, the next one is created.",
+				"updateError": "Failed to update issue repeat"
 			},
 			"startDate": {
-				"updateError": "Failed to update task start date",
+				"updateError": "Failed to update issue start date",
 				"clear": "Clear start date"
 			},
 			"labels": {
@@ -3572,18 +3572,18 @@
 		},
 		"backlog": {
 			"pageTitle": "{{name}}'s backlog",
-			"noTasksToMove": "No planned tasks to move",
-			"moveAllConfirm": "Move all {{count}} planned tasks to To Do?",
-			"moveAllSuccess": "Moved {{count}} tasks to To Do",
+			"noTasksToMove": "No planned issues to move",
+			"moveAllConfirm": "Move all {{count}} planned issues to To Do?",
+			"moveAllSuccess": "Moved {{count}} issues to To Do",
 			"plan": "Plan",
-			"moveAllTooltip": "Move all planned tasks to To Do",
+			"moveAllTooltip": "Move all planned issues to To Do",
 			"moveAll": "Move all",
-			"addTask": "Add task",
+			"addTask": "Add issue",
 			"sections": {
 				"planned": "Planned",
 				"archived": "Archived"
 			},
-			"noTasksInSection": "No {{section}} tasks",
+			"noTasksInSection": "No {{section}} issues",
 			"filters": {
 				"dueThisWeek": "Due this week",
 				"dueNextWeek": "Due next week",
@@ -3600,7 +3600,7 @@
 				"priority": "Priority",
 				"dueDate": "Due date",
 				"title": "Title",
-				"number": "Task number"
+				"number": "Issue number"
 			}
 		},
 		"boardFilters": {
@@ -3632,12 +3632,12 @@
 			"previousMonth": "Previous month",
 			"nextMonth": "Next month",
 			"today": "Today",
-			"noTasks": "No scheduled tasks",
-			"noTasksSubtitle": "Add a start date, due date, or both to tasks to place them on the calendar.",
+			"noTasks": "No scheduled issues",
+			"noTasksSubtitle": "Add a start date, due date, or both to issues to place them on the calendar.",
 			"moreTasks": "+{{count}} more",
-			"loadError": "Failed to load tasks.",
-			"dayTasksAriaLabel": "Show all tasks for {{date}}",
-			"taskAriaLabel": "{{title}}, {{range}}: open task",
+			"loadError": "Failed to load issues.",
+			"dayTasksAriaLabel": "Show all issues for {{date}}",
+			"taskAriaLabel": "{{title}}, {{range}}: open issue",
 			"noTasksThisMonth": "Nothing scheduled this month"
 		},
 		"gantt": {
@@ -3645,50 +3645,50 @@
 			"pageTitle": "{{name}} / Gantt",
 			"title": "Gantt Timeline",
 			"jumpToToday": "Jump to today",
-			"hideTasks": "Hide tasks",
-			"showTasks": "Show tasks",
-			"noTasks": "No scheduled tasks",
-			"noTasksSubtitle": "Add a start date, due date, or both to tasks to place them on the project timeline.",
-			"noTasksFound": "No tasks found",
-			"taskHeader": "Task",
-			"updateDatesError": "Failed to update task dates",
+			"hideTasks": "Hide issues",
+			"showTasks": "Show issues",
+			"noTasks": "No scheduled issues",
+			"noTasksSubtitle": "Add a start date, due date, or both to issues to place them on the project timeline.",
+			"noTasksFound": "No issues found",
+			"taskHeader": "Issue",
+			"updateDatesError": "Failed to update issue dates",
 			"resizeStart": "Resize start date",
 			"resizeDue": "Resize due date",
 			"taskAriaLabel": "{{title}}: open or drag to move",
 			"previousPeriod": "Previous period",
 			"nextPeriod": "Next period",
 			"periodStart": "Timeline start date",
-			"showTaskDates": "Show task dates"
+			"showTaskDates": "Show issue dates"
 		},
 		"delete": {
-			"title": "Delete Task?",
-			"description": "This will permanently remove the task and all its data. You can't undo this action.",
-			"action": "Delete Task",
-			"success": "Task deleted successfully",
-			"error": "Failed to delete task"
+			"title": "Delete issue?",
+			"description": "This will permanently remove the issue and all its data. You can't undo this action.",
+			"action": "Delete issue",
+			"success": "Issue deleted successfully",
+			"error": "Failed to delete issue"
 		},
 		"duplicate": {
 			"titleSuffix": "{{title}} (copy)",
-			"success": "Task duplicated successfully",
-			"error": "Failed to duplicate task"
+			"success": "Issue duplicated successfully",
+			"error": "Failed to duplicate issue"
 		},
 		"archive": {
-			"success": "Archived {{count}} tasks",
-			"confirmTitle_one": "Archive {{count}} completed task?",
-			"confirmTitle_other": "Archive {{count}} completed tasks?",
+			"success": "Archived {{count}} issues",
+			"confirmTitle_one": "Archive {{count}} completed issue?",
+			"confirmTitle_other": "Archive {{count}} completed issues?",
 			"confirmDescription": "They leave the board and move to the Archived section of the backlog."
 		},
 		"listView": {
-			"addTask": "Add task",
-			"archiveAllTooltip": "Archive all completed tasks",
-			"noTasks": "No tasks",
-			"expandSubtasks": "Show subtasks of {{title}}",
-			"collapseSubtasks": "Hide subtasks of {{title}}",
-			"subtaskLevel": "Subtask, level {{level}}",
-			"subtasksLoadError": "Subtasks couldn't be loaded, so tasks are shown without their hierarchy."
+			"addTask": "Add issue",
+			"archiveAllTooltip": "Archive all completed issues",
+			"noTasks": "No issues",
+			"expandSubtasks": "Show sub-issues of {{title}}",
+			"collapseSubtasks": "Hide sub-issues of {{title}}",
+			"subtaskLevel": "Sub-issue, level {{level}}",
+			"subtasksLoadError": "Sub-issues couldn't be loaded, so issues are shown without their hierarchy."
 		},
 		"kanban": {
-			"addTask": "Add task",
+			"addTask": "Add issue",
 			"automaticallySortedHint": "Automatically sorted by {{sort}}"
 		},
 		"pr": {
@@ -3707,7 +3707,7 @@
 		"dueDate": {
 			"label": "Due date",
 			"clear": "Clear date",
-			"updateError": "Failed to update task due date",
+			"updateError": "Failed to update issue due date",
 			"clearError": "Failed to clear due date"
 		},
 		"recurrence": {
@@ -3725,11 +3725,11 @@
 			"empty": "No labels available"
 		},
 		"update": {
-			"error": "Failed to update task"
+			"error": "Failed to update issue"
 		},
 		"contextMenu": {
 			"copyLink": "Copy link",
-			"copyLinkSuccess": "Task link copied!"
+			"copyLinkSuccess": "Issue link copied!"
 		},
 		"actions": {
 			"duplicate": "Duplicate",
@@ -3740,29 +3740,29 @@
 		"bulk": {
 			"selectedCount": "{{count}} selected",
 			"moveToBacklog": "Move to backlog",
-			"moveToBacklogSuccess": "{{count}} tasks moved to backlog",
-			"moveToBacklogError": "Failed to move tasks to backlog",
+			"moveToBacklogSuccess": "{{count}} issues moved to backlog",
+			"moveToBacklogError": "Failed to move issues to backlog",
 			"moveToBoard": "Move to board",
-			"moveToBoardSuccess": "{{count}} tasks moved to board",
-			"moveToBoardError": "Failed to move tasks to board",
-			"delete": "Delete tasks",
-			"deleteConfirmTitle_one": "Delete {{count}} task?",
-			"deleteConfirmTitle_other": "Delete {{count}} tasks?",
-			"deleteConfirmDescription": "This will permanently remove the selected tasks and all their data. You can't undo this action.",
-			"deleteSuccess": "{{count}} tasks deleted",
-			"deleteError": "Failed to delete tasks",
-			"archive": "Archive tasks",
-			"archiveSuccess": "{{count}} tasks archived",
-			"archiveError": "Failed to archive tasks",
-			"updateSuccess": "{{count}} tasks updated",
-			"updateError": "Failed to update tasks",
+			"moveToBoardSuccess": "{{count}} issues moved to board",
+			"moveToBoardError": "Failed to move issues to board",
+			"delete": "Delete issues",
+			"deleteConfirmTitle_one": "Delete {{count}} issue?",
+			"deleteConfirmTitle_other": "Delete {{count}} issues?",
+			"deleteConfirmDescription": "This will permanently remove the selected issues and all their data. You can't undo this action.",
+			"deleteSuccess": "{{count}} issues deleted",
+			"deleteError": "Failed to delete issues",
+			"archive": "Archive issues",
+			"archiveSuccess": "{{count}} issues archived",
+			"archiveError": "Failed to archive issues",
+			"updateSuccess": "{{count}} issues updated",
+			"updateError": "Failed to update issues",
 			"assignTo": "Assign to",
-			"assignSuccess": "{{count}} tasks assigned",
-			"assignError": "Failed to assign tasks",
+			"assignSuccess": "{{count}} issues assigned",
+			"assignError": "Failed to assign issues",
 			"setPriority": "Set Priority",
 			"updatePriorityError": "Failed to update priority",
 			"addLabel": "Add Label",
-			"addLabelSuccess": "Label added to {{count}} tasks",
+			"addLabelSuccess": "Label added to {{count}} issues",
 			"addLabelError": "Failed to add label",
 			"updateDueDateError": "Failed to update due date",
 			"actions": "Actions",
@@ -3811,20 +3811,20 @@
 		"descriptionLoading": "Loading description…",
 		"descriptionLoadError": "The description could not be loaded. Retry to load the current version.",
 		"board": {
-			"reorderFailed": "Could not move task. Please try again.",
-			"keyboardInstructions": "Press Space to preview and Enter to open this task. Use Alt or Option with the arrow keys to move it.",
+			"reorderFailed": "Could not move issue. Please try again.",
+			"keyboardInstructions": "Press Space to preview and Enter to open this issue. Use Alt or Option with the arrow keys to move it.",
 			"loadErrorTitle": "This board didn't load",
-			"loadErrorDescription": "Something went wrong while fetching its tasks. Check your connection and try again.",
+			"loadErrorDescription": "Something went wrong while fetching its issues. Check your connection and try again.",
 			"refreshError": "Couldn't refresh this board, so it may be out of date.",
 			"tryAgain": "Try again"
 		},
 		"toolbar": {
-			"search": "Search tasks",
+			"search": "Search issues",
 			"clearSearch": "Clear search",
-			"taskCount_one": "{{count}} task",
-			"taskCount_other": "{{count}} tasks",
-			"shownCount_one": "{{shown}} of {{count}} task",
-			"shownCount_other": "{{shown}} of {{count}} tasks"
+			"taskCount_one": "{{count}} issue",
+			"taskCount_other": "{{count}} issues",
+			"shownCount_one": "{{shown}} of {{count}} issue",
+			"shownCount_other": "{{shown}} of {{count}} issues"
 		},
 		"display": {
 			"title": "Display",
@@ -3841,7 +3841,7 @@
 			"checklistProgress": "Checklist progress",
 			"projectBackground": "Project background",
 			"layout": "Layout",
-			"includeSubtasks": "Include Sub Tasks",
+			"includeSubtasks": "Include sub-issues",
 			"useProjectDefault": "Use project default"
 		},
 		"filterBar": {
@@ -3850,7 +3850,7 @@
 			"customFieldsUnavailable": "Custom-field values could not be loaded. Results are shown without custom-field filters.",
 			"customFieldsRefreshError": "Custom-field values could not be refreshed. Results may be out of date.",
 			"removeFilter": "Remove {{name}} filter",
-			"noMatches": "No tasks match your search or filters."
+			"noMatches": "No issues match your search or filters."
 		},
 		"filterMenu": {
 			"addFilter": "Add filter…",
@@ -3859,8 +3859,8 @@
 		},
 		"shortcuts": {
 			"assignedToMe": "Assigned to you",
-			"idCopied": "Copied task ID",
-			"titleCopied": "Copied task title",
+			"idCopied": "Copied issue ID",
+			"titleCopied": "Copied issue title",
 			"markdownCopied": "Copied as Markdown",
 			"copyFailed": "Couldn't copy to the clipboard.",
 			"pageUrlCopied": "Copied page URL"
@@ -3985,15 +3985,15 @@
 		"search": {
 			"pageTitle": "Search",
 			"backToDashboard": "Back to Dashboard",
-			"placeholder": "Search tasks by title or short ID (e.g. DEP-23)...",
-			"hint": "Search across all projects in this workspace. Use short IDs like DEP-23 to find specific tasks.",
+			"placeholder": "Search issues by title or short ID (e.g. DEP-23)...",
+			"hint": "Search across all projects in this workspace. Use short IDs like DEP-23 to find specific issues.",
 			"searching": "Searching...",
 			"resultsFound_one": "{{count}} result found",
 			"resultsFound_other": "{{count}} results found",
 			"noResultsTitle": "No results found",
 			"noResultsDescription": "Try adjusting your search terms or search for something else",
 			"startTitle": "Start Searching",
-			"startDescription": "Enter a search term to find tasks across all projects",
+			"startDescription": "Enter a search term to find issues across all projects",
 			"quickSearchesLabel": "Quick searches:",
 			"suggestionHighPriority": "High priority",
 			"suggestionBug": "Bug",
@@ -4022,9 +4022,9 @@
 				"afternoon": "Good afternoon",
 				"evening": "Good evening"
 			},
-			"newTask": "New task",
+			"newTask": "New issue",
 			"week": {
-				"truncated": "The week preview includes only the first {{shown}} of {{total}} assigned tasks.",
+				"truncated": "The week preview includes only the first {{shown}} of {{total}} assigned issues.",
 				"more_one": "+{{count}} more",
 				"more_other": "+{{count}} more"
 			},
@@ -4038,20 +4038,20 @@
 				"title": "Your projects",
 				"all": "All projects",
 				"loadError": "Projects couldn't be loaded.",
-				"tasks_one": "{{count}} task",
-				"tasks_other": "{{count}} tasks"
+				"tasks_one": "{{count}} issue",
+				"tasks_other": "{{count}} issues"
 			},
 			"activity": {
 				"title": "Activity",
 				"commented": "commented",
-				"updated": "updated the task",
+				"updated": "updated the issue",
 				"empty": "Nothing has happened in the last 30 days.",
 				"loadError": "Activity couldn't be loaded."
 			}
 		},
 		"myWork": {
 			"empty": "Nothing assigned to you",
-			"loadError": "Your tasks couldn't be loaded.",
+			"loadError": "Your issues couldn't be loaded.",
 			"due": {
 				"overdue": "Overdue",
 				"today": "Today",
@@ -4062,8 +4062,8 @@
 			}
 		},
 		"myTasks": {
-			"pageTitle": "My tasks",
-			"emptyDescription": "Tasks assigned to you across this workspace show up here.",
+			"pageTitle": "My issues",
+			"emptyDescription": "Issues assigned to you across this workspace show up here.",
 			"tabs": {
 				"assigned": "Assigned",
 				"created": "Created",
@@ -4075,7 +4075,7 @@
 				"project": "Project",
 				"status": "Status"
 			},
-			"truncated": "Showing the first {{shown}} of {{total}} tasks."
+			"truncated": "Showing the first {{shown}} of {{total}} issues."
 		},
 		"archived": {
 			"title": "Workspace archived",
@@ -4173,7 +4173,7 @@
 			"description": "This project doesn't exist or is not publicly accessible."
 		},
 		"taskCard": {
-			"viewDetailsAria": "View details for task {{title}}"
+			"viewDetailsAria": "View details for issue {{title}}"
 		},
 		"taskDetail": {
 			"labels": "Labels",
@@ -4208,7 +4208,7 @@
 		"description": "Kaneo press resources: product information, logos, screenshots, and contact details for journalists and creators.",
 		"downloadKit": "Download all assets",
 		"boilerplateTitle": "About Kaneo",
-		"boilerplate": "Kaneo is an open-source project management platform created by Andrej Acevski. Teams can organize tasks in board and list views, assign work, set priorities and due dates, and connect GitHub. Kaneo is available under the MIT license for self-hosting, or as a managed service through Kaneo Cloud.",
+		"boilerplate": "Kaneo is an open-source project management platform created by Andrej Acevski. Teams can organize issues in board and list views, assign work, set priorities and due dates, and connect GitHub. Kaneo is available under the MIT license for self-hosting, or as a managed service through Kaneo Cloud.",
 		"logosTitle": "Logos",
 		"darkLogo": "Dark wordmark",
 		"darkLogoAlt": "Dark Kaneo logo on a light background",
@@ -4222,21 +4222,21 @@
 		"download": "Download",
 		"screenshotsTitle": "Screenshots",
 		"lightScreenshot": "Board (light)",
-		"lightScreenshotAlt": "Kaneo board in light theme, with task cards arranged by status",
+		"lightScreenshotAlt": "Kaneo board in light theme, with issue cards arranged by status",
 		"darkScreenshot": "Board (dark)",
-		"darkScreenshotAlt": "Kaneo board in dark theme, with task cards arranged by status",
+		"darkScreenshotAlt": "Kaneo board in dark theme, with issue cards arranged by status",
 		"lightListScreenshot": "List (light)",
-		"lightListScreenshotAlt": "Kaneo task list in light theme, grouped by status with assignees, priorities, labels, and due dates",
+		"lightListScreenshotAlt": "Kaneo issue list in light theme, grouped by status with assignees, priorities, labels, and due dates",
 		"darkListScreenshot": "List (dark)",
-		"darkListScreenshotAlt": "Kaneo task list in dark theme, grouped by status with assignees, priorities, labels, and due dates",
+		"darkListScreenshotAlt": "Kaneo issue list in dark theme, grouped by status with assignees, priorities, labels, and due dates",
 		"lightTimelineScreenshot": "Timeline (light)",
-		"lightTimelineScreenshotAlt": "Kaneo Gantt timeline in light theme, showing scheduled tasks and their durations",
+		"lightTimelineScreenshotAlt": "Kaneo Gantt timeline in light theme, showing scheduled issues and their durations",
 		"darkTimelineScreenshot": "Timeline (dark)",
-		"darkTimelineScreenshotAlt": "Kaneo Gantt timeline in dark theme, showing scheduled tasks and their durations",
-		"lightTaskScreenshot": "Task details (light)",
-		"lightTaskScreenshotAlt": "Kaneo task details in light theme, with a description, checklist, team comment, and task properties",
-		"darkTaskScreenshot": "Task details (dark)",
-		"darkTaskScreenshotAlt": "Kaneo task details in dark theme, with a description, checklist, team comment, and task properties",
+		"darkTimelineScreenshotAlt": "Kaneo Gantt timeline in dark theme, showing scheduled issues and their durations",
+		"lightTaskScreenshot": "Issue details (light)",
+		"lightTaskScreenshotAlt": "Kaneo issue details in light theme, with a description, checklist, team comment, and issue properties",
+		"darkTaskScreenshot": "Issue details (dark)",
+		"darkTaskScreenshotAlt": "Kaneo issue details in dark theme, with a description, checklist, team comment, and issue properties",
 		"contactTitle": "Press enquiries",
 		"contactBody": "Contact the Kaneo team for product questions, interviews, or additional materials.",
 		"usageContrast": "Choose the light wordmark for dark backgrounds and the dark wordmark for light backgrounds.",
@@ -4291,14 +4291,14 @@
 		},
 		"features": {
 			"tasks": {
-				"label": "Subtasks & context",
-				"title": "Big tasks. Clear next steps.",
-				"description": "Break work into subtasks, assign each one, and track progress without losing the original brief. Every detail stays with the work."
+				"label": "Sub-issues & context",
+				"title": "Big issues. Clear next steps.",
+				"description": "Break work into sub-issues, assign each one, and track progress without losing the original brief. Every detail stays with the work."
 			},
 			"github": {
 				"label": "GitHub integration",
 				"title": "From pull request to done.",
-				"description": "Issues and labels sync both ways. Linked pull requests move tasks through review to done as your code is opened and merged.",
+				"description": "Issues and labels sync both ways. Linked pull requests move issues through review to done as your code is opened and merged.",
 				"link": "Set up GitHub"
 			},
 			"hosting": {
@@ -4312,8 +4312,8 @@
 				"link": "View the source"
 			},
 			"preview": {
-				"taskAlt": "Interactive Kaneo task and subtask preview.",
-				"githubAlt": "Interactive preview of a GitHub merge updating a Kaneo task.",
+				"taskAlt": "Interactive Kaneo issue and sub-issue preview.",
+				"githubAlt": "Interactive preview of a GitHub merge updating a Kaneo issue.",
 				"taskTitle": "Publish the new homepage",
 				"taskDescription": "Update the copy and check the layout before the next release.",
 				"checklistDone": "Review the copy",
@@ -4323,25 +4323,25 @@
 				"date": "Oct 12",
 				"design": "design",
 				"done": "Done",
-				"relationsAlt": "Interactive Kaneo task dependencies preview.",
+				"relationsAlt": "Interactive Kaneo issue dependencies preview.",
 				"inReview": "In Review",
-				"trySubtasks": "Try checking off a subtask.",
-				"tryGithub": "Preview a merge to see the task update.",
-				"tryRelations": "Open a linked task to follow the connection.",
+				"trySubtasks": "Try checking off a sub-issue.",
+				"tryGithub": "Preview a merge to see the issue update.",
+				"tryRelations": "Open a linked issue to follow the connection.",
 				"mergeAction": "Preview merge",
 				"resetAction": "Reset preview",
-				"mergedHint": "Pull request merged. Task moved to Done.",
-				"progress": "{{completed}} of {{total}} subtasks complete",
-				"backToTask": "Back to the homepage task",
+				"mergedHint": "Pull request merged. Issue moved to Done.",
+				"progress": "{{completed}} of {{total}} sub-issues complete",
+				"backToTask": "Back to the homepage issue",
 				"releaseNotes": "Write the release notes",
 				"dependencyDescription": "The homepage is waiting on the mobile review. Keep the launch notes linked for context.",
 				"mobileDescription": "Check the new homepage on narrow screens before it goes live.",
 				"notesDescription": "Capture what changed for the launch announcement."
 			},
 			"relations": {
-				"label": "Linked tasks & dependencies",
+				"label": "Linked issues & dependencies",
 				"title": "See what’s holding things up.",
-				"description": "Connect blockers, follow dependencies, and keep related work close. Open a linked task to see the context behind the next step."
+				"description": "Connect blockers, follow dependencies, and keep related work close. Open a linked issue to see the context behind the next step."
 			}
 		},
 		"seo": {
@@ -4362,7 +4362,7 @@
 			},
 			"mcp": {
 				"title": "Connect your AI tools",
-				"description": "Use MCP to work with tasks and projects through an AI client."
+				"description": "Use MCP to work with issues and projects through an AI client."
 			},
 			"linear": {
 				"title": "Compare Kaneo and Linear",
@@ -4380,7 +4380,7 @@
 			},
 			"planning": {
 				"question": "Does Kaneo have Gantt charts?",
-				"answer": "Yes. Kaneo includes Gantt and calendar views alongside boards, lists, and backlog planning. Use task start dates and due dates to plan work on a timeline. Budgeting, baseline comparisons, and sprint burndown reports are outside its current scope.",
+				"answer": "Yes. Kaneo includes Gantt and calendar views alongside boards, lists, and backlog planning. Use issue start dates and due dates to plan work on a timeline. Budgeting, baseline comparisons, and sprint burndown reports are outside its current scope.",
 				"link": "Compare planning features"
 			},
 			"sso": {
@@ -4390,7 +4390,7 @@
 			},
 			"agents": {
 				"question": "Can AI clients work with Kaneo?",
-				"answer": "Yes. Kaneo provides an MCP server through the @kaneo/mcp package and an HTTP endpoint. Compatible AI clients can read and update tasks using an API key tied to a user, subject to workspace permissions.",
+				"answer": "Yes. Kaneo provides an MCP server through the @kaneo/mcp package and an HTTP endpoint. Compatible AI clients can read and update issues using an API key tied to a user, subject to workspace permissions.",
 				"link": "Read the MCP guide"
 			},
 			"mobile": {
@@ -4540,24 +4540,24 @@
 				"none": "None"
 			},
 			"subtasks": {
-				"title": "Subtasks",
-				"add": "Add subtask",
-				"parent": "Parent task",
-				"empty": "No subtasks"
+				"title": "Sub-issues",
+				"add": "Add sub-issue",
+				"parent": "Parent issue",
+				"empty": "No sub-issues"
 			},
 			"relations": {
 				"title": "Relations",
-				"link": "Link a task",
+				"link": "Link an issue",
 				"blocks": "Blocks",
 				"blockedBy": "Blocked by",
 				"related": "Related",
 				"relatedTo": "Related to",
 				"remove": "Remove relation",
-				"empty": "No related tasks",
+				"empty": "No related issues",
 				"removeTitle": "Remove relation?",
-				"removeMessage": "The tasks stay; only the link between them is removed.",
+				"removeMessage": "The issues stay; only the link between them is removed.",
 				"removeConfirm": "Remove",
-				"searchPlaceholder": "Search tasks by title or number"
+				"searchPlaceholder": "Search issues by title or number"
 			},
 			"links": {
 				"title": "Links",
@@ -4603,12 +4603,12 @@
 				"duplicate": "Duplicate",
 				"move": "Move to project…",
 				"refresh": "Refresh",
-				"delete": "Delete task",
+				"delete": "Delete issue",
 				"moveTitle": "Move to project",
-				"duplicated": "Task duplicated",
-				"moved": "Task moved",
-				"deleted": "Task deleted",
-				"deleteTitle": "Delete task?",
+				"duplicated": "Issue duplicated",
+				"moved": "Issue moved",
+				"deleted": "Issue deleted",
+				"deleteTitle": "Delete issue?",
 				"deleteMessage": "“{{title}}” and its comments will be permanently deleted."
 			},
 			"screen": {
@@ -4655,14 +4655,14 @@
 			"noLabels": "No labels yet. Type a name to create one."
 		},
 		"taskNew": {
-			"newSubtask": "New subtask",
+			"newSubtask": "New sub-issue",
 			"project": "Project",
 			"create": "Create",
-			"taskTitle": "Task title",
+			"taskTitle": "Issue title",
 			"noLabels": "No labels in this workspace yet.",
-			"labelsFailed": "Task created, but some labels couldn't be added.",
-			"parentFailed": "Task created, but it couldn't be linked to the parent.",
-			"labelsAndParentFailed": "Task created, but some labels and the parent link couldn't be saved."
+			"labelsFailed": "Issue created, but some labels couldn't be added.",
+			"parentFailed": "Issue created, but it couldn't be linked to the parent.",
+			"labelsAndParentFailed": "Issue created, but some labels and the parent link couldn't be saved."
 		},
 		"editor": {
 			"placeholder": "Add a description… Markdown works.",
@@ -4692,10 +4692,10 @@
 			"searchPeople": "Search people"
 		},
 		"board": {
-			"filterTasksActive": "Filter tasks… ({{count}} active)",
+			"filterTasksActive": "Filter issues… ({{count}} active)",
 			"movedTask": "Moved {{ticket}} to {{status}}",
-			"showTasks_one": "Show {{count}} task",
-			"showTasks_other": "Show {{count}} tasks",
+			"showTasks_one": "Show {{count}} issue",
+			"showTasks_other": "Show {{count}} issues",
 			"memberYou": "{{name}} (you)",
 			"dueDateOverdue_one": "{{date}}, {{count}}d overdue",
 			"dueDateOverdue_other": "{{date}}, {{count}}d overdue",
@@ -4705,16 +4705,16 @@
 			"listView": "List view",
 			"more": "More",
 			"switchProject": "Switch project",
-			"noTasksMatchTheFilters": "No tasks match the filters",
+			"noTasksMatchTheFilters": "No issues match the filters",
 			"nothingPlannedYet": "Nothing planned yet",
-			"noTasksHere": "No tasks here",
-			"addTask": "Add task",
-			"noTasksMatch": "No tasks match",
-			"noTasksYet": "No tasks yet",
+			"noTasksHere": "No issues here",
+			"addTask": "Add issue",
+			"noTasksMatch": "No issues match",
+			"noTasksYet": "No issues yet",
 			"filters": "Filters",
-			"filterTasks": "Filter tasks…",
+			"filterTasks": "Filter issues…",
 			"me": "Me",
-			"newTask": "New task",
+			"newTask": "New issue",
 			"board": "Board",
 			"projectSettings": "Project settings",
 			"hidePlanned": "Hide planned",
@@ -4730,12 +4730,12 @@
 			"priority": "Priority",
 			"labels": "Labels",
 			"overdueOnly": "Overdue only",
-			"tasksNotOnTheBoardYet": "Tasks not on the board yet",
+			"tasksNotOnTheBoardYet": "Issues not on the board yet",
 			"moveTo": "Move to",
 			"assignToMe": "Assign to me",
 			"sendToTopOfColumn": "Send to top of column",
 			"sendToBottomOfColumn": "Send to bottom of column",
-			"openTask": "Open task",
+			"openTask": "Open issue",
 			"searchPeople": "Search people"
 		},
 		"projectSettings": {
@@ -4769,7 +4769,7 @@
 			"archiveProject": "Archive project",
 			"moveToAnotherWorkspace": "Move to another workspace",
 			"deleteProjectTitle": "Delete project?",
-			"allTasksCommentsAndTimeEntriesInThisProjectWillBePermanentlyDeleted": "All tasks, comments and time entries in this project will be permanently deleted.",
+			"allTasksCommentsAndTimeEntriesInThisProjectWillBePermanentlyDeleted": "All issues, comments and time entries in this project will be permanently deleted.",
 			"projectDeleted": "Project deleted",
 			"deleteProject": "Delete project",
 			"column": "Column",
@@ -4777,23 +4777,23 @@
 			"unmarkAsDoneColumn": "Unmark as done column",
 			"markAsDoneColumn": "Mark as done column",
 			"deleteColumn": "Delete column",
-			"tasksInThisColumnMayNeedToBeMovedFirst": "Tasks in this column may need to be moved first.",
+			"tasksInThisColumnMayNeedToBeMovedFirst": "Issues in this column may need to be moved first.",
 			"columnDeleted": "Column deleted",
 			"renameColumn": "Rename column",
 			"field": "Field",
 			"deleteField": "Delete field",
-			"valuesStoredInThisFieldAreDeletedFromEveryTask": "Values stored in this field are deleted from every task.",
+			"valuesStoredInThisFieldAreDeletedFromEveryTask": "Values stored in this field are deleted from every issue.",
 			"fieldDeleted": "Field deleted",
 			"moveToWorkspace": "Move to workspace",
 			"projectMoved": "Project moved",
 			"ok": "OK",
 			"name": "Name",
 			"key": "Key",
-			"changesFutureAndExistingTaskIDs": "Changes future and existing task IDs",
+			"changesFutureAndExistingTaskIDs": "Changes future and existing issue IDs",
 			"saveChanges": "Save changes",
 			"newColumn": "New column",
 			"blocked": "Blocked",
-			"tasksHereCountAsFinished": "Tasks here count as finished",
+			"tasksHereCountAsFinished": "Issues here count as finished",
 			"newCustomField": "New custom field",
 			"platform": "Platform",
 			"type": "Type",
@@ -4813,7 +4813,7 @@
 			"name": "Name",
 			"customerPortal": "Customer Portal",
 			"key": "Key",
-			"usedInTaskIDs": "Used in task IDs",
+			"usedInTaskIDs": "Used in issue IDs",
 			"createProject": "Create project"
 		},
 		"home": {
@@ -4832,14 +4832,14 @@
 			"archived": "Archived",
 			"due": "Due {{date}}",
 			"progress": "{{done}} of {{total}}",
-			"noTasks": "No tasks",
+			"noTasks": "No issues",
 			"upNext": "Up next",
 			"viewAll": "View all",
 			"projects": "Projects",
 			"newProject": "New project",
 			"empty": {
 				"title": "No projects yet",
-				"message": "Projects hold your boards and tasks."
+				"message": "Projects hold your boards and issues."
 			},
 			"hideArchived": "Hide archived projects",
 			"showArchived": "Show archived projects"
@@ -4871,7 +4871,7 @@
 			"commentedOn": "commented on {{target}}"
 		},
 		"myTasks": {
-			"title": "My tasks",
+			"title": "My issues",
 			"by": {
 				"due": "Due date",
 				"project": "Project",
@@ -4886,15 +4886,15 @@
 			},
 			"empty": {
 				"title": "Nothing assigned to you",
-				"message": "Tasks assigned to you in this workspace show up here."
+				"message": "Issues assigned to you in this workspace show up here."
 			},
-			"showing": "Showing {{shown}} of {{total}} tasks",
+			"showing": "Showing {{shown}} of {{total}} issues",
 			"assigned_one": "{{count}} assigned",
 			"assigned_other": "{{count}} assigned"
 		},
 		"nav": {
 			"home": "Home",
-			"tasks": "My tasks",
+			"tasks": "My issues",
 			"inbox": "Inbox",
 			"activity": "Activity",
 			"inboxUnread": "Inbox, {{count}} unread"
@@ -4908,18 +4908,18 @@
 			"create": "Create workspace"
 		},
 		"search": {
-			"placeholder": "Search tasks, projects, comments",
+			"placeholder": "Search issues, projects, comments",
 			"clear": "Clear",
 			"kinds": {
 				"all": "All",
-				"tasks": "Tasks",
+				"tasks": "Issues",
 				"projects": "Projects",
 				"comments": "Comments",
 				"activity": "Activity"
 			},
 			"empty": {
 				"title": "Search this workspace",
-				"message": "Find tasks by title or number, projects, and comments."
+				"message": "Find issues by title or number, projects, and comments."
 			},
 			"failed": "Search failed",
 			"noResults": "No results for “{{query}}”",
@@ -4927,7 +4927,7 @@
 		},
 		"notificationText": {
 			"activity": {
-				"created": "created the task",
+				"created": "created the issue",
 				"commented": "commented: {{text}}",
 				"statusChanged": "moved this from {{from}} to {{to}}",
 				"priorityChanged": "changed priority from {{from}} to {{to}}",
@@ -4940,21 +4940,21 @@
 				"renamed": "renamed this to “{{title}}”",
 				"titleChanged": "changed the title",
 				"descriptionChanged": "updated the description",
-				"taskUpdated": "updated the task"
+				"taskUpdated": "updated the issue"
 			},
-			"taskCreated": "New task assigned to you",
-			"assignedByActor": "{{actor}} assigned you a task",
+			"taskCreated": "New issue assigned to you",
+			"assignedByActor": "{{actor}} assigned you an issue",
 			"assignedToTask": "You were assigned to “{{title}}”",
-			"assignedToUntitled": "You were assigned to a task",
+			"assignedToUntitled": "You were assigned to an issue",
 			"statusChangedOnTask": "Status changed on “{{title}}”",
-			"statusChangedOnUntitled": "Status changed on a task",
+			"statusChangedOnUntitled": "Status changed on an issue",
 			"statusTransition": "{{from}} to {{to}}",
 			"commentedByActor": "{{actor}} commented",
 			"newComment": "New comment",
 			"mentionedByActor": "{{actor}} mentioned you",
 			"mentioned": "You were mentioned",
 			"timeLoggedOnTask": "Time logged on “{{title}}”",
-			"timeLoggedOnUntitled": "Time logged on a task",
+			"timeLoggedOnUntitled": "Time logged on an issue",
 			"workspaceCreated": "Workspace “{{name}}” created"
 		},
 		"background": {
@@ -5032,8 +5032,8 @@
 			"roleHint": {
 				"owner": "Full control, including deleting the workspace",
 				"admin": "Can also manage members and settings",
-				"member": "Can create and edit tasks",
-				"viewer": "Can view projects and tasks"
+				"member": "Can create and edit issues",
+				"viewer": "Can view projects and issues"
 			}
 		},
 		"account": {
@@ -5074,7 +5074,7 @@
 				"title": "Delete account",
 				"description": "Permanently delete your account and its data.",
 				"modalTitle": "Delete your account?",
-				"modalDescription": "This permanently deletes your account and cannot be undone. Workspaces only you belong to are deleted with it. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
+				"modalDescription": "This permanently deletes your account and cannot be undone. Workspaces only you belong to are deleted with it. Elsewhere, your issues stay and become unassigned, and your comments are removed.",
 				"confirmLabel": "Type {{email}} to confirm",
 				"password": "Password",
 				"passwordHint": "Leave empty if you sign in without a password.",
@@ -5122,13 +5122,13 @@
 			"events": {
 				"title": "Notify me about",
 				"assignments": "Assignments",
-				"assignmentsHint": "When a task is assigned to you",
+				"assignmentsHint": "When an issue is assigned to you",
 				"comments": "Comments",
-				"commentsHint": "New comments on your tasks",
+				"commentsHint": "New comments on your issues",
 				"statusChanges": "Status changes",
-				"statusChangesHint": "When your tasks move between columns",
+				"statusChangesHint": "When your issues move between columns",
 				"dueDate": "Due date reminders",
-				"dueDateHint": "Before a task you’re assigned to is due",
+				"dueDateHint": "Before an issue you’re assigned to is due",
 				"remindMe": "Remind me",
 				"remindBefore": "{{time}} before",
 				"remindPickerTitle": "Remind me before"
@@ -5177,12 +5177,12 @@
 				"leaveHint": "You can rejoin with a new invitation",
 				"leaveButton": "Leave",
 				"delete": "Delete workspace",
-				"deleteHint": "Deletes all projects and tasks in it"
+				"deleteHint": "Deletes all projects and issues in it"
 			},
 			"confirm": {
 				"deleteTitle": "Delete workspace?",
 				"leaveTitle": "Leave workspace?",
-				"deleteMessage": "Every project, task and comment in {{name}} will be permanently deleted.",
+				"deleteMessage": "Every project, issue and comment in {{name}} will be permanently deleted.",
 				"leaveMessage": "You will lose access until someone invites you again."
 			},
 			"toast": {
@@ -5243,18 +5243,18 @@
 		},
 		"labels": {
 			"title": "Labels",
-			"description": "Labels help you group and filter tasks.",
+			"description": "Labels help you group and filter issues.",
 			"new": "New label",
 			"edit": "Edit label",
 			"delete": "Delete label",
 			"fallbackTitle": "Label",
 			"empty": {
 				"title": "No labels",
-				"message": "Create labels to group and filter tasks across projects."
+				"message": "Create labels to group and filter issues across projects."
 			},
 			"actions": "Actions for {{name}}",
 			"deleteTitle": "Delete “{{name}}”?",
-			"deleteMessage": "The label is removed from every task in this workspace.",
+			"deleteMessage": "The label is removed from every issue in this workspace.",
 			"form": {
 				"name": "Name",
 				"color": "Color"
@@ -5264,7 +5264,7 @@
 			}
 		},
 		"permissions": {
-			"photos": "Kaneo uses your photos to attach images to tasks and comments, and for your profile photo."
+			"photos": "Kaneo uses your photos to attach images to issues and comments, and for your profile photo."
 		}
 	}
 }

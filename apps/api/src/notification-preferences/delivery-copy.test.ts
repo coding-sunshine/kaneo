@@ -18,10 +18,10 @@ describe("getLocalizedDeliveryContent", () => {
   it("falls back to English for a missing or unknown locale", () => {
     expect(
       getLocalizedDeliveryContent("task_overdue", { taskTitle: "A" }, null),
-    ).toEqual({ title: "Task overdue", body: "A is past its due date" });
+    ).toEqual({ title: "Issue overdue", body: "A is past its due date" });
     expect(
       getLocalizedDeliveryContent("task_overdue", { taskTitle: "A" }, "xx"),
-    ).toEqual({ title: "Task overdue", body: "A is past its due date" });
+    ).toEqual({ title: "Issue overdue", body: "A is past its due date" });
   });
 
   it("matches a language-only locale", () => {
@@ -41,7 +41,7 @@ describe("getLocalizedDeliveryContent", () => {
         { taskTitle: "A", oldStatus: "to-do", newStatus: "custom_col" },
         "en-US",
       )?.body,
-    ).toBe('Task "A" status changed from "To Do" to "Custom Col"');
+    ).toBe('Issue "A" status changed from "To Do" to "Custom Col"');
     expect(
       getLocalizedDeliveryContent(
         "due_date_reminder",
@@ -54,7 +54,7 @@ describe("getLocalizedDeliveryContent", () => {
   it("picks the time entry body by whether a task is known", () => {
     expect(
       getLocalizedDeliveryContent("time_entry_created", {}, "en-US")?.body,
-    ).toBe("Time tracking started on a task");
+    ).toBe("Time tracking started on an issue");
   });
 
   it("uses the locale's plural forms for the reminder lead time", () => {
@@ -127,6 +127,6 @@ describe("getLocalizedDeliveryContent", () => {
         { taskTitle: "A", oldStatus: "to-do", newStatus: "constructor" },
         "en-US",
       )?.body,
-    ).toBe('Task "A" status changed from "To Do" to "Constructor"');
+    ).toBe('Issue "A" status changed from "To Do" to "Constructor"');
   });
 });

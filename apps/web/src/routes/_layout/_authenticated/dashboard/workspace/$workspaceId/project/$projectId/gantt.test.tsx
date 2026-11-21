@@ -143,11 +143,11 @@ vi.mock("react-i18next", () => ({
 const GanttRoute = (Route as unknown as { component: ComponentType }).component;
 
 function searchFor(value: string) {
-  const existing = screen.queryByRole("searchbox", { name: "Search tasks" });
+  const existing = screen.queryByRole("searchbox", { name: "Search issues" });
   if (!existing) {
-    fireEvent.click(screen.getByRole("button", { name: "Search tasks" }));
+    fireEvent.click(screen.getByRole("button", { name: "Search issues" }));
   }
-  fireEvent.change(screen.getByRole("searchbox", { name: "Search tasks" }), {
+  fireEvent.change(screen.getByRole("searchbox", { name: "Search issues" }), {
     target: { value },
   });
 }
@@ -342,7 +342,7 @@ describe("Gantt jump-to-today", () => {
     searchFor("no such task");
 
     expect(
-      screen.getByText("No tasks match your search or filters."),
+      screen.getByText("No issues match your search or filters."),
     ).toBeInTheDocument();
     expect(button).toBeDisabled();
   });

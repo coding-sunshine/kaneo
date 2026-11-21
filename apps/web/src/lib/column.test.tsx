@@ -28,4 +28,9 @@ describe("stored column icons", () => {
     expect(getColumnIcon("planned").props.kind).toBe("backlog");
     expect(getColumnIcon("canceled", true).props.kind).toBe("canceled");
   });
+  it("shows the inbox icon for triage even with the stored dashed default", () => {
+    const inbox = getColumnIcon("triage").type;
+    expect(inbox).not.toBe(StatusIcon);
+    expect(getColumnIcon("triage", false, "CircleDashed").type).toBe(inbox);
+  });
 });

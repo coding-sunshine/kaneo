@@ -75,7 +75,7 @@ export function PublicTaskCard({
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onClick={() => onTaskClick(task)}
-        aria-label={`View details for task ${task.title}`}
+        aria-label={`View details for issue ${task.title}`}
       />
       <div className="pointer-events-none">
         <div className="text-[10px] font-mono text-muted-foreground mb-2">

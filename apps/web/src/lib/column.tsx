@@ -31,7 +31,8 @@ export const getColumnIcon = (
         ]
       : undefined);
 
-  if (columnId === "triage" && !iconName) {
+  // Triage columns are stored with the dashed-circle default; Linear shows the inbox.
+  if (columnId === "triage" && (!iconName || iconName === "CircleDashed")) {
     return <InboxIcon className="size-4 shrink-0 text-warning" />;
   }
 

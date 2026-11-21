@@ -72,7 +72,7 @@ describe("CalendarTaskBar", () => {
     );
 
     expect(screen.getByRole("button")).toHaveAccessibleName(
-      "Design review, 2026-08-10 – 2026-08-12: open task",
+      "Design review, 2026-08-10 – 2026-08-12: open issue",
     );
   });
 
