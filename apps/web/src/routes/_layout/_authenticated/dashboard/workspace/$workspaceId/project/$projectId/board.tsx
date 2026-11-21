@@ -3,6 +3,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ProjectLayout from "@/components/common/project-layout";
 import KanbanBoard from "@/components/kanban-board";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { SearchXIcon } from "lucide-react";
 import ListView from "@/components/list-view";
 import { groupProjectBy } from "@/lib/group-project";
 import PageTitle from "@/components/page-title";
@@ -241,7 +249,22 @@ function RouteComponent() {
             "bg-background": !background,
           })}
         >
-          {sortedProject ? (
+          {sortedProject &&
+          project &&
+          countColumnTasks(sortedProject) === 0 &&
+          countColumnTasks(project) > 0 ? (
+            <Empty className="min-h-[60vh] flex-1">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <SearchXIcon />
+                </EmptyMedia>
+                <EmptyTitle>{t("tasks:filterMenu.noResults")}</EmptyTitle>
+                <EmptyDescription>
+                  {t("tasks:filterBar.noMatches")}
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          ) : sortedProject ? (
             viewMode === "board" ? (
               <KanbanBoard
                 key={projectId}
