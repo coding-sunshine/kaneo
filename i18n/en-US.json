@@ -3971,6 +3971,7 @@
 			"title": "Display",
 			"sortBy": "Sort by",
 			"grouping": "Grouping",
+			"subGrouping": "Sub-grouping",
 			"noAssignee": "No assignee",
 			"allIssues": "All issues",
 			"noLabel": "No label",

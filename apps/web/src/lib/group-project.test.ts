@@ -79,3 +79,23 @@ describe("groupProjectBy status-type", () => {
     expect(columns[1].tasks).toHaveLength(2);
   });
 });
+
+describe("subGroupRows", () => {
+  it("buckets top-level rows and keeps nested rows with their parent", async () => {
+    const { subGroupRows } = await import("./group-project");
+    const row = (id: string, priority: string, depth = 0) => ({
+      task: { priority },
+      depth,
+      id,
+    });
+    const out = subGroupRows(
+      [row("a", "low"), row("b", "urgent"), row("c", "high", 1)],
+      "priority",
+      (key) => key,
+    );
+    expect(out.map((g) => [g.key, g.rows.map((r) => r.id)])).toEqual([
+      ["urgent", ["b", "c"]],
+      ["low", ["a"]],
+    ]);
+  });
+});

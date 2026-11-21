@@ -207,6 +207,7 @@ function RouteComponent() {
   }, [filters.filteredProject, sort, orderByRecency]);
 
   const groupBy = useUserPreferencesStore((state) => state.listGroupBy);
+  const subGroupBy = useUserPreferencesStore((state) => state.listSubGroupBy);
   const grouped = viewMode === "list" && groupBy !== "status";
   const { data: workProjects } = useGetWorkProjects(workspaceId);
   const { data: cycles } = useGetCycles(projectId);
@@ -349,6 +350,29 @@ function RouteComponent() {
               <ListView
                 key={projectId}
                 project={listProject ?? sortedProject}
+                subGroupBy={subGroupBy === groupBy ? "none" : subGroupBy}
+                subGroupName={(key, task) =>
+                  key === "none"
+                    ? t(
+                        `tasks:display.${subGroupBy === "assignee" ? "noAssignee" : subGroupBy === "label" ? "noLabel" : subGroupBy === "project" ? "noProject" : "noCycle"}`,
+                      )
+                    : subGroupBy === "priority"
+                      ? t(`tasks:priority.${key}`)
+                      : subGroupBy === "assignee"
+                        ? (task.assigneeName ?? key)
+                        : subGroupBy === "label"
+                          ? key
+                          : subGroupBy === "project"
+                            ? (workProjects?.find((w) => w.id === key)?.name ?? key)
+                            : subGroupBy === "cycle"
+                              ? (() => {
+                                  const c = cycles?.find((i) => i.id === key);
+                                  return c ? cycleTitle(c) : key;
+                                })()
+                              : (sortedProject.columns.find(
+                                  (c) => c.id === key || c.slug === key,
+                                )?.name ?? key)
+                }
                 groupedAddStatus={
                   sortedProject.columns.find((c) => c.slug !== "triage")?.id
                 }

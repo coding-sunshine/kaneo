@@ -28,7 +28,7 @@ import {
   readExpandedRows,
   writeExpandedRows,
 } from "@/lib/expanded-rows-storage";
-import { GROUP_ID_PREFIX } from "@/lib/group-project";
+import { GROUP_ID_PREFIX, type GroupBy } from "@/lib/group-project";
 import { buildSubtaskChildren, flattenSubtaskRows } from "@/lib/subtask-tree";
 import { toast } from "@/lib/toast";
 import useBulkSelectionStore from "@/store/bulk-selection";
@@ -45,6 +45,11 @@ type ListViewProps = {
   disableCollectionActions?: boolean;
   // Status new tasks get when the sections are not statuses (grouped view).
   groupedAddStatus?: string;
+  subGroupBy?: GroupBy;
+  subGroupName?: (
+    key: string,
+    task: ProjectWithTasks["columns"][number]["tasks"][number],
+  ) => string;
 };
 
 function ListView({
@@ -52,6 +57,8 @@ function ListView({
   disableDragDrop = false,
   disableCollectionActions = false,
   groupedAddStatus,
+  subGroupBy,
+  subGroupName,
 }: ListViewProps) {
   const { t } = useTranslation();
   const reduceMotion = useReducedMotion();
@@ -441,6 +448,8 @@ function ListView({
               onToggleTaskExpanded={toggleTaskExpanded}
               relationsLoading={relationsLoading}
               draggingTaskId={activeId === null ? null : String(activeId)}
+              subGroupBy={subGroupBy}
+              subGroupName={subGroupName}
             />
           ))}
         </div>

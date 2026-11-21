@@ -54,6 +54,8 @@ type UserPreferencesStore = {
   setShowEmptyColumns: (show: boolean) => void;
   listGroupBy: GroupBy;
   setListGroupBy: (groupBy: GroupBy) => void;
+  listSubGroupBy: GroupBy;
+  setListSubGroupBy: (groupBy: GroupBy) => void;
   completedIssues: CompletedIssues;
   setCompletedIssues: (value: CompletedIssues) => void;
   showStatus: boolean;
@@ -170,6 +172,8 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
       setOrderCompletedByRecency: (on) => set({ orderCompletedByRecency: on }),
       listGroupBy: "status",
       setListGroupBy: (listGroupBy) => set({ listGroupBy }),
+      listSubGroupBy: "none",
+      setListSubGroupBy: (listSubGroupBy) => set({ listSubGroupBy }),
       completedIssues: "all",
       setCompletedIssues: (completedIssues) => set({ completedIssues }),
       showStatus: true,
@@ -205,6 +209,7 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
           showDueDates: true,
           showStatus: true,
           listGroupBy: "status",
+          listSubGroupBy: "none",
           completedIssues: "all",
           showEmptyColumns: false,
           showSubIssues: false,

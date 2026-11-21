@@ -12,7 +12,11 @@ import { Switch } from "@/components/ui/switch";
 import useProjectStore from "@/store/project";
 import { columnKey, useUserPreferencesStore } from "@/store/user-preferences";
 import type { CompletedIssues } from "@/lib/status-category";
-import { GROUP_BY_OPTIONS, type GroupBy } from "@/lib/group-project";
+import {
+  GROUP_BY_OPTIONS,
+  type GroupBy,
+  SUB_GROUP_BY_OPTIONS,
+} from "@/lib/group-project";
 import { CardFieldToggles } from "./card-field-toggles";
 import { CustomFieldToggles } from "./custom-field-toggles";
 import { DisplaySection } from "./display-section";
@@ -40,6 +44,10 @@ export function TaskDisplayOptions({
   const { t } = useTranslation();
   const groupBy = useUserPreferencesStore((state) => state.listGroupBy);
   const setGroupBy = useUserPreferencesStore((state) => state.setListGroupBy);
+  const subGroupBy = useUserPreferencesStore((state) => state.listSubGroupBy);
+  const setSubGroupBy = useUserPreferencesStore(
+    (state) => state.setListSubGroupBy,
+  );
   const resetDisplayPreferences = useUserPreferencesStore(
     (state) => state.resetDisplayPreferences,
   );
@@ -203,6 +211,40 @@ export function TaskDisplayOptions({
               </SelectTrigger>
               <SelectContent>
                 {GROUP_BY_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {t(`tasks:display.groupBy.${option}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </DisplaySection>
+      )}
+      {layout === "rows" && groupBy !== "status" && groupBy !== "none" && (
+        <DisplaySection>
+          <div className="flex items-center gap-2">
+            <span className="flex-1 text-sm">
+              {t("tasks:display.subGrouping")}
+            </span>
+            <Select
+              value={subGroupBy}
+              onValueChange={(value) =>
+                value && setSubGroupBy(value as GroupBy)
+              }
+            >
+              <SelectTrigger
+                size="sm"
+                className="w-40"
+                aria-label={t("tasks:display.subGrouping")}
+              >
+                <SelectValue>
+                  {t(`tasks:display.groupBy.${subGroupBy}`)}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {SUB_GROUP_BY_OPTIONS.filter(
+                  (option) => option !== groupBy,
+                ).map((option) => (
                   <SelectItem key={option} value={option}>
                     {t(`tasks:display.groupBy.${option}`)}
                   </SelectItem>

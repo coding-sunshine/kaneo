@@ -152,3 +152,67 @@ function groupByStatusType(
   });
   return { ...project, columns };
 }
+
+/** Linear offers every grouping except status type as a sub-grouping. */
+export const SUB_GROUP_BY_OPTIONS: GroupBy[] = GROUP_BY_OPTIONS.filter(
+  (option) => option !== "status-type",
+);
+
+type SubGroupTask = {
+  status?: string | null;
+  priority?: string | null;
+  assigneeId?: string | null;
+  assigneeName?: string | null;
+  workProjectId?: string | null;
+  cycleId?: string | null;
+  labels?: { name: string }[] | null;
+};
+
+/**
+ * Splits one section's rows into sub-groups, in the order Grouping uses.
+ * A nested subtask row stays under the top-level row that repeats it.
+ */
+export function subGroupRows<T extends { task: SubGroupTask; depth: number }>(
+  rows: T[],
+  by: GroupBy,
+  name: (key: string, task: T["task"]) => string,
+): { key: string; name: string; rows: T[] }[] {
+  const buckets = new Map<string, { name: string; rows: T[] }>();
+  let current: { name: string; rows: T[] } | undefined;
+  for (const row of rows) {
+    if (row.depth === 0 || !current) {
+      const task = row.task;
+      const key =
+        by === "status"
+          ? (task.status ?? "none")
+          : by === "priority"
+            ? task.priority || "no-priority"
+            : by === "assignee"
+              ? (task.assigneeId ?? "none")
+              : by === "project"
+                ? (task.workProjectId ?? "none")
+                : by === "cycle"
+                  ? (task.cycleId ?? "none")
+                  : by === "label"
+                    ? (task.labels?.[0]?.name ?? "none")
+                    : "all";
+      current = buckets.get(key) ?? { name: name(key, task), rows: [] };
+      buckets.set(key, current);
+    }
+    current.rows.push(row);
+  }
+  const keys = [...buckets.keys()].sort((a, b) =>
+    by === "priority"
+      ? PRIORITY_ORDER.indexOf(a) - PRIORITY_ORDER.indexOf(b)
+      : a === "none"
+        ? 1
+        : b === "none"
+          ? -1
+          : buckets
+              .get(a)!
+              .name.localeCompare(buckets.get(b)!.name, undefined, {
+                numeric: true,
+              }),
+  );
+  return keys.map((key) => ({ key, ...buckets.get(key)! }));
+}

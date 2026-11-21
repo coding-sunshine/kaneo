@@ -5,10 +5,10 @@ import {
 } from "@dnd-kit/sortable";
 import { AnimatePresence, motion } from "motion/react";
 import { Archive, ChevronRight, Plus } from "lucide-react";
-import { memo, useState } from "react";
+import { Fragment, memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/cn";
-import { FLAT_GROUP_ID } from "@/lib/group-project";
+import { FLAT_GROUP_ID, type GroupBy, subGroupRows } from "@/lib/group-project";
 import { getColumnIcon } from "@/lib/column";
 import { EASE_OUT } from "@/lib/motion";
 import type { SubtaskRow } from "@/lib/subtask-tree";
@@ -35,6 +35,8 @@ type ListColumnSectionProps = {
   onToggleTaskExpanded: (rowId: string) => void;
   relationsLoading: boolean;
   draggingTaskId: string | null;
+  subGroupBy?: GroupBy;
+  subGroupName?: (key: string, task: ColumnTask) => string;
 };
 
 const ListColumnSection = memo(function ListColumnSection({
@@ -50,6 +52,8 @@ const ListColumnSection = memo(function ListColumnSection({
   onToggleTaskExpanded,
   relationsLoading,
   draggingTaskId,
+  subGroupBy = "none",
+  subGroupName,
 }: ListColumnSectionProps) {
   const { t } = useTranslation();
   const [animateExpand, setAnimateExpand] = useState(false);
@@ -67,6 +71,10 @@ const ListColumnSection = memo(function ListColumnSection({
 
   // "No grouping": one headerless, always-open section.
   const flat = column.id === FLAT_GROUP_ID;
+  const sections =
+    subGroupBy !== "none" && subGroupName && rows.length > 0
+      ? subGroupRows(rows, subGroupBy, subGroupName)
+      : [{ key: "", name: "", rows }];
   return (
     <div
       className={cn(
@@ -145,26 +153,36 @@ const ListColumnSection = memo(function ListColumnSection({
             strategy={verticalListSortingStrategy}
           >
             <AnimatePresence initial={false} mode="popLayout">
-              {rows.map((row) => (
-                <motion.div
-                  key={row.rowId}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15, ease: EASE_OUT }}
-                >
-                  <TaskRow
-                    task={row.task}
-                    projectSlug={projectSlug}
-                    depth={row.depth}
-                    rowId={row.rowId}
-                    childCount={row.childCount}
-                    isExpanded={row.isExpanded}
-                    onToggleExpanded={onToggleTaskExpanded}
-                    reserveToggleSpace={groupHasSubtasks}
-                    isTaskDragging={draggingTaskId === row.task.id}
-                  />
-                </motion.div>
+              {sections.map((section) => (
+                <Fragment key={section.key}>
+                  {section.key && (
+                    <div className="flex h-7 items-center gap-2 border-b border-border/50 px-4 text-xs font-medium text-muted-foreground">
+                      <span>{section.name}</span>
+                      <span className="font-normal">{section.rows.length}</span>
+                    </div>
+                  )}
+                  {section.rows.map((row) => (
+                    <motion.div
+                      key={row.rowId}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15, ease: EASE_OUT }}
+                    >
+                      <TaskRow
+                        task={row.task}
+                        projectSlug={projectSlug}
+                        depth={row.depth}
+                        rowId={row.rowId}
+                        childCount={row.childCount}
+                        isExpanded={row.isExpanded}
+                        onToggleExpanded={onToggleTaskExpanded}
+                        reserveToggleSpace={groupHasSubtasks}
+                        isTaskDragging={draggingTaskId === row.task.id}
+                      />
+                    </motion.div>
+                  ))}
+                </Fragment>
               ))}
             </AnimatePresence>
           </SortableContext>
