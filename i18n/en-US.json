@@ -3807,7 +3807,15 @@
 			"copyBranch": "Copy git branch name",
 			"copyMarkdown": "Copy as Markdown",
 			"makeCopy": "Make a copy…",
-			"move": "Move"
+			"move": "Move",
+			"createRelated": "Create related",
+			"markAs": "Mark as",
+			"markAsDuplicate": "Duplicate…",
+			"remove": "Remove",
+			"removeParent": "Parent",
+			"removeProject": "Project",
+			"openInNewTab": "Open in new tab",
+			"remindMe": "Remind me"
 		},
 		"actions": {
 			"duplicate": "Duplicate",

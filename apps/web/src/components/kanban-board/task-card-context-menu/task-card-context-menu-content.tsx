@@ -40,6 +40,14 @@ import { PriorityGlyph } from "@/components/task-chips/priority-glyph";
 import { CycleSubmenu } from "./cycle-submenu";
 import { DueDateSubmenu } from "./due-date-submenu";
 import {
+  CreateRelatedSubmenu,
+  MarkAsSubmenu,
+  OpenInItem,
+  ProjectSubmenu,
+  RemindMeSubmenu,
+  RemoveSubmenu,
+} from "./linked-submenus";
+import {
   CopySubmenu,
   LabelsSubmenu,
   MoveSubmenu,
@@ -258,6 +266,27 @@ export default function TaskCardContextMenuContent({
 
       {canEdit && (
         <LabelsSubmenu task={task} workspaceId={taskCardContext.worskpaceId} />
+      )}
+
+      {canEdit && (
+        <ProjectSubmenu task={task} workspaceId={taskCardContext.worskpaceId} />
+      )}
+
+      {/* Cycle submenu goes here (Linear position), owned by the cycles work. */}
+
+      {canEdit && (
+        <>
+          <ContextMenuSeparator />
+          <CreateRelatedSubmenu task={task} />
+          <MarkAsSubmenu task={task} />
+          <RemoveSubmenu task={task} />
+          <OpenInItem
+            link={() =>
+              `${window.location.origin}${window.location.pathname}?taskId=${task.id}`
+            }
+          />
+          <RemindMeSubmenu task={task} />
+        </>
       )}
 
       {(canCreate || canEdit || canDelete) && (
