@@ -1,7 +1,8 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { HttpError } from "@/lib/http-error";
+import { useUserPreferencesStore } from "@/store/user-preferences";
 import ProjectLayout from "./project-layout";
 
 const project = vi.hoisted(() => ({
@@ -142,5 +143,29 @@ describe("ProjectLayout access states", () => {
     expect(backlog.getAttribute("href")).toBe(
       "/dashboard/workspace/$workspaceId/project/$projectId/board",
     );
+  });
+
+  it("toggles the insights panel from the header", () => {
+    project.current = { data: { name: "Alpha" }, error: null };
+    useUserPreferencesStore.setState({ insightsOpen: false });
+    render(
+      <ProjectLayout
+        projectId="project-1"
+        workspaceId="workspace-1"
+        insights={<aside>Insights chart</aside>}
+      >
+        <p>Board content</p>
+      </ProjectLayout>,
+    );
+    const toggle = screen.getByRole("button", {
+      name: "tasks:insights.toggle",
+    });
+
+    expect(screen.queryByText("Insights chart")).toBeNull();
+    fireEvent.click(toggle);
+    expect(screen.getByText("Insights chart")).toBeVisible();
+    expect(toggle.getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(toggle);
+    expect(screen.queryByText("Insights chart")).toBeNull();
   });
 });

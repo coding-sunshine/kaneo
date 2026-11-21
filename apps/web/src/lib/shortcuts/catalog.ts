@@ -73,6 +73,7 @@ export const SHORTCUTS = {
   createProject: { keys: ["n p"], category: "create" },
 
   toggleLayout: { keys: ["mod+b"], category: "views", scope: "view" },
+  toggleInsights: { keys: ["mod+shift+i"], category: "views", scope: "view" },
 
   replyToComment: { keys: ["r"], category: "tasks", scope: "task" },
   changeStatus: { keys: ["s"], category: "tasks", scope: "task" },

@@ -86,6 +86,9 @@ type UserPreferencesStore = {
   sidebarDefaultOpen: boolean;
   setSidebarDefaultOpen: (open: boolean) => void;
 
+  insightsOpen: boolean;
+  setInsightsOpen: (open: boolean) => void;
+
   weekStartsOn: WeekStartDay;
   setWeekStartsOn: (weekStartsOn: WeekStartDay) => void;
 
@@ -224,6 +227,9 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
 
       sidebarDefaultOpen: true,
       setSidebarDefaultOpen: (open) => set({ sidebarDefaultOpen: open }),
+
+      insightsOpen: false,
+      setInsightsOpen: (open) => set({ insightsOpen: open }),
 
       weekStartsOn: 0,
       setWeekStartsOn: (weekStartsOn) => set({ weekStartsOn }),

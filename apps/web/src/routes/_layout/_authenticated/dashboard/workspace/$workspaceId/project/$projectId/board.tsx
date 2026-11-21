@@ -16,6 +16,8 @@ import { useGetWorkProjects } from "@/hooks/queries/work-project/use-get-work-pr
 import { useGetCycles } from "@/hooks/queries/cycle/use-get-cycles";
 import { cycleTitle } from "@/lib/cycle/cycle-label";
 import { groupProjectBy } from "@/lib/group-project";
+import type { GroupFn } from "@/lib/insights/compute-insights";
+import { InsightsPanel } from "@/components/insights/insights-panel";
 import PageTitle from "@/components/page-title";
 import { BoardLoadError } from "@/components/project/board-load-error";
 import { BoardRefreshError } from "@/components/project/board-refresh-error";
@@ -241,24 +243,29 @@ function RouteComponent() {
   const grouped = viewMode === "list" && groupBy !== "status";
   const { data: workProjects } = useGetWorkProjects(workspaceId);
   const { data: cycles } = useGetCycles(projectId);
+  const groupFor = useCallback<GroupFn>(
+    (source, by) =>
+      groupProjectBy(
+        source,
+        by,
+        (key) =>
+          key === "display.unassigned"
+            ? t("tasks:display.noAssignee")
+            : t(`tasks:${key}`),
+        (id) => workProjects?.find((item) => item.id === id)?.name,
+        (id) => {
+          const c = cycles?.find((item) => item.id === id);
+          return c ? cycleTitle(c) : undefined;
+        },
+      ),
+    [t, workProjects, cycles],
+  );
   const listProject = useMemo(
     () =>
       sortedProject && grouped
-        ? groupProjectBy(
-            sortedProject,
-            groupBy,
-            (key) =>
-              key === "display.unassigned"
-                ? t("tasks:display.noAssignee")
-                : t(`tasks:${key}`),
-            (id) => workProjects?.find((item) => item.id === id)?.name,
-            (id) => {
-              const c = cycles?.find((item) => item.id === id);
-              return c ? cycleTitle(c) : undefined;
-            },
-          )
+        ? groupFor(sortedProject, groupBy)
         : sortedProject,
-    [sortedProject, grouped, groupBy, t, workProjects, cycles],
+    [sortedProject, grouped, groupBy, groupFor],
   );
 
   return (
@@ -266,6 +273,11 @@ function RouteComponent() {
       projectId={projectId}
       workspaceId={workspaceId}
       activeView="board"
+      insights={
+        filters.filteredProject ? (
+          <InsightsPanel project={filters.filteredProject} group={groupFor} />
+        ) : undefined
+      }
       toolbar={
         <ProjectToolbar
           view={view}

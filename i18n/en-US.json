@@ -3025,6 +3025,7 @@
 				"createTask": "Create issue",
 				"createProject": "Create project",
 				"toggleLayout": "Switch between board and list",
+				"toggleInsights": "Toggle insights",
 				"deleteTask": "Delete issue",
 				"copyTaskUrl": "Copy issue URL",
 				"copyBranchName": "Copy branch name",
@@ -4096,6 +4097,25 @@
 			"useProjectDefault": "Use project default",
 			"noProject": "No project",
 			"noCycle": "No cycle"
+		},
+		"insights": {
+			"title": "Insights",
+			"toggle": "Toggle insights",
+			"measure": "Measure",
+			"slice": "Slice",
+			"segment": "Segment",
+			"noSegment": "No segment",
+			"measures": {
+				"count": "Issue count",
+				"age": "Issue age"
+			},
+			"issues": "Issues",
+			"share": "Share",
+			"medianAge": "Median age",
+			"days_one": "{{count}} day",
+			"days_other": "{{count}} days",
+			"empty": "No issues in this view",
+			"chartLabel": "{{measure}} by {{slice}}"
 		},
 		"filterBar": {
 			"label": "Active filters",

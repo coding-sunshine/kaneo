@@ -1,0 +1,147 @@
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { GROUP_BY_OPTIONS, type GroupBy } from "@/lib/group-project";
+import {
+  computeInsights,
+  type GroupFn,
+  INSIGHT_MEASURES,
+  type InsightMeasure,
+} from "@/lib/insights/compute-insights";
+import type { ProjectWithTasks } from "@/types/project";
+import { InsightsBarChart } from "./insights-bar-chart";
+import { InsightsScatter } from "./insights-scatter";
+import { InsightsTable } from "./insights-table";
+import { segmentColor } from "./segment-color";
+
+type InsightsPanelProps = {
+  /** The issues currently in view, after filters. */
+  project: ProjectWithTasks;
+  group: GroupFn;
+};
+
+const SLICE_OPTIONS = GROUP_BY_OPTIONS.filter((option) => option !== "none");
+
+/** Linear's Insights panel: a measure over the view's issues, sliced and segmented. */
+export function InsightsPanel({ project, group }: InsightsPanelProps) {
+  const { t } = useTranslation();
+  const [measure, setMeasure] = useState<InsightMeasure>("count");
+  const [slice, setSlice] = useState<GroupBy>("status");
+  const [segment, setSegment] = useState<GroupBy>("none");
+  const insights = useMemo(
+    () => computeInsights(project, slice, segment, group),
+    [project, slice, segment, group],
+  );
+  const groupLabel = (option: GroupBy) =>
+    option === "none"
+      ? t("tasks:insights.noSegment")
+      : t(`tasks:display.groupBy.${option}`);
+
+  const picker = <T extends string>(
+    label: string,
+    value: T,
+    options: readonly T[],
+    optionLabel: (option: T) => string,
+    onChange: (value: T) => void,
+  ) => (
+    <div className="flex items-center gap-2">
+      <span className="w-16 shrink-0 text-muted-foreground text-xs">
+        {label}
+      </span>
+      <Select
+        value={value}
+        onValueChange={(next) => next && onChange(next as T)}
+      >
+        <SelectTrigger size="sm" className="flex-1" aria-label={label}>
+          <SelectValue>{optionLabel(value)}</SelectValue>
+        </SelectTrigger>
+        <SelectPopup>
+          {options.map((option) => (
+            <SelectItem key={option} value={option}>
+              {optionLabel(option)}
+            </SelectItem>
+          ))}
+        </SelectPopup>
+      </Select>
+    </div>
+  );
+
+  return (
+    <aside
+      aria-label={t("tasks:insights.title")}
+      className="hidden w-96 shrink-0 flex-col gap-4 overflow-y-auto border-border/80 border-l p-4 md:flex"
+    >
+      <h2 className="font-medium text-[13px]">{t("tasks:insights.title")}</h2>
+      <div className="flex flex-col gap-1.5">
+        {picker(
+          t("tasks:insights.measure"),
+          measure,
+          INSIGHT_MEASURES,
+          (option) => t(`tasks:insights.measures.${option}`),
+          setMeasure,
+        )}
+        {picker(
+          t("tasks:insights.slice"),
+          slice,
+          SLICE_OPTIONS,
+          groupLabel,
+          setSlice,
+        )}
+        {picker(
+          t("tasks:insights.segment"),
+          segment,
+          GROUP_BY_OPTIONS,
+          groupLabel,
+          setSegment,
+        )}
+      </div>
+
+      {insights.issueCount === 0 ? (
+        <p className="py-8 text-center text-muted-foreground text-sm">
+          {t("tasks:insights.empty")}
+        </p>
+      ) : (
+        <>
+          <figure
+            aria-label={t("tasks:insights.chartLabel", {
+              measure: t(`tasks:insights.measures.${measure}`),
+              slice: groupLabel(slice),
+            })}
+            className="flex flex-col gap-2"
+          >
+            {measure === "count" ? (
+              <InsightsBarChart insights={insights} />
+            ) : (
+              <InsightsScatter insights={insights} />
+            )}
+            {segment !== "none" && (
+              <ul className="flex flex-wrap gap-x-3 gap-y-1 text-muted-foreground text-xs">
+                {insights.segments.map((item, index) => (
+                  <li key={item.key} className="flex items-center gap-1.5">
+                    <span
+                      aria-hidden="true"
+                      className="size-2 rounded-full"
+                      style={{ background: segmentColor(index) }}
+                    />
+                    {item.name}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </figure>
+          <InsightsTable
+            insights={insights}
+            measure={measure}
+            sliceLabel={groupLabel(slice)}
+          />
+        </>
+      )}
+    </aside>
+  );
+}

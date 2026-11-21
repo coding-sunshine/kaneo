@@ -1,6 +1,12 @@
 import { ShortcutKeys } from "@/components/shortcuts/shortcut-keys";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Bell, ChevronRight, MoreHorizontal, Plus } from "lucide-react";
+import {
+  Bell,
+  ChevronRight,
+  MoreHorizontal,
+  PanelRight,
+  Plus,
+} from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import MobileProjectNav from "@/components/common/header/mobile-project-nav";
@@ -33,6 +39,7 @@ import {
 import useGetProject from "@/hooks/queries/project/use-get-project";
 import { useProjectWebSocket } from "@/hooks/use-project-websocket";
 import { cn } from "@/lib/cn";
+import { useShortcut } from "@/lib/shortcuts/use-shortcut";
 import { getProjectUnavailableReason } from "@/lib/project-unavailable-reason";
 import { useBackgroundStore } from "@/store/background";
 import { useCreateIssueStore } from "@/store/create-issue";
@@ -45,6 +52,8 @@ type ProjectLayoutProps = {
   toolbar?: ReactNode;
   summary?: ReactNode;
   filterBar?: ReactNode;
+  /** Linear's Insights panel; adds a header toggle when given. */
+  insights?: ReactNode;
   children: ReactNode;
   showViewSwitcher?: boolean;
   activeView?: ProjectRoute;
@@ -57,6 +66,7 @@ export default function ProjectLayout({
   toolbar,
   summary,
   filterBar,
+  insights,
   children,
   showViewSwitcher = true,
   activeView,
@@ -73,6 +83,14 @@ export default function ProjectLayout({
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] =
     useState(false);
   const { background } = useBackgroundStore();
+  const insightsOpen = useUserPreferencesStore((state) => state.insightsOpen);
+  const setInsightsOpen = useUserPreferencesStore(
+    (state) => state.setInsightsOpen,
+  );
+  const showInsights = !!insights && !unavailableReason;
+  useShortcut("toggleInsights", () => setInsightsOpen(!insightsOpen), {
+    enabled: showInsights,
+  });
   const viewMode = useUserPreferencesStore((state) => state.viewMode);
   const setCreateIssueOpen = useCreateIssueStore((state) => state.setOpen);
 
@@ -177,6 +195,21 @@ export default function ProjectLayout({
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-1">
+            {showInsights && (
+              <button
+                type="button"
+                aria-pressed={insightsOpen}
+                aria-label={t("tasks:insights.toggle")}
+                title={t("tasks:insights.toggle")}
+                onClick={() => setInsightsOpen(!insightsOpen)}
+                className={cn(
+                  "hidden size-7 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring md:inline-flex",
+                  insightsOpen && "bg-accent text-foreground",
+                )}
+              >
+                <PanelRight className="size-4" />
+              </button>
+            )}
             <Link
               to="/dashboard/workspace/$workspaceId/inbox"
               params={{ workspaceId }}
@@ -238,6 +271,11 @@ export default function ProjectLayout({
             reason={unavailableReason}
             workspaceId={workspaceId}
           />
+        ) : showInsights && insightsOpen ? (
+          <div className="flex h-full min-h-0">
+            <div className="h-full min-w-0 flex-1">{children}</div>
+            {insights}
+          </div>
         ) : (
           children
         )}
