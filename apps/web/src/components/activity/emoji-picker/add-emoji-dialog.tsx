@@ -60,6 +60,7 @@ export default function AddEmojiDialog({
     <Dialog open={open} onOpenChange={change}>
       <DialogPopup className="max-w-sm">
         <form
+          className="contents"
           onSubmit={(event) => {
             event.preventDefault();
             void submit();
