@@ -2914,7 +2914,10 @@
 			"teamProjects": "Projects",
 			"cycles": "Cycles",
 			"currentCycle": "Current",
-			"upcomingCycle": "Upcoming"
+			"upcomingCycle": "Upcoming",
+			"views": "Views",
+			"favorites": "Favorites",
+			"teamHome": "Home"
 		},
 		"projectList": {
 			"viewProject": "View Project",
@@ -2927,7 +2930,15 @@
 			"deleteConfirmDescription": "This will permanently remove the project and all its data. You can't undo this action.",
 			"deletedToast": "Project deleted",
 			"deleteProject": "Delete Project",
-			"switcherLabel": "Switch project or view"
+			"switcherLabel": "Switch project or view",
+			"favorite": "Favorite",
+			"unfavorite": "Remove from favorites",
+			"teamSettings": "Team settings",
+			"copyUrl": "Copy URL",
+			"openArchive": "Open archive",
+			"moreMenu": "Team menu",
+			"addFavorite": "Add to favorites",
+			"removeFavorite": "Remove from favorites"
 		},
 		"search": {
 			"inputPlaceholder": "Search issues, projects, comments...",
@@ -3084,6 +3095,50 @@
 			"then": "then",
 			"or": "or",
 			"thenEllipsis": "then…"
+		},
+		"teamHome": {
+			"members": "Members",
+			"goTo": "Go to",
+			"resources": "Team resources",
+			"resourcesEmpty": "Add documents and links. Organize by creating sections.",
+			"descriptionPlaceholder": "Add a description...",
+			"tabOverview": "Overview",
+			"pageTitle": "Home"
+		},
+		"views": {
+			"title": "Views",
+			"pageTitle": "Views",
+			"newView": "New view",
+			"issues": "Issues",
+			"name": "Name",
+			"owner": "Owner",
+			"empty": "No saved views yet",
+			"emptyHint": "Apply filters on a team's issues, then choose Save as view.",
+			"saveAsView": "Save as view",
+			"saveTitle": "Save view",
+			"namePlaceholder": "View name",
+			"scope": "Visibility",
+			"scopeTeam": "Team",
+			"scopeWorkspace": "Workspace",
+			"save": "Save view",
+			"saved": "View saved",
+			"snapshotNote": "Uses the filters and layout currently applied to this team's issues.",
+			"notFound": "View not found",
+			"visibility": "Visibility",
+			"ownerLabel": "Owner",
+			"issueCount_one": "{{count}} issue",
+			"issueCount_other": "{{count}} issues",
+			"delete": "Delete view",
+			"deleted": "View deleted",
+			"rename": "Rename view",
+			"toggleDetails": "Toggle details panel",
+			"noMatches": "No issues match this view",
+			"everyone": "Workspace",
+			"copyUrl": "Copy URL",
+			"linkCopied": "View link copied"
+		},
+		"header": {
+			"filter": "Filter"
 		}
 	},
 	"notifications": {

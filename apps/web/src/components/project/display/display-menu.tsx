@@ -38,7 +38,7 @@ export function DisplayMenu({ children }: { children: ReactNode }) {
               render={
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon-sm"
                   aria-label={title}
                   className="data-popup-open:bg-accent"
                 />
@@ -47,7 +47,6 @@ export function DisplayMenu({ children }: { children: ReactNode }) {
           }
         >
           <SlidersHorizontal />
-          <span className="hidden lg:inline">{title}</span>
         </TooltipTrigger>
         <TooltipContent>
           <ShortcutTooltipLabel label={title} shortcutId="showDisplayOptions" />

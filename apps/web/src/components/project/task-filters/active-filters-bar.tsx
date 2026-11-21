@@ -7,6 +7,8 @@ import type { FilterSubject } from "./filter-subject";
 type ActiveFiltersBarProps = {
   subjects: FilterSubject[];
   onClear: () => void;
+  /** Opens the save-as-view dialog; the button is hidden without it. */
+  onSaveView?: () => void;
   customFieldValues?: {
     hasData: boolean;
     isLoading: boolean;
@@ -18,6 +20,7 @@ type ActiveFiltersBarProps = {
 export function ActiveFiltersBar({
   subjects,
   onClear,
+  onSaveView,
   customFieldValues,
 }: ActiveFiltersBarProps) {
   const { t } = useTranslation();
@@ -54,6 +57,16 @@ export function ActiveFiltersBar({
           </p>
         )}
       </div>
+      {onSaveView && (
+        <Button
+          variant="ghost"
+          size="xs"
+          onClick={onSaveView}
+          className="h-7 shrink-0"
+        >
+          {t("navigation:views.saveAsView")}
+        </Button>
+      )}
       <Button
         variant="ghost"
         size="xs"

@@ -28,6 +28,7 @@ import { useProjectTaskView } from "@/components/project/toolbar/use-project-tas
 import { LayoutSwitch } from "@/components/project/views/layout-switch";
 import CreateTaskModal from "@/components/shared/modals/create-task-modal";
 import TaskDetailsSheet from "@/components/task/task-details-sheet";
+import { SaveViewDialog } from "@/components/views/save-view-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
 import { useBoardSort } from "@/hooks/use-board-sort";
@@ -156,6 +157,7 @@ function RouteComponent() {
   ]);
   const viewMode = useUserPreferencesStore((state) => state.viewMode);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [saveViewOpen, setSaveViewOpen] = useState(false);
   const { sort, setSort } = useBoardSort(projectId);
   const { background } = useBackgroundStore();
   const view = useProjectTaskView({
@@ -269,6 +271,7 @@ function RouteComponent() {
         <ActiveFiltersBar
           subjects={view.subjects}
           onClear={filters.clearFilters}
+          onSaveView={() => setSaveViewOpen(true)}
           customFieldValues={filters.customFieldValues}
         />
       }
@@ -381,6 +384,12 @@ function RouteComponent() {
           onClose={handleCloseTaskSheet}
         />
       </div>
+      <SaveViewDialog
+        open={saveViewOpen}
+        onOpenChange={setSaveViewOpen}
+        workspaceId={workspaceId}
+        projectId={projectId}
+      />
     </ProjectLayout>
   );
 }

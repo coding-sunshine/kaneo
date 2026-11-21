@@ -38,7 +38,7 @@ export function FilterMenu({ subjects, activeCount }: FilterMenuProps) {
               render={
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon-sm"
                   aria-label={label}
                   className={cn(
                     "data-popup-open:bg-accent",
@@ -50,7 +50,6 @@ export function FilterMenu({ subjects, activeCount }: FilterMenuProps) {
           }
         >
           <ListFilter />
-          <span className="hidden lg:inline">{label}</span>
           {activeCount > 0 && (
             <span className="-top-1 -right-1 absolute inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-semibold text-background tabular-nums">
               {activeCount}

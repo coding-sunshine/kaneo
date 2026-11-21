@@ -1,6 +1,6 @@
 import { ShortcutKeys } from "@/components/shortcuts/shortcut-keys";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Bell, ChevronRight, Plus } from "lucide-react";
+import { Bell, ChevronRight, MoreHorizontal, Plus } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import MobileProjectNav from "@/components/common/header/mobile-project-nav";
@@ -15,6 +15,13 @@ import {
 import { useGoToProjectView } from "@/components/project/views/use-go-to-project-view";
 import { ViewToggle } from "@/components/project/views/view-toggle";
 import { useProjectViewShortcuts } from "@/components/project/views/use-project-view-shortcuts";
+import { FavoriteStar } from "@/components/common/favorite-star";
+import { TeamMenuItems } from "@/components/team/team-menu-items";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/menu";
 import CreateProjectModal from "@/components/shared/modals/create-project-modal";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
@@ -136,6 +143,27 @@ export default function ProjectLayout({
             <span className="px-1 text-[13px] text-muted-foreground">
               {crumb ?? t("navigation:sidebar.issues")}
             </span>
+            <FavoriteStar
+              workspaceId={workspaceId}
+              target={{ type: "project", targetId: projectId }}
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                aria-label={t("navigation:projectList.moreMenu")}
+                className="inline-flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <MoreHorizontal className="size-3.5" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="min-w-44 rounded-lg"
+                align="start"
+              >
+                <TeamMenuItems
+                  workspaceId={workspaceId}
+                  projectId={projectId}
+                />
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <div className="min-w-0 md:hidden">

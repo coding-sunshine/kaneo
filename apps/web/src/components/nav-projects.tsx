@@ -29,21 +29,20 @@ import {
 } from "@tanstack/react-router";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
 import { triageTasks } from "@/lib/status-category";
+import { teamColor } from "@/lib/team-color";
+import { TeamMenuItems } from "@/components/team/team-menu-items";
+import { FavoritesNav } from "@/components/team/favorites-nav";
 import {
   ChevronRight,
   CircleArrowDown,
   CirclePlay,
-  Folder,
   Box,
   Layers,
-  ArchiveIcon,
-  Forward,
+  House,
+  Layers2,
   MoreHorizontal,
   Plus,
-  Settings,
-  Trash2,
   Trash2Icon,
-  LinkIcon,
 } from "lucide-react";
 import { type CSSProperties, type ReactNode, useState } from "react";
 import { createPortal } from "react-dom";
@@ -56,8 +55,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/menu";
 import {
@@ -83,7 +80,6 @@ import { useBoardHoverPrefetch } from "@/hooks/use-board-hover-prefetch";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { EASE_OUT_CSS } from "@/lib/motion";
 import { toast } from "@/lib/toast";
-import type { ProjectWithTasks } from "@/types/project";
 import CreateProjectModal from "./shared/modals/create-project-modal";
 import {
   AlertDialog,
@@ -187,16 +183,6 @@ export function NavProjects() {
     );
   };
 
-  const handleProjectClick = (project: ProjectWithTasks) => {
-    navigate({
-      to: "/dashboard/workspace/$workspaceId/project/$projectId/board",
-      params: {
-        workspaceId: workspace?.id || "",
-        projectId: project.id,
-      },
-    });
-  };
-
   // Below these thresholds the row is still a link and the sidebar still
   // scrolls; above them the gesture becomes a drag.
   const sensors = useSensors(
@@ -243,6 +229,7 @@ export function NavProjects() {
 
   return (
     <>
+      <FavoritesNav workspaceId={workspace.id} />
       <Collapsible
         open={!collapsedNavIds.includes("your-teams")}
         onOpenChange={(open) => setNavOpen("your-teams", open)}
@@ -317,7 +304,10 @@ export function NavProjects() {
                                 />
                               }
                             >
-                              <ProjectIcon aria-hidden="true" />
+                              <ProjectIcon
+                                aria-hidden="true"
+                                style={{ color: teamColor(project.id) }}
+                              />
                               <span className="min-w-0 truncate">
                                 {project.name}
                               </span>
@@ -348,84 +338,18 @@ export function NavProjects() {
                                 side={isMobile ? "bottom" : "right"}
                                 align={isMobile ? "end" : "start"}
                               >
-                                <DropdownMenuItem
-                                  className="h-7 items-start cursor-pointer text-sm"
-                                  onClick={() => handleProjectClick(project)}
-                                >
-                                  <Folder className="text-muted-foreground" />
-                                  <span>
-                                    {t("navigation:projectList.viewProject")}
-                                  </span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="h-7 items-start cursor-pointer text-sm"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(
-                                      `${window.location.origin}/dashboard/workspace/${workspace?.id}/project/${project.id}`,
-                                    );
-                                    toast.success(
-                                      t("navigation:projectList.linkCopied"),
-                                      { icon: LinkIcon },
-                                    );
-                                  }}
-                                >
-                                  <Forward className="text-muted-foreground" />
-                                  <span>
-                                    {t("navigation:projectList.shareProject")}
-                                  </span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="h-7 items-start cursor-pointer text-sm"
-                                  onClick={() => {
-                                    navigate({
-                                      to: "/dashboard/settings/projects/$projectId/general",
-                                      params: { projectId: project.id },
-                                    });
-                                  }}
-                                >
-                                  <Settings className="text-muted-foreground" />
-                                  <span>
-                                    {t(
-                                      "navigation:projectList.projectSettings",
-                                    )}
-                                  </span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="h-7 items-start cursor-pointer text-sm"
-                                  onClick={() => {
-                                    navigate({
-                                      to: "/dashboard/workspace/$workspaceId/project/$projectId/archive",
-                                      params: {
-                                        workspaceId: workspace?.id ?? "",
-                                        projectId: project.id,
-                                      },
-                                    });
-                                  }}
-                                >
-                                  <ArchiveIcon className="text-muted-foreground" />
-                                  <span>
-                                    {t("navigation:projectList.archive")}
-                                  </span>
-                                </DropdownMenuItem>
-                                {canDeleteProject && (
-                                  <>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                      className="h-7 items-start text-destructive cursor-pointer text-sm"
-                                      onClick={() => {
-                                        setProjectToDeleteID(project.id);
-                                        setIsDeleteProjectModalOpen(true);
-                                      }}
-                                    >
-                                      <Trash2 className="text-destructive" />
-                                      <span>
-                                        {t(
-                                          "navigation:projectList.deleteProject",
-                                        )}
-                                      </span>
-                                    </DropdownMenuItem>
-                                  </>
-                                )}
+                                <TeamMenuItems
+                                  workspaceId={workspace.id}
+                                  projectId={project.id}
+                                  onDelete={
+                                    canDeleteProject
+                                      ? () => {
+                                          setProjectToDeleteID(project.id);
+                                          setIsDeleteProjectModalOpen(true);
+                                        }
+                                      : undefined
+                                  }
+                                />
                               </DropdownMenuContent>
                             </DropdownMenu>
                             <CollapsiblePanel>
@@ -537,6 +461,20 @@ function ProjectSubNav({
     <SidebarMenuSub className="mx-0 translate-x-0 gap-px border-0 py-0.5 pr-0 pl-4">
       <SidebarMenuSubItem>
         <SidebarMenuSubButton
+          isActive={isCurrent && pathname.endsWith("/home")}
+          render={
+            <Link
+              to="/dashboard/workspace/$workspaceId/project/$projectId/home"
+              params={{ workspaceId, projectId }}
+            />
+          }
+        >
+          <House aria-hidden="true" />
+          <span>{t("navigation:sidebar.teamHome")}</span>
+        </SidebarMenuSubButton>
+      </SidebarMenuSubItem>
+      <SidebarMenuSubItem>
+        <SidebarMenuSubButton
           isActive={isCurrent && pathname.endsWith("/triage")}
           render={
             <Link
@@ -617,6 +555,20 @@ function ProjectSubNav({
         >
           <Box aria-hidden="true" />
           <span>{t("navigation:sidebar.teamProjects")}</span>
+        </SidebarMenuSubButton>
+      </SidebarMenuSubItem>
+      <SidebarMenuSubItem>
+        <SidebarMenuSubButton
+          isActive={isCurrent && pathname.endsWith("/views")}
+          render={
+            <Link
+              to="/dashboard/workspace/$workspaceId/project/$projectId/views"
+              params={{ workspaceId, projectId }}
+            />
+          }
+        >
+          <Layers2 aria-hidden="true" />
+          <span>{t("navigation:sidebar.views")}</span>
         </SidebarMenuSubButton>
       </SidebarMenuSubItem>
     </SidebarMenuSub>
