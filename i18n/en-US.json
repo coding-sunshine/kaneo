@@ -2872,7 +2872,10 @@
 			"home": "Home",
 			"inbox": "Inbox",
 			"myTasks": "My tasks",
-			"invitePeople": "Invite people"
+			"invitePeople": "Invite people",
+			"issues": "Issues",
+			"active": "Active",
+			"backlog": "Backlog"
 		},
 		"projectList": {
 			"viewProject": "View Project",

@@ -2921,7 +2921,10 @@
 			"home": "Accueil",
 			"inbox": "Boîte de réception",
 			"invitePeople": "Inviter des personnes",
-			"myTasks": "Mes tâches"
+			"myTasks": "Mes tâches",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "Voir le projet",

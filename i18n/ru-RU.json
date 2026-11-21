@@ -2978,7 +2978,10 @@
 			"home": "Home",
 			"inbox": "Inbox",
 			"invitePeople": "Invite people",
-			"myTasks": "My tasks"
+			"myTasks": "My tasks",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "Открыть проект",

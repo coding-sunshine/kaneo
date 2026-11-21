@@ -2872,7 +2872,10 @@
 			"home": "Startseite",
 			"inbox": "Posteingang",
 			"invitePeople": "Personen einladen",
-			"myTasks": "Meine Aufgaben"
+			"myTasks": "Meine Aufgaben",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "Projekt ansehen",

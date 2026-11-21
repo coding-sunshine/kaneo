@@ -2823,7 +2823,10 @@
 			"home": "首页",
 			"inbox": "收件箱",
 			"invitePeople": "邀请成员",
-			"myTasks": "我的任务"
+			"myTasks": "我的任务",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "查看项目",

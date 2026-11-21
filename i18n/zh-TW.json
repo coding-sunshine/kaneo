@@ -2823,7 +2823,10 @@
 			"home": "首頁",
 			"inbox": "收件匣",
 			"myTasks": "我的任務",
-			"invitePeople": "邀請成員"
+			"invitePeople": "邀請成員",
+			"active": "Active",
+			"backlog": "Backlog",
+			"issues": "Issues"
 		},
 		"projectList": {
 			"viewProject": "檢視專案",
