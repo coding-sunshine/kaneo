@@ -74,6 +74,7 @@ export function formatRelativeTime(
   value: DateInput,
   locale?: string,
   now = new Date(),
+  style: Intl.RelativeTimeFormatStyle = "long",
 ) {
   const target = toDate(value);
   const diffMs = target.getTime() - now.getTime();
@@ -92,6 +93,7 @@ export function formatRelativeTime(
 
   const formatter = new Intl.RelativeTimeFormat(getLocale(locale), {
     numeric: "auto",
+    style,
   });
 
   for (const [unit, unitSeconds] of units) {

@@ -1,4 +1,3 @@
-import { Calendar, CircleAlert, History, UserRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import useGetWorkspaceUsers from "@/hooks/queries/workspace-users/use-get-workspace-users";
@@ -47,23 +46,6 @@ type WorkspaceUser = {
     image?: string | null;
   } | null;
 };
-
-function getActivityTypeIcon(type: string) {
-  const iconClass = "size-3.5";
-  switch (type) {
-    case "status_changed":
-      return <History className={iconClass} />;
-    case "priority_changed":
-      return <CircleAlert className={iconClass} />;
-    case "due_date_changed":
-      return <Calendar className={iconClass} />;
-    case "assignee_changed":
-    case "unassigned":
-      return <UserRound className={iconClass} />;
-    default:
-      return <History className={iconClass} />;
-  }
-}
 
 function formatActivityDateText(value: string) {
   const parsed = new Date(value);
@@ -469,19 +451,13 @@ function Activity({
     );
   }
 
-  const isCreated = ["create", "created", "task"].includes(activity.type);
-
   return (
     <TimelineItem
       className="m-0! min-h-7 flex-row items-start gap-2.5 py-1! pl-2"
       step={step}
     >
       <span className="flex h-5 w-4.5 shrink-0 items-center justify-center text-muted-foreground">
-        {isCreated ? (
-          <ActorAvatar user={user || null} fallbackName={actorName} />
-        ) : (
-          getActivityTypeIcon(activity.type)
-        )}
+        <ActorAvatar user={user || null} fallbackName={actorName} />
       </span>
       <TimelineContent className="min-w-0 flex-1 text-[13px] text-foreground leading-5">
         <UserHoverName user={user || null} fallbackName={actorName} />{" "}
@@ -491,7 +467,13 @@ function Activity({
           t,
         })}{" "}
         <span className="whitespace-nowrap text-muted-foreground/60 text-xs">
-          · {formatRelativeTime(activity.createdAt)}
+          ·{" "}
+          {formatRelativeTime(
+            activity.createdAt,
+            undefined,
+            new Date(),
+            "narrow",
+          )}
         </span>
       </TimelineContent>
     </TimelineItem>
