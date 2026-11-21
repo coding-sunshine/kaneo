@@ -24,6 +24,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
+import useGlobalSearch from "@/hooks/queries/search/use-global-search";
 import useGetConfig from "@/hooks/queries/config/use-get-config";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { useShortcut } from "@/lib/shortcuts/use-shortcut";
@@ -58,6 +59,13 @@ function CommandPalette() {
   const canCreateWorkspace =
     isAdmin || (config !== undefined && !config.disableWorkspaceCreation);
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const { data: searchData } = useGlobalSearch({
+    q: query,
+    type: "tasks",
+    workspaceId: workspace?.id,
+    limit: 8,
+  });
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
@@ -77,8 +85,45 @@ function CommandPalette() {
     setOpen(false);
   }, []);
 
+  const issueItems = useMemo<PaletteActionItem[]>(() => {
+    if (query.trim().length < 3) return [];
+    const results = (searchData?.results ?? []) as {
+      id: string;
+      title: string;
+      type: string;
+      projectId?: string;
+      taskNumber?: number;
+      projectSlug?: string;
+    }[];
+    return results
+      .filter((r) => r.type === "task" && r.projectId && workspace?.id)
+      .map((r) => ({
+        // Starts with the query so the palette's own filter keeps the row.
+        value: `${query} ${r.id}`,
+        label: `${r.projectSlug ?? ""}-${r.taskNumber ?? ""} ${r.title}`.trim(),
+        onRun: () =>
+          navigate({
+            to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+            params: {
+              workspaceId: workspace?.id ?? "",
+              projectId: r.projectId ?? "",
+              taskId: r.id,
+            },
+          }),
+      }));
+  }, [query, searchData?.results, navigate, workspace?.id]);
+
   const groupedItems = useMemo<PaletteGroup[]>(
     () => [
+      ...(issueItems.length
+        ? [
+            {
+              value: "issues",
+              label: t("navigation:search.groups.task"),
+              items: issueItems,
+            },
+          ]
+        : []),
       {
         value: "suggestions",
         label: t("navigation:commandPalette.suggestions"),
@@ -166,6 +211,7 @@ function CommandPalette() {
       },
     ],
     [
+      issueItems,
       navigate,
       setTheme,
       t,
@@ -177,10 +223,18 @@ function CommandPalette() {
 
   return (
     <>
-      <CommandDialog open={open} onOpenChange={setOpen}>
+      <CommandDialog
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next);
+          if (!next) setQuery("");
+        }}
+      >
         <CommandDialogPopup instant finalFocus={false}>
           <Command items={groupedItems}>
             <CommandInput
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
               placeholder={t("navigation:commandPalette.inputPlaceholder")}
             />
             <CommandPanel>
