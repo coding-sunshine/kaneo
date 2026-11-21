@@ -7,6 +7,7 @@ import CommentCard from "./comment-card";
 
 afterEach(cleanup);
 
+vi.mock("./emoji-picker/add-emoji-dialog", () => ({ default: () => null }));
 vi.mock("@/hooks/queries/task/use-get-task", () => ({
   default: () => ({ data: undefined }),
 }));

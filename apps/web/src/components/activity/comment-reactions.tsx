@@ -10,6 +10,7 @@ import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import useGetWorkspaceUsers from "@/hooks/queries/workspace-users/use-get-workspace-users";
 import { cn } from "@/lib/cn";
 import AddReactionButton from "./add-reaction-button";
+import EmojiGlyph from "./emoji-picker/emoji-glyph";
 import type { Reaction } from "./toggle-reaction";
 
 type CommentReactionsProps = {
@@ -57,7 +58,9 @@ export default function CommentReactions({
                     : "border-border bg-background text-muted-foreground hover:border-foreground/20",
                 )}
               >
-                <span className="text-sm leading-none">{emoji}</span>
+                <span className="flex text-sm leading-none">
+                  <EmojiGlyph emoji={emoji} />
+                </span>
                 {userIds.length}
               </button>
             </TooltipTrigger>

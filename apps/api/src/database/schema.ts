@@ -1236,6 +1236,40 @@ export const commentThreadSubscriptionTable = pgTable(
   ],
 );
 
+// Custom emoji for reactions. The image lives in object storage like a
+// project background; there is no project, so it stays out of `asset`.
+export const workspaceEmojiTable = pgTable(
+  "workspace_emoji",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    objectKey: text("object_key").notNull().unique(),
+    mimeType: text("mime_type").notNull(),
+    version: text("version").notNull(),
+    createdBy: text("created_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    unique("workspace_emoji_workspace_name_unique").on(
+      table.workspaceId,
+      table.name,
+    ),
+  ],
+);
+
 export const assetTable = pgTable(
   "asset",
   {

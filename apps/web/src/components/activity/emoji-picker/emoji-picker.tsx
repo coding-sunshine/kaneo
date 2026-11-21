@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import useWorkspaceEmoji from "@/hooks/queries/emoji/use-workspace-emoji";
 import { useAuth } from "@/components/providers/auth-provider/hooks/use-auth";
+import { customEmojiName, searchCustomEmoji } from "./custom-emoji";
 import {
   loadFrequencies,
   recordEmojiUse,
@@ -16,18 +18,23 @@ import {
 
 type EmojiPickerProps = {
   onSelect: (emoji: string) => void;
+  /** Shown as a footer button; omit for members who cannot add emoji. */
+  onAddEmoji?: () => void;
 };
+
+type GridEmoji = Pick<EmojiEntry, "emoji"> &
+  Partial<EmojiEntry> & { url?: string };
 
 function EmojiGrid({
   emojis,
   onSelect,
 }: {
-  emojis: Array<Pick<EmojiEntry, "emoji"> & Partial<EmojiEntry>>;
+  emojis: GridEmoji[];
   onSelect: (emoji: string) => void;
 }) {
   return (
     <div className="grid grid-cols-9">
-      {emojis.map(({ emoji, name }) => (
+      {emojis.map(({ emoji, name, url }) => (
         <button
           key={emoji}
           type="button"
@@ -36,14 +43,21 @@ function EmojiGrid({
           onClick={() => onSelect(emoji)}
           className="flex size-7 items-center justify-center rounded-md text-lg leading-none outline-none hover:bg-accent focus-visible:bg-accent"
         >
-          {emoji}
+          {url ? (
+            <img src={url} alt={emoji} className="size-5 object-contain" />
+          ) : (
+            emoji
+          )}
         </button>
       ))}
     </div>
   );
 }
 
-export default function EmojiPicker({ onSelect: onPick }: EmojiPickerProps) {
+export default function EmojiPicker({
+  onSelect: onPick,
+  onAddEmoji,
+}: EmojiPickerProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const userId = user?.id ?? "anonymous";
@@ -52,6 +66,12 @@ export default function EmojiPicker({ onSelect: onPick }: EmojiPickerProps) {
     saveFrequencies(userId, recordEmojiUse(loadFrequencies(userId), emoji));
     onPick(emoji);
   };
+  const { data: customEmoji = [] } = useWorkspaceEmoji();
+  const custom: GridEmoji[] = customEmoji.map(({ name, url }) => ({
+    emoji: `:${name}:`,
+    name,
+    url,
+  }));
   const [query, setQuery] = useState("");
   const [groups, setGroups] = useState<EmojiGroup[]>([]);
 
@@ -65,7 +85,16 @@ export default function EmojiPicker({ onSelect: onPick }: EmojiPickerProps) {
     };
   }, []);
 
-  const results = query.trim() ? searchEmoji(groups, query) : null;
+  const results: GridEmoji[] | null = query.trim()
+    ? [
+        ...searchEmoji(groups, query),
+        ...searchCustomEmoji(customEmoji, query).map(({ name, url }) => ({
+          emoji: `:${name}:`,
+          name,
+          url,
+        })),
+      ]
+    : null;
 
   return (
     <div className="flex w-68 flex-col">
@@ -99,7 +128,12 @@ export default function EmojiPicker({ onSelect: onPick }: EmojiPickerProps) {
               {t("activity:reactions.frequentlyUsed")}
             </p>
             <EmojiGrid
-              emojis={frequent.map((emoji) => ({ emoji }))}
+              emojis={frequent.flatMap((emoji) => {
+                const name = customEmojiName(emoji);
+                if (!name) return [{ emoji }];
+                const entry = custom.find((item) => item.name === name);
+                return entry ? [entry] : [];
+              })}
               onSelect={onSelect}
             />
             {groups.map((group) => (
@@ -110,9 +144,26 @@ export default function EmojiPicker({ onSelect: onPick }: EmojiPickerProps) {
                 <EmojiGrid emojis={group.emojis} onSelect={onSelect} />
               </section>
             ))}
+            {custom.length > 0 && (
+              <section>
+                <p className="px-1 pt-2.5 pb-1 text-muted-foreground text-xs">
+                  {t("activity:reactions.groups.custom")}
+                </p>
+                <EmojiGrid emojis={custom} onSelect={onSelect} />
+              </section>
+            )}
           </>
         )}
       </div>
+      {onAddEmoji && (
+        <button
+          type="button"
+          onClick={onAddEmoji}
+          className="h-9 border-border border-t px-3 text-left text-[13px] outline-none hover:bg-accent focus-visible:bg-accent"
+        >
+          {t("activity:reactions.addEmoji")}
+        </button>
+      )}
     </div>
   );
 }

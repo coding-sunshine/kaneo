@@ -2,7 +2,7 @@ import { and, eq, isNotNull } from "drizzle-orm";
 import db, { schema } from "../../database";
 import type { DbOrTx } from "../../project-access/db-or-tx";
 
-/** Storage objects (uploads and project backgrounds) owned by a workspace. */
+/** Storage objects (uploads, project backgrounds and custom emoji) owned by a workspace. */
 export async function listWorkspaceObjectKeys(
   workspaceId: string,
   database: DbOrTx = db,
@@ -21,7 +21,11 @@ export async function listWorkspaceObjectKeys(
         isNotNull(schema.projectTable.backgroundObjectKey),
       ),
     );
-  return [...assets, ...backgrounds].flatMap((row) =>
+  const emoji = await database
+    .select({ objectKey: schema.workspaceEmojiTable.objectKey })
+    .from(schema.workspaceEmojiTable)
+    .where(eq(schema.workspaceEmojiTable.workspaceId, workspaceId));
+  return [...assets, ...backgrounds, ...emoji].flatMap((row) =>
     row.objectKey ? [row.objectKey] : [],
   );
 }

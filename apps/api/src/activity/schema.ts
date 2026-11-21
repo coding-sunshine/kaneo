@@ -51,7 +51,8 @@ export const commentSubscriptionBody = z.object({
 
 export const commentReactionBody = z.object({
   activityId: z.string(),
-  emoji: z.string().min(1).max(32),
+  // Native emoji, or a workspace custom emoji as :name:.
+  emoji: z.string().min(1).max(258),
 });
 
 export const updateCommentBody = z.object({

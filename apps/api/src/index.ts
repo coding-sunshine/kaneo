@@ -33,6 +33,7 @@ import column from "./column";
 import comment from "./comment";
 import config from "./config";
 import customField from "./custom-field";
+import emoji from "./emoji";
 import db, { getDatabase, schema } from "./database";
 import { apiErrorSchema } from "./errors/api-error-schema";
 import { httpExceptionResponse } from "./errors/http-exception-response";
@@ -880,6 +881,7 @@ export function createApp() {
   const invitationApi = api.route("/invitation", invitation);
   const workspaceApi = api.route("/workspace", workspace);
   const customFieldApi = api.route("/custom-field", customField);
+  const emojiApi = api.route("/emoji", emoji);
   const importApi = api.route("/import", importRoutes);
   const userApi = api.route("/user", user);
   const adminApi = api.route("/admin", admin);
@@ -1026,6 +1028,7 @@ export function createApp() {
     workflowRuleApi,
     workspaceApi,
     customFieldApi,
+    emojiApi,
     importApi,
     oauthApi,
   };
@@ -1165,6 +1168,7 @@ const {
   workflowRuleApi,
   workspaceApi,
   customFieldApi,
+  emojiApi,
   importApi,
   oauthApi,
 } = createdApp;
@@ -1212,6 +1216,7 @@ export type AppType =
   | typeof invitationApi
   | typeof workspaceApi
   | typeof customFieldApi
+  | typeof emojiApi
   | typeof importApi
   | typeof userApi
   | typeof adminApi

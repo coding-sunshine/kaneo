@@ -320,6 +320,10 @@ export function buildProjectBackgroundObjectKeyPrefix(
   ].join("/");
 }
 
+export function buildWorkspaceEmojiObjectKeyPrefix(workspaceId: string) {
+  return ["workspace", sanitizePathSegment(workspaceId), "emoji"].join("/");
+}
+
 export function applyKeyPrefix(prefix: string, key: string) {
   if (!prefix) return key;
   const trimmed = prefix.replace(/\/+$/, "");
@@ -435,6 +439,57 @@ export async function createProjectBackgroundUploadUrl(
       "Content-Type": context.contentType,
     },
   };
+}
+
+/** Presigned PUT for a workspace custom emoji image; the caller validates input. */
+export async function createWorkspaceEmojiUploadUrl(context: {
+  workspaceId: string;
+  contentType: string;
+  size: number;
+}) {
+  const config = getStorageConfig();
+  const client = getClient(config);
+  const version = createId();
+  const rawKey = `${buildWorkspaceEmojiObjectKeyPrefix(context.workspaceId)}/emoji-${version}`;
+  const key = applyKeyPrefix(config.keyPrefix, rawKey);
+
+  const uploadUrl = await getSignedUrl(
+    client,
+    new PutObjectCommand({
+      Bucket: config.bucket,
+      Key: key,
+      ContentType: context.contentType,
+      ContentLength: context.size,
+    }),
+    {
+      expiresIn: config.presignTtlSeconds,
+      signableHeaders: new Set(["content-length", "content-type"]),
+    },
+  );
+
+  return {
+    key,
+    uploadUrl,
+    version,
+    headers: { "Content-Type": context.contentType },
+  };
+}
+
+export function assertWorkspaceEmojiKeyMatchesContext(
+  key: string,
+  context: { workspaceId: string; version: string },
+) {
+  const config = getStorageConfig();
+  const prefix = applyKeyPrefix(
+    config.keyPrefix,
+    buildWorkspaceEmojiObjectKeyPrefix(context.workspaceId),
+  );
+  // Exact match, not a prefix test: a traversal suffix must not reach
+  // another workspace's objects.
+  return (
+    /^[A-Za-z0-9_-]+$/.test(context.version) &&
+    key === `${prefix}/emoji-${context.version}`
+  );
 }
 
 export class InvalidUploadedAssetError extends Error {}

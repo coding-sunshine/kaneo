@@ -3374,8 +3374,17 @@
 				"activities": "Activities",
 				"objects": "Objects",
 				"symbols": "Symbols",
-				"flags": "Flags"
-			}
+				"flags": "Flags",
+				"custom": "Custom"
+			},
+			"addEmoji": "Add emoji",
+			"emojiHelp": "Upload an image to use as a reaction. PNG, JPEG, GIF or WebP, up to 500 KB.",
+			"emojiName": "Emoji name",
+			"emojiImage": "Emoji image",
+			"emojiSave": "Add emoji",
+			"emojiNameInvalid": "Use only lowercase letters, numbers, underscores and hyphens.",
+			"emojiImageRequired": "Choose an image.",
+			"emojiFailed": "Failed to add emoji"
 		}
 	},
 	"tasks": {

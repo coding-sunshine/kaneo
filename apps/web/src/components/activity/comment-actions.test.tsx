@@ -138,17 +138,22 @@ describe("CommentActions", () => {
   it.each([
     [true, "activity:comment.unsubscribeFromThread"],
     [false, "activity:comment.subscribeToThread"],
-  ])("offers the thread subscription toggle (subscribed=%s)", async (subscribed, label) => {
-    renderActions(0, subscribed);
-    await clickItem(label);
-  });
+  ])(
+    "offers the thread subscription toggle (subscribed=%s)",
+    async (subscribed, label) => {
+      renderActions(0, subscribed);
+      await clickItem(label);
+    },
+  );
 
   it("hides the subscription item when the state is unknown", async () => {
     renderActions(0, null);
     fireEvent.click(
       screen.getByRole("button", { name: "activity:comment.actions" }),
     );
-    await screen.findByRole("menuitem", { name: "activity:comment.resolveThread" });
+    await screen.findByRole("menuitem", {
+      name: "activity:comment.resolveThread",
+    });
     expect(
       screen.queryByRole("menuitem", { name: /ThreadSub|subscribeToThread/i }),
     ).toBeNull();

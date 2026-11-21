@@ -191,6 +191,37 @@ describe("API integration: comment threads, resolve and reactions", () => {
     }
   });
 
+  it("custom emoji reactions require an emoji from the workspace", async () => {
+    const { member, send, comment, feed } = await setup();
+    const root = await comment("React to me");
+    const react = (emoji: string, method = "POST") =>
+      send("comment/reaction", method, { activityId: root.id, emoji });
+
+    expect((await react(":party_parrot:")).status).toBe(400);
+    // A native emoji and removal never need a workspace lookup.
+    expect((await react("👍")).status).toBe(200);
+    expect((await react(":party_parrot:", "DELETE")).status).toBe(200);
+
+    await db.insert(schema.workspaceEmojiTable).values({
+      workspaceId: member.workspace.id,
+      name: "party_parrot",
+      objectKey: "workspace/x/emoji/emoji-v1",
+      mimeType: "image/png",
+      version: "v1",
+      createdBy: member.user.id,
+    });
+    expect((await react(":party_parrot:")).status).toBe(200);
+    expect((await feed()).get(root.id)?.reactions).toContainEqual({
+      emoji: ":party_parrot:",
+      userIds: [member.user.id],
+    });
+
+    // Deleting the emoji blocks new reactions but existing ones can be removed.
+    await db.delete(schema.workspaceEmojiTable);
+    expect((await react(":party_parrot:")).status).toBe(400);
+    expect((await react(":party_parrot:", "DELETE")).status).toBe(200);
+  });
+
   describe("thread subscriptions", () => {
     async function twoUsers() {
       const ctx = await setup();

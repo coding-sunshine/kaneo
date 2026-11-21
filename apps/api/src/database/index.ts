@@ -91,6 +91,7 @@ import {
   workspaceRoleTable,
   workspaceMemberAccessTable,
   workspaceMemberProjectTable,
+  workspaceEmojiTable,
   workspaceTable,
   workspaceUserTable,
 } from "./schema";
@@ -98,6 +99,7 @@ import {
 config();
 
 export const schema = {
+  workspaceEmojiTable,
   dataMigrationTable,
   storageCleanupTable,
   accountTable,
