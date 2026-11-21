@@ -5,14 +5,17 @@ import {
   createRoute,
   errorResponse,
   jsonResponse,
+  z,
 } from "../openapi";
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import createActivity from "./controllers/create-activity";
 import createComment from "./controllers/create-comment";
+import setCommentReaction from "./controllers/comment-reaction";
 import deleteComment from "./controllers/delete-comment";
 import getActivities from "./controllers/get-activities";
 import getWorkspaceActivities from "./controllers/get-workspace-activities";
+import resolveCommentThread from "./controllers/resolve-comment-thread";
 import updateComment from "./controllers/update-comment";
 import {
   activityListSchema,
@@ -22,6 +25,8 @@ import {
 import {
   activitiesQuery,
   createActivityBody,
+  commentReactionBody,
+  commentThreadBody,
   createCommentBody,
   deleteCommentBody,
   taskIdParam,
@@ -184,6 +189,122 @@ const deleteCommentRoute = createRoute({
   },
 });
 
+const commentReactionResult = z.object({
+  activityId: z.string(),
+  emoji: z.string(),
+  reacted: z.boolean(),
+});
+
+const resolveCommentThreadRoute = createRoute({
+  method: "post",
+  operationId: "resolveCommentThread",
+  path: "/comment/resolve",
+  tags: ["Activity"],
+  summary: "Resolve comment thread",
+  description:
+    "Resolve the thread containing a comment. Resolving from a reply marks that reply as the resolution.",
+  middleware: [
+    workspaceAccess.fromActivity("activityId"),
+    requireWorkspacePermission({ task: ["update"] }),
+  ] as const,
+  request: {
+    body: {
+      required: true,
+      content: { "application/json": { schema: commentThreadBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("The thread's top-level comment", activitySchema),
+    400: errorResponse("Invalid body"),
+    403: errorResponse(
+      "No access to the project, or missing task:update permission",
+    ),
+    404: errorResponse("Comment not found"),
+  },
+});
+
+const unresolveCommentThreadRoute = createRoute({
+  method: "post",
+  operationId: "unresolveCommentThread",
+  path: "/comment/unresolve",
+  tags: ["Activity"],
+  summary: "Unresolve comment thread",
+  description: "Mark the resolved thread containing a comment as unresolved.",
+  middleware: [
+    workspaceAccess.fromActivity("activityId"),
+    requireWorkspacePermission({ task: ["update"] }),
+  ] as const,
+  request: {
+    body: {
+      required: true,
+      content: { "application/json": { schema: commentThreadBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("The thread's top-level comment", activitySchema),
+    400: errorResponse("Invalid body"),
+    403: errorResponse(
+      "No access to the project, or missing task:update permission",
+    ),
+    404: errorResponse("Comment not found"),
+  },
+});
+
+const addCommentReactionRoute = createRoute({
+  method: "post",
+  operationId: "addCommentReaction",
+  path: "/comment/reaction",
+  tags: ["Activity"],
+  summary: "Add comment reaction",
+  description:
+    "Add your emoji reaction to a comment. Adding one you already have is a no-op.",
+  middleware: [
+    workspaceAccess.fromActivity("activityId"),
+    requireWorkspacePermission({ task: ["update"] }),
+  ] as const,
+  request: {
+    body: {
+      required: true,
+      content: { "application/json": { schema: commentReactionBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("The reaction state", commentReactionResult),
+    400: errorResponse("Invalid body"),
+    403: errorResponse(
+      "No access to the project, or missing task:update permission",
+    ),
+    404: errorResponse("Comment not found"),
+  },
+});
+
+const removeCommentReactionRoute = createRoute({
+  method: "delete",
+  operationId: "removeCommentReaction",
+  path: "/comment/reaction",
+  tags: ["Activity"],
+  summary: "Remove comment reaction",
+  description: "Remove your emoji reaction from a comment.",
+  middleware: [
+    workspaceAccess.fromActivity("activityId"),
+    requireWorkspacePermission({ task: ["update"] }),
+  ] as const,
+  request: {
+    body: {
+      required: true,
+      content: { "application/json": { schema: commentReactionBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("The reaction state", commentReactionResult),
+    400: errorResponse("Invalid body"),
+    403: errorResponse(
+      "No access to the project, or missing task:update permission",
+    ),
+    404: errorResponse("Comment not found"),
+  },
+});
+
 const activity = apiRouter()
   .openapi(getWorkspaceActivitiesRoute, async (c) =>
     c.json(
@@ -217,8 +338,17 @@ const activity = apiRouter()
     );
   })
   .openapi(createCommentRoute, async (c) => {
-    const { taskId, comment } = c.req.valid("json");
-    return c.json(await createComment(taskId, c.get("userId"), comment), 200);
+    const { taskId, comment, parentId } = c.req.valid("json");
+    return c.json(
+      await createComment(
+        taskId,
+        c.get("userId"),
+        comment,
+        undefined,
+        parentId,
+      ),
+      200,
+    );
   })
   .openapi(updateCommentRoute, async (c) => {
     const { activityId, comment } = c.req.valid("json");
@@ -232,7 +362,41 @@ const activity = apiRouter()
       await deleteComment(c.get("userId"), c.req.valid("json").activityId),
       200,
     ),
-  );
+  )
+  .openapi(resolveCommentThreadRoute, async (c) =>
+    c.json(
+      await resolveCommentThread(
+        c.get("userId"),
+        c.req.valid("json").activityId,
+        true,
+      ),
+      200,
+    ),
+  )
+  .openapi(unresolveCommentThreadRoute, async (c) =>
+    c.json(
+      await resolveCommentThread(
+        c.get("userId"),
+        c.req.valid("json").activityId,
+        false,
+      ),
+      200,
+    ),
+  )
+  .openapi(addCommentReactionRoute, async (c) => {
+    const { activityId, emoji } = c.req.valid("json");
+    return c.json(
+      await setCommentReaction(c.get("userId"), activityId, emoji, true),
+      200,
+    );
+  })
+  .openapi(removeCommentReactionRoute, async (c) => {
+    const { activityId, emoji } = c.req.valid("json");
+    return c.json(
+      await setCommentReaction(c.get("userId"), activityId, emoji, false),
+      200,
+    );
+  });
 
 subscribeToEvent<{
   taskId: string;

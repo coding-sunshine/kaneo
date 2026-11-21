@@ -123,7 +123,8 @@ const comment = apiRouter()
   )
   .openapi(createTaskCommentRoute, async (c) => {
     const { taskId } = c.req.valid("param");
-    const { content, externalUserName, externalSource } = c.req.valid("json");
+    const { content, externalUserName, externalSource, parentId } =
+      c.req.valid("json");
     if (
       externalUserName &&
       externalSource &&
@@ -141,7 +142,7 @@ const comment = apiRouter()
         ? { userName: externalUserName, source: externalSource }
         : undefined;
     return c.json(
-      await createComment(taskId, c.get("userId"), content, external),
+      await createComment(taskId, c.get("userId"), content, external, parentId),
       200,
     );
   })

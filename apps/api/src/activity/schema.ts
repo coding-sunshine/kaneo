@@ -24,9 +24,27 @@ export const createActivityBody = z.object({
   }),
 });
 
+export const commentParentId = z.string().optional().openapi({
+  description:
+    "Reply to this comment. Threads are one level deep: a reply to a reply joins its top-level comment's thread.",
+});
+
 export const createCommentBody = z.object({
   taskId: z.string(),
   comment: z.string().max(10_000),
+  parentId: commentParentId,
+});
+
+export const commentThreadBody = z.object({
+  activityId: z.string().openapi({
+    description:
+      "A comment in the thread. Resolving from a reply marks that reply as the thread's resolution.",
+  }),
+});
+
+export const commentReactionBody = z.object({
+  activityId: z.string(),
+  emoji: z.string().min(1).max(32),
 });
 
 export const updateCommentBody = z.object({

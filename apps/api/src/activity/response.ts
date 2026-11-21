@@ -1,4 +1,4 @@
-import { responseTimestamp, z } from "../openapi";
+import { nullableResponseTimestamp, responseTimestamp, z } from "../openapi";
 
 const activityTypeDescription =
   "One of: comment, task, create, status_changed, priority_changed, assignee_changed, unassigned, due_date_changed, title_changed, description_changed.";
@@ -25,10 +25,33 @@ export const activitySchema = z
         "The tool it was imported from: planka, trello, jira, plane, linear, kaneo, or a connected forge such as github.",
     }),
     externalUrl: z.string().nullable(),
+    parentId: z.string().nullable().openapi({
+      description:
+        "The top-level comment this reply belongs to. Null for top-level comments and events.",
+    }),
+    resolvedAt: nullableResponseTimestamp.openapi({
+      description: "Set on a top-level comment when its thread is resolved.",
+    }),
+    resolvedByUserId: z.string().nullable(),
+    resolvingCommentId: z.string().nullable().openapi({
+      description:
+        "The reply shown as the thread's resolution. Null when resolved from the top-level comment.",
+    }),
   })
   .openapi("Activity");
 
-export const activityListSchema = z.array(activitySchema);
+export const activityListSchema = z.array(
+  activitySchema
+    .extend({
+      reactions: z
+        .array(z.object({ emoji: z.string(), userIds: z.array(z.string()) }))
+        .openapi({
+          description:
+            "Emoji reactions on a comment, in the order each emoji was first used.",
+        }),
+    })
+    .openapi("TaskActivity"),
+);
 
 export const workspaceActivityListSchema = z.array(
   z

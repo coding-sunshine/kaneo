@@ -12,12 +12,46 @@ import createNotification from "../../notification/controllers/create-notificati
 import { subscribeUsers } from "../../task/controllers/task-subscribers";
 import { parseMentionIds } from "../../utils/parse-mentions";
 
+/** The top-level comment a reply joins; replies to replies join the same thread. */
+async function threadRoot(taskId: string, parentId: string) {
+  const [parent] = await db
+    .select({
+      id: activityTable.id,
+      taskId: activityTable.taskId,
+      type: activityTable.type,
+      parentId: activityTable.parentId,
+      userId: activityTable.userId,
+    })
+    .from(activityTable)
+    .where(eq(activityTable.id, parentId))
+    .limit(1);
+
+  // Workspace access was checked against taskId, so the parent must be on
+  // that task or a reply could attach to another workspace's comment.
+  if (!parent || parent.taskId !== taskId || parent.type !== "comment") {
+    throw new HTTPException(400, {
+      message: "Parent comment not found on this task",
+    });
+  }
+  if (!parent.parentId) return parent;
+
+  const [root] = await db
+    .select({ id: activityTable.id, userId: activityTable.userId })
+    .from(activityTable)
+    .where(eq(activityTable.id, parent.parentId))
+    .limit(1);
+  return root ?? parent;
+}
+
 async function createComment(
   taskId: string,
   userId: string,
   content: string,
   external?: { userName: string; source: string },
+  parentId?: string,
 ) {
+  const parent = parentId ? await threadRoot(taskId, parentId) : null;
+
   const [activity] = await db
     .insert(activityTable)
     .values({
@@ -25,6 +59,7 @@ async function createComment(
       type: "comment",
       userId,
       content,
+      parentId: parent?.id ?? null,
       ...(external
         ? {
             externalUserName: external.userName,
@@ -83,20 +118,22 @@ async function createComment(
     });
   }
 
-  if (
-    task?.assigneeId &&
-    task.assigneeId !== userId &&
-    !mentionedIds.includes(task.assigneeId)
-  ) {
+  // The assignee hears about every comment; a reply also reaches the
+  // thread's author.
+  const recipients = new Set<string>();
+  for (const id of [task?.assigneeId, parent?.userId]) {
+    if (id && id !== userId && !mentionedIds.includes(id)) recipients.add(id);
+  }
+  for (const recipientId of task ? recipients : []) {
     await createNotification({
-      userId: task.assigneeId,
+      userId: recipientId,
       type: "task_comment",
       eventData: {
-        taskTitle: task.title,
+        taskTitle: task?.title ?? null,
         commenterName: user?.name ?? null,
         commentPreview: content.slice(0, 160),
-        projectId: task.projectId,
-        workspaceId: task.workspaceId,
+        projectId: task?.projectId ?? null,
+        workspaceId: task?.workspaceId ?? null,
       },
       resourceId: taskId,
       resourceType: "task",

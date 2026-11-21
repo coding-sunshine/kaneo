@@ -1,0 +1,192 @@
+import { eq } from "drizzle-orm";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
+import db, { schema } from "../../apps/api/src/database";
+import { createApp } from "../../apps/api/src/index";
+import { mockAuthenticatedSession } from "./helpers/auth";
+import { resetTestDatabase } from "./helpers/database";
+import {
+  createProjectFixture,
+  createWorkspaceMember,
+} from "./helpers/fixtures";
+
+type Activity = {
+  id: string;
+  type: string;
+  parentId: string | null;
+  resolvedAt: string | null;
+  resolvedByUserId: string | null;
+  resolvingCommentId: string | null;
+  updatedAt: string;
+  reactions: Array<{ emoji: string; userIds: string[] }>;
+};
+
+async function createTask(workspaceId: string, title: string) {
+  const { project, columns } = await createProjectFixture({ workspaceId });
+  const [task] = await db
+    .insert(schema.taskTable)
+    .values({
+      projectId: project.id,
+      title,
+      status: "to-do",
+      columnId: columns.todo.id,
+      priority: "medium",
+      number: 1,
+      position: 1,
+    })
+    .returning();
+  return task;
+}
+
+describe("API integration: comment threads, resolve and reactions", () => {
+  beforeEach(async () => {
+    await resetTestDatabase();
+  });
+
+  async function setup() {
+    const member = await createWorkspaceMember();
+    const task = await createTask(member.workspace.id, "Threads");
+    mockAuthenticatedSession(member.user);
+    const { app } = createApp();
+    const send = (path: string, method: string, body: unknown) =>
+      app.request(`/api/activity/${path}`, {
+        method,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    const comment = async (comment: string, parentId?: string) => {
+      const response = await send("comment", "POST", {
+        taskId: task.id,
+        comment,
+        parentId,
+      });
+      expect(response.status).toBe(200);
+      return (await response.json()) as Activity;
+    };
+    const feed = async () => {
+      const response = await app.request(`/api/activity/${task.id}`);
+      expect(response.status).toBe(200);
+      const rows = (await response.json()) as Activity[];
+      return new Map(rows.map((row) => [row.id, row]));
+    };
+    return { member, task, app, send, comment, feed };
+  }
+
+  it("nests replies one level deep and rejects parents on other tasks", async () => {
+    const { member, task, send, comment, feed } = await setup();
+    const root = await comment("Root");
+    const reply = await comment("Reply", root.id);
+    const replyToReply = await comment("Reply to reply", reply.id);
+
+    expect(reply.parentId).toBe(root.id);
+    expect(replyToReply.parentId).toBe(root.id);
+    expect((await feed()).get(reply.id)?.parentId).toBe(root.id);
+
+    const otherTask = await createTask(member.workspace.id, "Other");
+    const [foreign] = await db
+      .insert(schema.activityTable)
+      .values({ taskId: otherTask.id, type: "comment", content: "Elsewhere" })
+      .returning();
+    const crossTask = await send("comment", "POST", {
+      taskId: task.id,
+      comment: "Sneaky",
+      parentId: foreign.id,
+    });
+    expect(crossTask.status).toBe(400);
+  });
+
+  it("resolves from a reply as the resolution, and reopens", async () => {
+    const { member, send, comment, feed } = await setup();
+    const root = await comment("Question");
+    const answer = await comment("Answer", root.id);
+
+    const resolved = await send("comment/resolve", "POST", {
+      activityId: answer.id,
+    });
+    expect(resolved.status).toBe(200);
+    const after = (await feed()).get(root.id);
+    expect(after).toMatchObject({
+      resolvedByUserId: member.user.id,
+      resolvingCommentId: answer.id,
+    });
+    expect(after?.resolvedAt).not.toBeNull();
+    expect(after?.updatedAt).toBe(root.updatedAt);
+
+    expect(
+      (await send("comment/unresolve", "POST", { activityId: root.id })).status,
+    ).toBe(200);
+    expect((await feed()).get(root.id)).toMatchObject({
+      resolvedAt: null,
+      resolvedByUserId: null,
+      resolvingCommentId: null,
+    });
+
+    await send("comment/resolve", "POST", { activityId: root.id });
+    expect((await feed()).get(root.id)?.resolvingCommentId).toBeNull();
+  });
+
+  it("adds reactions idempotently, aggregates them, and removes them", async () => {
+    const { member, send, comment, feed } = await setup();
+    const root = await comment("Ship it");
+
+    for (const emoji of ["👍", "👍", "🎉"]) {
+      const response = await send("comment/reaction", "POST", {
+        activityId: root.id,
+        emoji,
+      });
+      expect(response.status).toBe(200);
+    }
+    expect((await feed()).get(root.id)?.reactions).toEqual([
+      { emoji: "👍", userIds: [member.user.id] },
+      { emoji: "🎉", userIds: [member.user.id] },
+    ]);
+
+    await send("comment/reaction", "DELETE", {
+      activityId: root.id,
+      emoji: "👍",
+    });
+    expect((await feed()).get(root.id)?.reactions).toEqual([
+      { emoji: "🎉", userIds: [member.user.id] },
+    ]);
+  });
+
+  it("deletes a thread's replies and reactions with its top-level comment", async () => {
+    const { send, comment } = await setup();
+    const root = await comment("Root");
+    const reply = await comment("Reply", root.id);
+    await send("comment/reaction", "POST", {
+      activityId: reply.id,
+      emoji: "👀",
+    });
+
+    expect(
+      (await send("comment", "DELETE", { activityId: root.id })).status,
+    ).toBe(200);
+    const left = await db
+      .select()
+      .from(schema.activityTable)
+      .where(eq(schema.activityTable.id, reply.id));
+    expect(left).toHaveLength(0);
+    expect(await db.select().from(schema.commentReactionTable)).toHaveLength(0);
+  });
+
+  it("blocks reactions and resolve on another workspace's comment", async () => {
+    const { send } = await setup();
+    const stranger = await createWorkspaceMember();
+    const strangerTask = await createTask(stranger.workspace.id, "Private");
+    const [privateComment] = await db
+      .insert(schema.activityTable)
+      .values({ taskId: strangerTask.id, type: "comment", content: "Private" })
+      .returning();
+
+    for (const [path, method, body] of [
+      [
+        "comment/reaction",
+        "POST",
+        { activityId: privateComment.id, emoji: "👍" },
+      ],
+      ["comment/resolve", "POST", { activityId: privateComment.id }],
+    ] as const) {
+      expect([403, 404]).toContain((await send(path, method, body)).status);
+    }
+  });
+});

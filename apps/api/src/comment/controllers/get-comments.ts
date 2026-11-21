@@ -9,6 +9,7 @@ async function getComments(taskId: string) {
       taskId: activityTable.taskId,
       userId: userTable.id,
       content: activityTable.content,
+      parentId: activityTable.parentId,
       createdAt: activityTable.createdAt,
       updatedAt: activityTable.updatedAt,
       userName: userTable.name,
@@ -31,6 +32,7 @@ async function getComments(taskId: string) {
     taskId: c.taskId,
     userId: c.userId,
     content: c.content as string,
+    parentId: c.parentId,
     createdAt: c.createdAt,
     updatedAt: c.updatedAt,
     user: {

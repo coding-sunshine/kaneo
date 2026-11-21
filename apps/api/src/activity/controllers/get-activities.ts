@@ -1,6 +1,7 @@
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq, inArray } from "drizzle-orm";
 import db from "../../database";
-import { activityTable } from "../../database/schema";
+import { activityTable, commentReactionTable } from "../../database/schema";
+import { groupReactions } from "../group-reactions";
 import { redactInaccessibleMoves } from "../redact-inaccessible-moves";
 
 async function getActivitiesFromTaskId(
@@ -20,7 +21,27 @@ async function getActivitiesFromTaskId(
     }
   });
 
-  return redactInaccessibleMoves(viewerId, activities);
+  const commentIds = activities
+    .filter((x) => x.type === "comment")
+    .map((x) => x.id);
+  const reactionsFor = groupReactions(
+    commentIds.length
+      ? await db
+          .select({
+            activityId: commentReactionTable.activityId,
+            userId: commentReactionTable.userId,
+            emoji: commentReactionTable.emoji,
+          })
+          .from(commentReactionTable)
+          .where(inArray(commentReactionTable.activityId, commentIds))
+          .orderBy(asc(commentReactionTable.createdAt))
+      : [],
+  );
+
+  return redactInaccessibleMoves(
+    viewerId,
+    activities.map((x) => ({ ...x, reactions: reactionsFor(x.id) })),
+  );
 }
 
 export default getActivitiesFromTaskId;

@@ -1925,6 +1925,43 @@
           "projectSlug"
         ]
       },
+      "TaskActivity": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Activity"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "reactions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "emoji": {
+                      "type": "string"
+                    },
+                    "userIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "emoji",
+                    "userIds"
+                  ]
+                },
+                "description": "Emoji reactions on a comment, in the order each emoji was first used."
+              }
+            },
+            "required": [
+              "reactions"
+            ]
+          }
+        ]
+      },
       "Activity": {
         "type": "object",
         "properties": {
@@ -1986,6 +2023,34 @@
               "string",
               "null"
             ]
+          },
+          "parentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The top-level comment this reply belongs to. Null for top-level comments and events."
+          },
+          "resolvedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Set on a top-level comment when its thread is resolved."
+          },
+          "resolvedByUserId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "resolvingCommentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The reply shown as the thread's resolution. Null when resolved from the top-level comment."
           }
         },
         "required": [
@@ -1999,7 +2064,11 @@
           "externalUserName",
           "externalUserAvatar",
           "externalSource",
-          "externalUrl"
+          "externalUrl",
+          "parentId",
+          "resolvedAt",
+          "resolvedByUserId",
+          "resolvingCommentId"
         ]
       },
       "Comment": {
@@ -2016,6 +2085,13 @@
           },
           "content": {
             "type": "string"
+          },
+          "parentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The top-level comment this reply belongs to."
           },
           "createdAt": {
             "type": "string",
@@ -2034,6 +2110,7 @@
           "taskId",
           "userId",
           "content",
+          "parentId",
           "createdAt",
           "updatedAt",
           "user"
@@ -16586,7 +16663,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Activity"
+                    "$ref": "#/components/schemas/TaskActivity"
                   }
                 }
               }
@@ -16753,6 +16830,10 @@
                   "comment": {
                     "type": "string",
                     "maxLength": 10000
+                  },
+                  "parentId": {
+                    "type": "string",
+                    "description": "Reply to this comment. Threads are one level deep: a reply to a reply joins its top-level comment's thread."
                   }
                 },
                 "required": [
@@ -16987,6 +17068,382 @@
         }
       }
     },
+    "/activity/comment/resolve": {
+      "post": {
+        "operationId": "resolveCommentThread",
+        "tags": [
+          "Activity"
+        ],
+        "summary": "Resolve comment thread",
+        "description": "Resolve the thread containing a comment. Resolving from a reply marks that reply as the resolution.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "activityId": {
+                    "type": "string",
+                    "description": "A comment in the thread. Resolving from a reply marks that reply as the thread's resolution."
+                  }
+                },
+                "required": [
+                  "activityId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The thread's top-level comment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Activity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing task:update permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Comment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/activity/comment/unresolve": {
+      "post": {
+        "operationId": "unresolveCommentThread",
+        "tags": [
+          "Activity"
+        ],
+        "summary": "Unresolve comment thread",
+        "description": "Mark the resolved thread containing a comment as unresolved.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "activityId": {
+                    "type": "string",
+                    "description": "A comment in the thread. Resolving from a reply marks that reply as the thread's resolution."
+                  }
+                },
+                "required": [
+                  "activityId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The thread's top-level comment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Activity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing task:update permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Comment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/activity/comment/reaction": {
+      "post": {
+        "operationId": "addCommentReaction",
+        "tags": [
+          "Activity"
+        ],
+        "summary": "Add comment reaction",
+        "description": "Add your emoji reaction to a comment. Adding one you already have is a no-op.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "activityId": {
+                    "type": "string"
+                  },
+                  "emoji": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 32
+                  }
+                },
+                "required": [
+                  "activityId",
+                  "emoji"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The reaction state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "activityId": {
+                      "type": "string"
+                    },
+                    "emoji": {
+                      "type": "string"
+                    },
+                    "reacted": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "activityId",
+                    "emoji",
+                    "reacted"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing task:update permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Comment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeCommentReaction",
+        "tags": [
+          "Activity"
+        ],
+        "summary": "Remove comment reaction",
+        "description": "Remove your emoji reaction from a comment.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "activityId": {
+                    "type": "string"
+                  },
+                  "emoji": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 32
+                  }
+                },
+                "required": [
+                  "activityId",
+                  "emoji"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The reaction state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "activityId": {
+                      "type": "string"
+                    },
+                    "emoji": {
+                      "type": "string"
+                    },
+                    "reacted": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "activityId",
+                    "emoji",
+                    "reacted"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing task:update permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Comment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/comment/{taskId}": {
       "get": {
         "operationId": "getTaskComments",
@@ -17082,6 +17539,10 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 10000
+                  },
+                  "parentId": {
+                    "type": "string",
+                    "description": "Reply to this comment. Threads are one level deep: a reply to a reply joins its top-level comment's thread."
                   },
                   "externalUserName": {
                     "type": "string",

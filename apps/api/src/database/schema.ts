@@ -1143,15 +1143,64 @@ export const activityTable = pgTable(
     externalUserAvatar: text("external_user_avatar"),
     externalSource: text("external_source"),
     externalUrl: text("external_url"),
+    // Comment threads, one level deep like Linear: a reply points at a
+    // top-level comment on the same task.
+    parentId: text("parent_id"),
+    resolvedAt: timestamp("resolved_at", { mode: "date" }),
+    resolvedByUserId: text("resolved_by_user_id").references(
+      () => userTable.id,
+      { onDelete: "set null", onUpdate: "cascade" },
+    ),
+    // The reply shown as the thread's "Resolution"; null when resolved from
+    // the root comment.
+    resolvingCommentId: text("resolving_comment_id"),
   },
   (table) => [
     index("activity_task_id_idx").on(table.taskId),
     index("activity_userId_idx").on(table.userId),
     index("activity_createdAt_idx").on(table.createdAt),
+    index("activity_parent_id_idx").on(table.parentId),
     unique("activity_task_external_source_external_url_unique").on(
       table.taskId,
       table.externalSource,
       table.externalUrl,
+    ),
+    foreignKey({
+      name: "activity_parent_id_activity_id_fk",
+      columns: [table.parentId],
+      foreignColumns: [table.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      name: "activity_resolving_comment_id_activity_id_fk",
+      columns: [table.resolvingCommentId],
+      foreignColumns: [table.id],
+    }).onDelete("set null"),
+  ],
+);
+
+export const commentReactionTable = pgTable(
+  "comment_reaction",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    activityId: text("activity_id")
+      .notNull()
+      .references(() => activityTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    emoji: text("emoji").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("comment_reaction_activity_id_idx").on(table.activityId),
+    unique("comment_reaction_activity_user_emoji_unique").on(
+      table.activityId,
+      table.userId,
+      table.emoji,
     ),
   ],
 );

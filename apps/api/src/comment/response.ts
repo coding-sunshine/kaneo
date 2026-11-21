@@ -6,6 +6,9 @@ export const commentSchema = z
     taskId: z.string(),
     userId: z.string(),
     content: z.string(),
+    parentId: z.string().nullable().openapi({
+      description: "The top-level comment this reply belongs to.",
+    }),
     createdAt: responseTimestamp,
     updatedAt: responseTimestamp,
     user: z
