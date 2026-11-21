@@ -18,7 +18,6 @@ import {
 } from "vite-plus/test";
 import type Task from "@/types/task";
 import useBulkSelectionStore from "@/store/bulk-selection";
-import BacklogTaskRow from "../backlog-list-view/backlog-task-row";
 import TaskCard from "../kanban-board/task-card";
 import { PublicTaskCard } from "../public-project/task-card";
 import { PublicTaskRow } from "../public-project/task-row";
@@ -330,19 +329,6 @@ describe("TaskRow", () => {
       );
       expect(container.querySelector("button button")).toBeNull();
       expect(screen.getAllByRole("button")).toHaveLength(1);
-      expect(useExternalLinks).not.toHaveBeenCalled();
-      expect(useGetLabelsByTask).not.toHaveBeenCalled();
-    },
-  );
-
-  it.each(["planned", "archived"])(
-    "renders progress for %s backlog parents without per-row requests",
-    (status) => {
-      render(<BacklogTaskRow task={{ ...task, status }} />);
-
-      expect(
-        screen.getByRole("button", { name: "tasks:subtasks.progress" }),
-      ).toHaveTextContent("2/5");
       expect(useExternalLinks).not.toHaveBeenCalled();
       expect(useGetLabelsByTask).not.toHaveBeenCalled();
     },

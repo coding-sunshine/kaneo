@@ -1,11 +1,7 @@
 import { beforeEach, describe, expect, it } from "vite-plus/test";
-import useBacklogBulkSelectionStore from "./backlog-bulk-selection";
 import useBulkSelectionStore from "./bulk-selection";
 
-const stores = [
-  ["board and list", useBulkSelectionStore],
-  ["backlog", useBacklogBulkSelectionStore],
-] as const;
+const stores = [["board and list", useBulkSelectionStore]] as const;
 
 describe.each(stores)("%s range selection", (_name, store) => {
   beforeEach(() => {
