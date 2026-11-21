@@ -3495,7 +3495,7 @@
 		"properties": {
 			"title": "Properties",
 			"labels": "Labels",
-			"addLabels": "Add labels",
+			"addLabels": "Add label",
 			"copyTaskLink": "Copy issue link",
 			"copyTaskBranch": "Copy issue branch",
 			"taskLinkCopied": "Copied issue link",

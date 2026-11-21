@@ -4,12 +4,15 @@ import { cn } from "@/lib/cn";
 type PropertyRowProps = {
   label: string;
   align?: "center" | "start";
+  /** Linear rows show the value only; custom fields keep a visible name. */
+  labeled?: boolean;
   children: ReactNode;
 };
 
 export function PropertyRow({
   label,
   align = "center",
+  labeled = false,
   children,
 }: PropertyRowProps) {
   return (
@@ -21,8 +24,10 @@ export function PropertyRow({
     >
       <span
         className={cn(
-          "w-21 shrink-0 truncate pl-2 text-muted-foreground text-xs",
-          align === "start" && "flex h-8 items-center",
+          labeled
+            ? "w-21 shrink-0 truncate pl-2 text-muted-foreground text-xs"
+            : "sr-only",
+          labeled && align === "start" && "flex h-8 items-center",
         )}
       >
         {label}

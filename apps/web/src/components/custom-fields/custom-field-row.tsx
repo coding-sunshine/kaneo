@@ -24,7 +24,7 @@ export function CustomFieldRow({
   if (field.type === "boolean") {
     const checked = value === "true";
     return (
-      <PropertyRow label={field.name}>
+      <PropertyRow label={field.name} labeled>
         <PropertyValue
           role="checkbox"
           aria-checked={checked}
@@ -61,7 +61,7 @@ export function CustomFieldRow({
   );
 
   return (
-    <PropertyRow label={field.name}>
+    <PropertyRow label={field.name} labeled>
       {disabled ? (
         button
       ) : (

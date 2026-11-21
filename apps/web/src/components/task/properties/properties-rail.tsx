@@ -18,6 +18,7 @@ import TaskStatusPopover from "../task-status-popover";
 import { AssigneeAvatar } from "./assignee-avatar";
 import { dueDateTextClass } from "./due-date-text-class";
 import { LabelsValue } from "./labels-value";
+import { RailSection } from "./rail-section";
 import { PropertyRow } from "./property-row";
 import { PropertyValue } from "./property-value";
 import { WorkProjectRows } from "./work-project-rows";
@@ -54,9 +55,9 @@ export function PropertiesRail({
   return (
     <aside
       aria-label={t("tasks:properties.title")}
-      className={cn("flex flex-col gap-4 px-3 pt-4 pb-6", className)}
+      className={cn("flex flex-col gap-6 px-3 pt-5 pb-6", className)}
     >
-      <div className="flex flex-col gap-0.5">
+      <RailSection title={t("tasks:properties.title")}>
         <PropertyRow label={t("tasks:status.label")}>
           <TaskStatusPopover task={task}>
             <PropertyValue data-task-action="status" shortcutId="changeStatus">
@@ -64,6 +65,20 @@ export function PropertiesRail({
               <span className="truncate">{status.label}</span>
             </PropertyValue>
           </TaskStatusPopover>
+        </PropertyRow>
+
+        <PropertyRow label={t("tasks:properties.team")}>
+          {canMoveTask ? (
+            <TaskMovePopover task={task} workspaceId={workspaceId}>
+              <PropertyValue data-task-action="move" shortcutId="moveToProject">
+                {projectValue}
+              </PropertyValue>
+            </TaskMovePopover>
+          ) : (
+            <div className="flex h-7.5 min-w-0 items-center gap-2 px-2 text-[13px] text-foreground [&_svg]:size-3.5 [&_svg]:shrink-0">
+              {projectValue}
+            </div>
+          )}
         </PropertyRow>
 
         <PropertyRow label={t("tasks:priority.label")}>
@@ -102,6 +117,45 @@ export function PropertiesRail({
           </TaskAssigneePopover>
         </PropertyRow>
 
+        {task.startDate && (
+          <PropertyRow label={t("tasks:properties.startDate")}>
+            <TaskStartDatePopover task={task}>
+              <PropertyValue>
+                <CalendarDays className="text-muted-foreground" />
+                <span className="truncate">
+                  {formatDateShort(task.startDate)}
+                </span>
+              </PropertyValue>
+            </TaskStartDatePopover>
+          </PropertyRow>
+        )}
+
+        <PropertyRow label={t("tasks:dueDate.label")}>
+          <TaskDueDatePopover task={task}>
+            <PropertyValue
+              data-task-action="dueDate"
+              className={cn(dueDateTextClass[dueStatus])}
+            >
+              <Calendar
+                className={cn(!task.dueDate && "text-muted-foreground")}
+              />
+              <span
+                className={cn(
+                  "truncate",
+                  !task.dueDate && "text-muted-foreground",
+                )}
+              >
+                {task.dueDate
+                  ? formatDateShort(task.dueDate)
+                  : t("tasks:dueDate.label")}
+              </span>
+              <TaskRecurrenceBadge task={task} asText />
+            </PropertyValue>
+          </TaskDueDatePopover>
+        </PropertyRow>
+      </RailSection>
+
+      <RailSection title={t("tasks:properties.labels")}>
         <PropertyRow label={t("tasks:properties.labels")} align="start">
           <TaskLabelsPopover task={task} workspaceId={workspaceId}>
             <PropertyValue
@@ -113,64 +167,11 @@ export function PropertiesRail({
             </PropertyValue>
           </TaskLabelsPopover>
         </PropertyRow>
+      </RailSection>
 
+      <RailSection title={t("tasks:properties.workProject")}>
         <WorkProjectRows task={task} workspaceId={workspaceId} />
-
-        <PropertyRow label={t("tasks:properties.dates")} align="start">
-          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <TaskStartDatePopover task={task}>
-              <PropertyValue className="flex-none">
-                <CalendarDays className="text-muted-foreground" />
-                <span
-                  className={cn(
-                    "truncate",
-                    !task.startDate && "text-muted-foreground",
-                  )}
-                >
-                  {task.startDate
-                    ? formatDateShort(task.startDate)
-                    : t("tasks:properties.start")}
-                </span>
-              </PropertyValue>
-            </TaskStartDatePopover>
-            <TaskDueDatePopover task={task}>
-              <PropertyValue
-                data-task-action="dueDate"
-                className={cn("flex-none", dueDateTextClass[dueStatus])}
-              >
-                <Calendar
-                  className={cn(!task.dueDate && "text-muted-foreground")}
-                />
-                <span
-                  className={cn(
-                    "truncate",
-                    !task.dueDate && "text-muted-foreground",
-                  )}
-                >
-                  {task.dueDate
-                    ? formatDateShort(task.dueDate)
-                    : t("tasks:dueDate.label")}
-                </span>
-                <TaskRecurrenceBadge task={task} asText />
-              </PropertyValue>
-            </TaskDueDatePopover>
-          </div>
-        </PropertyRow>
-
-        <PropertyRow label={t("tasks:properties.team")}>
-          {canMoveTask ? (
-            <TaskMovePopover task={task} workspaceId={workspaceId}>
-              <PropertyValue data-task-action="move" shortcutId="moveToProject">
-                {projectValue}
-              </PropertyValue>
-            </TaskMovePopover>
-          ) : (
-            <div className="flex h-7.5 min-w-0 items-center gap-2 px-2 font-medium text-[13px] text-foreground [&_svg]:size-3.5 [&_svg]:shrink-0">
-              {projectValue}
-            </div>
-          )}
-        </PropertyRow>
-      </div>
+      </RailSection>
 
       <TaskCustomFieldRows taskId={taskId} projectId={projectId} />
     </aside>
