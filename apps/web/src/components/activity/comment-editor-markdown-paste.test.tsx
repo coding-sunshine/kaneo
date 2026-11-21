@@ -147,3 +147,23 @@ describe("CommentEditor Markdown paste", () => {
     expect(onChange).toHaveBeenCalledWith(expect.stringContaining(text));
   });
 });
+
+describe("CommentEditor replacement", () => {
+  it("keeps the current value when the editor is recreated", async () => {
+    const onChange = vi.fn();
+    const props = { value: "> quoted from a comment", onChange };
+    const { rerender } = render(
+      <CommentEditor {...props} placeholder="first" />,
+    );
+    await waitFor(() => expect(latestEditor()).toBeDefined());
+    const firstEditor = latestEditor();
+
+    rerender(<CommentEditor {...props} placeholder="second" />);
+    await act(async () => {});
+    const currentEditor = latestEditor();
+
+    expect(currentEditor).not.toBe(firstEditor);
+    expect(currentEditor.getText()).toContain("quoted from a comment");
+    expect(onChange).not.toHaveBeenCalledWith("");
+  });
+});

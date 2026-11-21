@@ -831,6 +831,9 @@ export default function CommentEditor({
       },
       onUpdate: ({ editor: activeEditor }) => {
         if (readOnly || disabled || !onChange || isSyncingRef.current) return;
+        // A replacement editor (e.g. after Shiki loads) starts empty; ignore it
+        // until it has been hydrated with the current value.
+        if (activeEditor !== lastEditorRef.current) return;
         const markdown = normalizeCommentMarkdown(activeEditor.getMarkdown());
         latestValueRef.current = markdown;
         onChange(markdown);
