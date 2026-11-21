@@ -24,6 +24,8 @@ type TaskCustomFieldValue = {
 
 type Task = {
   id: string;
+  /** Team key when a list mixes teams (cross-team project issues). */
+  teamSlug?: string;
   title: string;
   number: number | null;
   description: string | null;

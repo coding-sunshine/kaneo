@@ -85,7 +85,7 @@ export function TaskRowBody({
       )}
       {showTaskNumbers && (
         <span className="w-15 shrink-0 truncate font-[450] text-[13px] text-muted-foreground">
-          {projectSlug}-{task.number}
+          {task.teamSlug ?? projectSlug}-{task.number}
         </span>
       )}
 

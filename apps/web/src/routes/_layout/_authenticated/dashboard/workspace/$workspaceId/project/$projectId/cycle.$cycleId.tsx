@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { SearchXIcon } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import ProjectLayout from "@/components/common/project-layout";
 import { CycleSidePanel } from "@/components/cycle/cycle-side-panel";
@@ -29,6 +29,7 @@ import { useBoardSort } from "@/hooks/use-board-sort";
 import { cycleState, cycleTitle } from "@/lib/cycle/cycle-label";
 import { sortTasks } from "@/lib/sort-tasks";
 import { countColumnTasks } from "@/lib/task-filters/count-tasks";
+import useProjectStore from "@/store/project";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 
 export const Route = createFileRoute(
@@ -49,6 +50,12 @@ function RouteComponent() {
   const { data: board } = useGetTasks(projectId);
   const viewMode = useUserPreferencesStore((s) => s.viewMode);
   const { sort, setSort } = useBoardSort(projectId);
+  const setProject = useProjectStore((state) => state.setProject);
+
+  // Cards read the team key and columns from the store, as on the board.
+  useEffect(() => {
+    if (board) setProject(board);
+  }, [board, setProject]);
 
   // Linear serves /cycle/active and /cycle/upcoming as aliases.
   const cycle = useMemo(() => {

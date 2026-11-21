@@ -7,6 +7,7 @@ const task = (id: string, workProjectId: string | null) =>
 const board = (id: string, columns: [string, unknown[]][]) =>
   ({
     id,
+    slug: id.toUpperCase(),
     columns: columns.map(([name, tasks]) => ({
       id: `${id}-${name}`,
       name,
@@ -34,6 +35,7 @@ describe("mergeBoardsForWorkProject", () => {
     expect(
       merged?.columns.map((c) => [c.name, c.tasks.map((t) => t.id)]),
     ).toEqual([["Todo", ["1", "3"]]]);
+    expect(merged?.columns[0].tasks.map((t) => t.teamSlug)).toEqual(["A", "B"]);
     expect(merged?.columns[0].id.startsWith("group:")).toBe(true);
   });
 

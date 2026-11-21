@@ -16,9 +16,9 @@ export function mergeBoardsForWorkProject(
 
   for (const board of boards) {
     for (const column of board.columns) {
-      const tasks = column.tasks.filter(
-        (task) => task.workProjectId === workProjectId,
-      );
+      const tasks = column.tasks
+        .filter((task) => task.workProjectId === workProjectId)
+        .map((task) => ({ ...task, teamSlug: board.slug ?? undefined }));
       if (tasks.length === 0) continue;
       const existing = merged.get(column.name);
       if (existing) existing.tasks.push(...tasks);
