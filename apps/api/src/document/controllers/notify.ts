@@ -2,6 +2,7 @@ import { eq, inArray } from "drizzle-orm";
 import db from "../../database";
 import { documentSubscriberTable, userTable } from "../../database/schema";
 import createNotification from "../../notification/controllers/create-notification";
+import { commentPreview } from "../../utils/comment-preview";
 import { parseMentionIds } from "../../utils/parse-mentions";
 
 type NotifiedDocument = { id: string; workspaceId: string; title: string };
@@ -88,7 +89,7 @@ export async function notifyComment(
     .map((row) => row.userId)
     .filter((id) => id !== actorId && !mentioned.includes(id));
   const actorName = await userName(actorId);
-  const preview = content.slice(0, 160);
+  const preview = commentPreview(content);
   await send(doc, mentioned, "document_mention", actorName, preview);
   await send(doc, others, "document_comment", actorName, preview);
 }

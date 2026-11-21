@@ -288,7 +288,7 @@ describe("API integration: documents", () => {
       {
         type: "document_mention",
         resourceId: doc.id,
-        eventData: { documentTitle: "Spec", commentPreview: mention },
+        eventData: { documentTitle: "Spec", commentPreview: "@x" },
       },
     ]);
 

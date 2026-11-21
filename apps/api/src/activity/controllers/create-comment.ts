@@ -10,6 +10,7 @@ import {
 } from "../../database/schema";
 import { publishEvent } from "../../events";
 import createNotification from "../../notification/controllers/create-notification";
+import { commentPreview } from "../../utils/comment-preview";
 import { subscribeUsers } from "../../task/controllers/task-subscribers";
 import { parseMentionIds } from "../../utils/parse-mentions";
 import {
@@ -180,7 +181,7 @@ async function createComment(
       eventData: {
         taskTitle: task?.title ?? null,
         commenterName: user?.name ?? null,
-        commentPreview: content.slice(0, 160),
+        commentPreview: commentPreview(content),
         projectId: task?.projectId ?? null,
         workspaceId: task?.workspaceId ?? null,
       },
