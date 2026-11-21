@@ -6,28 +6,6 @@ type RawGroup = {
   emojis: Array<EmojiEntry & { emoji_version: string }>;
 };
 
-// Linear's picker opens with these until a user has their own history.
-export const FREQUENTLY_USED = [
-  "👍",
-  "👌",
-  "🙏",
-  "😂",
-  "❤️",
-  "👀",
-  "✅",
-  "🙂",
-  "😃",
-  "😄",
-  "😀",
-  "🤔",
-  "😅",
-  "⚠️",
-  "🙁",
-  "❌",
-  "🙌",
-  "🎉",
-];
-
 // Emoji 16+ still renders as an empty box on many current systems.
 const NEWEST_RENDERED_VERSION = 15.1;
 

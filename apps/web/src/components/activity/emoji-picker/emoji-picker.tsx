@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/components/providers/auth-provider/hooks/use-auth";
+import {
+  loadFrequencies,
+  recordEmojiUse,
+  saveFrequencies,
+  topEmoji,
+} from "./emoji-frequency";
 import {
   type EmojiEntry,
   type EmojiGroup,
-  FREQUENTLY_USED,
   loadEmojiGroups,
   searchEmoji,
 } from "./emoji-groups";
@@ -37,8 +43,15 @@ function EmojiGrid({
   );
 }
 
-export default function EmojiPicker({ onSelect }: EmojiPickerProps) {
+export default function EmojiPicker({ onSelect: onPick }: EmojiPickerProps) {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const userId = user?.id ?? "anonymous";
+  const [frequent] = useState(() => topEmoji(loadFrequencies(userId)));
+  const onSelect = (emoji: string) => {
+    saveFrequencies(userId, recordEmojiUse(loadFrequencies(userId), emoji));
+    onPick(emoji);
+  };
   const [query, setQuery] = useState("");
   const [groups, setGroups] = useState<EmojiGroup[]>([]);
 
@@ -86,7 +99,7 @@ export default function EmojiPicker({ onSelect }: EmojiPickerProps) {
               {t("activity:reactions.frequentlyUsed")}
             </p>
             <EmojiGrid
-              emojis={FREQUENTLY_USED.map((emoji) => ({ emoji }))}
+              emojis={frequent.map((emoji) => ({ emoji }))}
               onSelect={onSelect}
             />
             {groups.map((group) => (
