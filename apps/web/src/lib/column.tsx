@@ -1,3 +1,4 @@
+import { InboxIcon } from "lucide-react";
 import { StatusIcon, type StatusKind } from "@/components/icons/status-icon";
 import columnIcons, {
   DEFAULT_COLUMN_ICON_NAMES,
@@ -29,6 +30,10 @@ export const getColumnIcon = (
           columnId as keyof typeof DEFAULT_COLUMN_ICON_NAMES
         ]
       : undefined);
+
+  if (columnId === "triage" && !iconName) {
+    return <InboxIcon className="size-4 shrink-0 text-warning" />;
+  }
 
   if (CANCELED_SLUGS.has(columnId) && !iconName) {
     return <StatusIcon kind="canceled" />;

@@ -3461,7 +3461,7 @@
 		"subtasks": {
 			"progress": "{{completed}} of {{total}} subtasks completed",
 			"noCompletionColumn": "This project has no matching column for completing or reopening this subtask.",
-			"title": "Sub-tasks",
+			"title": "Sub-issues",
 			"inputPlaceholder": "Subtask title...",
 			"addAction": "Add",
 			"empty": "No subtasks yet",
