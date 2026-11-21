@@ -28,6 +28,7 @@ function RouteComponent() {
   const [wentBack, setWentBack] = useState(false);
 
   const notifications = data ?? [];
+  const unread = notifications.filter((n) => !n.isRead).length;
   const selected = notifications.find(
     (notification) => notification.id === selectedId,
   );
@@ -90,9 +91,14 @@ function RouteComponent() {
               />
             ) : (
               <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-                <Inbox className="size-5 text-muted-foreground/50" />
+                <Inbox
+                  className="size-16 text-muted-foreground/40"
+                  strokeWidth={1}
+                />
                 <p className="text-muted-foreground text-sm">
-                  {t("notifications:inbox.selectPrompt")}
+                  {unread > 0
+                    ? t("notifications:inbox.unreadCount", { count: unread })
+                    : t("notifications:inbox.selectPrompt")}
                 </p>
               </div>
             )}

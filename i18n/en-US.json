@@ -3131,6 +3131,8 @@
 			"emptyFilter": "Nothing here",
 			"loadError": "Notifications couldn't be loaded.",
 			"selectPrompt": "Select a notification to read it",
+			"unreadCount_one": "{{count}} unread notification",
+			"unreadCount_other": "{{count}} unread notifications",
 			"back": "Inbox",
 			"openTask": "Open issue",
 			"recentActivity": "Recent activity",
