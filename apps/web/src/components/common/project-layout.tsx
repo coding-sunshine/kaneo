@@ -188,7 +188,7 @@ export default function ProjectLayout({
             <button
               type="button"
               onClick={() => setCreateIssueOpen(true)}
-              className="inline-flex h-7 items-center gap-1 rounded-md bg-primary px-2.5 text-[13px] font-medium text-primary-foreground outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex h-7 items-center gap-1 rounded-md px-2 text-[13px] font-medium text-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Plus className="size-3.5" />
               {t("navigation:sidebar.newIssue")}

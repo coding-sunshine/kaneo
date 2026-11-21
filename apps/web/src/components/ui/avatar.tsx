@@ -33,10 +33,34 @@ function AvatarImage({
   );
 }
 
+// Linear gives each initials avatar its own color. ponytail: hashed from the
+// initials rather than the user id, so people with the same initials match.
+const INITIALS_COLORS = [
+  "#3f9e6b",
+  "#1f8fa6",
+  "#2f74d0",
+  "#5e6ad2",
+  "#8b5cc4",
+  "#c43f7e",
+  "#d0663a",
+  "#a0703a",
+];
+
+function initialsColor(initials: string) {
+  let hash = 0;
+  for (const char of initials) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return INITIALS_COLORS[hash % INITIALS_COLORS.length];
+}
+
 function AvatarFallback({
   className,
+  children,
   ...props
 }: AvatarPrimitive.Fallback.Props) {
+  const tint =
+    typeof children === "string" && /^[\p{L}\p{N}]{1,3}$/u.test(children)
+      ? initialsColor(children.toUpperCase())
+      : undefined;
   return (
     <AvatarPrimitive.Fallback
       className={cn(
@@ -44,8 +68,15 @@ function AvatarFallback({
         className,
       )}
       data-slot="avatar-fallback"
+      style={
+        tint
+          ? { backgroundColor: tint, borderColor: tint, color: "#fff" }
+          : undefined
+      }
       {...props}
-    />
+    >
+      {children}
+    </AvatarPrimitive.Fallback>
   );
 }
 
