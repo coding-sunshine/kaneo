@@ -8,6 +8,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetWorkProjects } from "@/hooks/queries/work-project/use-get-work-projects";
 import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
@@ -28,7 +29,10 @@ type WorkProjectListProps = { workspaceId: string; teamId?: string };
 
 export function WorkProjectList({ workspaceId, teamId }: WorkProjectListProps) {
   const { t } = useTranslation();
-  const { data, isLoading, isError } = useGetWorkProjects(workspaceId, teamId);
+  const { data, isLoading, isError, refetch, isFetching } = useGetWorkProjects(
+    workspaceId,
+    teamId,
+  );
   const { data: users } = useGetActiveWorkspaceUsers(workspaceId);
   const leads = useMemo(
     () => new Map((users?.members ?? []).map((m) => [m.userId, m.user])),
@@ -37,9 +41,20 @@ export function WorkProjectList({ workspaceId, teamId }: WorkProjectListProps) {
 
   if (isError && !data) {
     return (
-      <p role="alert" className="p-6 text-muted-foreground text-sm">
-        {t("workspace:workProject.loadError")}
-      </p>
+      <div
+        role="alert"
+        className="flex flex-col items-start gap-2 p-6 text-muted-foreground text-sm"
+      >
+        <p>{t("workspace:workProject.loadError")}</p>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={isFetching}
+          onClick={() => void refetch()}
+        >
+          {t("tasks:board.tryAgain")}
+        </Button>
+      </div>
     );
   }
 
