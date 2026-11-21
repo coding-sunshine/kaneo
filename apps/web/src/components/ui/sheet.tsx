@@ -61,17 +61,21 @@ function SheetPopup({
   className,
   children,
   showCloseButton = true,
+  backdrop = true,
   side = "right",
   variant = "default",
   ...props
 }: SheetPrimitive.Popup.Props & {
   showCloseButton?: boolean;
+  backdrop?: boolean;
   side?: "right" | "left" | "top" | "bottom";
   variant?: "default" | "inset";
 }) {
   return (
     <SheetPortal>
-      <SheetBackdrop />
+      <SheetBackdrop
+        className={cn(!backdrop && "bg-transparent backdrop-blur-none")}
+      />
       <SheetViewport side={side} variant={variant}>
         <SheetPrimitive.Popup
           className={cn(

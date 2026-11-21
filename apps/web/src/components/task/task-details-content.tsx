@@ -23,7 +23,7 @@ type TaskDetailsContentProps = {
   projectId: string;
   workspaceId: string;
   className?: string;
-  variant?: "sheet" | "page";
+  variant?: "sheet" | "page" | "peek";
   properties?: ReactNode;
 };
 
@@ -51,6 +51,7 @@ export default function TaskDetailsContent({
   });
 
   if (!taskId) return null;
+  const isPeek = variant === "peek";
 
   return (
     <div className={cn("flex flex-col", className)}>
@@ -85,7 +86,10 @@ export default function TaskDetailsContent({
         {task?.archivedAt && (
           <TaskArchivedBanner taskId={taskId} archivedAt={task.archivedAt} />
         )}
-        <TaskTitle taskId={taskId} size={variant === "page" ? "lg" : "md"} />
+        <TaskTitle
+          taskId={taskId}
+          size={variant === "page" ? "lg" : isPeek ? "sm" : "md"}
+        />
       </div>
 
       {properties}
@@ -93,7 +97,7 @@ export default function TaskDetailsContent({
       <TaskDescription taskId={taskId} />
 
       <div className="mt-6 flex flex-col gap-6">
-        <TaskAttachments key={taskId} taskId={taskId} />
+        {!isPeek && <TaskAttachments key={taskId} taskId={taskId} />}
         {task && (
           <TaskSubtasks
             taskId={taskId}
@@ -102,24 +106,30 @@ export default function TaskDetailsContent({
             parentStatus={task.status}
           />
         )}
-        <TaskRelations
-          taskId={taskId}
-          projectId={projectId}
-          workspaceId={workspaceId}
-        />
-        <TaskTimeTracking key={taskId} taskId={taskId} />
-        <ExternalLinksAccordion
-          taskId={taskId}
-          externalLinks={externalLinks as ExternalLink[]}
-          isLoading={isLoadingExternalLinks}
-        />
+        {!isPeek && (
+          <>
+            <TaskRelations
+              taskId={taskId}
+              projectId={projectId}
+              workspaceId={workspaceId}
+            />
+            <TaskTimeTracking key={taskId} taskId={taskId} />
+            <ExternalLinksAccordion
+              taskId={taskId}
+              externalLinks={externalLinks as ExternalLink[]}
+              isLoading={isLoadingExternalLinks}
+            />
+          </>
+        )}
       </div>
 
-      <TaskActivity
-        taskId={taskId}
-        projectId={projectId}
-        className="mt-8 border-border border-t pt-6"
-      />
+      {!isPeek && (
+        <TaskActivity
+          taskId={taskId}
+          projectId={projectId}
+          className="mt-8 border-border border-t pt-6"
+        />
+      )}
     </div>
   );
 }

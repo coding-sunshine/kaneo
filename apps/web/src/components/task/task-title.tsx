@@ -13,7 +13,7 @@ import { stripLineBreaks } from "@/lib/strip-line-breaks";
 
 type TaskTitleProps = {
   taskId: string;
-  size?: "md" | "lg";
+  size?: "sm" | "md" | "lg";
 };
 
 export default function TaskTitle({ taskId, size = "md" }: TaskTitleProps) {
@@ -101,6 +101,7 @@ export default function TaskTitle({ taskId, size = "md" }: TaskTitleProps) {
             className={cn(
               "block h-auto w-full resize-none appearance-none overflow-hidden border-0 bg-transparent p-0 font-heading font-semibold text-2xl text-foreground leading-[1.25] tracking-[-0.02em] outline-none placeholder:text-foreground/45",
               size === "lg" && "sm:text-[1.75rem] sm:leading-[1.2]",
+              size === "sm" && "text-xl",
             )}
             onKeyDown={(e) => {
               // Titles are single-line; Enter commits instead of adding a break.

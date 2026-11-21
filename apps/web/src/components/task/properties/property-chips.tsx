@@ -26,6 +26,8 @@ type PropertyChipsProps = {
   projectId: string;
   workspaceId: string;
   className?: string;
+  /** Peek card: status, priority, assignee and only the dates or labels that are set. */
+  compact?: boolean;
 };
 
 const chip = cn(
@@ -40,6 +42,7 @@ export function PropertyChips({
   projectId,
   workspaceId,
   className,
+  compact = false,
 }: PropertyChipsProps) {
   const { t } = useTranslation();
   const { task, project, labels, status, assignee, dueStatus, canMoveTask } =
@@ -96,70 +99,76 @@ export function PropertyChips({
             </span>
           </button>
         </TaskAssigneePopover>
-        <div className={cn(chip, "gap-0.5 px-1 hover:bg-accent/30")}>
-          <TaskStartDatePopover task={task}>
-            <button type="button" className={dateButton}>
-              <Calendar
+        {(!compact || task.dueDate || task.startDate) && (
+          <div className={cn(chip, "gap-0.5 px-1 hover:bg-accent/30")}>
+            <TaskStartDatePopover task={task}>
+              <button type="button" className={dateButton}>
+                <Calendar
+                  className={cn(
+                    task.dueDate
+                      ? dueDateTextClass[dueStatus]
+                      : "text-muted-foreground",
+                  )}
+                />
+                <span className="text-muted-foreground">
+                  {task.startDate
+                    ? formatDateShort(task.startDate)
+                    : t("tasks:properties.start")}
+                </span>
+              </button>
+            </TaskStartDatePopover>
+            <ArrowRight className="text-muted-foreground/60" />
+            <TaskDueDatePopover task={task}>
+              <button
+                type="button"
+                data-task-action="dueDate"
                 className={cn(
+                  dateButton,
                   task.dueDate
                     ? dueDateTextClass[dueStatus]
                     : "text-muted-foreground",
                 )}
-              />
-              <span className="text-muted-foreground">
-                {task.startDate
-                  ? formatDateShort(task.startDate)
-                  : t("tasks:properties.start")}
-              </span>
-            </button>
-          </TaskStartDatePopover>
-          <ArrowRight className="text-muted-foreground/60" />
-          <TaskDueDatePopover task={task}>
+              >
+                {task.dueDate
+                  ? formatDateShort(task.dueDate)
+                  : t("tasks:dueDate.label")}
+                <TaskRecurrenceBadge task={task} asText />
+              </button>
+            </TaskDueDatePopover>
+          </div>
+        )}
+        {(!compact || labels.length > 0) && (
+          <TaskLabelsPopover task={task} workspaceId={workspaceId}>
             <button
               type="button"
-              data-task-action="dueDate"
-              className={cn(
-                dateButton,
-                task.dueDate
-                  ? dueDateTextClass[dueStatus]
-                  : "text-muted-foreground",
-              )}
+              data-task-action="labels"
+              className={cn(chip, "h-auto min-h-8 py-1")}
             >
-              {task.dueDate
-                ? formatDateShort(task.dueDate)
-                : t("tasks:dueDate.label")}
-              <TaskRecurrenceBadge task={task} asText />
+              <LabelsValue labels={labels} />
             </button>
-          </TaskDueDatePopover>
-        </div>
-        <TaskLabelsPopover task={task} workspaceId={workspaceId}>
-          <button
-            type="button"
-            data-task-action="labels"
-            className={cn(chip, "h-auto min-h-8 py-1")}
-          >
-            <LabelsValue labels={labels} />
-          </button>
-        </TaskLabelsPopover>
-      </div>
-      <div className="flex flex-wrap items-center gap-1.5">
-        {canMoveTask ? (
-          <TaskMovePopover task={task} workspaceId={workspaceId}>
-            <button type="button" data-task-action="move" className={chip}>
-              {projectContent}
-            </button>
-          </TaskMovePopover>
-        ) : (
-          <span className={cn(chip, "hover:bg-accent/30")}>
-            {projectContent}
-          </span>
+          </TaskLabelsPopover>
         )}
-        <TaskCustomFieldChips
-          taskId={taskId}
-          projectId={projectId}
-          className="h-8"
-        />
       </div>
+      {!compact && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {canMoveTask ? (
+            <TaskMovePopover task={task} workspaceId={workspaceId}>
+              <button type="button" data-task-action="move" className={chip}>
+                {projectContent}
+              </button>
+            </TaskMovePopover>
+          ) : (
+            <span className={cn(chip, "hover:bg-accent/30")}>
+              {projectContent}
+            </span>
+          )}
+          <TaskCustomFieldChips
+            taskId={taskId}
+            projectId={projectId}
+            className="h-8"
+          />
+        </div>
+      )}
     </div>
   );
 }

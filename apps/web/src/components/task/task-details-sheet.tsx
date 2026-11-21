@@ -9,7 +9,6 @@ import {
 import { AlertDialogCreateHandle } from "@/components/ui/alert-dialog";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { TaskSheetHeader } from "./header/task-sheet-header";
-import { PropertiesRail } from "./properties/properties-rail";
 import { PropertyChips } from "./properties/property-chips";
 import TaskDeleteDialog from "./task-delete-dialog";
 import TaskDetailsContent from "./task-details-content";
@@ -72,7 +71,8 @@ export default function TaskDetailsSheet({
         side="right"
         data-task-view
         data-shortcuts="allow"
-        className="w-full max-w-full gap-0 p-0 outline-none sm:max-w-lg md:max-w-2xl lg:max-w-4xl [&>button]:hidden"
+        backdrop={false}
+        className="mt-22 mr-4 max-h-[calc(100%-7.5rem)] w-full max-w-full gap-0 self-start rounded-xl border p-0 shadow-xl outline-none sm:max-w-104 [&>button]:hidden"
         // Focusing the first control would pop the "open in full page"
         // tooltip over the actions every time the sheet opens on touch.
         initialFocus={() => {
@@ -117,31 +117,22 @@ export default function TaskDetailsSheet({
           />
         )}
         {shownTaskId && (
-          <div
-            key={shownTaskId}
-            className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden"
-          >
-            <div className="min-w-0 flex-1 lg:overflow-y-auto">
-              <TaskDetailsContent
-                taskId={shownTaskId}
-                projectId={projectId}
-                workspaceId={workspaceId}
-                className="px-5 pt-5 pb-10 lg:px-9 lg:pt-7"
-                properties={
-                  <PropertyChips
-                    taskId={shownTaskId}
-                    projectId={projectId}
-                    workspaceId={workspaceId}
-                    className="pb-5 lg:hidden"
-                  />
-                }
-              />
-            </div>
-            <PropertiesRail
+          <div key={shownTaskId} className="min-h-0 flex-1 overflow-y-auto">
+            <TaskDetailsContent
               taskId={shownTaskId}
               projectId={projectId}
               workspaceId={workspaceId}
-              className="hidden w-73 shrink-0 overflow-y-auto border-border border-l lg:flex"
+              variant="peek"
+              className="px-5 pt-5 pb-6"
+              properties={
+                <PropertyChips
+                  taskId={shownTaskId}
+                  projectId={projectId}
+                  workspaceId={workspaceId}
+                  className="pb-5"
+                  compact
+                />
+              }
             />
           </div>
         )}
