@@ -1,9 +1,11 @@
 import {
   Check,
   Copy,
+  CornerDownRight,
   Link,
   MoreHorizontal,
   Pencil,
+  SquarePlus,
   Trash2,
   Undo2,
 } from "lucide-react";
@@ -18,11 +20,15 @@ import {
   MenuTrigger,
 } from "@/components/ui/menu";
 import useDeleteComment from "@/hooks/mutations/comment/use-delete-comment";
+import useGetTask from "@/hooks/queries/task/use-get-task";
+import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import useSetCommentReaction from "@/hooks/mutations/comment/use-set-comment-reaction";
 import useSetCommentThreadResolved from "@/hooks/mutations/comment/use-set-comment-thread-resolved";
 import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
+import { useCreateIssueStore } from "@/store/create-issue";
 import AddReactionButton from "./add-reaction-button";
+import { buildIssueDraft } from "./comment-issue-draft";
 import DeleteCommentDialog from "./delete-comment-dialog";
 
 type CommentActionsProps = {
@@ -58,6 +64,13 @@ export default function CommentActions({
   const { mutate: setReaction } = useSetCommentReaction(taskId);
   const { mutate: setResolved } = useSetCommentThreadResolved(taskId);
   const { mutate: deleteComment } = useDeleteComment(taskId);
+  const { data: task } = useGetTask(taskId);
+  const { canCreateTasks } = useWorkspacePermission();
+  const openWithDraft = useCreateIssueStore((state) => state.openWithDraft);
+  const canCreateIssue = Boolean(task) && canCreateTasks();
+  const newIssue = (variant: "related" | "parent") => {
+    if (task) openWithDraft(buildIssueDraft(variant, task, content));
+  };
 
   const copy = async (text: string, message: string) => {
     await navigator.clipboard.writeText(text);
@@ -138,6 +151,19 @@ export default function CommentActions({
             <Copy />
             {t("activity:comment.copyMarkdown")}
           </MenuItem>
+          {canCreateIssue && (
+            <>
+              <MenuSeparator />
+              <MenuItem onClick={() => newIssue("related")}>
+                <SquarePlus />
+                {t("activity:comment.newIssueFromComment")}
+              </MenuItem>
+              <MenuItem onClick={() => newIssue("parent")}>
+                <CornerDownRight />
+                {t("activity:comment.newSubIssueFromComment")}
+              </MenuItem>
+            </>
+          )}
           {canEdit && (
             <>
               <MenuSeparator />

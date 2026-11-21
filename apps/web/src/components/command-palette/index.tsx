@@ -83,6 +83,7 @@ function CommandPalette() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const isCreateTaskOpen = useCreateIssueStore((state) => state.open);
   const setIsCreateTaskOpen = useCreateIssueStore((state) => state.setOpen);
+  const createIssueDraft = useCreateIssueStore((state) => state.draft);
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
   const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false);
   const projectIdFromRoute =
@@ -345,7 +346,8 @@ function CommandPalette() {
       <SearchCommandMenu open={isSearchOpen} setOpen={setIsSearchOpen} />
       <CreateTaskModal
         open={isCreateTaskOpen}
-        projectId={projectIdFromRoute}
+        projectId={createIssueDraft?.projectId ?? projectIdFromRoute}
+        prefill={createIssueDraft ?? undefined}
         status={isBacklogView ? "planned" : undefined}
         onClose={() => setIsCreateTaskOpen(false)}
         instant

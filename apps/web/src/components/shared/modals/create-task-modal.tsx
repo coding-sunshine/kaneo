@@ -62,6 +62,7 @@ import { getColumnIcon } from "@/lib/column";
 import { getStatusDisplayLabel } from "@/lib/i18n/domain";
 import useCreateLabel from "@/hooks/mutations/label/use-create-label";
 import useCreateTask from "@/hooks/mutations/task/use-create-task";
+import useCreateTaskRelation from "@/hooks/mutations/task-relation/use-create-task-relation";
 import useGetCustomFieldsByProject from "@/hooks/queries/custom-field/use-get-custom-fields-by-project";
 import useGetLabelsByWorkspace from "@/hooks/queries/label/use-get-labels-by-workspace";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
@@ -81,6 +82,7 @@ import { getPriorityIcon } from "@/lib/priority";
 import { toast } from "@/lib/toast";
 import { useAutoGrowTextarea } from "@/hooks/use-auto-grow-textarea";
 import { stripLineBreaks } from "@/lib/strip-line-breaks";
+import type { CreateIssueDraft } from "@/store/create-issue";
 import useProjectStore from "@/store/project";
 import type Task from "@/types/task";
 import type { TaskRecurrence } from "@/types/task/recurrence";
@@ -92,6 +94,8 @@ type CreateTaskModalProps = {
   status?: string;
   projectId?: string;
   instant?: boolean;
+  /** Starting values, e.g. "New issue from comment". */
+  prefill?: CreateIssueDraft;
 };
 
 type Priority = "no-priority" | "low" | "medium" | "high" | "urgent";
@@ -149,6 +153,7 @@ function CreateTaskModalContent({
   status,
   projectId,
   instant = false,
+  prefill,
 }: CreateTaskModalProps) {
   const { t } = useTranslation();
   const { project, setProject } = useProjectStore();
@@ -242,7 +247,7 @@ function CreateTaskModalContent({
 
   const [title, setTitle] = useState("");
   const titleRef = useAutoGrowTextarea(title);
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState(prefill?.description ?? "");
   const [priority, setPriority] = useState<Priority>("no-priority");
   const [assigneeId, setAssigneeId] = useState("");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
@@ -252,10 +257,12 @@ function CreateTaskModalContent({
   const [dueDateOpen, setDueDateOpen] = useState(false);
   const [projectOpen, setProjectOpen] = useState(false);
   const [priorityOpen, setPriorityOpen] = useState(false);
-  const [workProjectId, setWorkProjectId] = useState<string | null>(null);
+  const [workProjectId, setWorkProjectId] = useState<string | null>(
+    prefill?.workProjectId ?? null,
+  );
   const [workProjectMilestoneId, setWorkProjectMilestoneId] = useState<
     string | null
-  >(null);
+  >(prefill?.workProjectMilestoneId ?? null);
   const [cycleId, setCycleId] = useState<string | null>(null);
   const [assigneeOpen, setAssigneeOpen] = useState(false);
   const [createMore, setCreateMore] = useState(false);
@@ -345,6 +352,7 @@ function CreateTaskModalContent({
   const didSubmitRef = useRef(false);
 
   const { mutateAsync: createTask } = useCreateTask();
+  const { mutateAsync: createRelation } = useCreateTaskRelation();
 
   const { data: rawCustomFields } = useGetCustomFieldsByProject(
     resolvedProjectId,
@@ -605,6 +613,20 @@ function CreateTaskModalContent({
             })),
         }),
       );
+
+      if (prefill?.link) {
+        const isParent = prefill.link.type === "parent";
+        try {
+          await createRelation({
+            sourceTaskId: prefill.link.taskId,
+            targetTaskId: savedTask.id,
+            relationType: isParent ? "subtask" : "related",
+          });
+        } catch (error) {
+          console.error("Failed to link issue:", error);
+          toast.error(t("tasks:relations.linkError"));
+        }
+      }
 
       for (const label of labels) {
         try {

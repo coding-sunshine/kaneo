@@ -41,6 +41,7 @@ function createWrapper() {
 
 const useLocation = vi.fn();
 const deleteTask = vi.fn(async () => {});
+const createRelation = vi.fn(async () => ({}));
 const updateTask = vi.fn(async (input: Record<string, unknown>) => input);
 const setProject = vi.fn();
 let workspaceId = "workspace-1";
@@ -131,6 +132,10 @@ vi.mock("@/hooks/mutations/label/use-create-label", () => ({
 
 vi.mock("@/hooks/mutations/task/use-create-task", () => ({
   default: () => ({ mutateAsync: createTask }),
+}));
+
+vi.mock("@/hooks/mutations/task-relation/use-create-task-relation", () => ({
+  default: () => ({ mutateAsync: createRelation }),
 }));
 
 vi.mock("@/hooks/mutations/task/use-delete-task", () => ({
@@ -654,6 +659,46 @@ async function chooseBeta() {
 function submit() {
   fireEvent.submit(document.querySelector("form") as HTMLFormElement);
 }
+
+describe("CreateTaskModal prefill", () => {
+  it.each([
+    ["related", { relationType: "related" }],
+    ["parent", { relationType: "subtask" }],
+  ] as const)("links a %s issue to the commented issue", async (type, link) => {
+    render(
+      <CreateTaskModal
+        open
+        projectId="project-2"
+        prefill={{
+          projectId: "project-2",
+          description: "> quoted",
+          workProjectId: "wp-1",
+          link: { taskId: "task-0", type },
+        }}
+        onClose={vi.fn()}
+      />,
+      { wrapper: createWrapper() },
+    );
+    enterTitle();
+    submit();
+    await vi.waitFor(() =>
+      expect(createTask).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projectId: "project-2",
+          description: "> quoted",
+          workProjectId: "wp-1",
+        }),
+      ),
+    );
+    await vi.waitFor(() =>
+      expect(createRelation).toHaveBeenCalledWith({
+        sourceTaskId: "task-0",
+        targetTaskId: "task-1",
+        ...link,
+      }),
+    );
+  });
+});
 
 describe("CreateTaskModal context isolation", () => {
   it("never falls back to the last globally visited project", () => {

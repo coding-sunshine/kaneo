@@ -1944,6 +1944,8 @@
 			"doneHeader": "Done",
 			"addColumn": "Add column",
 			"dragAria": "Reorder {{name}}",
+			"newIssueFromComment": "New issue from comment…",
+			"newSubIssueFromComment": "New sub-issue from comment…",
 			"deleteTitle": "Delete “{{name}}”?",
 			"deleteDescription": "Columns that still have issues can't be deleted. Move those issues first.",
 			"deleteConfirm": "Delete column",
