@@ -363,7 +363,8 @@ function RouteComponent() {
                         : subGroupBy === "label"
                           ? key
                           : subGroupBy === "project"
-                            ? (workProjects?.find((w) => w.id === key)?.name ?? key)
+                            ? (workProjects?.find((w) => w.id === key)?.name ??
+                              key)
                             : subGroupBy === "cycle"
                               ? (() => {
                                   const c = cycles?.find((i) => i.id === key);

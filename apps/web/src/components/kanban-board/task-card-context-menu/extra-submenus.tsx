@@ -1,5 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Bell, BellOff, FolderInput, Link2, Tag } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import {
+  Bell,
+  BellOff,
+  FolderInput,
+  Link2,
+  MoreHorizontal,
+  Pencil,
+  Tag,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   ContextMenuCheckboxItem,
@@ -9,6 +18,12 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
 } from "@/components/ui/context-menu";
+import {
+  clickTaskAction,
+  focusTaskAction,
+  type TaskActionName,
+  whenTaskActionReady,
+} from "@/components/task/task-action-target";
 import { useTaskCopyActions } from "@/components/task/header/use-task-copy-actions";
 import getColumns from "@/fetchers/column/get-columns";
 import useAttachLabelToTask from "@/hooks/mutations/label/use-attach-label-to-task";
@@ -189,5 +204,38 @@ export function SubscribeItem({ task }: { task: Task }) {
       </span>
       <ContextMenuShortcut>⇧S</ContextMenuShortcut>
     </ContextMenuItem>
+  );
+}
+
+/** Linear's "More properties": what Kaneo can back (rename and add link; no estimates). */
+export function MorePropertiesSubmenu({ task, workspaceId }: Props) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const open = (action: TaskActionName, run: (n: TaskActionName) => void) => {
+    navigate({
+      to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+      params: { workspaceId, projectId: task.projectId, taskId: task.id },
+    });
+    whenTaskActionReady(action, run);
+  };
+  return (
+    <ContextMenuSub>
+      <ContextMenuSubTrigger>
+        <MoreHorizontal className="size-3.5 text-muted-foreground" />
+        <span>{t("tasks:contextMenu.moreProperties")}</span>
+      </ContextMenuSubTrigger>
+      <ContextMenuSubContent className="w-48">
+        <ContextMenuItem onClick={() => open("title", focusTaskAction)}>
+          <Pencil className="size-3.5 text-muted-foreground" />
+          <span>{t("tasks:contextMenu.rename")}</span>
+          <ContextMenuShortcut>⇧ R</ContextMenuShortcut>
+        </ContextMenuItem>
+        <ContextMenuItem onClick={() => open("addLink", clickTaskAction)}>
+          <Link2 className="size-3.5 text-muted-foreground" />
+          <span>{t("tasks:contextMenu.addLink")}</span>
+          <ContextMenuShortcut>Ctrl L</ContextMenuShortcut>
+        </ContextMenuItem>
+      </ContextMenuSubContent>
+    </ContextMenuSub>
   );
 }

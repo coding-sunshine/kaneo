@@ -63,10 +63,10 @@ export function ShortcutsPanel() {
         <DialogPrimitive.Popup
           data-shortcuts="allow"
           initialFocus={searchRef}
-          className="fixed inset-y-2 right-2 z-50 flex w-[408px] max-w-[calc(100vw-1rem)] flex-col overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-xl/10 outline-none transition-[translate,opacity] duration-200 ease-out data-ending-style:translate-x-3 data-ending-style:opacity-0 data-starting-style:translate-x-3 data-starting-style:opacity-0 motion-reduce:data-ending-style:translate-x-0 motion-reduce:data-starting-style:translate-x-0"
+          className="fixed inset-y-2 right-2 z-50 flex w-[358px] max-w-[calc(100vw-1rem)] flex-col overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-xl/10 outline-none transition-[translate,opacity] duration-200 ease-out data-ending-style:translate-x-3 data-ending-style:opacity-0 data-starting-style:translate-x-3 data-starting-style:opacity-0 motion-reduce:data-ending-style:translate-x-0 motion-reduce:data-starting-style:translate-x-0"
         >
-          <div className="flex h-13 shrink-0 items-center justify-between ps-4 pe-2">
-            <DialogPrimitive.Title className="font-semibold text-sm">
+          <div className="flex h-14 shrink-0 items-center justify-between ps-5 pe-3">
+            <DialogPrimitive.Title className="font-medium text-[15px]">
               {t("navigation:shortcuts.title")}
             </DialogPrimitive.Title>
             <DialogPrimitive.Close
@@ -83,7 +83,7 @@ export function ShortcutsPanel() {
           </div>
           <div
             className={cn(
-              "shrink-0 border-b border-transparent px-4 pb-3 transition-colors",
+              "shrink-0 border-b border-transparent px-5 pb-3 transition-colors",
               scrolled && "border-border",
             )}
           >
@@ -111,7 +111,7 @@ export function ShortcutsPanel() {
             </div>
           </div>
           <div
-            className="min-h-0 flex-1 overflow-y-auto px-4 pb-4"
+            className="min-h-0 flex-1 overflow-y-auto px-5 pb-4"
             onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 0)}
           >
             {sections.length === 0 ? (
@@ -120,8 +120,8 @@ export function ShortcutsPanel() {
               </p>
             ) : (
               sections.map((section) => (
-                <section key={section.category} className="pt-3">
-                  <h3 className="pb-1 font-medium text-muted-foreground text-xs">
+                <section key={section.category} className="pt-4">
+                  <h3 className="pb-1 font-medium text-[13px] text-foreground">
                     {t(`navigation:shortcuts.categories.${section.category}`)}
                   </h3>
                   <ul>

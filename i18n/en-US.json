@@ -2992,10 +2992,10 @@
 			},
 			"items": {
 				"openCommandMenu": "Open command menu",
-				"openSearch": "Search",
+				"openSearch": "Open search",
 				"openShortcuts": "Keyboard shortcuts",
 				"submit": "Save or submit",
-				"back": "Close or go back",
+				"back": "Back",
 				"switchWorkspace": "Switch workspace",
 				"logOut": "Log out",
 				"showDisplayOptions": "Display options",
@@ -3087,8 +3087,8 @@
 				"editorUndo": "Undo",
 				"editorRedo": "Redo"
 			},
-			"title": "Keyboard shortcuts",
-			"searchPlaceholder": "Search by action or key",
+			"title": "Keyboard Shortcuts",
+			"searchPlaceholder": "Search shortcuts",
 			"results_one": "{{count}} result",
 			"results_other": "{{count}} results",
 			"noResults": "No shortcuts match",
@@ -3870,7 +3870,10 @@
 			"removeParent": "Parent",
 			"removeProject": "Project",
 			"openInNewTab": "Open in new tab",
-			"remindMe": "Remind me"
+			"remindMe": "Remind me",
+			"moreProperties": "More properties",
+			"rename": "Rename…",
+			"addLink": "Add link…"
 		},
 		"actions": {
 			"duplicate": "Duplicate",

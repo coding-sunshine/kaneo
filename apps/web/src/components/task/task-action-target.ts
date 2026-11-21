@@ -57,3 +57,16 @@ export function focusTaskAction(name: TaskActionName) {
     window.getSelection()?.collapseToEnd();
   }
 }
+
+/** Runs a task-page action once the page has mounted it, for a request made before navigating there. */
+export function whenTaskActionReady(
+  name: TaskActionName,
+  run: (name: TaskActionName) => void,
+) {
+  const deadline = Date.now() + 3000;
+  const tick = () => {
+    if (findTaskAction(name)) run(name);
+    else if (Date.now() < deadline) requestAnimationFrame(tick);
+  };
+  tick();
+}

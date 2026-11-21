@@ -50,6 +50,7 @@ import {
 import {
   CopySubmenu,
   LabelsSubmenu,
+  MorePropertiesSubmenu,
   MoveSubmenu,
   SubscribeItem,
 } from "./extra-submenus";
@@ -272,11 +273,13 @@ export default function TaskCardContextMenuContent({
         <ProjectSubmenu task={task} workspaceId={taskCardContext.worskpaceId} />
       )}
 
-      {/* Cycle submenu goes here (Linear position), owned by the cycles work. */}
-
       {canEdit && (
         <>
           <ContextMenuSeparator />
+          <MorePropertiesSubmenu
+            task={task}
+            workspaceId={taskCardContext.worskpaceId}
+          />
           <CreateRelatedSubmenu
             task={task}
             workspaceId={taskCardContext.worskpaceId}
