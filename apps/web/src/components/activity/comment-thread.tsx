@@ -128,6 +128,7 @@ export default function CommentThread({ root, replies }: CommentThreadProps) {
         taskId={comment.taskId}
         content={comment.content || ""}
         user={user}
+        ownerId={comment.userId}
         createdAt={comment.createdAt}
         importedBy={importedBy}
         externalSource={comment.externalSource}

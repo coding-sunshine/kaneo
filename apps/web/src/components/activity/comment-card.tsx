@@ -56,6 +56,8 @@ type CommentCardProps = {
     email?: string | null;
     image?: string | null;
   } | null;
+  /** Who owns the comment; imported ones show their author but not their id. */
+  ownerId?: string | null;
   createdAt: string;
   importedBy?: string;
   externalSource?: string | null;
@@ -77,6 +79,7 @@ export default function CommentCard({
   taskId,
   content,
   user,
+  ownerId,
   createdAt,
   externalSource,
   externalUrl,
@@ -102,7 +105,7 @@ export default function CommentCard({
   } | null>(null);
   const [confirmEmptyDelete, setConfirmEmptyDelete] = useState(false);
 
-  const canEdit = currentUser?.id === user?.id;
+  const canEdit = !!currentUser && currentUser.id === ownerId;
   const forge = forgeOf(externalSource);
   const sourceName = forge
     ? forge.name

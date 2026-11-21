@@ -5,7 +5,10 @@ import { cloneElement, isValidElement } from "react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import CommentCard from "./comment-card";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  auth.user = null;
+});
 
 vi.mock("./emoji-picker/add-emoji-dialog", () => ({ default: () => null }));
 vi.mock("@/hooks/queries/task/use-get-task", () => ({
@@ -20,8 +23,9 @@ vi.mock("@/components/activity/comment-editor", () => ({
   default: ({ value }: { value: string }) => <div>{value}</div>,
 }));
 
+const auth = vi.hoisted(() => ({ user: null as { id: string } | null }));
 vi.mock("@/components/providers/auth-provider/hooks/use-auth", () => ({
-  useAuth: () => ({ user: null }),
+  useAuth: () => auth,
 }));
 
 vi.mock("@/hooks/mutations/comment/use-update-comment", () => ({
@@ -105,7 +109,11 @@ vi.mock("@/components/ui/tooltip", async () => {
   };
 });
 
-function renderCommentCard(externalSource?: string, importedBy?: string) {
+function renderCommentCard(
+  externalSource?: string,
+  importedBy?: string,
+  ownerId = "user-1",
+) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -118,6 +126,7 @@ function renderCommentCard(externalSource?: string, importedBy?: string) {
       <CommentCard
         externalSource={externalSource}
         importedBy={importedBy}
+        ownerId={ownerId}
         commentId="comment-1"
         taskId="task-1"
         content="Test comment"
@@ -167,6 +176,20 @@ describe("CommentCard", () => {
 
     fireEvent.focus(trigger);
     expect(await screen.findByText("Apr 5, 2026, 11:38 AM")).toBeVisible();
+  });
+
+  it.each([
+    ["the owner of an imported comment", "user-1", true],
+    ["someone else", "user-2", false],
+  ])("lets %s edit it", async (_, viewer, canEdit) => {
+    auth.user = { id: viewer };
+    renderCommentCard("linear", undefined);
+    fireEvent.contextMenu(screen.getByText("Test comment"));
+    await screen.findByRole("menuitem", { name: "activity:comment.copyLink" });
+    expect(
+      screen.queryByRole("menuitem", { name: "activity:comment.editMenu" }) !==
+        null,
+    ).toBe(canEdit);
   });
 
   it("right-click opens the comment menu", async () => {
