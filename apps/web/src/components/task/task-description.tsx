@@ -183,8 +183,8 @@ const SHIKI_LANGUAGE_ALIASES: Record<string, string> = {
 
 export default function TaskDescription({ taskId }: TaskDescriptionProps) {
   const { t } = useTranslation();
-  const { data: task } = useGetTask(taskId);
-  const taskLoaded = Boolean(task);
+  const { data: task, isPlaceholderData } = useGetTask(taskId);
+  const taskLoaded = Boolean(task) && !isPlaceholderData;
   const { mutateAsync: updateTaskDescription } = useUpdateTaskDescription();
   const { canUpdateTasks } = useWorkspacePermission();
   const ownerId = useContext(AuthContext).user?.id ?? "";
