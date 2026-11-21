@@ -32,6 +32,13 @@ export const taskSchema = z
     recurrence: z.union([taskRecurrenceSchema, z.null()]).optional(),
     archivedAt: nullableResponseTimestamp.optional(),
     createdAt: responseTimestamp,
+    creatorId: z.string().nullable().optional().openapi({
+      description: "The user who created the task, if known.",
+    }),
+    snoozedUntil: nullableResponseTimestamp.optional().openapi({
+      description:
+        "Triage snooze: the task resurfaces in triage after this time.",
+    }),
     customFields: z
       .array(z.object({ fieldId: z.string(), value: z.string() }))
       .optional(),
@@ -63,6 +70,9 @@ export const taskWithAssigneeSchema = taskSchema
       .optional(),
     assigneeName: z.string().nullable(),
     assigneeId: z.string().nullable(),
+    isSubscribed: z.boolean().optional().openapi({
+      description: "Whether the caller follows the task. Detail view only.",
+    }),
   })
   .openapi("TaskWithAssignee");
 
@@ -113,6 +123,8 @@ export const boardTaskSchema = z
     recurrence: z.union([taskRecurrenceSchema, z.null()]),
     position: z.number().nullable(),
     createdAt: responseTimestamp,
+    creatorId: z.string().nullable(),
+    snoozedUntil: nullableResponseTimestamp,
     userId: z.string().nullable(),
     assigneeName: z.string().nullable(),
     assigneeId: z.string().nullable(),

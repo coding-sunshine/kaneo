@@ -12,6 +12,7 @@ import { coercePriority, VIRTUAL_STATUSES } from "../validate-task-fields";
 import { resolveImportTaskStatus } from "../resolve-import-task-status";
 import { claimTaskNumber } from "./claim-task-numbers";
 import { nextTaskPosition } from "./next-task-position";
+import { subscribeUsers } from "./task-subscribers";
 import { resolveImportAssignees } from "../resolve-import-assignees";
 
 export type ImportTask = {
@@ -124,6 +125,7 @@ async function importTasks(
           .values({
             projectId,
             userId: assigneeId ?? null,
+            creatorId: currentUserId ?? null,
             title: taskData.title,
             status,
             columnId: column?.id ?? null,
@@ -135,6 +137,9 @@ async function importTasks(
             position,
           })
           .returning();
+
+        if (task)
+          await subscribeUsers(tx, task.id, [currentUserId, assigneeId]);
 
         return task;
       });

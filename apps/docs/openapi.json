@@ -254,6 +254,19 @@
             "type": "string",
             "format": "date-time"
           },
+          "creatorId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "snoozedUntil": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
           "userId": {
             "type": [
               "string",
@@ -327,6 +340,8 @@
           "recurrence",
           "position",
           "createdAt",
+          "creatorId",
+          "snoozedUntil",
           "userId",
           "assigneeName",
           "assigneeId",
@@ -855,6 +870,9 @@
           "includeSubtasks": {
             "type": "boolean"
           },
+          "autoArchiveMonths": {
+            "type": "number"
+          },
           "id": {
             "type": "string"
           },
@@ -1334,9 +1352,31 @@
               }
             ]
           },
+          "archivedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "creatorId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The user who created the task, if known."
+          },
+          "snoozedUntil": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Triage snooze: the task resurfaces in triage after this time."
           },
           "customFields": {
             "type": "array",
@@ -1461,6 +1501,10 @@
                   "string",
                   "null"
                 ]
+              },
+              "isSubscribed": {
+                "type": "boolean",
+                "description": "Whether the caller follows the task. Detail view only."
               }
             },
             "required": [
@@ -2454,6 +2498,13 @@
           },
           "status": {
             "type": "string"
+          },
+          "archivedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           }
         },
         "required": [
@@ -10771,6 +10822,11 @@
                   },
                   "includeSubtasks": {
                     "type": "boolean"
+                  },
+                  "autoArchiveMonths": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 120
                   }
                 },
                 "required": [
@@ -12006,8 +12062,8 @@
         "tags": [
           "Tasks"
         ],
-        "summary": "List my assigned tasks",
-        "description": "Get the open tasks assigned to the caller across a workspace's active projects. Completed and archived tasks are excluded. Ordered by due date (undated last), then priority. At most 100 tasks are returned; total counts all of them. Set countOnly=true to return just that total without loading task rows or labels.",
+        "summary": "List my tasks",
+        "description": "Get the open tasks of the caller (assigned to them by default; set tab=created or tab=subscribed for tasks they created or follow) across a workspace's active projects. Completed and archived tasks are excluded. Ordered by due date (undated last), then priority. At most 100 tasks are returned; total counts all of them. Set countOnly=true to return just that total without loading task rows or labels.",
         "parameters": [
           {
             "schema": {
@@ -12016,6 +12072,21 @@
             },
             "required": true,
             "name": "workspaceId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "assigned",
+                "created",
+                "subscribed"
+              ],
+              "description": "Which of the caller's tasks to list: assigned to them (default), created by them, or followed by them."
+            },
+            "required": false,
+            "description": "Which of the caller's tasks to list: assigned to them (default), created by them, or followed by them.",
+            "name": "tab",
             "in": "query"
           },
           {
@@ -14050,6 +14121,246 @@
         }
       }
     },
+    "/task/snooze/{id}": {
+      "put": {
+        "operationId": "updateTaskSnooze",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Snooze a task",
+        "description": "Set the time until which the task is snoozed in triage, or send null to clear the snooze.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "snoozedUntil": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "ISO date-time; null clears the snooze."
+                  }
+                },
+                "required": [
+                  "snoozedUntil"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid date",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing task:update permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/task/{id}/subscription": {
+      "post": {
+        "operationId": "subscribeToTask",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Subscribe to a task",
+        "description": "Follow the task as the caller. Creators, assignees and commenters are subscribed automatically.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscription state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "isSubscribed": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "isSubscribed"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing read permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "unsubscribeFromTask",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Unsubscribe from a task",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscription state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "isSubscribed": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "isSubscribed"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing read permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/task/due-date/{id}": {
       "put": {
         "operationId": "updateTaskDueDate",
@@ -14382,7 +14693,8 @@
                     "type": "string",
                     "enum": [
                       "description",
-                      "comment"
+                      "comment",
+                      "attachment"
                     ],
                     "description": "Where the image is used, which decides how it is scoped."
                   }
@@ -14506,7 +14818,8 @@
                     "type": "string",
                     "enum": [
                       "description",
-                      "comment"
+                      "comment",
+                      "attachment"
                     ],
                     "description": "Where the image is used, which decides how it is scoped."
                   }
@@ -14565,6 +14878,375 @@
           },
           "404": {
             "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/task/attachments/{id}": {
+      "get": {
+        "operationId": "listTaskAttachments",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "List task attachments",
+        "description": "List the files attached to a task: non-image files from the description or comments, and anything uploaded straight to the attachments area.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The task's attachments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "url": {
+                        "type": "string"
+                      },
+                      "filename": {
+                        "type": "string"
+                      },
+                      "mimeType": {
+                        "type": "string"
+                      },
+                      "size": {
+                        "type": "number"
+                      },
+                      "kind": {
+                        "type": "string"
+                      },
+                      "surface": {
+                        "type": "string"
+                      },
+                      "createdBy": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "createdAt": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "date-time"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "url",
+                      "filename",
+                      "mimeType",
+                      "size",
+                      "kind",
+                      "surface",
+                      "createdBy",
+                      "createdAt"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing read permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/task/attachments/{id}/{assetId}": {
+      "delete": {
+        "operationId": "deleteTaskAttachment",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Delete task attachment",
+        "description": "Delete an attached file and queue its stored object for removal.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "assetId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The deleted attachment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing task:update permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Attachment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/task/archived/{projectId}": {
+      "get": {
+        "operationId": "listArchivedTasks",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "List archived tasks",
+        "description": "A project's archived tasks (up to 500, newest archive first). Archived tasks are hidden from every other list and keep their real status.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The archived tasks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "number": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "priority": {
+                        "type": "string"
+                      },
+                      "userId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "archivedAt": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "date-time"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "number",
+                      "title",
+                      "status",
+                      "priority",
+                      "userId",
+                      "archivedAt"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing read permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/task/unarchive/{id}": {
+      "put": {
+        "operationId": "unarchiveTask",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Restore an archived task",
+        "description": "Clear the archive flag so the task shows in lists again.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The restored task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing task:update permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Archived task not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -22804,7 +23486,8 @@
                     "enum": [
                       "subtask",
                       "blocks",
-                      "related"
+                      "related",
+                      "duplicate"
                     ]
                   }
                 },

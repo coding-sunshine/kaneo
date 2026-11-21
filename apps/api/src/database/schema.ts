@@ -8,6 +8,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   unique,
@@ -716,6 +717,12 @@ export const taskTable = pgTable(
     recurrence: jsonb("recurrence").$type<TaskRecurrence>(),
     // Linear-style archive flag: separate from status, hides the task from lists until restored.
     archivedAt: timestamp("archived_at", { mode: "date" }),
+    // Linear-style triage snooze: hides the task from the triage inbox until this time.
+    snoozedUntil: timestamp("snoozed_until", { mode: "date" }),
+    creatorId: text("creator_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),
@@ -735,6 +742,31 @@ export const taskTable = pgTable(
     index("task_assigneeId_idx").on(table.userId),
     index("task_columnId_idx").on(table.columnId),
     unique("task_project_number_unique").on(table.projectId, table.number),
+  ],
+);
+
+export const taskSubscriberTable = pgTable(
+  "task_subscriber",
+  {
+    taskId: text("task_id")
+      .notNull()
+      .references(() => taskTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.taskId, table.userId] }),
+    index("task_subscriber_userId_idx").on(table.userId),
   ],
 );
 

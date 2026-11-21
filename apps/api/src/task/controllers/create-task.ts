@@ -30,6 +30,7 @@ import {
 } from "../validate-task-fields";
 import { claimTaskNumber } from "./claim-task-numbers";
 import { nextTaskPosition } from "./next-task-position";
+import { subscribeUsers } from "./task-subscribers";
 
 type CustomFieldInput = {
   fieldId: string;
@@ -174,6 +175,7 @@ async function createTask({
       .values({
         projectId,
         userId: normalizedUserId ?? null,
+        creatorId: currentUserId,
         title: title || "",
         status: resolvedStatus,
         columnId: column?.id ?? null,
@@ -186,6 +188,9 @@ async function createTask({
         position: nextPosition,
       })
       .returning();
+
+    if (task)
+      await subscribeUsers(tx, task.id, [currentUserId, normalizedUserId]);
 
     if (task && draftAssetIds?.length) {
       const referenced = extractAssetIds(description);

@@ -68,6 +68,8 @@ import {
   listTaskAttachments,
 } from "./controllers/task-attachments";
 import { listArchivedTasks, unarchiveTask } from "./controllers/task-archive";
+import updateTaskSnooze from "./controllers/update-task-snooze";
+import { setSubscription } from "./controllers/task-subscribers";
 import updateTaskStatus from "./controllers/update-task-status";
 import updateTaskTitle from "./controllers/update-task-title";
 import {
@@ -117,6 +119,7 @@ import {
   updateDueDateBody,
   updatePriorityBody,
   updateRecurrenceBody,
+  updateSnoozeBody,
   updateStatusBody,
   updateTaskBody,
   updateTitleBody,
@@ -127,9 +130,9 @@ const listAssignedTasksRoute = createRoute({
   operationId: "listAssignedTasks",
   path: "/assigned",
   tags: ["Tasks"],
-  summary: "List my assigned tasks",
+  summary: "List my tasks",
   description:
-    "Get the open tasks assigned to the caller across a workspace's active projects. Completed and archived tasks are excluded. Ordered by due date (undated last), then priority. At most 100 tasks are returned; total counts all of them. Set countOnly=true to return just that total without loading task rows or labels.",
+    "Get the open tasks of the caller (assigned to them by default; set tab=created or tab=subscribed for tasks they created or follow) across a workspace's active projects. Completed and archived tasks are excluded. Ordered by due date (undated last), then priority. At most 100 tasks are returned; total counts all of them. Set countOnly=true to return just that total without loading task rows or labels.",
   middleware: [
     workspaceAccess.fromQuery(),
     requireWorkspacePermission({ project: ["read"], task: ["read"] }),
@@ -621,6 +624,79 @@ const updateTaskAssigneeRoute = createRoute({
   },
 });
 
+const updateTaskSnoozeRoute = createRoute({
+  method: "put",
+  operationId: "updateTaskSnooze",
+  path: "/snooze/{id}",
+  tags: ["Tasks"],
+  summary: "Snooze a task",
+  description:
+    "Set the time until which the task is snoozed in triage, or send null to clear the snooze.",
+  middleware: [
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["update"] }),
+    requireEntitlement,
+  ] as const,
+  request: {
+    params: taskParam,
+    body: {
+      required: true,
+      content: { "application/json": { schema: updateSnoozeBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("The updated task", taskSchema),
+    400: errorResponse("Invalid date"),
+    403: errorResponse(
+      "No access to the project, or missing task:update permission",
+    ),
+    404: errorResponse("Task not found"),
+  },
+});
+
+const subscriptionResponse = jsonResponse(
+  "Subscription state",
+  z.object({ isSubscribed: z.boolean() }),
+);
+
+const subscribeTaskRoute = createRoute({
+  method: "post",
+  operationId: "subscribeToTask",
+  path: "/{id}/subscription",
+  tags: ["Tasks"],
+  summary: "Subscribe to a task",
+  description:
+    "Follow the task as the caller. Creators, assignees and commenters are subscribed automatically.",
+  middleware: [
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["read"] }),
+  ] as const,
+  request: { params: taskParam },
+  responses: {
+    200: subscriptionResponse,
+    403: errorResponse("No access to the project, or missing read permission"),
+    404: errorResponse("Task not found"),
+  },
+});
+
+const unsubscribeTaskRoute = createRoute({
+  method: "delete",
+  operationId: "unsubscribeFromTask",
+  path: "/{id}/subscription",
+  tags: ["Tasks"],
+  summary: "Unsubscribe from a task",
+  middleware: [
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["read"] }),
+  ] as const,
+  request: { params: taskParam },
+  responses: {
+    200: subscriptionResponse,
+    403: errorResponse("No access to the project, or missing read permission"),
+    404: errorResponse("Task not found"),
+  },
+});
+
 const updateTaskDueDateRoute = createRoute({
   method: "put",
   operationId: "updateTaskDueDate",
@@ -948,12 +1024,13 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
   })
   // Registered ahead of the `/{id}` routes, which would otherwise claim it.
   .openapi(listAssignedTasksRoute, async (c) => {
-    const { workspaceId, countOnly } = c.req.valid("query");
+    const { workspaceId, countOnly, tab } = c.req.valid("query");
     return c.json(
       await getAssignedTasks(
         workspaceId,
         c.get("userId"),
         countOnly === "true",
+        tab,
       ),
       200,
     );
@@ -1207,6 +1284,25 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
     const task = await updateTaskAssignee({ id, userId, currentUserId });
 
     return c.json(task, 200);
+  })
+  .openapi(updateTaskSnoozeRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const { snoozedUntil } = c.req.valid("json");
+    const task = await updateTaskSnooze({
+      id,
+      snoozedUntil: snoozedUntil
+        ? validateAndParseDate(snoozedUntil, "snoozedUntil")
+        : null,
+    });
+    return c.json(task, 200);
+  })
+  .openapi(subscribeTaskRoute, async (c) => {
+    await setSubscription(c.req.valid("param").id, c.get("userId"), true);
+    return c.json({ isSubscribed: true }, 200);
+  })
+  .openapi(unsubscribeTaskRoute, async (c) => {
+    await setSubscription(c.req.valid("param").id, c.get("userId"), false);
+    return c.json({ isSubscribed: false }, 200);
   })
   .openapi(updateTaskDueDateRoute, async (c) => {
     const { id } = c.req.valid("param");

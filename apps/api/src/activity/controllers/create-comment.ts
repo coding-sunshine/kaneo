@@ -9,6 +9,7 @@ import {
 } from "../../database/schema";
 import { publishEvent } from "../../events";
 import createNotification from "../../notification/controllers/create-notification";
+import { subscribeUsers } from "../../task/controllers/task-subscribers";
 import { parseMentionIds } from "../../utils/parse-mentions";
 
 async function createComment(
@@ -38,6 +39,8 @@ async function createComment(
       message: "Failed to create activity",
     });
   }
+
+  if (!external) await subscribeUsers(db, taskId, [userId]);
 
   const [user] = await db
     .select({ name: userTable.name })

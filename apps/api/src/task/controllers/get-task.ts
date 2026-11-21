@@ -11,6 +11,7 @@ import {
   userTable,
   projectTable,
   taskRelationTable,
+  taskSubscriberTable,
 } from "../../database/schema";
 
 async function getTask(taskId: string, board = false, userId?: string) {
@@ -35,6 +36,11 @@ async function getTask(taskId: string, board = false, userId?: string) {
       position: taskTable.position,
       archivedAt: taskTable.archivedAt,
       createdAt: taskTable.createdAt,
+      creatorId: taskTable.creatorId,
+      snoozedUntil: taskTable.snoozedUntil,
+      isSubscribed: userId
+        ? sql<boolean>`exists (select 1 from ${taskSubscriberTable} where ${taskSubscriberTable.taskId} = ${taskTable.id} and ${taskSubscriberTable.userId} = ${userId})`
+        : sql<boolean>`false`,
       userId: taskTable.userId,
       assigneeName: userTable.name,
       assigneeId: userTable.id,

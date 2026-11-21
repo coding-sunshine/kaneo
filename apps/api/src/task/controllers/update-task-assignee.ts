@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { withLockedTask } from "./with-locked-task";
 import { taskTable } from "../../database/schema";
+import { subscribeUsers } from "./task-subscribers";
 import { publishTaskMutation } from "./task-mutation-effects";
 import {
   assertAssignableUser,
@@ -45,6 +46,8 @@ async function updateTaskAssignee({
           message: "Failed to update task assignee",
         });
       }
+
+      await subscribeUsers(tx, id, [nextAssigneeId]);
 
       return updatedTask;
     },

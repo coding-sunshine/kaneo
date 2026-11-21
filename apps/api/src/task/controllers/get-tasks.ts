@@ -196,6 +196,8 @@ async function getTasksPage(
     recurrence: taskTable.recurrence,
     position: taskTable.position,
     createdAt: taskTable.createdAt,
+    creatorId: taskTable.creatorId,
+    snoozedUntil: taskTable.snoozedUntil,
     userId: taskTable.userId,
     assigneeName: userTable.name,
     assigneeId: userTable.id,

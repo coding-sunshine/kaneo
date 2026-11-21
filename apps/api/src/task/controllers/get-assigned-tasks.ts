@@ -14,6 +14,7 @@ import {
   columnTable,
   labelTable,
   projectTable,
+  taskSubscriberTable,
   taskTable,
 } from "../../database/schema";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
@@ -30,15 +31,25 @@ const priorityRank = sql<number>`CASE
   ELSE 0
 END`;
 
+export type MyTasksTab = "assigned" | "created" | "subscribed";
+
 async function getAssignedTasks(
   workspaceId: string,
   userId: string,
   countOnly = false,
+  tab: MyTasksTab = "assigned",
 ) {
+  const relation =
+    tab === "created"
+      ? eq(taskTable.creatorId, userId)
+      : tab === "subscribed"
+        ? sql`exists (select 1 from ${taskSubscriberTable} where ${taskSubscriberTable.taskId} = ${taskTable.id} and ${taskSubscriberTable.userId} = ${userId})`
+        : eq(taskTable.userId, userId);
+
   const openAndMine = and(
     eq(projectTable.workspaceId, workspaceId),
     isNull(projectTable.archivedAt),
-    eq(taskTable.userId, userId),
+    relation,
     ne(taskTable.status, "archived"),
     isNull(taskTable.archivedAt),
     sql`not coalesce((

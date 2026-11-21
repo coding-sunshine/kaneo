@@ -31,6 +31,7 @@ import {
 } from "../validate-task-fields";
 import { claimTaskNumber } from "./claim-task-numbers";
 import { nextTaskPosition } from "./next-task-position";
+import { subscribeUsers } from "./task-subscribers";
 
 async function discardCopiedObjects(objectKeys: string[]) {
   await Promise.all(
@@ -382,6 +383,7 @@ async function duplicateTask({
           id: duplicatedTaskId,
           projectId: sourceTask.projectId,
           userId,
+          creatorId: currentUserId || null,
           title: title?.trim() || sourceTask.title,
           status,
           columnId: column?.id ?? null,
@@ -399,6 +401,8 @@ async function duplicateTask({
           message: "Failed to duplicate task",
         });
       }
+
+      await subscribeUsers(tx, task.id, [currentUserId, userId]);
 
       if (customFields.length > 0) {
         await tx

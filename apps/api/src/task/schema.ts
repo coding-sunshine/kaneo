@@ -37,6 +37,10 @@ export const projectIdParam = z.object({ projectId: z.string() });
 
 export const assignedTasksQuery = z.object({
   workspaceId: z.string().min(1),
+  tab: z.enum(["assigned", "created", "subscribed"]).optional().openapi({
+    description:
+      "Which of the caller's tasks to list: assigned to them (default), created by them, or followed by them.",
+  }),
   countOnly: z.enum(["true", "false"]).optional().openapi({
     description:
       "Return only the total, with an empty tasks array, without loading task rows or labels.",
@@ -148,6 +152,12 @@ export const updateRecurrenceBody = z.object({
   recurrence: z
     .union([taskRecurrenceSchema, z.null()])
     .openapi({ description: "Null stops the task from repeating." }),
+});
+export const updateSnoozeBody = z.object({
+  snoozedUntil: z
+    .string()
+    .nullable()
+    .openapi({ description: "ISO date-time; null clears the snooze." }),
 });
 export const updateTitleBody = z.object({ title: z.string() });
 export const updateDescriptionBody = z.object({ description: z.string() });

@@ -13,6 +13,7 @@ import {
 } from "../../utils/assert-assignable-user";
 import { boardDescription, descriptionDeferred } from "../description-pages";
 import { assertValidTaskStatus } from "../validate-task-fields";
+import { subscribeUsers } from "./task-subscribers";
 import { assertTaskPosition } from "./next-task-position";
 
 async function updateTask(
@@ -135,6 +136,7 @@ async function updateTask(
         description: boardDescription,
         descriptionDeferred,
       });
+    if (task) await subscribeUsers(tx, id, [normalizedUserId]);
     if (task)
       await recordTaskMutation(
         tx,
