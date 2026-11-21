@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/cn";
-import { sectionIdClass, sectionRowClass } from "./section-row-class";
+import { sectionRowClass } from "./section-row-class";
 
 type TaskReferenceRowProps = ComponentProps<"div"> & {
   status: ReactNode;
@@ -29,14 +29,14 @@ export function TaskReferenceRow({
       {...props}
     >
       {status}
-      <span className={sectionIdClass}>{displayId}</span>
       <button
         type="button"
         onClick={onOpen}
+        title={displayId ?? undefined}
         className={cn(
           "min-w-0 flex-1 text-left text-[13px] outline-none focus-visible:underline max-sm:line-clamp-2 sm:truncate",
           done
-            ? "text-muted-foreground line-through"
+            ? "text-muted-foreground"
             : "text-foreground/85 group-hover:text-foreground",
         )}
       >

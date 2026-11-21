@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { AnimatePresence } from "motion/react";
-import { Trash2Icon } from "lucide-react";
+import { ChevronDown, Trash2Icon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/cn";
 import CircularProgress from "@/components/ui/circular-progress";
 import { Input } from "@/components/ui/input";
 import useCreateTask from "@/hooks/mutations/task/use-create-task";
@@ -47,6 +48,7 @@ export default function TaskSubtasks({
 }: TaskSubtasksProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
@@ -292,7 +294,22 @@ export default function TaskSubtasks({
     <>
       <section className="flex flex-col gap-1">
         <SectionHeader
-          title={t("tasks:subtasks.title")}
+          title={
+            <button
+              type="button"
+              aria-expanded={!isCollapsed}
+              onClick={() => setIsCollapsed((value) => !value)}
+              className="flex items-center gap-1 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <ChevronDown
+                className={cn(
+                  "size-3 text-muted-foreground transition-transform",
+                  isCollapsed && "-rotate-90",
+                )}
+              />
+              {t("tasks:subtasks.title")}
+            </button>
+          }
           meta={
             totalCount > 0 && (
               <span className="flex items-center gap-1.5 text-muted-foreground text-xs tabular-nums">
@@ -321,7 +338,7 @@ export default function TaskSubtasks({
         {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- keyboard nav managed via document listener */}
         <div
           ref={containerRef}
-          className="flex flex-col"
+          className={cn("flex flex-col", isCollapsed && "hidden")}
           onMouseDown={() => {
             if (focusedIndex === -1 && !hasSelection) {
               setFocusedIndex(0);
