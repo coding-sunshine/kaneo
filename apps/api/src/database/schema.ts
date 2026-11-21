@@ -700,6 +700,79 @@ export const calendarFeedTable = pgTable(
   (table) => [index("calendar_feed_project_id_idx").on(table.projectId)],
 );
 
+// Saved custom views: a named set of filters plus display options. A null
+// `projectId` makes it a workspace view; otherwise it belongs to that team.
+export const savedViewTable = pgTable(
+  "saved_view",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    projectId: text("project_id").references(() => projectTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    ownerId: text("owner_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    name: text("name").notNull(),
+    description: text("description"),
+    // Opaque to the API: the web app owns the filter and display shapes.
+    filters: jsonb("filters").$type<Record<string, unknown>>().notNull(),
+    display: jsonb("display").$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("saved_view_workspaceId_idx").on(table.workspaceId)],
+);
+
+// Per-user sidebar favorites. `type` is "project" (a team) or "view".
+export const favoriteTable = pgTable(
+  "favorite",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    type: text("type").$type<"project" | "view">().notNull(),
+    targetId: text("target_id").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    unique("favorite_user_target_unique").on(
+      table.userId,
+      table.type,
+      table.targetId,
+    ),
+    index("favorite_user_workspace_idx").on(table.userId, table.workspaceId),
+  ],
+);
+
 // Linear-style "Projects": a workspace-level grouping of issues across teams.
 // Kaneo's own `project` table is what Linear calls a team, hence `work_project`.
 export const workProjectTable = pgTable(

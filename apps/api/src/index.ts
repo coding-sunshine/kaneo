@@ -62,6 +62,8 @@ import invitation from "./invitation";
 import label from "./label";
 import cycle from "./cycle";
 import workProject from "./work-project";
+import savedView from "./saved-view";
+import favorite from "./favorite";
 import mattermostIntegration from "./mattermost-integration";
 import mcpRoutes, { mcpWellKnownRoutes } from "./mcp";
 import { migrateColumns } from "./migrations/column-migration";
@@ -825,6 +827,8 @@ export function createApp() {
   const labelApi = api.route("/label", label);
   const cycleApi = api.route("/cycle", cycle);
   const workProjectApi = api.route("/work-project", workProject);
+  const savedViewApi = api.route("/view", savedView);
+  const favoriteApi = api.route("/favorite", favorite);
   const notificationApi = api.route("/notification", notification);
   const notificationPreferencesApi = api.route(
     "/notification-preferences",
@@ -1003,6 +1007,8 @@ export function createApp() {
     labelApi,
     cycleApi,
     workProjectApi,
+    savedViewApi,
+    favoriteApi,
     notificationApi,
     notificationPreferencesApi,
     projectApi,
@@ -1140,6 +1146,8 @@ const {
   labelApi,
   cycleApi,
   workProjectApi,
+  savedViewApi,
+  favoriteApi,
   mattermostIntegrationApi,
   notificationApi,
   notificationPreferencesApi,
@@ -1184,6 +1192,8 @@ export type AppType =
   | typeof labelApi
   | typeof cycleApi
   | typeof workProjectApi
+  | typeof savedViewApi
+  | typeof favoriteApi
   | typeof notificationApi
   | typeof notificationPreferencesApi
   | typeof searchApi
