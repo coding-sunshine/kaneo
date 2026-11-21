@@ -41,6 +41,8 @@ export type Insights = {
   issueCount: number;
   maxValue: number;
   maxDays: number;
+  /** Linear's scatter markers: the time 25/50/75/95% of plotted issues take or less. */
+  percentiles: { percent: number; days: number }[];
 };
 
 const DAY = 86_400_000;
@@ -60,6 +62,13 @@ function measureDays(measure: InsightMeasure, task: Task, now: number) {
     default:
       return Math.max(0, (now - Date.parse(task.createdAt)) / DAY);
   }
+}
+
+const PERCENTS = [25, 50, 75, 95];
+
+/** Nearest rank: the smallest value with at least `percent`% of values at or below it. */
+function percentile(sorted: number[], percent: number) {
+  return sorted[Math.max(0, Math.ceil((percent / 100) * sorted.length) - 1)];
 }
 
 function median(values: number[]) {
@@ -122,6 +131,8 @@ export function computeInsights(
       };
     });
 
+  // One value per issue, even when a multi-label issue sits in several slices.
+  const sorted = [...days.values()].sort((a, b) => a - b);
   const issueIds = new Set(
     project.columns.flatMap((column) => column.tasks.map((task) => task.id)),
   );
@@ -134,9 +145,12 @@ export function computeInsights(
     slices,
     issueCount: issueIds.size,
     maxValue: Math.max(0, ...slices.map((item) => item.value)),
-    maxDays: Math.max(
-      0,
-      ...slices.flatMap((item) => item.points.map((point) => point.days)),
-    ),
+    maxDays: Math.max(0, ...sorted),
+    percentiles: sorted.length
+      ? PERCENTS.map((percent) => ({
+          percent,
+          days: percentile(sorted, percent),
+        }))
+      : [],
   };
 }

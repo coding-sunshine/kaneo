@@ -170,4 +170,29 @@ describe("computeInsights", () => {
         .issueCount,
     ).toBe(1);
   });
+
+  it("marks the times 25, 50, 75 and 95% of plotted issues take", () => {
+    const aged = {
+      columns: [
+        column(
+          "todo",
+          "Todo",
+          [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((age) =>
+            task(`t${age}`, {
+              createdAt: new Date(now - age * DAY).toISOString(),
+            }),
+          ),
+        ),
+      ],
+    } as unknown as ProjectWithTasks;
+
+    expect(
+      computeInsights(aged, "age", "status", "none", group, now).percentiles,
+    ).toEqual([
+      { percent: 25, days: 3 },
+      { percent: 50, days: 5 },
+      { percent: 75, days: 8 },
+      { percent: 95, days: 10 },
+    ]);
+  });
 });

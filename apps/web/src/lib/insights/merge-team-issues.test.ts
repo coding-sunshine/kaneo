@@ -6,6 +6,7 @@ import { mergeTeamIssues } from "./merge-team-issues";
 const board = (id: string, columns: [string, string[]][]) =>
   ({
     id,
+    slug: id.toUpperCase(),
     columns: columns.map(([slug, tasks]) => ({
       id: slug,
       name: slug,
@@ -33,6 +34,17 @@ describe("mergeTeamIssues", () => {
       ["triage", ["c2"]],
       ["todo", ["e1", "c1"]],
       ["done", ["e2"]],
+    ]);
+  });
+
+  it("keeps each issue's own team key", () => {
+    const merged = mergeTeamIssues([
+      board("eng", [["todo", ["e1"]]]),
+      board("con", [["todo", ["c1"]]]),
+    ]);
+    expect(merged?.columns[0].tasks.map((t) => t.teamSlug)).toEqual([
+      "ENG",
+      "CON",
     ]);
   });
 

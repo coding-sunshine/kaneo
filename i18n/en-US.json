@@ -4244,6 +4244,7 @@
 			"issues": "Issues",
 			"share": "Share",
 			"median": "Median",
+			"percentile": "{{percent}}% of issues take {{duration}} or less. Select to zoom.",
 			"days_one": "{{count}} day",
 			"days_other": "{{count}} days",
 			"hours_one": "{{count}} hour",

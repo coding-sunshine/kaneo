@@ -118,7 +118,12 @@ export function InsightsPanel({ project, group }: InsightsPanelProps) {
             {measure === "count" ? (
               <InsightsBarChart insights={insights} />
             ) : (
-              <InsightsScatter insights={insights} />
+              <InsightsScatter
+                key={measure}
+                insights={insights}
+                slug={project.slug}
+                segmented={segment !== "none"}
+              />
             )}
             {segment !== "none" && (
               <ul className="flex flex-wrap gap-x-3 gap-y-1 text-muted-foreground text-xs">

@@ -23,10 +23,17 @@ export function mergeTeamIssues(
   const columns = new Map<string, ProjectWithTasks["columns"][number]>();
   for (const board of boards) {
     for (const column of board.columns) {
+      // Keep each issue's own team key (CON-12, ENG-4) once teams share a column.
+      const tasks = column.tasks.map((task) => ({
+        ...task,
+        teamSlug: task.teamSlug ?? board.slug,
+      }));
       const seen = columns.get(column.id);
       columns.set(
         column.id,
-        seen ? { ...seen, tasks: [...seen.tasks, ...column.tasks] } : column,
+        seen
+          ? { ...seen, tasks: [...seen.tasks, ...tasks] }
+          : { ...column, tasks },
       );
     }
   }
