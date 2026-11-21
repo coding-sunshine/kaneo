@@ -104,7 +104,7 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
         }
       },
 
-      viewMode: "list",
+      viewMode: "board",
       setViewMode: (mode) => set({ viewMode: mode }),
 
       taskLayout: "board",
