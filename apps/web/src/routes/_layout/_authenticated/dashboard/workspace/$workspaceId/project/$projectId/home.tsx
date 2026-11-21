@@ -20,10 +20,13 @@ function RouteComponent() {
   const { t } = useTranslation();
   const { workspaceId, projectId } = Route.useParams();
   const { data: project } = useGetProject({ id: projectId, workspaceId });
-  const { data: members = [] } = useGetProjectMembers({
+  const { data: readers = [] } = useGetProjectMembers({
     workspaceId,
     projectId,
   });
+  // Everyone who can read the team stays assignable; only those who joined
+  // are its members.
+  const members = readers.filter((member) => member.joinedTeam !== false);
   const Icon = icons[project?.icon as keyof typeof icons] || icons.Layout;
   const color = teamColor(projectId);
   const params = { workspaceId, projectId };

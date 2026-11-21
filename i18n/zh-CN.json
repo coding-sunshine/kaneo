@@ -2834,10 +2834,6 @@
 			"projectSettings": "项目设置",
 			"linkCopied": "项目链接已复制到剪贴板",
 			"addProject": "添加项目",
-			"deleteConfirmTitle": "删除项目？",
-			"deleteConfirmDescription": "这将永久删除项目及其所有数据，此操作不可撤销。",
-			"deletedToast": "项目已删除",
-			"deleteProject": "删除项目",
 			"switcherLabel": "切换项目或视图"
 		},
 		"search": {

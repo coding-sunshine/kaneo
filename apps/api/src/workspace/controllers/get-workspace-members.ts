@@ -1,7 +1,11 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
-import { userTable, workspaceUserTable } from "../../database/schema";
+import {
+  projectMemberPreferenceTable,
+  userTable,
+  workspaceUserTable,
+} from "../../database/schema";
 import { assertProjectAccess } from "../../project-access/assert-project-access";
 import { findWorkspaceProjectIds } from "../../project-access/find-workspace-project-ids";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
@@ -28,9 +32,20 @@ async function getWorkspaceMembers(request: {
       email: userTable.email,
       image: userTable.image,
       role: workspaceUserTable.role,
+      leftAt: projectMemberPreferenceTable.leftAt,
     })
     .from(workspaceUserTable)
     .innerJoin(userTable, eq(workspaceUserTable.userId, userTable.id))
+    .leftJoin(
+      projectMemberPreferenceTable,
+      and(
+        eq(projectMemberPreferenceTable.userId, workspaceUserTable.userId),
+        // No project means no match, so leftAt stays null.
+        projectId
+          ? eq(projectMemberPreferenceTable.projectId, projectId)
+          : isNull(projectMemberPreferenceTable.projectId),
+      ),
+    )
     .where(
       and(
         eq(workspaceUserTable.workspaceId, workspaceId),
@@ -40,7 +55,9 @@ async function getWorkspaceMembers(request: {
       ),
     );
 
-  return members;
+  return members.map(({ leftAt, ...member }) =>
+    projectId ? { ...member, joinedTeam: !leftAt } : member,
+  );
 }
 
 export default getWorkspaceMembers;

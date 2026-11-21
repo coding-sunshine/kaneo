@@ -3,7 +3,9 @@ import {
   Bell,
   CalendarClock,
   CalendarX,
+  CircleCheck,
   History,
+  Inbox,
   type LucideIcon,
   MessageSquare,
   SquarePlus,
@@ -23,6 +25,9 @@ const icons: Record<string, LucideIcon> = {
   due_date_reminder: CalendarClock,
   task_overdue: CalendarX,
   time_entry_created: Timer,
+  team_issue_added: SquarePlus,
+  team_issue_closed: CircleCheck,
+  team_issue_triage: Inbox,
 };
 
 export function NotificationIcon({ type }: { type: string }) {

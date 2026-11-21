@@ -556,6 +556,35 @@ export const projectTable = pgTable(
   ],
 );
 
+// Linear team membership and subscriptions, per user. No row means a member
+// of the team with no subscriptions; leaving only hides the team from the
+// user's sidebar and never changes project access.
+export const projectMemberPreferenceTable = pgTable(
+  "project_member_preference",
+  {
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projectTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    leftAt: timestamp("left_at", { mode: "date" }),
+    notifyIssueAdded: boolean("notify_issue_added").default(false).notNull(),
+    notifyIssueClosed: boolean("notify_issue_closed").default(false).notNull(),
+    notifyIssueTriage: boolean("notify_issue_triage").default(false).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.projectId, table.userId] }),
+    index("project_member_preference_user_idx").on(table.userId),
+  ],
+);
+
 export const workspaceMemberAccessTable = pgTable(
   "workspace_member_access",
   {

@@ -10245,18 +10245,6 @@
 						"addProject": {
 							"type": "string"
 						},
-						"deleteConfirmTitle": {
-							"type": "string"
-						},
-						"deleteConfirmDescription": {
-							"type": "string"
-						},
-						"deletedToast": {
-							"type": "string"
-						},
-						"deleteProject": {
-							"type": "string"
-						},
 						"switcherLabel": {
 							"type": "string"
 						}
@@ -10267,10 +10255,6 @@
 						"projectSettings",
 						"linkCopied",
 						"addProject",
-						"deleteConfirmTitle",
-						"deleteConfirmDescription",
-						"deletedToast",
-						"deleteProject",
 						"switcherLabel"
 					]
 				},

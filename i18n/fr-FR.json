@@ -2932,10 +2932,6 @@
 			"projectSettings": "Paramètres du projet",
 			"linkCopied": "Lien du projet copié dans le presse-papiers",
 			"addProject": "Ajouter un projet",
-			"deleteConfirmTitle": "Supprimer le projet?",
-			"deleteConfirmDescription": "Cela supprimera définitivement le projet et toutes ses données. Vous ne pouvez pas annuler cette action.",
-			"deletedToast": "Projet supprimé",
-			"deleteProject": "Supprimer le projet",
 			"switcherLabel": "Changer de projet ou de vue"
 		},
 		"search": {

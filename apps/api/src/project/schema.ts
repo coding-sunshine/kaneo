@@ -48,3 +48,15 @@ export const finalizeProjectBackgroundBody = z.object({
   size: z.number(),
 });
 export const moveProjectBody = z.object({ workspaceId: z.string().min(1) });
+
+export const updateTeamMembershipBody = z
+  .object({
+    joined: z.boolean().optional().openapi({
+      description:
+        "False leaves the team: it drops out of your sidebar and its subscriptions are cleared. Access to the team's issues is unchanged.",
+    }),
+    notifyIssueAdded: z.boolean().optional(),
+    notifyIssueClosed: z.boolean().optional(),
+    notifyIssueTriage: z.boolean().optional(),
+  })
+  .openapi("UpdateTeamMembership");

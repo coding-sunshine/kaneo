@@ -32,6 +32,10 @@ export const workspaceMemberSchema = z
       description:
         "The member's workspace role: a built-in role (owner, admin, member, viewer) or the name of a custom role defined in the workspace. Several roles are comma-separated, for example owner,viewer.",
     }),
+    joinedTeam: z.boolean().optional().openapi({
+      description:
+        "Only when projectId is passed: false once the member left that project's team. They keep access to it.",
+    }),
   })
   .openapi("WorkspaceMember");
 

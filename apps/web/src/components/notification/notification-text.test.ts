@@ -1,9 +1,13 @@
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, it, vi } from "vite-plus/test";
 import type { Notification } from "@/types/notification";
 import {
   getNotificationContent,
   getNotificationTitle,
 } from "./notification-text";
+
+vi.mock("@/lib/i18n/domain", () => ({
+  getStatusLabel: (status: string) => `label:${status}`,
+}));
 
 const t = (key: string, options?: Record<string, unknown>) => {
   if (key === "notifications:reminderLeadTime.days") {
@@ -14,6 +18,9 @@ const t = (key: string, options?: Record<string, unknown>) => {
   }
   if (key === "notifications:events.task_comment.title") {
     return `${options?.commenterName} commented on your task`;
+  }
+  if (key === "notifications:events.team_issue_closed.title") {
+    return `Moved to ${options?.newStatus} in ${options?.teamName}`;
   }
   if (key === "notifications:events.task_comment.content") {
     return `New comment on ${options?.taskTitle}: ${options?.commentPreview}`;
@@ -63,6 +70,21 @@ describe("notification display content", () => {
     expect(getNotificationTitle(item, t)).toBe("Mina commented on your task");
     expect(getNotificationContent(item, t)).toBe(
       "New comment on Launch website: Ready for review",
+    );
+  });
+
+  it("names the team and the closing status for team subscriptions", () => {
+    const item = notification("team_issue_closed", {
+      taskTitle: "Launch website",
+      teamName: "Engineering",
+      newStatus: "in-review",
+    });
+
+    expect(getNotificationTitle(item, t)).toBe(
+      "Moved to label:in-review in Engineering",
+    );
+    expect(getNotificationContent(item, t)).toBe(
+      "notifications:events.team_issue_closed.content",
     );
   });
 });

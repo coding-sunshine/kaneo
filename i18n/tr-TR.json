@@ -2883,10 +2883,6 @@
 			"projectSettings": "Proje ayarları",
 			"linkCopied": "Proje bağlantısı panoya kopyalandı",
 			"addProject": "Proje ekle",
-			"deleteConfirmTitle": "Proje Silinsin mi?",
-			"deleteConfirmDescription": "Bu, projeyi ve tüm verilerini kalıcı olarak kaldıracak. Bu işlemi geri alamazsınız.",
-			"deletedToast": "Proje silindi",
-			"deleteProject": "Projeyi Sil",
 			"switcherLabel": "Proje veya görünüm değiştir"
 		},
 		"search": {

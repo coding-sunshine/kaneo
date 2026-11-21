@@ -2883,10 +2883,6 @@
 			"projectSettings": "Projectinstellingen",
 			"linkCopied": "Projectlink gekopieerd naar klembord",
 			"addProject": "Project toevoegen",
-			"deleteConfirmTitle": "Project verwijderen?",
-			"deleteConfirmDescription": "Dit zal het project en alle data permanent verwijderen. Dit kan niet ongedaan worden gemaakt.",
-			"deletedToast": "Project verwijderd",
-			"deleteProject": "Project verwijderen",
 			"switcherLabel": "Project of weergave wisselen"
 		},
 		"search": {

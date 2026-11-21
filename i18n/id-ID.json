@@ -2834,10 +2834,6 @@
 			"projectSettings": "Pengaturan proyek",
 			"linkCopied": "Tautan proyek disalin ke papan klip",
 			"addProject": "Tambah proyek",
-			"deleteConfirmTitle": "Hapus Proyek?",
-			"deleteConfirmDescription": "Ini akan menghapus proyek dan semua datanya secara permanen. Anda tidak dapat membatalkan tindakan ini.",
-			"deletedToast": "Proyek dihapus",
-			"deleteProject": "Hapus Proyek",
 			"switcherLabel": "Ganti proyek atau tampilan"
 		},
 		"search": {

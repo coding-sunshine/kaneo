@@ -67,6 +67,9 @@ vi.mock("@/components/shared/modals/create-project-modal", () => ({
 vi.mock("@/components/common/favorite-star", () => ({
   FavoriteStar: () => null,
 }));
+vi.mock("@/components/team/leave-team-dialog", () => ({
+  LeaveTeamDialog: () => null,
+}));
 vi.mock("@/components/team/team-menu-items", () => ({
   TeamMenuItems: () => null,
 }));

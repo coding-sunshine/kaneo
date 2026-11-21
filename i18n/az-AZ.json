@@ -2883,10 +2883,6 @@
 			"projectSettings": "Layihə parametrləri",
 			"linkCopied": "Layihənin keçidi mübadilə buferinə kopyalandı",
 			"addProject": "Layihə əlavə et",
-			"deleteConfirmTitle": "Layihə silinsin?",
-			"deleteConfirmDescription": "Bu, layihəni və bütün məlumatlarını həmişəlik siləcək. Bu əməliyyatı geri qaytara bilməzsiniz.",
-			"deletedToast": "Layihə silindi",
-			"deleteProject": "Layihəni sil",
 			"switcherLabel": "Layihəni və ya görünüşü dəyiş"
 		},
 		"search": {

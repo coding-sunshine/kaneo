@@ -2932,10 +2932,6 @@
 			"projectSettings": "Impostazioni progetto",
 			"linkCopied": "Link del progetto copiato negli appunti",
 			"addProject": "Aggiungi progetto",
-			"deleteConfirmTitle": "Eliminare il Progetto?",
-			"deleteConfirmDescription": "Questo rimuoverà permanentemente il progetto e tutti i suoi dati. Non puoi annullare questa azione.",
-			"deletedToast": "Progetto eliminato",
-			"deleteProject": "Elimina Progetto",
 			"switcherLabel": "Cambia progetto o vista"
 		},
 		"search": {

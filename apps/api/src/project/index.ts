@@ -37,12 +37,14 @@ import moveProjectCtrl from "./controllers/move-project";
 import reorderProjectsCtrl from "./controllers/reorder-projects";
 import unarchiveProjectCtrl from "./controllers/unarchive-project";
 import updateProjectCtrl from "./controllers/update-project";
+import updateTeamMembershipCtrl from "./controllers/update-team-membership";
 import {
   movedProjectSchema,
   projectBackgroundFinalizeSchema,
   projectBackgroundUploadSchema,
   projectListSchema,
   projectSchema,
+  teamMembershipSchema,
   toPublicProject,
 } from "./response";
 import {
@@ -53,6 +55,7 @@ import {
   projectParam,
   reorderProjectsBody,
   updateProjectBody,
+  updateTeamMembershipBody,
   uploadProjectBackgroundBody,
   workspaceIdQuery,
 } from "./schema";
@@ -282,6 +285,32 @@ const unarchiveProjectRoute = createRoute({
       "No access to the project, or missing project:update permission",
     ),
     409: errorResponse("Another project in the workspace uses this key"),
+    404: errorResponse("Project not found"),
+  },
+});
+
+const updateTeamMembershipRoute = createRoute({
+  method: "put",
+  operationId: "updateTeamMembership",
+  path: "/{id}/membership",
+  tags: ["Projects"],
+  summary: "Join, leave or subscribe to a team",
+  description:
+    "Change your own membership of a project and which of its events notify you. Omitted fields stay as they are. Leaving hides the project from your sidebar and clears your subscriptions; you can still open, create and be assigned its tasks.",
+  middleware: [
+    workspaceAccess.fromProject(),
+    requireWorkspacePermission({ project: ["read"] }),
+  ] as const,
+  request: {
+    params: projectParam,
+    body: {
+      required: true,
+      content: { "application/json": { schema: updateTeamMembershipBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("Your membership of the project", teamMembershipSchema),
+    403: errorResponse("No access to the project, or missing read permission"),
     404: errorResponse("Project not found"),
   },
 });
@@ -580,6 +609,17 @@ const project = apiRouter<BaseVariables & { workspaceId: string }>()
     const unarchivedProject = await unarchiveProjectCtrl(id, workspaceId);
     return c.json(toPublicProject(unarchivedProject), 200);
   })
+  .openapi(updateTeamMembershipRoute, async (c) =>
+    c.json(
+      await updateTeamMembershipCtrl(
+        c.get("workspaceId"),
+        c.req.valid("param").id,
+        c.get("userId"),
+        c.req.valid("json"),
+      ),
+      200,
+    ),
+  )
   .openapi(uploadProjectBackgroundRoute, async (c) => {
     const { id } = c.req.valid("param");
     const { contentType, size } = c.req.valid("json");

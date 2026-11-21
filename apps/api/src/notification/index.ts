@@ -26,6 +26,7 @@ import {
   notificationWorkspaceQuery,
   snoozeNotificationBody,
 } from "./schema";
+import "./team-subscriptions";
 
 const listNotificationsRoute = createRoute({
   method: "get",

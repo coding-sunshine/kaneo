@@ -1,7 +1,12 @@
 import { and, count, eq, isNull, min, sql } from "drizzle-orm";
 import db from "../../database";
-import { projectTable, taskTable } from "../../database/schema";
+import {
+  projectMemberPreferenceTable,
+  projectTable,
+  taskTable,
+} from "../../database/schema";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
+import { toTeamMembership } from "../team-membership";
 
 type ProjectStatistics = {
   completionPercentage: number;
@@ -85,15 +90,21 @@ async function getProjects(
     ],
   });
 
-  const statisticsByProject = await getProjectStatistics(
-    workspaceId,
-    userId,
-    includeArchived,
+  const [statisticsByProject, preferences] = await Promise.all([
+    getProjectStatistics(workspaceId, userId, includeArchived),
+    db
+      .select()
+      .from(projectMemberPreferenceTable)
+      .where(eq(projectMemberPreferenceTable.userId, userId)),
+  ]);
+  const preferenceByProject = new Map(
+    preferences.map((row) => [row.projectId, row]),
   );
 
   return projects.map((project) => ({
     ...project,
     statistics: statisticsByProject.get(project.id) ?? EMPTY_STATISTICS,
+    membership: toTeamMembership(preferenceByProject.get(project.id)),
     archivedTasks: [],
     plannedTasks: [],
     columns: [],

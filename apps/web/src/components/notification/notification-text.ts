@@ -81,6 +81,14 @@ export function getNotificationTitle(
           ...eventData,
           defaultValue: notification.title ?? notification.type,
         });
+      case "team_issue_added":
+      case "team_issue_closed":
+      case "team_issue_triage":
+        return t(`notifications:events.${notification.type}.title`, {
+          ...eventData,
+          newStatus: getStatusLabel(String(eventData.newStatus ?? "")),
+          defaultValue: notification.title ?? notification.type,
+        });
       default:
         break;
     }
@@ -147,6 +155,14 @@ export function getNotificationContent(
       case "task_overdue":
         return t("notifications:events.task_overdue.content", {
           ...eventData,
+          defaultValue: notification.content ?? "",
+        });
+      case "team_issue_added":
+      case "team_issue_closed":
+      case "team_issue_triage":
+        return t(`notifications:events.${notification.type}.content`, {
+          ...eventData,
+          newStatus: getStatusLabel(String(eventData.newStatus ?? "")),
           defaultValue: notification.content ?? "",
         });
       default:

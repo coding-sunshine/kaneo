@@ -2931,7 +2931,8 @@
 			"views": "Views",
 			"favorites": "Favorites",
 			"teamHome": "Home",
-			"documents": "Documents"
+			"documents": "Documents",
+			"exploring": "Exploring"
 		},
 		"projectList": {
 			"viewProject": "View Project",
@@ -2940,10 +2941,6 @@
 			"archive": "Archive",
 			"linkCopied": "Project link copied to clipboard",
 			"addProject": "Add project",
-			"deleteConfirmTitle": "Delete Project?",
-			"deleteConfirmDescription": "This will permanently remove the project and all its data. You can't undo this action.",
-			"deletedToast": "Project deleted",
-			"deleteProject": "Delete Project",
 			"switcherLabel": "Switch project or view",
 			"favorite": "Favorite",
 			"unfavorite": "Remove from favorites",
@@ -2952,7 +2949,15 @@
 			"openArchive": "Open archive",
 			"moreMenu": "Team menu",
 			"addFavorite": "Add to favorites",
-			"removeFavorite": "Remove from favorites"
+			"removeFavorite": "Remove from favorites",
+			"subscribe": "Subscribe",
+			"subscribeIssueAdded": "An issue is added to the team",
+			"subscribeIssueClosed": "An issue is marked completed or canceled",
+			"subscribeIssueTriage": "An issue is added to the triage queue",
+			"leaveTeam": "Leave team",
+			"joinTeam": "Join team",
+			"leaveConfirmTitle": "Leave {{name}}?",
+			"leaveConfirmDescription": "{{name}} leaves your sidebar and its subscriptions stop. You can still open its issues and join again at any time."
 		},
 		"search": {
 			"inputPlaceholder": "Search issues, projects, comments...",
@@ -3317,6 +3322,18 @@
 				"title": "Time tracking started",
 				"contentWithTask": "Time tracking started on issue: {{taskTitle}}",
 				"contentWithoutTask": "Time tracking started on an issue"
+			},
+			"team_issue_added": {
+				"title": "New issue in {{teamName}}",
+				"content": "\"{{taskTitle}}\" was added to {{teamName}}"
+			},
+			"team_issue_closed": {
+				"title": "Moved to {{newStatus}} in {{teamName}}",
+				"content": "\"{{taskTitle}}\" was moved to {{newStatus}} in {{teamName}}"
+			},
+			"team_issue_triage": {
+				"title": "Added to {{teamName}} triage",
+				"content": "\"{{taskTitle}}\" is waiting in {{teamName}} triage"
 			}
 		},
 		"inbox": {

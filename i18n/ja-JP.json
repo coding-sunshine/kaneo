@@ -2834,10 +2834,6 @@
 			"projectSettings": "プロジェクト設定",
 			"linkCopied": "プロジェクトのリンクをクリップボードにコピーしました",
 			"addProject": "プロジェクトを追加",
-			"deleteConfirmTitle": "プロジェクトを削除しますか？",
-			"deleteConfirmDescription": "これにより、プロジェクトとそのすべてのデータが完全に削除されます。この操作は取り消せません。",
-			"deletedToast": "プロジェクトを削除しました",
-			"deleteProject": "プロジェクトを削除",
 			"switcherLabel": "プロジェクトまたはビューを切り替え"
 		},
 		"search": {

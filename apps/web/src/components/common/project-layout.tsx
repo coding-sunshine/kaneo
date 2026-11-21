@@ -22,6 +22,10 @@ import { useGoToProjectView } from "@/components/project/views/use-go-to-project
 import { ViewToggle } from "@/components/project/views/view-toggle";
 import { useProjectViewShortcuts } from "@/components/project/views/use-project-view-shortcuts";
 import { FavoriteStar } from "@/components/common/favorite-star";
+import {
+  LeaveTeamDialog,
+  type LeavingTeam,
+} from "@/components/team/leave-team-dialog";
 import { TeamMenuItems } from "@/components/team/team-menu-items";
 import {
   DropdownMenu,
@@ -82,6 +86,7 @@ export default function ProjectLayout({
   const unavailableReason = getProjectUnavailableReason(projectError);
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] =
     useState(false);
+  const [leaving, setLeaving] = useState<LeavingTeam | null>(null);
   const { background } = useBackgroundStore();
   const insightsOpen = useUserPreferencesStore((state) => state.insightsOpen);
   const setInsightsOpen = useUserPreferencesStore(
@@ -179,6 +184,7 @@ export default function ProjectLayout({
                 <TeamMenuItems
                   workspaceId={workspaceId}
                   projectId={projectId}
+                  onLeave={setLeaving}
                 />
               </DropdownMenuContent>
             </DropdownMenu>
@@ -284,6 +290,11 @@ export default function ProjectLayout({
       <CreateProjectModal
         open={isCreateProjectModalOpen}
         onClose={() => setIsCreateProjectModalOpen(false)}
+      />
+      <LeaveTeamDialog
+        workspaceId={workspaceId}
+        team={leaving}
+        onClose={() => setLeaving(null)}
       />
     </>
   );

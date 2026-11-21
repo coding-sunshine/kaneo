@@ -1003,6 +1003,9 @@
               "statistics": {
                 "$ref": "#/components/schemas/ProjectStatistics"
               },
+              "membership": {
+                "$ref": "#/components/schemas/TeamMembership"
+              },
               "archivedTasks": {
                 "type": "array",
                 "items": {
@@ -1027,6 +1030,7 @@
             },
             "required": [
               "statistics",
+              "membership",
               "archivedTasks",
               "plannedTasks",
               "columns"
@@ -1057,6 +1061,51 @@
           "totalTasks",
           "dueDate"
         ]
+      },
+      "TeamMembership": {
+        "type": "object",
+        "properties": {
+          "joined": {
+            "type": "boolean",
+            "description": "False once you left the team. Leaving only hides it from your sidebar."
+          },
+          "notifyIssueAdded": {
+            "type": "boolean",
+            "description": "Notify you when an issue is added to the team."
+          },
+          "notifyIssueClosed": {
+            "type": "boolean",
+            "description": "Notify you when an issue is completed or canceled."
+          },
+          "notifyIssueTriage": {
+            "type": "boolean",
+            "description": "Notify you when an issue is added to the triage queue."
+          }
+        },
+        "required": [
+          "joined",
+          "notifyIssueAdded",
+          "notifyIssueClosed",
+          "notifyIssueTriage"
+        ]
+      },
+      "UpdateTeamMembership": {
+        "type": "object",
+        "properties": {
+          "joined": {
+            "type": "boolean",
+            "description": "False leaves the team: it drops out of your sidebar and its subscriptions are cleared. Access to the team's issues is unchanged."
+          },
+          "notifyIssueAdded": {
+            "type": "boolean"
+          },
+          "notifyIssueClosed": {
+            "type": "boolean"
+          },
+          "notifyIssueTriage": {
+            "type": "boolean"
+          }
+        }
       },
       "ProjectBackgroundUpload": {
         "type": "object",
@@ -5624,6 +5673,10 @@
           "role": {
             "type": "string",
             "description": "The member's workspace role: a built-in role (owner, admin, member, viewer) or the name of a custom role defined in the workspace. Several roles are comma-separated, for example owner,viewer."
+          },
+          "joinedTeam": {
+            "type": "boolean",
+            "description": "Only when projectId is passed: false once the member left that project's team. They keep access to it."
           }
         },
         "required": [
@@ -12402,6 +12455,81 @@
           },
           "409": {
             "description": "Another project in the workspace uses this key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/project/{id}/membership": {
+      "put": {
+        "operationId": "updateTeamMembership",
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Join, leave or subscribe to a team",
+        "description": "Change your own membership of a project and which of its events notify you. Omitted fields stay as they are. Leaving hides the project from your sidebar and clears your subscriptions; you can still open, create and be assigned its tasks.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTeamMembership"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Your membership of the project",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamMembership"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing read permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
             "content": {
               "application/json": {
                 "schema": {

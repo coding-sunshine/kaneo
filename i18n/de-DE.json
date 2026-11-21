@@ -2883,10 +2883,6 @@
 			"projectSettings": "Projekteinstellungen",
 			"linkCopied": "Projektlink in die Zwischenablage kopiert",
 			"addProject": "Projekt hinzufügen",
-			"deleteConfirmTitle": "Projekt löschen?",
-			"deleteConfirmDescription": "Dadurch wird das Projekt und alle zugehörigen Daten dauerhaft entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
-			"deletedToast": "Projekt gelöscht",
-			"deleteProject": "Projekt löschen",
 			"switcherLabel": "Projekt oder Ansicht wechseln"
 		},
 		"search": {

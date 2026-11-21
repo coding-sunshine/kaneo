@@ -20,30 +20,14 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useQueryClient } from "@tanstack/react-query";
-import {
-  Link,
-  useLocation,
-  useNavigate,
-  useParams,
-} from "@tanstack/react-router";
-import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
-import { triageTasks } from "@/lib/status-category";
-import { teamColor } from "@/lib/team-color";
-import { TeamMenuItems } from "@/components/team/team-menu-items";
+import { useParams } from "@tanstack/react-router";
 import { FavoritesNav } from "@/components/team/favorites-nav";
 import {
-  ChevronRight,
-  CircleArrowDown,
-  CirclePlay,
-  Box,
-  Layers,
-  House,
-  Layers2,
-  MoreHorizontal,
-  Plus,
-  Trash2Icon,
-} from "lucide-react";
+  LeaveTeamDialog,
+  type LeavingTeam,
+} from "@/components/team/leave-team-dialog";
+import { TeamNavRow } from "@/components/team/team-nav-row";
+import { ChevronRight, Plus } from "lucide-react";
 import { type CSSProperties, type ReactNode, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -53,25 +37,13 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/menu";
-import {
   SidebarGroup,
   SidebarGroupAction,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
-import icons from "@/constants/project-icons";
-import useDeleteProject from "@/hooks/mutations/project/use-delete-project";
 import useReorderProjects from "@/hooks/mutations/project/use-reorder-projects";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
@@ -81,16 +53,6 @@ import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { EASE_OUT_CSS } from "@/lib/motion";
 import { toast } from "@/lib/toast";
 import CreateProjectModal from "./shared/modals/create-project-modal";
-import {
-  AlertDialog,
-  AlertDialogClose,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "./ui/alert-dialog";
-import { Button } from "./ui/button";
 
 function SortableProjectItem({
   id,
@@ -134,7 +96,6 @@ function SortableProjectItem({
 
 export function NavProjects() {
   const { t } = useTranslation();
-  const { isMobile } = useSidebar();
   const { data: workspace } = useActiveWorkspace();
   const collapsedNavIds = useUserPreferencesStore((s) => s.collapsedNavIds);
   const setNavOpen = useUserPreferencesStore((s) => s.setNavOpen);
@@ -144,18 +105,12 @@ export function NavProjects() {
     },
     true,
   );
-  const queryClient = useQueryClient();
-  const { mutateAsync: deleteProject } = useDeleteProject();
   const reorderProjects = useReorderProjects();
-  const { canCreateProjects, canDeleteProjects, canUpdateProjects } =
-    useWorkspacePermission();
+  const { canCreateProjects, canUpdateProjects } = useWorkspacePermission();
   const canCreate = canCreateProjects();
-  const canDeleteProject = canDeleteProjects();
   // Matches the API, which gates /project/reorder on `project: ["update"]`
   // alone — not the create+update+delete bundle.
   const canReorder = canUpdateProjects();
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
   const boardHoverPrefetch = useBoardHoverPrefetch(workspace?.id ?? "");
   const { workspaceId: currentWorkspaceId, projectId: currentProjectId } =
     useParams({
@@ -164,16 +119,22 @@ export function NavProjects() {
 
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] =
     useState(false);
-  const [isDeleteProjectModalOpen, setIsDeleteProjectModalOpen] =
-    useState(false);
-  const [projectToDeleteId, setProjectToDeleteID] = useState<string | null>(
-    null,
-  );
+  const [leaving, setLeaving] = useState<LeavingTeam | null>(null);
   const [draggingProjectId, setDraggingProjectId] = useState<string | null>(
     null,
   );
 
-  const draggingProject = projects?.find(
+  // Linear: "Your teams" lists the teams you joined; a team you open
+  // without joining shows under "Exploring" while you are on it.
+  const joined = projects?.filter((project) => project.membership.joined) ?? [];
+  const exploring = projects?.find(
+    (project) =>
+      project.id === currentProjectId &&
+      currentWorkspaceId === workspace?.id &&
+      !project.membership.joined,
+  );
+
+  const draggingProject = joined.find(
     (project) => project.id === draggingProjectId,
   );
 
@@ -211,12 +172,17 @@ export function NavProjects() {
 
     if (!over || active.id === over.id || !projects || !workspace) return;
 
-    const oldIndex = projects.findIndex((project) => project.id === active.id);
-    const newIndex = projects.findIndex((project) => project.id === over.id);
+    const oldIndex = joined.findIndex((project) => project.id === active.id);
+    const newIndex = joined.findIndex((project) => project.id === over.id);
 
     if (oldIndex === -1 || newIndex === -1) return;
 
-    const reordered = arrayMove(projects, oldIndex, newIndex);
+    // Teams you left keep their slots; only the joined ones trade places.
+    const moved = arrayMove(joined, oldIndex, newIndex);
+    let next = 0;
+    const reordered = projects.map((project) =>
+      project.membership.joined ? (moved[next++] ?? project) : project,
+    );
 
     reorderProjects(workspace.id, reordered, {
       onError: () => {
@@ -272,100 +238,24 @@ export function NavProjects() {
               >
                 <SidebarMenu className="gap-px">
                   <SortableContext
-                    items={projects?.map((project) => project.id) ?? []}
+                    items={joined.map((project) => project.id)}
                     strategy={verticalListSortingStrategy}
                   >
-                    {projects?.map((project) => {
-                      const ProjectIcon =
-                        icons[project.icon as keyof typeof icons] ||
-                        icons.Layout;
-
-                      return (
-                        <SortableProjectItem
-                          key={project.id}
-                          id={project.id}
-                          canReorder={canReorder}
-                        >
-                          <Collapsible
-                            open={
-                              !collapsedNavIds.includes(`team:${project.id}`)
-                            }
-                            onOpenChange={(open) =>
-                              setNavOpen(`team:${project.id}`, open)
-                            }
-                            className="group/team"
-                          >
-                            <CollapsibleTrigger
-                              className="data-panel-open:[&_.team-chevron]:rotate-90"
-                              nativeButton
-                              render={
-                                <SidebarMenuButton
-                                  size="default"
-                                  {...boardHoverPrefetch(project.id)}
-                                />
-                              }
-                            >
-                              <ProjectIcon
-                                aria-hidden="true"
-                                style={{ color: teamColor(project.id) }}
-                              />
-                              <span className="min-w-0 truncate">
-                                {project.name}
-                              </span>
-                              <ChevronRight className="team-chevron ml-0.5 size-3! text-sidebar-foreground/60 transition-transform duration-150 group-focus-within/menu-item:opacity-0 group-hover/menu-item:opacity-0" />
-                            </CollapsibleTrigger>
-
-                            <DropdownMenu>
-                              <DropdownMenuTrigger
-                                render={
-                                  <button
-                                    type="button"
-                                    // The row is the drag source; this press
-                                    // must not reach it.
-                                    onPointerDown={(event) =>
-                                      event.stopPropagation()
-                                    }
-                                    className="absolute top-0.5 right-1 flex size-6 items-center justify-center rounded-md p-0 text-sidebar-foreground outline-hidden ring-sidebar-ring transition-transform hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 peer-hover/menu-button:text-sidebar-accent-foreground after:-inset-2 after:absolute md:after:hidden [&>svg]:size-4 group-data-[collapsible=icon]:hidden group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-popup-open:opacity-100 peer-data-[active=true]/menu-button:text-sidebar-accent-foreground md:opacity-0"
-                                  />
-                                }
-                              >
-                                <MoreHorizontal />
-                                <span className="sr-only">
-                                  {t("navigation:sidebar.more")}
-                                </span>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent
-                                className="min-w-44 rounded-lg"
-                                side={isMobile ? "bottom" : "right"}
-                                align={isMobile ? "end" : "start"}
-                              >
-                                <TeamMenuItems
-                                  workspaceId={workspace.id}
-                                  projectId={project.id}
-                                  onDelete={
-                                    canDeleteProject
-                                      ? () => {
-                                          setProjectToDeleteID(project.id);
-                                          setIsDeleteProjectModalOpen(true);
-                                        }
-                                      : undefined
-                                  }
-                                />
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                            <CollapsiblePanel>
-                              <ProjectSubNav
-                                workspaceId={workspace.id}
-                                projectId={project.id}
-                                pathname={pathname}
-                                isCurrent={isCurrentProject(project.id)}
-                                cyclesEnabled={!!project.cyclesEnabled}
-                              />
-                            </CollapsiblePanel>
-                          </Collapsible>
-                        </SortableProjectItem>
-                      );
-                    })}
+                    {joined.map((project) => (
+                      <SortableProjectItem
+                        key={project.id}
+                        id={project.id}
+                        canReorder={canReorder}
+                      >
+                        <TeamNavRow
+                          workspaceId={workspace.id}
+                          project={project}
+                          isCurrent={isCurrentProject(project.id)}
+                          hoverPrefetch={boardHoverPrefetch(project.id)}
+                          onLeave={setLeaving}
+                        />
+                      </SortableProjectItem>
+                    ))}
                   </SortableContext>
                 </SidebarMenu>
 
@@ -386,192 +276,37 @@ export function NavProjects() {
         </SidebarGroup>
       </Collapsible>
 
+      {exploring && (
+        <SidebarGroup className="group-data-[collapsible=icon]:hidden gap-1 p-2 pt-1">
+          <SidebarGroupLabel className="h-7 px-2 text-xs text-sidebar-foreground">
+            {t("navigation:sidebar.exploring")}
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-px">
+              <SidebarMenuItem>
+                <TeamNavRow
+                  workspaceId={workspace.id}
+                  project={exploring}
+                  isCurrent
+                  hoverPrefetch={boardHoverPrefetch(exploring.id)}
+                  onLeave={setLeaving}
+                />
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      )}
+
       <CreateProjectModal
         open={isCreateProjectModalOpen}
         onClose={() => setIsCreateProjectModalOpen(false)}
       />
 
-      <AlertDialog
-        open={isDeleteProjectModalOpen}
-        onOpenChange={setIsDeleteProjectModalOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("navigation:projectList.deleteConfirmTitle")}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("navigation:projectList.deleteConfirmDescription")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogClose render={<Button variant="outline" size="sm" />}>
-              {t("common:actions.cancel")}
-            </AlertDialogClose>
-            <AlertDialogClose
-              render={
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={async () => {
-                    await deleteProject({
-                      id: projectToDeleteId || "",
-                    });
-                    toast.success(t("navigation:projectList.deletedToast"), {
-                      icon: Trash2Icon,
-                    });
-                    queryClient.invalidateQueries({
-                      queryKey: ["projects"],
-                    });
-                    navigate({
-                      to: "/dashboard/workspace/$workspaceId",
-                      params: {
-                        workspaceId: workspace?.id || "",
-                      },
-                    });
-                  }}
-                />
-              }
-            >
-              {t("navigation:projectList.deleteProject")}
-            </AlertDialogClose>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <LeaveTeamDialog
+        workspaceId={workspace.id}
+        team={leaving}
+        onClose={() => setLeaving(null)}
+      />
     </>
-  );
-}
-
-function ProjectSubNav({
-  workspaceId,
-  projectId,
-  pathname,
-  isCurrent,
-  cyclesEnabled,
-}: {
-  workspaceId: string;
-  projectId: string;
-  pathname: string;
-  isCurrent: boolean;
-  cyclesEnabled: boolean;
-}) {
-  const { t } = useTranslation();
-  const { data } = useGetTasks(projectId, { refetchOnMount: false });
-  const triageCount = data ? triageTasks(data).length : 0;
-  return (
-    <SidebarMenuSub className="mx-0 translate-x-0 gap-px border-0 py-0.5 pr-0 pl-4">
-      <SidebarMenuSubItem>
-        <SidebarMenuSubButton
-          isActive={isCurrent && pathname.endsWith("/home")}
-          render={
-            <Link
-              to="/dashboard/workspace/$workspaceId/project/$projectId/home"
-              params={{ workspaceId, projectId }}
-            />
-          }
-        >
-          <House aria-hidden="true" />
-          <span>{t("navigation:sidebar.teamHome")}</span>
-        </SidebarMenuSubButton>
-      </SidebarMenuSubItem>
-      <SidebarMenuSubItem>
-        <SidebarMenuSubButton
-          isActive={isCurrent && pathname.endsWith("/triage")}
-          render={
-            <Link
-              to="/dashboard/workspace/$workspaceId/project/$projectId/triage"
-              params={{ workspaceId, projectId }}
-            />
-          }
-        >
-          <CircleArrowDown aria-hidden="true" />
-          <span>{t("navigation:sidebar.triage")}</span>
-          {triageCount > 0 && (
-            <span className="ml-auto font-normal text-muted-foreground text-xs tabular-nums">
-              {triageCount}
-            </span>
-          )}
-        </SidebarMenuSubButton>
-      </SidebarMenuSubItem>
-      <SidebarMenuSubItem>
-        <SidebarMenuSubButton
-          isActive={isCurrent && pathname.endsWith("/board")}
-          render={
-            <Link
-              to="/dashboard/workspace/$workspaceId/project/$projectId/board"
-              params={{ workspaceId, projectId }}
-            />
-          }
-        >
-          <Layers aria-hidden="true" />
-          <span>{t("navigation:sidebar.issues")}</span>
-        </SidebarMenuSubButton>
-      </SidebarMenuSubItem>
-      {cyclesEnabled && (
-        <SidebarMenuSubItem>
-          <SidebarMenuSubButton
-            isActive={isCurrent && pathname.endsWith("/cycles")}
-            render={
-              <Link
-                to="/dashboard/workspace/$workspaceId/project/$projectId/cycles"
-                params={{ workspaceId, projectId }}
-              />
-            }
-          >
-            <CirclePlay aria-hidden="true" />
-            <span>{t("navigation:sidebar.cycles")}</span>
-          </SidebarMenuSubButton>
-          {(["active", "upcoming"] as const).map((alias) => (
-            <SidebarMenuSubButton
-              key={alias}
-              className="pl-7"
-              isActive={isCurrent && pathname.endsWith(`/cycle/${alias}`)}
-              render={
-                <Link
-                  to="/dashboard/workspace/$workspaceId/project/$projectId/cycle/$cycleId"
-                  params={{ workspaceId, projectId, cycleId: alias }}
-                />
-              }
-            >
-              <span>
-                {t(
-                  alias === "active"
-                    ? "navigation:sidebar.currentCycle"
-                    : "navigation:sidebar.upcomingCycle",
-                )}
-              </span>
-            </SidebarMenuSubButton>
-          ))}
-        </SidebarMenuSubItem>
-      )}
-      <SidebarMenuSubItem>
-        <SidebarMenuSubButton
-          isActive={isCurrent && pathname.endsWith("/projects")}
-          render={
-            <Link
-              to="/dashboard/workspace/$workspaceId/project/$projectId/projects"
-              params={{ workspaceId, projectId }}
-            />
-          }
-        >
-          <Box aria-hidden="true" />
-          <span>{t("navigation:sidebar.teamProjects")}</span>
-        </SidebarMenuSubButton>
-      </SidebarMenuSubItem>
-      <SidebarMenuSubItem>
-        <SidebarMenuSubButton
-          isActive={isCurrent && pathname.endsWith("/views")}
-          render={
-            <Link
-              to="/dashboard/workspace/$workspaceId/project/$projectId/views"
-              params={{ workspaceId, projectId }}
-            />
-          }
-        >
-          <Layers2 aria-hidden="true" />
-          <span>{t("navigation:sidebar.views")}</span>
-        </SidebarMenuSubButton>
-      </SidebarMenuSubItem>
-    </SidebarMenuSub>
   );
 }

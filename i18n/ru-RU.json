@@ -2989,10 +2989,6 @@
 			"projectSettings": "Настройки проекта",
 			"linkCopied": "Ссылка на проект скопирована в буфер обмена",
 			"addProject": "Добавить проект",
-			"deleteConfirmTitle": "Удалить проект?",
-			"deleteConfirmDescription": "Проект и все его данные будут безвозвратно удалены. Это действие нельзя отменить.",
-			"deletedToast": "Проект удалён",
-			"deleteProject": "Удалить проект",
 			"switcherLabel": "Сменить проект или вид"
 		},
 		"search": {

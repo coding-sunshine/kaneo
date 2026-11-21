@@ -50,9 +50,28 @@ export const projectStatisticsSchema = z
   })
   .openapi("ProjectStatistics");
 
+export const teamMembershipSchema = z
+  .object({
+    joined: z.boolean().openapi({
+      description:
+        "False once you left the team. Leaving only hides it from your sidebar.",
+    }),
+    notifyIssueAdded: z.boolean().openapi({
+      description: "Notify you when an issue is added to the team.",
+    }),
+    notifyIssueClosed: z.boolean().openapi({
+      description: "Notify you when an issue is completed or canceled.",
+    }),
+    notifyIssueTriage: z.boolean().openapi({
+      description: "Notify you when an issue is added to the triage queue.",
+    }),
+  })
+  .openapi("TeamMembership");
+
 export const projectListItemSchema = projectSchema
   .extend({
     statistics: projectStatisticsSchema,
+    membership: teamMembershipSchema,
     // Legacy, always empty. Fetch the board via GET /task/tasks/{id}.
     archivedTasks: z
       .array(boardTaskSchema)

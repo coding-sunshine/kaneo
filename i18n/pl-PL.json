@@ -615,10 +615,6 @@
 			"projectSettings": "Ustawienia projektu",
 			"linkCopied": "Link do projektu skopiowany do schowka",
 			"addProject": "Dodaj projekt",
-			"deleteConfirmTitle": "Usunąć projekt?",
-			"deleteConfirmDescription": "Spowoduje to trwałe usunięcie projektu i wszystkich jego danych. Nie można tego cofnąć.",
-			"deletedToast": "Projekt usunięty",
-			"deleteProject": "Usuń projekt",
 			"switcherLabel": "Przełącz projekt lub widok"
 		},
 		"search": {
