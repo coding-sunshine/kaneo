@@ -208,6 +208,32 @@ describe("API integration: team membership", () => {
     expect(await inbox(owner)).toHaveLength(0);
   });
 
+  it("tells subscribers when an issue moves into the team", async () => {
+    const { ws, owner, alice, project, as, membership, types } = await setup();
+    const { project: design } = await createProjectFixture({
+      workspaceId: ws,
+      name: "Design",
+    });
+    await membership(alice, { notifyIssueAdded: true });
+    const task = await (
+      await as(owner)(
+        `/task/${design.id}`,
+        json("POST", {
+          title: "Moved",
+          description: "",
+          priority: "no-priority",
+          status: "to-do",
+        }),
+      )
+    ).json();
+    const moved = await as(owner)(
+      `/task/move/${task.id}`,
+      json("PUT", { destinationProjectId: project.id }),
+    );
+    expect(moved.status).toBe(200);
+    await types(alice, ["team_issue_added"]);
+  });
+
   it("skips subscribers who lost access to the team", async () => {
     const { ws, owner, alice, bob, membership, createTask, inbox, types } =
       await setup();

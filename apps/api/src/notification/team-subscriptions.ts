@@ -4,6 +4,7 @@ import {
   columnTable,
   projectMemberPreferenceTable,
   projectTable,
+  taskTable,
 } from "../database/schema";
 import { subscribeToEvent } from "../events";
 import createNotification from "./controllers/create-notification";
@@ -141,5 +142,32 @@ subscribeToEvent<{
     events,
     skipUserIds: [data.userId, data.assigneeId],
     newStatus: data.newStatus,
+  });
+});
+
+subscribeToEvent<{
+  taskId: string;
+  userId?: string;
+  fromProjectId: string;
+  toProjectId: string;
+  newStatus: string;
+}>("task.moved", async (data) => {
+  // Moving an issue into a team adds it to that team.
+  if (data.fromProjectId === data.toProjectId) return;
+  const [task] = await db
+    .select({ title: taskTable.title, assigneeId: taskTable.userId })
+    .from(taskTable)
+    .where(eq(taskTable.id, data.taskId))
+    .limit(1);
+  if (!task) return;
+  await notifyTeamSubscribers({
+    projectId: data.toProjectId,
+    taskId: data.taskId,
+    title: task.title,
+    events:
+      data.newStatus === "triage"
+        ? ["issue_added", "issue_triage"]
+        : ["issue_added"],
+    skipUserIds: [data.userId, task.assigneeId],
   });
 });
