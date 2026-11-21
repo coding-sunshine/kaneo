@@ -74,6 +74,7 @@ export const SHORTCUTS = {
   assignTask: { keys: ["a"], category: "tasks", scope: "task" },
   assignToMe: { keys: ["i"], category: "tasks", scope: "task" },
   changeLabels: { keys: ["l"], category: "tasks", scope: "task" },
+  changeCycle: { keys: ["shift+c"], category: "tasks", scope: "task" },
   setDueDate: { keys: ["shift+d"], category: "tasks", scope: "task" },
   removeDueDate: { keys: ["mod+shift+d"], category: "tasks", scope: "task" },
   renameTask: { keys: ["shift+r"], category: "tasks", scope: "task" },

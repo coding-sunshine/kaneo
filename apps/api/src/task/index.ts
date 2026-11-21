@@ -69,6 +69,8 @@ import {
 } from "./controllers/task-attachments";
 import { listArchivedTasks, unarchiveTask } from "./controllers/task-archive";
 import updateTaskSnooze from "./controllers/update-task-snooze";
+import { updateTaskCycleBody } from "../cycle/schema";
+import updateTaskCycle from "./controllers/update-task-cycle";
 import updateTaskWorkProject from "./controllers/update-task-work-project";
 import { setSubscription } from "./controllers/task-subscribers";
 import updateTaskStatus from "./controllers/update-task-status";
@@ -656,6 +658,33 @@ const updateTaskSnoozeRoute = createRoute({
   },
 });
 
+const updateTaskCycleRoute = createRoute({
+  method: "put",
+  operationId: "updateTaskCycle",
+  path: "/cycle/{id}",
+  tags: ["Tasks"],
+  summary: "Set a task's cycle",
+  description:
+    "Put the task in a cycle of its own team, or send null to remove it from its cycle.",
+  middleware: [
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["update"] }),
+    requireEntitlement,
+  ] as const,
+  request: {
+    params: taskParam,
+    body: {
+      required: true,
+      content: { "application/json": { schema: updateTaskCycleBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("The updated task", taskSchema),
+    403: errorResponse("Missing task:update permission"),
+    404: errorResponse("Task or cycle not found"),
+  },
+});
+
 const updateTaskWorkProjectRoute = createRoute({
   method: "put",
   operationId: "updateTaskWorkProject",
@@ -1171,6 +1200,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       draftAssetIds,
       workProjectId: c.req.valid("json").workProjectId,
       workProjectMilestoneId: c.req.valid("json").workProjectMilestoneId,
+      cycleId: c.req.valid("json").cycleId,
     });
 
     return c.json(task, 200);
@@ -1330,6 +1360,15 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
     });
     return c.json(task, 200);
   })
+  .openapi(updateTaskCycleRoute, async (c) =>
+    c.json(
+      await updateTaskCycle({
+        id: c.req.valid("param").id,
+        cycleId: c.req.valid("json").cycleId,
+      }),
+      200,
+    ),
+  )
   .openapi(updateTaskWorkProjectRoute, async (c) => {
     const { id } = c.req.valid("param");
     const { workProjectId, workProjectMilestoneId } = c.req.valid("json");

@@ -104,6 +104,9 @@ export const createTaskBody = z.object({
   workProjectMilestoneId: z.string().nullable().optional().openapi({
     description: "Milestone of that project.",
   }),
+  cycleId: z.string().nullable().optional().openapi({
+    description: "Cycle of the task's team the task belongs to.",
+  }),
   customFields: z
     .array(z.object({ fieldId: z.string(), value: z.string() }))
     .optional(),

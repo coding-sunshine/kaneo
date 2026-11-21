@@ -12,6 +12,7 @@ export type BoardFilters = {
   startDate?: string[] | null;
   labels: string[] | null;
   workProject?: string[] | null;
+  cycle?: string[] | null;
   customFields: Record<string, string[]> | null;
   negated?: string[] | null;
 };
@@ -36,6 +37,7 @@ const FILTER_KEYS: Array<keyof BoardFilters> = [
   "startDate",
   "labels",
   "workProject",
+  "cycle",
   "customFields",
 ];
 

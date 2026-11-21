@@ -199,6 +199,7 @@ async function getTasksPage(
     creatorId: taskTable.creatorId,
     workProjectId: taskTable.workProjectId,
     workProjectMilestoneId: taskTable.workProjectMilestoneId,
+    cycleId: taskTable.cycleId,
     snoozedUntil: taskTable.snoozedUntil,
     userId: taskTable.userId,
     assigneeName: userTable.name,

@@ -2839,6 +2839,26 @@
 				"response": "Invalid response"
 			},
 			"save": "Save"
+		},
+		"projectCycles": {
+			"title": "Cycles",
+			"subtitle": "Time-boxed periods of work for this team.",
+			"enable": "Enable cycles",
+			"enableDescription": "Plan work in recurring cycles.",
+			"duration": "Cycle duration",
+			"cooldown": "Cooldown",
+			"startDay": "Cycles start on",
+			"upcoming": "Upcoming cycles",
+			"upcomingDescription": "How many future cycles to keep created.",
+			"autoAddStarted": "Auto-add started issues",
+			"autoAddStartedDescription": "Add issues to the current cycle when work starts.",
+			"autoAddCompleted": "Auto-add completed issues",
+			"autoAddCompletedDescription": "Add issues to the current cycle when they are completed.",
+			"autoRollover": "Roll over unfinished issues",
+			"autoRolloverDescription": "Move unfinished issues to the next cycle when a cycle ends.",
+			"weeks_one": "{{count}} week",
+			"weeks_other": "{{count}} weeks",
+			"saveFailed": "Could not save cycle settings"
 		}
 	},
 	"navigation": {
@@ -2891,7 +2911,10 @@
 			"active": "Active",
 			"backlog": "Backlog",
 			"workProjects": "Projects",
-			"teamProjects": "Projects"
+			"teamProjects": "Projects",
+			"cycles": "Cycles",
+			"currentCycle": "Current",
+			"upcomingCycle": "Upcoming"
 		},
 		"projectList": {
 			"viewProject": "View Project",
@@ -2993,6 +3016,7 @@
 				"assignTask": "Assign",
 				"assignToMe": "Assign to me",
 				"changeLabels": "Change labels",
+				"changeCycle": "Change cycle",
 				"setDueDate": "Set due date",
 				"removeDueDate": "Remove due date",
 				"renameTask": "Rename",
@@ -3509,7 +3533,9 @@
 			"workProject": "Project",
 			"addWorkProject": "Add to project",
 			"milestone": "Milestone",
-			"addMilestone": "Add to milestone"
+			"addMilestone": "Add to milestone",
+			"cycle": "Cycle",
+			"addCycle": "Add to cycle"
 		},
 		"move": {
 			"title": "Move issue",
@@ -3602,6 +3628,14 @@
 				"placeholder": "Set milestone...",
 				"none": "No milestone",
 				"updateError": "Could not update the milestone"
+			},
+			"cycle": {
+				"placeholder": "Move to cycle…",
+				"none": "No cycle",
+				"updateError": "Could not update the cycle",
+				"current": "Current",
+				"upcoming": "Upcoming",
+				"previous": "Previous"
 			}
 		},
 		"backlog": {
@@ -3650,7 +3684,8 @@
 				"assignee": "Assignee",
 				"dueDate": "Due date",
 				"labels": "Labels",
-				"workProject": "Project"
+				"workProject": "Project",
+				"cycle": "Cycle"
 			},
 			"operators": {
 				"isAnyOf": "is any of",
@@ -3882,7 +3917,8 @@
 				"priority": "Priority",
 				"assignee": "Assignee",
 				"label": "Label",
-				"project": "Project"
+				"project": "Project",
+				"cycle": "Cycle"
 			},
 			"completedIssues": "Completed issues",
 			"completed": {
@@ -3909,7 +3945,8 @@
 			"hideColumn": "Hide column",
 			"selectAllInColumn": "Select all in column",
 			"useProjectDefault": "Use project default",
-			"noProject": "No project"
+			"noProject": "No project",
+			"noCycle": "No cycle"
 		},
 		"filterBar": {
 			"label": "Active filters",
@@ -3985,7 +4022,8 @@
 		},
 		"createModal": {
 			"project": "Project",
-			"milestone": "Milestone"
+			"milestone": "Milestone",
+			"cycle": "Cycle"
 		}
 	},
 	"invitations": {
@@ -4244,6 +4282,30 @@
 				"cancel": "Cancel",
 				"error": "Could not save the milestone",
 				"noDate": "No target date"
+			}
+		},
+		"cycles": {
+			"pageTitle": "Cycles",
+			"empty": "No cycles yet",
+			"emptyDescription": "Turn on cycles in the team settings to plan work in time-boxed sprints.",
+			"notFound": "Cycle not found",
+			"notFoundDescription": "This cycle does not exist or has not started being planned yet.",
+			"details": "Cycle details",
+			"progress": "Progress",
+			"scope": "Scope",
+			"started": "Started",
+			"completed": "Completed",
+			"assignees": "Assignees",
+			"percentOf": "{{percent}}% of {{count}}",
+			"percentCapacity": "{{percent}}% of capacity",
+			"percentSuccess": "{{percent}}% success",
+			"completedCount": "{{count}} completed",
+			"scopeCount": "{{count}} scope",
+			"state": {
+				"current": "Current",
+				"upcoming": "Upcoming",
+				"completed": "Completed",
+				"planned": "Planned"
 			}
 		}
 	},

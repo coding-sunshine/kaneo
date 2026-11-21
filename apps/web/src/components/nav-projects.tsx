@@ -32,6 +32,7 @@ import { triageTasks } from "@/lib/status-category";
 import {
   ChevronRight,
   CircleArrowDown,
+  CirclePlay,
   Folder,
   Box,
   Layers,
@@ -433,6 +434,7 @@ export function NavProjects() {
                                 projectId={project.id}
                                 pathname={pathname}
                                 isCurrent={isCurrentProject(project.id)}
+                                cyclesEnabled={!!project.cyclesEnabled}
                               />
                             </CollapsiblePanel>
                           </Collapsible>
@@ -520,11 +522,13 @@ function ProjectSubNav({
   projectId,
   pathname,
   isCurrent,
+  cyclesEnabled,
 }: {
   workspaceId: string;
   projectId: string;
   pathname: string;
   isCurrent: boolean;
+  cyclesEnabled: boolean;
 }) {
   const { t } = useTranslation();
   const { data } = useGetTasks(projectId, { refetchOnMount: false });
@@ -564,6 +568,43 @@ function ProjectSubNav({
           <span>{t("navigation:sidebar.issues")}</span>
         </SidebarMenuSubButton>
       </SidebarMenuSubItem>
+      {cyclesEnabled && (
+        <SidebarMenuSubItem>
+          <SidebarMenuSubButton
+            isActive={isCurrent && pathname.endsWith("/cycles")}
+            render={
+              <Link
+                to="/dashboard/workspace/$workspaceId/project/$projectId/cycles"
+                params={{ workspaceId, projectId }}
+              />
+            }
+          >
+            <CirclePlay aria-hidden="true" />
+            <span>{t("navigation:sidebar.cycles")}</span>
+          </SidebarMenuSubButton>
+          {(["active", "upcoming"] as const).map((alias) => (
+            <SidebarMenuSubButton
+              key={alias}
+              className="pl-7"
+              isActive={isCurrent && pathname.endsWith(`/cycle/${alias}`)}
+              render={
+                <Link
+                  to="/dashboard/workspace/$workspaceId/project/$projectId/cycle/$cycleId"
+                  params={{ workspaceId, projectId, cycleId: alias }}
+                />
+              }
+            >
+              <span>
+                {t(
+                  alias === "active"
+                    ? "navigation:sidebar.currentCycle"
+                    : "navigation:sidebar.upcomingCycle",
+                )}
+              </span>
+            </SidebarMenuSubButton>
+          ))}
+        </SidebarMenuSubItem>
+      )}
       <SidebarMenuSubItem>
         <SidebarMenuSubButton
           isActive={isCurrent && pathname.endsWith("/projects")}

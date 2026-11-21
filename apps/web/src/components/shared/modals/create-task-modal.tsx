@@ -74,6 +74,8 @@ import { uploadDraftAsset } from "@/lib/upload-draft-asset";
 import { formatDateMedium } from "@/lib/format";
 import { getInitials } from "@/lib/get-initials";
 import { resolveLabelColor } from "@/lib/label-color";
+import { CreateTaskCyclePicker } from "@/components/cycle/create-task-cycle-picker";
+import { useGetCycles } from "@/hooks/queries/cycle/use-get-cycles";
 import { CreateTaskWorkProjectPicker } from "@/components/work-project/create-task-work-project-picker";
 import { getPriorityIcon } from "@/lib/priority";
 import { toast } from "@/lib/toast";
@@ -254,6 +256,7 @@ function CreateTaskModalContent({
   const [workProjectMilestoneId, setWorkProjectMilestoneId] = useState<
     string | null
   >(null);
+  const [cycleId, setCycleId] = useState<string | null>(null);
   const [assigneeOpen, setAssigneeOpen] = useState(false);
   const [createMore, setCreateMore] = useState(false);
   const [labels, setLabels] = useState<Label[]>([]);
@@ -278,6 +281,10 @@ function CreateTaskModalContent({
     (candidate) => candidate.id === (explicitProjectId || selectedProjectId),
   );
   const resolvedProjectId = resolvedProject?.id ?? "";
+  const { data: teamCycles } = useGetCycles(resolvedProjectId);
+  const validCycleId = teamCycles?.some((c) => c.id === cycleId)
+    ? cycleId
+    : null;
   const { data: projectMembers } = useGetProjectMembers({
     workspaceId: workspace?.id || "",
     projectId: resolvedProjectId,
@@ -579,6 +586,7 @@ function CreateTaskModalContent({
           recurrence: canSetRecurrence ? (recurrence ?? undefined) : undefined,
           workProjectId: workProjectId ?? undefined,
           workProjectMilestoneId: workProjectMilestoneId ?? undefined,
+          cycleId: validCycleId ?? undefined,
           status: submitStatus,
           draftAssetIds: stagedAssetsRef.current.filter((id) =>
             description.includes(`/asset/${id}`),
@@ -624,6 +632,7 @@ function CreateTaskModalContent({
         setPriority("no-priority");
         setWorkProjectId(null);
         setWorkProjectMilestoneId(null);
+        setCycleId(null);
         setAssigneeId("");
         setStartDate(undefined);
         setDueDate(undefined);
@@ -1081,6 +1090,12 @@ function CreateTaskModalContent({
                   setWorkProjectId(projectId);
                   setWorkProjectMilestoneId(milestoneId);
                 }}
+              />
+
+              <CreateTaskCyclePicker
+                projectId={resolvedProjectId}
+                cycleId={validCycleId}
+                onChange={setCycleId}
               />
 
               <Popover open={labelsOpen} onOpenChange={setLabelsOpen}>

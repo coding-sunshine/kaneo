@@ -46,6 +46,7 @@ type Task = {
   projectId: string;
   workProjectId?: string | null;
   workProjectMilestoneId?: string | null;
+  cycleId?: string | null;
   columnId?: string | null;
   isSubtask?: boolean;
   subtaskCounts?: { completed: number; total: number };

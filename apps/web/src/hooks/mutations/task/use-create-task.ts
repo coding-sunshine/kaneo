@@ -23,6 +23,7 @@ function useCreateTask() {
       recurrence,
       workProjectId,
       workProjectMilestoneId,
+      cycleId,
     }: CreateTaskRequest) =>
       createTask(
         title,
@@ -37,11 +38,13 @@ function useCreateTask() {
         draftAssetIds,
         recurrence,
         { workProjectId, workProjectMilestoneId },
+        cycleId,
       ),
     onSuccess: (_data, variables) => {
       invalidateMyWork(queryClient);
       void queryClient.invalidateQueries({ queryKey: ["projects"] });
       void queryClient.invalidateQueries({ queryKey: ["work-projects"] });
+      void queryClient.invalidateQueries({ queryKey: ["cycles"] });
       void queryClient.invalidateQueries({ queryKey: ["work-project"] });
       trackFirstTask();
       void queryClient.invalidateQueries({

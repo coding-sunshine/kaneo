@@ -117,6 +117,7 @@ describe("buildSettingsNav", () => {
       "/dashboard/settings/projects/p1/custom-fields",
       "/dashboard/settings/projects/p1/visibility",
       "/dashboard/settings/projects/p1/integrations",
+      "/dashboard/settings/projects/p1/cycles",
       "/dashboard/settings/projects/p1/calendar",
     ]);
     expect(nav.projects[0]?.links[2]?.label).toBe(

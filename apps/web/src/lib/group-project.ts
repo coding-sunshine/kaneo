@@ -6,7 +6,8 @@ export type GroupBy =
   | "priority"
   | "assignee"
   | "label"
-  | "project";
+  | "project"
+  | "cycle";
 
 export const GROUP_BY_OPTIONS: GroupBy[] = [
   "none",
@@ -15,6 +16,7 @@ export const GROUP_BY_OPTIONS: GroupBy[] = [
   "priority",
   "label",
   "project",
+  "cycle",
 ];
 export const GROUP_ID_PREFIX = "group:";
 export const FLAT_GROUP_ID = `${GROUP_ID_PREFIX}all`;
@@ -30,6 +32,7 @@ export function groupProjectBy(
   groupBy: GroupBy,
   label: (key: string) => string,
   workProjectName: (id: string) => string | undefined = () => undefined,
+  cycleName: (id: string) => string | undefined = () => undefined,
 ): ProjectWithTasks {
   if (groupBy === "status" || project.columns.length === 0) return project;
   const base = project.columns[0];
@@ -60,6 +63,13 @@ export function groupProjectBy(
         (id && workProjectName(id)) || label("display.noProject"),
         task,
       );
+    } else if (groupBy === "cycle") {
+      const id = task.cycleId;
+      put(
+        id ?? "none",
+        (id && cycleName(id)) || label("display.noCycle"),
+        task,
+      );
     } else {
       put(
         task.assigneeId ?? "none",
@@ -76,7 +86,11 @@ export function groupProjectBy(
         ? 1
         : b === "none"
           ? -1
-          : buckets.get(a)!.name.localeCompare(buckets.get(b)!.name),
+          : buckets
+              .get(a)!
+              .name.localeCompare(buckets.get(b)!.name, undefined, {
+                numeric: true,
+              }),
   );
 
   return {
@@ -92,7 +106,9 @@ export function groupProjectBy(
             ? "Tag"
             : groupBy === "project"
               ? "Box"
-              : "User",
+              : groupBy === "cycle"
+                ? "CirclePlay"
+                : "User",
       isFinal: false,
       tasks: buckets.get(key)!.tasks,
     })),

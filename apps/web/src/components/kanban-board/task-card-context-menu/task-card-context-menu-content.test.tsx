@@ -60,6 +60,8 @@ vi.mock("@/components/ui/context-menu", () => ({
   }): React.JSX.Element => <div>{children}</div>,
 }));
 
+vi.mock("./cycle-submenu", () => ({ CycleSubmenu: () => null }));
+
 vi.mock("./extra-submenus", () => ({
   LabelsSubmenu: () => <div>tasks:properties.labels</div>,
   CopySubmenu: () => <div>tasks:contextMenu.copy</div>,

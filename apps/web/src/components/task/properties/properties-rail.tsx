@@ -21,6 +21,7 @@ import { LabelsValue } from "./labels-value";
 import { RailSection } from "./rail-section";
 import { PropertyRow } from "./property-row";
 import { PropertyValue } from "./property-value";
+import { CycleRow } from "./cycle-row";
 import { WorkProjectRows } from "./work-project-rows";
 import { useTaskProperties } from "./use-task-properties";
 
@@ -116,6 +117,8 @@ export function PropertiesRail({
             </PropertyValue>
           </TaskAssigneePopover>
         </PropertyRow>
+
+        <CycleRow task={task} />
 
         {task.startDate && (
           <PropertyRow label={t("tasks:properties.startDate")}>

@@ -37,6 +37,7 @@ import { toast } from "@/lib/toast";
 import useProjectStore from "@/store/project";
 import type Task from "@/types/task";
 import { PriorityGlyph } from "@/components/task-chips/priority-glyph";
+import { CycleSubmenu } from "./cycle-submenu";
 import { DueDateSubmenu } from "./due-date-submenu";
 import {
   CopySubmenu,
@@ -250,6 +251,8 @@ export default function TaskCardContextMenuContent({
           </ContextMenuSubContent>
         </ContextMenuSub>
       )}
+
+      {canEdit && <CycleSubmenu task={task} />}
 
       {canEdit && <DueDateSubmenu task={task} />}
 

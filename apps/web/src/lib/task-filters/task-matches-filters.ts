@@ -125,6 +125,11 @@ export function taskMatchesFilters(
         }) ?? false,
     ],
     [
+      "cycle",
+      filters.cycle,
+      () => filters.cycle?.includes(task.cycleId ?? "") ?? false,
+    ],
+    [
       "workProject",
       filters.workProject,
       () => filters.workProject?.includes(task.workProjectId ?? "") ?? false,

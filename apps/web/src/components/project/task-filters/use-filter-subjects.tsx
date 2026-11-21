@@ -4,11 +4,13 @@ import {
   Box,
   CalendarDays,
   CircleDot,
+  CirclePlay,
   Layers,
   Tag,
   UserRound,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { cycleTitle } from "@/lib/cycle/cycle-label";
 import { getColumnIcon } from "@/lib/column";
 import { getPriorityLabel } from "@/lib/i18n/domain";
 import { getPriorityIcon } from "@/lib/priority";
@@ -134,6 +136,7 @@ export function useFilterSubjects({
     assignee: countValues(tasks, (task) => [task.userId]),
     priority: countValues(tasks, (task) => [task.priority]),
     workProject: countValues(tasks, (task) => [task.workProjectId]),
+    cycle: countValues(tasks, (task) => [task.cycleId]),
     labels: countValues(tasks, (task) =>
       (task.labels ?? []).map((label) =>
         groupIdByLabel.get(labelGroupKey(label)),
@@ -218,6 +221,23 @@ export function useFilterSubjects({
       },
       "include",
     ),
+    ...((options.cycles ?? []).length > 0
+      ? [
+          subject("cycle", {
+            label: t("tasks:boardFilters.subjects.cycle"),
+            icon: <CirclePlay />,
+            options: (options.cycles ?? []).map((cycle) => ({
+              value: cycle.id,
+              label: cycleTitle(cycle),
+              icon: <CirclePlay />,
+              count: counts.cycle[cycle.id],
+            })),
+            selected: filters.cycle ?? [],
+            onToggle: (value) => toggleFilter("cycle", value),
+            onClear: () => updateFilter("cycle", null),
+          }),
+        ]
+      : []),
     subject("workProject", {
       label: t("tasks:boardFilters.subjects.workProject"),
       icon: <Box />,

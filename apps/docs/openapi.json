@@ -272,6 +272,12 @@
               "null"
             ]
           },
+          "cycleId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "snoozedUntil": {
             "type": [
               "string",
@@ -355,6 +361,7 @@
           "creatorId",
           "workProjectId",
           "workProjectMilestoneId",
+          "cycleId",
           "snoozedUntil",
           "userId",
           "assigneeName",
@@ -887,6 +894,30 @@
           "autoArchiveMonths": {
             "type": "number"
           },
+          "cyclesEnabled": {
+            "type": "boolean"
+          },
+          "cycleDurationWeeks": {
+            "type": "number"
+          },
+          "cycleCooldownWeeks": {
+            "type": "number"
+          },
+          "cycleStartDay": {
+            "type": "number"
+          },
+          "cycleUpcomingCount": {
+            "type": "number"
+          },
+          "cycleAutoAddStarted": {
+            "type": "boolean"
+          },
+          "cycleAutoAddCompleted": {
+            "type": "boolean"
+          },
+          "cycleAutoRollover": {
+            "type": "boolean"
+          },
           "id": {
             "type": "string"
           },
@@ -1185,6 +1216,18 @@
             ],
             "format": "date-time"
           },
+          "workProjectId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "workProjectMilestoneId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "projectName": {
             "type": "string"
           },
@@ -1214,6 +1257,8 @@
           "statusIcon",
           "priority",
           "dueDate",
+          "workProjectId",
+          "workProjectMilestoneId",
           "projectName",
           "projectSlug",
           "projectIcon",
@@ -1391,6 +1436,12 @@
             ]
           },
           "workProjectMilestoneId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cycleId": {
             "type": [
               "string",
               "null"
@@ -2141,6 +2192,76 @@
           }
         ]
       },
+      "Cycle": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "number": {
+            "type": "integer"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "progress": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "integer",
+                "description": "Issues in the cycle, canceled and archived excluded."
+              },
+              "started": {
+                "type": "integer"
+              },
+              "done": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "total",
+              "started",
+              "done"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "number",
+          "name",
+          "startsAt",
+          "endsAt",
+          "completedAt",
+          "createdAt",
+          "progress"
+        ]
+      },
       "WorkProject": {
         "type": "object",
         "properties": {
@@ -2378,6 +2499,14 @@
               "null"
             ]
           },
+          "snoozedUntil": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Hidden from the inbox until this time. Null when not snoozed."
+          },
           "resourceId": {
             "type": [
               "string",
@@ -2408,6 +2537,7 @@
           "content",
           "type",
           "isRead",
+          "snoozedUntil",
           "resourceId",
           "resourceType",
           "createdAt",
@@ -13180,6 +13310,13 @@
                     ],
                     "description": "Milestone of that project."
                   },
+                  "cycleId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Cycle of the task's team the task belongs to."
+                  },
                   "customFields": {
                     "type": "array",
                     "items": {
@@ -14446,6 +14583,93 @@
           },
           "404": {
             "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/task/cycle/{id}": {
+      "put": {
+        "operationId": "updateTaskCycle",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Set a task's cycle",
+        "description": "Put the task in a cycle of its own team, or send null to remove it from its cycle.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "cycleId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Cycle of the task's team; null removes the task from its cycle."
+                  }
+                },
+                "required": [
+                  "cycleId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing task:update permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task or cycle not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -18010,6 +18234,347 @@
         }
       }
     },
+    "/cycle/project/{projectId}": {
+      "get": {
+        "operationId": "listCycles",
+        "tags": [
+          "Cycles"
+        ],
+        "summary": "List a team's cycles",
+        "description": "Brings the team's cycles up to date (upcoming cycles created, ended ones completed with unfinished issues rolled over), then lists them newest first with progress.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cycles of the team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Cycle"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/cycle/{id}": {
+      "get": {
+        "operationId": "getCycle",
+        "tags": [
+          "Cycles"
+        ],
+        "summary": "Get cycle",
+        "description": "Get one cycle with its progress.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The cycle",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cycle"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cycle not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateCycle",
+        "tags": [
+          "Cycles"
+        ],
+        "summary": "Update cycle",
+        "description": "Rename a cycle or move its start and end dates.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 255
+                  },
+                  "startsAt": {
+                    "type": "string"
+                  },
+                  "endsAt": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated cycle",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cycle"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid dates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cycle not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/cycle/settings/{projectId}": {
+      "put": {
+        "operationId": "updateCycleSettings",
+        "tags": [
+          "Cycles"
+        ],
+        "summary": "Update a team's cycle settings",
+        "description": "Enable cycles and set duration, cooldown, start day, how many upcoming cycles exist, and the auto-add and rollover behaviour.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "cyclesEnabled": {
+                    "type": "boolean"
+                  },
+                  "cycleDurationWeeks": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 8
+                  },
+                  "cycleCooldownWeeks": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 8
+                  },
+                  "cycleStartDay": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 6,
+                    "description": "0 = Sunday ... 6 = Saturday."
+                  },
+                  "cycleUpcomingCount": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 12
+                  },
+                  "cycleAutoAddStarted": {
+                    "type": "boolean"
+                  },
+                  "cycleAutoAddCompleted": {
+                    "type": "boolean"
+                  },
+                  "cycleAutoRollover": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/work-project/workspace/{workspaceId}": {
       "get": {
         "operationId": "listWorkProjects",
@@ -18139,6 +18704,16 @@
           },
           "404": {
             "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A project with this name already exists",
             "content": {
               "application/json": {
                 "schema": {
@@ -19071,6 +19646,84 @@
             "in": "path"
           }
         ],
+        "responses": {
+          "200": {
+            "description": "The updated notification",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Notification"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Notification not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/notification/{id}/snooze": {
+      "patch": {
+        "operationId": "snoozeNotification",
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Snooze notification",
+        "description": "Hide one notification from the inbox until the given time, or pass null to unsnooze it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "until": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time",
+                    "description": "ISO time to snooze until, or null to unsnooze."
+                  }
+                },
+                "required": [
+                  "until"
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The updated notification",

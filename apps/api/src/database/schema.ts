@@ -523,6 +523,20 @@ export const projectTable = pgTable(
     lastTaskNumber: integer("last_task_number").notNull().default(0),
     // Closed tasks untouched this many months are archived by the scheduler; 0 turns it off.
     autoArchiveMonths: integer("auto_archive_months").notNull().default(6),
+    // Linear-style cycles: team-level settings (see the `cycle` table).
+    cyclesEnabled: boolean("cycles_enabled").notNull().default(false),
+    cycleDurationWeeks: integer("cycle_duration_weeks").notNull().default(2),
+    cycleCooldownWeeks: integer("cycle_cooldown_weeks").notNull().default(0),
+    // 0 = Sunday ... 6 = Saturday (Linear's numbering, 1 = Monday).
+    cycleStartDay: integer("cycle_start_day").notNull().default(1),
+    cycleUpcomingCount: integer("cycle_upcoming_count").notNull().default(2),
+    cycleAutoAddStarted: boolean("cycle_auto_add_started")
+      .notNull()
+      .default(true),
+    cycleAutoAddCompleted: boolean("cycle_auto_add_completed")
+      .notNull()
+      .default(true),
+    cycleAutoRollover: boolean("cycle_auto_rollover").notNull().default(true),
     position: integer("position").notNull().default(0),
     backgroundObjectKey: text("background_object_key"),
     backgroundMimeType: text("background_mime_type"),
@@ -734,6 +748,34 @@ export const workProjectTable = pgTable(
   ],
 );
 
+// Linear-style cycles: time-boxed iterations of a team (Kaneo `project`).
+export const cycleTable = pgTable(
+  "cycle",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projectTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    number: integer("number").notNull(),
+    name: text("name"),
+    startsAt: timestamp("starts_at", { mode: "date" }).notNull(),
+    endsAt: timestamp("ends_at", { mode: "date" }).notNull(),
+    completedAt: timestamp("completed_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    unique("cycle_project_number_unique").on(table.projectId, table.number),
+    index("cycle_projectId_startsAt_idx").on(table.projectId, table.startsAt),
+  ],
+);
+
 export const workProjectTeamTable = pgTable(
   "work_project_team",
   {
@@ -837,6 +879,10 @@ export const taskTable = pgTable(
       () => workProjectMilestoneTable.id,
       { onDelete: "set null", onUpdate: "cascade" },
     ),
+    cycleId: text("cycle_id").references(() => cycleTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),
@@ -847,6 +893,7 @@ export const taskTable = pgTable(
   },
   (table) => [
     index("task_workProjectId_idx").on(table.workProjectId),
+    index("task_cycleId_idx").on(table.cycleId),
     index("task_projectId_idx").on(table.projectId),
     index("task_project_scheduled_id_idx")
       .on(table.projectId, table.id)

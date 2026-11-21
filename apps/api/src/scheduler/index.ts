@@ -5,6 +5,7 @@ import { replayDeferredLabelFields } from "../plugins/sync/replay-deferred-label
 import * as Sentry from "@sentry/node";
 import { Cron } from "croner";
 import { autoArchiveClosedTasks } from "../task/controllers/task-archive";
+import { reconcileAllCycles } from "../cycle/reconcile";
 import { checkDueDateReminders } from "./due-date-reminders";
 import { checkProjectWebhookReminders } from "./project-webhook-reminders";
 import { reconcileWorkspaceSeats } from "./seat-reconciliation";
@@ -102,6 +103,13 @@ export function initializeScheduler(): void {
     new Cron(
       "17 * * * *",
       withCheckIn("seat-reconciliation", reconcileWorkspaceSeats),
+    ),
+  );
+  jobs.push(
+    new Cron(
+      "*/10 * * * *",
+      { protect: true },
+      withCheckIn("cycles", reconcileAllCycles),
     ),
   );
   jobs.push(

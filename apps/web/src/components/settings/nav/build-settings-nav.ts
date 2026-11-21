@@ -103,6 +103,7 @@ const PROJECT_SECTIONS = [
   { id: "custom-fields", labelKey: "settings:projectCustomFields.title" },
   { id: "visibility", labelKey: "settings:projectVisibility.title" },
   { id: "integrations", labelKey: "settings:projectIntegrations.title" },
+  { id: "cycles", labelKey: "settings:projectCycles.title" },
   { id: "calendar", labelKey: "settings:calendarFeeds.title" },
 ] as const;
 

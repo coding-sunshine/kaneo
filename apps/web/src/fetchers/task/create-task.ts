@@ -23,6 +23,7 @@ async function createTask(
     workProjectId?: string | null;
     workProjectMilestoneId?: string | null;
   },
+  cycleId?: string | null,
 ) {
   if (!projectId) {
     throw new Error("No project selected for task creation");
@@ -40,6 +41,7 @@ async function createTask(
       recurrence,
       customFields,
       draftAssetIds,
+      ...(cycleId ? { cycleId } : {}),
       ...(workProject?.workProjectId
         ? {
             workProjectId: workProject.workProjectId,

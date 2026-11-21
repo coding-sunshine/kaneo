@@ -39,6 +39,7 @@ async function getTask(taskId: string, board = false, userId?: string) {
       creatorId: taskTable.creatorId,
       workProjectId: taskTable.workProjectId,
       workProjectMilestoneId: taskTable.workProjectMilestoneId,
+      cycleId: taskTable.cycleId,
       snoozedUntil: taskTable.snoozedUntil,
       isSubscribed: userId
         ? sql<boolean>`exists (select 1 from ${taskSubscriberTable} where ${taskSubscriberTable.taskId} = ${taskTable.id} and ${taskSubscriberTable.userId} = ${userId})`
