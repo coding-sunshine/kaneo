@@ -60,7 +60,7 @@ describe("CommentThread", () => {
     expect(screen.getByText("root")).toBeVisible();
     expect(screen.getByText("r1")).toBeVisible();
     expect(screen.getByText("r2")).toBeVisible();
-    expect(screen.getByText("reply row")).toBeVisible();
+    expect(screen.getByText(/reply row/)).toBeVisible();
   });
 
   it("folds a resolved thread down to its resolution", () => {
