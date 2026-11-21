@@ -3933,7 +3933,8 @@
 			"groupBy": {
 				"dueDate": "截止日期",
 				"label": "分组方式",
-				"project": "项目"
+				"project": "项目",
+				"status": "Status"
 			},
 			"pageTitle": "我的任务",
 			"truncated": "共 {{total}} 个任务，只显示前 {{shown}} 个。"

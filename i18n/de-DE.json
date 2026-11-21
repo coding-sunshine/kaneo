@@ -4009,7 +4009,8 @@
 			"groupBy": {
 				"dueDate": "Fälligkeitsdatum",
 				"label": "Gruppieren nach",
-				"project": "Projekt"
+				"project": "Projekt",
+				"status": "Status"
 			},
 			"pageTitle": "Meine Aufgaben",
 			"truncated": "Die ersten {{shown}} von {{total}} Aufgaben werden angezeigt."

@@ -4085,7 +4085,8 @@
 			"groupBy": {
 				"dueDate": "Date d'échéance",
 				"label": "Grouper par",
-				"project": "Projet"
+				"project": "Projet",
+				"status": "Status"
 			},
 			"pageTitle": "Mes tâches",
 			"truncated": "Affichage des {{shown}} premières tâches sur {{total}}."

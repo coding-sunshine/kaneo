@@ -3946,7 +3946,8 @@
 			"groupBy": {
 				"label": "分組依據",
 				"dueDate": "截止日",
-				"project": "專案"
+				"project": "專案",
+				"status": "Status"
 			},
 			"truncated": "顯示 {{total}} 個任務中的前 {{shown}} 個。"
 		},

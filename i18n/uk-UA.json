@@ -4161,7 +4161,8 @@
 			"groupBy": {
 				"dueDate": "Due date",
 				"label": "Group by",
-				"project": "Project"
+				"project": "Project",
+				"status": "Status"
 			},
 			"pageTitle": "My tasks",
 			"truncated": "Showing the first {{shown}} of {{total}} tasks."

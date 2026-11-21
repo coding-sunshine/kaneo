@@ -5,10 +5,12 @@ import type { DueBucket } from "@/components/my-work/due-bucket";
 import {
   groupAssignedTasksByDueDate,
   groupAssignedTasksByProject,
+  groupAssignedTasksByStatus,
 } from "@/components/my-work/group-assigned-tasks";
 import type { AssignedTask } from "@/fetchers/task/get-assigned-tasks";
 import { useLocalDay } from "@/hooks/use-local-day";
 import { cn } from "@/lib/cn";
+import { getColumnIcon } from "@/lib/column";
 import type { MyTasksGroupBy } from "./my-tasks-group-by";
 
 type MyTasksListProps = {
@@ -30,7 +32,9 @@ export function MyTasksList({
     () =>
       groupBy === "project"
         ? groupAssignedTasksByProject(tasks)
-        : groupAssignedTasksByDueDate(tasks, new Date(day)),
+        : groupBy === "status"
+          ? groupAssignedTasksByStatus(tasks)
+          : groupAssignedTasksByDueDate(tasks, new Date(day)),
     [tasks, groupBy, day],
   );
 
@@ -47,6 +51,8 @@ export function MyTasksList({
       {groups.map((group) => (
         <section key={group.id}>
           <h2 className="flex h-9 items-center gap-2 border-border/50 border-b bg-muted/40 px-5 text-[13px]">
+            {group.status &&
+              getColumnIcon(group.status, false, group.statusIcon)}
             <span
               className={cn(
                 "font-semibold",
