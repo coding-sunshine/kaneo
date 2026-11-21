@@ -27,7 +27,10 @@ export function GlobalShortcuts() {
   useShortcut(
     "goToProject",
     (event) => {
-      const project = projects[Number(event.code.replace("Digit", "")) - 1];
+      // Numbered like the sidebar's "Your teams", which skips teams you left.
+      const project = projects.filter((team) => team.membership.joined)[
+        Number(event.code.replace("Digit", "")) - 1
+      ];
       if (project) go(`/project/${project.id}/board`);
     },
     { enabled: enabled && projects.length > 0 },

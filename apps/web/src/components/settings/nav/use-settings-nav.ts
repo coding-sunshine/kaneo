@@ -25,7 +25,10 @@ export function useSettingsNav() {
         billingEnabled: Boolean(config?.billingEnabled),
         canImport,
         adminPermissions,
-        projects: projects ?? [],
+        // "Your teams" lists only teams you joined, like the app sidebar.
+        projects: (projects ?? []).filter(
+          (project) => project.membership.joined,
+        ),
       }),
     [
       t,
