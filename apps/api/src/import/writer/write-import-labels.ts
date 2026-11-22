@@ -2,6 +2,10 @@ import type { ImportedLabel } from "@kaneo/importers";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import type db from "../../database";
 import { labelTable } from "../../database/schema";
+import {
+  foreignLabelKey,
+  foreignTeamLabels,
+} from "../../label/foreign-team-labels";
 import { chunk } from "./chunk";
 
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -77,7 +81,12 @@ export async function writeImportLabels(
     }
   }
 
-  for (const batch of chunk(taskLabels)) {
+  for (const rawBatch of chunk(taskLabels)) {
+    const foreign = await foreignTeamLabels(tx, workspaceId, rawBatch);
+    const batch = rawBatch.filter(
+      ({ taskId, name }) => !foreign.has(foreignLabelKey(taskId, name)),
+    );
+    if (batch.length === 0) continue;
     await tx
       .insert(labelTable)
       .values(

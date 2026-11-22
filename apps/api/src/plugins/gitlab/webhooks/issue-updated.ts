@@ -10,6 +10,10 @@ import { eq, inArray } from "drizzle-orm";
 import { labelTable, taskTable } from "../../../database/schema";
 import { publishEvent } from "../../../events";
 import {
+  foreignLabelKey,
+  foreignTeamLabels,
+} from "../../../label/foreign-team-labels";
+import {
   findExternalLink,
   updateExternalLink,
 } from "../../github/services/link-manager";
@@ -79,11 +83,17 @@ async function syncGitlabLabelsToTask(
     where: eq(labelTable.taskId, taskId),
   });
 
+  const foreign = await foreignTeamLabels(
+    db,
+    workspaceId,
+    gitlabLabels.map((g) => ({ taskId, name: g.name })),
+  );
   const labelsToInsert = gitlabLabels
     .filter(
       (g) =>
         (!resumeBaseline || !resumeBaseline.includes(g.name)) &&
-        !existingRows.some((row) => row.name === g.name),
+        !existingRows.some((row) => row.name === g.name) &&
+        !foreign.has(foreignLabelKey(taskId, g.name)),
     )
     .map((g) => ({
       name: g.name,

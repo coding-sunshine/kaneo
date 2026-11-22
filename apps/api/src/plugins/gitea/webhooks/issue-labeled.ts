@@ -14,6 +14,10 @@ import { eq, inArray } from "drizzle-orm";
 import { labelTable } from "../../../database/schema";
 import { publishEvent } from "../../../events";
 import {
+  foreignLabelKey,
+  foreignTeamLabels,
+} from "../../../label/foreign-team-labels";
+import {
   findExternalLink,
   updateExternalLink,
 } from "../../github/services/link-manager";
@@ -74,11 +78,17 @@ async function syncGiteaLabelsToTask(
     where: eq(labelTable.taskId, taskId),
   });
 
+  const foreign = await foreignTeamLabels(
+    db,
+    workspaceId,
+    giteaLabels.map((g) => ({ taskId, name: g.name })),
+  );
   const labelsToInsert = giteaLabels
     .filter(
       (g) =>
         (!previous || !previous.has(g.name)) &&
-        !existingRows.some((row) => row.name === g.name),
+        !existingRows.some((row) => row.name === g.name) &&
+        !foreign.has(foreignLabelKey(taskId, g.name)),
     )
     .map((g) => ({
       name: g.name,
@@ -256,7 +266,12 @@ export async function handleGiteaIssueLabeled(
                   ),
               });
 
-              if (!existingLabel) {
+              const foreign = await foreignTeamLabels(
+                db,
+                task.project.workspaceId,
+                [{ taskId: task.id, name: addedLabel.name }],
+              );
+              if (!existingLabel && foreign.size === 0) {
                 const color = addedLabel.color
                   ? `#${addedLabel.color.replace(/^#/, "")}`
                   : "#6B7280";
