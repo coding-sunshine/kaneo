@@ -17,6 +17,7 @@ import TaskRelations from "../task-relations";
 import TaskStartDatePopover from "../task-start-date-popover";
 import TaskStatusPopover from "../task-status-popover";
 import { AssigneeAvatar } from "./assignee-avatar";
+import { SlaChip } from "@/components/task-chips/sla-chip";
 import { dueDateTextClass } from "./due-date-text-class";
 import { LabelsValue } from "./labels-value";
 import { RailSection } from "./rail-section";
@@ -160,6 +161,12 @@ export function PropertiesRail({
             </PropertyValue>
           </TaskDueDatePopover>
         </PropertyRow>
+
+        {task.slaDueAt && (
+          <PropertyRow label={t("tasks:sla.label")}>
+            <SlaChip task={task} showLabel />
+          </PropertyRow>
+        )}
       </RailSection>
 
       <RailSection title={t("tasks:properties.labels")}>

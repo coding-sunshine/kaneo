@@ -10,6 +10,7 @@ import { CycleChip } from "@/components/cycle/cycle-chip";
 import { WorkProjectChip } from "@/components/work-project/work-project-chip";
 import { ChecklistChip } from "@/components/task-chips/checklist-chip";
 import { EstimateChip } from "@/components/task-chips/estimate-chip";
+import { SlaChip } from "@/components/task-chips/sla-chip";
 import { DueDateChip } from "@/components/task-chips/due-date-chip";
 import { LabelChips } from "@/components/task-chips/label-chips";
 import { stopCardEvents } from "@/components/task-chips/stop-card-events";
@@ -141,6 +142,8 @@ export function TaskRowBody({
           <LabelChips task={task} workspaceId={workspaceId} max={2} />
         )}
       </div>
+
+      <SlaChip task={task} />
 
       {showDueDates && (
         <div className="flex w-24 shrink-0 justify-end">

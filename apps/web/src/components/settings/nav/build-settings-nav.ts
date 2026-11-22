@@ -106,6 +106,8 @@ const PROJECT_SECTIONS = [
   { id: "visibility", labelKey: "settings:projectVisibility.title" },
   { id: "integrations", labelKey: "settings:projectIntegrations.title" },
   { id: "cycles", labelKey: "settings:projectCycles.title" },
+  { id: "triage", labelKey: "settings:projectTriage.title" },
+  { id: "sla", labelKey: "settings:projectSla.title" },
   { id: "labels", labelKey: "settings:workspaceLabels.title" },
   { id: "estimates", labelKey: "settings:projectGeneral.estimates.title" },
   { id: "calendar", labelKey: "settings:calendarFeeds.title" },

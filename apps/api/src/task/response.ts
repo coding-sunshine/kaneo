@@ -47,6 +47,10 @@ export const taskSchema = z
       description:
         "Triage snooze: the task resurfaces in triage after this time.",
     }),
+    slaDueAt: nullableResponseTimestamp.optional().openapi({
+      description:
+        "The task's SLA deadline; null when the team's SLA rules do not apply.",
+    }),
     customFields: z
       .array(z.object({ fieldId: z.string(), value: z.string() }))
       .optional(),
@@ -144,6 +148,10 @@ export const boardTaskSchema = z
     completedAt: nullableResponseTimestamp.openapi({
       description:
         "When the task entered a completed status; null unless completed.",
+    }),
+    slaDueAt: nullableResponseTimestamp.openapi({
+      description:
+        "The task's SLA deadline; null when the team's SLA rules do not apply.",
     }),
     startedTriageAt: nullableResponseTimestamp.openapi({
       description: "When the task most recently entered triage.",
