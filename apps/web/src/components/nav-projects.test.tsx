@@ -1,6 +1,7 @@
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { NavProjects } from "./nav-projects";
 
 const state = vi.hoisted(() => ({
@@ -70,6 +71,7 @@ vi.mock("@/components/team/favorites-nav", () => ({
 vi.mock("@/components/team/leave-team-dialog", () => ({
   LeaveTeamDialog: () => null,
 }));
+vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: () => false }));
 vi.mock("@/components/team/team-nav-row", () => ({ TeamNavRow: () => null }));
 vi.mock("./shared/modals/create-project-modal", () => ({
   default: () => null,
@@ -105,5 +107,26 @@ describe("NavProjects drag reorder", () => {
     render(<NavProjects />);
     state.onDragEnd?.({ active: { id: "a" }, over: { id: "a" } });
     expect(state.reorder).not.toHaveBeenCalled();
+  });
+});
+
+describe("NavProjects with no joined teams", () => {
+  const renderNav = () =>
+    render(
+      <SidebarProvider>
+        <NavProjects />
+      </SidebarProvider>,
+    );
+
+  it("offers a way back after leaving every team", () => {
+    state.projects = [team("left", false)];
+    renderNav();
+    expect(screen.getByText("navigation:sidebar.browseTeams")).toBeTruthy();
+  });
+
+  it("hides the link while any team is joined", () => {
+    state.projects = [team("a", true), team("left", false)];
+    renderNav();
+    expect(screen.queryByText("navigation:sidebar.browseTeams")).toBeNull();
   });
 });

@@ -20,7 +20,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useParams } from "@tanstack/react-router";
+import { Link, useParams } from "@tanstack/react-router";
 import { FavoritesNav } from "@/components/team/favorites-nav";
 import {
   LeaveTeamDialog,
@@ -42,6 +42,7 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import useReorderProjects from "@/hooks/mutations/project/use-reorder-projects";
@@ -257,6 +258,17 @@ export function NavProjects() {
                       </SortableProjectItem>
                     ))}
                   </SortableContext>
+                  {projects && joined.length === 0 && (
+                    // Someone who left every team still needs a way back in.
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        className="text-sidebar-foreground/70"
+                        render={<Link to="/dashboard/settings/projects" />}
+                      >
+                        <span>{t("navigation:sidebar.browseTeams")}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )}
                 </SidebarMenu>
 
                 {/* Portalled: `SidebarContent` is `overflow-auto` and clips it. */}
