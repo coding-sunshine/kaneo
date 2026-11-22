@@ -19,6 +19,7 @@ type LookupResource =
   | "cycle"
   | "workProject"
   | "projectLabel"
+  | "workspaceWebhook"
   | "workProjectMilestone"
   | "workProjectUpdate";
 
@@ -54,6 +55,7 @@ const RESOURCE_NOT_FOUND: Record<LookupResource, string> = {
   cycle: "Cycle not found",
   workProject: "Project not found",
   projectLabel: "Project label not found",
+  workspaceWebhook: "Webhook not found",
   workProjectMilestone: "Milestone not found",
   workProjectUpdate: "Update not found",
 };
@@ -395,6 +397,15 @@ async function lookupScope(
       return label ? { ...label, projectId: null } : null;
     }
 
+    case "workspaceWebhook": {
+      const [webhook] = await db
+        .select({ workspaceId: schema.workspaceWebhookTable.workspaceId })
+        .from(schema.workspaceWebhookTable)
+        .where(eq(schema.workspaceWebhookTable.id, id))
+        .limit(1);
+      return webhook ? { ...webhook, projectId: null } : null;
+    }
+
     case "workProject": {
       const [workProject] = await db
         .select({ workspaceId: schema.workProjectTable.workspaceId })
@@ -548,6 +559,11 @@ export const workspaceAccess = {
   fromProjectLabel: (idKey = "id") =>
     workspaceAccessMiddleware({
       sources: [{ type: "lookup", resource: "projectLabel", idKey }],
+    }),
+
+  fromWorkspaceWebhook: (idKey = "id") =>
+    workspaceAccessMiddleware({
+      sources: [{ type: "lookup", resource: "workspaceWebhook", idKey }],
     }),
 
   fromWorkProjectUpdate: (idKey = "id") =>

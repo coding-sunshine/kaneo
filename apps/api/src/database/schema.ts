@@ -187,6 +187,69 @@ export const adminAuditLogTable = pgTable(
   ],
 );
 
+// Linear's workspace webhooks (Settings > API > Webhooks): data-change events for one workspace.
+export const workspaceWebhookTable = pgTable(
+  "workspace_webhook",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    url: text("url").notNull(),
+    // Encrypted with NOTIFICATION_SECRET_ENCRYPTION_KEY; the plain value is shown once on create.
+    secret: text("secret").notNull(),
+    enabled: boolean("enabled").default(true).notNull(),
+    resourceTypes: text("resource_types").array().notNull(),
+    // Empty = every team (project) in the workspace.
+    projectIds: text("project_ids")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    createdBy: text("created_by").references(() => userTable.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [index("workspace_webhook_workspace_idx").on(table.workspaceId)],
+);
+
+export const workspaceWebhookDeliveryTable = pgTable(
+  "workspace_webhook_delivery",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    webhookId: text("webhook_id")
+      .notNull()
+      .references(() => workspaceWebhookTable.id, { onDelete: "cascade" }),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    state: text("state")
+      .$type<"pending" | "succeeded" | "failed">()
+      .default("pending")
+      .notNull(),
+    attempts: integer("attempts").default(0).notNull(),
+    statusCode: integer("status_code"),
+    errorCode: text("error_code"),
+    nextAttemptAt: timestamp("next_attempt_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("workspace_webhook_delivery_due_idx").on(
+      table.state,
+      table.nextAttemptAt,
+    ),
+  ],
+);
+
 export const instanceWebhookTable = pgTable("instance_webhook", {
   id: text("id")
     .$defaultFn(() => createId())
@@ -1100,6 +1163,11 @@ export const taskTable = pgTable(
     triagedAt: timestamp("triaged_at", { mode: "date" }),
     // Linear SLA deadline, set from the team's SLA rules when the priority is set.
     slaDueAt: timestamp("sla_due_at", { mode: "date" }),
+    // Set when the warning / breach notification for the current sla_due_at went out; cleared when it changes.
+    slaWarningNotifiedAt: timestamp("sla_warning_notified_at", {
+      mode: "date",
+    }),
+    slaBreachedAt: timestamp("sla_breached_at", { mode: "date" }),
     // Points on the team's estimate scale (see project.estimate_type); null is unestimated.
     estimate: integer("estimate"),
     creatorId: text("creator_id").references(() => userTable.id, {
