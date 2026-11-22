@@ -9,6 +9,8 @@ import {
   Layers2,
   type LucideIcon,
   Mail,
+  MousePointer2,
+  Workflow,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -24,6 +26,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useHasAgent } from "@/hooks/queries/agent/use-agent";
 import { usePendingInvitations } from "@/hooks/queries/invitation/use-pending-invitations";
 import useGetNotifications from "@/hooks/queries/notification/use-get-notifications";
 import useGetAssignedTasks from "@/hooks/queries/task/use-get-assigned-tasks";
@@ -72,6 +75,7 @@ export function NavMain() {
   const { data: invitations = [] } = usePendingInvitations();
   const { data: notifications = [] } = useGetNotifications(workspace?.id);
   const { data: assignedTasks } = useGetAssignedTasks(workspace?.id, true);
+  const hasAgent = useHasAgent();
 
   if (!workspace) return null;
 
@@ -100,6 +104,14 @@ export function NavMain() {
     },
   ];
 
+  if (hasAgent) {
+    personal.push({
+      title: t("navigation:sidebar.agent"),
+      icon: MousePointer2,
+      url: `${homeUrl}/agent`,
+    });
+  }
+
   // Invitations to other workspaces only matter while one is waiting.
   if (invitations.length > 0) {
     personal.push({
@@ -122,6 +134,14 @@ export function NavMain() {
       url: `${homeUrl}/views`,
     },
   ];
+
+  if (hasAgent) {
+    workspaceItems.push({
+      title: t("navigation:sidebar.loops"),
+      icon: Workflow,
+      url: `${homeUrl}/loops`,
+    });
+  }
 
   return (
     <>

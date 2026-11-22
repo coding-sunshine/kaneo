@@ -1,5 +1,6 @@
 import type React from "react";
 import { type ReactNode, useEffect, useState } from "react";
+import { AgentBar } from "@/components/agent/agent-bar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { DemoAlert } from "@/components/demo-alert";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -93,6 +94,7 @@ function Layout({ children, className }: LayoutProps) {
           {isDemoMode && <DemoAlert />}
           {children}
         </SidebarInset>
+        <AgentBar />
       </SidebarProvider>
     </div>
   );

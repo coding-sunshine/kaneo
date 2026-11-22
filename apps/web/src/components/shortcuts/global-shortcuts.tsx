@@ -1,5 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { toastManager } from "@/components/ui/toast";
+import { useHasAgent } from "@/hooks/queries/agent/use-agent";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { useShortcut } from "@/lib/shortcuts/use-shortcut";
@@ -13,6 +14,7 @@ export function GlobalShortcuts() {
   );
   const base = workspace ? `/dashboard/workspace/${workspace.id}` : null;
   const enabled = Boolean(base);
+  const hasAgent = useHasAgent();
   const go = (path: string) => {
     if (base) navigate({ to: `${base}${path}` });
   };
@@ -20,6 +22,13 @@ export function GlobalShortcuts() {
   useShortcut("goToHome", () => go(""), { enabled });
   useShortcut("goToInbox", () => go("/inbox"), { enabled });
   useShortcut("goToMyTasks", () => go("/my-tasks"), { enabled });
+  useShortcut(
+    "openAgent",
+    () => {
+      if (base) navigate({ to: `${base}/agent` });
+    },
+    { enabled: enabled && hasAgent },
+  );
   useShortcut("goToProjects", () => go("/work-projects"), { enabled });
   useShortcut("goToSettings", () =>
     navigate({ to: "/dashboard/settings/account/information" }),

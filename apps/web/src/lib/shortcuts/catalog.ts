@@ -36,6 +36,11 @@ export const SHORTCUTS = {
     allowInPopup: true,
   },
   openSearch: { keys: ["/"], category: "general" },
+  openAgent: {
+    keys: ["mod+j", "ctrl+j"],
+    category: "general",
+    allowInInput: true,
+  },
   openShortcuts: {
     keys: ["?", "mod+/"],
     category: "general",

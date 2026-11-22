@@ -60,7 +60,9 @@ import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceImportRouteImport
 import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/labels'
 import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceRolesRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/roles'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/index'
+import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/agent'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/inbox'
+import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/loops'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/members'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMyTasksRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/my-tasks'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectsRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/projects'
@@ -383,10 +385,22 @@ const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRoute =
     path: '/',
     getParentRoute: () => LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
   } as any)
+const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute =
+  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRouteImport.update({
+    id: '/agent',
+    path: '/agent',
+    getParentRoute: () => LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
+  } as any)
 const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute =
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRouteImport.update({
     id: '/inbox',
     path: '/inbox',
+    getParentRoute: () => LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
+  } as any)
+const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute =
+  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRouteImport.update({
+    id: '/loops',
+    path: '/loops',
     getParentRoute: () => LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
   } as any)
 const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute =
@@ -695,7 +709,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/workspace/import': typeof LayoutAuthenticatedDashboardSettingsWorkspaceImportRoute
   '/dashboard/settings/workspace/labels': typeof LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRoute
   '/dashboard/settings/workspace/roles': typeof LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute
+  '/dashboard/workspace/$workspaceId/agent': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute
   '/dashboard/workspace/$workspaceId/inbox': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute
+  '/dashboard/workspace/$workspaceId/loops': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute
   '/dashboard/workspace/$workspaceId/members': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute
   '/dashboard/workspace/$workspaceId/my-tasks': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMyTasksRoute
   '/dashboard/workspace/$workspaceId/projects': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectsRoute
@@ -774,7 +790,9 @@ export interface FileRoutesByTo {
   '/dashboard/settings/workspace/import': typeof LayoutAuthenticatedDashboardSettingsWorkspaceImportRoute
   '/dashboard/settings/workspace/labels': typeof LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRoute
   '/dashboard/settings/workspace/roles': typeof LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute
+  '/dashboard/workspace/$workspaceId/agent': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute
   '/dashboard/workspace/$workspaceId/inbox': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute
+  '/dashboard/workspace/$workspaceId/loops': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute
   '/dashboard/workspace/$workspaceId/members': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute
   '/dashboard/workspace/$workspaceId/my-tasks': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMyTasksRoute
   '/dashboard/workspace/$workspaceId/projects': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectsRoute
@@ -860,7 +878,9 @@ export interface FileRoutesById {
   '/_layout/_authenticated/dashboard/settings/workspace/import': typeof LayoutAuthenticatedDashboardSettingsWorkspaceImportRoute
   '/_layout/_authenticated/dashboard/settings/workspace/labels': typeof LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRoute
   '/_layout/_authenticated/dashboard/settings/workspace/roles': typeof LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute
+  '/_layout/_authenticated/dashboard/workspace/$workspaceId/agent': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/inbox': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute
+  '/_layout/_authenticated/dashboard/workspace/$workspaceId/loops': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/members': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/my-tasks': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMyTasksRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/projects': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectsRoute
@@ -945,7 +965,9 @@ export interface FileRouteTypes {
     | '/dashboard/settings/workspace/import'
     | '/dashboard/settings/workspace/labels'
     | '/dashboard/settings/workspace/roles'
+    | '/dashboard/workspace/$workspaceId/agent'
     | '/dashboard/workspace/$workspaceId/inbox'
+    | '/dashboard/workspace/$workspaceId/loops'
     | '/dashboard/workspace/$workspaceId/members'
     | '/dashboard/workspace/$workspaceId/my-tasks'
     | '/dashboard/workspace/$workspaceId/projects'
@@ -1024,7 +1046,9 @@ export interface FileRouteTypes {
     | '/dashboard/settings/workspace/import'
     | '/dashboard/settings/workspace/labels'
     | '/dashboard/settings/workspace/roles'
+    | '/dashboard/workspace/$workspaceId/agent'
     | '/dashboard/workspace/$workspaceId/inbox'
+    | '/dashboard/workspace/$workspaceId/loops'
     | '/dashboard/workspace/$workspaceId/members'
     | '/dashboard/workspace/$workspaceId/my-tasks'
     | '/dashboard/workspace/$workspaceId/projects'
@@ -1109,7 +1133,9 @@ export interface FileRouteTypes {
     | '/_layout/_authenticated/dashboard/settings/workspace/import'
     | '/_layout/_authenticated/dashboard/settings/workspace/labels'
     | '/_layout/_authenticated/dashboard/settings/workspace/roles'
+    | '/_layout/_authenticated/dashboard/workspace/$workspaceId/agent'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/inbox'
+    | '/_layout/_authenticated/dashboard/workspace/$workspaceId/loops'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/members'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/my-tasks'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/projects'
@@ -1515,11 +1541,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
     }
+    '/_layout/_authenticated/dashboard/workspace/$workspaceId/agent': {
+      id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/agent'
+      path: '/agent'
+      fullPath: '/dashboard/workspace/$workspaceId/agent'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
+    }
     '/_layout/_authenticated/dashboard/workspace/$workspaceId/inbox': {
       id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/inbox'
       path: '/inbox'
       fullPath: '/dashboard/workspace/$workspaceId/inbox'
       preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
+    }
+    '/_layout/_authenticated/dashboard/workspace/$workspaceId/loops': {
+      id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/loops'
+      path: '/loops'
+      fullPath: '/dashboard/workspace/$workspaceId/loops'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
     }
     '/_layout/_authenticated/dashboard/workspace/$workspaceId/members': {
@@ -1908,7 +1948,9 @@ const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdWorkProjectsRouteWithChild
   )
 
 interface LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteChildren {
+  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute
+  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMyTasksRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMyTasksRoute
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectsRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectsRoute
@@ -1937,8 +1979,12 @@ interface LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteChildren {
 
 const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteChildren: LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteChildren =
   {
+    LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute:
+      LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute,
     LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute:
       LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute,
+    LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute:
+      LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute,
     LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute:
       LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute,
     LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMyTasksRoute:

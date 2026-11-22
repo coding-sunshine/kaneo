@@ -2932,7 +2932,9 @@
 			"favorites": "Favorites",
 			"teamHome": "Home",
 			"documents": "Documents",
-			"exploring": "Exploring"
+			"exploring": "Exploring",
+			"agent": "Agent",
+			"loops": "Loops"
 		},
 		"projectList": {
 			"viewProject": "View Project",
@@ -3109,7 +3111,8 @@
 				"editorRedo": "Redo",
 				"documentsRecent": "View Recent documents",
 				"documentsMine": "View My documents",
-				"documentsShared": "View Shared with me"
+				"documentsShared": "View Shared with me",
+				"openAgent": "Open agent"
 			},
 			"title": "Keyboard Shortcuts",
 			"searchPlaceholder": "Search shortcuts",
@@ -3266,6 +3269,135 @@
 				"close": "Close history",
 				"viewing": "Version from {{time}} by {{name}}",
 				"current": "Current"
+			}
+		},
+		"agent": {
+			"newChat": "New chat",
+			"placeholder": "Ask Kaneo...",
+			"followUp": "Reply...",
+			"send": "Send message",
+			"thinking": "Working on it...",
+			"history": "Chat history",
+			"historyEmpty": "No chats yet",
+			"deleteChat": "Delete chat",
+			"examplesTitle": "Get started with some examples",
+			"toolInput": "Input",
+			"toolResult": "Result",
+			"toolPending": "No result",
+			"group": {
+				"today": "Today",
+				"yesterday": "Yesterday",
+				"week": "Previous 7 days",
+				"older": "Older"
+			},
+			"examples": {
+				"project": {
+					"title": "Create a new project",
+					"description": "Turn an idea into a well-scoped project",
+					"prompt": "Help me turn an idea into a well-scoped project. Ask me what I want to build, then create the project and its first issues."
+				},
+				"research": {
+					"title": "Research a topic",
+					"description": "Research a topic across the issue backlog",
+					"prompt": "Research a topic across our issue backlog. Ask me which topic, then search the issues and summarize what you find."
+				},
+				"loop": {
+					"title": "Create automated loop",
+					"description": "Learn what loops can do and create your first one",
+					"prompt": "Explain what loops can do, then suggest a first loop for this workspace."
+				}
+			}
+		},
+		"loops": {
+			"title": "Loops",
+			"myLoops": "My loops",
+			"all": "All",
+			"createTitle": "Create a new loop",
+			"createSubtitle": "Automate manual work for your team and keep your process moving",
+			"startFresh": "Start fresh",
+			"askPlaceholder": "Ask Kaneo to build the loop for you",
+			"noTemplates": "No templates in this category yet",
+			"newTitle": "New loop",
+			"editTitle": "Edit loop",
+			"name": "Name",
+			"namePlaceholder": "Loop name",
+			"instructions": "Instructions",
+			"instructionsPlaceholder": "What should the agent do on each run?",
+			"trigger": "Schedule",
+			"permissionNote": "Each run uses your permissions at the time it runs.",
+			"save": "Save loop",
+			"saved": "Loop saved",
+			"deleted": "Loop deleted",
+			"ran": "Loop run finished",
+			"paused": "Paused",
+			"nextRun": "Next run {{date}}",
+			"runNow": "Run now",
+			"enable": "Enable",
+			"disable": "Disable",
+			"edit": "Edit",
+			"delete": "Delete",
+			"history": "Run history",
+			"noRuns": "This loop has not run yet",
+			"backToRuns": "All runs",
+			"trigger_schedule": "Scheduled",
+			"trigger_manual": "Run now",
+			"status": {
+				"running": "Running",
+				"succeeded": "Succeeded",
+				"failed": "Failed"
+			},
+			"frequency": {
+				"hourly": "Hourly",
+				"daily": "Daily",
+				"weekly": "Weekly",
+				"monthly": "Monthly",
+				"yearly": "Yearly"
+			},
+			"category": {
+				"featured": "Featured",
+				"engineering": "Engineering",
+				"triage": "Triage",
+				"reporting": "Reporting",
+				"security": "Security",
+				"support": "Support"
+			},
+			"templates": {
+				"autofix": {
+					"title": "Autofix bugs",
+					"description": "Investigates new bug reports and drafts a clear fix plan when it finds one.",
+					"action": "Comment with fix plan",
+					"instructions": "Find issues created in the last hour that look like bug reports. For each one, investigate the likely cause. When you find a clear fix, add a comment describing the fix. Skip issues that already have such a comment."
+				},
+				"triage": {
+					"title": "Triage agent",
+					"description": "Reviews incoming issues, adds context, and routes each one to the right owner.",
+					"action": "Assign owner",
+					"instructions": "Review issues created in the last hour that have no assignee. Add a short comment with any missing context, set a sensible priority, and assign the person who owns the related area."
+				},
+				"qa": {
+					"title": "Q&A assistant",
+					"description": "Answers product questions the team asks in issues.",
+					"action": "Reply in comment",
+					"instructions": "Find issues from the last hour that are questions about the product. Search the workspace for the answer and reply with a comment. Skip questions that already have a reply."
+				},
+				"wrap": {
+					"title": "Weekly wrap",
+					"description": "Summarizes the week's accomplishments for a person or team and shares the highlights.",
+					"action": "Share highlights",
+					"instructions": "Summarize the issues completed in the last 7 days, grouped by project. Highlight the biggest wins and anything blocked, and post the summary as a document."
+				},
+				"requests": {
+					"title": "Feature request report",
+					"description": "Groups recent feature requests into a weekly report with themes and customer impact.",
+					"action": "Share report",
+					"instructions": "Collect feature request issues from the last 7 days, group them by theme, and note how many requests each theme has. Post the report as a document."
+				},
+				"priority": {
+					"title": "Update issue priority based on demand",
+					"description": "Raises issue priority when duplicate reports or customer requests reach a chosen threshold.",
+					"action": "Raise priority",
+					"instructions": "Find open issues that have three or more duplicate reports or related requests. Raise their priority one level and add a comment explaining why."
+				}
 			}
 		}
 	},

@@ -33,6 +33,7 @@ function config(overrides: Partial<GetConfigResponse> = {}) {
     customOAuthManagedProfileFields: [],
     customOAuthAccountUrl: null,
     billingEnabled: false,
+    hasAgent: false,
     ...overrides,
   } satisfies GetConfigResponse;
 }
