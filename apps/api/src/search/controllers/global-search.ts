@@ -15,6 +15,7 @@ import { canAccessProject } from "../../project-access/can-access-project";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
 import { bodyVector, buildFtsQuery, ftsMatch, titleBodyVector } from "../fts";
 import { escapeLikePattern } from "../like-pattern";
+import { pickAcrossTypes } from "../pick-across-types";
 import { TASK_SHORT_ID_PATTERN } from "../task-short-id";
 
 type SearchParams = {
@@ -589,7 +590,8 @@ async function globalSearch(params: SearchParams): Promise<{
     return b.createdAt.getTime() - a.createdAt.getTime();
   });
 
-  const finalResults = results.slice(0, limit);
+  const finalResults =
+    type === "all" ? pickAcrossTypes(results, limit) : results.slice(0, limit);
 
   return {
     results: finalResults,
