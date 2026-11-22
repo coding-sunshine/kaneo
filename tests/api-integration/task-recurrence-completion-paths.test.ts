@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
-import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 import updateColumn from "../../apps/api/src/column/controllers/update-column";
 import db, { schema } from "../../apps/api/src/database";
-import { publishEvent } from "../../apps/api/src/events";
+import { publishEvent, settleEvents } from "../../apps/api/src/events";
 import "../../apps/api/src/task/recurrence/subscribe";
 import { resetTestDatabase } from "./helpers/database";
 import {
@@ -53,17 +53,16 @@ describe("API integration: recurrence completion events", () => {
       } else {
         await updateColumn(columns.todo.id, { isFinal: true });
       }
-      await vi.waitFor(async () => {
-        const tasks = await db.query.taskTable.findMany();
-        expect(tasks).toHaveLength(2);
-        expect(tasks.find((task) => task.id !== source.id)).toMatchObject({
-          recurrence,
-          status: completion === "import-update" ? "to-do" : "in-progress",
-          dueDate: new Date("2026-03-17T00:00:00Z"),
-        });
-        expect(tasks.find((task) => task.id === source.id)).toMatchObject({
-          recurrence: null,
-        });
+      await settleEvents();
+      const tasks = await db.query.taskTable.findMany();
+      expect(tasks).toHaveLength(2);
+      expect(tasks.find((task) => task.id !== source.id)).toMatchObject({
+        recurrence,
+        status: completion === "import-update" ? "to-do" : "in-progress",
+        dueDate: new Date("2026-03-17T00:00:00Z"),
+      });
+      expect(tasks.find((task) => task.id === source.id)).toMatchObject({
+        recurrence: null,
       });
     },
   );
