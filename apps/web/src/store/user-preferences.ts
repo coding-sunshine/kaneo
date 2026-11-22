@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { GroupBy } from "@/lib/group-project";
+import { DEFAULT_REVIEWS_VIEW, type ReviewsView } from "@/lib/reviews-view";
 import type { CompletedIssues } from "@/lib/status-category";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -99,6 +100,8 @@ type UserPreferencesStore = {
   // if it should follow people across devices.
   codeReviewsEnabled: boolean;
   setCodeReviewsEnabled: (enabled: boolean) => void;
+  reviewsView: ReviewsView;
+  setReviewsView: (patch: Partial<ReviewsView>) => void;
 };
 
 export const useUserPreferencesStore = create<UserPreferencesStore>()(
@@ -245,6 +248,9 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
       codeReviewsEnabled: true,
       setCodeReviewsEnabled: (codeReviewsEnabled) =>
         set({ codeReviewsEnabled }),
+      reviewsView: DEFAULT_REVIEWS_VIEW,
+      setReviewsView: (patch) =>
+        set((state) => ({ reviewsView: { ...state.reviewsView, ...patch } })),
     }),
     {
       name: "user-preferences",

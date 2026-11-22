@@ -1,9 +1,10 @@
 import { GitPullRequest } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import WorkspaceLayout from "@/components/common/workspace-layout";
 import PageTitle from "@/components/page-title";
 import { ReviewsConnectCard } from "@/components/reviews/reviews-connect-card";
+import { ReviewsDisplayOptions } from "@/components/reviews/reviews-display-options";
 import { ReviewsList } from "@/components/reviews/reviews-list";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,12 +14,14 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useReviewsList,
   useReviewsStatus,
 } from "@/hooks/queries/github-reviews/use-github-reviews";
 import { cn } from "@/lib/cn";
+import { filterPullRequests, sortPullRequests } from "@/lib/reviews-view";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 
 type ReviewsTab = "created" | "toReview";
@@ -63,6 +66,9 @@ export function ReviewsPage({
   const setCodeReviewsEnabled = useUserPreferencesStore(
     (state) => state.setCodeReviewsEnabled,
   );
+  const view = useUserPreferencesStore((state) => state.reviewsView);
+  const setView = useUserPreferencesStore((state) => state.setReviewsView);
+  const [query, setQuery] = useState("");
   const [tab, setTab] = useState<ReviewsTab>("toReview");
   const [includeDrafts, setIncludeDrafts] = useState(false);
   const [includeClosed, setIncludeClosed] = useState(false);
@@ -71,11 +77,15 @@ export function ReviewsPage({
   const list = useReviewsList({ includeDrafts, includeClosed }, connected);
 
   const title = t("workspace:reviews.pageTitle");
-  const pullRequests = list.data
-    ? tab === "created"
-      ? list.data.created
-      : [...list.data.toReview, ...list.data.participated]
-    : [];
+  const data = list.data;
+  const pullRequests = useMemo(() => {
+    const items = data
+      ? tab === "created"
+        ? data.created
+        : [...data.toReview, ...data.participated]
+      : [];
+    return sortPullRequests(filterPullRequests(items, query), view.sortBy);
+  }, [data, tab, query, view.sortBy]);
 
   return (
     <>
@@ -112,6 +122,14 @@ export function ReviewsPage({
                 </Pill>
               </div>
               <div className="inline-flex items-center gap-1.5">
+                <Input
+                  type="search"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder={t("workspace:reviews.filterPlaceholder")}
+                  aria-label={t("workspace:reviews.filterPlaceholder")}
+                  className="h-7 w-40"
+                />
                 <Pill
                   active={includeDrafts}
                   onClick={() => setIncludeDrafts((value) => !value)}
@@ -124,6 +142,7 @@ export function ReviewsPage({
                 >
                   {t("workspace:reviews.showClosed")}
                 </Pill>
+                <ReviewsDisplayOptions view={view} onChange={setView} />
               </div>
             </div>
           )}
@@ -166,6 +185,8 @@ export function ReviewsPage({
               <ReviewsList
                 pullRequests={pullRequests}
                 workspaceId={workspaceId}
+                view={view}
+                onViewChange={setView}
               />
             )}
           </div>

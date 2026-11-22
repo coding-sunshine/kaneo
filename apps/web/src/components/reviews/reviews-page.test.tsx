@@ -7,10 +7,17 @@ import {
   it,
   vi,
 } from "vite-plus/test";
+import { ShortcutListener } from "@/lib/shortcuts/shortcut-listener";
+import { DEFAULT_REVIEWS_VIEW } from "@/lib/reviews-view";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 import { ReviewsPage } from "./reviews-page";
 
-const pr = (number: number, title: string, status = "open") => ({
+const pr = (
+  number: number,
+  title: string,
+  status = "open",
+  extra: Record<string, unknown> = {},
+) => ({
   owner: "acme",
   repo: "web",
   number,
@@ -21,7 +28,14 @@ const pr = (number: number, title: string, status = "open") => ({
   comments: 0,
   createdAt: "2026-01-01T00:00:00Z",
   updatedAt: "2026-01-02T00:00:00Z",
+  reviewDecision: null,
+  checks: "none",
+  additions: 3,
+  deletions: 1,
+  ...extra,
 });
+
+const mocks = vi.hoisted(() => ({ navigate: vi.fn() }));
 
 const state = vi.hoisted(() => ({
   status: { state: "connected", login: "octo" } as { state: string },
@@ -51,9 +65,15 @@ vi.mock("@/components/common/workspace-layout", () => ({
   ),
 }));
 vi.mock("@tanstack/react-router", () => ({
-  Link: ({ children }: { children: React.ReactNode }) => (
-    <a href="/pr">{children}</a>
+  Link: ({
+    children,
+    ...props
+  }: { children: React.ReactNode } & Record<string, unknown>) => (
+    <a href="/pr" data-review-row={props["data-review-row"] as string}>
+      {children}
+    </a>
   ),
+  useNavigate: () => mocks.navigate,
 }));
 vi.mock("@/components/page-title", () => ({ default: () => null }));
 
@@ -64,7 +84,11 @@ beforeEach(() => {
     created: [pr(2, "Mine"), pr(3, "Wip", "draft")],
     participated: [],
   };
-  useUserPreferencesStore.setState({ codeReviewsEnabled: true });
+  useUserPreferencesStore.setState({
+    codeReviewsEnabled: true,
+    reviewsView: DEFAULT_REVIEWS_VIEW,
+  });
+  mocks.navigate.mockClear();
 });
 afterEach(cleanup);
 
@@ -98,5 +122,75 @@ describe("ReviewsPage", () => {
       screen.getByRole("button", { name: "I don't do code review" }),
     );
     expect(useUserPreferencesStore.getState().codeReviewsEnabled).toBe(false);
+  });
+
+  it("groups by review status, with pinned groups last", () => {
+    state.list = {
+      toReview: [
+        pr(1, "A", "open", { reviewDecision: "approved" }),
+        pr(2, "B", "open", { reviewDecision: "changes_requested" }),
+        pr(3, "C", "open"),
+      ],
+      created: [],
+      participated: [],
+    };
+    useUserPreferencesStore.setState({
+      reviewsView: {
+        ...DEFAULT_REVIEWS_VIEW,
+        groupBy: "reviewStatus",
+        pinned: ["reviewStatus:changes_requested"],
+      },
+    });
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    const headings = screen.getAllByRole("heading", { level: 2 });
+    expect(headings.map((heading) => heading.textContent)).toEqual([
+      "Approved1",
+      "No review decision1",
+      "Changes requested1",
+    ]);
+  });
+
+  it("filters rows by text", () => {
+    state.list.toReview = [pr(1, "Fix login"), pr(2, "Add billing")];
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    fireEvent.change(screen.getByRole("searchbox"), {
+      target: { value: "billing" },
+    });
+    expect(screen.getByText("Add billing")).toBeInTheDocument();
+    expect(screen.queryByText("Fix login")).not.toBeInTheDocument();
+  });
+
+  it("moves with j and k and opens the focused row with Enter", () => {
+    state.list.toReview = [pr(1, "First"), pr(2, "Second")];
+    render(
+      <>
+        <ShortcutListener />
+        <ReviewsPage returnTo="/r" workspaceId="w1" />
+      </>,
+    );
+    const key = (k: string) => fireEvent.keyDown(document.body, { key: k });
+    key("j");
+    expect(document.activeElement).toHaveAttribute(
+      "data-review-row",
+      "acme/web#1",
+    );
+    key("j");
+    expect(document.activeElement).toHaveAttribute(
+      "data-review-row",
+      "acme/web#2",
+    );
+    key("k");
+    expect(document.activeElement).toHaveAttribute(
+      "data-review-row",
+      "acme/web#1",
+    );
+    key("j");
+    (document.activeElement as HTMLElement).blur();
+    key("Enter");
+    expect(mocks.navigate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: expect.objectContaining({ number: "2" }),
+      }),
+    );
   });
 });

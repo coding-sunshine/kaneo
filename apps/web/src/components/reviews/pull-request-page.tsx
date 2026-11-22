@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Check, CircleDot, ExternalLink, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import CommentEditor from "@/components/activity/comment-editor";
 import WorkspaceLayout from "@/components/common/workspace-layout";
 import PageTitle from "@/components/page-title";
 import { PatchDiff } from "@/components/reviews/patch-diff";
@@ -121,19 +122,30 @@ function ChecksTab({ pullRef }: { pullRef: PullRef }) {
   );
 }
 
+// The same read-only ProseMirror renderer issue comments use; it builds nodes
+// from markdown rather than injecting GitHub's text as HTML.
+function Markdown({ value }: { value: string }) {
+  return (
+    <CommentEditor
+      value={value}
+      readOnly
+      className="kaneo-comment-viewer [&_.kaneo-comment-editor-content_.ProseMirror]:p-0"
+    />
+  );
+}
+
 function OverviewTab({ pullRef, body }: { pullRef: PullRef; body: string }) {
   const { t } = useTranslation();
   const conversation = usePullRequestConversation(pullRef);
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
-      {/* GitHub markdown is shown as plain text: nothing from GitHub is injected as HTML. */}
-      <p className="whitespace-pre-wrap text-foreground text-sm">
-        {body || (
-          <span className="text-muted-foreground">
-            {t("workspace:reviews.detail.noDescription")}
-          </span>
-        )}
-      </p>
+      {body ? (
+        <Markdown value={body} />
+      ) : (
+        <p className="text-muted-foreground text-sm">
+          {t("workspace:reviews.detail.noDescription")}
+        </p>
+      )}
       {conversation.data?.map((entry) => (
         <article key={entry.id} className="rounded-lg border p-3">
           <header className="mb-1.5 flex items-center gap-2 text-muted-foreground text-xs">
@@ -152,7 +164,7 @@ function OverviewTab({ pullRef, body }: { pullRef: PullRef; body: string }) {
               )}
             </span>
           </header>
-          <p className="whitespace-pre-wrap text-sm">{entry.body}</p>
+          {entry.body && <Markdown value={entry.body} />}
         </article>
       ))}
       <ReviewForm pullRef={pullRef} />
