@@ -159,6 +159,8 @@ Name | Description |
 | `GITHUB_PRIVATE_KEY` | PEM private key for the GitHub App (JWT authentication). Accepts a real multi-line PEM, or a single line where every newline is replaced with the literal characters `\n` (useful when the host's env editor strips newlines, e.g. Portainer's form-based stack editor).
 | `GITHUB_PRIVATE_KEY_BASE64` | (Optional) Alternative to `GITHUB_PRIVATE_KEY`: a base64-encoded PEM. Takes precedence when both are set. Convenient when your orchestrator can't carry newlines at all.
 | `GITHUB_APP_NAME` | (Optional) GitHub App slug, used for installation links in the UI.
+| `GITHUB_APP_CLIENT_ID` | (Optional) The GitHub App client ID. With the client secret, lets each person connect their own GitHub account to see their pull requests in Reviews. Set the App's callback URL to `<KANEO_API_URL>/api/github-reviews/callback`. Separate from `GITHUB_CLIENT_ID`, which enables GitHub sign-in.
+| `GITHUB_APP_CLIENT_SECRET` | (Optional) The GitHub App client secret. Also read from `GITHUB_APP_CLIENT_SECRET_FILE`.
 
 ### Google SSO
 
