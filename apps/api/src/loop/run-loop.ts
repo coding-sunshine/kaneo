@@ -1,6 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { eq } from "drizzle-orm";
-import { internalAuthHeaders } from "../agent/internal-auth";
 import type { ChatMessage } from "../agent/openrouter";
 import { runAgent } from "../agent/run-agent";
 import { createSelfClient } from "../agent/self-client";
@@ -16,7 +15,7 @@ export const loopRunContext = new AsyncLocalStorage<true>();
 export async function executeLoop(
   loop: Pick<
     typeof loopTable.$inferSelect,
-    "id" | "workspaceId" | "creatorId" | "instructions"
+    "id" | "workspaceId" | "creatorId" | "instructions" | "actions"
   >,
   trigger: "schedule" | "manual" | "event",
   eventNote?: string,
@@ -30,7 +29,7 @@ export async function executeLoop(
   const prompt: ChatMessage = {
     role: "user",
     content: eventNote
-      ? `${loop.instructions}\n\n${eventNote}`
+      ? `${loop.instructions}\n\n<event>${eventNote}</event>`
       : loop.instructions,
   };
   let messages: ChatMessage[] = [prompt];
@@ -41,8 +40,10 @@ export async function executeLoop(
       ...(await loopRunContext.run(true, () =>
         runAgent(
           [prompt],
-          createSelfClient(internalAuthHeaders(loop.creatorId)),
+          createSelfClient(new Headers(), loop.creatorId),
           loop.workspaceId,
+          undefined,
+          { writes: loop.actions, unattended: true },
         ),
       )),
     ];

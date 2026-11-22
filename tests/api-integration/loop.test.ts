@@ -2,10 +2,11 @@ import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
+import { resolveInternalUser } from "../../apps/api/src/agent/internal-auth";
 import { publishEvent } from "../../apps/api/src/events";
 import { runDueLoops } from "../../apps/api/src/scheduler/loops";
 import { callTool, model, reply } from "./helpers/agent-model";
-import { mockAuthenticatedSession } from "./helpers/auth";
+import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
 import {
   createProjectFixture,
@@ -155,7 +156,7 @@ describe("API integration: loops", () => {
     expect((await app.request(url)).status).toBeGreaterThanOrEqual(403);
   });
 
-  it("runs now for the creator and rejects forged internal credentials", async () => {
+  it("runs now for the creator", async () => {
     const { owner, loop, app } = await setup();
     const ws = owner.workspace.id;
     model.queue.push(reply("ok"));
@@ -168,14 +169,6 @@ describe("API integration: loops", () => {
       status: "succeeded",
       trigger: "manual",
     });
-
-    const forged = await app.request(`/api/loop/workspace/${ws}`, {
-      headers: {
-        "x-kaneo-internal-secret": "00".repeat(32),
-        "x-kaneo-internal-user": owner.user.id,
-      },
-    });
-    expect(forged.status).toBe(401);
   });
 
   const makeEventLoop = async (
@@ -300,5 +293,87 @@ describe("API integration: loops", () => {
       json("POST", { workspaceId: owner.workspace.id, description: "x" }),
     );
     expect(bad.status).toBe(502);
+  });
+
+  it("authenticates a run through its marked request, not a session", async () => {
+    const { owner, loop } = await setup();
+    mockAnonymousSession();
+    await makeDue(loop.id);
+    model.queue.push(
+      callTool("list_projects", { workspaceId: owner.workspace.id }),
+      reply("ok"),
+    );
+    await runDueLoops();
+    const [run] = await db.select().from(schema.loopRunTable);
+    expect(run?.status).toBe("succeeded");
+    expect(JSON.stringify(run?.messages)).toContain("Loop project");
+  });
+
+  it("gives no internal identity to requests that set the old headers", async () => {
+    const { owner, app } = await setup();
+    mockAnonymousSession();
+    const spoof = {
+      "x-kaneo-internal-secret": "00".repeat(32),
+      "x-kaneo-internal-user": owner.user.id,
+    };
+    expect(
+      await resolveInternalUser(new Request("http://x/", { headers: spoof })),
+    ).toBeNull();
+    const res = await app.request(`/api/loop/workspace/${owner.workspace.id}`, {
+      headers: spoof,
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it("limits a loop to the write actions it declares", async () => {
+    const { owner, project, app } = await setup();
+    const created = await app.request(
+      "/api/loop",
+      json("POST", {
+        workspaceId: owner.workspace.id,
+        name: "Replier",
+        instructions: "Reply to comments",
+        frequency: "daily",
+        actions: ["create_task_comment"],
+      }),
+    );
+    const replier = await created.json();
+    expect(replier.actions).toEqual(["create_task_comment"]);
+    await makeDue(replier.id);
+    // Only the replier is due; the setup loop is pushed out.
+    await db
+      .update(schema.loopTable)
+      .set({ nextRunAt: new Date(Date.now() + 3_600_000) })
+      .where(eq(schema.loopTable.name, "Weekly wrap"));
+    model.queue.push(
+      {
+        role: "assistant",
+        content: null,
+        tool_calls: ["update_task_status", "update_task_assignee"].map(
+          (name) => ({
+            id: `call-${name}`,
+            type: "function" as const,
+            function: {
+              name,
+              arguments: JSON.stringify({ projectId: project.id }),
+            },
+          }),
+        ),
+      },
+      callTool("create_task_comment", {}),
+      reply("done"),
+    );
+    await runDueLoops();
+    const [run] = await db.select().from(schema.loopRunTable);
+    const messages = (run?.messages ?? []) as {
+      role: string;
+      content: string;
+    }[];
+    const results = messages
+      .filter((m) => m.role === "tool")
+      .map((m) => m.content);
+    expect(results[0]).toContain("Unknown tool update_task_status");
+    expect(results[1]).toContain("Unknown tool update_task_assignee");
+    expect(results[2]).not.toContain("Unknown tool");
   });
 });

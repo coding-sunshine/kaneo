@@ -10,13 +10,13 @@ const MAX_RESULT_CHARS = 20_000;
 // Reads: every list_/get_ tool plus search and whoami. Writes are an explicit
 // allowlist; everything else (deletes, labels, time entries...) stays out.
 const READ_TOOLS = /^(list_|get_)|^(search|whoami)$/;
-const WRITE_TOOLS = new Set([
+export const WRITE_TOOLS = [
   "create_task",
   "update_task",
   "update_task_status",
   "update_task_assignee",
   "create_task_comment",
-]);
+] as const;
 
 export type OpenRouterTool = {
   type: "function";
@@ -29,12 +29,19 @@ export type OpenRouterTool = {
 
 type Handler = Parameters<ToolRegistrar["registerTool"]>[2];
 
-export function buildAgentTools(client: ToolClient) {
+// `writes` narrows the write tools on offer (default: all of WRITE_TOOLS). A
+// tool outside it is neither shown to the model nor callable.
+export function buildAgentTools(
+  client: ToolClient,
+  writes: readonly string[] = WRITE_TOOLS,
+) {
+  const allowed = new Set(writes);
   const definitions: OpenRouterTool[] = [];
   const handlers = new Map<string, Handler>();
   const collector: ToolRegistrar = {
     registerTool(name, config, callback) {
-      if (!READ_TOOLS.test(name) && !WRITE_TOOLS.has(name)) return;
+      const isWrite = (WRITE_TOOLS as readonly string[]).includes(name);
+      if (isWrite ? !allowed.has(name) : !READ_TOOLS.test(name)) return;
       const { $schema: _omit, ...parameters } = z.toJSONSchema(
         config.inputSchema,
       ) as Record<string, unknown>;

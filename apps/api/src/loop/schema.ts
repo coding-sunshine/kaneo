@@ -1,5 +1,6 @@
 import { nullableResponseTimestamp, responseTimestamp, z } from "../openapi";
 import { chatMessageSchema } from "../agent/schema";
+import { WRITE_TOOLS } from "../agent/tools";
 import { FREQUENCIES } from "./schedule";
 
 export const workspaceParam = z.object({ workspaceId: z.string() });
@@ -24,6 +25,8 @@ export const TRIGGERS = [
   "comment_created",
 ] as const;
 const trigger = z.enum(TRIGGERS);
+// The write tools a run may use; none means it can only read.
+const actions = z.array(z.enum(WRITE_TOOLS)).max(WRITE_TOOLS.length);
 
 export const draftBody = z.object({
   workspaceId: z.string(),
@@ -36,6 +39,7 @@ export const draftSchema = z
     instructions: z.string().trim().min(1).max(10_000),
     trigger,
     frequency: frequency.nullish(),
+    actions: actions.default([]),
   })
   .openapi("LoopDraft");
 
@@ -47,6 +51,7 @@ export const createLoopBody = z
     trigger: trigger.default("schedule"),
     projectId: z.string().nullish(),
     frequency: frequency.nullish(),
+    actions: actions.default([]),
   })
   .refine((body) => body.trigger !== "schedule" || body.frequency, {
     message: "A scheduled loop needs a frequency",
@@ -59,6 +64,7 @@ export const updateLoopBody = z.object({
   trigger: trigger.optional(),
   projectId: z.string().nullish(),
   frequency: frequency.nullish(),
+  actions: actions.optional(),
   enabled: z.boolean().optional(),
 });
 
@@ -70,6 +76,7 @@ export const loopSchema = z
     creatorName: z.string().nullable(),
     name: z.string(),
     instructions: z.string(),
+    actions,
     trigger,
     projectId: z.string().nullable(),
     frequency: frequency.nullable(),

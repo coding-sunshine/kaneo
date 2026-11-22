@@ -1,3 +1,4 @@
+import { carryInternalMark } from "../agent/internal-auth";
 import { BlockList, isIP } from "node:net";
 import { getConnInfo } from "@hono/node-server/conninfo";
 import type { MiddlewareHandler } from "hono";
@@ -69,7 +70,10 @@ export function clientIpMiddleware(config?: string): MiddlewareHandler {
     const headers = new Headers(c.req.raw.headers);
     headers.delete(CLIENT_IP_HEADER);
     if (ip) headers.set(CLIENT_IP_HEADER, ip);
-    c.req.raw = new Request(c.req.raw, { headers });
+    c.req.raw = carryInternalMark(
+      c.req.raw,
+      new Request(c.req.raw, { headers }),
+    );
     await next();
   };
 }

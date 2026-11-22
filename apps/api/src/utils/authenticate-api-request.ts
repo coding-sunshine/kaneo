@@ -89,7 +89,7 @@ function setApiKeyContext(c: Context, { key, rateLimit }: VerifiedApiKey) {
 }
 
 export async function authenticateApiRequest(c: Context): Promise<void> {
-  const internalUserId = await resolveInternalUser(c.req.raw.headers);
+  const internalUserId = await resolveInternalUser(c.req.raw);
   if (internalUserId === "invalid") {
     throw new HTTPException(401, { message: "Unauthorized" });
   }

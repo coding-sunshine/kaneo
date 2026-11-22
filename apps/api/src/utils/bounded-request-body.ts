@@ -1,3 +1,4 @@
+import { carryInternalMark } from "../agent/internal-auth";
 import type { MiddlewareHandler } from "hono";
 import { HTTPException } from "hono/http-exception";
 
@@ -51,7 +52,10 @@ export function boundedRequestBody(
       const headers = new Headers(c.req.raw.headers);
       headers.set("content-length", String(bytes.byteLength));
       headers.delete("transfer-encoding");
-      c.req.raw = new Request(c.req.raw, { headers, body: bytes });
+      c.req.raw = carryInternalMark(
+        c.req.raw,
+        new Request(c.req.raw, { headers, body: bytes }),
+      );
     } finally {
       clearTimeout(timeout);
       reader.releaseLock();

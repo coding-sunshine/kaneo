@@ -43,4 +43,25 @@ describe("buildAgentTools", () => {
     expect(await tools.call("get_task", '{"taskId":"t1"}')).toContain("ok");
     expect(calls).toHaveLength(1);
   });
+
+  it("offers only the requested write tools", async () => {
+    const hits: string[] = [];
+    const narrow = buildAgentTools(
+      {
+        async json<T>(path: string) {
+          hits.push(path);
+          return {} as T;
+        },
+      },
+      ["create_task_comment"],
+    );
+    const offered = narrow.definitions.map((tool) => tool.function.name);
+    expect(offered).toContain("create_task_comment");
+    expect(offered).toContain("list_tasks");
+    for (const name of ["update_task", "create_task", "update_task_status"]) {
+      expect(offered).not.toContain(name);
+      expect(await narrow.call(name, "{}")).toContain("Unknown tool");
+    }
+    expect(hits).toEqual([]);
+  });
 });

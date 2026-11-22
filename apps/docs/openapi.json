@@ -2950,6 +2950,20 @@
           "instructions": {
             "type": "string"
           },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "create_task",
+                "update_task",
+                "update_task_status",
+                "update_task_assignee",
+                "create_task_comment"
+              ]
+            },
+            "maxItems": 5
+          },
           "trigger": {
             "type": "string",
             "enum": [
@@ -3008,6 +3022,7 @@
           "creatorName",
           "name",
           "instructions",
+          "actions",
           "trigger",
           "projectId",
           "frequency",
@@ -3052,6 +3067,21 @@
               "yearly",
               null
             ]
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "create_task",
+                "update_task",
+                "update_task_status",
+                "update_task_assignee",
+                "create_task_comment"
+              ]
+            },
+            "maxItems": 5,
+            "default": []
           }
         },
         "required": [
@@ -22275,6 +22305,20 @@
                       null
                     ]
                   },
+                  "actions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "create_task",
+                        "update_task",
+                        "update_task_status",
+                        "update_task_assignee",
+                        "create_task_comment"
+                      ]
+                    },
+                    "maxItems": 5
+                  },
                   "enabled": {
                     "type": "boolean"
                   }
@@ -22466,6 +22510,21 @@
                       "yearly",
                       null
                     ]
+                  },
+                  "actions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "create_task",
+                        "update_task",
+                        "update_task_status",
+                        "update_task_assignee",
+                        "create_task_comment"
+                      ]
+                    },
+                    "maxItems": 5,
+                    "default": []
                   }
                 },
                 "required": [

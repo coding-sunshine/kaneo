@@ -1,4 +1,5 @@
 import type { ToolClient } from "@kaneo/mcp/tools";
+import { markInternalRequest } from "./internal-auth";
 
 type SelfFetch = (request: Request) => Response | Promise<Response>;
 
@@ -24,7 +25,12 @@ export function forwardedAuthHeaders(source: Headers): Headers {
   return headers;
 }
 
-export function createSelfClient(auth: Headers): ToolClient {
+// `auth` is forwarded credentials; `internalUserId` instead marks each request
+// as an in-process run acting as that user (see internal-auth.ts).
+export function createSelfClient(
+  auth: Headers,
+  internalUserId?: string,
+): ToolClient {
   return {
     // Routes whoami to /api/user/me, which works for every credential type.
     usingApiKey: true,
@@ -35,9 +41,12 @@ export function createSelfClient(auth: Headers): ToolClient {
       if (init?.body != null && !headers.has("Content-Type")) {
         headers.set("Content-Type", "application/json");
       }
-      const res = await selfFetch(
-        new Request(`http://localhost${path}`, { ...init, headers }),
-      );
+      const request = new Request(`http://localhost${path}`, {
+        ...init,
+        headers,
+      });
+      if (internalUserId) markInternalRequest(request, internalUserId);
+      const res = await selfFetch(request);
       const text = await res.text();
       let body: unknown = text || null;
       try {

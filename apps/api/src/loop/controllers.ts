@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
+import type { WRITE_TOOLS } from "../agent/tools";
 import db from "../database";
 import {
   loopRunTable,
@@ -11,6 +12,8 @@ import {
 import { nextRunAfter } from "./schedule";
 import type { createLoopBody, updateLoopBody } from "./schema";
 
+type WriteTool = (typeof WRITE_TOOLS)[number];
+
 const selectLoop = () =>
   db
     .select({
@@ -20,6 +23,8 @@ const selectLoop = () =>
       creatorName: userTable.name,
       name: loopTable.name,
       instructions: loopTable.instructions,
+      // Only the API writes this column, and it validates against WRITE_TOOLS.
+      actions: sql<WriteTool[]>`${loopTable.actions}`,
       trigger: loopTable.trigger,
       projectId: loopTable.projectId,
       frequency: loopTable.frequency,
