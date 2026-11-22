@@ -3326,7 +3326,15 @@
 			"trigger": "Trigger",
 			"project": "Project",
 			"allProjects": "All projects",
-			"permissionNote": "Each run uses your permissions at the time it runs.",
+			"actions": "Allowed changes",
+			"action": {
+				"create_task_comment": "Comment",
+				"update_task": "Edit issue",
+				"update_task_status": "Change status",
+				"update_task_assignee": "Assign",
+				"create_task": "Create issue"
+			},
+			"permissionNote": "Each run uses your permissions at the time it runs, limited to the changes above.",
 			"save": "Save loop",
 			"saved": "Loop saved",
 			"deleted": "Loop deleted",

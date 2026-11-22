@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  LOOP_ACTIONS,
   LOOP_EVENT_TRIGGERS,
   LOOP_FREQUENCIES,
+  type LoopAction,
   type LoopFrequency,
   type LoopTrigger,
 } from "@/components/loops/loop-templates";
@@ -31,6 +33,8 @@ export type LoopDraft = {
   frequency: LoopFrequency | null;
   /** Event loops only fire for tasks in this project; null means all. */
   projectId: string | null;
+  /** Write tools a run may use; none means read-only. */
+  actions: LoopAction[];
 };
 
 // One choice picks the trigger: a schedule interval or a task event.
@@ -71,6 +75,7 @@ function LoopForm({
     draft.trigger === "schedule" ? (draft.frequency ?? "daily") : draft.trigger,
   );
   const [projectId, setProjectId] = useState(draft.projectId);
+  const [actions, setActions] = useState(draft.actions);
   const { data: projects = [] } = useGetProjects({ workspaceId });
   const isSchedule = isFrequency(choice);
   const pending = create.isPending || update.isPending;
@@ -84,6 +89,7 @@ function LoopForm({
       trigger: isFrequency(choice) ? "schedule" : choice,
       frequency: isFrequency(choice) ? choice : null,
       projectId: isSchedule ? null : projectId,
+      actions,
     };
     const options = {
       onSuccess: () => {
@@ -160,6 +166,30 @@ function LoopForm({
             ))}
           </select>
         )}
+        <div
+          role="group"
+          aria-label={t("navigation:loops.actions")}
+          className="flex flex-wrap gap-2"
+        >
+          {LOOP_ACTIONS.map((action) => (
+            <Button
+              key={action}
+              type="button"
+              aria-pressed={actions.includes(action)}
+              variant={actions.includes(action) ? "secondary" : "outline"}
+              size="sm"
+              onClick={() =>
+                setActions((current) =>
+                  current.includes(action)
+                    ? current.filter((value) => value !== action)
+                    : [...current, action],
+                )
+              }
+            >
+              {t(`navigation:loops.action.${action}`)}
+            </Button>
+          ))}
+        </div>
         <p className="text-muted-foreground text-xs">
           {t("navigation:loops.permissionNote")}
         </p>

@@ -24,6 +24,20 @@ export const LOOP_EVENT_TRIGGERS: LoopEventTrigger[] = [
   "task_status_changed",
   "comment_created",
 ];
+/** The changes a loop run may make; anything else it can only read. */
+export type LoopAction =
+  | "create_task"
+  | "update_task"
+  | "update_task_status"
+  | "update_task_assignee"
+  | "create_task_comment";
+export const LOOP_ACTIONS: LoopAction[] = [
+  "create_task_comment",
+  "update_task",
+  "update_task_status",
+  "update_task_assignee",
+  "create_task",
+];
 export type LoopCategory =
   | "featured"
   | "engineering"
@@ -54,6 +68,7 @@ export type LoopTemplate = {
   icon: LucideIcon;
   iconClass: string;
   categories: LoopCategory[];
+  actions: LoopAction[];
 } & (
   | { trigger: "schedule"; frequency: LoopFrequency }
   | { trigger: LoopEventTrigger; frequency?: undefined }
@@ -67,6 +82,7 @@ export const LOOP_TEMPLATES: LoopTemplate[] = [
     icon: Bug,
     iconClass: "text-sky-500",
     categories: ["featured", "engineering"],
+    actions: ["create_task_comment"],
     trigger: "task_created",
   },
   {
@@ -74,6 +90,7 @@ export const LOOP_TEMPLATES: LoopTemplate[] = [
     icon: CircleDot,
     iconClass: "text-orange-500",
     categories: ["featured", "triage"],
+    actions: ["create_task_comment", "update_task", "update_task_assignee"],
     trigger: "task_created",
   },
   {
@@ -81,6 +98,7 @@ export const LOOP_TEMPLATES: LoopTemplate[] = [
     icon: MessageCircle,
     iconClass: "text-indigo-500",
     categories: ["featured", "support"],
+    actions: ["create_task_comment"],
     trigger: "comment_created",
   },
   {
@@ -88,6 +106,7 @@ export const LOOP_TEMPLATES: LoopTemplate[] = [
     icon: CalendarDays,
     iconClass: "text-foreground",
     categories: ["featured", "reporting"],
+    actions: [],
     trigger: "schedule",
     frequency: "weekly",
   },
@@ -96,6 +115,7 @@ export const LOOP_TEMPLATES: LoopTemplate[] = [
     icon: FileText,
     iconClass: "text-sky-500",
     categories: ["featured", "reporting"],
+    actions: [],
     trigger: "schedule",
     frequency: "weekly",
   },
@@ -104,6 +124,7 @@ export const LOOP_TEMPLATES: LoopTemplate[] = [
     icon: Megaphone,
     iconClass: "text-orange-500",
     categories: ["featured", "triage"],
+    actions: ["update_task", "create_task_comment"],
     trigger: "schedule",
     frequency: "daily",
   },

@@ -1,6 +1,8 @@
 import { client } from "@kaneo/libs";
 import { HttpError } from "@/lib/http-error";
 
+import type { LoopAction } from "@/components/loops/loop-templates";
+
 export type LoopInput = {
   name: string;
   instructions: string;
@@ -10,6 +12,7 @@ export type LoopInput = {
     | "task_status_changed"
     | "comment_created";
   projectId: string | null;
+  actions: LoopAction[];
   frequency: "hourly" | "daily" | "weekly" | "monthly" | "yearly" | null;
 };
 

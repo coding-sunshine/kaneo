@@ -24,6 +24,7 @@ const blank: LoopDraft = {
   trigger: "schedule",
   frequency: "daily",
   projectId: null,
+  actions: [],
 };
 
 /** Linear's Loops page: your loops, then a builder and template gallery. */
@@ -49,6 +50,7 @@ export function LoopsPage({ workspaceId }: { workspaceId: string }) {
           trigger: result.trigger,
           frequency: result.frequency ?? null,
           projectId: null,
+          actions: result.actions,
         }),
       onError: (error) => toast.error(error.message),
     });
@@ -60,6 +62,7 @@ export function LoopsPage({ workspaceId }: { workspaceId: string }) {
       trigger: template.trigger,
       frequency: template.frequency ?? null,
       projectId: null,
+      actions: template.actions,
     });
 
   const templates = LOOP_TEMPLATES.filter((template) =>
