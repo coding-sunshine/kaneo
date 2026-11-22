@@ -1,0 +1,106 @@
+import { client } from "@kaneo/libs";
+import type { InferResponseType } from "hono/client";
+import { getApiUrl } from "@/fetchers/get-api-url";
+import { HttpError } from "@/lib/http-error";
+
+export type ReviewsStatus = InferResponseType<
+  (typeof client)["github-reviews"]["status"]["$get"],
+  200
+>;
+export type ReviewsList = InferResponseType<
+  (typeof client)["github-reviews"]["$get"],
+  200
+>;
+export type ReviewPullRequest = ReviewsList["created"][number];
+
+export async function getReviewsStatus(): Promise<ReviewsStatus> {
+  const response = await client["github-reviews"].status.$get();
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function getReviewsList(options: {
+  includeDrafts: boolean;
+  includeClosed: boolean;
+}): Promise<ReviewsList> {
+  const response = await client["github-reviews"].$get({
+    query: {
+      includeDrafts: options.includeDrafts ? "true" : "false",
+      includeClosed: options.includeClosed ? "true" : "false",
+    },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function disconnectReviews() {
+  const response = await client["github-reviews"].connection.$delete();
+  if (!response.ok) throw await HttpError.fromResponse(response);
+}
+
+// The OAuth round trip is a browser navigation: the session cookie must reach
+// the API and GitHub redirects back, so the fetch client cannot be used.
+export function getReviewsConnectUrl(returnTo: string) {
+  return getApiUrl(
+    `github-reviews/connect?returnTo=${encodeURIComponent(returnTo)}`,
+  );
+}
+
+export type PullRef = { owner: string; repo: string; number: string };
+const pull = (_ref: PullRef) =>
+  client["github-reviews"].pulls[":owner"][":repo"][":number"];
+
+export type PullRequestDetail = InferResponseType<
+  ReturnType<typeof pull>["$get"],
+  200
+>;
+export type PullRequestFiles = InferResponseType<
+  ReturnType<typeof pull>["files"]["$get"],
+  200
+>;
+export type PullRequestChecks = InferResponseType<
+  ReturnType<typeof pull>["checks"]["$get"],
+  200
+>;
+export type PullRequestConversation = InferResponseType<
+  ReturnType<typeof pull>["conversation"]["$get"],
+  200
+>;
+export type ReviewEvent = "APPROVE" | "REQUEST_CHANGES" | "COMMENT";
+
+const param = (ref: PullRef) => ({ param: ref });
+
+export async function getPullRequest(ref: PullRef) {
+  const response = await pull(ref).$get(param(ref));
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function getPullRequestFiles(ref: PullRef) {
+  const response = await pull(ref).files.$get(param(ref));
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function getPullRequestChecks(ref: PullRef) {
+  const response = await pull(ref).checks.$get(param(ref));
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function getPullRequestConversation(ref: PullRef) {
+  const response = await pull(ref).conversation.$get(param(ref));
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function submitPullRequestReview(
+  ref: PullRef,
+  review: { event: ReviewEvent; body: string },
+) {
+  const response = await pull(ref).reviews.$post({
+    ...param(ref),
+    json: review,
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+}

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { GroupBy } from "@/lib/group-project";
+import { DEFAULT_REVIEWS_VIEW, type ReviewsView } from "@/lib/reviews-view";
 import type { CompletedIssues } from "@/lib/status-category";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -96,6 +97,13 @@ type UserPreferencesStore = {
 
   priorityIconStyle: PriorityIconStyle;
   setPriorityIconStyle: (style: PriorityIconStyle) => void;
+
+  // ponytail: per-browser, not per-account. Move to a server-side user setting
+  // if it should follow people across devices.
+  codeReviewsEnabled: boolean;
+  setCodeReviewsEnabled: (enabled: boolean) => void;
+  reviewsView: ReviewsView;
+  setReviewsView: (patch: Partial<ReviewsView>) => void;
 };
 
 export const useUserPreferencesStore = create<UserPreferencesStore>()(
@@ -241,6 +249,13 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
 
       priorityIconStyle: "marks",
       setPriorityIconStyle: (priorityIconStyle) => set({ priorityIconStyle }),
+
+      codeReviewsEnabled: true,
+      setCodeReviewsEnabled: (codeReviewsEnabled) =>
+        set({ codeReviewsEnabled }),
+      reviewsView: DEFAULT_REVIEWS_VIEW,
+      setReviewsView: (patch) =>
+        set((state) => ({ reviewsView: { ...state.reviewsView, ...patch } })),
     }),
     {
       name: "user-preferences",
