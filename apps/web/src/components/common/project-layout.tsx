@@ -27,6 +27,7 @@ import {
   type LeavingTeam,
 } from "@/components/team/leave-team-dialog";
 import { TeamMenuItems } from "@/components/team/team-menu-items";
+import { useTeamShortcuts } from "@/components/team/use-team-actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -96,6 +97,7 @@ export default function ProjectLayout({
   useShortcut("toggleInsights", () => setInsightsOpen(!insightsOpen), {
     enabled: showInsights,
   });
+  useTeamShortcuts(workspaceId, projectId);
   const viewMode = useUserPreferencesStore((state) => state.viewMode);
   const setCreateIssueOpen = useCreateIssueStore((state) => state.setOpen);
 

@@ -5,19 +5,23 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/menu";
+import { ShortcutTestWrapper } from "@/lib/shortcuts/shortcut-test-wrapper";
 import { TeamMenuItems } from "./team-menu-items";
+import { useTeamShortcuts } from "./use-team-actions";
 
-const { mutate, projects } = vi.hoisted(() => ({
+const { mutate, navigate, projects, toggle } = vi.hoisted(() => ({
   mutate: vi.fn(),
+  navigate: vi.fn(),
+  toggle: vi.fn(),
   projects: { current: [] as unknown[] },
 }));
 
-vi.mock("@tanstack/react-router", () => ({ useNavigate: () => vi.fn() }));
+vi.mock("@tanstack/react-router", () => ({ useNavigate: () => navigate }));
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 vi.mock("@/hooks/queries/favorite/use-favorites", () => ({
-  useFavorite: () => ({ isFavorite: false, toggle: vi.fn() }),
+  useFavorite: () => ({ isFavorite: false, toggle }),
 }));
 vi.mock("@/hooks/queries/project/use-get-projects", () => ({
   default: () => ({ data: projects.current }),
@@ -56,7 +60,50 @@ function renderMenu(joined: boolean, onLeave = vi.fn()) {
   return onLeave;
 }
 
+function ShortcutHost() {
+  useTeamShortcuts("w1", "p1");
+  return null;
+}
+
 describe("TeamMenuItems", () => {
+  it("shows Linear's shortcut hints and the Slack row before Leave team", async () => {
+    renderMenu(true);
+    const favorite = await screen.findByRole("menuitem", {
+      name: /navigation:projectList.favorite/,
+    });
+    expect(favorite.textContent).toContain("F");
+    expect(favorite.querySelectorAll("kbd").length).toBeGreaterThan(1);
+    const url = screen.getByRole("menuitem", {
+      name: /navigation:projectList.copyUrl/,
+    });
+    expect(url.textContent).toContain(",");
+    const rows = screen
+      .getAllByRole("menuitem")
+      .map((row) => row.textContent ?? "");
+    const slack = rows.findIndex((row) => row.includes("configureSlack"));
+    expect(slack).toBe(rows.findIndex((row) => row.includes("subscribe")) + 1);
+    expect(rows[slack + 1]).toContain("leaveTeam");
+    fireEvent.click(screen.getAllByRole("menuitem")[slack]);
+    expect(navigate).toHaveBeenCalledWith({
+      to: "/dashboard/settings/projects/$projectId/integrations",
+      params: { projectId: "p1" },
+    });
+  });
+
+  it("Alt+F toggles the favorite from the team page", () => {
+    render(
+      <ShortcutTestWrapper>
+        <ShortcutHost />
+      </ShortcutTestWrapper>,
+    );
+    fireEvent.keyDown(document.body, {
+      key: "ƒ",
+      code: "KeyF",
+      altKey: true,
+    });
+    expect(toggle).toHaveBeenCalledTimes(1);
+  });
+
   it("offers Subscribe and Leave team to members, never Delete", async () => {
     const onLeave = renderMenu(true);
 
