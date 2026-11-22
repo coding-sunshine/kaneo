@@ -38,6 +38,28 @@ import {
 import { readErrorBody } from "./helpers/error-body";
 
 const provider = vi.hoisted(() => ({ read: vi.fn(), write: vi.fn() }));
+// A held lease normally makes the caller wait 5s before it reports a conflict.
+const lease = vi.hoisted(() => ({
+  maxWaitMs: undefined as number | undefined,
+}));
+vi.mock("../../apps/api/src/plugins/sync/lease", async (importOriginal) => {
+  const original =
+    await importOriginal<
+      typeof import("../../apps/api/src/plugins/sync/lease")
+    >();
+  return {
+    ...original,
+    withSyncLease: <T>(
+      key: string,
+      run: () => Promise<T>,
+      options?: { maxWaitMs?: number },
+    ) =>
+      original.withSyncLease(key, run, {
+        ...options,
+        maxWaitMs: lease.maxWaitMs ?? options?.maxWaitMs,
+      }),
+  };
+});
 vi.mock("../../apps/api/src/plugins/sync/provider-issue", () => ({
   providerIssue: async () => provider,
 }));
@@ -45,6 +67,7 @@ vi.mock("../../apps/api/src/plugins/sync/provider-issue", () => ({
 beforeEach(async () => {
   await resetTestDatabase();
   vi.clearAllMocks();
+  lease.maxWaitMs = undefined;
   provider.read.mockReset().mockResolvedValue({
     title: "Repository title",
     description: "Repository body",
@@ -704,6 +727,7 @@ describe("reviewed sync resume", () => {
     expect(provider.write).not.toHaveBeenCalled();
   });
   it("returns a retryable conflict when another instance retains the resume lease", async () => {
+    lease.maxWaitMs = 100;
     const f = await paused();
     await db.insert(schema.jobLeaseTable).values({
       name: `sync-resume:${f.link.id}`,

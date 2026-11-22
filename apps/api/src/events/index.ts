@@ -11,6 +11,13 @@ export type EventPayload<T = unknown> = {
   timestamp: string;
 };
 
+// Handlers run detached from emit(), so tests await this instead of polling.
+const inFlight = new Set<Promise<void>>();
+
+export async function settleEvents(): Promise<void> {
+  while (inFlight.size) await Promise.all([...inFlight]);
+}
+
 export async function shutdownEventBus(): Promise<void> {
   EVENTS.removeAllListeners();
 }
@@ -52,12 +59,16 @@ export async function subscribeToEvent<T>(
   handler: (data: T) => Promise<void>,
 ): Promise<void> {
   try {
-    EVENTS.on(eventType, async (payload: EventPayload<T>) => {
-      try {
-        await handler(payload.data);
-      } catch (error) {
-        console.error(`Error processing event ${eventType}:`, error);
-      }
+    EVENTS.on(eventType, (payload: EventPayload<T>) => {
+      const run = (async () => {
+        try {
+          await handler(payload.data);
+        } catch (error) {
+          console.error(`Error processing event ${eventType}:`, error);
+        }
+      })();
+      inFlight.add(run);
+      return run.finally(() => inFlight.delete(run));
     });
   } catch (error) {
     console.error("Failed to subscribe to event:", error);

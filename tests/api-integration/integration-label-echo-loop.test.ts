@@ -28,7 +28,37 @@ const mocks = vi.hoisted(() => ({
   readFailures: [] as unknown[],
   readGate: undefined as Promise<void> | undefined,
   onRead: undefined as (() => void) | undefined,
+  // Production waits 8s for a delivery and 3s for the lease; tests shorten both.
+  budgetMs: 8_000,
+  leaseWaitMs: undefined as number | undefined,
 }));
+vi.mock(
+  "../../apps/api/src/plugins/sync/sync-label-fields-from-issue",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("../../apps/api/src/plugins/sync/sync-label-fields-from-issue")
+    >()),
+    labelReadDeadline: () => Date.now() + mocks.budgetMs,
+  }),
+);
+vi.mock("../../apps/api/src/plugins/sync/lease", async (importOriginal) => {
+  const original =
+    await importOriginal<
+      typeof import("../../apps/api/src/plugins/sync/lease")
+    >();
+  return {
+    ...original,
+    withSyncLease: <T>(
+      key: string,
+      run: () => Promise<T>,
+      options?: { maxWaitMs?: number },
+    ) =>
+      original.withSyncLease(key, run, {
+        ...options,
+        maxWaitMs: mocks.leaseWaitMs ?? options?.maxWaitMs,
+      }),
+  };
+});
 vi.mock("../../apps/api/src/events", () => ({
   publishEvent: async (name: string, data: unknown) => {
     mocks.events.push({ name, data });
@@ -121,6 +151,8 @@ beforeEach(async () => {
   mocks.readFailures = [];
   mocks.readGate = undefined;
   mocks.onRead = undefined;
+  mocks.budgetMs = 8_000;
+  mocks.leaseWaitMs = undefined;
 });
 
 // Links record the field labels they start with; `{}` is a link from before.
@@ -333,6 +365,7 @@ it.each(["github", "gitea"] as const)(
 it.each(["github", "gitea"] as const)(
   "%s replays a provider change when the label lease stays busy",
   async (provider) => {
+    mocks.leaseWaitMs = 100;
     const f = await setup(provider);
     const lease = `sync-field-labels:${f.link.id}`;
     await db.insert(schema.jobLeaseTable).values({
@@ -377,6 +410,7 @@ it.each(["github", "gitea"] as const)(
 it.each(["github", "gitea"] as const)(
   "%s replays a deferred change on a resumed link",
   async (provider) => {
+    mocks.leaseWaitMs = 100;
     // Resume records the provider's labels as both baselines.
     const f = await setup(provider, {
       syncResumeLabelBaseline: ["status:to-do"],
@@ -405,6 +439,7 @@ it.each(["github", "gitea"] as const)(
 );
 
 it("github defers a provider read that outlives the delivery budget", async () => {
+  mocks.budgetMs = 500;
   const f = await setup("github");
   let release!: () => void;
   mocks.readGate = new Promise((resolve) => {
@@ -413,7 +448,7 @@ it("github defers a provider read that outlives the delivery budget", async () =
   change("labeled", "status:in-review");
   const started = Date.now();
   await f.receive(mocks.deliveries.shift()!);
-  expect(Date.now() - started).toBeLessThan(9_500);
+  expect(Date.now() - started).toBeLessThan(5_000);
   expect((await f.metadataOf()).syncLabelFieldsDeferred).toEqual(
     expect.any(String),
   );
@@ -549,6 +584,7 @@ it("github replays the event's label for a deferred link without a record", asyn
 }, 15_000);
 
 it("github shares one delivery budget across integrations", async () => {
+  mocks.budgetMs = 500;
   const first = await setup("github");
   const second = await setup("github");
   let release!: () => void;
@@ -558,7 +594,7 @@ it("github shares one delivery budget across integrations", async () => {
   change("labeled", "status:in-review");
   const started = Date.now();
   await first.receive(mocks.deliveries.shift()!);
-  expect(Date.now() - started).toBeLessThan(9_500);
+  expect(Date.now() - started).toBeLessThan(5_000);
   for (const f of [first, second])
     expect((await f.metadataOf()).syncLabelFieldsDeferred).toEqual(
       expect.any(String),
@@ -569,6 +605,7 @@ it("github shares one delivery budget across integrations", async () => {
 }, 25_000);
 
 it("github keeps an addition deferred while another read is running", async () => {
+  mocks.leaseWaitMs = 100;
   const f = await setup("github", {});
   change("labeled", "status:in-review");
   change("labeled", "priority:high");
