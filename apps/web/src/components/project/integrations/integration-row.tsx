@@ -1,5 +1,5 @@
 import { DisabledIntegrationDisconnect } from "./disabled-integration-disconnect";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { IntegrationStatus } from "@/components/project/integrations/get-integration-status";
 import type { IntegrationDefinition } from "@/components/project/integrations/integration-definitions";
@@ -30,7 +30,12 @@ export function IntegrationRow({
   disabled = false,
 }: IntegrationRowProps) {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
+  // A #slack-style hash opens and scrolls to that row, e.g. from the team menu.
+  const targeted = window.location.hash === `#${integration.id}`;
+  const [open, setOpen] = useState(targeted);
+  useEffect(() => {
+    if (targeted) document.getElementById(integration.id)?.scrollIntoView?.();
+  }, [targeted, integration.id]);
   const name =
     typeof integration.name === "string"
       ? integration.name
@@ -40,7 +45,10 @@ export function IntegrationRow({
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <div className="flex items-center gap-3.5 px-4 py-3.5">
+      <div
+        id={integration.id}
+        className="flex items-center gap-3.5 px-4 py-3.5"
+      >
         <SettingsIconTile className="text-foreground">
           <integration.icon
             aria-hidden="true"

@@ -4,6 +4,7 @@ import {
   projectMemberPreferenceTable,
   projectTable,
   taskTable,
+  workspaceUserTable,
 } from "../../database/schema";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
 import { toTeamMembership } from "../team-membership";
@@ -70,6 +71,25 @@ async function getProjectStatistics(
   return statisticsByProject;
 }
 
+/** People who can open each team, in one grouped query instead of one per team. */
+async function getMemberCounts(workspaceId: string) {
+  const rows = await db
+    .select({ projectId: projectTable.id, members: count() })
+    .from(projectTable)
+    .innerJoin(
+      workspaceUserTable,
+      eq(workspaceUserTable.workspaceId, projectTable.workspaceId),
+    )
+    .where(
+      and(
+        eq(projectTable.workspaceId, workspaceId),
+        projectAccessCondition(workspaceUserTable.userId, projectTable.id),
+      ),
+    )
+    .groupBy(projectTable.id);
+  return new Map(rows.map((row) => [row.projectId, Number(row.members)]));
+}
+
 async function getProjects(
   workspaceId: string,
   userId: string,
@@ -90,8 +110,9 @@ async function getProjects(
     ],
   });
 
-  const [statisticsByProject, preferences] = await Promise.all([
+  const [statisticsByProject, memberCounts, preferences] = await Promise.all([
     getProjectStatistics(workspaceId, userId, includeArchived),
+    getMemberCounts(workspaceId),
     db
       .select()
       .from(projectMemberPreferenceTable)
@@ -104,6 +125,7 @@ async function getProjects(
   return projects.map((project) => ({
     ...project,
     statistics: statisticsByProject.get(project.id) ?? EMPTY_STATISTICS,
+    memberCount: memberCounts.get(project.id) ?? 0,
     membership: toTeamMembership(preferenceByProject.get(project.id)),
     archivedTasks: [],
     plannedTasks: [],

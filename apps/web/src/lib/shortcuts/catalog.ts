@@ -73,6 +73,8 @@ export const SHORTCUTS = {
   createProject: { keys: ["n p"], category: "create" },
 
   toggleLayout: { keys: ["mod+b"], category: "views", scope: "view" },
+  toggleTeamFavorite: { keys: ["alt+f"], category: "views", scope: "view" },
+  copyTeamUrl: { keys: ["mod+shift+,"], category: "views", scope: "view" },
   toggleInsights: { keys: ["mod+shift+i"], category: "views", scope: "view" },
 
   replyToComment: { keys: ["r"], category: "tasks", scope: "task" },
@@ -82,6 +84,7 @@ export const SHORTCUTS = {
   assignToMe: { keys: ["i"], category: "tasks", scope: "task" },
   changeLabels: { keys: ["l"], category: "tasks", scope: "task" },
   changeCycle: { keys: ["shift+c"], category: "tasks", scope: "task" },
+  setEstimate: { keys: ["shift+e"], category: "tasks", scope: "task" },
   setDueDate: { keys: ["shift+d"], category: "tasks", scope: "task" },
   removeDueDate: { keys: ["mod+shift+d"], category: "tasks", scope: "task" },
   renameTask: { keys: ["shift+r"], category: "tasks", scope: "task" },

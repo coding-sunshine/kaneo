@@ -574,6 +574,7 @@ const project = apiRouter<BaseVariables & { workspaceId: string }>()
       isPublic,
       includeSubtasks,
       autoArchiveMonths,
+      ...estimation
     } = c.req.valid("json");
     const workspaceId = c.get("workspaceId");
     const updatedProject = await updateProjectCtrl(
@@ -587,6 +588,7 @@ const project = apiRouter<BaseVariables & { workspaceId: string }>()
       await hasWorkspacePermission(c, { project: ["share"] }),
       includeSubtasks,
       autoArchiveMonths,
+      estimation,
     );
     await publishEvent("project.updated", { projectId: id });
     return c.json(toPublicProject(updatedProject), 200);

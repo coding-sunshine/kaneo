@@ -130,6 +130,12 @@ export function taskMatchesFilters(
       () => filters.cycle?.includes(task.cycleId ?? "") ?? false,
     ],
     [
+      "estimate",
+      filters.estimate,
+      () =>
+        filters.estimate?.includes(String(task.estimate ?? "none")) ?? false,
+    ],
+    [
       "workProject",
       filters.workProject,
       () => filters.workProject?.includes(task.workProjectId ?? "") ?? false,

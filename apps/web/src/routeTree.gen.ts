@@ -69,6 +69,7 @@ import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdWorkProjectsRo
 import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdCalendarRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/calendar'
 import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdCustomFieldsRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/custom-fields'
 import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdCyclesRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/cycles'
+import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdEstimatesRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/estimates'
 import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/general'
 import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/integrations'
 import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/visibility'
@@ -446,6 +447,14 @@ const LayoutAuthenticatedDashboardSettingsProjectsProjectIdCyclesRoute =
       getParentRoute: () => LayoutAuthenticatedDashboardSettingsProjectsRoute,
     } as any,
   )
+const LayoutAuthenticatedDashboardSettingsProjectsProjectIdEstimatesRoute =
+  LayoutAuthenticatedDashboardSettingsProjectsProjectIdEstimatesRouteImport.update(
+    {
+      id: '/$projectId/estimates',
+      path: '/$projectId/estimates',
+      getParentRoute: () => LayoutAuthenticatedDashboardSettingsProjectsRoute,
+    } as any,
+  )
 const LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute =
   LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRouteImport.update(
     {
@@ -706,6 +715,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/projects/$projectId/calendar': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdCalendarRoute
   '/dashboard/settings/projects/$projectId/custom-fields': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdCustomFieldsRoute
   '/dashboard/settings/projects/$projectId/cycles': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdCyclesRoute
+  '/dashboard/settings/projects/$projectId/estimates': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdEstimatesRoute
   '/dashboard/settings/projects/$projectId/general': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute
   '/dashboard/settings/projects/$projectId/integrations': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRoute
   '/dashboard/settings/projects/$projectId/visibility': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRoute
@@ -785,6 +795,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings/projects/$projectId/calendar': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdCalendarRoute
   '/dashboard/settings/projects/$projectId/custom-fields': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdCustomFieldsRoute
   '/dashboard/settings/projects/$projectId/cycles': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdCyclesRoute
+  '/dashboard/settings/projects/$projectId/estimates': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdEstimatesRoute
   '/dashboard/settings/projects/$projectId/general': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute
   '/dashboard/settings/projects/$projectId/integrations': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRoute
   '/dashboard/settings/projects/$projectId/visibility': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRoute
@@ -871,6 +882,7 @@ export interface FileRoutesById {
   '/_layout/_authenticated/dashboard/settings/projects/$projectId/calendar': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdCalendarRoute
   '/_layout/_authenticated/dashboard/settings/projects/$projectId/custom-fields': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdCustomFieldsRoute
   '/_layout/_authenticated/dashboard/settings/projects/$projectId/cycles': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdCyclesRoute
+  '/_layout/_authenticated/dashboard/settings/projects/$projectId/estimates': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdEstimatesRoute
   '/_layout/_authenticated/dashboard/settings/projects/$projectId/general': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute
   '/_layout/_authenticated/dashboard/settings/projects/$projectId/integrations': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRoute
   '/_layout/_authenticated/dashboard/settings/projects/$projectId/visibility': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRoute
@@ -956,6 +968,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/projects/$projectId/calendar'
     | '/dashboard/settings/projects/$projectId/custom-fields'
     | '/dashboard/settings/projects/$projectId/cycles'
+    | '/dashboard/settings/projects/$projectId/estimates'
     | '/dashboard/settings/projects/$projectId/general'
     | '/dashboard/settings/projects/$projectId/integrations'
     | '/dashboard/settings/projects/$projectId/visibility'
@@ -1035,6 +1048,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/projects/$projectId/calendar'
     | '/dashboard/settings/projects/$projectId/custom-fields'
     | '/dashboard/settings/projects/$projectId/cycles'
+    | '/dashboard/settings/projects/$projectId/estimates'
     | '/dashboard/settings/projects/$projectId/general'
     | '/dashboard/settings/projects/$projectId/integrations'
     | '/dashboard/settings/projects/$projectId/visibility'
@@ -1120,6 +1134,7 @@ export interface FileRouteTypes {
     | '/_layout/_authenticated/dashboard/settings/projects/$projectId/calendar'
     | '/_layout/_authenticated/dashboard/settings/projects/$projectId/custom-fields'
     | '/_layout/_authenticated/dashboard/settings/projects/$projectId/cycles'
+    | '/_layout/_authenticated/dashboard/settings/projects/$projectId/estimates'
     | '/_layout/_authenticated/dashboard/settings/projects/$projectId/general'
     | '/_layout/_authenticated/dashboard/settings/projects/$projectId/integrations'
     | '/_layout/_authenticated/dashboard/settings/projects/$projectId/visibility'
@@ -1578,6 +1593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdCyclesRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsRoute
     }
+    '/_layout/_authenticated/dashboard/settings/projects/$projectId/estimates': {
+      id: '/_layout/_authenticated/dashboard/settings/projects/$projectId/estimates'
+      path: '/$projectId/estimates'
+      fullPath: '/dashboard/settings/projects/$projectId/estimates'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdEstimatesRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsRoute
+    }
     '/_layout/_authenticated/dashboard/settings/projects/$projectId/general': {
       id: '/_layout/_authenticated/dashboard/settings/projects/$projectId/general'
       path: '/$projectId/general'
@@ -1812,6 +1834,7 @@ interface LayoutAuthenticatedDashboardSettingsProjectsRouteChildren {
   LayoutAuthenticatedDashboardSettingsProjectsProjectIdCalendarRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdCalendarRoute
   LayoutAuthenticatedDashboardSettingsProjectsProjectIdCustomFieldsRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdCustomFieldsRoute
   LayoutAuthenticatedDashboardSettingsProjectsProjectIdCyclesRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdCyclesRoute
+  LayoutAuthenticatedDashboardSettingsProjectsProjectIdEstimatesRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdEstimatesRoute
   LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute
   LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRoute
   LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRoute
@@ -1826,6 +1849,8 @@ const LayoutAuthenticatedDashboardSettingsProjectsRouteChildren: LayoutAuthentic
       LayoutAuthenticatedDashboardSettingsProjectsProjectIdCustomFieldsRoute,
     LayoutAuthenticatedDashboardSettingsProjectsProjectIdCyclesRoute:
       LayoutAuthenticatedDashboardSettingsProjectsProjectIdCyclesRoute,
+    LayoutAuthenticatedDashboardSettingsProjectsProjectIdEstimatesRoute:
+      LayoutAuthenticatedDashboardSettingsProjectsProjectIdEstimatesRoute,
     LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute:
       LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute,
     LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRoute:

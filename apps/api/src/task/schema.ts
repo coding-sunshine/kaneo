@@ -160,6 +160,12 @@ export const importTasksBody = z.object({
 
 export const updateStatusBody = z.object({ status: z.string() });
 export const updatePriorityBody = z.object({ priority });
+export const updateEstimateBody = z.object({
+  estimate: z.number().int().min(0).nullable().openapi({
+    description:
+      "Points from the team's estimate scale (see the project's estimateOptions). Null clears it.",
+  }),
+});
 export const updateAssigneeBody = z.object({
   userId: z.string().nullable().openapi({ description: "Null unassigns." }),
 });

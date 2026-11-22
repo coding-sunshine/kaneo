@@ -539,6 +539,14 @@ export const projectTable = pgTable(
       .notNull()
       .default(true),
     cycleAutoRollover: boolean("cycle_auto_rollover").notNull().default(true),
+    // Linear's "Issue estimation": none, exponential, fibonacci, linear or tshirt.
+    estimateType: text("estimate_type").notNull().default("none"),
+    estimateExtended: boolean("estimate_extended").notNull().default(false),
+    estimateAllowZero: boolean("estimate_allow_zero").notNull().default(false),
+    // Insights counts an issue without an estimate as one point.
+    estimateCountUnestimated: boolean("estimate_count_unestimated")
+      .notNull()
+      .default(true),
     position: integer("position").notNull().default(0),
     backgroundObjectKey: text("background_object_key"),
     backgroundMimeType: text("background_mime_type"),
@@ -977,6 +985,8 @@ export const taskTable = pgTable(
     completedAt: timestamp("completed_at", { mode: "date" }),
     startedTriageAt: timestamp("started_triage_at", { mode: "date" }),
     triagedAt: timestamp("triaged_at", { mode: "date" }),
+    // Points on the team's estimate scale (see project.estimate_type); null is unestimated.
+    estimate: integer("estimate"),
     creatorId: text("creator_id").references(() => userTable.id, {
       onDelete: "set null",
       onUpdate: "cascade",

@@ -191,6 +191,7 @@ async function getTasksPage(
     descriptionDeferred,
     status: taskTable.status,
     priority: taskTable.priority,
+    estimate: taskTable.estimate,
     startDate: taskTable.startDate,
     dueDate: taskTable.dueDate,
     recurrence: taskTable.recurrence,

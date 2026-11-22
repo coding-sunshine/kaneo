@@ -9,6 +9,7 @@ import { AssigneeButton } from "@/components/task-chips/assignee-button";
 import { CycleChip } from "@/components/cycle/cycle-chip";
 import { WorkProjectChip } from "@/components/work-project/work-project-chip";
 import { ChecklistChip } from "@/components/task-chips/checklist-chip";
+import { EstimateChip } from "@/components/task-chips/estimate-chip";
 import { DueDateChip } from "@/components/task-chips/due-date-chip";
 import { LabelChips } from "@/components/task-chips/label-chips";
 import { stopCardEvents } from "@/components/task-chips/stop-card-events";
@@ -126,6 +127,7 @@ export function TaskRowBody({
 
       <div className="flex shrink-0 items-center justify-end gap-1">
         <CardFieldList fields={cardFields} max={3} />
+        <EstimateChip task={task} />
         <CycleChip
           cycleId={task.cycleId}
           projectId={task.projectId}
