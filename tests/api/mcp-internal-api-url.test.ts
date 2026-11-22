@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test";
 
 const authMocks = vi.hoisted(() => ({
   getSession: vi.fn(async () => ({ user: { id: "test-user" } })),
@@ -47,6 +47,12 @@ async function loadMcpRoutes(internalApiUrl?: string) {
   vi.resetModules();
   return (await import("../../apps/api/src/mcp")).default;
 }
+
+// The first import transforms the whole MCP graph, which can outlast a test's
+// 5s budget on a busy machine. Pay for it in a hook with its own budget.
+beforeAll(async () => {
+  await loadMcpRoutes();
+}, 60_000);
 
 afterEach(() => {
   vi.unstubAllGlobals();
