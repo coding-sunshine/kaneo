@@ -23,6 +23,7 @@ import { AuthPage } from "@/components/auth/auth-page";
 import { AutoLoginRedirect } from "@/components/auth/auto-login-redirect";
 import { EmailCodeForm } from "@/components/auth/email-code-form";
 import { InvitationNotice } from "@/components/auth/invitation-notice";
+import { PasskeySignInButton } from "@/components/auth/passkey-sign-in-button";
 import { PasswordSignInForm } from "@/components/auth/password-sign-in-form";
 import { ProviderButtons } from "@/components/auth/provider-buttons";
 import { SignInFooterLine } from "@/components/auth/sign-in-footer-line";
@@ -201,6 +202,14 @@ function SignIn() {
             disabled={busy}
             onSuccess={() => navigate({ to: destination })}
           />
+        ) : null}
+        {emailMethod ? (
+          <div className="pt-3">
+            <PasskeySignInButton
+              disabled={busy}
+              onSuccess={() => navigate({ to: destination })}
+            />
+          </div>
         ) : null}
         {emailMethod && providers.length > 0 ? <AuthDivider /> : null}
         {!emailMethod && captcha.siteKey ? (
