@@ -14,6 +14,7 @@ type ProjectListEntry = typeof schema.projectTable.$inferSelect & {
     totalTasks: number;
     dueDate: string | null;
   };
+  memberCount: number;
   tasks?: unknown;
 };
 
@@ -58,6 +59,7 @@ describe("API integration: project list payload", () => {
 
     expect(response.status).toBe(200);
     const payload = (await response.json()) as ProjectListEntry[];
+    expect(payload.find((p) => p.id === project.id)?.memberCount).toBe(1);
     expect(payload).toHaveLength(1);
 
     // The list endpoint is a summary view. Task rows must not ride along:

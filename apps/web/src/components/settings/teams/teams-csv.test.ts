@@ -11,11 +11,12 @@ describe("buildTeamsCsv", () => {
           key: "OPS",
           description: null,
           visibility: "Workspace",
+          members: 5,
           issues: 3,
           created: "2026-01-02",
         },
       ],
     );
-    expect(csv).toBe('Name,Key\n"Ops, ""core""",OPS,,Workspace,3,2026-01-02');
+    expect(csv).toBe('Name,Key\n"Ops, ""core""",OPS,,Workspace,5,3,2026-01-02');
   });
 });

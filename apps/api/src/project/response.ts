@@ -83,6 +83,9 @@ export const teamMembershipSchema = z
 export const projectListItemSchema = projectSchema
   .extend({
     statistics: projectStatisticsSchema,
+    memberCount: z.number().openapi({
+      description: "Workspace members who can open this team.",
+    }),
     membership: teamMembershipSchema,
     // Legacy, always empty. Fetch the board via GET /task/tasks/{id}.
     archivedTasks: z

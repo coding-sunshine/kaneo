@@ -1077,6 +1077,10 @@
               "statistics": {
                 "$ref": "#/components/schemas/ProjectStatistics"
               },
+              "memberCount": {
+                "type": "number",
+                "description": "Workspace members who can open this team."
+              },
               "membership": {
                 "$ref": "#/components/schemas/TeamMembership"
               },
@@ -1104,6 +1108,7 @@
             },
             "required": [
               "statistics",
+              "memberCount",
               "membership",
               "archivedTasks",
               "plannedTasks",

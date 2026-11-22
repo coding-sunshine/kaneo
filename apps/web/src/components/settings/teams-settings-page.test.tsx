@@ -43,9 +43,6 @@ vi.mock("@/hooks/use-workspace-permission", () => ({
     canDeleteProjects: () => state.canDelete,
   }),
 }));
-vi.mock("@/components/settings/teams/team-members-count", () => ({
-  TeamMembersCount: () => "3",
-}));
 vi.mock("@/fetchers/project/update-team-membership", () => ({
   default: state.updateMembership,
 }));
@@ -72,6 +69,7 @@ const team = (id: string, name: string, joined: boolean) => ({
   archivedAt: null,
   createdAt: "2026-01-02T00:00:00.000Z",
   statistics: { totalTasks: 42 },
+  memberCount: 3,
   membership: { joined },
 });
 

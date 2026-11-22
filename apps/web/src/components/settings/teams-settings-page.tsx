@@ -5,7 +5,6 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/components/settings/confirm-dialog";
 import { SettingsPage } from "@/components/settings/settings-page";
-import { TeamMembersCount } from "@/components/settings/teams/team-members-count";
 import { TeamRowMenu } from "@/components/settings/teams/team-row-menu";
 import { buildTeamsCsv } from "@/components/settings/teams/teams-csv";
 import CreateProjectModal from "@/components/shared/modals/create-project-modal";
@@ -80,6 +79,7 @@ export function TeamsSettingsPage() {
         t("settings:teams.columns.identifier"),
         t("settings:teams.columns.description"),
         t("settings:teams.columns.visibility"),
+        t("settings:teams.columns.members"),
         t("settings:teams.columns.issues"),
         t("settings:teams.columns.created"),
       ],
@@ -88,6 +88,7 @@ export function TeamsSettingsPage() {
         key: team.slug,
         description: team.description,
         visibility: visibility(team.isPublic),
+        members: team.memberCount,
         issues: team.statistics?.totalTasks ?? 0,
         created: formatDateMedium(team.createdAt),
       })),
@@ -213,10 +214,7 @@ export function TeamsSettingsPage() {
                     {visibility(team.isPublic)}
                   </TableCell>
                   <TableCell className="text-muted-foreground tabular-nums">
-                    <TeamMembersCount
-                      workspaceId={workspaceId}
-                      projectId={team.id}
-                    />
+                    {team.memberCount}
                   </TableCell>
                   <TableCell className="text-muted-foreground tabular-nums">
                     {team.statistics?.totalTasks ?? 0}

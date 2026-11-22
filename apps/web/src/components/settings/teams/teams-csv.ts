@@ -3,6 +3,7 @@ export type TeamCsvRow = {
   key: string;
   description: string | null;
   visibility: string;
+  members: number;
   issues: number;
   created: string;
 };
@@ -21,6 +22,7 @@ export function buildTeamsCsv(headers: string[], rows: TeamCsvRow[]) {
       row.key,
       row.description ?? "",
       row.visibility,
+      row.members,
       row.issues,
       row.created,
     ]),
