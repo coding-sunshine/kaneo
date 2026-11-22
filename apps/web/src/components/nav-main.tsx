@@ -1,6 +1,7 @@
 import { isSnoozed } from "@/components/inbox/snooze";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import {
+  Activity,
   ChevronRight,
   CircleUserRound,
   GitPullRequest,
@@ -111,6 +112,11 @@ export function NavMain() {
           },
         ]
       : []),
+    {
+      title: t("navigation:sidebar.pulse"),
+      icon: Activity,
+      url: `${homeUrl}/pulse`,
+    },
     {
       title: t("navigation:sidebar.documents"),
       icon: FileText,

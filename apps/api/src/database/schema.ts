@@ -948,6 +948,33 @@ export const workProjectMilestoneTable = pgTable(
   ],
 );
 
+export const workProjectUpdateTable = pgTable(
+  "work_project_update",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workProjectId: text("work_project_id")
+      .notNull()
+      .references(() => workProjectTable.id, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => userTable.id, {
+      onDelete: "set null",
+    }),
+    // onTrack | atRisk | offTrack
+    health: text("health").notNull(),
+    body: text("body").notNull().default(""),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("work_project_update_projectId_idx").on(
+      table.workProjectId,
+      table.createdAt,
+    ),
+  ],
+);
+
 export const taskTable = pgTable(
   "task",
   {

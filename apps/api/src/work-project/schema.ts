@@ -12,6 +12,7 @@ export const WORK_PROJECT_HEALTHS = ["onTrack", "atRisk", "offTrack"] as const;
 
 export const workspaceIdParam = z.object({ workspaceId: z.string() });
 export const workProjectParam = z.object({ id: z.string() });
+export const updateParam = z.object({ id: z.string() });
 export const milestoneParam = z.object({ id: z.string() });
 
 export const listWorkProjectsQuery = z.object({
@@ -72,3 +73,10 @@ export const updateMilestoneBody = z.object({
   targetDate: date.optional(),
   sortOrder: z.number().int().optional(),
 });
+
+export const createUpdateBody = z.object({
+  health: z.enum(WORK_PROJECT_HEALTHS),
+  body: z.string().max(20000).default(""),
+});
+
+export const updateUpdateBody = createUpdateBody.partial();

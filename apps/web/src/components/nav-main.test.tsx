@@ -83,4 +83,12 @@ describe("NavMain reviews row", () => {
       screen.queryByText("navigation:sidebar.reviews"),
     ).not.toBeInTheDocument();
   });
+
+  it("shows a Pulse row", () => {
+    render(<NavMain />);
+    const labels = screen
+      .getAllByRole("button")
+      .map((button) => button.textContent);
+    expect(labels).toContain("navigation:sidebar.pulse");
+  });
 });
