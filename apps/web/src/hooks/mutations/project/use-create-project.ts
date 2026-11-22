@@ -6,14 +6,23 @@ function useCreateProject({
   slug,
   workspaceId,
   icon,
+  copySettingsFromProjectId,
 }: {
   name: string;
   slug: string;
   workspaceId: string;
   icon: string;
+  copySettingsFromProjectId?: string;
 }) {
   return useMutation({
-    mutationFn: () => createProject({ name, slug, workspaceId, icon }),
+    mutationFn: () =>
+      createProject({
+        name,
+        slug,
+        workspaceId,
+        icon,
+        copySettingsFromProjectId,
+      }),
   });
 }
 

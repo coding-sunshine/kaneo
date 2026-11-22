@@ -58,6 +58,13 @@ import {
 } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { useGetColumns } from "@/hooks/queries/column/use-get-columns";
+import { CreateTaskTemplatePicker } from "@/components/shared/modals/create-task-template-picker";
+import type { IssueTemplate } from "@/components/project/issue-templates/issue-template-dialog";
+import {
+  clearCreateTaskDraft,
+  loadCreateTaskDraft,
+  saveCreateTaskDraft,
+} from "@/components/shared/modals/create-task-draft";
 import { getColumnIcon } from "@/lib/column";
 import { getStatusDisplayLabel } from "@/lib/i18n/domain";
 import useCreateLabel from "@/hooks/mutations/label/use-create-label";
@@ -268,6 +275,7 @@ function CreateTaskModalContent({
   const [createMore, setCreateMore] = useState(false);
   const [labels, setLabels] = useState<Label[]>([]);
   const [discardConfirmationOpen, setDiscardConfirmationOpen] = useState(false);
+  const draftRestoredRef = useRef(false);
 
   const [labelsOpen, setLabelsOpen] = useState(false);
   const [labelsStep, setLabelsStep] = useState<PopoverStep>("select");
@@ -330,7 +338,13 @@ function CreateTaskModalContent({
     refetch: refetchColumns,
     isFetching: columnsFetching,
   } = useGetColumns(open ? resolvedProjectId : "", { refreshOnMount: true });
-  const initialColumn = getInitialTaskColumn(projectColumns, status);
+  const [templateId, setTemplateId] = useState<string | null>(null);
+  const [templateColumnId, setTemplateColumnId] = useState<string | null>(null);
+  const templateColumn = status
+    ? undefined
+    : projectColumns?.find((column) => column.id === templateColumnId);
+  const initialColumn =
+    templateColumn ?? getInitialTaskColumn(projectColumns, status);
   const taskStatus = status ?? initialColumn?.slug ?? "planned";
   const canSetRecurrence = !initialColumn?.isFinal;
   useEffect(() => {
@@ -350,6 +364,34 @@ function CreateTaskModalContent({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editorVersion, setEditorVersion] = useState(0);
   const didSubmitRef = useRef(false);
+
+  const workspaceIdForDraft = workspace?.id;
+  useEffect(() => {
+    if (!open || !workspaceIdForDraft || prefill || draftRestoredRef.current)
+      return;
+    draftRestoredRef.current = true;
+    const draft = loadCreateTaskDraft(workspaceIdForDraft);
+    if (!draft) return;
+    setTitle(draft.title);
+    setDescription(draft.description);
+    setEditorVersion((version) => version + 1);
+    setPriority(draft.priority as Priority);
+    setAssigneeId(draft.assigneeId);
+    setStartDate(draft.startDate ? new Date(draft.startDate) : undefined);
+    setDueDate(draft.dueDate ? new Date(draft.dueDate) : undefined);
+    setLabels(
+      draft.labels.map(({ name, color }) => ({
+        id: name,
+        name,
+        color,
+        taskId: null,
+        workspaceId: workspaceIdForDraft,
+        createdAt: "",
+      })),
+    );
+    setSelectedProjectId(draft.projectId);
+    setCycleId(draft.cycleId);
+  }, [open, workspaceIdForDraft, prefill]);
 
   const { mutateAsync: createTask } = useCreateTask();
   const { mutateAsync: createRelation } = useCreateTaskRelation();
@@ -453,8 +495,49 @@ function CreateTaskModalContent({
   };
 
   const closeAndReset = () => {
+    if (workspace?.id) clearCreateTaskDraft(workspace.id);
     setDiscardConfirmationOpen(false);
     handleClose();
+  };
+
+  const saveDraftAndClose = () => {
+    if (workspace?.id) {
+      saveCreateTaskDraft(workspace.id, {
+        title,
+        description,
+        priority,
+        assigneeId,
+        startDate: startDate?.toISOString() ?? null,
+        dueDate: dueDate?.toISOString() ?? null,
+        labels: labels.map(({ name, color }) => ({ name, color })),
+        projectId: resolvedProjectId,
+        cycleId: validCycleId,
+      });
+    }
+    setDiscardConfirmationOpen(false);
+    handleClose();
+  };
+
+  const applyTemplate = (template: IssueTemplate) => {
+    setTemplateId(template.id);
+    setTemplateColumnId(template.columnId);
+    if (template.title) setTitle(template.title);
+    if (template.description) {
+      setDescription(template.description);
+      setEditorVersion((version) => version + 1);
+    }
+    setPriority(template.priority as Priority);
+    if (template.assigneeId) setAssigneeId(template.assigneeId);
+    setLabels(
+      template.labels.map(({ name, color }) => ({
+        id: name,
+        name,
+        color,
+        taskId: null,
+        workspaceId: workspace?.id ?? "",
+        createdAt: "",
+      })),
+    );
   };
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -579,7 +662,11 @@ function CreateTaskModalContent({
         if (!activeRef.current) return;
         if (workflow.isError || !workflow.data)
           throw new Error(t("common:modals.createTask.statusLoadError"));
-        submitStatus = getInitialTaskColumn(workflow.data)?.slug ?? "planned";
+        submitStatus =
+          workflow.data.find((column) => column.id === templateColumnId)
+            ?.slug ??
+          getInitialTaskColumn(workflow.data)?.slug ??
+          "planned";
       }
       didSubmitRef.current = true;
       const savedTask = normalizeTask(
@@ -643,6 +730,7 @@ function CreateTaskModalContent({
       }
 
       stagedAssetsRef.current = [];
+      if (workspace?.id) clearCreateTaskDraft(workspace.id);
       if (!activeRef.current) return;
       syncTaskIntoProject(savedTask);
       toast.success(t("common:modals.createTask.successCreated"), {
@@ -661,6 +749,8 @@ function CreateTaskModalContent({
         setDueDate(undefined);
         setRecurrence(null);
         setLabels([]);
+        setTemplateId(null);
+        setTemplateColumnId(null);
         setLabelsStep("select");
         setSearchValue("");
         setSelectedColor("gray");
@@ -956,6 +1046,13 @@ function CreateTaskModalContent({
                     </div>
                   </PopoverContent>
                 </Popover>
+              )}
+              {resolvedProjectId && (
+                <CreateTaskTemplatePicker
+                  projectId={resolvedProjectId}
+                  selectedId={templateId}
+                  onPick={applyTemplate}
+                />
               )}
               <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-accent/50 text-foreground rounded-md text-xs font-medium border border-border">
                 {getColumnIcon(
@@ -1433,6 +1530,14 @@ function CreateTaskModalContent({
             >
               {t("common:actions.cancel")}
             </AlertDialogClose>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={saveDraftAndClose}
+            >
+              {t("common:modals.createTask.saveDraftButton")}
+            </Button>
             <Button
               type="button"
               variant="destructive"

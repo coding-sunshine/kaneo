@@ -2052,6 +2052,49 @@ export const customFieldDefinitionTable = pgTable(
   (table) => [index("custom_field_def_projectId_idx").on(table.projectId)],
 );
 
+// Linear-style issue templates of a team (Kaneo project): defaults that prefill
+// the create-issue dialog. Labels are stored as name and color because task
+// labels are per-task copies.
+export const issueTemplateTable = pgTable(
+  "issue_template",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projectTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    title: text("title").notNull().default(""),
+    description: text("description").notNull().default(""),
+    columnId: text("column_id").references(() => columnTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    priority: text("priority").notNull().default("no-priority"),
+    assigneeId: text("assignee_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    labels: jsonb("labels")
+      .$type<{ name: string; color: string }[]>()
+      .default([])
+      .notNull(),
+    position: integer("position").default(0).notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("issue_template_projectId_idx").on(table.projectId)],
+);
+
 export const customFieldValueTable = pgTable(
   "custom_field_value",
   {

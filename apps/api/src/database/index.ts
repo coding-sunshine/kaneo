@@ -55,6 +55,7 @@ import {
   commentTable,
   customFieldDefinitionTable,
   customFieldValueTable,
+  issueTemplateTable,
   deviceCodeTable,
   externalLinkTable,
   githubImportTable,
@@ -204,6 +205,7 @@ export const schema = {
   workspaceUserTableRelations,
   customFieldDefinitionTable,
   customFieldValueTable,
+  issueTemplateTable,
   customFieldDefinitionTableRelations,
   customFieldValueTableRelations,
 };

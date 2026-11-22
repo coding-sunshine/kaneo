@@ -17,6 +17,10 @@ export const createProjectBody = z.object({
   workspaceId: z.string(),
   icon: z.string(),
   slug: z.string(),
+  copySettingsFromProjectId: z.string().optional().openapi({
+    description:
+      "Copy statuses, estimate and cycle settings and issue templates from this project of the same workspace.",
+  }),
 });
 
 export const updateProjectBody = z.object({

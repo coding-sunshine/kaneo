@@ -139,7 +139,7 @@ const createProjectRoute = createRoute({
     400: errorResponse("Invalid body, or workspace ID could not be determined"),
     403: errorResponse("Missing project:create permission"),
     409: errorResponse("Another project in the workspace uses this key"),
-    404: errorResponse("Workspace not found"),
+    404: errorResponse("Workspace not found, or source project not found"),
   },
 });
 
@@ -472,7 +472,7 @@ const project = apiRouter<BaseVariables & { workspaceId: string }>()
     return c.json(projects.map(toPublicProject), 200);
   })
   .openapi(createProjectRoute, async (c) => {
-    const { name, icon, slug } = c.req.valid("json");
+    const { name, icon, slug, copySettingsFromProjectId } = c.req.valid("json");
     const workspaceId = c.get("workspaceId");
     const newProject = await createProjectCtrl(
       workspaceId,
@@ -480,6 +480,7 @@ const project = apiRouter<BaseVariables & { workspaceId: string }>()
       icon,
       slug,
       c.get("userId"),
+      copySettingsFromProjectId,
     );
     return c.json(toPublicProject(newProject), 200);
   })

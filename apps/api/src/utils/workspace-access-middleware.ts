@@ -15,6 +15,7 @@ type LookupResource =
   | "column"
   | "workflowRule"
   | "customField"
+  | "issueTemplate"
   | "cycle"
   | "workProject"
   | "workProjectMilestone";
@@ -47,6 +48,7 @@ const RESOURCE_NOT_FOUND: Record<LookupResource, string> = {
   column: "Column not found",
   workflowRule: "Workflow rule not found",
   customField: "Custom field not found",
+  issueTemplate: "Template not found",
   cycle: "Cycle not found",
   workProject: "Project not found",
   workProjectMilestone: "Milestone not found",
@@ -348,6 +350,22 @@ async function lookupScope(
       return field ?? null;
     }
 
+    case "issueTemplate": {
+      const [template] = await db
+        .select({
+          workspaceId: schema.projectTable.workspaceId,
+          projectId: schema.projectTable.id,
+        })
+        .from(schema.issueTemplateTable)
+        .innerJoin(
+          schema.projectTable,
+          eq(schema.issueTemplateTable.projectId, schema.projectTable.id),
+        )
+        .where(eq(schema.issueTemplateTable.id, id))
+        .limit(1);
+      return template ?? null;
+    }
+
     case "cycle": {
       const [cycle] = await db
         .select({
@@ -481,6 +499,11 @@ export const workspaceAccess = {
   fromCustomField: (idKey = "id") =>
     workspaceAccessMiddleware({
       sources: [{ type: "lookup", resource: "customField", idKey }],
+    }),
+
+  fromIssueTemplate: (idKey = "id") =>
+    workspaceAccessMiddleware({
+      sources: [{ type: "lookup", resource: "issueTemplate", idKey }],
     }),
 
   fromCycle: (idKey = "id") =>

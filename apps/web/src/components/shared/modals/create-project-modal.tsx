@@ -20,12 +20,20 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import icons from "@/constants/project-icons";
 import useCreateProject from "@/hooks/mutations/project/use-create-project";
+import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import { prefetchBoard } from "@/hooks/queries/task/prefetch-board";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { useCanImport } from "@/hooks/use-can-import";
@@ -46,14 +54,19 @@ function CreateProjectModal({ open, onClose }: CreateProjectModalProps) {
   const [iconPopoverOpen, setIconPopoverOpen] = useState(false);
   const [iconSearch, setIconSearch] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [copyFromId, setCopyFromId] = useState("none");
   const queryClient = useQueryClient();
   const { data: workspace } = useActiveWorkspace();
+  const { data: workspaceProjects = [] } = useGetProjects({
+    workspaceId: workspace?.id ?? "",
+  });
   const { canImport } = useCanImport();
   const { mutateAsync } = useCreateProject({
     name,
     slug,
     workspaceId: workspace?.id ?? "",
     icon: selectedIcon,
+    copySettingsFromProjectId: copyFromId === "none" ? undefined : copyFromId,
   });
   const SelectedIcon =
     icons[selectedIcon as keyof typeof icons] || icons.Layout;
@@ -68,6 +81,7 @@ function CreateProjectModal({ open, onClose }: CreateProjectModalProps) {
     setSelectedIcon("Layout");
     setIconPopoverOpen(false);
     setIconSearch("");
+    setCopyFromId("none");
     onClose();
   };
 
@@ -228,6 +242,34 @@ function CreateProjectModal({ open, onClose }: CreateProjectModalProps) {
                 })}
               </div>
             </div>
+            {workspaceProjects.length > 0 && (
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-medium text-muted-foreground">
+                  {t("common:modals.createProject.copySettingsFrom")}
+                </span>
+                <Select
+                  value={copyFromId}
+                  onValueChange={(next) => setCopyFromId(next ?? "none")}
+                >
+                  <SelectTrigger size="sm" className="w-48">
+                    <SelectValue>
+                      {workspaceProjects.find((p) => p.id === copyFromId)
+                        ?.name ?? t("common:modals.createProject.copyNone")}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">
+                      {t("common:modals.createProject.copyNone")}
+                    </SelectItem>
+                    {workspaceProjects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             {canImport && (
               <p className="text-muted-foreground text-xs">
                 {t("settings:workspaceImport.entry.createProjectPrompt")}{" "}
