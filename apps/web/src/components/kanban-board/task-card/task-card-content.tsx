@@ -20,6 +20,7 @@ import { CardFieldList } from "@/components/custom-fields/card-field-list";
 import { CheckboxMark } from "@/components/custom-fields/checkbox-mark";
 import { AssigneeButton } from "@/components/task-chips/assignee-button";
 import { ChecklistChip } from "@/components/task-chips/checklist-chip";
+import { EstimateChip } from "@/components/task-chips/estimate-chip";
 import { DueDateChip } from "@/components/task-chips/due-date-chip";
 import { LabelChips } from "@/components/task-chips/label-chips";
 import { PriorityChip } from "@/components/task-chips/priority-chip";
@@ -219,6 +220,7 @@ function TaskCardContent({
                 {showLabels && (
                   <LabelChips task={task} workspaceId={workspaceId} />
                 )}
+                <EstimateChip task={task} />
                 <CycleChip
                   cycleId={task.cycleId}
                   projectId={task.projectId}

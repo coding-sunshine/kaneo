@@ -1,6 +1,7 @@
 import { type UseFormReturn, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { AutoArchiveRow } from "@/components/settings/project-general/auto-archive-row";
+import { EstimateSettingsRows } from "@/components/settings/project-general/estimate-settings-rows";
 import { ProjectBackgroundRow } from "@/components/settings/project-general/project-background-row";
 import type { ProjectFormValues } from "@/components/settings/project-general/project-form-values";
 import { ProjectIconPicker } from "@/components/settings/project-general/project-icon-picker";
@@ -124,6 +125,13 @@ export function ProjectDetailsSection({
             <ProjectBackgroundRow project={project} canEdit={canEdit} />
             {project && (
               <AutoArchiveRow
+                project={project}
+                workspaceId={workspaceId}
+                canEdit={canEdit}
+              />
+            )}
+            {project && (
+              <EstimateSettingsRows
                 project={project}
                 workspaceId={workspaceId}
                 canEdit={canEdit}

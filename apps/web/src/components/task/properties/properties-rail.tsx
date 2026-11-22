@@ -23,6 +23,7 @@ import { RailSection } from "./rail-section";
 import { PropertyRow } from "./property-row";
 import { PropertyValue } from "./property-value";
 import { CycleRow } from "./cycle-row";
+import { EstimateRow } from "./estimate-row";
 import { WorkProjectRows } from "./work-project-rows";
 import { useTaskProperties } from "./use-task-properties";
 
@@ -118,6 +119,8 @@ export function PropertiesRail({
             </PropertyValue>
           </TaskAssigneePopover>
         </PropertyRow>
+
+        <EstimateRow task={task} />
 
         <CycleRow task={task} />
 

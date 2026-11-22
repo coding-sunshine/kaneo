@@ -33,7 +33,18 @@ vi.mock("@tanstack/react-router", () => ({
   ),
 }));
 
+const teams = vi.hoisted(() => ({
+  current: [] as { id: string; estimateType: string }[],
+}));
+vi.mock("@/hooks/queries/workspace/use-active-workspace", () => ({
+  default: () => ({ data: { id: "w" } }),
+}));
+vi.mock("@/hooks/queries/project/use-get-projects", () => ({
+  default: () => ({ data: teams.current }),
+}));
+
 afterEach(() => {
+  teams.current = [];
   cleanup();
   useInsightsSelectionStore.getState().setIds(null);
 });

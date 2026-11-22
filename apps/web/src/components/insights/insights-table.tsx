@@ -70,10 +70,12 @@ export function InsightsTable({
               </th>
             ))}
           <th className="py-1.5 text-right font-normal">
-            {t("tasks:insights.issues")}
+            {measure === "effort"
+              ? t("tasks:insights.measures.effort")
+              : t("tasks:insights.issues")}
           </th>
           <th className="py-1.5 text-right font-normal">
-            {measure === "count"
+            {measure === "count" || measure === "effort"
               ? t("tasks:insights.share")
               : t("tasks:insights.median")}
           </th>
@@ -130,7 +132,7 @@ export function InsightsTable({
               ))}
             <td className="py-1.5 text-right tabular-nums">{slice.value}</td>
             <td className="py-1.5 text-right text-muted-foreground tabular-nums">
-              {measure === "count"
+              {measure === "count" || measure === "effort"
                 ? `${Math.round((slice.value / (total || 1)) * 100)}%`
                 : formatDuration(t, slice.medianDays)}
             </td>

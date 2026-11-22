@@ -7,6 +7,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import useGetProjects from "@/hooks/queries/project/use-get-projects";
+import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { GROUP_BY_OPTIONS, type GroupBy } from "@/lib/group-project";
 import {
   computeInsights,
@@ -19,6 +21,7 @@ import {
   type BurnUpInterval,
   computeBurnUp,
 } from "@/lib/insights/compute-burn-up";
+import { effortWeight, viewUsesEstimates } from "@/lib/insights/effort-weight";
 import {
   type InsightSelection,
   selectedIssueIds,
@@ -47,13 +50,27 @@ const SLICE_OPTIONS: SliceOption[] = [
 /** Linear's Insights panel: a measure over the view's issues, sliced and segmented. */
 export function InsightsPanel({ project, group }: InsightsPanelProps) {
   const { t } = useTranslation();
-  const [measure, setMeasure] = useState<InsightMeasure>("count");
+  const [picked, setMeasure] = useState<InsightMeasure>("count");
+  const { data: workspace } = useActiveWorkspace();
+  const { data: teams = [] } = useGetProjects({
+    workspaceId: workspace?.id ?? "",
+  });
   const [slice, setSlice] = useState<SliceOption>("status");
   const [segment, setSegment] = useState<GroupBy>("none");
   const [interval, setInterval] = useState<BurnUpInterval>("month");
   const [selection, setSelection] = useState<InsightSelection | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const burnUp = slice === "burnUp";
+  const measures = useMemo(() => {
+    const teamIds = new Set([project.id]);
+    for (const column of project.columns)
+      for (const task of column.tasks) teamIds.add(task.projectId);
+    return viewUsesEstimates(teams, teamIds)
+      ? INSIGHT_MEASURES
+      : INSIGHT_MEASURES.filter((option) => option !== "effort");
+  }, [project, teams]);
+  const measure = measures.includes(picked) ? picked : "count";
+  const weight = useMemo(() => effortWeight(teams), [teams]);
   const insights = useMemo(
     () =>
       computeInsights(
@@ -62,8 +79,10 @@ export function InsightsPanel({ project, group }: InsightsPanelProps) {
         burnUp ? "status" : slice,
         segment,
         group,
+        undefined,
+        weight,
       ),
-    [project, measure, slice, burnUp, segment, group],
+    [project, measure, slice, burnUp, segment, group, weight],
   );
   const buckets = useMemo(
     () => (burnUp ? computeBurnUp(project, interval) : []),
@@ -140,7 +159,7 @@ export function InsightsPanel({ project, group }: InsightsPanelProps) {
           picker(
             t("tasks:insights.measure"),
             measure,
-            INSIGHT_MEASURES,
+            measures,
             (option) => t(`tasks:insights.measures.${option}`),
             reset(setMeasure),
           )}
@@ -183,7 +202,7 @@ export function InsightsPanel({ project, group }: InsightsPanelProps) {
             })}
             className="flex flex-col gap-2"
           >
-            {measure === "count" ? (
+            {measure === "count" || measure === "effort" ? (
               <InsightsBarChart
                 insights={insights}
                 segmented={segment !== "none"}

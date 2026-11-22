@@ -1843,6 +1843,24 @@
 			"projectInfoTitle": "Project",
 			"iconLabel": "Icon",
 			"iconHint": "Shown in the sidebar and project lists.",
+			"estimates": {
+				"type": "Issue estimation",
+				"typeHint": "How issues in this team are sized.",
+				"saveFailed": "Could not save the estimate settings",
+				"types": {
+					"none": "Not in use",
+					"exponential": "Exponential",
+					"fibonacci": "Fibonacci",
+					"linear": "Linear",
+					"tshirt": "T-shirt"
+				},
+				"extended": "Extended estimates",
+				"extendedHint": "Add larger sizes to the scale.",
+				"allowZero": "Allow zero estimates",
+				"allowZeroHint": "Let issues be estimated at 0.",
+				"countUnestimated": "Count unestimated issues",
+				"countUnestimatedHint": "Treat issues with no estimate as 1 point in Insights."
+			},
 			"pickIconTitle": "Pick icon",
 			"searchIconsPlaceholder": "Search icons...",
 			"projectNameLabel": "Name",
@@ -3810,7 +3828,9 @@
 			"milestone": "Milestone",
 			"addMilestone": "Add to milestone",
 			"cycle": "Cycle",
-			"addCycle": "Add to cycle"
+			"addCycle": "Add to cycle",
+			"estimate": "Estimate",
+			"addEstimate": "Set estimate"
 		},
 		"move": {
 			"title": "Move issue",
@@ -3911,6 +3931,11 @@
 				"current": "Current",
 				"upcoming": "Upcoming",
 				"previous": "Previous"
+			},
+			"estimate": {
+				"placeholder": "Set estimate…",
+				"none": "No estimate",
+				"updateError": "Could not update the estimate"
 			}
 		},
 		"backlog": {
@@ -4254,6 +4279,7 @@
 			"noSegment": "No segment",
 			"measures": {
 				"count": "Issue count",
+				"effort": "Effort",
 				"cycleTime": "Cycle time",
 				"leadTime": "Lead time",
 				"triageTime": "Triage time",

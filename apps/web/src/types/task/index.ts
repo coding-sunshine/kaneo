@@ -32,6 +32,8 @@ type Task = {
   descriptionDeferred?: boolean;
   status: string;
   priority: string | null;
+  /** Points on the team's estimate scale; null when unestimated. */
+  estimate?: number | null;
   startDate: string | null;
   dueDate: string | null;
   recurrence?: TaskRecurrence | null;

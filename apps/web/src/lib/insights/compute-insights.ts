@@ -2,15 +2,17 @@ import type { GroupBy } from "@/lib/group-project";
 import type { ProjectWithTasks } from "@/types/project";
 import type Task from "@/types/task";
 
-/** Linear's Insights measures that Kaneo has data for (no Effort: no estimates). */
+/** Linear's Insights measures. Effort is the total estimate, offered only for estimating teams. */
 export type InsightMeasure =
   | "count"
+  | "effort"
   | "cycleTime"
   | "leadTime"
   | "triageTime"
   | "age";
 export const INSIGHT_MEASURES: InsightMeasure[] = [
   "count",
+  "effort",
   "cycleTime",
   "leadTime",
   "triageTime",
@@ -33,7 +35,7 @@ export type InsightPoint = {
 export type InsightSlice = {
   key: string;
   name: string;
-  /** Issues per segment, in segment order. A multi-label issue counts once per label. */
+  /** Issues (points, for effort) per segment, in segment order. A multi-label issue counts once per label. */
   counts: number[];
   /** Sum of counts: the bar height. */
   value: number;
@@ -105,9 +107,12 @@ export function computeInsights(
   segment: GroupBy,
   group: GroupFn,
   now = Date.now(),
+  /** Points an issue adds to effort; 0 leaves it out. */
+  weight: (task: Task) => number = () => 1,
 ): Insights {
   const days = new Map<string, number>();
   for (const task of source.columns.flatMap((column) => column.tasks)) {
+    if (measure === "effort" && weight(task) === 0) continue;
     const value = measureDays(measure, task, now);
     if (value !== null) days.set(task.id, value);
   }
@@ -134,7 +139,8 @@ export function computeInsights(
       const counts = segmentColumns.map(() => 0);
       const points = column.tasks.map((task) => {
         const segments = membership.get(task.id) ?? [0];
-        for (const index of segments) counts[index] += 1;
+        const added = measure === "effort" ? weight(task) : 1;
+        for (const index of segments) counts[index] += added;
         return {
           task,
           days: days.get(task.id) ?? 0,

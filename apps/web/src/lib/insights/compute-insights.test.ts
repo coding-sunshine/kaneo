@@ -73,6 +73,22 @@ describe("computeInsights", () => {
     expect(result.maxValue).toBe(2);
   });
 
+  it("sums estimates for effort and leaves out zero-weight issues", () => {
+    const points: Record<string, number> = { a: 3, b: 5 };
+    const result = computeInsights(
+      project,
+      "effort",
+      "status",
+      "none",
+      group,
+      now,
+      (t) => points[t.id] ?? 0,
+    );
+
+    expect(result.slices.map((s) => [s.name, s.value])).toEqual([["Todo", 8]]);
+    expect(result.issueCount).toBe(2);
+  });
+
   it("splits each slice by segment", () => {
     const result = computeInsights(
       project,
