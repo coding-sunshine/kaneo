@@ -26093,6 +26093,33 @@
                           },
                           "updatedAt": {
                             "type": "string"
+                          },
+                          "reviewDecision": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "enum": [
+                              "approved",
+                              "changes_requested",
+                              "review_required",
+                              null
+                            ]
+                          },
+                          "checks": {
+                            "type": "string",
+                            "enum": [
+                              "success",
+                              "failure",
+                              "pending",
+                              "none"
+                            ]
+                          },
+                          "additions": {
+                            "type": "number"
+                          },
+                          "deletions": {
+                            "type": "number"
                           }
                         },
                         "required": [
@@ -26105,7 +26132,11 @@
                           "status",
                           "comments",
                           "createdAt",
-                          "updatedAt"
+                          "updatedAt",
+                          "reviewDecision",
+                          "checks",
+                          "additions",
+                          "deletions"
                         ]
                       }
                     },
@@ -26164,6 +26195,33 @@
                           },
                           "updatedAt": {
                             "type": "string"
+                          },
+                          "reviewDecision": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "enum": [
+                              "approved",
+                              "changes_requested",
+                              "review_required",
+                              null
+                            ]
+                          },
+                          "checks": {
+                            "type": "string",
+                            "enum": [
+                              "success",
+                              "failure",
+                              "pending",
+                              "none"
+                            ]
+                          },
+                          "additions": {
+                            "type": "number"
+                          },
+                          "deletions": {
+                            "type": "number"
                           }
                         },
                         "required": [
@@ -26176,7 +26234,11 @@
                           "status",
                           "comments",
                           "createdAt",
-                          "updatedAt"
+                          "updatedAt",
+                          "reviewDecision",
+                          "checks",
+                          "additions",
+                          "deletions"
                         ]
                       }
                     },
@@ -26235,6 +26297,33 @@
                           },
                           "updatedAt": {
                             "type": "string"
+                          },
+                          "reviewDecision": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "enum": [
+                              "approved",
+                              "changes_requested",
+                              "review_required",
+                              null
+                            ]
+                          },
+                          "checks": {
+                            "type": "string",
+                            "enum": [
+                              "success",
+                              "failure",
+                              "pending",
+                              "none"
+                            ]
+                          },
+                          "additions": {
+                            "type": "number"
+                          },
+                          "deletions": {
+                            "type": "number"
                           }
                         },
                         "required": [
@@ -26247,7 +26336,11 @@
                           "status",
                           "comments",
                           "createdAt",
-                          "updatedAt"
+                          "updatedAt",
+                          "reviewDecision",
+                          "checks",
+                          "additions",
+                          "deletions"
                         ]
                       }
                     }
