@@ -2,6 +2,10 @@ import { nullableResponseTimestamp, responseTimestamp, z } from "../openapi";
 import { taskRecurrenceSchema } from "./recurrence/schema";
 
 const priorityDescription = "One of: no-priority, low, medium, high, urgent.";
+const estimateField = z.number().nullable().optional().openapi({
+  description:
+    "Points on the team's estimate scale (see the project's estimateOptions). Null when unestimated.",
+});
 
 export const taskSchema = z
   .object({
@@ -27,6 +31,7 @@ export const taskSchema = z
       description: "The slug of the column the task sits in.",
     }),
     priority: z.string().openapi({ description: priorityDescription }),
+    estimate: estimateField,
     startDate: nullableResponseTimestamp,
     dueDate: nullableResponseTimestamp,
     recurrence: z.union([taskRecurrenceSchema, z.null()]).optional(),
@@ -121,6 +126,7 @@ export const boardTaskSchema = z
     }),
     status: z.string(),
     priority: z.string().openapi({ description: priorityDescription }),
+    estimate: estimateField,
     startDate: nullableResponseTimestamp,
     dueDate: nullableResponseTimestamp,
     recurrence: z.union([taskRecurrenceSchema, z.null()]),

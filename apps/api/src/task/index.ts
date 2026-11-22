@@ -61,6 +61,7 @@ import updateTask from "./controllers/update-task";
 import updateTaskAssignee from "./controllers/update-task-assignee";
 import updateTaskDescription from "./controllers/update-task-description";
 import updateTaskDueDate from "./controllers/update-task-due-date";
+import updateTaskEstimate from "./controllers/update-task-estimate";
 import updateTaskPriority from "./controllers/update-task-priority";
 import updateTaskRecurrence from "./controllers/update-task-recurrence";
 import {
@@ -120,6 +121,7 @@ import {
   updateAssigneeBody,
   updateDescriptionBody,
   updateDueDateBody,
+  updateEstimateBody,
   updatePriorityBody,
   updateRecurrenceBody,
   updateSnoozeBody,
@@ -589,6 +591,36 @@ const updateTaskPriorityRoute = createRoute({
   responses: {
     200: jsonResponse("The updated task", taskSchema),
     400: errorResponse("Invalid priority"),
+    403: errorResponse(
+      "No access to the project, or missing task:update permission",
+    ),
+    404: errorResponse("Task not found"),
+  },
+});
+
+const updateTaskEstimateRoute = createRoute({
+  method: "put",
+  operationId: "updateTaskEstimate",
+  path: "/estimate/{id}",
+  tags: ["Tasks"],
+  summary: "Update task estimate",
+  description:
+    "Set a task's estimate in points on its team's scale, or send null to clear it.",
+  middleware: [
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["update"] }),
+    requireEntitlement,
+  ] as const,
+  request: {
+    params: taskParam,
+    body: {
+      required: true,
+      content: { "application/json": { schema: updateEstimateBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("The updated task", taskSchema),
+    400: errorResponse("Estimate is not on the team's scale"),
     403: errorResponse(
       "No access to the project, or missing task:update permission",
     ),
@@ -1338,6 +1370,14 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
     const currentUserId = c.get("userId");
 
     const task = await updateTaskPriority({ id, priority, currentUserId });
+
+    return c.json(task, 200);
+  })
+  .openapi(updateTaskEstimateRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const { estimate } = c.req.valid("json");
+
+    const task = await updateTaskEstimate({ id, estimate });
 
     return c.json(task, 200);
   })

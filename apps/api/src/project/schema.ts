@@ -1,3 +1,4 @@
+import { ESTIMATE_TYPES } from "../estimate/scales";
 import { z } from "../openapi";
 
 export const projectParam = z.object({ id: z.string() });
@@ -26,6 +27,12 @@ export const updateProjectBody = z.object({
   isPublic: z.boolean(),
   includeSubtasks: z.boolean().optional(),
   autoArchiveMonths: z.number().int().min(0).max(120).optional(),
+  estimateType: z.enum(ESTIMATE_TYPES).optional().openapi({
+    description: "Issue estimation scale: none turns estimates off.",
+  }),
+  estimateExtended: z.boolean().optional(),
+  estimateAllowZero: z.boolean().optional(),
+  estimateCountUnestimated: z.boolean().optional(),
 });
 
 export const reorderProjectsBody = z.object({

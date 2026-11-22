@@ -220,6 +220,13 @@
             "type": "string",
             "description": "One of: no-priority, low, medium, high, urgent."
           },
+          "estimate": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Points on the team's estimate scale (see the project's estimateOptions). Null when unestimated."
+          },
           "startDate": {
             "type": [
               "string",
@@ -954,6 +961,37 @@
           "cycleAutoRollover": {
             "type": "boolean"
           },
+          "estimateType": {
+            "type": "string"
+          },
+          "estimateExtended": {
+            "type": "boolean"
+          },
+          "estimateAllowZero": {
+            "type": "boolean"
+          },
+          "estimateCountUnestimated": {
+            "type": "boolean"
+          },
+          "estimateOptions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number"
+                },
+                "label": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value",
+                "label"
+              ]
+            },
+            "description": "The points an issue can take on this team's estimate scale; empty when estimates are off."
+          },
           "id": {
             "type": "string"
           },
@@ -1487,6 +1525,13 @@
           "priority": {
             "type": "string",
             "description": "One of: no-priority, low, medium, high, urgent."
+          },
+          "estimate": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Points on the team's estimate scale (see the project's estimateOptions). Null when unestimated."
           },
           "startDate": {
             "type": [
@@ -11984,6 +12029,26 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 120
+                  },
+                  "estimateType": {
+                    "type": "string",
+                    "enum": [
+                      "none",
+                      "exponential",
+                      "fibonacci",
+                      "linear",
+                      "tshirt"
+                    ],
+                    "description": "Issue estimation scale: none turns estimates off."
+                  },
+                  "estimateExtended": {
+                    "type": "boolean"
+                  },
+                  "estimateAllowZero": {
+                    "type": "boolean"
+                  },
+                  "estimateCountUnestimated": {
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -15238,6 +15303,104 @@
           },
           "400": {
             "description": "Invalid priority",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing task:update permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/task/estimate/{id}": {
+      "put": {
+        "operationId": "updateTaskEstimate",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Update task estimate",
+        "description": "Set a task's estimate in points on its team's scale, or send null to clear it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "estimate": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "description": "Points from the team's estimate scale (see the project's estimateOptions). Null clears it."
+                  }
+                },
+                "required": [
+                  "estimate"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Estimate is not on the team's scale",
             "content": {
               "application/json": {
                 "schema": {
