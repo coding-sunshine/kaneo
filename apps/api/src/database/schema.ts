@@ -1577,6 +1577,15 @@ export const userNotificationPreferenceTable = pgTable(
     dueDateReminderEnabled: boolean("due_date_reminder_enabled")
       .default(true)
       .notNull(),
+    scheduleEnabled: boolean("schedule_enabled").default(false).notNull(),
+    scheduleTimezone: text("schedule_timezone").default("UTC").notNull(),
+    // Delivery window: weekdays 0 (Sunday) to 6, local "HH:MM" start and end.
+    scheduleDays: integer("schedule_days")
+      .array()
+      .default(sql`'{1,2,3,4,5}'::integer[]`)
+      .notNull(),
+    scheduleStart: text("schedule_start").default("09:00").notNull(),
+    scheduleEnd: text("schedule_end").default("18:00").notNull(),
     dueDateReminderLeadTimeMinutes: integer(
       "due_date_reminder_lead_time_minutes",
     )
@@ -1956,6 +1965,31 @@ export const apikeyTable = pgTable(
   ],
 );
 
+export const passkeyTable = pgTable(
+  "passkey",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    name: text("name"),
+    publicKey: text("public_key").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    credentialID: text("credential_id").notNull(),
+    counter: integer("counter").notNull(),
+    deviceType: text("device_type").notNull(),
+    backedUp: boolean("backed_up").notNull(),
+    transports: text("transports"),
+    createdAt: timestamp("created_at", { mode: "date" }).default(utcNow),
+    aaguid: text("aaguid"),
+  },
+  (table) => [
+    index("passkey_userId_idx").on(table.userId),
+    uniqueIndex("passkey_credentialID_idx").on(table.credentialID),
+  ],
+);
+
 export const deviceCodeTable = pgTable(
   "device_code",
   {
@@ -2026,6 +2060,7 @@ export const invitation = invitationTable;
 export const organizationRole = workspaceRoleTable;
 export const apikey = apikeyTable;
 export const deviceCode = deviceCodeTable;
+export const passkey = passkeyTable;
 
 // Auth-schema compatible relation exports in schema.ts
 export const userRelations = relations(user, ({ many }) => ({
