@@ -5,6 +5,7 @@ import { SettingsEmpty } from "@/components/settings/settings-empty";
 import useGetNotificationPreferences from "@/hooks/queries/notification-preferences/use-get-notification-preferences";
 import { ChannelsSection } from "./channels/channels-section";
 import { NotifyMeSection } from "./events/notify-me-section";
+import { ScheduleSection } from "./schedule/schedule-section";
 import { NotificationSettingsSkeleton } from "./notification-settings-skeleton";
 import { WorkspacesSection } from "./workspaces/workspaces-section";
 
@@ -29,6 +30,7 @@ export function NotificationSettings() {
     <>
       <NotifyMeSection preferences={preferences} />
       <ChannelsSection preferences={preferences} />
+      <ScheduleSection preferences={preferences} />
       <WorkspacesSection preferences={preferences} />
     </>
   );

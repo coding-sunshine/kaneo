@@ -18,6 +18,7 @@ import {
 } from "../utils/outbound-request";
 import { getLocalizedDeliveryContent } from "./delivery-copy";
 import { resolveEmailTask } from "./resolve-email-task";
+import { isWithinNotificationSchedule } from "./schedule";
 import { decryptSecret } from "./secrets";
 
 type ResolvedNotificationContext = {
@@ -497,8 +498,16 @@ export async function deliverNotification(
   };
 
   const deliveries: Array<Promise<void>> = [];
+  // Off hours hold back email, ntfy and Gotify. The inbox row already exists and
+  // the user's own webhook is automation, so both are unaffected.
+  const withinSchedule = isWithinNotificationSchedule(preference);
 
-  if (decryptedPreference.emailEnabled && rule.emailEnabled && user.email) {
+  if (
+    withinSchedule &&
+    decryptedPreference.emailEnabled &&
+    rule.emailEnabled &&
+    user.email
+  ) {
     const recipient = user.email;
     deliveries.push(
       (async () => {
@@ -521,6 +530,7 @@ export async function deliverNotification(
   }
 
   if (
+    withinSchedule &&
     decryptedPreference.ntfyEnabled &&
     decryptedPreference.ntfyServerUrl &&
     decryptedPreference.ntfyTopic &&
@@ -539,6 +549,7 @@ export async function deliverNotification(
   }
 
   if (
+    withinSchedule &&
     decryptedPreference.gotifyEnabled &&
     decryptedPreference.gotifyServerUrl &&
     decryptedPreference.gotifyToken &&
