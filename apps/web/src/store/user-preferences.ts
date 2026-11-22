@@ -94,6 +94,11 @@ type UserPreferencesStore = {
 
   priorityIconStyle: PriorityIconStyle;
   setPriorityIconStyle: (style: PriorityIconStyle) => void;
+
+  // ponytail: per-browser, not per-account. Move to a server-side user setting
+  // if it should follow people across devices.
+  codeReviewsEnabled: boolean;
+  setCodeReviewsEnabled: (enabled: boolean) => void;
 };
 
 export const useUserPreferencesStore = create<UserPreferencesStore>()(
@@ -236,6 +241,10 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
 
       priorityIconStyle: "marks",
       setPriorityIconStyle: (priorityIconStyle) => set({ priorityIconStyle }),
+
+      codeReviewsEnabled: true,
+      setCodeReviewsEnabled: (codeReviewsEnabled) =>
+        set({ codeReviewsEnabled }),
     }),
     {
       name: "user-preferences",
