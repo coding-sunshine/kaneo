@@ -17,7 +17,8 @@ type LookupResource =
   | "customField"
   | "cycle"
   | "workProject"
-  | "workProjectMilestone";
+  | "workProjectMilestone"
+  | "workProjectUpdate";
 
 type WorkspaceIdSource =
   | { type: "query"; key: string }
@@ -50,6 +51,7 @@ const RESOURCE_NOT_FOUND: Record<LookupResource, string> = {
   cycle: "Cycle not found",
   workProject: "Project not found",
   workProjectMilestone: "Milestone not found",
+  workProjectUpdate: "Update not found",
 };
 
 type WorkspaceAccessMiddlewareConfig = {
@@ -389,6 +391,22 @@ async function lookupScope(
       return milestone ? { ...milestone, projectId: null } : null;
     }
 
+    case "workProjectUpdate": {
+      const [update] = await db
+        .select({ workspaceId: schema.workProjectTable.workspaceId })
+        .from(schema.workProjectUpdateTable)
+        .innerJoin(
+          schema.workProjectTable,
+          eq(
+            schema.workProjectUpdateTable.workProjectId,
+            schema.workProjectTable.id,
+          ),
+        )
+        .where(eq(schema.workProjectUpdateTable.id, id))
+        .limit(1);
+      return update ? { ...update, projectId: null } : null;
+    }
+
     default:
       return null;
   }
@@ -491,6 +509,11 @@ export const workspaceAccess = {
   fromWorkProject: (idKey = "id") =>
     workspaceAccessMiddleware({
       sources: [{ type: "lookup", resource: "workProject", idKey }],
+    }),
+
+  fromWorkProjectUpdate: (idKey = "id") =>
+    workspaceAccessMiddleware({
+      sources: [{ type: "lookup", resource: "workProjectUpdate", idKey }],
     }),
 
   fromWorkProjectMilestone: (idKey = "id") =>

@@ -8,10 +8,19 @@ import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
 import { WORK_PROJECT_HEALTHS } from "@/lib/work-project/status";
 import { WorkProjectHealth } from "./work-project-health";
+import { WorkProjectUpdateItem } from "./work-project-update-item";
 
-type Props = { workProjectId: string; editable: boolean };
+type Props = {
+  workspaceId: string;
+  workProjectId: string;
+  editable: boolean;
+};
 
-export function WorkProjectUpdates({ workProjectId, editable }: Props) {
+export function WorkProjectUpdates({
+  workspaceId,
+  workProjectId,
+  editable,
+}: Props) {
   const { t } = useTranslation();
   const { data: updates } = useWorkProjectUpdates(workProjectId);
   const { mutateAsync: post, isPending } =
@@ -76,20 +85,11 @@ export function WorkProjectUpdates({ workProjectId, editable }: Props) {
       )}
       <ul className="space-y-3">
         {updates?.map((update) => (
-          <li key={update.id} className="space-y-1 rounded-lg border p-3">
-            <div className="flex items-center gap-2 text-muted-foreground text-xs">
-              <WorkProjectHealth
-                health={update.health as (typeof WORK_PROJECT_HEALTHS)[number]}
-              />
-              <span>{update.userName}</span>
-              <time dateTime={update.createdAt}>
-                {new Date(update.createdAt).toLocaleDateString()}
-              </time>
-            </div>
-            {update.body && (
-              <p className="whitespace-pre-wrap text-sm">{update.body}</p>
-            )}
-          </li>
+          <WorkProjectUpdateItem
+            key={update.id}
+            update={update}
+            workspaceId={workspaceId}
+          />
         ))}
       </ul>
     </section>

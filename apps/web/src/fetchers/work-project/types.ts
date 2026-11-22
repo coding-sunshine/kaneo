@@ -19,3 +19,8 @@ export type UpdateWorkProjectInput = InferRequestType<
 >["json"];
 
 export type WorkProjectStatus = NonNullable<CreateWorkProjectInput["status"]>;
+
+export type WorkProjectUpdate = InferResponseType<
+  Api[":id"]["update"]["$get"],
+  200
+>[number];

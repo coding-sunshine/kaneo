@@ -25,3 +25,32 @@ export async function createWorkProjectUpdate(
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }
+
+export type EditUpdateInput = InferRequestType<
+  (typeof client)["work-project"]["update"][":id"]["$put"]
+>["json"];
+
+export async function editWorkProjectUpdate(id: string, json: EditUpdateInput) {
+  const response = await client["work-project"].update[":id"].$put({
+    param: { id },
+    json,
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function deleteWorkProjectUpdate(id: string) {
+  const response = await client["work-project"].update[":id"].$delete({
+    param: { id },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function getWorkspaceUpdates(workspaceId: string) {
+  const response = await client["work-project"].workspace[
+    ":workspaceId"
+  ].updates.$get({ param: { workspaceId } });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}

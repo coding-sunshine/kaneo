@@ -2972,7 +2972,8 @@
 			"documents": "Documents",
 			"exploring": "Exploring",
 			"agent": "Agent",
-			"loops": "Loops"
+			"loops": "Loops",
+			"pulse": "Pulse"
 		},
 		"projectList": {
 			"viewProject": "View Project",
@@ -4838,7 +4839,13 @@
 				"placeholder": "Write a project update...",
 				"post": "Post update",
 				"empty": "No updates yet.",
-				"postError": "Could not post the update"
+				"postError": "Could not post the update",
+				"edit": "Edit update",
+				"delete": "Delete update",
+				"save": "Save",
+				"cancel": "Cancel",
+				"deleteConfirm": "Delete this update?",
+				"pulseEmpty": "No project updates yet."
 			},
 			"status": {
 				"backlog": "Backlog",

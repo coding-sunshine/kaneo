@@ -12,6 +12,8 @@ import {
 } from "./controllers/load-work-projects";
 import {
   createProjectUpdate,
+  deleteProjectUpdate,
+  editProjectUpdate,
   listProjectUpdates,
   listWorkspaceUpdates,
 } from "./controllers/work-project-updates";
@@ -24,6 +26,7 @@ import {
 } from "./controllers/work-project-crud";
 import { workProjectTable } from "../database/schema";
 import { eq } from "drizzle-orm";
+import { hasWorkspacePermission } from "../utils/require-workspace-permission";
 import {
   deletedSchema,
   workProjectDetailSchema,
@@ -39,6 +42,8 @@ import {
   listWorkProjectsQuery,
   milestoneParam,
   updateMilestoneBody,
+  updateParam,
+  updateUpdateBody,
   updateWorkProjectBody,
   workProjectParam,
   workspaceIdParam,
@@ -251,6 +256,46 @@ const createUpdateRoute = createRoute({
   },
 });
 
+const editUpdateRoute = createRoute({
+  method: "put",
+  operationId: "updateWorkProjectUpdate",
+  path: "/update/{id}",
+  tags: ["Work projects"],
+  summary: "Edit project update",
+  description:
+    "Edit the health or text of an update. Only its author can; the project's health follows the latest update.",
+  middleware: [
+    workspaceAccess.fromWorkProjectUpdate(),
+    requireWorkspacePermission({ task: ["update"] }),
+  ] as const,
+  request: { params: updateParam, body: body(updateUpdateBody) },
+  responses: {
+    200: jsonResponse("Update edited", workProjectUpdateSchema),
+    403: noAccess,
+    404: errorResponse("Update not found"),
+  },
+});
+
+const deleteUpdateRoute = createRoute({
+  method: "delete",
+  operationId: "deleteWorkProjectUpdate",
+  path: "/update/{id}",
+  tags: ["Work projects"],
+  summary: "Delete project update",
+  description:
+    "Delete an update. Its author or a workspace admin can; the project's health falls back to the previous update, or clears.",
+  middleware: [
+    workspaceAccess.fromWorkProjectUpdate(),
+    requireWorkspacePermission({ task: ["update"] }),
+  ] as const,
+  request: { params: updateParam },
+  responses: {
+    200: jsonResponse("Update deleted", deletedSchema),
+    403: noAccess,
+    404: errorResponse("Update not found"),
+  },
+});
+
 const pulseRoute = createRoute({
   method: "get",
   operationId: "listWorkspaceProjectUpdates",
@@ -294,6 +339,26 @@ const workProject = apiRouter()
         c.req.valid("param").id,
         c.get("userId"),
         c.req.valid("json"),
+      ),
+      200,
+    ),
+  )
+  .openapi(editUpdateRoute, async (c) =>
+    c.json(
+      await editProjectUpdate(
+        c.req.valid("param").id,
+        c.get("userId"),
+        c.req.valid("json"),
+      ),
+      200,
+    ),
+  )
+  .openapi(deleteUpdateRoute, async (c) =>
+    c.json(
+      await deleteProjectUpdate(
+        c.req.valid("param").id,
+        c.get("userId"),
+        await hasWorkspacePermission(c, { project: ["delete"] }),
       ),
       200,
     ),

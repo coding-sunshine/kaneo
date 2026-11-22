@@ -89,4 +89,122 @@ describe("API integration: work project updates", () => {
       ).status,
     ).toBe(403);
   });
+
+  it("lets authors edit and delete, admins delete, and keeps health on the latest", async () => {
+    const owner = await createWorkspaceMember({ role: "owner" });
+    const join = async (role: string) => {
+      const m = await createWorkspaceMember({ role });
+      await db.insert(schema.workspaceUserTable).values({
+        workspaceId: owner.workspace.id,
+        userId: m.user.id,
+        role,
+        joinedAt: new Date(),
+      });
+      return m.user;
+    };
+    const author = await join("member");
+    const other = await join("member");
+    mockAuthenticatedSession(owner.user);
+    const p = await (
+      await createApp().app.request(
+        "/api/work-project",
+        json("POST", { workspaceId: owner.workspace.id, name: "P" }),
+      )
+    ).json();
+    const as = (user: typeof author) => {
+      mockAuthenticatedSession(user);
+      return createApp().app;
+    };
+    const post = async (user: typeof author, health: string) =>
+      (
+        await as(user).request(
+          `/api/work-project/${p.id}/update`,
+          json("POST", { health, body: health }),
+        )
+      ).json();
+    const health = async () =>
+      (await (await as(owner.user).request(`/api/work-project/${p.id}`)).json())
+        .health;
+
+    const first = await post(author, "onTrack");
+    const second = await post(author, "offTrack");
+    const third = await post(other, "atRisk");
+    expect(await health()).toBe("atRisk");
+
+    // non-author member: 403 on edit and delete
+    expect(
+      (
+        await as(other).request(
+          `/api/work-project/update/${first.id}`,
+          json("PUT", { body: "x" }),
+        )
+      ).status,
+    ).toBe(403);
+    expect(
+      (
+        await as(other).request(
+          `/api/work-project/update/${first.id}`,
+          json("DELETE"),
+        )
+      ).status,
+    ).toBe(403);
+    // admin may not edit someone else's update
+    expect(
+      (
+        await as(owner.user).request(
+          `/api/work-project/update/${first.id}`,
+          json("PUT", { body: "x" }),
+        )
+      ).status,
+    ).toBe(403);
+
+    // editing a non-latest update leaves health alone; editing the latest moves it
+    const edited = await as(author).request(
+      `/api/work-project/update/${second.id}`,
+      json("PUT", { health: "onTrack", body: "fine now" }),
+    );
+    expect(edited.status).toBe(200);
+    expect(await health()).toBe("atRisk");
+    await as(other).request(
+      `/api/work-project/update/${third.id}`,
+      json("PUT", { health: "offTrack" }),
+    );
+    expect(await health()).toBe("offTrack");
+
+    // deleting the latest falls back to the previous one, then to none
+    expect(
+      (
+        await as(other).request(
+          `/api/work-project/update/${third.id}`,
+          json("DELETE"),
+        )
+      ).status,
+    ).toBe(200);
+    expect(await health()).toBe("onTrack");
+    expect(
+      (
+        await as(owner.user).request(
+          `/api/work-project/update/${second.id}`,
+          json("DELETE"),
+        )
+      ).status,
+    ).toBe(200);
+    expect(
+      (
+        await as(author).request(
+          `/api/work-project/update/${first.id}`,
+          json("DELETE"),
+        )
+      ).status,
+    ).toBe(200);
+    expect(await health()).toBeNull();
+    expect(
+      (
+        await as(author).request(
+          `/api/work-project/update/${first.id}`,
+          json("DELETE"),
+        )
+      ).status,
+    ).toBe(404);
+  });
 });
