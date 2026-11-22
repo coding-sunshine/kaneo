@@ -1,16 +1,24 @@
 import { useNavigate } from "@tanstack/react-router";
-import { MoreHorizontal, SquareUser, Users } from "lucide-react";
+import { MoreHorizontal, SquarePen } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import type { NavItem } from "@/components/sidebar-customize/use-sidebar-items";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/menu";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 
-// Linear tucks Members and Teams behind a "More" row under Workspace.
-export function NavWorkspaceMore({ homeUrl }: { homeUrl: string }) {
+// Linear keeps the workspace rows set to "Don't show" behind a "More" row.
+export function NavWorkspaceMore({
+  hidden,
+  onCustomize,
+}: {
+  hidden: NavItem[];
+  onCustomize: () => void;
+}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -21,18 +29,20 @@ export function NavWorkspaceMore({ homeUrl }: { homeUrl: string }) {
           <MoreHorizontal aria-hidden="true" />
           <span>{t("navigation:sidebar.more")}</span>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-44" side="bottom" align="start">
-          <DropdownMenuItem
-            onClick={() => navigate({ to: `${homeUrl}/members` })}
-          >
-            <Users aria-hidden="true" />
-            {t("navigation:sidebar.members")}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => navigate({ to: "/dashboard/settings/projects" })}
-          >
-            <SquareUser aria-hidden="true" />
-            {t("navigation:sidebar.teams")}
+        <DropdownMenuContent className="w-48" side="bottom" align="start">
+          {hidden.map((item) => (
+            <DropdownMenuItem
+              key={item.url}
+              onClick={() => navigate({ to: item.url })}
+            >
+              <item.icon aria-hidden="true" />
+              {item.title}
+            </DropdownMenuItem>
+          ))}
+          {hidden.length > 0 ? <DropdownMenuSeparator /> : null}
+          <DropdownMenuItem onClick={onCustomize}>
+            <SquarePen aria-hidden="true" />
+            {t("navigation:customizeSidebar.open")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

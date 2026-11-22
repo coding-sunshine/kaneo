@@ -2,6 +2,13 @@ import { create } from "zustand";
 import type { GroupBy } from "@/lib/group-project";
 import { DEFAULT_REVIEWS_VIEW, type ReviewsView } from "@/lib/reviews-view";
 import type { CompletedIssues } from "@/lib/status-category";
+import type {
+  ItemBadge,
+  SidebarItemId,
+  SidebarPrefs,
+  SidebarSection,
+  SidebarVisibility,
+} from "@/components/sidebar-customize/sidebar-items";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 export const WEEK_START_DAYS = [0, 1, 6] as const;
@@ -104,6 +111,13 @@ type UserPreferencesStore = {
   setCodeReviewsEnabled: (enabled: boolean) => void;
   reviewsView: ReviewsView;
   setReviewsView: (patch: Partial<ReviewsView>) => void;
+
+  sidebar: SidebarPrefs;
+  setSidebarVisibility: (id: SidebarItemId, value: SidebarVisibility) => void;
+  setSidebarOrder: (section: SidebarSection, ids: SidebarItemId[]) => void;
+  setSidebarBadgeStyle: (style: SidebarPrefs["badgeStyle"]) => void;
+  /** null goes back to the default badge style. */
+  setSidebarItemBadge: (id: SidebarItemId, badge: ItemBadge | null) => void;
 };
 
 export const useUserPreferencesStore = create<UserPreferencesStore>()(
@@ -256,6 +270,36 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
       reviewsView: DEFAULT_REVIEWS_VIEW,
       setReviewsView: (patch) =>
         set((state) => ({ reviewsView: { ...state.reviewsView, ...patch } })),
+
+      sidebar: {
+        visibility: {},
+        order: {},
+        badgeStyle: "count",
+        itemBadges: {},
+      },
+      setSidebarVisibility: (id, value) =>
+        set(({ sidebar }) => ({
+          sidebar: {
+            ...sidebar,
+            visibility: { ...sidebar.visibility, [id]: value },
+          },
+        })),
+      setSidebarOrder: (section, ids) =>
+        set(({ sidebar }) => ({
+          sidebar: { ...sidebar, order: { ...sidebar.order, [section]: ids } },
+        })),
+      setSidebarBadgeStyle: (badgeStyle) =>
+        set(({ sidebar }) => ({ sidebar: { ...sidebar, badgeStyle } })),
+      setSidebarItemBadge: (id, badge) =>
+        set(({ sidebar }) => {
+          const { [id]: _previous, ...itemBadges } = sidebar.itemBadges;
+          return {
+            sidebar: {
+              ...sidebar,
+              itemBadges: badge ? { ...itemBadges, [id]: badge } : itemBadges,
+            },
+          };
+        }),
     }),
     {
       name: "user-preferences",

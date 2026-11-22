@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { SquareUser, Users } from "lucide-react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { NavWorkspaceMore } from "./nav-workspace-more";
 
@@ -13,36 +14,54 @@ vi.mock("@/components/ui/sidebar", () => ({
   ),
 }));
 
+const hidden = [
+  { title: "Members", icon: Users, url: "/dashboard/workspace/w1/members" },
+  { title: "Teams", icon: SquareUser, url: "/dashboard/settings/projects" },
+];
+
 afterEach(() => {
   cleanup();
   navigate.mockClear();
 });
 
+const openMore = () =>
+  fireEvent.click(
+    screen.getByRole("button", { name: "navigation:sidebar.more" }),
+  );
+
 describe("NavWorkspaceMore", () => {
-  it("opens Members and Teams like Linear's More menu", async () => {
-    render(<NavWorkspaceMore homeUrl="/dashboard/workspace/w1" />);
-    fireEvent.click(
-      screen.getByRole("button", { name: "navigation:sidebar.more" }),
-    );
+  it("lists the hidden rows, then Customize sidebar, like Linear's More menu", async () => {
+    const onCustomize = vi.fn();
+    render(<NavWorkspaceMore hidden={hidden} onCustomize={onCustomize} />);
+    openMore();
 
     const items = await screen.findAllByRole("menuitem");
     expect(items.map((item) => item.textContent)).toEqual([
-      "navigation:sidebar.members",
-      "navigation:sidebar.teams",
+      "Members",
+      "Teams",
+      "navigation:customizeSidebar.open",
     ]);
 
-    fireEvent.click(items[0]);
+    fireEvent.click(items[1]);
     expect(navigate).toHaveBeenCalledWith({
-      to: "/dashboard/workspace/w1/members",
-    });
-    fireEvent.click(
-      screen.getByRole("button", { name: "navigation:sidebar.more" }),
-    );
-    fireEvent.click(
-      await screen.findByRole("menuitem", { name: "navigation:sidebar.teams" }),
-    );
-    expect(navigate).toHaveBeenLastCalledWith({
       to: "/dashboard/settings/projects",
     });
+
+    openMore();
+    fireEvent.click(
+      await screen.findByRole("menuitem", {
+        name: "navigation:customizeSidebar.open",
+      }),
+    );
+    expect(onCustomize).toHaveBeenCalledOnce();
+  });
+
+  it("offers only Customize sidebar when every row is shown", async () => {
+    render(<NavWorkspaceMore hidden={[]} onCustomize={vi.fn()} />);
+    openMore();
+    const items = await screen.findAllByRole("menuitem");
+    expect(items.map((item) => item.textContent)).toEqual([
+      "navigation:customizeSidebar.open",
+    ]);
   });
 });

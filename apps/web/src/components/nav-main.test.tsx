@@ -45,6 +45,10 @@ vi.mock("@/components/ui/collapsible", () => ({
     <div>{children}</div>
   ),
 }));
+// The dialog has its own coverage; loading it would boot real translations.
+vi.mock("@/components/sidebar-customize/customize-sidebar-dialog", () => ({
+  CustomizeSidebarDialog: () => null,
+}));
 vi.mock("@/hooks/queries/workspace/use-active-workspace", () => ({
   default: () => ({ data: { id: "w1" } }),
 }));
@@ -61,9 +65,15 @@ vi.mock("@/hooks/queries/task/use-get-assigned-tasks", () => ({
   default: () => ({ data: undefined }),
 }));
 
+const defaultSidebar = useUserPreferencesStore.getState().sidebar;
 beforeEach(() =>
-  useUserPreferencesStore.setState({ codeReviewsEnabled: true }),
+  useUserPreferencesStore.setState({
+    codeReviewsEnabled: true,
+    sidebar: defaultSidebar,
+  }),
 );
+const buttonLabels = () =>
+  screen.getAllByRole("button").map((button) => button.textContent);
 afterEach(cleanup);
 
 describe("NavMain reviews row", () => {
@@ -90,5 +100,42 @@ describe("NavMain reviews row", () => {
       .getAllByRole("button")
       .map((button) => button.textContent);
     expect(labels).toContain("navigation:sidebar.pulse");
+  });
+});
+
+describe("NavMain customization", () => {
+  it("starts with Members and Teams behind More", () => {
+    render(<NavMain />);
+    expect(buttonLabels()).toEqual([
+      "navigation:sidebar.inbox",
+      "navigation:sidebar.myTasks",
+      "navigation:sidebar.reviews",
+      "navigation:sidebar.pulse",
+      "navigation:sidebar.documents",
+      "navigation:sidebar.projects",
+      "navigation:sidebar.views",
+      "navigation:sidebar.more",
+    ]);
+  });
+
+  it("follows saved visibility and order", () => {
+    useUserPreferencesStore.setState({
+      sidebar: {
+        ...defaultSidebar,
+        visibility: { projects: "never", members: "always", inbox: "badged" },
+        order: { personal: ["documents"] },
+      },
+    });
+    render(<NavMain />);
+    // Inbox is badged-only and has no unread notifications here.
+    expect(buttonLabels()).toEqual([
+      "navigation:sidebar.documents",
+      "navigation:sidebar.myTasks",
+      "navigation:sidebar.reviews",
+      "navigation:sidebar.pulse",
+      "navigation:sidebar.views",
+      "navigation:sidebar.members",
+      "navigation:sidebar.more",
+    ]);
   });
 });

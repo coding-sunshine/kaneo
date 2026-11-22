@@ -3596,6 +3596,27 @@
 					"instructions": "Find open issues that have three or more duplicate reports or related requests. Raise their priority one level and add a comment explaining why."
 				}
 			}
+		},
+		"customizeSidebar": {
+			"title": "Customize sidebar",
+			"open": "Customize sidebar…",
+			"defaultBadgeStyle": "Default badge style",
+			"personal": "Personal",
+			"workspace": "Workspace",
+			"reorder": "Reorder {{name}}",
+			"visibility": "Visibility",
+			"always": "Always show",
+			"badged": "Show when badged",
+			"never": "Don't show",
+			"badge": "Badge",
+			"badgeDefault": "Default ({{style}})",
+			"count": "Count",
+			"dot": "Dot",
+			"none": "None",
+			"markAllRead": "Mark all as read",
+			"copyLink": "Copy link",
+			"linkCopied": "Link copied to clipboard",
+			"copyFailed": "Couldn't copy the link"
 		}
 	},
 	"notifications": {
