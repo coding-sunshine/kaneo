@@ -546,7 +546,7 @@ export const projectTable = pgTable(
     // Insights counts an issue without an estimate as one point.
     estimateCountUnestimated: boolean("estimate_count_unestimated")
       .notNull()
-      .default(false),
+      .default(true),
     position: integer("position").notNull().default(0),
     backgroundObjectKey: text("background_object_key"),
     backgroundMimeType: text("background_mime_type"),

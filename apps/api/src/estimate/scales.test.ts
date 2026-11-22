@@ -26,6 +26,17 @@ describe("estimateOptions", () => {
       values(team({ estimateExtended: true, estimateAllowZero: true })),
     ).toEqual([0, 1, 2, 3, 5, 8, 13, 21]);
   });
+  it("extends each scale as Linear documents", () => {
+    const extended = (estimateType: string) =>
+      values(team({ estimateType, estimateExtended: true }));
+    expect(extended("exponential")).toEqual([1, 2, 4, 8, 16, 32, 64]);
+    expect(extended("fibonacci")).toEqual([1, 2, 3, 5, 8, 13, 21]);
+    expect(extended("linear")).toEqual([1, 2, 3, 4, 5, 6, 7]);
+  });
+  it("keeps zero distinct from an unestimated issue", () => {
+    expect(values(team({ estimateAllowZero: true }))[0]).toBe(0);
+    expect(values(team())).not.toContain(0);
+  });
   it("labels t-shirt sizes", () => {
     expect(
       estimateOptions(

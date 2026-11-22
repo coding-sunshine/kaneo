@@ -53,6 +53,7 @@ export function TaskShortcuts({
   useShortcut("assignTask", () => clickTaskAction("assignee"), assignable);
   useShortcut("changeLabels", () => clickTaskAction("labels"), editable);
   useShortcut("changeCycle", () => clickTaskAction("cycle"), editable);
+  useShortcut("setEstimate", () => clickTaskAction("estimate"), editable);
   useShortcut("setDueDate", () => clickTaskAction("dueDate"), editable);
   useShortcut("moveToProject", () => clickTaskAction("move"), editable);
   useShortcut("addLink", () => clickTaskAction("addLink"), editable);

@@ -74,7 +74,7 @@ export function EstimateSettingsRows({
             save.mutate({ estimateType: next as (typeof TYPES)[number] })
           }
         >
-          <SelectTrigger aria-label={copy("type")} className="w-36" size="sm">
+          <SelectTrigger aria-label={copy("type")} className="w-64" size="sm">
             <SelectValue>{copy(`types.${type}`)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -96,7 +96,7 @@ export function EstimateSettingsRows({
             <Switch
               aria-label={copy(FLAG_COPY[flag])}
               disabled={!canEdit}
-              checked={data?.[flag] ?? false}
+              checked={data?.[flag] ?? flag === "estimateCountUnestimated"}
               onCheckedChange={(checked) => save.mutate({ [flag]: checked })}
             />
           </SettingsRow>

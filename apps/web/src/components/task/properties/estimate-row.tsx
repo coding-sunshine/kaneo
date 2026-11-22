@@ -17,7 +17,7 @@ export function EstimateRow({ task }: { task: Task }) {
   return (
     <PropertyRow label={t("tasks:properties.estimate")}>
       <TaskEstimatePopover task={task}>
-        <PropertyValue data-task-action="estimate">
+        <PropertyValue data-task-action="estimate" shortcutId="setEstimate">
           <Hexagon className="text-muted-foreground" />
           <span className={cn("truncate", !option && "text-muted-foreground")}>
             {option ? option.label : t("tasks:properties.addEstimate")}

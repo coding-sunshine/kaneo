@@ -15,7 +15,7 @@ export function effortWeight(teams: Team[]) {
   return (task: Task) => {
     const team = byId.get(task.projectId);
     if (!estimates(team)) return 0;
-    return task.estimate ?? (team?.estimateCountUnestimated ? 1 : 0);
+    return task.estimate ?? (team?.estimateCountUnestimated !== false ? 1 : 0);
   };
 }
 

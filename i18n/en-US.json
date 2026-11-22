@@ -1849,17 +1849,17 @@
 				"saveFailed": "Could not save the estimate settings",
 				"types": {
 					"none": "Not in use",
-					"exponential": "Exponential",
-					"fibonacci": "Fibonacci",
-					"linear": "Linear",
-					"tshirt": "T-shirt"
+					"exponential": "Exponential (1, 2, 4, 8, 16 Points)",
+					"fibonacci": "Fibonacci (1, 2, 3, 5, 8 Points)",
+					"linear": "Linear (1, 2, 3, 4, 5 Points)",
+					"tshirt": "T-Shirt (XS, S, M, L, XL)"
 				},
 				"extended": "Extended estimates",
 				"extendedHint": "Add larger sizes to the scale.",
 				"allowZero": "Allow zero estimates",
 				"allowZeroHint": "Let issues be estimated at 0.",
 				"countUnestimated": "Count unestimated issues",
-				"countUnestimatedHint": "Treat issues with no estimate as 1 point in Insights."
+				"countUnestimatedHint": "Treat issues with no estimate as 1 point in Insights. On by default."
 			},
 			"pickIconTitle": "Pick icon",
 			"searchIconsPlaceholder": "Search icons...",
@@ -3085,6 +3085,7 @@
 				"assignToMe": "Assign to me",
 				"changeLabels": "Change labels",
 				"changeCycle": "Change cycle",
+				"setEstimate": "Set estimate",
 				"setDueDate": "Set due date",
 				"removeDueDate": "Remove due date",
 				"renameTask": "Rename",
@@ -3985,7 +3986,9 @@
 				"dueDate": "Due date",
 				"labels": "Labels",
 				"workProject": "Project",
-				"cycle": "Cycle"
+				"cycle": "Cycle",
+				"estimate": "Estimate",
+				"noEstimate": "No estimate"
 			},
 			"operators": {
 				"isAnyOf": "is any of",
@@ -4291,6 +4294,7 @@
 			"percentile": "{{percent}}% of issues take {{duration}} or less. Select to zoom.",
 			"ageBreakdown": "Issue age, share of issues at or under",
 			"burnUp": "Burn-up",
+			"showArchived": "Show archived issues",
 			"interval": "Interval",
 			"intervals": {
 				"month": "Month",
