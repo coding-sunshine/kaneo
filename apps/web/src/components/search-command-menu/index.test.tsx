@@ -21,8 +21,25 @@ const searchResults = {
       projectSlug: "PER",
       taskNumber: 23,
     },
+    {
+      id: "activity-9",
+      type: "comment",
+      title: "Comment on Ship it",
+      content: "rollback tonight",
+      projectId: "project-1",
+      taskId: "task-99",
+    },
+    {
+      id: "doc-1",
+      type: "document",
+      title: "Onboarding handbook",
+      projectName: "Platform",
+    },
   ],
 };
+
+const navigate = vi.fn();
+vi.mock("@tanstack/react-router", () => ({ useNavigate: () => navigate }));
 
 vi.mock("@/hooks/queries/search/use-global-search", () => ({
   default: () => ({ data: searchResults }),
@@ -54,5 +71,41 @@ describe("SearchCommandMenu", () => {
       await screen.findByText("Collect the weekly report list"),
     ).toBeInTheDocument();
     expect(screen.getByText("Rewrite the workflow note")).toBeInTheDocument();
+  });
+
+  it("shows a document with its team and opens it", async () => {
+    render(<SearchCommandMenu open setOpen={vi.fn()} />);
+    fireEvent.change(
+      screen.getByPlaceholderText("navigation:search.inputPlaceholder"),
+      { target: { value: "handbook" } },
+    );
+
+    expect(
+      await screen.findByText("navigation:search.groups.document"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Platform")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Onboarding handbook"));
+    expect(navigate).toHaveBeenCalledWith({
+      to: "/dashboard/workspace/$workspaceId/document/$documentId",
+      params: { workspaceId: "workspace-1", documentId: "doc-1" },
+    });
+  });
+
+  it("opens the task a comment belongs to", async () => {
+    render(<SearchCommandMenu open setOpen={vi.fn()} />);
+    fireEvent.change(
+      screen.getByPlaceholderText("navigation:search.inputPlaceholder"),
+      { target: { value: "rollback" } },
+    );
+    fireEvent.click(await screen.findByText("Comment on Ship it"));
+    expect(navigate).toHaveBeenCalledWith({
+      to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+      params: {
+        workspaceId: "workspace-1",
+        projectId: "project-1",
+        taskId: "task-99",
+      },
+    });
   });
 });

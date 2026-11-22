@@ -1,16 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { NumberSelect } from "@/components/settings/number-select";
 import { SettingsCard } from "@/components/settings/settings-card";
 import { SettingsPage } from "@/components/settings/settings-page";
 import { SettingsRow } from "@/components/settings/settings-row";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import updateCycleSettings, {
   type CycleSettings,
@@ -22,38 +16,6 @@ const range = (from: number, to: number) =>
   Array.from({ length: to - from + 1 }, (_, i) => from + i);
 
 const DAYS = [1, 2, 3, 4, 5, 6, 0];
-
-function NumberSelect({
-  value,
-  options,
-  label,
-  onChange,
-  format = String,
-}: {
-  value: number;
-  options: number[];
-  label: string;
-  onChange: (value: number) => void;
-  format?: (value: number) => string;
-}) {
-  return (
-    <Select
-      value={String(value)}
-      onValueChange={(next) => onChange(Number(next))}
-    >
-      <SelectTrigger aria-label={label} className="w-36" size="sm">
-        <SelectValue>{format(value)}</SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        {options.map((option) => (
-          <SelectItem key={option} value={String(option)}>
-            {format(option)}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-}
 
 export function ProjectCyclesSettings({ projectId }: { projectId: string }) {
   const { t } = useTranslation();

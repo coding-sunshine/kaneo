@@ -1,7 +1,7 @@
 import { and, eq, ne, sql } from "drizzle-orm";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
-import { subscribeToEvent } from "../../apps/api/src/events";
+import { settleEvents, subscribeToEvent } from "../../apps/api/src/events";
 import { createApp } from "../../apps/api/src/index";
 import { createNextOccurrence } from "../../apps/api/src/task/recurrence/create-next-occurrence";
 import { mockAuthenticatedSession } from "./helpers/auth";
@@ -76,11 +76,10 @@ function otherTasks(projectId: string, taskId: string) {
 }
 
 async function waitForNextOccurrence(projectId: string, taskId: string) {
-  return vi.waitFor(async () => {
-    const [next] = await otherTasks(projectId, taskId);
-    if (!next) throw new Error("No next occurrence yet");
-    return next;
-  });
+  await settleEvents();
+  const [next] = await otherTasks(projectId, taskId);
+  if (!next) throw new Error("No next occurrence was created");
+  return next;
 }
 
 describe("API integration: recurring tasks", () => {
@@ -273,12 +272,11 @@ describe("API integration: recurring tasks", () => {
       value: "done",
     });
     expect(bulk.status).toBe(200);
-    await vi.waitFor(async () => {
-      const tasks = await db.query.taskTable.findMany({
-        where: eq(schema.taskTable.projectId, project.id),
-      });
-      expect(tasks).toHaveLength(3);
+    await settleEvents();
+    const tasks = await db.query.taskTable.findMany({
+      where: eq(schema.taskTable.projectId, project.id),
     });
+    expect(tasks).toHaveLength(3);
 
     const open = await db.query.taskTable.findMany({
       where: and(

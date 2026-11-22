@@ -13,6 +13,7 @@ import {
   type SyncStamp,
 } from "../../apps/api/src/plugins/github/utils/sync-echo";
 import { resetTestDatabase } from "./helpers/database";
+import { skipEchoDeadline } from "./helpers/skip-echo-deadline";
 import {
   createWorkspaceMember,
   createProjectFixture,
@@ -56,6 +57,10 @@ it.each([
       release = resolve;
     });
     let remote = "A";
+    let writeStarted!: () => void;
+    const written = new Promise<void>((resolve) => {
+      writeStarted = resolve;
+    });
     const outbound = syncLatestTaskValue(
       task.id,
       project.id,
@@ -64,6 +69,7 @@ it.each([
       "A",
       async (value) => {
         remote = value;
+        writeStarted();
         await response;
         return "2026-09-30T00:00:01Z";
       },
@@ -78,6 +84,9 @@ it.each([
           .pending,
       ).toBe(true);
     });
+    // The pending stamp is stored before the provider write runs. Edit the
+    // provider only after that write landed, or it overwrites the edit.
+    await written;
     const pendingLink = await db.query.externalLinkTable.findFirst({
       where: eq(schema.externalLinkTable.id, link.id),
     });
@@ -128,7 +137,8 @@ it.each([
           .observedUpdatedAt,
       ).toBe(observedVersion);
     });
-    if (timeout) expect(await inboundResult).toBeInstanceOf(Error);
+    if (timeout)
+      expect(await skipEchoDeadline(() => inboundResult)).toBeInstanceOf(Error);
     release();
     await Promise.all([outbound, inboundResult]);
     expect(

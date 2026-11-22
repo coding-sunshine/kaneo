@@ -17,6 +17,7 @@ import {
   unique,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { bodyVector, titleBodyVector } from "../search/fts";
 import type { ChatMessage } from "../agent/openrouter";
 import type { WEBHOOK_CATEGORIES } from "../admin/webhooks/categories";
 import type { AuditWebhookPayload } from "../admin/webhooks/audit-webhook-payload";
@@ -549,6 +550,15 @@ export const projectTable = pgTable(
     estimateCountUnestimated: boolean("estimate_count_unestimated")
       .notNull()
       .default(true),
+    // Linear SLAs: urgent and high issues get a deadline this many hours after the priority is set.
+    slaEnabled: boolean("sla_enabled").notNull().default(false),
+    slaUrgentHours: integer("sla_urgent_hours").notNull().default(24),
+    slaHighHours: integer("sla_high_hours").notNull().default(168),
+    // Linear triage responsibility: "notify" or "assign" (rotating) for the people listed in
+    // project_triage_responsible.
+    triageResponsibilityMode: text("triage_responsibility_mode")
+      .notNull()
+      .default("notify"),
     position: integer("position").notNull().default(0),
     backgroundObjectKey: text("background_object_key"),
     backgroundMimeType: text("background_mime_type"),
@@ -593,6 +603,27 @@ export const projectMemberPreferenceTable = pgTable(
     primaryKey({ columns: [table.projectId, table.userId] }),
     index("project_member_preference_user_idx").on(table.userId),
   ],
+);
+
+// People responsible for a team's triage queue; lastAssignedAt drives the rotation.
+export const projectTriageResponsibleTable = pgTable(
+  "project_triage_responsible",
+  {
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projectTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    lastAssignedAt: timestamp("last_assigned_at", { mode: "date" }),
+  },
+  (table) => [primaryKey({ columns: [table.projectId, table.userId] })],
 );
 
 export const workspaceMemberAccessTable = pgTable(
@@ -1067,6 +1098,8 @@ export const taskTable = pgTable(
     completedAt: timestamp("completed_at", { mode: "date" }),
     startedTriageAt: timestamp("started_triage_at", { mode: "date" }),
     triagedAt: timestamp("triaged_at", { mode: "date" }),
+    // Linear SLA deadline, set from the team's SLA rules when the priority is set.
+    slaDueAt: timestamp("sla_due_at", { mode: "date" }),
     // Points on the team's estimate scale (see project.estimate_type); null is unestimated.
     estimate: integer("estimate"),
     creatorId: text("creator_id").references(() => userTable.id, {
@@ -1102,6 +1135,10 @@ export const taskTable = pgTable(
     index("task_workProjectId_idx").on(table.workProjectId),
     index("task_cycleId_idx").on(table.cycleId),
     index("task_projectId_idx").on(table.projectId),
+    index("task_search_idx").using(
+      "gin",
+      titleBodyVector(table.title, table.description),
+    ),
     index("task_project_scheduled_id_idx")
       .on(table.projectId, table.id)
       .where(
@@ -1295,6 +1332,7 @@ export const activityTable = pgTable(
     index("activity_userId_idx").on(table.userId),
     index("activity_createdAt_idx").on(table.createdAt),
     index("activity_parent_id_idx").on(table.parentId),
+    index("activity_search_idx").using("gin", bodyVector(table.content)),
     unique("activity_task_external_source_external_url_unique").on(
       table.taskId,
       table.externalSource,
@@ -2343,6 +2381,10 @@ export const documentTable = pgTable(
   },
   (table) => [
     index("document_workspace_idx").on(table.workspaceId),
+    index("document_search_idx").using(
+      "gin",
+      titleBodyVector(table.title, table.content),
+    ),
     index("document_project_idx").on(table.projectId),
     index("document_work_project_idx").on(table.workProjectId),
     index("document_task_idx").on(table.taskId),

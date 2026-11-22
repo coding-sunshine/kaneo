@@ -16,6 +16,7 @@ export function requireSearchPermission(c: Context, next: Next) {
     case "tasks":
     case "comments":
     case "activities":
+    case "documents":
       permissions = { project: ["read"], task: ["read"] };
       break;
     default:

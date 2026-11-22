@@ -8,6 +8,8 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
+    // jsdom renders slow down several-fold on a busy machine; 5s timed out then.
+    testTimeout: 15_000,
     coverage: {
       enabled: false,
     },

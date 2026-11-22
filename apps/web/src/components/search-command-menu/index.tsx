@@ -32,7 +32,9 @@ type SearchResultItem = {
   title: string;
   description?: string;
   content?: string;
-  type: "task" | "project" | "workspace" | "comment" | "activity";
+  type: "task" | "project" | "workspace" | "comment" | "activity" | "document";
+  projectName?: string;
+  taskId?: string;
   projectId?: string;
   workspaceId?: string;
   taskNumber?: number;
@@ -112,15 +114,23 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
           });
         }
         break;
+      case "document":
+        if (workspace?.id) {
+          navigate({
+            to: "/dashboard/workspace/$workspaceId/document/$documentId",
+            params: { workspaceId: workspace.id, documentId: item.id },
+          });
+        }
+        break;
       case "comment":
       case "activity":
-        if (item.projectId && item.id && workspace?.id) {
+        if (item.projectId && item.taskId && workspace?.id) {
           navigate({
             to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
             params: {
               workspaceId: workspace.id,
               projectId: item.projectId,
-              taskId: item.id,
+              taskId: item.taskId,
             },
           });
         }
@@ -140,6 +150,8 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
         return MessageSquare;
       case "activity":
         return Zap;
+      case "document":
+        return FileText;
       default:
         return FileText;
     }
@@ -169,6 +181,8 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
           return t("navigation:search.groups.comment");
         case "activity":
           return t("navigation:search.groups.activity");
+        case "document":
+          return t("navigation:search.groups.document");
         default:
           return t("navigation:search.groups.fallback");
       }
@@ -230,6 +244,11 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
                                   </span>
                                 )}
                               </div>
+                              {item.type === "document" && item.projectName && (
+                                <div className="text-xs text-muted-foreground truncate mt-1">
+                                  {item.projectName}
+                                </div>
+                              )}
                               {item.description && (
                                 <div className="text-xs text-muted-foreground truncate mt-1">
                                   {item.description}

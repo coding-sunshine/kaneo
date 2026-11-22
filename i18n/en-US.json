@@ -2992,6 +2992,29 @@
 			"deleteConfirm": "Delete template",
 			"deleteSuccess": "Template deleted.",
 			"deleteError": "Couldn't delete the template."
+		},
+		"projectSla": {
+			"title": "SLAs",
+			"subtitle": "Deadlines for urgent and high priority issues on this team.",
+			"enable": "Enable SLAs",
+			"enableDescription": "Apply a deadline when an issue's priority is set to urgent or high.",
+			"urgent": "When priority is Urgent",
+			"high": "When priority is High",
+			"otherDescription": "Medium, Low and No priority remove the SLA.",
+			"hours_one": "{{count}} hour",
+			"hours_other": "{{count}} hours",
+			"weeks_one": "{{count}} week",
+			"weeks_other": "{{count}} weeks",
+			"saveFailed": "Could not save SLA settings"
+		},
+		"projectTriage": {
+			"title": "Triage",
+			"subtitle": "Who handles issues that arrive in this team's triage.",
+			"mode": "When an issue enters triage",
+			"modeDescription": "Notify everyone listed, or assign the issue to them in turn.",
+			"notify": "Notify",
+			"assign": "Auto-assign",
+			"saveFailed": "Could not save triage responsibility"
 		}
 	},
 	"navigation": {
@@ -3093,6 +3116,7 @@
 				"workspace": "Workspaces",
 				"comment": "Comments",
 				"activity": "Activities",
+				"document": "Documents",
 				"fallback": "Results"
 			}
 		},
@@ -4630,6 +4654,16 @@
 			"project": "Project",
 			"milestone": "Milestone",
 			"cycle": "Cycle"
+		},
+		"sla": {
+			"low": "Low risk",
+			"medium": "Medium risk",
+			"high": "High risk",
+			"breached": "Breached",
+			"achieved": "Achieved",
+			"failed": "Failed",
+			"title": "SLA {{status}} - due {{date}}",
+			"label": "SLA"
 		}
 	},
 	"invitations": {

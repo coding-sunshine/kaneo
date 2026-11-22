@@ -3,7 +3,14 @@ import { nullableResponseTimestamp, responseTimestamp, z } from "../openapi";
 export const searchResultSchema = z
   .object({
     id: z.string(),
-    type: z.enum(["task", "project", "workspace", "comment", "activity"]),
+    type: z.enum([
+      "task",
+      "project",
+      "workspace",
+      "comment",
+      "activity",
+      "document",
+    ]),
     title: z.string(),
     description: z.string().optional(),
     content: z.string().optional().openapi({
@@ -22,6 +29,10 @@ export const searchResultSchema = z
       description:
         "Higher is a better match. Results are sorted by score, then by createdAt descending.",
     }),
+    taskId: z
+      .string()
+      .optional()
+      .openapi({ description: "The task a comment or activity belongs to." }),
     taskNumber: z.number().optional(),
     priority: z.string().optional(),
     status: z.string().optional(),

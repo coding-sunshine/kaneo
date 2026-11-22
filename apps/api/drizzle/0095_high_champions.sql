@@ -1,0 +1,3 @@
+CREATE INDEX "activity_search_idx" ON "activity" USING gin (to_tsvector('simple', left(coalesce("content", ''), 100000)));--> statement-breakpoint
+CREATE INDEX "document_search_idx" ON "document" USING gin ((setweight(to_tsvector('simple', left(coalesce("title", ''), 100000)), 'A') || setweight(to_tsvector('simple', left(coalesce("content", ''), 100000)), 'B')));--> statement-breakpoint
+CREATE INDEX "task_search_idx" ON "task" USING gin ((setweight(to_tsvector('simple', left(coalesce("title", ''), 100000)), 'A') || setweight(to_tsvector('simple', left(coalesce("description", ''), 100000)), 'B')));

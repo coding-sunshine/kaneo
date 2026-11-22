@@ -1,15 +1,19 @@
-import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
+import type { SQLWrapper } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import db from "../../database";
 import {
   activityTable,
+  documentTable,
   projectTable,
   taskTable,
   userTable,
   workspaceTable,
   workspaceUserTable,
 } from "../../database/schema";
+import { documentVisibility } from "../../document/visibility";
 import { canAccessProject } from "../../project-access/can-access-project";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
+import { bodyVector, buildFtsQuery, ftsMatch, titleBodyVector } from "../fts";
 import { escapeLikePattern } from "../like-pattern";
 import { TASK_SHORT_ID_PATTERN } from "../task-short-id";
 
@@ -23,7 +27,8 @@ type SearchParams = {
     | "projects"
     | "workspaces"
     | "comments"
-    | "activities";
+    | "activities"
+    | "documents";
   workspaceId?: string;
   projectId?: string;
   limit?: number;
@@ -31,7 +36,7 @@ type SearchParams = {
 
 type SearchResult = {
   id: string;
-  type: "task" | "project" | "workspace" | "comment" | "activity";
+  type: "task" | "project" | "workspace" | "comment" | "activity" | "document";
   title: string;
   description?: string;
   content?: string;
@@ -43,6 +48,7 @@ type SearchResult = {
   userName?: string;
   createdAt: Date;
   relevanceScore: number;
+  taskId?: string;
   taskNumber?: number;
   projectSlug?: string;
   priority?: string;
@@ -164,6 +170,12 @@ async function globalSearch(params: SearchParams): Promise<{
 
   const shortIdNumber = Number(shortIdMatch?.[2]);
 
+  // Ranked full-text search, except for very short queries and task keys like
+  // "ABC-12", which keep the substring match.
+  const fts = shortIdMatch ? null : buildFtsQuery(query);
+  const exactTitle = (title: SQLWrapper) =>
+    sql`LOWER(${title}) = LOWER(${query.trim()})`;
+
   if (type === "all" || type === "tasks") {
     const seenTaskIds = new Set<string>();
 
@@ -241,7 +253,12 @@ async function globalSearch(params: SearchParams): Promise<{
     }
 
     // Also run text search for tasks
-    const taskRelevanceScore = sql<number>`
+    const taskFts = fts
+      ? ftsMatch(titleBodyVector(taskTable.title, taskTable.description), fts)
+      : null;
+    const taskRelevanceScore = taskFts
+      ? sql<number>`CASE WHEN ${exactTitle(taskTable.title)} THEN 5 ELSE ${taskFts.score(3)} END`
+      : sql<number>`
       CASE
         WHEN LOWER(${taskTable.title}) LIKE ${searchPattern} THEN 3
         WHEN LOWER(${taskTable.description}) LIKE ${searchPattern} THEN 2
@@ -276,10 +293,11 @@ async function globalSearch(params: SearchParams): Promise<{
         and(
           workspaceFilter,
           projectId ? eq(taskTable.projectId, projectId) : undefined,
-          or(
-            ilike(taskTable.title, searchPattern),
-            ilike(taskTable.description, searchPattern),
-          ),
+          taskFts?.match ??
+            or(
+              ilike(taskTable.title, searchPattern),
+              ilike(taskTable.description, searchPattern),
+            ),
         ),
       )
       .orderBy(desc(taskRelevanceScore), desc(taskTable.createdAt))
@@ -412,7 +430,12 @@ async function globalSearch(params: SearchParams): Promise<{
 
   if (type === "all" || type === "comments" || type === "activities") {
     const searchableActivityText = sql<string>`COALESCE(${activityTable.content}, CAST(${activityTable.eventData} AS text), '')`;
-    const activityRelevanceScore = sql<number>`
+    const activityFts = fts
+      ? ftsMatch(bodyVector(activityTable.content), fts)
+      : null;
+    const activityRelevanceScore = activityFts
+      ? activityFts.score(2)
+      : sql<number>`
       CASE
         WHEN LOWER(${searchableActivityText}) LIKE ${searchPattern} THEN 2
         WHEN LOWER(${taskTable.title}) LIKE ${searchPattern} THEN 1
@@ -448,10 +471,11 @@ async function globalSearch(params: SearchParams): Promise<{
         and(
           workspaceFilter,
           projectId ? eq(taskTable.projectId, projectId) : undefined,
-          or(
-            ilike(searchableActivityText, searchPattern),
-            ilike(taskTable.title, searchPattern),
-          ),
+          activityFts?.match ??
+            or(
+              ilike(searchableActivityText, searchPattern),
+              ilike(taskTable.title, searchPattern),
+            ),
           type === "comments" ? eq(activityTable.type, "comment") : undefined,
         ),
       )
@@ -483,7 +507,77 @@ async function globalSearch(params: SearchParams): Promise<{
         userName: activity.userName || undefined,
         createdAt: activity.createdAt,
         relevanceScore: activity.relevanceScore,
+        taskId: activity.taskId,
         taskNumber: activity.taskNumber || undefined,
+      });
+    }
+  }
+
+  if (type === "all" || type === "documents") {
+    const docFts = fts
+      ? ftsMatch(
+          titleBodyVector(documentTable.title, documentTable.content),
+          fts,
+        )
+      : null;
+    const docScore = docFts
+      ? sql<number>`CASE WHEN ${exactTitle(documentTable.title)} THEN 5 ELSE ${docFts.score(3)} END`
+      : sql<number>`CASE WHEN LOWER(${documentTable.title}) LIKE ${searchPattern} THEN 3 ELSE 2 END`;
+
+    const documents = await db
+      .select({
+        id: documentTable.id,
+        title: documentTable.title,
+        projectId: documentTable.projectId,
+        projectName: projectTable.name,
+        workspaceId: documentTable.workspaceId,
+        workspaceName: workspaceTable.name,
+        userId: documentTable.creatorId,
+        createdAt: documentTable.createdAt,
+        relevanceScore: docScore.as("relevanceScore"),
+      })
+      .from(documentTable)
+      .leftJoin(
+        workspaceTable,
+        eq(documentTable.workspaceId, workspaceTable.id),
+      )
+      .leftJoin(projectTable, eq(documentTable.projectId, projectTable.id))
+      .where(
+        and(
+          workspaceId
+            ? eq(documentTable.workspaceId, workspaceId)
+            : inArray(documentTable.workspaceId, accessibleWorkspaceIds),
+          isNull(documentTable.deletedAt),
+          documentVisibility(resolvedUserId, {
+            id: documentTable.id,
+            creatorId: documentTable.creatorId,
+            scope: documentTable.scope,
+            projectId: documentTable.projectId,
+            taskId: documentTable.taskId,
+          }),
+          projectId ? eq(documentTable.projectId, projectId) : undefined,
+          docFts?.match ??
+            or(
+              ilike(documentTable.title, searchPattern),
+              ilike(documentTable.content, searchPattern),
+            ),
+        ),
+      )
+      .orderBy(desc(docScore), desc(documentTable.createdAt))
+      .limit(limit);
+
+    for (const doc of documents) {
+      results.push({
+        id: doc.id,
+        type: "document",
+        title: doc.title,
+        projectId: doc.projectId || undefined,
+        projectName: doc.projectName || undefined,
+        workspaceId: doc.workspaceId,
+        workspaceName: doc.workspaceName || undefined,
+        userId: doc.userId || undefined,
+        createdAt: doc.createdAt,
+        relevanceScore: doc.relevanceScore,
       });
     }
   }
