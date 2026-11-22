@@ -4529,6 +4529,53 @@
 			"notConfigured": {
 				"title": "GitHub reviews are not set up",
 				"description": "An administrator needs to add the Kaneo GitHub App credentials before pull requests can be reviewed here."
+			},
+			"filterPlaceholder": "Filter",
+			"noAuthor": "No author",
+			"pinGroup": "Pin to bottom",
+			"unpinGroup": "Unpin from bottom",
+			"display": {
+				"label": "Display options",
+				"grouping": "Grouping",
+				"subGrouping": "Sub-grouping",
+				"ordering": "Ordering",
+				"repository": "Repository",
+				"checks": "Checks",
+				"size": "Size"
+			},
+			"groupBy": {
+				"none": "No grouping",
+				"status": "Status",
+				"reviewStatus": "Review status",
+				"checks": "Checks",
+				"author": "Author",
+				"repository": "Repository",
+				"size": "Size"
+			},
+			"sortBy": {
+				"updated": "Last updated",
+				"created": "Created",
+				"size": "Size",
+				"title": "Title"
+			},
+			"reviewStatus": {
+				"changes_requested": "Changes requested",
+				"review_required": "Review required",
+				"approved": "Approved",
+				"no_decision": "No review decision"
+			},
+			"checks": {
+				"success": "Checks passing",
+				"failure": "Checks failing",
+				"pending": "Checks running",
+				"none": "No checks"
+			},
+			"size": {
+				"xs": "Extra small",
+				"s": "Small",
+				"m": "Medium",
+				"l": "Large",
+				"xl": "Extra large"
 			}
 		},
 		"myTasks": {
