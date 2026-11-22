@@ -2393,6 +2393,11 @@ export const loopTable = pgTable(
       }),
     name: text("name").notNull(),
     instructions: text("instructions").notNull(),
+    // The agent write tools a run may use (see WRITE_TOOLS). Empty: read-only.
+    actions: text("actions")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     // "schedule" loops use frequency/nextRunAt; event loops fire from the bus
     // for tasks in the workspace, narrowed to projectId when it is set.
     trigger: text("trigger")

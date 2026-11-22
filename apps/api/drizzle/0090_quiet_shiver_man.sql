@@ -1,0 +1,1 @@
+ALTER TABLE "loop" ADD COLUMN "actions" text[] DEFAULT '{}'::text[] NOT NULL;
