@@ -22,6 +22,14 @@ const searchResults = {
       taskNumber: 23,
     },
     {
+      id: "activity-9",
+      type: "comment",
+      title: "Comment on Ship it",
+      content: "rollback tonight",
+      projectId: "project-1",
+      taskId: "task-99",
+    },
+    {
       id: "doc-1",
       type: "document",
       title: "Onboarding handbook",
@@ -81,6 +89,23 @@ describe("SearchCommandMenu", () => {
     expect(navigate).toHaveBeenCalledWith({
       to: "/dashboard/workspace/$workspaceId/document/$documentId",
       params: { workspaceId: "workspace-1", documentId: "doc-1" },
+    });
+  });
+
+  it("opens the task a comment belongs to", async () => {
+    render(<SearchCommandMenu open setOpen={vi.fn()} />);
+    fireEvent.change(
+      screen.getByPlaceholderText("navigation:search.inputPlaceholder"),
+      { target: { value: "rollback" } },
+    );
+    fireEvent.click(await screen.findByText("Comment on Ship it"));
+    expect(navigate).toHaveBeenCalledWith({
+      to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+      params: {
+        workspaceId: "workspace-1",
+        projectId: "project-1",
+        taskId: "task-99",
+      },
     });
   });
 });

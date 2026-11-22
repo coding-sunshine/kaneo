@@ -48,6 +48,7 @@ type SearchResult = {
   userName?: string;
   createdAt: Date;
   relevanceScore: number;
+  taskId?: string;
   taskNumber?: number;
   projectSlug?: string;
   priority?: string;
@@ -506,6 +507,7 @@ async function globalSearch(params: SearchParams): Promise<{
         userName: activity.userName || undefined,
         createdAt: activity.createdAt,
         relevanceScore: activity.relevanceScore,
+        taskId: activity.taskId,
         taskNumber: activity.taskNumber || undefined,
       });
     }

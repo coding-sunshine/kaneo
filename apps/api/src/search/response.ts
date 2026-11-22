@@ -29,6 +29,10 @@ export const searchResultSchema = z
       description:
         "Higher is a better match. Results are sorted by score, then by createdAt descending.",
     }),
+    taskId: z
+      .string()
+      .optional()
+      .openapi({ description: "The task a comment or activity belongs to." }),
     taskNumber: z.number().optional(),
     priority: z.string().optional(),
     status: z.string().optional(),

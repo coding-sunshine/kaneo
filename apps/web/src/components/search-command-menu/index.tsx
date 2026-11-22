@@ -34,6 +34,7 @@ type SearchResultItem = {
   content?: string;
   type: "task" | "project" | "workspace" | "comment" | "activity" | "document";
   projectName?: string;
+  taskId?: string;
   projectId?: string;
   workspaceId?: string;
   taskNumber?: number;
@@ -123,13 +124,13 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
         break;
       case "comment":
       case "activity":
-        if (item.projectId && item.id && workspace?.id) {
+        if (item.projectId && item.taskId && workspace?.id) {
           navigate({
             to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
             params: {
               workspaceId: workspace.id,
               projectId: item.projectId,
-              taskId: item.id,
+              taskId: item.taskId,
             },
           });
         }

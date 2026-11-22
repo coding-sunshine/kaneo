@@ -26,7 +26,12 @@ async function setup() {
       `/api/search?${new URLSearchParams({ q, type, workspaceId })}`,
     );
     expect(res.status).toBe(200);
-    return (await res.json()).results as { id: string; title: string }[];
+    return (await res.json()).results as {
+      id: string;
+      title: string;
+      taskId?: string;
+      taskNumber?: number;
+    }[];
   };
   const task = async (title: string, number: number, description?: string) =>
     (
@@ -85,6 +90,7 @@ describe("full-text search", () => {
     });
     const comments = await search("migration rollback", "comments");
     expect(comments).toHaveLength(1);
+    expect(comments[0]).toMatchObject({ taskId: t.id, taskNumber: 1 });
 
     await db.insert(schema.documentTable).values({
       workspaceId: member.workspace.id,
