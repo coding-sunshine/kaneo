@@ -63,6 +63,9 @@ import invitation from "./invitation";
 import label from "./label";
 import cycle from "./cycle";
 import workProject from "./work-project";
+import agent from "./agent";
+import { setSelfFetch } from "./agent/self-client";
+import loop from "./loop";
 import savedView from "./saved-view";
 import document from "./document";
 import favorite from "./favorite";
@@ -830,6 +833,8 @@ export function createApp() {
   const cycleApi = api.route("/cycle", cycle);
   const workProjectApi = api.route("/work-project", workProject);
   const savedViewApi = api.route("/view", savedView);
+  const agentApi = api.route("/agent", agent);
+  const loopApi = api.route("/loop", loop);
   const documentApi = api.route("/document", document);
   const favoriteApi = api.route("/favorite", favorite);
   const notificationApi = api.route("/notification", notification);
@@ -989,6 +994,7 @@ export function createApp() {
   );
 
   app.route("/api", api);
+  setSelfFetch((request) => app.fetch(request));
 
   return {
     app,
@@ -1012,6 +1018,8 @@ export function createApp() {
     cycleApi,
     workProjectApi,
     savedViewApi,
+    agentApi,
+    loopApi,
     documentApi,
     favoriteApi,
     notificationApi,
@@ -1153,6 +1161,8 @@ const {
   cycleApi,
   workProjectApi,
   savedViewApi,
+  agentApi,
+  loopApi,
   documentApi,
   favoriteApi,
   mattermostIntegrationApi,
@@ -1201,6 +1211,8 @@ export type AppType =
   | typeof cycleApi
   | typeof workProjectApi
   | typeof savedViewApi
+  | typeof agentApi
+  | typeof loopApi
   | typeof documentApi
   | typeof favoriteApi
   | typeof notificationApi

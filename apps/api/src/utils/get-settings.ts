@@ -1,5 +1,6 @@
 import { isSmtpConfigured } from "@kaneo/email";
 import { config } from "dotenv-mono";
+import { isAgentEnabled } from "../agent/openrouter";
 import { isBillingEnabled } from "../billing/config";
 import {
   DEFAULT_STORED_SETTINGS,
@@ -66,6 +67,7 @@ function getSettings(
     customOAuthManagedProfileFields: parseManagedProfileFields(),
     customOAuthAccountUrl: parseCustomOAuthAccountUrl(),
     billingEnabled: isBillingAvailable(),
+    hasAgent: isAgentEnabled(),
   };
 }
 

@@ -99,11 +99,19 @@ import {
   workspaceEmojiTable,
   workspaceTable,
   workspaceUserTable,
+  agentChatTable,
+  agentMessageTable,
+  loopTable,
+  loopRunTable,
 } from "./schema";
 
 config();
 
 export const schema = {
+  agentChatTable,
+  agentMessageTable,
+  loopTable,
+  loopRunTable,
   workspaceEmojiTable,
   dataMigrationTable,
   storageCleanupTable,

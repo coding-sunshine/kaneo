@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/node";
 import { APIError } from "better-auth/api";
 import type { Context } from "hono";
 import { HTTPException } from "hono/http-exception";
+import { resolveInternalUser } from "../agent/internal-auth";
 import { apiKeyRejection } from "./api-key-rejection";
 import { getUserSession } from "./get-user-session";
 import { type ApiKeyRateLimit, rateLimitHeaders } from "./rate-limit-headers";
@@ -88,6 +89,19 @@ function setApiKeyContext(c: Context, { key, rateLimit }: VerifiedApiKey) {
 }
 
 export async function authenticateApiRequest(c: Context): Promise<void> {
+  const internalUserId = await resolveInternalUser(c.req.raw.headers);
+  if (internalUserId === "invalid") {
+    throw new HTTPException(401, { message: "Unauthorized" });
+  }
+  if (internalUserId) {
+    c.set("userId", internalUserId);
+    c.set("userEmail", "");
+    c.set("user", null);
+    c.set("session", null);
+    attachUserToScope(internalUserId);
+    return;
+  }
+
   const { token, malformed } = parseBearerToken(c.req.header("Authorization"));
   if (malformed) {
     throw new HTTPException(401, { message: "Unauthorized" });

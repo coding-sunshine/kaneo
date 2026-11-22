@@ -17,6 +17,7 @@ import {
   unique,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
+import type { ChatMessage } from "../agent/openrouter";
 import type { WEBHOOK_CATEGORIES } from "../admin/webhooks/categories";
 import type { AuditWebhookPayload } from "../admin/webhooks/audit-webhook-payload";
 import type { GitHubImportState } from "../github-integration/import-state";
@@ -2362,7 +2363,7 @@ export const agentMessageTable = pgTable(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
-    message: jsonb("message").$type<Record<string, unknown>>().notNull(),
+    message: jsonb("message").$type<ChatMessage>().notNull(),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),
@@ -2371,7 +2372,7 @@ export const agentMessageTable = pgTable(
 );
 
 // A loop runs its instructions as the agent on a schedule, with the creator's
-// permissions at run time. `nextRunAt` null means never scheduled (disabled).
+// permissions at run time. Disabled loops keep their `nextRunAt` but never run.
 export const loopTable = pgTable(
   "loop",
   {
@@ -2428,10 +2429,7 @@ export const loopRunTable = pgTable(
       .$type<"running" | "succeeded" | "failed">()
       .notNull(),
     error: text("error"),
-    messages: jsonb("messages")
-      .$type<Record<string, unknown>[]>()
-      .notNull()
-      .default([]),
+    messages: jsonb("messages").$type<ChatMessage[]>().notNull().default([]),
     startedAt: timestamp("started_at", { mode: "date" })
       .default(utcNow)
       .notNull(),

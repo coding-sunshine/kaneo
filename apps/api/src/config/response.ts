@@ -44,5 +44,9 @@ export const configSchema = z
         "Account page of the custom OAuth/OIDC provider, where people change managed profile fields. Null when not configured.",
     }),
     billingEnabled: z.boolean(),
+    hasAgent: z.boolean().openapi({
+      description:
+        "Whether the agent and loops are available (an OpenRouter API key is configured).",
+    }),
   })
   .openapi("Config");

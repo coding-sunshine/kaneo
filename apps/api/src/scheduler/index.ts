@@ -9,6 +9,7 @@ import { reconcileAllCycles } from "../cycle/reconcile";
 import { checkDueDateReminders } from "./due-date-reminders";
 import { checkProjectWebhookReminders } from "./project-webhook-reminders";
 import { reconcileWorkspaceSeats } from "./seat-reconciliation";
+import { runDueLoops } from "./loops";
 import { checkTrialReminders } from "./trial-reminders";
 
 const jobs: Cron[] = [];
@@ -115,6 +116,7 @@ export function initializeScheduler(): void {
   jobs.push(
     new Cron("23 * * * *", withCheckIn("trial-reminders", checkTrialReminders)),
   );
+  jobs.push(new Cron("* * * * *", withCheckIn("loops", runDueLoops)));
   console.log(
     "⏰ Scheduler started (deferred integration edits every minute, reminders every 5 minutes, seat reconciliation and trial reminders hourly)",
   );
