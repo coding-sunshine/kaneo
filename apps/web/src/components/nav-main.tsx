@@ -28,6 +28,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { NavWorkspaceMore } from "@/components/nav-workspace-more";
 import { useHasAgent } from "@/hooks/queries/agent/use-agent";
 import { usePendingInvitations } from "@/hooks/queries/invitation/use-pending-invitations";
 import useGetNotifications from "@/hooks/queries/notification/use-get-notifications";
@@ -42,7 +43,15 @@ type NavItem = {
   count?: number;
 };
 
-function NavItems({ items, pathname }: { items: NavItem[]; pathname: string }) {
+function NavItems({
+  items,
+  pathname,
+  children,
+}: {
+  items: NavItem[];
+  pathname: string;
+  children?: React.ReactNode;
+}) {
   const navigate = useNavigate();
   return (
     <SidebarMenu className="gap-px">
@@ -65,6 +74,7 @@ function NavItems({ items, pathname }: { items: NavItem[]; pathname: string }) {
           </SidebarMenuButton>
         </SidebarMenuItem>
       ))}
+      {children}
     </SidebarMenu>
   );
 }
@@ -183,7 +193,9 @@ export function NavMain() {
           </CollapsibleTrigger>
           <CollapsiblePanel>
             <SidebarGroupContent>
-              <NavItems items={workspaceItems} pathname={pathname} />
+              <NavItems items={workspaceItems} pathname={pathname}>
+                <NavWorkspaceMore homeUrl={homeUrl} />
+              </NavItems>
             </SidebarGroupContent>
           </CollapsiblePanel>
         </SidebarGroup>

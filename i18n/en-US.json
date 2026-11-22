@@ -3107,7 +3107,8 @@
 			"browseTeams": "Browse teams",
 			"agent": "Agent",
 			"loops": "Loops",
-			"pulse": "Pulse"
+			"pulse": "Pulse",
+			"teams": "Teams"
 		},
 		"projectList": {
 			"viewProject": "View Project",
