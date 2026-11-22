@@ -2393,11 +2393,23 @@ export const loopTable = pgTable(
       }),
     name: text("name").notNull(),
     instructions: text("instructions").notNull(),
-    frequency: text("frequency")
-      .$type<"hourly" | "daily" | "weekly" | "monthly" | "yearly">()
+    // "schedule" loops use frequency/nextRunAt; event loops fire from the bus
+    // for tasks in the workspace, narrowed to projectId when it is set.
+    trigger: text("trigger")
+      .$type<
+        "schedule" | "task_created" | "task_status_changed" | "comment_created"
+      >()
+      .default("schedule")
       .notNull(),
+    projectId: text("project_id").references(() => projectTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    frequency: text("frequency").$type<
+      "hourly" | "daily" | "weekly" | "monthly" | "yearly"
+    >(),
     enabled: boolean("enabled").default(true).notNull(),
-    nextRunAt: timestamp("next_run_at", { mode: "date" }).notNull(),
+    nextRunAt: timestamp("next_run_at", { mode: "date" }),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),
@@ -2424,7 +2436,7 @@ export const loopRunTable = pgTable(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
-    trigger: text("trigger").$type<"schedule" | "manual">().notNull(),
+    trigger: text("trigger").$type<"schedule" | "manual" | "event">().notNull(),
     status: text("status")
       .$type<"running" | "succeeded" | "failed">()
       .notNull(),
