@@ -231,10 +231,19 @@ const label = apiRouter()
     );
   })
   .openapi(createLabelRoute, async (c) => {
-    const { name, color, workspaceId, taskId } = c.req.valid("json");
+    const { name, color, workspaceId, taskId, projectId, parentLabelId } =
+      c.req.valid("json");
     const userId = c.get("userId");
     return c.json(
-      await createLabel(name, color, taskId, workspaceId, userId),
+      await createLabel(
+        name,
+        color,
+        taskId,
+        workspaceId,
+        userId,
+        projectId,
+        parentLabelId,
+      ),
       200,
     );
   })
@@ -255,8 +264,8 @@ const label = apiRouter()
   })
   .openapi(updateLabelRoute, async (c) => {
     const { id } = c.req.valid("param");
-    const { name, color } = c.req.valid("json");
-    return c.json(await updateLabel(id, name, color), 200);
+    const { name, color, parentLabelId } = c.req.valid("json");
+    return c.json(await updateLabel(id, name, color, parentLabelId), 200);
   })
   .openapi(deleteLabelRoute, async (c) => {
     const { id } = c.req.valid("param");

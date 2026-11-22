@@ -13,6 +13,7 @@ import { cn } from "@/lib/cn";
 
 type LabelRowProps = {
   label: WorkspaceLabel;
+  groupName?: string;
   canUpdate: boolean;
   canDelete: boolean;
   onEdit: (label: WorkspaceLabel) => void;
@@ -21,6 +22,7 @@ type LabelRowProps = {
 
 export function LabelRow({
   label,
+  groupName,
   canUpdate,
   canDelete,
   onEdit,
@@ -104,7 +106,11 @@ export function LabelRow({
       }
       titleClassName={removing ? "text-muted-foreground" : undefined}
       description={
-        removing ? t("settings:workspaceLabels.deletionPending") : undefined
+        removing
+          ? t("settings:workspaceLabels.deletionPending")
+          : groupName
+            ? t("settings:workspaceLabels.inGroup", { name: groupName })
+            : undefined
       }
     >
       {trailing}

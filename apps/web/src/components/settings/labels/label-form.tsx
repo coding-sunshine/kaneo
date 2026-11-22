@@ -14,26 +14,45 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import useCreateLabel from "@/hooks/mutations/label/use-create-label";
 import useUpdateLabel from "@/hooks/mutations/label/use-update-label";
 import { toast } from "@/lib/toast";
 
+const NO_GROUP = "none";
+
 type LabelFormProps = {
   label: WorkspaceLabel | null;
   workspaceId: string;
+  projectId?: string;
+  groupOptions: WorkspaceLabel[];
   onClose: () => void;
 };
 
-export function LabelForm({ label, workspaceId, onClose }: LabelFormProps) {
+export function LabelForm({
+  label,
+  workspaceId,
+  projectId,
+  groupOptions,
+  onClose,
+}: LabelFormProps) {
   const { t } = useTranslation();
   const createLabel = useCreateLabel();
   const updateLabel = useUpdateLabel();
   const [name, setName] = useState(label?.name ?? "");
   const [color, setColor] = useState(label?.color ?? "gray");
+  const [parentId, setParentId] = useState(label?.parentLabelId ?? NO_GROUP);
   const [error, setError] = useState("");
   const nameId = useId();
   const errorId = useId();
   const colorId = useId();
+  const groupId = useId();
   const isEditing = label !== null;
   const isPending = createLabel.isPending || updateLabel.isPending;
 
@@ -49,12 +68,23 @@ export function LabelForm({ label, workspaceId, onClose }: LabelFormProps) {
 
     try {
       if (label) {
-        await updateLabel.mutateAsync({ id: label.id, name: trimmed, color });
+        await updateLabel.mutateAsync({
+          id: label.id,
+          name: trimmed,
+          color,
+          parentLabelId: parentId === NO_GROUP ? null : parentId,
+        });
         toast.success(t("settings:workspaceLabels.updateSuccess"), {
           icon: TagIcon,
         });
       } else {
-        await createLabel.mutateAsync({ name: trimmed, color, workspaceId });
+        await createLabel.mutateAsync({
+          name: trimmed,
+          color,
+          workspaceId,
+          projectId,
+          parentLabelId: parentId === NO_GROUP ? undefined : parentId,
+        });
         toast.success(t("settings:workspaceLabels.createSuccess"), {
           icon: TagIcon,
         });
@@ -123,6 +153,34 @@ export function LabelForm({ label, workspaceId, onClose }: LabelFormProps) {
             labelledBy={colorId}
           />
         </div>
+        {groupOptions.length > 0 || parentId !== NO_GROUP ? (
+          <div className="space-y-2">
+            <span id={groupId} className="block font-medium text-sm">
+              {t("settings:workspaceLabels.groupLabel")}
+            </span>
+            <Select
+              value={parentId}
+              onValueChange={(next) => setParentId(next ?? NO_GROUP)}
+            >
+              <SelectTrigger aria-labelledby={groupId} className="w-full">
+                <SelectValue>
+                  {groupOptions.find((group) => group.id === parentId)?.name ??
+                    t("settings:workspaceLabels.noGroup")}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_GROUP}>
+                  {t("settings:workspaceLabels.noGroup")}
+                </SelectItem>
+                {groupOptions.map((group) => (
+                  <SelectItem key={group.id} value={group.id}>
+                    {group.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ) : null}
         <LabelPreview name={name.trim()} color={color} />
       </DialogPanel>
       <DialogFooter>

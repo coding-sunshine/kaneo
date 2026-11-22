@@ -5,8 +5,14 @@ import { labelTable, projectTable, taskTable } from "../../database/schema";
 
 import { publishEvent } from "../../events";
 import { notifySyncWorkspaceLabelChanged } from "../../plugins/sync/workspace-label-changed";
+import { assertLabelScope } from "./assert-label-scope";
 
-async function updateLabel(id: string, name: string, color: string) {
+async function updateLabel(
+  id: string,
+  name: string,
+  color: string,
+  parentLabelId?: string | null,
+) {
   const result = await db.transaction(async (tx) => {
     const label = await tx.query.labelTable.findFirst({
       where: (label, { eq }) => eq(label.id, id),
@@ -23,9 +29,25 @@ async function updateLabel(id: string, name: string, color: string) {
         message: "This label is being deleted; resume its deletion instead",
       });
 
+    if (parentLabelId !== undefined && (label.taskId || !label.workspaceId))
+      throw new HTTPException(400, {
+        message: "Only workspace and team labels can join a group",
+      });
+    if (parentLabelId && label.workspaceId)
+      await assertLabelScope({
+        workspaceId: label.workspaceId,
+        projectId: label.projectId,
+        parentLabelId,
+        labelId: id,
+      });
+
     const [updatedLabel] = await tx
       .update(labelTable)
-      .set({ name, color })
+      .set({
+        name,
+        color,
+        ...(parentLabelId !== undefined && { parentLabelId }),
+      })
       .where(and(eq(labelTable.id, id), isNull(labelTable.deletionStartedAt)))
       .returning();
 

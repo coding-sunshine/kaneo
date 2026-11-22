@@ -158,12 +158,14 @@ function TaskLabelsMenu({ task, workspaceId, onClose }: TaskLabelsMenuProps) {
   };
 
   const labelOptions = [
-    ...getTaskLabelOptions(workspaceLabels, task.id).map((label) => ({
-      value: label.id,
-      label: label.name,
-      icon: <ColorDot color={resolveLabelColor(label.color)} />,
-      selected: assignedNames.has(label.name),
-    })),
+    ...getTaskLabelOptions(workspaceLabels, task.id, task.projectId).map(
+      (label) => ({
+        value: label.id,
+        label: label.displayName,
+        icon: <ColorDot color={resolveLabelColor(label.color)} />,
+        selected: assignedNames.has(label.name),
+      }),
+    ),
     ...(canCreateLabel
       ? [
           {

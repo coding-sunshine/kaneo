@@ -7,6 +7,8 @@ type LabelDialogProps = {
   onOpenChange: (open: boolean) => void;
   label: WorkspaceLabel | null;
   workspaceId: string;
+  projectId?: string;
+  groupOptions: WorkspaceLabel[];
 };
 
 export function LabelDialog({
@@ -14,6 +16,8 @@ export function LabelDialog({
   onOpenChange,
   label,
   workspaceId,
+  projectId,
+  groupOptions,
 }: LabelDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -21,6 +25,8 @@ export function LabelDialog({
         <LabelForm
           label={label}
           workspaceId={workspaceId}
+          projectId={projectId}
+          groupOptions={groupOptions}
           onClose={() => onOpenChange(false)}
         />
       </DialogPopup>

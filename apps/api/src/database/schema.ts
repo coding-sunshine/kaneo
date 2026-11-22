@@ -1403,9 +1403,21 @@ export const labelTable = pgTable(
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
+    // Team (project) scope: null means a workspace label.
+    projectId: text("project_id").references(() => projectTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    // Label group: the parent is a template label; one child per task.
+    parentLabelId: text("parent_label_id").references(
+      (): AnyPgColumn => labelTable.id,
+      { onDelete: "set null", onUpdate: "cascade" },
+    ),
   },
   (table) => [
     index("label_task_id_idx").on(table.taskId),
+    index("label_project_id_idx").on(table.projectId),
+    index("label_parent_label_id_idx").on(table.parentLabelId),
     index("label_workspace_id_idx").on(table.workspaceId),
     index("label_workspace_cascade_idx")
       .on(table.workspaceId, table.name, table.createdAt, table.id)

@@ -119,6 +119,7 @@ describe("buildSettingsNav", () => {
       "/dashboard/settings/projects/p1/visibility",
       "/dashboard/settings/projects/p1/integrations",
       "/dashboard/settings/projects/p1/cycles",
+      "/dashboard/settings/projects/p1/labels",
       "/dashboard/settings/projects/p1/estimates",
       "/dashboard/settings/projects/p1/calendar",
     ]);

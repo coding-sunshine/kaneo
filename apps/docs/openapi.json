@@ -2472,6 +2472,18 @@
               "string",
               "null"
             ]
+          },
+          "projectId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "parentLabelId": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -2481,7 +2493,9 @@
           "createdAt",
           "updatedAt",
           "taskId",
-          "workspaceId"
+          "workspaceId",
+          "projectId",
+          "parentLabelId"
         ]
       },
       "PendingLabelDeletion": {
@@ -19721,6 +19735,12 @@
                   },
                   "taskId": {
                     "type": "string"
+                  },
+                  "projectId": {
+                    "type": "string"
+                  },
+                  "parentLabelId": {
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -19892,6 +19912,12 @@
                   },
                   "color": {
                     "type": "string"
+                  },
+                  "parentLabelId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   }
                 },
                 "required": [

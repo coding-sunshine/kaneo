@@ -116,7 +116,7 @@ describe("saved label filters", () => {
   ])(
     "can uncheck a remote %s/%s group with stale workspace options",
     (color, assignedColor) => {
-      const label = { ...root, color };
+      const label = { ...root, color, projectId: null, parentLabelId: null };
       const client = new QueryClient({
         defaultOptions: { queries: { retry: false, staleTime: Infinity } },
       });

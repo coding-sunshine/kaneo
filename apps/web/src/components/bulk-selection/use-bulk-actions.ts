@@ -11,6 +11,7 @@ import {
 import { createElement, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useBulkOperations } from "@/hooks/mutations/task/use-bulk-operations";
+import { selectableLabels } from "@/lib/get-task-label-options";
 import useGetLabelsByWorkspace from "@/hooks/queries/label/use-get-labels-by-workspace";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import useGetProjectMembers from "@/hooks/queries/workspace-users/use-get-project-members";
@@ -41,14 +42,14 @@ export function useBulkActions(
 
   const labels = useMemo(() => {
     const byName = new Map<string, (typeof workspaceLabels)[number]>();
-    for (const label of workspaceLabels) {
+    for (const label of selectableLabels(workspaceLabels, project?.id)) {
       const existing = byName.get(label.name);
       if (!existing || (label.taskId === null && existing.taskId !== null)) {
         byName.set(label.name, label);
       }
     }
     return Array.from(byName.values());
-  }, [workspaceLabels]);
+  }, [workspaceLabels, project?.id]);
 
   const count = selectedTaskIds.size;
   const taskIds = () => Array.from(selectedTaskIds);

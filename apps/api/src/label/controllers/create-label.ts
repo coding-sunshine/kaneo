@@ -6,6 +6,7 @@ import { publishEvent } from "../../events";
 import { syncLabelToGitea } from "../../plugins/gitea/utils/sync-label-to-gitea";
 import { syncLabelToGitHub } from "../../plugins/github/utils/sync-label-to-github";
 import { syncLabelToGitlab } from "../../plugins/gitlab/utils/sync-label-to-gitlab";
+import { assertLabelScope } from "./assert-label-scope";
 import { assertProjectAccess } from "../../project-access/assert-project-access";
 
 async function createLabel(
@@ -14,6 +15,8 @@ async function createLabel(
   taskId: string | undefined,
   workspaceId: string,
   userId: string,
+  projectId?: string,
+  parentLabelId?: string,
 ) {
   const deleting = await db.query.labelTable.findFirst({
     where: and(
@@ -90,9 +93,18 @@ async function createLabel(
     return label;
   }
 
+  await assertLabelScope({ workspaceId, projectId, parentLabelId });
+
   const [inserted] = await db
     .insert(labelTable)
-    .values({ name, color, taskId: null, workspaceId })
+    .values({
+      name,
+      color,
+      taskId: null,
+      workspaceId,
+      projectId: projectId ?? null,
+      parentLabelId: parentLabelId ?? null,
+    })
     .onConflictDoNothing({
       target: [labelTable.workspaceId, labelTable.name],
       where: sql`${labelTable.taskId} is null`,
