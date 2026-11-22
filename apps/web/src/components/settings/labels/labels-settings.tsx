@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import useGetLabelsByWorkspace from "@/hooks/queries/label/use-get-labels-by-workspace";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 
-export function LabelsSettings() {
+export function LabelsSettings({ projectId }: { projectId?: string }) {
   const { t } = useTranslation();
   const { workspace, canCreateLabels, canUpdateLabels, canDeleteLabels } =
     useWorkspacePermission();
@@ -23,15 +23,31 @@ export function LabelsSettings() {
   const canDelete = canDeleteLabels();
   const workspaceId = workspace?.id ?? "";
   const labelsQuery = useGetLabelsByWorkspace(workspaceId);
-  const workspaceLabels = (labelsQuery.data ?? []).filter(
-    (label) => !label.taskId,
+  const templates = (labelsQuery.data ?? []).filter((label) => !label.taskId);
+  // Workspace page lists workspace labels; a team page lists that team's.
+  const workspaceLabels = templates.filter((label) =>
+    projectId ? label.projectId === projectId : !label.projectId,
   );
+  const groupName = (label: WorkspaceLabel) =>
+    templates.find((group) => group.id === label.parentLabelId)?.name;
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingLabel, setEditingLabel] = useState<WorkspaceLabel | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingLabel, setDeletingLabel] = useState<WorkspaceLabel | null>(
     null,
+  );
+
+  // Groups are one level deep: a label with children cannot join a group.
+  const groupOptions = templates.filter(
+    (group) =>
+      !group.parentLabelId &&
+      group.id !== editingLabel?.id &&
+      (!group.projectId || group.projectId === projectId) &&
+      !(
+        editingLabel &&
+        templates.some((child) => child.parentLabelId === editingLabel.id)
+      ),
   );
 
   const openLabelDialog = (label: WorkspaceLabel | null) => {
@@ -82,6 +98,7 @@ export function LabelsSettings() {
       <LabelRow
         key={label.id}
         label={label}
+        groupName={groupName(label)}
         canUpdate={canUpdate}
         canDelete={canDelete}
         onEdit={openLabelDialog}
@@ -116,6 +133,8 @@ export function LabelsSettings() {
         onOpenChange={setDialogOpen}
         label={editingLabel}
         workspaceId={workspaceId}
+        projectId={projectId}
+        groupOptions={groupOptions}
       />
       <DeleteLabelDialog
         open={deleteOpen}

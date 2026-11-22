@@ -793,6 +793,12 @@ export const savedViewTable = pgTable(
       onDelete: "set null",
       onUpdate: "cascade",
     }),
+    // "personal" views are visible to their owner only; "shared" ones to the
+    // team (or workspace, when `projectId` is null).
+    visibility: text("visibility")
+      .$type<"personal" | "shared">()
+      .notNull()
+      .default("shared"),
     name: text("name").notNull(),
     description: text("description"),
     // Opaque to the API: the web app owns the filter and display shapes.
@@ -933,6 +939,53 @@ export const workProjectTeamTable = pgTable(
   (table) => [
     primaryKey({ columns: [table.workProjectId, table.projectId] }),
     index("work_project_team_projectId_idx").on(table.projectId),
+  ],
+);
+
+// Linear project labels: workspace-scoped, attached to projects (work_project).
+export const projectLabelTable = pgTable(
+  "project_label",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    color: text("color").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    unique("project_label_workspace_name_unique").on(
+      table.workspaceId,
+      table.name,
+    ),
+  ],
+);
+
+export const workProjectLabelTable = pgTable(
+  "work_project_label",
+  {
+    workProjectId: text("work_project_id")
+      .notNull()
+      .references(() => workProjectTable.id, { onDelete: "cascade" }),
+    labelId: text("label_id")
+      .notNull()
+      .references(() => projectLabelTable.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.workProjectId, table.labelId] }),
+    index("work_project_label_labelId_idx").on(table.labelId),
   ],
 );
 
@@ -1462,9 +1515,21 @@ export const labelTable = pgTable(
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
+    // Team (project) scope: null means a workspace label.
+    projectId: text("project_id").references(() => projectTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    // Label group: the parent is a template label; one child per task.
+    parentLabelId: text("parent_label_id").references(
+      (): AnyPgColumn => labelTable.id,
+      { onDelete: "set null", onUpdate: "cascade" },
+    ),
   },
   (table) => [
     index("label_task_id_idx").on(table.taskId),
+    index("label_project_id_idx").on(table.projectId),
+    index("label_parent_label_id_idx").on(table.parentLabelId),
     index("label_workspace_id_idx").on(table.workspaceId),
     index("label_workspace_cascade_idx")
       .on(table.workspaceId, table.name, table.createdAt, table.id)

@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
@@ -58,6 +58,22 @@ async function assignLabelToTask(id: string, taskId: string, userId: string) {
   if (label.workspaceId && label.workspaceId !== task.workspaceId) {
     throw new HTTPException(400, {
       message: "Label and task must belong to the same workspace",
+    });
+  }
+
+  if (label.projectId && label.projectId !== task.projectId) {
+    throw new HTTPException(400, {
+      message: "This team label cannot be used on another team's issues",
+    });
+  }
+
+  const child = await db.query.labelTable.findFirst({
+    where: eq(labelTable.parentLabelId, id),
+    columns: { id: true },
+  });
+  if (child) {
+    throw new HTTPException(400, {
+      message: "A label group cannot be assigned, pick one of its labels",
     });
   }
 
@@ -175,6 +191,52 @@ async function assignLabelToTask(id: string, taskId: string, userId: string) {
     removeLabelFromGitlab(previousTaskId, previousName).catch((error) => {
       console.error("Failed to remove label from GitLab:", error);
     });
+  }
+
+  // One label per group: drop the task's copies of this label's siblings.
+  const template = label.taskId
+    ? await db.query.labelTable.findFirst({
+        where: and(
+          eq(labelTable.workspaceId, task.workspaceId),
+          eq(labelTable.name, label.name),
+          isNull(labelTable.taskId),
+        ),
+      })
+    : label;
+  if (template?.parentLabelId) {
+    const siblings = await db
+      .select({ name: labelTable.name })
+      .from(labelTable)
+      .where(
+        and(
+          eq(labelTable.parentLabelId, template.parentLabelId),
+          ne(labelTable.id, template.id),
+        ),
+      );
+    const removed = siblings.length
+      ? await db
+          .delete(labelTable)
+          .where(
+            and(
+              eq(labelTable.taskId, taskId),
+              inArray(
+                labelTable.name,
+                siblings.map((s) => s.name),
+              ),
+            ),
+          )
+          .returning({ name: labelTable.name })
+      : [];
+    for (const { name } of removed) {
+      removeLabelFromGitHub(taskId, name).catch(() => {});
+      removeLabelFromGitea(taskId, name).catch(() => {});
+      removeLabelFromGitlab(taskId, name).catch(() => {});
+    }
+    if (removed.length)
+      await publishEvent("task.labels_updated", {
+        projectId: task.projectId,
+        taskId,
+      });
   }
 
   if (!inserted) {

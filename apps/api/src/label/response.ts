@@ -10,6 +10,8 @@ export const labelSchema = z
     deletionStartedAt: responseTimestamp.nullable().optional(),
     taskId: z.string().nullable(),
     workspaceId: z.string().nullable(),
+    projectId: z.string().nullable(),
+    parentLabelId: z.string().nullable(),
   })
   .openapi("Label");
 

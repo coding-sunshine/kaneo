@@ -37,6 +37,7 @@ export const workProjectSchema = z
     updatedAt: responseTimestamp,
     teamIds: z.array(z.string()),
     memberIds: z.array(z.string()),
+    labelIds: z.array(z.string()),
     progress,
   })
   .openapi("WorkProject");

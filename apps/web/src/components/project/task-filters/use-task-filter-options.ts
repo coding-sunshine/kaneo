@@ -39,7 +39,9 @@ export function useTaskFilterOptions(projectId: string, workspaceId: string) {
 
   return {
     members: users?.members ?? [],
-    labels,
+    labels: labels.filter(
+      (label) => !label.projectId || label.projectId === projectId,
+    ),
     workProjects,
     cycles,
     estimates,

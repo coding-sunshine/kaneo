@@ -8,7 +8,13 @@ import { toast } from "@/lib/toast";
 type ViewDetailsPanelProps = {
   workspaceId: string;
   teamName?: string;
-  view: { id: string; ownerName: string | null; projectId: string | null };
+  view: {
+    id: string;
+    ownerName: string | null;
+    projectId: string | null;
+    visibility: "personal" | "shared";
+    canEdit: boolean;
+  };
 };
 
 /** Linear's right-hand details panel: visibility and owner. */
@@ -29,9 +35,11 @@ export function ViewDetailsPanel({
           {t("navigation:views.visibility")}
         </span>
         <span>
-          {view.projectId
-            ? (teamName ?? t("navigation:views.scopeTeam"))
-            : t("navigation:views.everyone")}
+          {view.visibility === "personal"
+            ? t("navigation:views.scopePersonal")
+            : view.projectId
+              ? (teamName ?? t("navigation:views.scopeTeam"))
+              : t("navigation:views.everyone")}
         </span>
       </div>
       <div className={row}>
@@ -40,25 +48,27 @@ export function ViewDetailsPanel({
         </span>
         <span className="truncate">{view.ownerName}</span>
       </div>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="justify-start text-destructive"
-        onClick={() =>
-          remove.mutate(view.id, {
-            onSuccess: () => {
-              toast.success(t("navigation:views.deleted"));
-              navigate({
-                to: "/dashboard/workspace/$workspaceId",
-                params: { workspaceId },
-              });
-            },
-          })
-        }
-      >
-        <Trash2 />
-        {t("navigation:views.delete")}
-      </Button>
+      {view.canEdit && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="justify-start text-destructive"
+          onClick={() =>
+            remove.mutate(view.id, {
+              onSuccess: () => {
+                toast.success(t("navigation:views.deleted"));
+                navigate({
+                  to: "/dashboard/workspace/$workspaceId",
+                  params: { workspaceId },
+                });
+              },
+            })
+          }
+        >
+          <Trash2 />
+          {t("navigation:views.delete")}
+        </Button>
+      )}
     </aside>
   );
 }

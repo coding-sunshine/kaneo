@@ -37,6 +37,24 @@ describe("getTaskLabelOptions", () => {
 
     const options = getTaskLabelOptions(labels, "task-1");
 
-    expect(options).toEqual([{ id: "workspace", name: "Bug", taskId: null }]);
+    expect(options).toEqual([
+      { id: "workspace", name: "Bug", taskId: null, displayName: "Bug" },
+    ]);
+  });
+
+  it("shows team labels only for that team and hides group parents", () => {
+    const labels = [
+      { id: "g", name: "Priority", taskId: null },
+      { id: "c", name: "High", taskId: null, parentLabelId: "g" },
+      { id: "a", name: "A-only", taskId: null, projectId: "team-a" },
+      { id: "b", name: "B-only", taskId: null, projectId: "team-b" },
+    ];
+
+    const options = getTaskLabelOptions(labels, "task-1", "team-a");
+
+    expect(options.map((label) => label.displayName)).toEqual([
+      "Priority / High",
+      "A-only",
+    ]);
   });
 });

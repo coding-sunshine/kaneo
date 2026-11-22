@@ -241,6 +241,7 @@ describe("creating and editing labels", () => {
         id: "bug",
         name: "Defect",
         color: "red",
+        parentLabelId: null,
       }),
     );
   });

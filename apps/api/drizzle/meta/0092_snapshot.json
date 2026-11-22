@@ -1,5 +1,5 @@
 {
-  "id": "50020d73-e133-4e74-ba0c-4af74b4ff26b",
+  "id": "4d32c3c4-6093-41e0-8f0a-142085225460",
   "prevId": "b557e43f-586c-47d1-8bd3-514206b1d561",
   "version": "7",
   "dialect": "postgresql",
@@ -4541,6 +4541,18 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "project_id": {
+          "name": "project_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parent_label_id": {
+          "name": "parent_label_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
@@ -4549,6 +4561,36 @@
           "columns": [
             {
               "expression": "task_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "label_project_id_idx": {
+          "name": "label_project_id_idx",
+          "columns": [
+            {
+              "expression": "project_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "label_parent_label_id_idx": {
+          "name": "label_parent_label_id_idx",
+          "columns": [
+            {
+              "expression": "parent_label_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -4656,6 +4698,32 @@
             "id"
           ],
           "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "label_project_id_project_id_fk": {
+          "name": "label_project_id_project_id_fk",
+          "tableFrom": "label",
+          "tableTo": "project",
+          "columnsFrom": [
+            "project_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "label_parent_label_id_label_id_fk": {
+          "name": "label_parent_label_id_label_id_fk",
+          "tableFrom": "label",
+          "tableTo": "label",
+          "columnsFrom": [
+            "parent_label_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "cascade"
         }
       },
@@ -5255,6 +5323,80 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.project_label": {
+      "name": "project_label",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "color": {
+          "name": "color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "(now() AT TIME ZONE 'utc')"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "(now() AT TIME ZONE 'utc')"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "project_label_workspace_id_workspace_id_fk": {
+          "name": "project_label_workspace_id_workspace_id_fk",
+          "tableFrom": "project_label",
+          "tableTo": "workspace",
+          "columnsFrom": [
+            "workspace_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "project_label_workspace_name_unique": {
+          "name": "project_label_workspace_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "workspace_id",
+            "name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.project_member_preference": {
       "name": "project_member_preference",
       "schema": "",
@@ -5524,34 +5666,6 @@
           "notNull": true,
           "default": true
         },
-        "sla_enabled": {
-          "name": "sla_enabled",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "sla_urgent_hours": {
-          "name": "sla_urgent_hours",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 24
-        },
-        "sla_high_hours": {
-          "name": "sla_high_hours",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 168
-        },
-        "triage_responsibility_mode": {
-          "name": "triage_responsibility_mode",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'notify'"
-        },
         "position": {
           "name": "position",
           "type": "integer",
@@ -5643,72 +5757,6 @@
           ]
         }
       },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.project_triage_responsible": {
-      "name": "project_triage_responsible",
-      "schema": "",
-      "columns": {
-        "project_id": {
-          "name": "project_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "last_assigned_at": {
-          "name": "last_assigned_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "project_triage_responsible_project_id_project_id_fk": {
-          "name": "project_triage_responsible_project_id_project_id_fk",
-          "tableFrom": "project_triage_responsible",
-          "tableTo": "project",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "project_triage_responsible_user_id_user_id_fk": {
-          "name": "project_triage_responsible_user_id_user_id_fk",
-          "tableFrom": "project_triage_responsible",
-          "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {
-        "project_triage_responsible_project_id_user_id_pk": {
-          "name": "project_triage_responsible_project_id_user_id_pk",
-          "columns": [
-            "project_id",
-            "user_id"
-          ]
-        }
-      },
-      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -6402,12 +6450,6 @@
         },
         "triaged_at": {
           "name": "triaged_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "sla_due_at": {
-          "name": "sla_due_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
@@ -7834,6 +7876,82 @@
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.work_project_label": {
+      "name": "work_project_label",
+      "schema": "",
+      "columns": {
+        "work_project_id": {
+          "name": "work_project_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label_id": {
+          "name": "label_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "work_project_label_labelId_idx": {
+          "name": "work_project_label_labelId_idx",
+          "columns": [
+            {
+              "expression": "label_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "work_project_label_work_project_id_work_project_id_fk": {
+          "name": "work_project_label_work_project_id_work_project_id_fk",
+          "tableFrom": "work_project_label",
+          "tableTo": "work_project",
+          "columnsFrom": [
+            "work_project_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "work_project_label_label_id_project_label_id_fk": {
+          "name": "work_project_label_label_id_project_label_id_fk",
+          "tableFrom": "work_project_label",
+          "tableTo": "project_label",
+          "columnsFrom": [
+            "label_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "work_project_label_work_project_id_label_id_pk": {
+          "name": "work_project_label_work_project_id_label_id_pk",
+          "columns": [
+            "work_project_id",
+            "label_id"
+          ]
+        }
+      },
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},

@@ -71,7 +71,12 @@ vi.mock("@/store/user-preferences", () => ({
 }));
 vi.mock("@/components/project/toolbar/use-project-task-view", () => ({
   useProjectTaskView: () => ({
-    filters: { filteredProject: state.project, clearFilters: vi.fn() },
+    filters: {
+      filteredProject: state.project,
+      clearFilters: vi.fn(),
+      filters: {},
+      setMatchAny: vi.fn(),
+    },
     subjects: [],
   }),
 }));

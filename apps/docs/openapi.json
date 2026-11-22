@@ -2501,6 +2501,18 @@
               "string",
               "null"
             ]
+          },
+          "projectId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "parentLabelId": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -2510,7 +2522,9 @@
           "createdAt",
           "updatedAt",
           "taskId",
-          "workspaceId"
+          "workspaceId",
+          "projectId",
+          "parentLabelId"
         ]
       },
       "PendingLabelDeletion": {
@@ -2532,6 +2546,29 @@
               "pendingDeletion"
             ]
           }
+        ]
+      },
+      "ProjectLabel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workspaceId",
+          "name",
+          "color"
         ]
       },
       "Cycle": {
@@ -2711,6 +2748,12 @@
               "type": "string"
             }
           },
+          "labelIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "progress": {
             "type": "object",
             "properties": {
@@ -2745,6 +2788,7 @@
           "updatedAt",
           "teamIds",
           "memberIds",
+          "labelIds",
           "progress"
         ]
       },
@@ -2908,6 +2952,17 @@
               "null"
             ]
           },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "personal",
+              "shared"
+            ]
+          },
+          "canEdit": {
+            "type": "boolean",
+            "description": "True for the view's owner."
+          },
           "name": {
             "type": "string"
           },
@@ -2943,6 +2998,8 @@
           "projectId",
           "ownerId",
           "ownerName",
+          "visibility",
+          "canEdit",
           "name",
           "description",
           "filters",
@@ -19907,6 +19964,12 @@
                   },
                   "taskId": {
                     "type": "string"
+                  },
+                  "projectId": {
+                    "type": "string"
+                  },
+                  "parentLabelId": {
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -20078,6 +20141,12 @@
                   },
                   "color": {
                     "type": "string"
+                  },
+                  "parentLabelId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   }
                 },
                 "required": [
@@ -20397,6 +20466,519 @@
           },
           "404": {
             "description": "Label or task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/project-label/workspace/{workspaceId}": {
+      "get": {
+        "operationId": "listProjectLabels",
+        "tags": [
+          "Project labels"
+        ],
+        "summary": "List project labels",
+        "description": "List a workspace's project labels.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project labels",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectLabel"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/project-label": {
+      "post": {
+        "operationId": "createProjectLabel",
+        "tags": [
+          "Project labels"
+        ],
+        "summary": "Create project label",
+        "description": "Create a workspace-scoped project label.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  },
+                  "color": {
+                    "type": "string",
+                    "maxLength": 64
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "name",
+                  "color"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Project label created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectLabel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A project label with this name already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/project-label/{id}": {
+      "put": {
+        "operationId": "updateProjectLabel",
+        "tags": [
+          "Project labels"
+        ],
+        "summary": "Update project label",
+        "description": "Rename or recolor a project label.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  },
+                  "color": {
+                    "type": "string",
+                    "maxLength": 64
+                  }
+                },
+                "required": [
+                  "name",
+                  "color"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Project label updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectLabel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project label not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A project label with this name already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteProjectLabel",
+        "tags": [
+          "Project labels"
+        ],
+        "summary": "Delete project label",
+        "description": "Delete a project label; projects keep existing without it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project label deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project label not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/project-label/{id}/work-project": {
+      "put": {
+        "operationId": "assignProjectLabel",
+        "tags": [
+          "Project labels"
+        ],
+        "summary": "Add project label to a project",
+        "description": "Attach a project label to a project in the same workspace.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workProjectId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "workProjectId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Project label attached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "labelId": {
+                      "type": "string"
+                    },
+                    "workProjectId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "labelId",
+                    "workProjectId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Project is in another workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project label not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/project-label/{id}/work-project/{workProjectId}": {
+      "delete": {
+        "operationId": "unassignProjectLabel",
+        "tags": [
+          "Project labels"
+        ],
+        "summary": "Remove project label from a project",
+        "description": "Detach a project label from a project.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workProjectId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project label detached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "labelId": {
+                      "type": "string"
+                    },
+                    "workProjectId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "labelId",
+                    "workProjectId"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project label not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -22417,6 +22999,13 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "visibility": {
+                    "type": "string",
+                    "enum": [
+                      "personal",
+                      "shared"
+                    ]
+                  },
                   "name": {
                     "type": "string",
                     "minLength": 1,
@@ -22592,6 +23181,15 @@
                       "null"
                     ],
                     "description": "Team (Kaneo project) the view belongs to; null for a workspace view."
+                  },
+                  "visibility": {
+                    "type": "string",
+                    "enum": [
+                      "personal",
+                      "shared"
+                    ],
+                    "default": "shared",
+                    "description": "personal: owner only; shared: the team or workspace."
                   },
                   "name": {
                     "type": "string",

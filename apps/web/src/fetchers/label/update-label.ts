@@ -7,10 +7,15 @@ export type UpdateLabelRequest = InferRequestType<
 >["json"] &
   InferRequestType<(typeof client)["label"][":id"]["$put"]>["param"];
 
-async function updateLabel({ id, name, color }: UpdateLabelRequest) {
+async function updateLabel({
+  id,
+  name,
+  color,
+  parentLabelId,
+}: UpdateLabelRequest) {
   const response = await client.label[":id"].$put({
     param: { id },
-    json: { name, color },
+    json: { name, color, parentLabelId },
   });
 
   if (!response.ok) {

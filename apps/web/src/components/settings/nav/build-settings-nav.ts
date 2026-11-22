@@ -108,6 +108,7 @@ const PROJECT_SECTIONS = [
   { id: "cycles", labelKey: "settings:projectCycles.title" },
   { id: "triage", labelKey: "settings:projectTriage.title" },
   { id: "sla", labelKey: "settings:projectSla.title" },
+  { id: "labels", labelKey: "settings:workspaceLabels.title" },
   { id: "estimates", labelKey: "settings:projectGeneral.estimates.title" },
   { id: "calendar", labelKey: "settings:calendarFeeds.title" },
 ] as const;
@@ -210,6 +211,12 @@ export function buildSettingsNav({
           id: "workspace-labels",
           label: t("settings:workspaceLabels.title"),
           to: "/dashboard/settings/workspace/labels",
+          icon: Tag,
+        },
+        {
+          id: "workspace-project-labels",
+          label: t("settings:projectLabels.title"),
+          to: "/dashboard/settings/workspace/project-labels",
           icon: Tag,
         },
         ...(canImport

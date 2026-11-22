@@ -1,0 +1,1 @@
+ALTER TABLE "saved_view" ADD COLUMN "visibility" text DEFAULT 'shared' NOT NULL;

@@ -16,6 +16,8 @@ export type BoardFilters = {
   estimate?: string[] | null;
   customFields: Record<string, string[]> | null;
   negated?: string[] | null;
+  /** Linear's "match any": a task needs to pass one active filter, not all. */
+  matchAny?: boolean;
 };
 
 export { DUE_DATE_FILTER_VALUES } from "@/lib/task-filters/due-date-filter-values";
@@ -30,7 +32,7 @@ const DEFAULT_FILTERS: BoardFilters = {
   customFields: null,
 };
 
-const FILTER_KEYS: Array<keyof BoardFilters> = [
+const FILTER_KEYS: Array<Exclude<keyof BoardFilters, "matchAny">> = [
   "status",
   "priority",
   "assignee",
@@ -65,6 +67,8 @@ function normalizeFilters(raw: unknown): BoardFilters {
       normalized[key] = values.length > 0 ? values : null;
     }
   }
+
+  if (candidate.matchAny === true) normalized.matchAny = true;
 
   return normalized;
 }
@@ -124,8 +128,8 @@ export function useTaskFilters(
       }
     : null;
 
-  const hasActiveFilters = Object.values(filters).some(
-    (filter) => filter !== null,
+  const hasActiveFilters = Object.entries(filters).some(
+    ([key, filter]) => key !== "matchAny" && filter !== null,
   );
 
   const clearFilters = () => {

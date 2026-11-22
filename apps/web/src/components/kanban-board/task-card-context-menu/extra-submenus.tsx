@@ -81,20 +81,22 @@ export function LabelsSubmenu({ task, workspaceId }: Props) {
         <ContextMenuShortcut>L</ContextMenuShortcut>
       </ContextMenuSubTrigger>
       <ContextMenuSubContent className="max-h-72 w-48 overflow-y-auto">
-        {getTaskLabelOptions(workspaceLabels, task.id).map((label) => (
-          <ContextMenuCheckboxItem
-            key={label.id}
-            checked={assigned.has(label.name)}
-            onCheckedChange={() => void toggle(label.id)}
-            closeOnClick
-          >
-            <span
-              className="size-2 shrink-0 rounded-full"
-              style={{ backgroundColor: resolveLabelColor(label.color) }}
-            />
-            <span className="truncate">{label.name}</span>
-          </ContextMenuCheckboxItem>
-        ))}
+        {getTaskLabelOptions(workspaceLabels, task.id, task.projectId).map(
+          (label) => (
+            <ContextMenuCheckboxItem
+              key={label.id}
+              checked={assigned.has(label.name)}
+              onCheckedChange={() => void toggle(label.id)}
+              closeOnClick
+            >
+              <span
+                className="size-2 shrink-0 rounded-full"
+                style={{ backgroundColor: resolveLabelColor(label.color) }}
+              />
+              <span className="truncate">{label.displayName}</span>
+            </ContextMenuCheckboxItem>
+          ),
+        )}
       </ContextMenuSubContent>
     </ContextMenuSub>
   );

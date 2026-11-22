@@ -10,6 +10,7 @@ import { linkedTaskScope } from "../services/integration-task-scope";
 import { eq } from "drizzle-orm";
 import { labelTable } from "../../../database/schema";
 import { publishEvent } from "../../../events";
+import { foreignTeamLabels } from "../../../label/foreign-team-labels";
 import { findExternalLink, updateExternalLink } from "../services/link-manager";
 import { findAllIntegrationsByRepo } from "../services/task-service";
 
@@ -111,7 +112,12 @@ export async function handleIssueLabeled(payload: IssueLabeledPayload) {
                 ),
             });
 
-            if (!existingLabel) {
+            const foreign = await foreignTeamLabels(
+              db,
+              task.project.workspaceId,
+              [{ taskId: task.id, name: addedLabel.name }],
+            );
+            if (!existingLabel && foreign.size === 0) {
               const color = addedLabel.color
                 ? `#${addedLabel.color}`
                 : "#6B7280";

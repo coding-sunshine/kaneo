@@ -71,6 +71,7 @@ import useCreateLabel from "@/hooks/mutations/label/use-create-label";
 import useCreateTask from "@/hooks/mutations/task/use-create-task";
 import useCreateTaskRelation from "@/hooks/mutations/task-relation/use-create-task-relation";
 import useGetCustomFieldsByProject from "@/hooks/queries/custom-field/use-get-custom-fields-by-project";
+import { selectableLabels } from "@/lib/get-task-label-options";
 import useGetLabelsByWorkspace from "@/hooks/queries/label/use-get-labels-by-workspace";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
@@ -431,7 +432,10 @@ function CreateTaskModalContent({
   }, [customFields]);
 
   const filteredLabels = (() => {
-    const searchFiltered = workspaceLabels.filter((label) =>
+    const searchFiltered = selectableLabels(
+      workspaceLabels,
+      resolvedProjectId,
+    ).filter((label) =>
       label.name.toLowerCase().includes(searchValue.toLowerCase()),
     );
 

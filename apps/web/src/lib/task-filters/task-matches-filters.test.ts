@@ -259,3 +259,54 @@ it("filters by estimate, with none matching unestimated issues", () => {
     ),
   ).toBe(true);
 });
+
+describe("match all / match any", () => {
+  // The task is high priority but assigned to u1, not u2.
+  const filters: BoardFilters = {
+    ...noFilters,
+    priority: ["high"],
+    assignee: ["u2"],
+  };
+
+  it("matchAll (default) needs every active filter", () => {
+    expect(taskMatchesFilters(task({}), filters, context)).toBe(false);
+    expect(
+      taskMatchesFilters(task({}), { ...filters, matchAny: false }, context),
+    ).toBe(false);
+  });
+
+  it("matchAny needs one active filter", () => {
+    const any = { ...filters, matchAny: true };
+    expect(taskMatchesFilters(task({}), any, context)).toBe(true);
+    expect(taskMatchesFilters(task({ priority: "low" }), any, context)).toBe(
+      false,
+    );
+  });
+
+  it("matchAny honours negation, custom fields and the text query", () => {
+    const any: BoardFilters = {
+      ...noFilters,
+      matchAny: true,
+      priority: ["low"],
+      customFields: { size: ["L"] },
+    };
+    expect(taskMatchesFilters(task({}), any, context)).toBe(true);
+    expect(
+      taskMatchesFilters(
+        task({}),
+        { ...any, status: ["done"], negated: ["status"] },
+        context,
+      ),
+    ).toBe(true);
+    // The search box stays an AND on top of the filters.
+    expect(
+      taskMatchesFilters(task({}), any, { ...context, query: "nomatch" }),
+    ).toBe(false);
+  });
+
+  it("matchAny with no active filters matches everything", () => {
+    expect(
+      taskMatchesFilters(task({}), { ...noFilters, matchAny: true }, context),
+    ).toBe(true);
+  });
+});

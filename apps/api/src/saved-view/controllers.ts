@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, or } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
 import db from "../database";
@@ -18,6 +18,7 @@ const selectView = () =>
       projectId: savedViewTable.projectId,
       ownerId: savedViewTable.ownerId,
       ownerName: userTable.name,
+      visibility: savedViewTable.visibility,
       name: savedViewTable.name,
       description: savedViewTable.description,
       filters: savedViewTable.filters,
@@ -28,17 +29,35 @@ const selectView = () =>
     .from(savedViewTable)
     .leftJoin(userTable, eq(userTable.id, savedViewTable.ownerId));
 
-export const listViews = (workspaceId: string) =>
-  selectView()
-    .where(eq(savedViewTable.workspaceId, workspaceId))
-    .orderBy(asc(savedViewTable.name));
+// Personal views exist only for their owner; everything else is shared.
+const visibleTo = (userId: string) =>
+  or(
+    eq(savedViewTable.visibility, "shared"),
+    eq(savedViewTable.ownerId, userId),
+  );
 
-export async function getView(workspaceId: string, id: string) {
+const withCanEdit = <T extends { ownerId: string | null }>(
+  view: T,
+  userId: string,
+) => ({ ...view, canEdit: view.ownerId === userId });
+
+export async function listViews(workspaceId: string, userId: string) {
+  const views = await selectView()
+    .where(and(eq(savedViewTable.workspaceId, workspaceId), visibleTo(userId)))
+    .orderBy(asc(savedViewTable.name));
+  return views.map((view) => withCanEdit(view, userId));
+}
+
+export async function getView(workspaceId: string, id: string, userId: string) {
   const [view] = await selectView().where(
-    and(eq(savedViewTable.id, id), eq(savedViewTable.workspaceId, workspaceId)),
+    and(
+      eq(savedViewTable.id, id),
+      eq(savedViewTable.workspaceId, workspaceId),
+      visibleTo(userId),
+    ),
   );
   if (!view) throw new HTTPException(404, { message: "View not found" });
-  return view;
+  return withCanEdit(view, userId);
 }
 
 export async function createView(
@@ -61,13 +80,13 @@ export async function createView(
     .insert(savedViewTable)
     .values({ ...body, ownerId })
     .returning({ id: savedViewTable.id });
-  return getView(body.workspaceId, created?.id ?? "");
+  return getView(body.workspaceId, created?.id ?? "", ownerId);
 }
 
 // Only the owner edits a view, so a teammate's view can't be rewritten.
 async function assertOwner(workspaceId: string, id: string, userId: string) {
-  const view = await getView(workspaceId, id);
-  if (view.ownerId !== userId)
+  const view = await getView(workspaceId, id, userId);
+  if (!view.canEdit)
     throw new HTTPException(403, {
       message: "Only the owner can change this view",
     });
@@ -82,7 +101,7 @@ export async function updateView(
   await assertOwner(workspaceId, id, userId);
   if (Object.keys(body).length)
     await db.update(savedViewTable).set(body).where(eq(savedViewTable.id, id));
-  return getView(workspaceId, id);
+  return getView(workspaceId, id, userId);
 }
 
 export async function deleteView(

@@ -48,6 +48,7 @@ describe("buildSettingsNav", () => {
       "/dashboard/settings/projects",
       "/dashboard/settings/workspace/roles",
       "/dashboard/settings/workspace/labels",
+      "/dashboard/settings/workspace/project-labels",
       "/dashboard/settings/workspace/import",
       "/dashboard/settings/workspace/billing",
     ]);
@@ -122,6 +123,7 @@ describe("buildSettingsNav", () => {
       "/dashboard/settings/projects/p1/cycles",
       "/dashboard/settings/projects/p1/triage",
       "/dashboard/settings/projects/p1/sla",
+      "/dashboard/settings/projects/p1/labels",
       "/dashboard/settings/projects/p1/estimates",
       "/dashboard/settings/projects/p1/calendar",
     ]);

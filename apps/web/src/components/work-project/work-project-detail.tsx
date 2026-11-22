@@ -15,6 +15,7 @@ import { toast } from "@/lib/toast";
 import { progressPercent } from "@/lib/work-project/progress";
 import type { WorkProjectStatus } from "@/fetchers/work-project/types";
 import { WorkProjectFields } from "./work-project-fields";
+import { WorkProjectLabels } from "./work-project-labels";
 import { WorkProjectIcon } from "./work-project-icon";
 import { WorkProjectIssues } from "./work-project-issues";
 import { WorkProjectMilestones } from "./work-project-milestones";
@@ -31,7 +32,7 @@ export function WorkProjectDetail({ workspaceId, workProjectId }: Props) {
   const { data: project, isError } = useGetWorkProject(workProjectId);
   const { mutateAsync: update } = useUpdateWorkProject(workProjectId);
   const { mutateAsync: remove } = useDeleteWorkProject();
-  const { canUpdateTasks } = useWorkspacePermission();
+  const { canUpdateTasks, canUpdateProjects } = useWorkspacePermission();
   const [tab, setTab] = useState<Tab>("overview");
   const [name, setName] = useState("");
   const [summary, setSummary] = useState("");
@@ -159,6 +160,12 @@ export function WorkProjectDetail({ workspaceId, workProjectId }: Props) {
                   targetDate: project.targetDate,
                 }}
                 onChange={(patch) => save(patch)}
+              />
+              <WorkProjectLabels
+                workspaceId={workspaceId}
+                workProjectId={workProjectId}
+                labelIds={project.labelIds}
+                disabled={!canUpdateProjects()}
               />
               <p className="text-muted-foreground text-xs">
                 {t("workspace:workProject.detail.progress", {

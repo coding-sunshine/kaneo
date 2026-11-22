@@ -3,6 +3,7 @@ import type { BoardFilters } from "@/hooks/use-task-filters";
 export type SavedViewInput = {
   workspaceId: string;
   projectId: string | null;
+  visibility?: "personal" | "shared";
   name: string;
   filters: Record<string, unknown>;
   display: Record<string, unknown>;
@@ -25,8 +26,10 @@ export function readBoardFilters(projectId: string): Partial<BoardFilters> {
 }
 
 export const countViewFilters = (filters: Partial<BoardFilters>) =>
-  Object.values(filters).filter((value) =>
-    Array.isArray(value)
-      ? value.length > 0
-      : value !== null && value !== undefined,
+  Object.entries(filters).filter(([key, value]) =>
+    key === "matchAny"
+      ? false
+      : Array.isArray(value)
+        ? value.length > 0
+        : value !== null && value !== undefined,
   ).length;

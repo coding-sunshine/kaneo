@@ -18,6 +18,7 @@ type LookupResource =
   | "issueTemplate"
   | "cycle"
   | "workProject"
+  | "projectLabel"
   | "workProjectMilestone"
   | "workProjectUpdate";
 
@@ -52,6 +53,7 @@ const RESOURCE_NOT_FOUND: Record<LookupResource, string> = {
   issueTemplate: "Template not found",
   cycle: "Cycle not found",
   workProject: "Project not found",
+  projectLabel: "Project label not found",
   workProjectMilestone: "Milestone not found",
   workProjectUpdate: "Update not found",
 };
@@ -384,6 +386,15 @@ async function lookupScope(
       return cycle ?? null;
     }
 
+    case "projectLabel": {
+      const [label] = await db
+        .select({ workspaceId: schema.projectLabelTable.workspaceId })
+        .from(schema.projectLabelTable)
+        .where(eq(schema.projectLabelTable.id, id))
+        .limit(1);
+      return label ? { ...label, projectId: null } : null;
+    }
+
     case "workProject": {
       const [workProject] = await db
         .select({ workspaceId: schema.workProjectTable.workspaceId })
@@ -532,6 +543,11 @@ export const workspaceAccess = {
   fromWorkProject: (idKey = "id") =>
     workspaceAccessMiddleware({
       sources: [{ type: "lookup", resource: "workProject", idKey }],
+    }),
+
+  fromProjectLabel: (idKey = "id") =>
+    workspaceAccessMiddleware({
+      sources: [{ type: "lookup", resource: "projectLabel", idKey }],
     }),
 
   fromWorkProjectUpdate: (idKey = "id") =>

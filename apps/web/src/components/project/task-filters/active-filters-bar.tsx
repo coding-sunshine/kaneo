@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { MatchModeMenu } from "./match-mode-menu";
 import { ActiveFilterChip } from "./active-filter-chip";
 import { AddFilterButton } from "./add-filter-button";
 import type { FilterSubject } from "./filter-subject";
@@ -9,6 +10,9 @@ type ActiveFiltersBarProps = {
   onClear: () => void;
   /** Opens the save-as-view dialog; the button is hidden without it. */
   onSaveView?: () => void;
+  /** Linear's match all/any toggle; shown once two filters are active. */
+  matchAny?: boolean;
+  onMatchAnyChange?: (matchAny: boolean) => void;
   customFieldValues?: {
     hasData: boolean;
     isLoading: boolean;
@@ -21,6 +25,8 @@ export function ActiveFiltersBar({
   subjects,
   onClear,
   onSaveView,
+  matchAny = false,
+  onMatchAnyChange,
   customFieldValues,
 }: ActiveFiltersBarProps) {
   const { t } = useTranslation();
@@ -33,6 +39,9 @@ export function ActiveFiltersBar({
       className="flex shrink-0 items-start gap-2 border-border/80 border-b px-2 py-2 sm:px-3"
     >
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+        {onMatchAnyChange && active.length > 1 && (
+          <MatchModeMenu matchAny={matchAny} onChange={onMatchAnyChange} />
+        )}
         {active.map((subject) => (
           <ActiveFilterChip key={subject.id} subject={subject} />
         ))}

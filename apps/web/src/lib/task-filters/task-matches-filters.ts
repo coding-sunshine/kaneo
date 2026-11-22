@@ -76,12 +76,16 @@ export function taskMatchesFilters(
   if (!matchesQuery(task, context)) return false;
 
   const negated = new Set(filters.negated ?? []);
+  // One result per active filter; "match all" ANDs them, "match any" ORs them.
+  const results: boolean[] = [];
+  const handled = new Set<string>();
   // Missing dates only match an explicit, positive "No date" selection.
   for (const field of ["startDate", "dueDate"] as const) {
     if (filters[field]?.length && !task[field]) {
       const noDate =
         field === "dueDate" ? DUE_DATE_FILTER_VALUES.noDueDate : "noDate";
-      if (negated.has(field) || !filters[field]?.includes(noDate)) return false;
+      results.push(!negated.has(field) && !!filters[field]?.includes(noDate));
+      handled.add(field);
     }
   }
   const passes = (subject: string, matches: boolean) =>
@@ -153,20 +157,20 @@ export function taskMatchesFilters(
   ];
 
   for (const [subject, values, matches] of checks) {
-    if (values?.length && !passes(subject, matches())) return false;
+    if (values?.length && !handled.has(subject))
+      results.push(passes(subject, matches()));
   }
 
   const fieldValues = filters.customFields
     ? context.getCustomFieldValues(task.id)
     : [];
-  return Object.entries(filters.customFields ?? {}).every(
-    ([fieldId, allowed]) => {
-      if (allowed.length === 0) return true;
-      const value = fieldValues.find(
-        (entry) => entry.fieldId === fieldId,
-      )?.value;
-      const matches = value != null && value !== "" && allowed.includes(value);
-      return passes(customFieldSubjectId(fieldId), matches);
-    },
-  );
+  for (const [fieldId, allowed] of Object.entries(filters.customFields ?? {})) {
+    if (allowed.length === 0) continue;
+    const value = fieldValues.find((entry) => entry.fieldId === fieldId)?.value;
+    const matches = value != null && value !== "" && allowed.includes(value);
+    results.push(passes(customFieldSubjectId(fieldId), matches));
+  }
+
+  if (results.length === 0) return true;
+  return filters.matchAny ? results.some(Boolean) : results.every(Boolean);
 }

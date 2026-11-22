@@ -11,11 +11,14 @@ export const createLabelBody = z.object({
   color: z.string(),
   workspaceId: z.string(),
   taskId: z.string().optional(),
+  projectId: z.string().optional(),
+  parentLabelId: z.string().optional(),
 });
 
 export const updateLabelBody = z.object({
   name: z.string(),
   color: z.string(),
+  parentLabelId: z.string().nullable().optional(),
 });
 
 export const attachLabelBody = z.object({ taskId: z.string() });
