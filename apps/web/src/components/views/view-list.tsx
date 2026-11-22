@@ -39,9 +39,11 @@ export function ViewList({ workspaceId, views }: ViewListProps) {
               {view.name}
             </span>
             <span className="text-muted-foreground">
-              {view.projectId === null
-                ? t("navigation:views.scopeWorkspace")
-                : t("navigation:views.scopeTeam")}
+              {view.visibility === "personal"
+                ? t("navigation:views.scopePersonal")
+                : view.projectId === null
+                  ? t("navigation:views.scopeWorkspace")
+                  : t("navigation:views.scopeTeam")}
             </span>
             <span className="w-32 truncate text-right text-muted-foreground">
               {view.ownerName}

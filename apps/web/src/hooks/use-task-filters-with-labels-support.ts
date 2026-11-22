@@ -33,7 +33,7 @@ const DEFAULT_FILTERS: BoardFilters = {
 
 const NO_IGNORED_FILTERS: ReadonlyArray<keyof BoardFilters> = [];
 
-const FILTER_KEYS: Array<keyof BoardFilters> = [
+const FILTER_KEYS: Array<Exclude<keyof BoardFilters, "matchAny">> = [
   "status",
   "priority",
   "assignee",
@@ -47,7 +47,7 @@ const FILTER_KEYS: Array<keyof BoardFilters> = [
   "negated",
 ];
 
-function normalizeFilters(raw: unknown): BoardFilters {
+export function normalizeFilters(raw: unknown): BoardFilters {
   if (!raw || typeof raw !== "object") {
     return DEFAULT_FILTERS;
   }
@@ -80,6 +80,8 @@ function normalizeFilters(raw: unknown): BoardFilters {
       normalized[key] = values.length > 0 ? values : null;
     }
   }
+
+  if (candidate.matchAny === true) normalized.matchAny = true;
 
   return normalized;
 }
@@ -217,6 +219,10 @@ export function useTaskFiltersWithLabelsSupport(
     }));
   };
 
+  const setMatchAny = (matchAny: boolean) => {
+    setFilters((prev) => ({ ...prev, matchAny: matchAny || undefined }));
+  };
+
   const setNegated = (subject: string, negated: boolean) => {
     setFilters((prev) => ({
       ...prev,
@@ -293,6 +299,7 @@ export function useTaskFiltersWithLabelsSupport(
     updateFilter,
     toggleFilter,
     setNegated,
+    setMatchAny,
     updateLabelFilter,
     updateCustomFieldFilter,
     filterTasks,

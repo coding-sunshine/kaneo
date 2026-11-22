@@ -266,6 +266,8 @@ function RouteComponent() {
         <ActiveFiltersBar
           subjects={view.subjects}
           onClear={view.filters.clearFilters}
+          matchAny={view.filters.filters.matchAny}
+          onMatchAnyChange={view.filters.setMatchAny}
           customFieldValues={view.filters.customFieldValues}
         />
       }

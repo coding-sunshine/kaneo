@@ -763,6 +763,12 @@ export const savedViewTable = pgTable(
       onDelete: "set null",
       onUpdate: "cascade",
     }),
+    // "personal" views are visible to their owner only; "shared" ones to the
+    // team (or workspace, when `projectId` is null).
+    visibility: text("visibility")
+      .$type<"personal" | "shared">()
+      .notNull()
+      .default("shared"),
     name: text("name").notNull(),
     description: text("description"),
     // Opaque to the API: the web app owns the filter and display shapes.

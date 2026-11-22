@@ -33,7 +33,7 @@ export function SaveViewDialog({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [name, setName] = useState("");
-  const [scope, setScope] = useState<"team" | "workspace">("team");
+  const [scope, setScope] = useState<"personal" | "team" | "workspace">("team");
   const layout = useUserPreferencesStore((s) => s.viewMode);
   const groupBy = useUserPreferencesStore((s) => s.listGroupBy);
   const create = useCreateView(workspaceId);
@@ -43,7 +43,8 @@ export function SaveViewDialog({
     create.mutate(
       {
         workspaceId,
-        projectId: scope === "team" ? projectId : null,
+        projectId: scope === "workspace" ? null : projectId,
+        visibility: scope === "personal" ? "personal" : "shared",
         name: name.trim(),
         filters: readBoardFilters(projectId),
         display: { layout, groupBy, sourceProjectId: projectId },
@@ -82,7 +83,7 @@ export function SaveViewDialog({
             aria-label={t("navigation:views.scope")}
             className="flex gap-2"
           >
-            {(["team", "workspace"] as const).map((value) => (
+            {(["personal", "team", "workspace"] as const).map((value) => (
               <Button
                 key={value}
                 type="button"
@@ -93,9 +94,11 @@ export function SaveViewDialog({
                 onClick={() => setScope(value)}
               >
                 {t(
-                  value === "team"
-                    ? "navigation:views.scopeTeam"
-                    : "navigation:views.scopeWorkspace",
+                  value === "personal"
+                    ? "navigation:views.scopePersonal"
+                    : value === "team"
+                      ? "navigation:views.scopeTeam"
+                      : "navigation:views.scopeWorkspace",
                 )}
               </Button>
             ))}

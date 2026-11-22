@@ -3243,6 +3243,7 @@
 			"namePlaceholder": "View name",
 			"scope": "Visibility",
 			"scopeTeam": "Team",
+			"scopePersonal": "Personal",
 			"scopeWorkspace": "Workspace",
 			"save": "Save view",
 			"saved": "View saved",
@@ -4526,6 +4527,9 @@
 			"customFieldsUnavailable": "Custom-field values could not be loaded. Results are shown without custom-field filters.",
 			"customFieldsRefreshError": "Custom-field values could not be refreshed. Results may be out of date.",
 			"removeFilter": "Remove {{name}} filter",
+			"matchLabel": "Match",
+			"matchAll": "all filters",
+			"matchAny": "any filter",
 			"noMatches": "No issues match your search or filters."
 		},
 		"filterMenu": {

@@ -2901,6 +2901,17 @@
               "null"
             ]
           },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "personal",
+              "shared"
+            ]
+          },
+          "canEdit": {
+            "type": "boolean",
+            "description": "True for the view's owner."
+          },
           "name": {
             "type": "string"
           },
@@ -2936,6 +2947,8 @@
           "projectId",
           "ownerId",
           "ownerName",
+          "visibility",
+          "canEdit",
           "name",
           "description",
           "filters",
@@ -22678,6 +22691,13 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "visibility": {
+                    "type": "string",
+                    "enum": [
+                      "personal",
+                      "shared"
+                    ]
+                  },
                   "name": {
                     "type": "string",
                     "minLength": 1,
@@ -22853,6 +22873,15 @@
                       "null"
                     ],
                     "description": "Team (Kaneo project) the view belongs to; null for a workspace view."
+                  },
+                  "visibility": {
+                    "type": "string",
+                    "enum": [
+                      "personal",
+                      "shared"
+                    ],
+                    "default": "shared",
+                    "description": "personal: owner only; shared: the team or workspace."
                   },
                   "name": {
                     "type": "string",

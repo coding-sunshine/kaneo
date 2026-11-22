@@ -308,6 +308,8 @@ function RouteComponent() {
           subjects={view.subjects}
           onClear={filters.clearFilters}
           onSaveView={() => setSaveViewOpen(true)}
+          matchAny={filters.filters.matchAny}
+          onMatchAnyChange={filters.setMatchAny}
           customFieldValues={filters.customFieldValues}
         />
       }

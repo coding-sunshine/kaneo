@@ -74,7 +74,7 @@ const createRouteDef = createRoute({
   description: "Save the current filters and display options as a view.",
   middleware: [
     workspaceAccess.fromBody(),
-    requireWorkspacePermission({ project: ["read"] }),
+    requireWorkspacePermission({ project: ["create"] }),
   ] as const,
   request: { body: body(createViewBody) },
   responses: {
@@ -118,11 +118,14 @@ const deleteRoute = createRoute({
 
 const savedView = apiRouter()
   .openapi(listRoute, async (c) =>
-    c.json(await listViews(c.req.valid("param").workspaceId), 200),
+    c.json(
+      await listViews(c.req.valid("param").workspaceId, c.get("userId")),
+      200,
+    ),
   )
   .openapi(getRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");
-    return c.json(await getView(workspaceId, id), 200);
+    return c.json(await getView(workspaceId, id, c.get("userId")), 200);
   })
   .openapi(createRouteDef, async (c) =>
     c.json(await createView(c.get("userId"), c.req.valid("json")), 200),
