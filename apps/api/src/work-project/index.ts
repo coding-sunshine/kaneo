@@ -10,6 +10,11 @@ import {
   loadWorkProjectDetail,
   loadWorkProjects,
 } from "./controllers/load-work-projects";
+import {
+  createProjectUpdate,
+  listProjectUpdates,
+  listWorkspaceUpdates,
+} from "./controllers/work-project-updates";
 import { saveWorkProject } from "./controllers/save-work-project";
 import {
   createMilestone,
@@ -24,9 +29,12 @@ import {
   workProjectDetailSchema,
   workProjectListSchema,
   workProjectMilestoneSchema,
+  workProjectUpdateListSchema,
+  workProjectUpdateSchema,
 } from "./response";
 import {
   createMilestoneBody,
+  createUpdateBody,
   createWorkProjectBody,
   listWorkProjectsQuery,
   milestoneParam,
@@ -204,6 +212,64 @@ const deleteMilestoneRoute = createRoute({
   },
 });
 
+const listUpdatesRoute = createRoute({
+  method: "get",
+  operationId: "listWorkProjectUpdates",
+  path: "/{id}/update",
+  tags: ["Work projects"],
+  summary: "List project updates",
+  description: "Health updates posted on a project, newest first.",
+  middleware: [
+    workspaceAccess.fromWorkProject(),
+    requireWorkspacePermission({ project: ["read"] }),
+  ] as const,
+  request: { params: workProjectParam },
+  responses: {
+    200: jsonResponse("Project updates", workProjectUpdateListSchema),
+    403: noAccess,
+    404: errorResponse("Project not found"),
+  },
+});
+
+const createUpdateRoute = createRoute({
+  method: "post",
+  operationId: "createWorkProjectUpdate",
+  path: "/{id}/update",
+  tags: ["Work projects"],
+  summary: "Post project update",
+  description:
+    "Post an update with a health value; the project's health follows its latest update.",
+  middleware: [
+    workspaceAccess.fromWorkProject(),
+    requireWorkspacePermission({ task: ["update"] }),
+  ] as const,
+  request: { params: workProjectParam, body: body(createUpdateBody) },
+  responses: {
+    200: jsonResponse("Update posted", workProjectUpdateSchema),
+    403: noAccess,
+    404: errorResponse("Project not found"),
+  },
+});
+
+const pulseRoute = createRoute({
+  method: "get",
+  operationId: "listWorkspaceProjectUpdates",
+  path: "/workspace/{workspaceId}/updates",
+  tags: ["Work projects"],
+  summary: "Pulse feed",
+  description: "The latest 100 project updates across the workspace.",
+  middleware: [
+    workspaceAccess.fromParam(),
+    requireWorkspacePermission({ project: ["read"] }),
+  ] as const,
+  request: { params: workspaceIdParam },
+  responses: {
+    200: jsonResponse("Project updates", workProjectUpdateListSchema),
+    403: noAccess,
+    404: errorResponse("Workspace not found"),
+  },
+});
+
 const workProject = apiRouter()
   .openapi(listRoute, async (c) => {
     const { workspaceId } = c.req.valid("param");
@@ -216,6 +282,22 @@ const workProject = apiRouter()
       200,
     );
   })
+  .openapi(pulseRoute, async (c) =>
+    c.json(await listWorkspaceUpdates(c.req.valid("param").workspaceId), 200),
+  )
+  .openapi(listUpdatesRoute, async (c) =>
+    c.json(await listProjectUpdates(c.req.valid("param").id), 200),
+  )
+  .openapi(createUpdateRoute, async (c) =>
+    c.json(
+      await createProjectUpdate(
+        c.req.valid("param").id,
+        c.get("userId"),
+        c.req.valid("json"),
+      ),
+      200,
+    ),
+  )
   .openapi(getRoute, async (c) =>
     c.json(await loadWorkProjectDetail(c.req.valid("param").id), 200),
   )

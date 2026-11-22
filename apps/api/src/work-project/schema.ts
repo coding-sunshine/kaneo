@@ -72,3 +72,8 @@ export const updateMilestoneBody = z.object({
   targetDate: date.optional(),
   sortOrder: z.number().int().optional(),
 });
+
+export const createUpdateBody = z.object({
+  health: z.enum(WORK_PROJECT_HEALTHS),
+  body: z.string().max(20000).default(""),
+});

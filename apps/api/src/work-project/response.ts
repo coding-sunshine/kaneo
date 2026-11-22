@@ -47,3 +47,19 @@ export const workProjectDetailSchema = workProjectSchema
 
 export const workProjectListSchema = z.array(workProjectSchema);
 export const deletedSchema = z.object({ id: z.string() });
+
+export const workProjectUpdateSchema = z
+  .object({
+    id: z.string(),
+    workProjectId: z.string(),
+    workProjectName: z.string(),
+    userId: z.string().nullable(),
+    userName: z.string().nullable(),
+    userImage: z.string().nullable(),
+    health: z.string(),
+    body: z.string(),
+    createdAt: responseTimestamp,
+  })
+  .openapi("WorkProjectUpdate");
+
+export const workProjectUpdateListSchema = z.array(workProjectUpdateSchema);

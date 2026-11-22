@@ -4833,6 +4833,13 @@
 				"atRisk": "At risk",
 				"offTrack": "Off track"
 			},
+			"updates": {
+				"title": "Project updates",
+				"placeholder": "Write a project update...",
+				"post": "Post update",
+				"empty": "No updates yet.",
+				"postError": "Could not post the update"
+			},
 			"status": {
 				"backlog": "Backlog",
 				"planned": "Planned",
