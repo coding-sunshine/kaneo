@@ -10,8 +10,28 @@ import { connect } from "./controllers/connect";
 import { getStatus } from "./controllers/get-status";
 import { listPullRequests } from "./controllers/list-pull-requests";
 import { deleteConnection } from "./connection";
-import { callbackQuery, connectQuery, listQuery } from "./schema";
-import { disconnectedSchema, reviewListSchema, statusSchema } from "./response";
+import { getPullRequest } from "./controllers/get-pull-request";
+import { getPullRequestChecks } from "./controllers/get-pull-request-checks";
+import { listPullRequestConversation } from "./controllers/list-pull-request-conversation";
+import { listPullRequestFiles } from "./controllers/list-pull-request-files";
+import { submitReview } from "./controllers/submit-review";
+import {
+  callbackQuery,
+  connectQuery,
+  listQuery,
+  pullParams,
+  reviewBody,
+} from "./schema";
+import {
+  checksSchema,
+  conversationSchema,
+  disconnectedSchema,
+  filesSchema,
+  pullRequestSchema,
+  reviewListSchema,
+  reviewSubmittedSchema,
+  statusSchema,
+} from "./response";
 
 const tags = ["GitHub Reviews"];
 // Reviews act as the signed-in person on GitHub, so API keys are refused.
@@ -101,6 +121,111 @@ const listRoute = createRoute({
   },
 });
 
+const pullRoute = createRoute({
+  method: "get",
+  operationId: "getGithubPullRequest",
+  path: "/pulls/{owner}/{repo}/{number}",
+  tags,
+  summary: "Get a pull request",
+  description: "Pull request details read with the user's GitHub token.",
+  middleware: [requireUserSession] as const,
+  request: { params: pullParams },
+  responses: {
+    200: jsonResponse("Get a pull request", pullRequestSchema),
+    403: needsSession,
+    404: errorResponse(
+      "Pull request not found or not visible to the Kaneo GitHub App",
+    ),
+    409: needsGithub,
+  },
+});
+
+const filesRoute = createRoute({
+  method: "get",
+  operationId: "listGithubPullRequestFiles",
+  path: "/pulls/{owner}/{repo}/{number}/files",
+  tags,
+  summary: "List changed files",
+  description:
+    "Changed files with GitHub's unified diff patch text. The patch is null for binary or very large files.",
+  middleware: [requireUserSession] as const,
+  request: { params: pullParams },
+  responses: {
+    200: jsonResponse("List changed files", filesSchema),
+    403: needsSession,
+    404: errorResponse(
+      "Pull request not found or not visible to the Kaneo GitHub App",
+    ),
+    409: needsGithub,
+  },
+});
+
+const checksRoute = createRoute({
+  method: "get",
+  operationId: "getGithubPullRequestChecks",
+  path: "/pulls/{owner}/{repo}/{number}/checks",
+  tags,
+  summary: "Get CI checks",
+  description:
+    "Check runs and commit statuses for the pull request head commit.",
+  middleware: [requireUserSession] as const,
+  request: { params: pullParams },
+  responses: {
+    200: jsonResponse("Get CI checks", checksSchema),
+    403: needsSession,
+    404: errorResponse(
+      "Pull request not found or not visible to the Kaneo GitHub App",
+    ),
+    409: needsGithub,
+  },
+});
+
+const conversationRoute = createRoute({
+  method: "get",
+  operationId: "listGithubPullRequestConversation",
+  path: "/pulls/{owner}/{repo}/{number}/conversation",
+  tags,
+  summary: "List conversation",
+  description: "Issue comments and submitted reviews in time order.",
+  middleware: [requireUserSession] as const,
+  request: { params: pullParams },
+  responses: {
+    200: jsonResponse("List conversation", conversationSchema),
+    403: needsSession,
+    404: errorResponse(
+      "Pull request not found or not visible to the Kaneo GitHub App",
+    ),
+    409: needsGithub,
+  },
+});
+
+const reviewRoute = createRoute({
+  method: "post",
+  operationId: "submitGithubPullRequestReview",
+  path: "/pulls/{owner}/{repo}/{number}/reviews",
+  tags,
+  summary: "Submit a review",
+  description:
+    "Approve, request changes or comment. Posted to GitHub as the signed-in user.",
+  middleware: [requireUserSession] as const,
+  request: {
+    params: pullParams,
+    body: {
+      content: { "application/json": { schema: reviewBody } },
+      required: true,
+    },
+  },
+  responses: {
+    200: jsonResponse("Submit a review", reviewSubmittedSchema),
+    403: needsSession,
+    404: errorResponse(
+      "Pull request not found or not visible to the Kaneo GitHub App",
+    ),
+    409: needsGithub,
+    422: errorResponse("GitHub rejected the review"),
+  },
+});
+
 const githubReviews = apiRouter()
   .openapi(statusRoute, async (c) =>
     c.json(await getStatus(c.get("userId")), 200),
@@ -110,6 +235,47 @@ const githubReviews = apiRouter()
   .openapi(disconnectRoute, async (c) => {
     await deleteConnection(c.get("userId"));
     return c.json({ ok: true as const }, 200);
+  })
+  .openapi(pullRoute, async (c) => {
+    const { owner, repo, number } = c.req.valid("param");
+    return c.json(
+      await getPullRequest(c.get("userId"), owner, repo, number),
+      200,
+    );
+  })
+  .openapi(filesRoute, async (c) => {
+    const { owner, repo, number } = c.req.valid("param");
+    return c.json(
+      await listPullRequestFiles(c.get("userId"), owner, repo, number),
+      200,
+    );
+  })
+  .openapi(checksRoute, async (c) => {
+    const { owner, repo, number } = c.req.valid("param");
+    return c.json(
+      await getPullRequestChecks(c.get("userId"), owner, repo, number),
+      200,
+    );
+  })
+  .openapi(conversationRoute, async (c) => {
+    const { owner, repo, number } = c.req.valid("param");
+    return c.json(
+      await listPullRequestConversation(c.get("userId"), owner, repo, number),
+      200,
+    );
+  })
+  .openapi(reviewRoute, async (c) => {
+    const { owner, repo, number } = c.req.valid("param");
+    return c.json(
+      await submitReview(
+        c.get("userId"),
+        owner,
+        repo,
+        number,
+        c.req.valid("json"),
+      ),
+      200,
+    );
   })
   .openapi(listRoute, async (c) => {
     const query = c.req.valid("query");

@@ -12,6 +12,13 @@ const gh = vi.hoisted(() => ({
   getAuthenticatedUser: vi.fn(),
   searchPullRequests: vi.fn(),
   githubRequest: vi.fn(),
+  getPull: vi.fn(),
+  listPullFiles: vi.fn(),
+  listCheckRuns: vi.fn(),
+  getCombinedStatus: vi.fn(),
+  listIssueComments: vi.fn(),
+  listReviews: vi.fn(),
+  submitReview: vi.fn(),
 }));
 vi.mock("../../apps/api/src/github-reviews/github-api", async (original) => ({
   ...(await original<object>()),
@@ -342,5 +349,141 @@ describe("list", () => {
     expect((await app.request(BASE)).status).toBe(409);
     const status = await app.request(`${BASE}/status`);
     expect((await status.json()).state).toBe("needs_reconnect");
+  });
+});
+
+describe("pull request detail", () => {
+  const P = `${BASE}/pulls/acme/web/7`;
+  const pull = {
+    number: 7,
+    title: "Add thing",
+    body: null,
+    html_url: "https://github.com/acme/web/pull/7",
+    state: "open",
+    draft: false,
+    merged: false,
+    comments: 1,
+    created_at: "2026-01-01T00:00:00Z",
+    updated_at: "2026-01-02T00:00:00Z",
+    user: { login: "ada", avatar_url: "a" },
+    labels: [],
+    head: { sha: "abc", ref: "feat" },
+    base: { ref: "main" },
+    additions: 3,
+    deletions: 1,
+    changed_files: 2,
+  };
+
+  async function connected() {
+    const user = await signedInUser();
+    await connectFlow(user.id);
+    return user;
+  }
+
+  it("returns details, files with null patches, checks and conversation", async () => {
+    await connected();
+    gh.getPull.mockResolvedValue(pull);
+    gh.listPullFiles.mockResolvedValue([
+      {
+        filename: "a.ts",
+        status: "modified",
+        additions: 2,
+        deletions: 1,
+        patch: "@@ -1 +1 @@\n-a\n+b",
+      },
+      { filename: "img.png", status: "added", additions: 0, deletions: 0 },
+    ]);
+    gh.listCheckRuns.mockResolvedValue({
+      check_runs: [
+        {
+          name: "ci",
+          status: "completed",
+          conclusion: "failure",
+          html_url: "u",
+        },
+      ],
+    });
+    gh.getCombinedStatus.mockResolvedValue({ statuses: [] });
+    gh.listIssueComments.mockResolvedValue([
+      {
+        id: 1,
+        user: { login: "bob", avatar_url: "b" },
+        body: "hi",
+        created_at: "2026-01-02T00:00:00Z",
+      },
+    ]);
+    gh.listReviews.mockResolvedValue([
+      {
+        id: 2,
+        user: null,
+        body: "",
+        state: "COMMENTED",
+        submitted_at: "2026-01-03T00:00:00Z",
+      },
+      {
+        id: 3,
+        user: null,
+        body: "",
+        state: "APPROVED",
+        submitted_at: "2026-01-04T00:00:00Z",
+      },
+    ]);
+
+    expect(await (await app.request(P)).json()).toMatchObject({
+      number: 7,
+      status: "open",
+      body: "",
+      headSha: "abc",
+    });
+    const files = await (await app.request(`${P}/files`)).json();
+    expect(
+      files.map((file: { patch: string | null }) => file.patch === null),
+    ).toEqual([false, true]);
+    expect(await (await app.request(`${P}/checks`)).json()).toMatchObject({
+      state: "failure",
+      checks: [{ name: "ci", state: "failure" }],
+    });
+    const conversation = await (await app.request(`${P}/conversation`)).json();
+    expect(conversation.map((entry: { id: string }) => entry.id)).toEqual([
+      "comment-1",
+      "review-3",
+    ]);
+  });
+
+  it("posts the review to GitHub as the user and requires a body unless approving", async () => {
+    await connected();
+    gh.submitReview.mockResolvedValue({ id: 1 });
+    const post = (body: object) =>
+      app.request(`${P}/reviews`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    expect((await post({ event: "REQUEST_CHANGES", body: "" })).status).toBe(
+      400,
+    );
+    expect((await post({ event: "APPROVE" })).status).toBe(200);
+    expect(gh.submitReview).toHaveBeenCalledWith(
+      "gho_access",
+      "acme",
+      "web",
+      "7",
+      {
+        event: "APPROVE",
+        body: "",
+      },
+    );
+  });
+
+  it("refuses another user who has not connected", async () => {
+    await connected();
+    await signedInUser();
+    expect((await app.request(P)).status).toBe(409);
+    expect(gh.getPull).not.toHaveBeenCalled();
+  });
+
+  it("rejects path values that could escape the repo path", async () => {
+    await connected();
+    expect((await app.request(`${BASE}/pulls/acme/web/7x`)).status).toBe(400);
   });
 });

@@ -141,3 +141,142 @@ export async function searchPullRequests(token: string, query: string) {
   );
   return result.items;
 }
+
+type GithubPerson = { login: string; avatar_url: string } | null;
+
+export type GithubPull = {
+  number: number;
+  title: string;
+  body: string | null;
+  html_url: string;
+  state: string;
+  draft: boolean;
+  merged: boolean;
+  comments: number;
+  created_at: string;
+  updated_at: string;
+  user: GithubPerson;
+  labels: { name: string; color: string }[];
+  head: { sha: string; ref: string };
+  base: { ref: string };
+  additions: number;
+  deletions: number;
+  changed_files: number;
+};
+
+const pullPath = (owner: string, repo: string, number: string) =>
+  `/repos/${owner}/${repo}/pulls/${number}`;
+
+export const getPull = (
+  token: string,
+  owner: string,
+  repo: string,
+  number: string,
+) => githubRequest<GithubPull>(token, pullPath(owner, repo, number));
+
+export type GithubFile = {
+  filename: string;
+  status: string;
+  additions: number;
+  deletions: number;
+  patch?: string;
+};
+
+// ponytail: first page only (100 files). Page through when huge PRs matter.
+export const listPullFiles = (
+  token: string,
+  owner: string,
+  repo: string,
+  number: string,
+) =>
+  githubRequest<GithubFile[]>(
+    token,
+    `${pullPath(owner, repo, number)}/files?per_page=100`,
+  );
+
+export type GithubCheckRun = {
+  name: string;
+  status: string;
+  conclusion: string | null;
+  html_url: string | null;
+};
+
+export const listCheckRuns = (
+  token: string,
+  owner: string,
+  repo: string,
+  sha: string,
+) =>
+  githubRequest<{ check_runs: GithubCheckRun[] }>(
+    token,
+    `/repos/${owner}/${repo}/commits/${sha}/check-runs?per_page=100`,
+  );
+
+export type GithubCombinedStatus = {
+  statuses: {
+    context: string;
+    state: "success" | "failure" | "error" | "pending";
+    target_url: string | null;
+  }[];
+};
+
+export const getCombinedStatus = (
+  token: string,
+  owner: string,
+  repo: string,
+  sha: string,
+) =>
+  githubRequest<GithubCombinedStatus>(
+    token,
+    `/repos/${owner}/${repo}/commits/${sha}/status`,
+  );
+
+export type GithubIssueComment = {
+  id: number;
+  user: GithubPerson;
+  body: string;
+  created_at: string;
+};
+
+export const listIssueComments = (
+  token: string,
+  owner: string,
+  repo: string,
+  number: string,
+) =>
+  githubRequest<GithubIssueComment[]>(
+    token,
+    `/repos/${owner}/${repo}/issues/${number}/comments?per_page=100`,
+  );
+
+export type GithubReview = {
+  id: number;
+  user: GithubPerson;
+  body: string;
+  state: string;
+  submitted_at: string | null;
+};
+
+export const listReviews = (
+  token: string,
+  owner: string,
+  repo: string,
+  number: string,
+) =>
+  githubRequest<GithubReview[]>(
+    token,
+    `${pullPath(owner, repo, number)}/reviews?per_page=100`,
+  );
+
+export const submitReview = (
+  token: string,
+  owner: string,
+  repo: string,
+  number: string,
+  review: { event: string; body: string },
+) =>
+  githubRequest<{ id: number }>(
+    token,
+    `${pullPath(owner, repo, number)}/reviews`,
+    { method: "POST", body: review },
+  );
