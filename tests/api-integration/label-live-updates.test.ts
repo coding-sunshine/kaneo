@@ -95,9 +95,10 @@ it("announces committed workspace label edits once per affected board", async ()
         "integration.sync_labels_changed",
         { projectId: first.id, integrationId: "selected-label-integration" },
       ],
+      ["label.updated", expect.objectContaining({ labelId: root.id })],
     ]),
   );
-  expect(publish).toHaveBeenCalledTimes(3);
+  expect(publish).toHaveBeenCalledTimes(4);
   const labels = await db.query.labelTable.findMany();
   expect(
     labels
@@ -158,9 +159,10 @@ it("announces an unassigned workspace label edit to every local board's choices"
     expect.arrayContaining([
       ["project.updated", { projectId: first.id }],
       ["project.updated", { projectId: second.id }],
+      ["label.updated", expect.objectContaining({ labelId: label.id })],
     ]),
   );
-  expect(publish).toHaveBeenCalledTimes(2);
+  expect(publish).toHaveBeenCalledTimes(3);
 });
 
 it("refreshes sync label choices on deletion without requiring changed task links", async () => {
@@ -212,9 +214,10 @@ it("refreshes sync label choices on deletion without requiring changed task link
       ],
       ["project.updated", { projectId: first.id }],
       ["project.updated", { projectId: second.id }],
+      ["label.deleted", expect.objectContaining({ labelId: label.id })],
     ]),
   );
-  expect(publish).toHaveBeenCalledTimes(3);
+  expect(publish).toHaveBeenCalledTimes(4);
   expect(
     await db.query.labelTable.findFirst({
       where: eq(schema.labelTable.id, label.id),

@@ -155,7 +155,14 @@ describe("tenant resource boundaries", () => {
     expect(await db.select().from(schema.labelTable)).toEqual([untouched]);
     expect(removeGithub.mock.calls).toEqual([[own.task.id, "bug"]]);
     expect(removeGitea.mock.calls).toEqual([[own.task.id, "bug"]]);
-    expect(publish).toHaveBeenCalledTimes(1);
+    expect(publish).toHaveBeenCalledTimes(2);
+    expect(publish).toHaveBeenCalledWith(
+      "label.deleted",
+      expect.objectContaining({
+        labelId: root.id,
+        workspaceId: own.workspace.id,
+      }),
+    );
     expect(publish).toHaveBeenCalledWith(
       "task.label_deleted",
       expect.objectContaining({ taskId: own.task.id }),
