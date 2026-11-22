@@ -1,8 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
-import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
-import { subscribeToEvent } from "../../apps/api/src/events";
+import { settleEvents, subscribeToEvent } from "../../apps/api/src/events";
 import { createApp } from "../../apps/api/src/index";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
@@ -200,25 +200,24 @@ describe("API integration: recurrence permissions and project moves", () => {
         expect(completed.status).toBe(200);
       }
 
-      await vi.waitFor(async () => {
-        const tasks = await db.query.taskTable.findMany();
-        expect(tasks).toHaveLength(2);
-        expect(tasks.find((item) => item.id !== task.id)).toMatchObject({
-          projectId: destination.project.id,
-          columnId: destination.columns.todo.id,
-          status: "to-do",
-          startDate: new Date("2026-03-16T00:00:00Z"),
-          dueDate: new Date("2026-03-17T00:00:00Z"),
-          recurrence: weekly,
-        });
-        expect(tasks.find((item) => item.id === task.id)).toMatchObject({
-          recurrence: null,
-        });
-        expect(created).toHaveLength(1);
-        expect(created[0]).toMatchObject({ projectId: destination.project.id });
-        expect(created[0]?.initiatorId).toBeUndefined();
-        expect(updated).toContain(task.id);
+      await settleEvents();
+      const tasks = await db.query.taskTable.findMany();
+      expect(tasks).toHaveLength(2);
+      expect(tasks.find((item) => item.id !== task.id)).toMatchObject({
+        projectId: destination.project.id,
+        columnId: destination.columns.todo.id,
+        status: "to-do",
+        startDate: new Date("2026-03-16T00:00:00Z"),
+        dueDate: new Date("2026-03-17T00:00:00Z"),
+        recurrence: weekly,
       });
+      expect(tasks.find((item) => item.id === task.id)).toMatchObject({
+        recurrence: null,
+      });
+      expect(created).toHaveLength(1);
+      expect(created[0]).toMatchObject({ projectId: destination.project.id });
+      expect(created[0]?.initiatorId).toBeUndefined();
+      expect(updated).toContain(task.id);
     },
   );
 });

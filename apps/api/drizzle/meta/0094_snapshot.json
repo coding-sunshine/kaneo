@@ -1,5 +1,5 @@
 {
-  "id": "fa608eeb-f4c7-4d1b-b3ba-0378ac2c80c8",
+  "id": "046a70bb-0cd1-42af-ab5f-4deff6fbc1e6",
   "prevId": "a34e0372-1463-4763-b0b5-95e776d222bc",
   "version": "7",
   "dialect": "postgresql",
@@ -288,21 +288,6 @@
           "isUnique": false,
           "concurrently": false,
           "method": "btree",
-          "with": {}
-        },
-        "activity_search_idx": {
-          "name": "activity_search_idx",
-          "columns": [
-            {
-              "expression": "to_tsvector('simple', left(coalesce(\"content\", ''), 100000))",
-              "asc": true,
-              "isExpression": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "gin",
           "with": {}
         }
       },
@@ -2872,21 +2857,6 @@
           "isUnique": false,
           "concurrently": false,
           "method": "btree",
-          "with": {}
-        },
-        "document_search_idx": {
-          "name": "document_search_idx",
-          "columns": [
-            {
-              "expression": "(setweight(to_tsvector('simple', left(coalesce(\"title\", ''), 100000)), 'A') || setweight(to_tsvector('simple', left(coalesce(\"content\", ''), 100000)), 'B'))",
-              "asc": true,
-              "isExpression": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "gin",
           "with": {}
         },
         "document_project_idx": {
@@ -5696,6 +5666,34 @@
           "notNull": true,
           "default": true
         },
+        "sla_enabled": {
+          "name": "sla_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "sla_urgent_hours": {
+          "name": "sla_urgent_hours",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 24
+        },
+        "sla_high_hours": {
+          "name": "sla_high_hours",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 168
+        },
+        "triage_responsibility_mode": {
+          "name": "triage_responsibility_mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'notify'"
+        },
         "position": {
           "name": "position",
           "type": "integer",
@@ -5787,6 +5785,72 @@
           ]
         }
       },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.project_triage_responsible": {
+      "name": "project_triage_responsible",
+      "schema": "",
+      "columns": {
+        "project_id": {
+          "name": "project_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_assigned_at": {
+          "name": "last_assigned_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "project_triage_responsible_project_id_project_id_fk": {
+          "name": "project_triage_responsible_project_id_project_id_fk",
+          "tableFrom": "project_triage_responsible",
+          "tableTo": "project",
+          "columnsFrom": [
+            "project_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "project_triage_responsible_user_id_user_id_fk": {
+          "name": "project_triage_responsible_user_id_user_id_fk",
+          "tableFrom": "project_triage_responsible",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "project_triage_responsible_project_id_user_id_pk": {
+          "name": "project_triage_responsible_project_id_user_id_pk",
+          "columns": [
+            "project_id",
+            "user_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -6491,6 +6555,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "sla_due_at": {
+          "name": "sla_due_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
         "estimate": {
           "name": "estimate",
           "type": "integer",
@@ -6586,21 +6656,6 @@
           "isUnique": false,
           "concurrently": false,
           "method": "btree",
-          "with": {}
-        },
-        "task_search_idx": {
-          "name": "task_search_idx",
-          "columns": [
-            {
-              "expression": "(setweight(to_tsvector('simple', left(coalesce(\"title\", ''), 100000)), 'A') || setweight(to_tsvector('simple', left(coalesce(\"description\", ''), 100000)), 'B'))",
-              "asc": true,
-              "isExpression": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "gin",
           "with": {}
         },
         "task_project_scheduled_id_idx": {

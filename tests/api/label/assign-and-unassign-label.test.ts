@@ -18,6 +18,8 @@ const mockRemoveLabelFromGitea = vi.fn();
 const mockSyncLabelToGitHub = vi.fn();
 const mockSyncLabelToGitea = vi.fn();
 const mockAssertProjectAccess = vi.fn();
+// The label-group check is the only lookup that selects `columns`; it returns no child by default.
+const mockFindChild = vi.fn();
 
 function createMockTxContext() {
   return {
@@ -41,7 +43,10 @@ vi.mock("../../../apps/api/src/database", () => ({
     query: {
       taskTable: { findFirst: async () => ({ projectId: "proj-1" }) },
       labelTable: {
-        findFirst: (...args: unknown[]) => mockFindFirst(...args),
+        findFirst: (...args: unknown[]) =>
+          (args[0] as { columns?: unknown } | undefined)?.columns
+            ? mockFindChild(...args)
+            : mockFindFirst(...args),
       },
     },
     select: (...args: unknown[]) => mockSelect(...args),
@@ -375,6 +380,19 @@ describe("assignLabelToTask", () => {
     expect(mockTransaction).not.toHaveBeenCalled();
     expect(mockInsert).not.toHaveBeenCalled();
     expect(mockPublishEvent).not.toHaveBeenCalled();
+  });
+
+  it("rejects a label group, which has child labels", async () => {
+    mockFindFirst.mockResolvedValue(WORKSPACE_LABEL);
+    mockSelect.mockReturnValue(makeSelectMock([TASK]));
+    mockFindChild.mockResolvedValueOnce({ id: "label-child-1" });
+
+    await expect(
+      assignLabelToTask("label-ws-1", "task-1", "user-1"),
+    ).rejects.toMatchObject({ status: 400 });
+
+    expect(mockTransaction).not.toHaveBeenCalled();
+    expect(mockInsert).not.toHaveBeenCalled();
   });
 });
 

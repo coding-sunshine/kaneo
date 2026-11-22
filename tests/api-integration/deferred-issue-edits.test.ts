@@ -21,6 +21,7 @@ import {
   outboundStamp,
 } from "../../apps/api/src/plugins/github/utils/sync-echo";
 import { resetTestDatabase } from "./helpers/database";
+import { skipEchoDeadline } from "./helpers/skip-echo-deadline";
 import {
   createProjectFixture,
   createWorkspaceMember,
@@ -139,23 +140,25 @@ async function current(taskId: string) {
 }
 it("durably acknowledges an orphaned delivery and later recovers every changed field", async () => {
   const { task, integration, link } = await seed();
-  await handleIssueEdited({
-    action: "edited",
-    issue: {
-      number: 1,
-      title: "A",
-      body: "recovered body",
-      html_url: link.url,
-      updated_at: "2026-09-30T00:00:03Z",
-    },
-    changes: { title: { from: "B" }, body: { from: "old body" } },
-    repository: {
-      id: 20,
-      owner: { login: "owner" },
-      name: "repo",
-      full_name: "owner/repo",
-    },
-  });
+  await skipEchoDeadline(() =>
+    handleIssueEdited({
+      action: "edited",
+      issue: {
+        number: 1,
+        title: "A",
+        body: "recovered body",
+        html_url: link.url,
+        updated_at: "2026-09-30T00:00:03Z",
+      },
+      changes: { title: { from: "B" }, body: { from: "old body" } },
+      repository: {
+        id: 20,
+        owner: { login: "owner" },
+        name: "repo",
+        full_name: "owner/repo",
+      },
+    }),
+  );
   const queued = await metadata(link.id);
   expect(queued.deferredIssueEdit.fields).toEqual(["title", "description"]);
   expect(JSON.stringify(queued)).not.toContain("test-secret-never-metadata");

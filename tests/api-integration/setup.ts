@@ -9,6 +9,20 @@ vi.mock("dotenv-mono", () => ({
   config: () => {},
 }));
 
+// Password hashing at the production cost (10) takes ~70ms of pure-JS CPU per
+// sign-up and per sign-in. Cost 4 runs the same code path in ~1ms. bcryptjs is
+// a dependency of apps/api only, so the mock names it by that path.
+vi.mock(
+  "../../apps/api/node_modules/bcryptjs/index.js",
+  async (importOriginal) => {
+    const { default: bcrypt } =
+      await importOriginal<typeof import("bcryptjs")>();
+    return {
+      default: { ...bcrypt, hash: (value: string) => bcrypt.hash(value, 4) },
+    };
+  },
+);
+
 function stripEnvValueQuotes(value: string) {
   const trimmed = value.trim();
   if (
