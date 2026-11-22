@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { GROUP_BY_OPTIONS, type GroupBy } from "@/lib/group-project";
@@ -21,6 +22,7 @@ import {
   type BurnUpInterval,
   computeBurnUp,
 } from "@/lib/insights/compute-burn-up";
+import { withArchived } from "@/lib/insights/with-archived";
 import { effortWeight, viewUsesEstimates } from "@/lib/insights/effort-weight";
 import {
   type InsightSelection,
@@ -48,8 +50,13 @@ const SLICE_OPTIONS: SliceOption[] = [
 ];
 
 /** Linear's Insights panel: a measure over the view's issues, sliced and segmented. */
-export function InsightsPanel({ project, group }: InsightsPanelProps) {
+export function InsightsPanel({ project: source, group }: InsightsPanelProps) {
   const { t } = useTranslation();
+  const [showArchived, setShowArchived] = useState(false);
+  const project = useMemo(
+    () => (showArchived ? withArchived(source) : source),
+    [source, showArchived],
+  );
   const [picked, setMeasure] = useState<InsightMeasure>("count");
   const { data: workspace } = useActiveWorkspace();
   const { data: teams = [] } = useGetProjects({
@@ -185,6 +192,14 @@ export function InsightsPanel({ project, group }: InsightsPanelProps) {
               groupLabel,
               reset(setSegment),
             )}
+        <label className="flex items-center gap-2 text-xs">
+          <Switch
+            checked={showArchived}
+            onCheckedChange={reset(setShowArchived)}
+            aria-label={t("tasks:insights.showArchived")}
+          />
+          {t("tasks:insights.showArchived")}
+        </label>
       </div>
 
       {insights.issueCount === 0 || (burnUp && buckets.length === 0) ? (
