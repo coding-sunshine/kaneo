@@ -10,6 +10,9 @@ export const Route = createFileRoute(
 function RouteComponent() {
   const { workspaceId } = Route.useParams();
   return (
-    <ReviewsPage returnTo={`/dashboard/workspace/${workspaceId}/reviews`} />
+    <ReviewsPage
+      returnTo={`/dashboard/workspace/${workspaceId}/reviews`}
+      workspaceId={workspaceId}
+    />
   );
 }
