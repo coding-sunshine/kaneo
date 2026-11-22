@@ -1187,6 +1187,8 @@
 			"priorityIconsClassic": "Classic",
 			"sidebarDefault": "Keep the sidebar open",
 			"sidebarDefaultDescription": "Start with the sidebar expanded.",
+			"codeReviews": "Enable code reviews",
+			"codeReviewsDescription": "Show Reviews in the sidebar and enable the G then R shortcut.",
 			"displayOptions": "Issue details",
 			"displayOptionsDescription": "What shows on cards and rows in your boards and lists.",
 			"taskNumbers": "Issue numbers",
@@ -2914,6 +2916,7 @@
 			"home": "Home",
 			"inbox": "Inbox",
 			"myTasks": "My issues",
+			"reviews": "Reviews",
 			"invitePeople": "Invite people",
 			"issues": "Issues",
 			"allIssues": "All issues",
@@ -3023,6 +3026,7 @@
 				"goToHome": "Go to home",
 				"goToInbox": "Go to inbox",
 				"goToMyTasks": "Go to my issues",
+				"goToReviews": "Go to reviews",
 				"goToProjects": "Go to projects",
 				"goToSettings": "Go to settings",
 				"goToTasks": "Go to issues",
@@ -4472,6 +4476,41 @@
 				"thisWeek": "This week",
 				"later": "Later",
 				"noDueDate": "No due date"
+			}
+		},
+		"reviews": {
+			"pageTitle": "Reviews",
+			"dismiss": "I don't do code review",
+			"loadError": "Could not load your pull requests.",
+			"showDrafts": "Drafts",
+			"showClosed": "Closed",
+			"tabs": {
+				"created": "Created",
+				"toReview": "To Review"
+			},
+			"status": {
+				"open": "Open",
+				"draft": "Draft",
+				"merged": "Merged",
+				"closed": "Closed"
+			},
+			"empty": {
+				"title": "No pull requests",
+				"description": "Pull requests you created or are asked to review show up here. If you expect to see some, check that the Kaneo GitHub App is installed on those repositories."
+			},
+			"connect": {
+				"title": "Connect GitHub to start reviewing",
+				"description": "Your GitHub account needs to be connected before you can review pull requests in Kaneo",
+				"action": "Connect your GitHub account"
+			},
+			"reconnect": {
+				"title": "Reconnect GitHub to keep reviewing",
+				"description": "Your GitHub account needs to be connected again before you can review pull requests in Kaneo",
+				"action": "Reconnect your GitHub account"
+			},
+			"notConfigured": {
+				"title": "GitHub reviews are not set up",
+				"description": "An administrator needs to add the Kaneo GitHub App credentials before pull requests can be reviewed here."
 			}
 		},
 		"myTasks": {
