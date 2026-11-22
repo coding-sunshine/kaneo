@@ -32,6 +32,7 @@ export function AgentPage({ workspaceId, chatId }: AgentPageProps) {
       { chatId, message },
       {
         onSuccess: (reply) =>
+          reply.chatId &&
           navigate({
             to: "/dashboard/workspace/$workspaceId/agent",
             params: { workspaceId },
@@ -98,6 +99,10 @@ export function AgentPage({ workspaceId, chatId }: AgentPageProps) {
                 ...messages,
                 ...(pendingText
                   ? [{ role: "user" as const, content: pendingText }]
+                  : []),
+                ...send.live.messages,
+                ...(send.live.text
+                  ? [{ role: "assistant" as const, content: send.live.text }]
                   : []),
               ]}
             />

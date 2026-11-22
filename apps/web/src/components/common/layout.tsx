@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { DemoAlert } from "@/components/demo-alert";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { isDemoMode } from "@/constants/urls";
+import { useHasAgent } from "@/hooks/queries/agent/use-agent";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { useUserPreferencesEffects } from "@/hooks/use-user-preferences-effects";
 import { cn } from "@/lib/cn";
@@ -54,6 +55,7 @@ function Layout({ children, className }: LayoutProps) {
   const { background } = useBackgroundStore();
   const [isEntering] = useState(() => !hasShellEntered());
   const { data: workspace } = useActiveWorkspace();
+  const hasAgentBar = useHasAgent() && !!workspace;
   const isRevealed = useShellReveal(isEntering, !!workspace);
 
   useUserPreferencesEffects();
@@ -64,11 +66,16 @@ function Layout({ children, className }: LayoutProps) {
     <div
       className={cn(
         "flex w-full bg-background",
+        hasAgentBar && "pb-9",
         isEntering && (isRevealed ? "shell-reveal" : "shell-pending"),
       )}
     >
       <SidebarProvider
         defaultOpen={sidebarDefaultOpen}
+        className={cn(
+          hasAgentBar &&
+            "min-h-[calc(100svh-2.25rem)] **:data-[slot=sidebar-container]:h-[calc(100svh-2.25rem)]",
+        )}
         style={
           {
             "--sidebar-width": "calc(var(--spacing) * 60)",

@@ -57,10 +57,12 @@ export function LoopList({
                   </span>
                 )}
                 <span className="text-muted-foreground">
-                  {t(`navigation:loops.frequency.${loop.frequency}`)}
+                  {loop.frequency
+                    ? t(`navigation:loops.frequency.${loop.frequency}`)
+                    : t(`navigation:loops.event.${loop.trigger}`)}
                 </span>
                 <span className="hidden w-40 text-right text-muted-foreground sm:block">
-                  {loop.enabled
+                  {loop.enabled && loop.nextRunAt
                     ? t("navigation:loops.nextRun", {
                         date: formatDate(loop.nextRunAt, {
                           dateStyle: "medium",

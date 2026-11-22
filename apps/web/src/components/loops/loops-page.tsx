@@ -13,10 +13,18 @@ import {
 } from "@/components/loops/loop-templates";
 import { PillTabs } from "@/components/loops/pill-tabs";
 import { Button } from "@/components/ui/button";
+import { useLoopMutations } from "@/hooks/mutations/loop/use-loop-mutations";
 import { useLoops } from "@/hooks/queries/loop/use-loops";
 import { authClient } from "@/lib/auth-client";
+import { toast } from "@/lib/toast";
 
-const blank: LoopDraft = { name: "", instructions: "", frequency: "daily" };
+const blank: LoopDraft = {
+  name: "",
+  instructions: "",
+  trigger: "schedule",
+  frequency: "daily",
+  projectId: null,
+};
 
 /** Linear's Loops page: your loops, then a builder and template gallery. */
 export function LoopsPage({ workspaceId }: { workspaceId: string }) {
@@ -29,12 +37,29 @@ export function LoopsPage({ workspaceId }: { workspaceId: string }) {
     null,
   );
   const { data: loops = [] } = useLoops(workspaceId, scope);
+  const { draft: buildDraft } = useLoopMutations(workspaceId);
+
+  // One model call fills the form; the person confirms it before it is saved.
+  const askToBuild = (description: string) =>
+    buildDraft.mutate(description, {
+      onSuccess: (result) =>
+        setDraft({
+          name: result.name,
+          instructions: result.instructions,
+          trigger: result.trigger,
+          frequency: result.frequency ?? null,
+          projectId: null,
+        }),
+      onError: (error) => toast.error(error.message),
+    });
 
   const fromTemplate = (template: LoopTemplate) =>
     setDraft({
       name: t(`navigation:loops.templates.${template.id}.title`),
       instructions: t(`navigation:loops.templates.${template.id}.instructions`),
-      frequency: template.frequency,
+      trigger: template.trigger,
+      frequency: template.frequency ?? null,
+      projectId: null,
     });
 
   const templates = LOOP_TEMPLATES.filter((template) =>
@@ -81,7 +106,8 @@ export function LoopsPage({ workspaceId }: { workspaceId: string }) {
         </div>
         <AgentComposer
           placeholder={t("navigation:loops.askPlaceholder")}
-          onSubmit={(instructions) => setDraft({ ...blank, instructions })}
+          pending={buildDraft.isPending}
+          onSubmit={askToBuild}
         />
         <PillTabs
           value={category}

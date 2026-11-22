@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  LOOP_EVENT_TRIGGERS,
   LOOP_FREQUENCIES,
   type LoopFrequency,
+  type LoopTrigger,
 } from "@/components/loops/loop-templates";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +17,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import type { LoopInput } from "@/fetchers/loop/loops";
+import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import { useLoopMutations } from "@/hooks/mutations/loop/use-loop-mutations";
 import { toast } from "@/lib/toast";
 
@@ -23,8 +27,17 @@ export type LoopDraft = {
   id?: string;
   name: string;
   instructions: string;
-  frequency: LoopFrequency;
+  trigger: LoopTrigger;
+  frequency: LoopFrequency | null;
+  /** Event loops only fire for tasks in this project; null means all. */
+  projectId: string | null;
 };
+
+// One choice picks the trigger: a schedule interval or a task event.
+type Choice = LoopFrequency | (typeof LOOP_EVENT_TRIGGERS)[number];
+const CHOICES: Choice[] = [...LOOP_FREQUENCIES, ...LOOP_EVENT_TRIGGERS];
+const isFrequency = (value: Choice): value is LoopFrequency =>
+  (LOOP_FREQUENCIES as string[]).includes(value);
 
 type LoopDialogProps = {
   workspaceId: string;
@@ -32,7 +45,7 @@ type LoopDialogProps = {
   onClose: () => void;
 };
 
-/** Create or edit a loop: name, instructions and a schedule trigger. */
+/** Create or edit a loop: name, instructions, trigger and project. */
 export function LoopDialog({ workspaceId, draft, onClose }: LoopDialogProps) {
   return (
     <Dialog open={draft !== null} onOpenChange={(open) => !open && onClose()}>
@@ -54,16 +67,23 @@ function LoopForm({
   const { create, update } = useLoopMutations(workspaceId);
   const [name, setName] = useState(draft.name);
   const [instructions, setInstructions] = useState(draft.instructions);
-  const [frequency, setFrequency] = useState(draft.frequency);
+  const [choice, setChoice] = useState<Choice>(
+    draft.trigger === "schedule" ? (draft.frequency ?? "daily") : draft.trigger,
+  );
+  const [projectId, setProjectId] = useState(draft.projectId);
+  const { data: projects = [] } = useGetProjects({ workspaceId });
+  const isSchedule = isFrequency(choice);
   const pending = create.isPending || update.isPending;
   const valid = name.trim() !== "" && instructions.trim() !== "";
 
   const save = () => {
     if (!valid) return;
-    const input = {
+    const input: LoopInput = {
       name: name.trim(),
       instructions: instructions.trim(),
-      frequency,
+      trigger: isFrequency(choice) ? "schedule" : choice,
+      frequency: isFrequency(choice) ? choice : null,
+      projectId: isSchedule ? null : projectId,
     };
     const options = {
       onSuccess: () => {
@@ -107,20 +127,39 @@ function LoopForm({
           aria-label={t("navigation:loops.trigger")}
           className="flex flex-wrap gap-2"
         >
-          {LOOP_FREQUENCIES.map((value) => (
+          {CHOICES.map((value) => (
             <Button
               key={value}
               type="button"
               role="radio"
-              aria-checked={frequency === value}
-              variant={frequency === value ? "secondary" : "outline"}
+              aria-checked={choice === value}
+              variant={choice === value ? "secondary" : "outline"}
               size="sm"
-              onClick={() => setFrequency(value)}
+              onClick={() => setChoice(value)}
             >
-              {t(`navigation:loops.frequency.${value}`)}
+              {t(
+                isFrequency(value)
+                  ? `navigation:loops.frequency.${value}`
+                  : `navigation:loops.event.${value}`,
+              )}
             </Button>
           ))}
         </div>
+        {isSchedule ? null : (
+          <select
+            value={projectId ?? ""}
+            aria-label={t("navigation:loops.project")}
+            className="h-8 rounded-lg border border-input bg-background px-2 text-sm"
+            onChange={(event) => setProjectId(event.target.value || null)}
+          >
+            <option value="">{t("navigation:loops.allProjects")}</option>
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </select>
+        )}
         <p className="text-muted-foreground text-xs">
           {t("navigation:loops.permissionNote")}
         </p>

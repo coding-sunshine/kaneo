@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createLoop,
   deleteLoop,
+  draftLoop,
   type LoopInput,
   runLoop,
   updateLoop,
@@ -15,6 +16,9 @@ export function useLoopMutations(workspaceId: string) {
     queryClient.invalidateQueries({ queryKey: ["loop-runs", workspaceId] });
   };
   return {
+    draft: useMutation({
+      mutationFn: (description: string) => draftLoop(workspaceId, description),
+    }),
     create: useMutation({
       mutationFn: (input: LoopInput) => createLoop(workspaceId, input),
       onSuccess: refresh,

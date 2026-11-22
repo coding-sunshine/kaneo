@@ -1,8 +1,8 @@
-import { ArrowRight, Clock } from "lucide-react";
+import { ArrowRight, CircleDot, Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { LoopTemplate } from "@/components/loops/loop-templates";
 
-/** A template: opens the loop form prefilled with its instructions. */
+/** A template: opens the loop form prefilled with its trigger and instructions. */
 export function LoopTemplateCard({
   template,
   onPick,
@@ -27,8 +27,17 @@ export function LoopTemplateCard({
         {t(`${base}.description`)}
       </span>
       <span className="mt-1 flex items-center gap-1.5 text-muted-foreground text-xs">
-        <Clock className="size-3" aria-hidden="true" />
-        {t(`navigation:loops.frequency.${template.frequency}`)}
+        {template.trigger === "schedule" ? (
+          <>
+            <Clock className="size-3" aria-hidden="true" />
+            {t(`navigation:loops.frequency.${template.frequency}`)}
+          </>
+        ) : (
+          <>
+            <CircleDot className="size-3" aria-hidden="true" />
+            {t(`navigation:loops.event.${template.trigger}`)}
+          </>
+        )}
         <ArrowRight className="size-3" aria-hidden="true" />
         {t(`${base}.action`)}
       </span>

@@ -6,7 +6,10 @@ import { Popover, PopoverPopup, PopoverTrigger } from "@/components/ui/popover";
 import { useHasAgent } from "@/hooks/queries/agent/use-agent";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 
-/** Linear's bottom-right Agent button and chat-history icon. */
+/**
+ * Linear's full-width strip under the app: the Agent button and chat-history
+ * icon sit at the right. Layout reserves its height (h-9, 2.25rem).
+ */
 export function AgentBar() {
   const { t } = useTranslation();
   const { data: workspace } = useActiveWorkspace();
@@ -15,7 +18,7 @@ export function AgentBar() {
   if (!hasAgent || !workspace) return null;
 
   return (
-    <div className="fixed right-3 bottom-2.5 z-30 flex items-center gap-1 rounded-full text-muted-foreground text-xs">
+    <div className="fixed inset-x-0 bottom-0 z-30 flex h-9 items-center justify-end gap-1 bg-sidebar px-3 text-muted-foreground text-xs">
       <Link
         to="/dashboard/workspace/$workspaceId/agent"
         params={{ workspaceId: workspace.id }}

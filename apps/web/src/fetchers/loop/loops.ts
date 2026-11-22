@@ -4,8 +4,22 @@ import { HttpError } from "@/lib/http-error";
 export type LoopInput = {
   name: string;
   instructions: string;
-  frequency: "hourly" | "daily" | "weekly" | "monthly" | "yearly";
+  trigger:
+    | "schedule"
+    | "task_created"
+    | "task_status_changed"
+    | "comment_created";
+  projectId: string | null;
+  frequency: "hourly" | "daily" | "weekly" | "monthly" | "yearly" | null;
 };
+
+export async function draftLoop(workspaceId: string, description: string) {
+  const response = await client.loop.draft.$post({
+    json: { workspaceId, description },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
 
 export async function getLoops(workspaceId: string, scope: "mine" | "all") {
   const response = await client.loop.workspace[":workspaceId"].$get({

@@ -3323,7 +3323,9 @@
 			"namePlaceholder": "Loop name",
 			"instructions": "Instructions",
 			"instructionsPlaceholder": "What should the agent do on each run?",
-			"trigger": "Schedule",
+			"trigger": "Trigger",
+			"project": "Project",
+			"allProjects": "All projects",
 			"permissionNote": "Each run uses your permissions at the time it runs.",
 			"save": "Save loop",
 			"saved": "Loop saved",
@@ -3341,6 +3343,7 @@
 			"backToRuns": "All runs",
 			"trigger_schedule": "Scheduled",
 			"trigger_manual": "Run now",
+			"trigger_event": "Event",
 			"status": {
 				"running": "Running",
 				"succeeded": "Succeeded",
@@ -3352,6 +3355,11 @@
 				"weekly": "Weekly",
 				"monthly": "Monthly",
 				"yearly": "Yearly"
+			},
+			"event": {
+				"task_created": "Issue created",
+				"task_status_changed": "Status changed",
+				"comment_created": "Comment added"
 			},
 			"category": {
 				"featured": "Featured",
@@ -3366,19 +3374,19 @@
 					"title": "Autofix bugs",
 					"description": "Investigates new bug reports and drafts a clear fix plan when it finds one.",
 					"action": "Comment with fix plan",
-					"instructions": "Find issues created in the last hour that look like bug reports. For each one, investigate the likely cause. When you find a clear fix, add a comment describing the fix. Skip issues that already have such a comment."
+					"instructions": "Look at the issue named in the trigger. If it looks like a bug report, investigate the likely cause. When you find a clear fix, add a comment describing the fix plan. Otherwise do nothing."
 				},
 				"triage": {
 					"title": "Triage agent",
 					"description": "Reviews incoming issues, adds context, and routes each one to the right owner.",
 					"action": "Assign owner",
-					"instructions": "Review issues created in the last hour that have no assignee. Add a short comment with any missing context, set a sensible priority, and assign the person who owns the related area."
+					"instructions": "Review the issue named in the trigger. Add a short comment with any missing context, set a sensible priority, and assign the person who owns the related area."
 				},
 				"qa": {
 					"title": "Q&A assistant",
-					"description": "Answers product questions the team asks in issues.",
+					"description": "Answers product questions the team asks in issue comments.",
 					"action": "Reply in comment",
-					"instructions": "Find issues from the last hour that are questions about the product. Search the workspace for the answer and reply with a comment. Skip questions that already have a reply."
+					"instructions": "Read the comment on the issue named in the trigger. If it asks a question about the product, search the workspace for the answer and reply with a comment. Otherwise do nothing."
 				},
 				"wrap": {
 					"title": "Weekly wrap",
