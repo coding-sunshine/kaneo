@@ -94,6 +94,12 @@ describe("full-text search", () => {
     });
     expect(await search("laptop access", "documents")).toHaveLength(1);
     expect(await search("onboard", "documents")).toHaveLength(1);
+
+    const all = (await search("laptop access", "all")) as {
+      title: string;
+      type: string;
+    }[];
+    expect(all.map((r) => r.title)).toContain("Onboarding handbook");
   });
 
   it("never returns another workspace's rows or a team the user cannot see", async () => {

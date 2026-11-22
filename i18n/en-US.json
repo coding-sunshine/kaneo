@@ -3063,6 +3063,7 @@
 				"workspace": "Workspaces",
 				"comment": "Comments",
 				"activity": "Activities",
+				"document": "Documents",
 				"fallback": "Results"
 			}
 		},

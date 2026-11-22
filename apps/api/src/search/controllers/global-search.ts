@@ -511,7 +511,7 @@ async function globalSearch(params: SearchParams): Promise<{
     }
   }
 
-  if (type === "documents") {
+  if (type === "all" || type === "documents") {
     const docFts = fts
       ? ftsMatch(
           titleBodyVector(documentTable.title, documentTable.content),
@@ -527,6 +527,7 @@ async function globalSearch(params: SearchParams): Promise<{
         id: documentTable.id,
         title: documentTable.title,
         projectId: documentTable.projectId,
+        projectName: projectTable.name,
         workspaceId: documentTable.workspaceId,
         workspaceName: workspaceTable.name,
         userId: documentTable.creatorId,
@@ -538,6 +539,7 @@ async function globalSearch(params: SearchParams): Promise<{
         workspaceTable,
         eq(documentTable.workspaceId, workspaceTable.id),
       )
+      .leftJoin(projectTable, eq(documentTable.projectId, projectTable.id))
       .where(
         and(
           workspaceId
@@ -568,6 +570,7 @@ async function globalSearch(params: SearchParams): Promise<{
         type: "document",
         title: doc.title,
         projectId: doc.projectId || undefined,
+        projectName: doc.projectName || undefined,
         workspaceId: doc.workspaceId,
         workspaceName: doc.workspaceName || undefined,
         userId: doc.userId || undefined,
