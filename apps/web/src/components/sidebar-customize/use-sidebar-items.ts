@@ -19,7 +19,6 @@ import type { SidebarItemId } from "@/components/sidebar-customize/sidebar-items
 import { useHasAgent } from "@/hooks/queries/agent/use-agent";
 import { usePendingInvitations } from "@/hooks/queries/invitation/use-pending-invitations";
 import useGetNotifications from "@/hooks/queries/notification/use-get-notifications";
-import useGetAssignedTasks from "@/hooks/queries/task/use-get-assigned-tasks";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 
@@ -40,7 +39,6 @@ export function useSidebarItems() {
   const { data: workspace } = useActiveWorkspace();
   const { data: invitations = [] } = usePendingInvitations();
   const { data: notifications = [] } = useGetNotifications(workspace?.id);
-  const { data: assignedTasks } = useGetAssignedTasks(workspace?.id, true);
   const hasAgent = useHasAgent();
 
   if (!workspace) return null;
@@ -69,7 +67,6 @@ export function useSidebarItems() {
       t("navigation:sidebar.myTasks"),
       CircleUserRound,
       `${homeUrl}/my-tasks`,
-      assignedTasks?.total,
     ),
     ...(codeReviewsEnabled
       ? [

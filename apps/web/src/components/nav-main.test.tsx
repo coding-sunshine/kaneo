@@ -61,9 +61,6 @@ vi.mock("@/hooks/queries/notification/use-get-notifications", () => ({
 vi.mock("@/hooks/queries/agent/use-agent", () => ({
   useHasAgent: () => false,
 }));
-vi.mock("@/hooks/queries/task/use-get-assigned-tasks", () => ({
-  default: () => ({ data: undefined }),
-}));
 
 const defaultSidebar = useUserPreferencesStore.getState().sidebar;
 beforeEach(() =>
