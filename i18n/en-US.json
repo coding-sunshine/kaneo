@@ -4263,6 +4263,18 @@
 			"share": "Share",
 			"median": "Median",
 			"percentile": "{{percent}}% of issues take {{duration}} or less. Select to zoom.",
+			"ageBreakdown": "Issue age, share of issues at or under",
+			"burnUp": "Burn-up",
+			"interval": "Interval",
+			"intervals": {
+				"month": "Month",
+				"week": "Week"
+			},
+			"burnUpSeries": {
+				"created": "Created",
+				"started": "Started",
+				"completed": "Completed"
+			},
 			"days_one": "{{count}} day",
 			"days_other": "{{count}} days",
 			"hours_one": "{{count}} hour",

@@ -22,7 +22,13 @@ export type GroupFn = (
   by: GroupBy,
 ) => ProjectWithTasks;
 
-export type InsightPoint = { task: Task; days: number; segment: number };
+export type InsightPoint = {
+  task: Task;
+  days: number;
+  /** The segment that colours the point; `segments` lists every one it is in. */
+  segment: number;
+  segments: number[];
+};
 
 export type InsightSlice = {
   key: string;
@@ -33,6 +39,8 @@ export type InsightSlice = {
   value: number;
   points: InsightPoint[];
   medianDays: number;
+  /** 25/50/75/95% of the slice's measured time (issue age for the count bars). */
+  percentiles: { percent: number; days: number }[];
 };
 
 export type Insights = {
@@ -65,6 +73,14 @@ function measureDays(measure: InsightMeasure, task: Task, now: number) {
 }
 
 const PERCENTS = [25, 50, 75, 95];
+
+const percentilesOf = (sorted: number[]) =>
+  sorted.length
+    ? PERCENTS.map((percent) => ({
+        percent,
+        days: percentile(sorted, percent),
+      }))
+    : [];
 
 /** Nearest rank: the smallest value with at least `percent`% of values at or below it. */
 function percentile(sorted: number[], percent: number) {
@@ -119,7 +135,12 @@ export function computeInsights(
       const points = column.tasks.map((task) => {
         const segments = membership.get(task.id) ?? [0];
         for (const index of segments) counts[index] += 1;
-        return { task, days: days.get(task.id) ?? 0, segment: segments[0] };
+        return {
+          task,
+          days: days.get(task.id) ?? 0,
+          segment: segments[0],
+          segments,
+        };
       });
       return {
         key: column.id,
@@ -128,6 +149,9 @@ export function computeInsights(
         value: counts.reduce((sum, count) => sum + count, 0),
         points,
         medianDays: median(points.map((point) => point.days)),
+        percentiles: percentilesOf(
+          points.map((point) => point.days).sort((a, b) => a - b),
+        ),
       };
     });
 
@@ -146,11 +170,6 @@ export function computeInsights(
     issueCount: issueIds.size,
     maxValue: Math.max(0, ...slices.map((item) => item.value)),
     maxDays: Math.max(0, ...sorted),
-    percentiles: sorted.length
-      ? PERCENTS.map((percent) => ({
-          percent,
-          days: percentile(sorted, percent),
-        }))
-      : [],
+    percentiles: percentilesOf(sorted),
   };
 }

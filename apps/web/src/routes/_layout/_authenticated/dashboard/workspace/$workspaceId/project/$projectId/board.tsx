@@ -43,7 +43,9 @@ import {
 } from "@/lib/status-category";
 import useGetProjectTaskRelations from "@/hooks/queries/task-relation/use-get-project-task-relations";
 import { countColumnTasks } from "@/lib/task-filters/count-tasks";
+import { narrowToIssues } from "@/lib/insights/insight-selection";
 import { useBackgroundStore } from "@/store/background";
+import { useInsightsSelectionStore } from "@/store/insights-selection";
 import useProjectStore from "@/store/project";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 import type { ProjectWithTasks } from "@/types/project";
@@ -216,7 +218,7 @@ function RouteComponent() {
   const orderByRecency = useUserPreferencesStore(
     (state) => state.orderCompletedByRecency,
   );
-  const sortedProject = useMemo(() => {
+  const orderedProject = useMemo(() => {
     const filteredProject = filters.filteredProject;
     if (!filteredProject) return filteredProject;
     if (sort.field === "position" && !orderByRecency) return filteredProject;
@@ -236,6 +238,12 @@ function RouteComponent() {
       }),
     };
   }, [filters.filteredProject, sort, orderByRecency]);
+  // Issues picked in the Insights panel temporarily narrow the view.
+  const insightIds = useInsightsSelectionStore((state) => state.ids);
+  const sortedProject = useMemo(
+    () => orderedProject && narrowToIssues(orderedProject, insightIds),
+    [orderedProject, insightIds],
+  );
 
   const groupBy = useUserPreferencesStore((state) => state.listGroupBy);
   const subGroupBy = useUserPreferencesStore((state) => state.listSubGroupBy);
