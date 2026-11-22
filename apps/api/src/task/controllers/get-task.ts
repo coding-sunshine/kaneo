@@ -33,6 +33,7 @@ async function getTask(taskId: string, board = false, userId?: string) {
       estimate: taskTable.estimate,
       startDate: taskTable.startDate,
       dueDate: taskTable.dueDate,
+      slaDueAt: taskTable.slaDueAt,
       recurrence: taskTable.recurrence,
       position: taskTable.position,
       archivedAt: taskTable.archivedAt,

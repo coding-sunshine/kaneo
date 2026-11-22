@@ -1632,6 +1632,14 @@
             "format": "date-time",
             "description": "Triage snooze: the task resurfaces in triage after this time."
           },
+          "slaDueAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "The task's SLA deadline; null when the team's SLA rules do not apply."
+          },
           "customFields": {
             "type": "array",
             "items": {

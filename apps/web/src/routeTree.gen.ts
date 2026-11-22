@@ -75,7 +75,9 @@ import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdCyclesRou
 import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdEstimatesRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/estimates'
 import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/general'
 import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/integrations'
+import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdSlaRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/sla'
 import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdTemplatesRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/templates'
+import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdTriageRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/triage'
 import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/visibility'
 import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdWorkflowRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/workflow'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentDocumentIdRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/document.$documentId'
@@ -495,11 +497,25 @@ const LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRoute =
       getParentRoute: () => LayoutAuthenticatedDashboardSettingsProjectsRoute,
     } as any,
   )
+const LayoutAuthenticatedDashboardSettingsProjectsProjectIdSlaRoute =
+  LayoutAuthenticatedDashboardSettingsProjectsProjectIdSlaRouteImport.update({
+    id: '/$projectId/sla',
+    path: '/$projectId/sla',
+    getParentRoute: () => LayoutAuthenticatedDashboardSettingsProjectsRoute,
+  } as any)
 const LayoutAuthenticatedDashboardSettingsProjectsProjectIdTemplatesRoute =
   LayoutAuthenticatedDashboardSettingsProjectsProjectIdTemplatesRouteImport.update(
     {
       id: '/$projectId/templates',
       path: '/$projectId/templates',
+      getParentRoute: () => LayoutAuthenticatedDashboardSettingsProjectsRoute,
+    } as any,
+  )
+const LayoutAuthenticatedDashboardSettingsProjectsProjectIdTriageRoute =
+  LayoutAuthenticatedDashboardSettingsProjectsProjectIdTriageRouteImport.update(
+    {
+      id: '/$projectId/triage',
+      path: '/$projectId/triage',
       getParentRoute: () => LayoutAuthenticatedDashboardSettingsProjectsRoute,
     } as any,
   )
@@ -771,7 +787,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/projects/$projectId/estimates': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdEstimatesRoute
   '/dashboard/settings/projects/$projectId/general': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute
   '/dashboard/settings/projects/$projectId/integrations': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRoute
+  '/dashboard/settings/projects/$projectId/sla': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdSlaRoute
   '/dashboard/settings/projects/$projectId/templates': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdTemplatesRoute
+  '/dashboard/settings/projects/$projectId/triage': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdTriageRoute
   '/dashboard/settings/projects/$projectId/visibility': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRoute
   '/dashboard/settings/projects/$projectId/workflow': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdWorkflowRoute
   '/dashboard/workspace/$workspaceId/document/$documentId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentDocumentIdRoute
@@ -857,7 +875,9 @@ export interface FileRoutesByTo {
   '/dashboard/settings/projects/$projectId/estimates': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdEstimatesRoute
   '/dashboard/settings/projects/$projectId/general': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute
   '/dashboard/settings/projects/$projectId/integrations': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRoute
+  '/dashboard/settings/projects/$projectId/sla': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdSlaRoute
   '/dashboard/settings/projects/$projectId/templates': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdTemplatesRoute
+  '/dashboard/settings/projects/$projectId/triage': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdTriageRoute
   '/dashboard/settings/projects/$projectId/visibility': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRoute
   '/dashboard/settings/projects/$projectId/workflow': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdWorkflowRoute
   '/dashboard/workspace/$workspaceId/document/$documentId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentDocumentIdRoute
@@ -950,7 +970,9 @@ export interface FileRoutesById {
   '/_layout/_authenticated/dashboard/settings/projects/$projectId/estimates': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdEstimatesRoute
   '/_layout/_authenticated/dashboard/settings/projects/$projectId/general': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute
   '/_layout/_authenticated/dashboard/settings/projects/$projectId/integrations': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRoute
+  '/_layout/_authenticated/dashboard/settings/projects/$projectId/sla': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdSlaRoute
   '/_layout/_authenticated/dashboard/settings/projects/$projectId/templates': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdTemplatesRoute
+  '/_layout/_authenticated/dashboard/settings/projects/$projectId/triage': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdTriageRoute
   '/_layout/_authenticated/dashboard/settings/projects/$projectId/visibility': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRoute
   '/_layout/_authenticated/dashboard/settings/projects/$projectId/workflow': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdWorkflowRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/document/$documentId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentDocumentIdRoute
@@ -1042,7 +1064,9 @@ export interface FileRouteTypes {
     | '/dashboard/settings/projects/$projectId/estimates'
     | '/dashboard/settings/projects/$projectId/general'
     | '/dashboard/settings/projects/$projectId/integrations'
+    | '/dashboard/settings/projects/$projectId/sla'
     | '/dashboard/settings/projects/$projectId/templates'
+    | '/dashboard/settings/projects/$projectId/triage'
     | '/dashboard/settings/projects/$projectId/visibility'
     | '/dashboard/settings/projects/$projectId/workflow'
     | '/dashboard/workspace/$workspaceId/document/$documentId'
@@ -1128,7 +1152,9 @@ export interface FileRouteTypes {
     | '/dashboard/settings/projects/$projectId/estimates'
     | '/dashboard/settings/projects/$projectId/general'
     | '/dashboard/settings/projects/$projectId/integrations'
+    | '/dashboard/settings/projects/$projectId/sla'
     | '/dashboard/settings/projects/$projectId/templates'
+    | '/dashboard/settings/projects/$projectId/triage'
     | '/dashboard/settings/projects/$projectId/visibility'
     | '/dashboard/settings/projects/$projectId/workflow'
     | '/dashboard/workspace/$workspaceId/document/$documentId'
@@ -1220,7 +1246,9 @@ export interface FileRouteTypes {
     | '/_layout/_authenticated/dashboard/settings/projects/$projectId/estimates'
     | '/_layout/_authenticated/dashboard/settings/projects/$projectId/general'
     | '/_layout/_authenticated/dashboard/settings/projects/$projectId/integrations'
+    | '/_layout/_authenticated/dashboard/settings/projects/$projectId/sla'
     | '/_layout/_authenticated/dashboard/settings/projects/$projectId/templates'
+    | '/_layout/_authenticated/dashboard/settings/projects/$projectId/triage'
     | '/_layout/_authenticated/dashboard/settings/projects/$projectId/visibility'
     | '/_layout/_authenticated/dashboard/settings/projects/$projectId/workflow'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/document/$documentId'
@@ -1721,11 +1749,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsRoute
     }
+    '/_layout/_authenticated/dashboard/settings/projects/$projectId/sla': {
+      id: '/_layout/_authenticated/dashboard/settings/projects/$projectId/sla'
+      path: '/$projectId/sla'
+      fullPath: '/dashboard/settings/projects/$projectId/sla'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdSlaRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsRoute
+    }
     '/_layout/_authenticated/dashboard/settings/projects/$projectId/templates': {
       id: '/_layout/_authenticated/dashboard/settings/projects/$projectId/templates'
       path: '/$projectId/templates'
       fullPath: '/dashboard/settings/projects/$projectId/templates'
       preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdTemplatesRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsRoute
+    }
+    '/_layout/_authenticated/dashboard/settings/projects/$projectId/triage': {
+      id: '/_layout/_authenticated/dashboard/settings/projects/$projectId/triage'
+      path: '/$projectId/triage'
+      fullPath: '/dashboard/settings/projects/$projectId/triage'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdTriageRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsRoute
     }
     '/_layout/_authenticated/dashboard/settings/projects/$projectId/visibility': {
@@ -1965,7 +2007,9 @@ interface LayoutAuthenticatedDashboardSettingsProjectsRouteChildren {
   LayoutAuthenticatedDashboardSettingsProjectsProjectIdEstimatesRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdEstimatesRoute
   LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute
   LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRoute
+  LayoutAuthenticatedDashboardSettingsProjectsProjectIdSlaRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdSlaRoute
   LayoutAuthenticatedDashboardSettingsProjectsProjectIdTemplatesRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdTemplatesRoute
+  LayoutAuthenticatedDashboardSettingsProjectsProjectIdTriageRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdTriageRoute
   LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRoute
   LayoutAuthenticatedDashboardSettingsProjectsProjectIdWorkflowRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdWorkflowRoute
 }
@@ -1984,8 +2028,12 @@ const LayoutAuthenticatedDashboardSettingsProjectsRouteChildren: LayoutAuthentic
       LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute,
     LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRoute:
       LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRoute,
+    LayoutAuthenticatedDashboardSettingsProjectsProjectIdSlaRoute:
+      LayoutAuthenticatedDashboardSettingsProjectsProjectIdSlaRoute,
     LayoutAuthenticatedDashboardSettingsProjectsProjectIdTemplatesRoute:
       LayoutAuthenticatedDashboardSettingsProjectsProjectIdTemplatesRoute,
+    LayoutAuthenticatedDashboardSettingsProjectsProjectIdTriageRoute:
+      LayoutAuthenticatedDashboardSettingsProjectsProjectIdTriageRoute,
     LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRoute:
       LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRoute,
     LayoutAuthenticatedDashboardSettingsProjectsProjectIdWorkflowRoute:
