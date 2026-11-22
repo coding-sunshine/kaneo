@@ -50,6 +50,11 @@ vi.mock("@/components/common/workspace-layout", () => ({
     </>
   ),
 }));
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children }: { children: React.ReactNode }) => (
+    <a href="/pr">{children}</a>
+  ),
+}));
 vi.mock("@/components/page-title", () => ({ default: () => null }));
 
 beforeEach(() => {
@@ -66,13 +71,13 @@ afterEach(cleanup);
 describe("ReviewsPage", () => {
   it("shows the connect card when not connected", () => {
     state.status = { state: "needs_reconnect" };
-    render(<ReviewsPage returnTo="/r" />);
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
     expect(screen.getByTestId("reviews-connect-card")).toBeInTheDocument();
     expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
   });
 
   it("switches between To Review and Created, grouped by status", () => {
-    render(<ReviewsPage returnTo="/r" />);
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
     expect(screen.getByText("Review me")).toBeInTheDocument();
     expect(screen.queryByText("Mine")).not.toBeInTheDocument();
 
@@ -88,7 +93,7 @@ describe("ReviewsPage", () => {
   });
 
   it("hides Reviews when the user says they do not do code review", () => {
-    render(<ReviewsPage returnTo="/r" />);
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
     fireEvent.click(
       screen.getByRole("button", { name: "I don't do code review" }),
     );

@@ -45,3 +45,62 @@ export function getReviewsConnectUrl(returnTo: string) {
     `github-reviews/connect?returnTo=${encodeURIComponent(returnTo)}`,
   );
 }
+
+export type PullRef = { owner: string; repo: string; number: string };
+const pull = (_ref: PullRef) =>
+  client["github-reviews"].pulls[":owner"][":repo"][":number"];
+
+export type PullRequestDetail = InferResponseType<
+  ReturnType<typeof pull>["$get"],
+  200
+>;
+export type PullRequestFiles = InferResponseType<
+  ReturnType<typeof pull>["files"]["$get"],
+  200
+>;
+export type PullRequestChecks = InferResponseType<
+  ReturnType<typeof pull>["checks"]["$get"],
+  200
+>;
+export type PullRequestConversation = InferResponseType<
+  ReturnType<typeof pull>["conversation"]["$get"],
+  200
+>;
+export type ReviewEvent = "APPROVE" | "REQUEST_CHANGES" | "COMMENT";
+
+const param = (ref: PullRef) => ({ param: ref });
+
+export async function getPullRequest(ref: PullRef) {
+  const response = await pull(ref).$get(param(ref));
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function getPullRequestFiles(ref: PullRef) {
+  const response = await pull(ref).files.$get(param(ref));
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function getPullRequestChecks(ref: PullRef) {
+  const response = await pull(ref).checks.$get(param(ref));
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function getPullRequestConversation(ref: PullRef) {
+  const response = await pull(ref).conversation.$get(param(ref));
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function submitPullRequestReview(
+  ref: PullRef,
+  review: { event: ReviewEvent; body: string },
+) {
+  const response = await pull(ref).reviews.$post({
+    ...param(ref),
+    json: review,
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+}

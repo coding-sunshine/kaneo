@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { PullRequestStatusIcon } from "@/components/task/task-pull-requests/pull-request-status-icon";
@@ -7,12 +8,22 @@ import { formatRelativeTime } from "@/lib/format";
 
 const STATUS_ORDER = ["open", "draft", "merged", "closed"] as const;
 
-function ReviewRow({ pr }: { pr: ReviewPullRequest }) {
+function ReviewRow({
+  pr,
+  workspaceId,
+}: {
+  pr: ReviewPullRequest;
+  workspaceId: string;
+}) {
   return (
-    <a
-      href={pr.url}
-      target="_blank"
-      rel="noopener noreferrer"
+    <Link
+      to="/dashboard/workspace/$workspaceId/reviews/$owner/$repo/$number"
+      params={{
+        workspaceId,
+        owner: pr.owner,
+        repo: pr.repo,
+        number: String(pr.number),
+      }}
       className="flex h-10 items-center gap-2.5 border-border/50 border-b px-1 outline-none transition-colors hover:bg-accent/50 focus-visible:bg-accent/50"
     >
       <PullRequestStatusIcon status={pr.status} className="size-3.5" />
@@ -31,14 +42,16 @@ function ReviewRow({ pr }: { pr: ReviewPullRequest }) {
       <span className="hidden w-24 shrink-0 text-right text-muted-foreground text-xs sm:block">
         {formatRelativeTime(pr.updatedAt, undefined, undefined, "short")}
       </span>
-    </a>
+    </Link>
   );
 }
 
 export function ReviewsList({
   pullRequests,
+  workspaceId,
 }: {
   pullRequests: ReviewPullRequest[];
+  workspaceId: string;
 }) {
   const { t } = useTranslation();
   const groups = useMemo(
@@ -65,7 +78,11 @@ export function ReviewsList({
           </h2>
           <div className="flex flex-col px-4">
             {group.items.map((pr) => (
-              <ReviewRow key={`${pr.owner}/${pr.repo}#${pr.number}`} pr={pr} />
+              <ReviewRow
+                key={`${pr.owner}/${pr.repo}#${pr.number}`}
+                pr={pr}
+                workspaceId={workspaceId}
+              />
             ))}
           </div>
         </section>

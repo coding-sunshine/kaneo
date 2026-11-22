@@ -52,7 +52,13 @@ function Pill({
   );
 }
 
-export function ReviewsPage({ returnTo }: { returnTo: string }) {
+export function ReviewsPage({
+  returnTo,
+  workspaceId,
+}: {
+  returnTo: string;
+  workspaceId: string;
+}) {
   const { t } = useTranslation();
   const setCodeReviewsEnabled = useUserPreferencesStore(
     (state) => state.setCodeReviewsEnabled,
@@ -157,7 +163,10 @@ export function ReviewsPage({ returnTo }: { returnTo: string }) {
                 </EmptyHeader>
               </Empty>
             ) : (
-              <ReviewsList pullRequests={pullRequests} />
+              <ReviewsList
+                pullRequests={pullRequests}
+                workspaceId={workspaceId}
+              />
             )}
           </div>
         </div>
