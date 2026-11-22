@@ -115,6 +115,9 @@ vi.mock("@/hooks/queries/project/use-get-project", () => ({
 vi.mock("@/hooks/queries/project/use-get-projects", () => ({
   default: () => ({ data: [{ id: "project" }] }),
 }));
+vi.mock("@/hooks/queries/project/use-estimate-options", () => ({
+  useEstimateOptions: () => [],
+}));
 vi.mock("@/hooks/queries/activity/use-get-activities-by-task-id", () => ({
   default: () => ({ data: [], isLoading: false }),
 }));
