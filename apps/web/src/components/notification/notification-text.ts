@@ -76,6 +76,12 @@ export function getNotificationTitle(
           ...eventData,
           defaultValue: notification.title ?? notification.type,
         });
+      case "sla_warning":
+      case "sla_breach":
+        return t(`notifications:events.${notification.type}.title`, {
+          ...eventData,
+          defaultValue: notification.title ?? notification.type,
+        });
       case "task_overdue":
         return t("notifications:events.task_overdue.title", {
           ...eventData,
@@ -150,6 +156,12 @@ export function getNotificationContent(
         return t("notifications:events.due_date_reminder.content", {
           ...eventData,
           leadTime: getReminderLeadTime(eventData, t),
+          defaultValue: notification.content ?? "",
+        });
+      case "sla_warning":
+      case "sla_breach":
+        return t(`notifications:events.${notification.type}.content`, {
+          ...eventData,
           defaultValue: notification.content ?? "",
         });
       case "task_overdue":

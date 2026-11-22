@@ -27,7 +27,12 @@ export async function applySla(taskId: string, priority: string) {
     priority === "urgent" ? row.urgent : priority === "high" ? row.high : null;
   await db
     .update(taskTable)
-    .set({ slaDueAt: hours ? new Date(Date.now() + hours * HOUR_MS) : null })
+    .set({
+      slaDueAt: hours ? new Date(Date.now() + hours * HOUR_MS) : null,
+      // A new deadline starts the warning and breach notifications over.
+      slaWarningNotifiedAt: null,
+      slaBreachedAt: null,
+    })
     .where(eq(taskTable.id, taskId));
   await publishEvent("task.updated", { taskId, projectId: row.projectId });
 }

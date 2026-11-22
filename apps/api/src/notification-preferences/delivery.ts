@@ -171,6 +171,17 @@ function buildDeliveryContent(
           : "A task is past its due date.",
       };
     }
+    case "sla_warning":
+    case "sla_breach": {
+      const taskTitle = getStringValue(notification.eventData, "taskTitle");
+      const breached = notification.type === "sla_breach";
+      return {
+        title: breached ? "SLA breached" : "SLA at risk",
+        body: taskTitle
+          ? `"${taskTitle}" ${breached ? "has breached its SLA" : "is about to breach its SLA"}.`
+          : `A task ${breached ? "has breached its SLA" : "is about to breach its SLA"}.`,
+      };
+    }
     case "task_mention": {
       const taskTitle = getStringValue(notification.eventData, "taskTitle");
       const mentionerName = getStringValue(
