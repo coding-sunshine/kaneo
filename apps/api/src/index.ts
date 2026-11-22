@@ -1,4 +1,6 @@
 import { startWebhookWorker } from "./admin/webhooks/start-webhook-worker";
+import { startWorkspaceWebhookWorker } from "./workspace-webhook/worker";
+import workspaceWebhook from "./workspace-webhook";
 import integrationSync from "./integration-sync";
 import { syncWorkspaceAccess } from "./ws/workspace-access";
 import { drainPasswordResetDeliveries } from "./utils/password-reset-delivery";
@@ -835,6 +837,7 @@ export function createApp() {
   const timeEntryApi = api.route("/time-entry", timeEntry);
   const labelApi = api.route("/label", label);
   const projectLabelApi = api.route("/project-label", projectLabel);
+  const workspaceWebhookApi = api.route("/workspace-webhook", workspaceWebhook);
   const cycleApi = api.route("/cycle", cycle);
   const teamAutomationApi = api.route("/team-automation", teamAutomation);
   const workProjectApi = api.route("/work-project", workProject);
@@ -1025,6 +1028,7 @@ export function createApp() {
     invitationPublicApi,
     labelApi,
     projectLabelApi,
+    workspaceWebhookApi,
     cycleApi,
     teamAutomationApi,
     workProjectApi,
@@ -1121,6 +1125,7 @@ export async function startServer(
 
   injectWebSocket(server);
   const stopWebhookWorker = startWebhookWorker();
+  const stopWorkspaceWebhookWorker = startWorkspaceWebhookWorker();
 
   const gracefulShutdown = async () => {
     if (shuttingDown) return;
@@ -1129,6 +1134,7 @@ export async function startServer(
     console.log("🛑 Shutting down gracefully...");
     shutdownScheduler();
     await stopWebhookWorker();
+    await stopWorkspaceWebhookWorker();
     await shutdownWebSocketAdapter();
     server.close();
     const [, signInEmailsDrained] = await Promise.all([
@@ -1172,6 +1178,7 @@ const {
   invitationPublicApi,
   labelApi,
   projectLabelApi,
+  workspaceWebhookApi,
   cycleApi,
   teamAutomationApi,
   workProjectApi,
@@ -1225,6 +1232,7 @@ export type AppType =
   | typeof timeEntryApi
   | typeof labelApi
   | typeof projectLabelApi
+  | typeof workspaceWebhookApi
   | typeof cycleApi
   | typeof teamAutomationApi
   | typeof workProjectApi

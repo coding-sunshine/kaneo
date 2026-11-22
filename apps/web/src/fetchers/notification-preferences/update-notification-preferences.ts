@@ -19,6 +19,11 @@ export type UpdateNotificationPreferencesRequest = {
   taskStatusChangeEnabled?: boolean;
   dueDateReminderEnabled?: boolean;
   dueDateReminderLeadTimeMinutes?: number;
+  scheduleEnabled?: boolean;
+  scheduleTimezone?: string;
+  scheduleDays?: number[];
+  scheduleStart?: string;
+  scheduleEnd?: string;
 };
 
 async function updateNotificationPreferences(

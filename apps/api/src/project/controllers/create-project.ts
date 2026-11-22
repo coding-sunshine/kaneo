@@ -1,4 +1,5 @@
 import db from "../../database";
+import { publishEvent } from "../../events";
 import { assertProjectAccess } from "../../project-access/assert-project-access";
 import { copyProjectSettings } from "./copy-project-settings";
 import { insertProject } from "./insert-project";
@@ -14,7 +15,7 @@ async function createProject(
   if (copySettingsFromProjectId) {
     await assertProjectAccess(userId, copySettingsFromProjectId);
   }
-  return db.transaction(async (tx) => {
+  const project = await db.transaction(async (tx) => {
     const created = await insertProject(tx, {
       workspaceId,
       name,
@@ -31,6 +32,9 @@ async function createProject(
     }
     return created;
   });
+  if (project?.id)
+    await publishEvent("project.created", { projectId: project.id });
+  return project;
 }
 
 export default createProject;

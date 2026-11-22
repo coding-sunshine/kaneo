@@ -1,4 +1,5 @@
 import { z } from "../openapi";
+import { isValidTimezone, TIME_PATTERN } from "./schedule";
 
 export const workspaceIdParam = z.object({ workspaceId: z.string() });
 
@@ -26,6 +27,27 @@ export const updatePreferencesBody = z.object({
     .max(43_200)
     .optional()
     .openapi({ description: "Between 5 minutes and 30 days." }),
+  scheduleEnabled: z.boolean().optional().openapi({
+    description:
+      "Only send email, ntfy and Gotify notifications inside the schedule. The inbox is never affected.",
+  }),
+  scheduleTimezone: z
+    .string()
+    .refine(isValidTimezone, "Unknown timezone")
+    .optional()
+    .openapi({ description: "IANA timezone, for example `Europe/Berlin`." }),
+  scheduleDays: z
+    .array(z.number().int().min(0).max(6))
+    .min(1)
+    .max(7)
+    .optional()
+    .openapi({ description: "Weekdays to deliver on, 0 is Sunday." }),
+  scheduleStart: z.string().regex(TIME_PATTERN).optional().openapi({
+    description: "Local start of the delivery window, `HH:MM`.",
+  }),
+  scheduleEnd: z.string().regex(TIME_PATTERN).optional().openapi({
+    description: "Local end of the delivery window, `HH:MM`; after the start.",
+  }),
 });
 
 export const upsertWorkspaceRuleBody = z.object({

@@ -40,6 +40,11 @@ export type NotificationPreferences = {
   taskStatusChangeEnabled: boolean;
   dueDateReminderEnabled: boolean;
   dueDateReminderLeadTimeMinutes: number;
+  scheduleEnabled: boolean;
+  scheduleTimezone: string;
+  scheduleDays: number[];
+  scheduleStart: string;
+  scheduleEnd: string;
   workspaces: NotificationPreferenceWorkspaceRule[];
   createdAt: string | null;
   updatedAt: string | null;

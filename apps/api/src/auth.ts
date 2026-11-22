@@ -7,6 +7,7 @@ import {
   revokeWorkspaceConnections,
 } from "./ws";
 import { apiKey } from "@better-auth/api-key";
+import { passkey } from "@better-auth/passkey";
 import {
   isSmtpConfigured,
   OTP_EXPIRY_SECONDS,
@@ -159,6 +160,14 @@ const isEmailOtpSignInDisabled =
 
 const apiUrl = process.env.KANEO_API_URL || "http://localhost:1337";
 const clientUrl = process.env.KANEO_CLIENT_URL || "http://localhost:5173";
+
+const clientHostname = (() => {
+  try {
+    return new URL(clientUrl).hostname;
+  } catch {
+    return undefined;
+  }
+})();
 
 const trustedOrigins = [clientUrl];
 try {
@@ -319,6 +328,7 @@ export const auth = betterAuth({
       team: schema.teamTable,
       teamMember: schema.teamMemberTable,
       apikey: schema.apikeyTable,
+      passkey: schema.passkeyTable,
       deviceCode: schema.deviceCodeTable,
     },
   }),
@@ -744,6 +754,12 @@ export const auth = betterAuth({
         maxRequests: 100,
         timeWindow: 60 * 1000,
       },
+    }),
+    passkey({
+      // Derived from the same client URL as trustedOrigins, never from the request.
+      rpID: clientHostname,
+      rpName: "Kaneo",
+      origin: clientUrl,
     }),
     deviceAuthorization({
       verificationUri: getDeviceAuthVerificationUri(),

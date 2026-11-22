@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ChangePasswordSettings } from "@/components/account/change-password/change-password-settings";
+import { PasskeysSettings } from "@/components/account/passkeys/passkeys-settings";
 import { ActiveSessionsSettings } from "@/components/account/sessions/active-sessions-settings";
 import PageTitle from "@/components/page-title";
 import { SettingsPage } from "@/components/settings/settings-page";
@@ -22,6 +23,7 @@ function RouteComponent() {
         description={t("settings:securityPage.subtitle")}
       >
         <ChangePasswordSettings />
+        <PasskeysSettings />
         <ActiveSessionsSettings />
       </SettingsPage>
     </>

@@ -50,6 +50,11 @@ export const notificationPreferenceSchema = z
     dueDateReminderLeadTimeMinutes: z.number().openapi({
       description: "How long before a due date the reminder fires, in minutes.",
     }),
+    scheduleEnabled: z.boolean(),
+    scheduleTimezone: z.string(),
+    scheduleDays: z.array(z.number().int()),
+    scheduleStart: z.string(),
+    scheduleEnd: z.string(),
     workspaces: z.array(workspaceRuleSchema).openapi({
       description:
         "Per-workspace overrides. A workspace with no rule follows the global settings.",

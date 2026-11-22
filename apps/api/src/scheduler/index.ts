@@ -7,6 +7,7 @@ import { Cron } from "croner";
 import { autoArchiveClosedTasks } from "../task/controllers/task-archive";
 import { reconcileAllCycles } from "../cycle/reconcile";
 import { checkDueDateReminders } from "./due-date-reminders";
+import { checkSlaNotifications } from "./sla-notifications";
 import { checkProjectWebhookReminders } from "./project-webhook-reminders";
 import { reconcileWorkspaceSeats } from "./seat-reconciliation";
 import { runDueLoops } from "./loops";
@@ -92,6 +93,13 @@ export function initializeScheduler(): void {
     new Cron(
       "*/5 * * * *",
       withCheckIn("due-date-reminders", checkDueDateReminders),
+    ),
+  );
+  jobs.push(
+    new Cron(
+      "*/5 * * * *",
+      { protect: true },
+      withCheckIn("sla-notifications", checkSlaNotifications),
     ),
   );
   jobs.push(

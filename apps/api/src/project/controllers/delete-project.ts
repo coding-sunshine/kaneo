@@ -45,6 +45,11 @@ async function deleteProject(id: string, workspaceId: string) {
     });
   }
 
+  await publishEvent("project.deleted", {
+    projectId: id,
+    workspaceId,
+    name: existingProject.name,
+  });
   await publishEvent("subtask-parents.refresh", {
     projects: parents.filter((parent) => parent.projectId !== id),
   });

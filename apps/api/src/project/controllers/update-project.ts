@@ -1,6 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
+import { publishEvent } from "../../events";
 import { projectTable } from "../../database/schema";
 import {
   findProjectKeyConflict,
@@ -29,7 +30,7 @@ async function updateProject(
     >
   > = {},
 ) {
-  return db.transaction(async (tx) => {
+  const updated = await db.transaction(async (tx) => {
     await tx.execute(
       sql`SELECT pg_advisory_xact_lock(1524, hashtext(${workspaceId}))`,
     );
@@ -84,6 +85,8 @@ async function updateProject(
 
     return updatedProject;
   });
+  if (updated) await publishEvent("project.updated", { projectId: id });
+  return updated;
 }
 
 export default updateProject;

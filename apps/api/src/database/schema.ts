@@ -187,6 +187,69 @@ export const adminAuditLogTable = pgTable(
   ],
 );
 
+// Linear's workspace webhooks (Settings > API > Webhooks): data-change events for one workspace.
+export const workspaceWebhookTable = pgTable(
+  "workspace_webhook",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    url: text("url").notNull(),
+    // Encrypted with NOTIFICATION_SECRET_ENCRYPTION_KEY; the plain value is shown once on create.
+    secret: text("secret").notNull(),
+    enabled: boolean("enabled").default(true).notNull(),
+    resourceTypes: text("resource_types").array().notNull(),
+    // Empty = every team (project) in the workspace.
+    projectIds: text("project_ids")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    createdBy: text("created_by").references(() => userTable.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [index("workspace_webhook_workspace_idx").on(table.workspaceId)],
+);
+
+export const workspaceWebhookDeliveryTable = pgTable(
+  "workspace_webhook_delivery",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    webhookId: text("webhook_id")
+      .notNull()
+      .references(() => workspaceWebhookTable.id, { onDelete: "cascade" }),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    state: text("state")
+      .$type<"pending" | "succeeded" | "failed">()
+      .default("pending")
+      .notNull(),
+    attempts: integer("attempts").default(0).notNull(),
+    statusCode: integer("status_code"),
+    errorCode: text("error_code"),
+    nextAttemptAt: timestamp("next_attempt_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("workspace_webhook_delivery_due_idx").on(
+      table.state,
+      table.nextAttemptAt,
+    ),
+  ],
+);
+
 export const instanceWebhookTable = pgTable("instance_webhook", {
   id: text("id")
     .$defaultFn(() => createId())
@@ -1100,6 +1163,11 @@ export const taskTable = pgTable(
     triagedAt: timestamp("triaged_at", { mode: "date" }),
     // Linear SLA deadline, set from the team's SLA rules when the priority is set.
     slaDueAt: timestamp("sla_due_at", { mode: "date" }),
+    // Set when the warning / breach notification for the current sla_due_at went out; cleared when it changes.
+    slaWarningNotifiedAt: timestamp("sla_warning_notified_at", {
+      mode: "date",
+    }),
+    slaBreachedAt: timestamp("sla_breached_at", { mode: "date" }),
     // Points on the team's estimate scale (see project.estimate_type); null is unestimated.
     estimate: integer("estimate"),
     creatorId: text("creator_id").references(() => userTable.id, {
@@ -1615,6 +1683,15 @@ export const userNotificationPreferenceTable = pgTable(
     dueDateReminderEnabled: boolean("due_date_reminder_enabled")
       .default(true)
       .notNull(),
+    scheduleEnabled: boolean("schedule_enabled").default(false).notNull(),
+    scheduleTimezone: text("schedule_timezone").default("UTC").notNull(),
+    // Delivery window: weekdays 0 (Sunday) to 6, local "HH:MM" start and end.
+    scheduleDays: integer("schedule_days")
+      .array()
+      .default(sql`'{1,2,3,4,5}'::integer[]`)
+      .notNull(),
+    scheduleStart: text("schedule_start").default("09:00").notNull(),
+    scheduleEnd: text("schedule_end").default("18:00").notNull(),
     dueDateReminderLeadTimeMinutes: integer(
       "due_date_reminder_lead_time_minutes",
     )
@@ -1994,6 +2071,31 @@ export const apikeyTable = pgTable(
   ],
 );
 
+export const passkeyTable = pgTable(
+  "passkey",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    name: text("name"),
+    publicKey: text("public_key").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    credentialID: text("credential_id").notNull(),
+    counter: integer("counter").notNull(),
+    deviceType: text("device_type").notNull(),
+    backedUp: boolean("backed_up").notNull(),
+    transports: text("transports"),
+    createdAt: timestamp("created_at", { mode: "date" }).default(utcNow),
+    aaguid: text("aaguid"),
+  },
+  (table) => [
+    index("passkey_userId_idx").on(table.userId),
+    uniqueIndex("passkey_credentialID_idx").on(table.credentialID),
+  ],
+);
+
 export const deviceCodeTable = pgTable(
   "device_code",
   {
@@ -2064,6 +2166,7 @@ export const invitation = invitationTable;
 export const organizationRole = workspaceRoleTable;
 export const apikey = apikeyTable;
 export const deviceCode = deviceCodeTable;
+export const passkey = passkeyTable;
 
 // Auth-schema compatible relation exports in schema.ts
 export const userRelations = relations(user, ({ many }) => ({

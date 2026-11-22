@@ -40,6 +40,11 @@ export type NotificationPreferenceResponse = {
   taskStatusChangeEnabled: boolean;
   dueDateReminderEnabled: boolean;
   dueDateReminderLeadTimeMinutes: number;
+  scheduleEnabled: boolean;
+  scheduleTimezone: string;
+  scheduleDays: number[];
+  scheduleStart: string;
+  scheduleEnd: string;
   workspaces: Array<{
     id: string;
     workspaceId: string;
@@ -75,6 +80,11 @@ export type UpdateNotificationPreferenceInput = {
   taskStatusChangeEnabled?: boolean;
   dueDateReminderEnabled?: boolean;
   dueDateReminderLeadTimeMinutes?: number;
+  scheduleEnabled?: boolean;
+  scheduleTimezone?: string;
+  scheduleDays?: number[];
+  scheduleStart?: string;
+  scheduleEnd?: string;
 };
 
 export type UpsertWorkspaceRuleInput = {
@@ -231,6 +241,11 @@ export async function getNotificationPreferences(
     dueDateReminderEnabled: preference?.dueDateReminderEnabled ?? true,
     dueDateReminderLeadTimeMinutes:
       preference?.dueDateReminderLeadTimeMinutes ?? 1440,
+    scheduleEnabled: preference?.scheduleEnabled ?? false,
+    scheduleTimezone: preference?.scheduleTimezone ?? "UTC",
+    scheduleDays: preference?.scheduleDays ?? [1, 2, 3, 4, 5],
+    scheduleStart: preference?.scheduleStart ?? "09:00",
+    scheduleEnd: preference?.scheduleEnd ?? "18:00",
     workspaces: rules.map((rule) => ({
       id: rule.id,
       workspaceId: rule.workspaceId,
@@ -423,7 +438,24 @@ export async function updateNotificationPreferences(
       input.dueDateReminderLeadTimeMinutes ??
       existing?.dueDateReminderLeadTimeMinutes ??
       1440,
+    scheduleEnabled:
+      input.scheduleEnabled ?? existing?.scheduleEnabled ?? false,
+    scheduleTimezone:
+      input.scheduleTimezone ?? existing?.scheduleTimezone ?? "UTC",
+    scheduleDays: [
+      ...new Set(
+        input.scheduleDays ?? existing?.scheduleDays ?? [1, 2, 3, 4, 5],
+      ),
+    ].sort(),
+    scheduleStart: input.scheduleStart ?? existing?.scheduleStart ?? "09:00",
+    scheduleEnd: input.scheduleEnd ?? existing?.scheduleEnd ?? "18:00",
   };
+
+  if (data.scheduleStart >= data.scheduleEnd) {
+    throw new HTTPException(400, {
+      message: "The schedule must end after it starts",
+    });
+  }
 
   if (existing) {
     await db

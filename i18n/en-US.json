@@ -182,6 +182,8 @@
 			},
 			"lastUsed": "Last used",
 			"guestError": "Failed to sign in as guest",
+			"passkey": "Sign in with a passkey",
+			"passkeyError": "Passkey sign-in failed",
 			"errors": {
 				"account_not_linked": "This identity could not be linked to the existing account. Sign in by email to verify the account, then try SSO again. If email sign-in is unavailable, contact your administrator.",
 				"oauth_code_verification_failed": "OAuth verification failed. Please try again.",
@@ -1122,6 +1124,17 @@
 			"reminderLeadTimeUnitHoursBefore_other": "hours before",
 			"reminderLeadTimeUnitDaysBefore_one": "day before",
 			"reminderLeadTimeUnitDaysBefore_other": "days before",
+			"scheduleTitle": "Delivery schedule",
+			"scheduleDescription": "Email, ntfy and Gotify are held back outside these hours. Your inbox always updates.",
+			"scheduleEnabled": "Only deliver during set hours",
+			"scheduleEnabledHint": "Notifications outside the window are not sent to those channels.",
+			"scheduleTimezone": "Timezone",
+			"scheduleDays": "Days",
+			"scheduleHours": "Hours",
+			"scheduleHoursInvalid": "End time must be after start time.",
+			"scheduleStart": "Start time",
+			"scheduleEnd": "End time",
+			"scheduleSave": "Save schedule",
 			"channelsTitle": "Channels",
 			"channelsDescription": "Notifications always show in Kaneo. Connect a channel to get them somewhere else too.",
 			"statusOn": "On",
@@ -2435,6 +2448,23 @@
 				"revokeOthersConfirmTitle": "Sign out all other sessions?",
 				"revokeOthersConfirmDescription": "Your other sessions will be signed out right away.",
 				"toastRevokedOthers": "Other sessions signed out."
+			},
+			"passkeys": {
+				"title": "Passkeys",
+				"description": "Sign in with your fingerprint, face or device lock instead of a password.",
+				"add": "Add passkey",
+				"unnamed": "Passkey",
+				"addedOn": "Added {{date}}",
+				"empty": "No passkeys yet.",
+				"loadError": "Couldn't load your passkeys.",
+				"delete": "Delete",
+				"deleteLabel": "Delete passkey {{name}}",
+				"deleteConfirmTitle": "Delete this passkey?",
+				"deleteConfirmDescription": "You won't be able to sign in with it any more.",
+				"toastAdded": "Passkey added.",
+				"toastAddError": "Couldn't add the passkey.",
+				"toastDeleted": "Passkey deleted.",
+				"toastDeleteError": "Couldn't delete the passkey."
 			}
 		},
 		"calendarFeeds": {
@@ -2906,6 +2936,33 @@
 				"response": "Invalid response"
 			},
 			"save": "Save"
+		},
+		"workspaceWebhooks": {
+			"title": "Webhooks",
+			"add": "Add webhook",
+			"edit": "Edit webhook",
+			"label": "Name",
+			"url": "URL",
+			"resources": "Events",
+			"teams": "Teams",
+			"teamsHint": "Leave empty to receive events from every team.",
+			"allTeams": "All teams",
+			"enabled": "Enabled",
+			"disabled": "Disabled",
+			"toggle": "Enable {{label}}",
+			"actions": "Actions for {{label}}",
+			"deleteTitle": "Delete webhook?",
+			"loadError": "Webhooks could not be loaded.",
+			"saveError": "The webhook could not be saved.",
+			"empty": "No webhooks",
+			"save": "Save",
+			"types": {
+				"task": "Issues",
+				"comment": "Comments",
+				"project": "Teams and projects",
+				"label": "Labels",
+				"cycle": "Cycles"
+			}
 		},
 		"projectCycles": {
 			"title": "Cycles",
@@ -3583,6 +3640,14 @@
 			"due_date_reminder": {
 				"title": "Issue due soon",
 				"content": "{{taskTitle}} is due in {{leadTime}}"
+			},
+			"sla_warning": {
+				"title": "SLA at risk",
+				"content": "{{taskTitle}} is about to breach its SLA"
+			},
+			"sla_breach": {
+				"title": "SLA breached",
+				"content": "{{taskTitle}} has breached its SLA"
 			},
 			"task_overdue": {
 				"title": "Issue overdue",
