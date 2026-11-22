@@ -1844,6 +1844,8 @@
 			"iconLabel": "Icon",
 			"iconHint": "Shown in the sidebar and project lists.",
 			"estimates": {
+				"title": "Estimates",
+				"subtitle": "How issues in this team are sized.",
 				"type": "Issue estimation",
 				"typeHint": "How issues in this team are sized.",
 				"saveFailed": "Could not save the estimate settings",
