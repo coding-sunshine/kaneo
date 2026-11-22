@@ -26,6 +26,7 @@ const DEFAULT_FILTERS: BoardFilters = {
   labels: null,
   workProject: null,
   cycle: null,
+  estimate: null,
   customFields: null,
   negated: null,
 };
@@ -41,6 +42,7 @@ const FILTER_KEYS: Array<keyof BoardFilters> = [
   "labels",
   "workProject",
   "cycle",
+  "estimate",
   "customFields",
   "negated",
 ];
@@ -231,7 +233,8 @@ export function useTaskFiltersWithLabelsSupport(
       | "startDate"
       | "labels"
       | "workProject"
-      | "cycle",
+      | "cycle"
+      | "estimate",
     value: string,
   ) => {
     setFilters((prev) => {
