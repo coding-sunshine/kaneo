@@ -17,9 +17,25 @@ export function isAgentEnabled(): boolean {
   return Boolean(process.env.OPENROUTER_API_KEY);
 }
 
+type StreamChunk = {
+  choices?: {
+    delta?: {
+      content?: string | null;
+      tool_calls?: {
+        index: number;
+        id?: string;
+        function?: { name?: string; arguments?: string };
+      }[];
+    };
+  }[];
+};
+
+// Streams the completion (SSE) and folds the deltas into one message. Text
+// deltas go to `onText` as they arrive; tool calls are only used once whole.
 export async function createCompletion(
   messages: ChatMessage[],
   tools: unknown[],
+  onText?: (delta: string) => void,
 ): Promise<ChatMessage> {
   const response = await fetch(
     "https://openrouter.ai/api/v1/chat/completions",
@@ -32,23 +48,61 @@ export async function createCompletion(
       body: JSON.stringify({
         model: process.env.AGENT_MODEL || DEFAULT_AGENT_MODEL,
         messages,
-        tools,
+        ...(tools.length ? { tools } : {}),
+        stream: true,
         provider: { data_collection: "deny" },
       }),
       signal: AbortSignal.timeout(90_000),
     },
   );
-  if (!response.ok) {
+  if (!response.ok || !response.body) {
     throw new Error(`The model request failed (HTTP ${response.status})`);
   }
-  const data = (await response.json()) as {
-    choices?: { message?: ChatMessage }[];
+
+  let content = "";
+  const calls: ToolCall[] = [];
+  const decoder = new TextDecoder();
+  let buffer = "";
+  const handle = (line: string) => {
+    if (!line.startsWith("data:")) return;
+    const payload = line.slice(5).trim();
+    if (!payload || payload === "[DONE]") return;
+    let chunk: StreamChunk;
+    try {
+      chunk = JSON.parse(payload);
+    } catch {
+      return;
+    }
+    const delta = chunk.choices?.[0]?.delta;
+    if (delta?.content) {
+      content += delta.content;
+      onText?.(delta.content);
+    }
+    for (const part of delta?.tool_calls ?? []) {
+      const call = (calls[part.index] ??= {
+        id: "",
+        type: "function",
+        function: { name: "", arguments: "" },
+      });
+      if (part.id) call.id = part.id;
+      call.function.name += part.function?.name ?? "";
+      call.function.arguments += part.function?.arguments ?? "";
+    }
   };
-  const message = data.choices?.[0]?.message;
-  if (!message) throw new Error("The model returned no message");
+  for await (const bytes of response.body as unknown as AsyncIterable<Uint8Array>) {
+    buffer += decoder.decode(bytes, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const line of lines) handle(line);
+  }
+  handle(buffer);
+
+  const toolCalls = calls.filter(Boolean);
+  if (!content && !toolCalls.length)
+    throw new Error("The model returned no message");
   return {
     role: "assistant",
-    content: message.content ?? null,
-    ...(message.tool_calls?.length ? { tool_calls: message.tool_calls } : {}),
+    content: content || null,
+    ...(toolCalls.length ? { tool_calls: toolCalls } : {}),
   };
 }

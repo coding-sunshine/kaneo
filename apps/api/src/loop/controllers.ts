@@ -2,7 +2,12 @@ import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
 import db from "../database";
-import { loopRunTable, loopTable, userTable } from "../database/schema";
+import {
+  loopRunTable,
+  loopTable,
+  projectTable,
+  userTable,
+} from "../database/schema";
 import { nextRunAfter } from "./schedule";
 import type { createLoopBody, updateLoopBody } from "./schema";
 
@@ -15,6 +20,8 @@ const selectLoop = () =>
       creatorName: userTable.name,
       name: loopTable.name,
       instructions: loopTable.instructions,
+      trigger: loopTable.trigger,
+      projectId: loopTable.projectId,
       frequency: loopTable.frequency,
       enabled: loopTable.enabled,
       nextRunAt: loopTable.nextRunAt,
@@ -66,16 +73,36 @@ export async function getOwnLoop(
   return loop;
 }
 
+async function assertProjectInWorkspace(
+  workspaceId: string,
+  projectId: string | null | undefined,
+) {
+  if (!projectId) return;
+  const [project] = await db
+    .select({ id: projectTable.id })
+    .from(projectTable)
+    .where(
+      and(
+        eq(projectTable.id, projectId),
+        eq(projectTable.workspaceId, workspaceId),
+      ),
+    );
+  if (!project) throw new HTTPException(400, { message: "Unknown project" });
+}
+
 export async function createLoop(
   creatorId: string,
   body: z.infer<typeof createLoopBody>,
 ) {
+  await assertProjectInWorkspace(body.workspaceId, body.projectId);
+  const scheduled = body.trigger === "schedule" && body.frequency;
   const [created] = await db
     .insert(loopTable)
     .values({
       ...body,
+      frequency: scheduled ? body.frequency : null,
       creatorId,
-      nextRunAt: nextRunAfter(body.frequency, new Date()),
+      nextRunAt: scheduled ? nextRunAfter(scheduled, new Date()) : null,
     })
     .returning({ id: loopTable.id });
   return getLoop(body.workspaceId, created?.id ?? "");
@@ -88,19 +115,30 @@ export async function updateLoop(
   body: z.infer<typeof updateLoopBody>,
 ) {
   const loop = await getOwnLoop(workspaceId, id, userId);
+  await assertProjectInWorkspace(workspaceId, body.projectId);
+  const trigger = body.trigger ?? loop.trigger;
+  const frequency =
+    trigger === "schedule" ? (body.frequency ?? loop.frequency) : null;
+  if (trigger === "schedule" && !frequency)
+    throw new HTTPException(400, {
+      message: "A scheduled loop needs a frequency",
+    });
   const reschedule =
-    (body.frequency !== undefined && body.frequency !== loop.frequency) ||
-    (body.enabled === true && !loop.enabled);
-  if (Object.keys(body).length)
-    await db
-      .update(loopTable)
-      .set({
-        ...body,
-        ...(reschedule && {
-          nextRunAt: nextRunAfter(body.frequency ?? loop.frequency, new Date()),
-        }),
-      })
-      .where(eq(loopTable.id, id));
+    trigger === "schedule" &&
+    (frequency !== loop.frequency ||
+      loop.trigger !== "schedule" ||
+      (body.enabled === true && !loop.enabled));
+  await db
+    .update(loopTable)
+    .set({
+      ...body,
+      trigger,
+      frequency,
+      ...(trigger !== "schedule" && { nextRunAt: null }),
+      ...(reschedule &&
+        frequency && { nextRunAt: nextRunAfter(frequency, new Date()) }),
+    })
+    .where(eq(loopTable.id, id));
   return getLoop(workspaceId, id);
 }
 

@@ -17,18 +17,48 @@ export const listQuery = z.object({
 });
 
 const frequency = z.enum(FREQUENCIES);
+export const TRIGGERS = [
+  "schedule",
+  "task_created",
+  "task_status_changed",
+  "comment_created",
+] as const;
+const trigger = z.enum(TRIGGERS);
 
-export const createLoopBody = z.object({
+export const draftBody = z.object({
   workspaceId: z.string(),
-  name: z.string().trim().min(1).max(255),
-  instructions: z.string().trim().min(1).max(10_000),
-  frequency,
+  description: z.string().trim().min(1).max(4_000),
 });
+
+export const draftSchema = z
+  .object({
+    name: z.string().trim().min(1).max(255),
+    instructions: z.string().trim().min(1).max(10_000),
+    trigger,
+    frequency: frequency.nullish(),
+  })
+  .openapi("LoopDraft");
+
+export const createLoopBody = z
+  .object({
+    workspaceId: z.string(),
+    name: z.string().trim().min(1).max(255),
+    instructions: z.string().trim().min(1).max(10_000),
+    trigger: trigger.default("schedule"),
+    projectId: z.string().nullish(),
+    frequency: frequency.nullish(),
+  })
+  .refine((body) => body.trigger !== "schedule" || body.frequency, {
+    message: "A scheduled loop needs a frequency",
+    path: ["frequency"],
+  });
 
 export const updateLoopBody = z.object({
   name: z.string().trim().min(1).max(255).optional(),
   instructions: z.string().trim().min(1).max(10_000).optional(),
-  frequency: frequency.optional(),
+  trigger: trigger.optional(),
+  projectId: z.string().nullish(),
+  frequency: frequency.nullish(),
   enabled: z.boolean().optional(),
 });
 
@@ -40,9 +70,11 @@ export const loopSchema = z
     creatorName: z.string().nullable(),
     name: z.string(),
     instructions: z.string(),
-    frequency,
+    trigger,
+    projectId: z.string().nullable(),
+    frequency: frequency.nullable(),
     enabled: z.boolean(),
-    nextRunAt: responseTimestamp,
+    nextRunAt: nullableResponseTimestamp,
     lastRunAt: nullableResponseTimestamp,
     createdAt: responseTimestamp,
   })
@@ -53,7 +85,7 @@ export const loopListSchema = z.array(loopSchema);
 export const runSummarySchema = z
   .object({
     id: z.string(),
-    trigger: z.enum(["schedule", "manual"]),
+    trigger: z.enum(["schedule", "manual", "event"]),
     status: z.enum(["running", "succeeded", "failed"]),
     error: z.string().nullable(),
     startedAt: responseTimestamp,

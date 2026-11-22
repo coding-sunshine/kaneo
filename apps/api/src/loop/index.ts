@@ -18,10 +18,14 @@ import {
   listRuns,
   updateLoop,
 } from "./controllers";
+import { draftLoop } from "./draft";
+import "./event-triggers";
 import { executeLoop } from "./run-loop";
 import {
   createLoopBody,
   deletedLoopSchema,
+  draftBody,
+  draftSchema,
   listQuery,
   loopListSchema,
   loopParam,
@@ -84,7 +88,7 @@ const createRouteDef = createRoute({
   tags,
   summary: "Create loop",
   description:
-    "Create a loop that runs its instructions on a schedule, with your permissions at run time.",
+    "Create a loop that runs its instructions on a schedule or when a task event fires, with your permissions at run time.",
   middleware: [
     workspaceAccess.fromBody(),
     requireWorkspacePermission({ project: ["read"] }),
@@ -179,6 +183,27 @@ const getRunRoute = createRoute({
   },
 });
 
+const draftRoute = createRoute({
+  method: "post",
+  operationId: "draftLoop",
+  path: "/draft",
+  tags,
+  summary: "Draft a loop from a description",
+  description:
+    "One model call turns a plain-language description into a loop draft (name, instructions, trigger or schedule). Nothing is saved.",
+  middleware: [
+    workspaceAccess.fromBody(),
+    requireWorkspacePermission({ project: ["read"] }),
+  ] as const,
+  request: { body: body(draftBody) },
+  responses: {
+    200: jsonResponse("Draft", draftSchema),
+    403: noAccess,
+    404: notFound,
+    502: errorResponse("The model request failed"),
+  },
+});
+
 const loop = apiRouter();
 loop.use("*", async (_c, next) => {
   if (!isAgentEnabled()) throw new HTTPException(404, { message: "Not found" });
@@ -202,6 +227,9 @@ const routes = loop
   })
   .openapi(createRouteDef, async (c) =>
     c.json(await createLoop(c.get("userId"), c.req.valid("json")), 200),
+  )
+  .openapi(draftRoute, async (c) =>
+    c.json(await draftLoop(c.req.valid("json").description), 200),
   )
   .openapi(updateRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");

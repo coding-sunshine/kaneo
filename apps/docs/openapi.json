@@ -2950,21 +2950,43 @@
           "instructions": {
             "type": "string"
           },
-          "frequency": {
+          "trigger": {
             "type": "string",
+            "enum": [
+              "schedule",
+              "task_created",
+              "task_status_changed",
+              "comment_created"
+            ]
+          },
+          "projectId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "frequency": {
+            "type": [
+              "string",
+              "null"
+            ],
             "enum": [
               "hourly",
               "daily",
               "weekly",
               "monthly",
-              "yearly"
+              "yearly",
+              null
             ]
           },
           "enabled": {
             "type": "boolean"
           },
           "nextRunAt": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "date-time"
           },
           "lastRunAt": {
@@ -2986,11 +3008,56 @@
           "creatorName",
           "name",
           "instructions",
+          "trigger",
+          "projectId",
           "frequency",
           "enabled",
           "nextRunAt",
           "lastRunAt",
           "createdAt"
+        ]
+      },
+      "LoopDraft": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "instructions": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000
+          },
+          "trigger": {
+            "type": "string",
+            "enum": [
+              "schedule",
+              "task_created",
+              "task_status_changed",
+              "comment_created"
+            ]
+          },
+          "frequency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "hourly",
+              "daily",
+              "weekly",
+              "monthly",
+              "yearly",
+              null
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "instructions",
+          "trigger"
         ]
       },
       "LoopRun": {
@@ -3024,7 +3091,8 @@
             "type": "string",
             "enum": [
               "schedule",
-              "manual"
+              "manual",
+              "event"
             ]
           },
           "status": {
@@ -21894,6 +21962,95 @@
         }
       }
     },
+    "/agent/workspace/{workspaceId}/messages/stream": {
+      "post": {
+        "operationId": "streamAgentMessage",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Send a message and stream the reply",
+        "description": "Same as sending a message, but answers as server-sent events: `chat` (chat id and title), `delta` (reply text as it is written), `message` (each finished message, tool calls and results included), then `done`, or `error`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chatId": {
+                    "type": "string",
+                    "description": "Existing chat to continue. Omit to start a new chat."
+                  },
+                  "message": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 10000
+                  }
+                },
+                "required": [
+                  "message"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Server-sent event stream",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or chat not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/loop/workspace/{workspaceId}": {
       "get": {
         "operationId": "listLoops",
@@ -22089,14 +22246,33 @@
                     "minLength": 1,
                     "maxLength": 10000
                   },
-                  "frequency": {
+                  "trigger": {
                     "type": "string",
+                    "enum": [
+                      "schedule",
+                      "task_created",
+                      "task_status_changed",
+                      "comment_created"
+                    ]
+                  },
+                  "projectId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "frequency": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "enum": [
                       "hourly",
                       "daily",
                       "weekly",
                       "monthly",
-                      "yearly"
+                      "yearly",
+                      null
                     ]
                   },
                   "enabled": {
@@ -22240,7 +22416,7 @@
           "Loops"
         ],
         "summary": "Create loop",
-        "description": "Create a loop that runs its instructions on a schedule, with your permissions at run time.",
+        "description": "Create a loop that runs its instructions on a schedule or when a task event fires, with your permissions at run time.",
         "requestBody": {
           "required": true,
           "content": {
@@ -22261,22 +22437,41 @@
                     "minLength": 1,
                     "maxLength": 10000
                   },
-                  "frequency": {
+                  "trigger": {
                     "type": "string",
+                    "enum": [
+                      "schedule",
+                      "task_created",
+                      "task_status_changed",
+                      "comment_created"
+                    ],
+                    "default": "schedule"
+                  },
+                  "projectId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "frequency": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "enum": [
                       "hourly",
                       "daily",
                       "weekly",
                       "monthly",
-                      "yearly"
+                      "yearly",
+                      null
                     ]
                   }
                 },
                 "required": [
                   "workspaceId",
                   "name",
-                  "instructions",
-                  "frequency"
+                  "instructions"
                 ]
               }
             }
@@ -22325,6 +22520,95 @@
           },
           "429": {
             "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/loop/draft": {
+      "post": {
+        "operationId": "draftLoop",
+        "tags": [
+          "Loops"
+        ],
+        "summary": "Draft a loop from a description",
+        "description": "One model call turns a plain-language description into a loop draft (name, instructions, trigger or schedule). Nothing is saved.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "description"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Draft",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoopDraft"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Loop not found or the agent is disabled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "502": {
+            "description": "The model request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }

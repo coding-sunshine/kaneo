@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
+import { publishEvent } from "../../apps/api/src/events";
 import { runDueLoops } from "../../apps/api/src/scheduler/loops";
 import { callTool, model, reply } from "./helpers/agent-model";
 import { mockAuthenticatedSession } from "./helpers/auth";
@@ -80,7 +81,7 @@ describe("API integration: loops", () => {
     expect(transcript).toContain("Loop project");
 
     const [after] = await db.select().from(schema.loopTable);
-    expect(after?.nextRunAt.getTime()).toBeGreaterThan(Date.now());
+    expect(after?.nextRunAt?.getTime()).toBeGreaterThan(Date.now());
     const list = await (
       await app.request(
         `/api/loop/workspace/${owner.workspace.id}/${loop.id}/runs`,
@@ -121,7 +122,7 @@ describe("API integration: loops", () => {
 
     await app.request(url, json("PUT", { enabled: true }));
     const [enabled] = await db.select().from(schema.loopTable);
-    expect(enabled?.nextRunAt.getTime()).toBeGreaterThan(Date.now());
+    expect(enabled?.nextRunAt?.getTime()).toBeGreaterThan(Date.now());
   });
 
   it("lets only the creator run, edit or delete a loop", async () => {
@@ -175,5 +176,129 @@ describe("API integration: loops", () => {
       },
     });
     expect(forged.status).toBe(401);
+  });
+
+  const makeEventLoop = async (
+    app: Awaited<ReturnType<typeof setup>>["app"],
+    ws: string,
+    body: object = {},
+  ) => {
+    const res = await app.request(
+      "/api/loop",
+      json("POST", {
+        workspaceId: ws,
+        name: "On new issue",
+        instructions: "Assign an owner",
+        trigger: "task_created",
+        ...body,
+      }),
+    );
+    expect(res.status).toBe(200);
+    return res.json();
+  };
+  const runs = async (count: number) => {
+    await vi.waitFor(async () => {
+      const rows = await db.select().from(schema.loopRunTable);
+      expect(rows.length).toBeGreaterThanOrEqual(count);
+      expect(rows.every((r) => r.status !== "running")).toBe(true);
+    });
+    return db.select().from(schema.loopRunTable);
+  };
+
+  it("fires an event loop once per event, scoped to its project", async () => {
+    const { owner, project, app } = await setup();
+    const ws = owner.workspace.id;
+    const other = await createProjectFixture({
+      workspaceId: ws,
+      name: "Other",
+    });
+    const created = await makeEventLoop(app, ws, { projectId: project.id });
+    expect(created).toMatchObject({
+      trigger: "task_created",
+      frequency: null,
+      nextRunAt: null,
+      projectId: project.id,
+    });
+
+    model.queue.push(reply("done"));
+    await publishEvent("task.created", {
+      projectId: other.project.id,
+      taskId: "t0",
+    });
+    await publishEvent("task.created", { projectId: project.id, taskId: "t1" });
+    await publishEvent("task.created", { projectId: project.id, taskId: "t1" });
+    const rows = await runs(1);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ trigger: "event", status: "succeeded" });
+    expect(JSON.stringify(rows[0]?.messages)).toContain("task t1");
+  });
+
+  it("caps event runs per hour", async () => {
+    const { owner, project, app } = await setup();
+    const loop = await makeEventLoop(app, owner.workspace.id);
+    await db.insert(schema.loopRunTable).values(
+      Array.from({ length: 20 }, () => ({
+        loopId: loop.id,
+        trigger: "event" as const,
+        status: "succeeded" as const,
+      })),
+    );
+    await publishEvent("task.created", {
+      projectId: project.id,
+      taskId: "cap",
+    });
+    await new Promise((r) => setTimeout(r, 300));
+    expect(await db.select().from(schema.loopRunTable)).toHaveLength(20);
+    expect(model.seen).toHaveLength(0);
+  });
+
+  it("does not let a loop's own changes trigger loops", async () => {
+    const { owner, project, app } = await setup();
+    await makeEventLoop(app, owner.workspace.id);
+    model.queue.push(reply("ok"));
+    await publishEvent("task.created", { projectId: project.id, taskId: "a" });
+    await runs(1);
+    // A second loop run publishing inside its own context is ignored.
+    const { loopRunContext } = await import("../../apps/api/src/loop/run-loop");
+    await loopRunContext.run(true, () =>
+      publishEvent("task.created", { projectId: project.id, taskId: "b" }),
+    );
+    await new Promise((r) => setTimeout(r, 300));
+    expect(await db.select().from(schema.loopRunTable)).toHaveLength(1);
+  });
+
+  it("drafts a loop from text with one model call, saving nothing", async () => {
+    const { owner, app } = await setup();
+    model.queue.push(
+      reply(
+        JSON.stringify({
+          name: "Triage bugs",
+          instructions: "Label new bugs and assign an owner",
+          trigger: "task_created",
+          frequency: null,
+        }),
+      ),
+    );
+    const res = await app.request(
+      "/api/loop/draft",
+      json("POST", {
+        workspaceId: owner.workspace.id,
+        description: "triage new bugs",
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      name: "Triage bugs",
+      trigger: "task_created",
+    });
+    expect(model.seen).toHaveLength(1);
+    expect(await db.select().from(schema.loopTable)).toHaveLength(1);
+
+    model.queue.push(reply("not json"));
+    const bad = await app.request(
+      "/api/loop/draft",
+      json("POST", { workspaceId: owner.workspace.id, description: "x" }),
+    );
+    expect(bad.status).toBe(502);
   });
 });

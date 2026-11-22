@@ -177,4 +177,23 @@ describe("API integration: agent", () => {
     const tasks = await db.select().from(schema.taskTable);
     expect(tasks.map((t) => t.title)).toEqual(["From the agent"]);
   });
+
+  it("streams the reply as server-sent events", async () => {
+    const owner = await createWorkspaceMember({ role: "owner" });
+    mockAuthenticatedSession(owner.user);
+    const { app } = createApp();
+    model.queue.push(reply("streamed"));
+    const res = await app.request(
+      `/api/agent/workspace/${owner.workspace.id}/messages/stream`,
+      post({ message: "hi" }),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/event-stream");
+    const events = (await res.text())
+      .split("\n")
+      .filter((line) => line.startsWith("data:"))
+      .map((line) => JSON.parse(line.slice(5)));
+    expect(events.map((e) => e.type)).toEqual(["chat", "message", "done"]);
+    expect(events[1].message).toMatchObject({ content: "streamed" });
+  });
 });

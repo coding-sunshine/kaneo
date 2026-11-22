@@ -3,7 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import db from "../database";
 import { agentChatTable, agentMessageTable } from "../database/schema";
 import { type ChatMessage } from "./openrouter";
-import { runAgent } from "./run-agent";
+import { type AgentEvent, runAgent } from "./run-agent";
 import { createSelfClient, forwardedAuthHeaders } from "./self-client";
 
 export const listChats = (userId: string, workspaceId: string) =>
@@ -81,6 +81,9 @@ export async function sendMessage(
   workspaceId: string,
   requestHeaders: Headers,
   body: { chatId?: string; message: string },
+  onEvent?: (
+    event: AgentEvent | { type: "chat"; chatId: string; title: string },
+  ) => void,
 ) {
   const chat = body.chatId
     ? await getOwnChat(userId, workspaceId, body.chatId)
@@ -96,6 +99,7 @@ export async function sendMessage(
       )[0];
   if (!chat) throw new HTTPException(500, { message: "Chat not created" });
 
+  onEvent?.({ type: "chat", chatId: chat.id, title: chat.title });
   const history = await chatMessages(chat.id);
   const userMessage: ChatMessage = { role: "user", content: body.message };
   // Saved before the model runs so a failed run keeps the question.
@@ -107,6 +111,7 @@ export async function sendMessage(
       [...history, userMessage],
       createSelfClient(forwardedAuthHeaders(requestHeaders)),
       workspaceId,
+      onEvent,
     );
   } catch (error) {
     throw new HTTPException(502, {

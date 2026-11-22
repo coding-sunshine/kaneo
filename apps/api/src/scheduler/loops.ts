@@ -18,7 +18,13 @@ async function runBatch(): Promise<{ degraded: boolean }> {
   const due = await db
     .select()
     .from(loopTable)
-    .where(and(eq(loopTable.enabled, true), lte(loopTable.nextRunAt, now)))
+    .where(
+      and(
+        eq(loopTable.enabled, true),
+        eq(loopTable.trigger, "schedule"),
+        lte(loopTable.nextRunAt, now),
+      ),
+    )
     .orderBy(asc(loopTable.nextRunAt))
     .limit(BATCH_SIZE);
 
@@ -26,6 +32,7 @@ async function runBatch(): Promise<{ degraded: boolean }> {
   for (const loop of due) {
     // Advancing nextRunAt first claims the tick: a missed window runs once,
     // not once per missed interval, and a second instance skips it.
+    if (!loop.frequency || !loop.nextRunAt) continue;
     const [claimed] = await db
       .update(loopTable)
       .set({ nextRunAt: nextRunAfter(loop.frequency, now) })

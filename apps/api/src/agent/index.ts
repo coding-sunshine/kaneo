@@ -1,9 +1,11 @@
 import { HTTPException } from "hono/http-exception";
+import { streamSSE } from "hono/streaming";
 import {
   apiRouter,
   createRoute,
   errorResponse,
   jsonResponse,
+  z,
 } from "../openapi";
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
@@ -101,6 +103,32 @@ const sendRoute = createRoute({
   },
 });
 
+const streamRoute = createRoute({
+  method: "post",
+  operationId: "streamAgentMessage",
+  path: "/workspace/{workspaceId}/messages/stream",
+  tags,
+  summary: "Send a message and stream the reply",
+  description:
+    "Same as sending a message, but answers as server-sent events: `chat` (chat id and title), `delta` (reply text as it is written), `message` (each finished message, tool calls and results included), then `done`, or `error`.",
+  middleware: [...read] as const,
+  request: {
+    params: workspaceParam,
+    body: {
+      required: true as const,
+      content: { "application/json": { schema: sendMessageBody } },
+    },
+  },
+  responses: {
+    200: {
+      description: "Server-sent event stream",
+      content: { "text/event-stream": { schema: z.string() } },
+    },
+    403: noAccess,
+    404: notFound,
+  },
+});
+
 const agent = apiRouter();
 agent.use("*", async (_c, next) => {
   if (!isAgentEnabled()) {
@@ -134,6 +162,27 @@ const routes = agent
       ),
       200,
     ),
-  );
+  )
+  .openapi(streamRoute, (c) => {
+    const { workspaceId } = c.req.valid("param");
+    const body = c.req.valid("json");
+    const userId = c.get("userId");
+    const headers = c.req.raw.headers;
+    return streamSSE(c, async (stream) => {
+      const send = (event: object) =>
+        stream.writeSSE({ data: JSON.stringify(event) });
+      try {
+        await sendMessage(userId, workspaceId, headers, body, (event) => {
+          void send(event);
+        });
+        await send({ type: "done" });
+      } catch (error) {
+        await send({
+          type: "error",
+          message: error instanceof Error ? error.message : "The agent failed",
+        });
+      }
+    }) as never;
+  });
 
 export default routes;

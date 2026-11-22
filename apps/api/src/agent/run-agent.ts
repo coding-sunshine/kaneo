@@ -4,6 +4,10 @@ import { buildAgentTools } from "./tools";
 
 export const MAX_AGENT_STEPS = 8;
 
+export type AgentEvent =
+  | { type: "delta"; text: string }
+  | { type: "message"; message: ChatMessage };
+
 function systemPrompt(workspaceId: string) {
   return [
     "You are Kaneo's agent. You help the user inspect and manage their workspace through the provided tools.",
@@ -20,6 +24,7 @@ export async function runAgent(
   history: ChatMessage[],
   client: ToolClient,
   workspaceId: string,
+  onEvent?: (event: AgentEvent) => void,
 ): Promise<ChatMessage[]> {
   const tools = buildAgentTools(client);
   const added: ChatMessage[] = [];
@@ -30,23 +35,32 @@ export async function runAgent(
   ];
 
   for (let step = 0; step < MAX_AGENT_STEPS; step++) {
-    const reply = await createCompletion(conversation(), tools.definitions);
+    const reply = await createCompletion(
+      conversation(),
+      tools.definitions,
+      (text) => onEvent?.({ type: "delta", text }),
+    );
     added.push(reply);
+    onEvent?.({ type: "message", message: reply });
     if (!reply.tool_calls?.length) return added;
     for (const toolCall of reply.tool_calls) {
-      added.push({
+      const result: ChatMessage = {
         role: "tool",
         tool_call_id: toolCall.id,
         content: await tools.call(
           toolCall.function.name,
           toolCall.function.arguments,
         ),
-      });
+      };
+      added.push(result);
+      onEvent?.({ type: "message", message: result });
     }
   }
-  added.push({
+  const stopped: ChatMessage = {
     role: "assistant",
     content: `I stopped after ${MAX_AGENT_STEPS} steps. Ask me to continue if you want more.`,
-  });
+  };
+  added.push(stopped);
+  onEvent?.({ type: "message", message: stopped });
   return added;
 }
