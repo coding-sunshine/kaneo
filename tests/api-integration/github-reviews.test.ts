@@ -266,13 +266,18 @@ describe("list", () => {
   const item = (n: number, over: Record<string, unknown> = {}) => ({
     number: n,
     title: `PR ${n}`,
-    html_url: `https://github.com/acme/web/pull/${n}`,
-    state: "open",
-    comments: 2,
-    created_at: "2026-01-01T00:00:00Z",
-    updated_at: "2026-01-02T00:00:00Z",
-    repository_url: "https://api.github.com/repos/acme/web",
-    user: { login: "ada", avatar_url: "https://avatars.test/ada" },
+    url: `https://github.com/acme/web/pull/${n}`,
+    state: "OPEN",
+    isDraft: false,
+    comments: { totalCount: 2 },
+    createdAt: "2026-01-01T00:00:00Z",
+    updatedAt: "2026-01-02T00:00:00Z",
+    additions: 10,
+    deletions: 2,
+    reviewDecision: null,
+    repository: { name: "web", owner: { login: "acme" } },
+    author: { login: "ada", avatarUrl: "https://avatars.test/ada" },
+    commits: { nodes: [{ commit: { statusCheckRollup: null } }] },
     ...over,
   });
 
@@ -281,22 +286,34 @@ describe("list", () => {
     await connectFlow(user.id);
     gh.searchPullRequests.mockImplementation(async (_token, query: string) =>
       query.includes("review-requested:@me")
-        ? [item(1, { draft: false })]
+        ? [
+            item(1, {
+              reviewDecision: "CHANGES_REQUESTED",
+              commits: {
+                nodes: [
+                  { commit: { statusCheckRollup: { state: "FAILURE" } } },
+                ],
+              },
+            }),
+          ]
         : query.includes("author:@me") && !query.includes("-author")
-          ? [
-              item(2, { draft: true }),
-              item(3, { pull_request: { merged_at: "x" } }),
-            ]
-          : [item(4, { state: "closed" })],
+          ? [item(2, { isDraft: true }), item(3, { state: "MERGED" })]
+          : [item(4, { state: "CLOSED" })],
     );
     const response = await app.request(
       `${BASE}?includeDrafts=true&includeClosed=true`,
     );
     expect(response.status).toBe(200);
     const body = await response.json();
-    expect(body.toReview.map((pr: { number: number }) => pr.number)).toEqual([
-      1,
-    ]);
+    expect(body.toReview).toHaveLength(1);
+    expect(body.toReview[0]).toMatchObject({
+      number: 1,
+      reviewDecision: "changes_requested",
+      checks: "failure",
+      additions: 10,
+      deletions: 2,
+    });
+    expect(body.created[0].checks).toBe("none");
     expect(body.created.map((pr: { status: string }) => pr.status)).toEqual([
       "draft",
       "merged",
@@ -324,6 +341,44 @@ describe("list", () => {
       "is:pr author:@me is:open archived:false draft:false",
       "is:pr involves:@me -author:@me is:open archived:false draft:false",
     ]);
+  });
+
+  it("reads the search through GraphQL and pages the files list", async () => {
+    const actual = await vi.importActual<
+      typeof import("../../apps/api/src/github-reviews/github-api")
+    >("../../apps/api/src/github-reviews/github-api");
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        Response.json({ data: { search: { nodes: [item(1), {}] } } }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      const found = await actual.searchPullRequests("tok", "is:pr x");
+      expect(found).toHaveLength(1);
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url).toBe("https://api.github.com/graphql");
+      expect(JSON.parse(init.body).variables.q).toBe(
+        "is:pr x sort:updated-desc",
+      );
+
+      const file = (i: number) => ({
+        filename: `f${i}`,
+        status: "added",
+        additions: 1,
+        deletions: 0,
+      });
+      fetchMock
+        .mockResolvedValueOnce(
+          Response.json(Array.from({ length: 100 }, (_, i) => file(i))),
+        )
+        .mockResolvedValueOnce(Response.json([file(100), file(101)]));
+      const files = await actual.listPullFiles("tok", "a", "b", "1");
+      expect(files).toHaveLength(102);
+      expect(fetchMock.mock.calls[2][0]).toContain("page=2");
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("does not give another user your pull requests or token", async () => {

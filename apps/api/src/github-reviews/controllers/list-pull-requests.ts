@@ -1,32 +1,44 @@
-import { type GithubSearchItem, searchPullRequests } from "../github-api";
+import { type GithubSearchPull, searchPullRequests } from "../github-api";
 import { withGithubToken } from "../with-github-token";
 
 type Options = { includeDrafts: boolean; includeClosed: boolean };
 
-function toSummary(item: GithubSearchItem) {
-  const [owner = "", repo = ""] = item.repository_url
-    .split("/repos/")[1]
-    ?.split("/") ?? ["", ""];
-  const merged = Boolean(item.pull_request?.merged_at);
+const decisions = {
+  APPROVED: "approved",
+  CHANGES_REQUESTED: "changes_requested",
+  REVIEW_REQUIRED: "review_required",
+} as const;
+
+function toChecks(state: string | undefined) {
+  if (state === "SUCCESS") return "success" as const;
+  if (state === "FAILURE" || state === "ERROR") return "failure" as const;
+  if (state === "PENDING" || state === "EXPECTED") return "pending" as const;
+  return "none" as const;
+}
+
+function toSummary(pull: GithubSearchPull) {
   return {
-    owner,
-    repo,
-    number: item.number,
-    title: item.title,
-    url: item.html_url,
-    author: item.user
-      ? { login: item.user.login, avatarUrl: item.user.avatar_url }
-      : null,
-    status: merged
-      ? ("merged" as const)
-      : item.state === "closed"
-        ? ("closed" as const)
-        : item.draft
-          ? ("draft" as const)
-          : ("open" as const),
-    comments: item.comments,
-    createdAt: item.created_at,
-    updatedAt: item.updated_at,
+    owner: pull.repository.owner.login,
+    repo: pull.repository.name,
+    number: pull.number,
+    title: pull.title,
+    url: pull.url,
+    author: pull.author,
+    status:
+      pull.state === "MERGED"
+        ? ("merged" as const)
+        : pull.state === "CLOSED"
+          ? ("closed" as const)
+          : pull.isDraft
+            ? ("draft" as const)
+            : ("open" as const),
+    comments: pull.comments.totalCount,
+    createdAt: pull.createdAt,
+    updatedAt: pull.updatedAt,
+    reviewDecision: pull.reviewDecision ? decisions[pull.reviewDecision] : null,
+    checks: toChecks(pull.commits.nodes[0]?.commit.statusCheckRollup?.state),
+    additions: pull.additions,
+    deletions: pull.deletions,
   };
 }
 

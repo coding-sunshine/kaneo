@@ -25,10 +25,19 @@ export const pullRequestSummarySchema = z.object({
   updatedAt: z.string(),
 });
 
+export const reviewListItemSchema = pullRequestSummarySchema.extend({
+  reviewDecision: z
+    .enum(["approved", "changes_requested", "review_required"])
+    .nullable(),
+  checks: z.enum(["success", "failure", "pending", "none"]),
+  additions: z.number(),
+  deletions: z.number(),
+});
+
 export const reviewListSchema = z.object({
-  toReview: z.array(pullRequestSummarySchema),
-  created: z.array(pullRequestSummarySchema),
-  participated: z.array(pullRequestSummarySchema),
+  toReview: z.array(reviewListItemSchema),
+  created: z.array(reviewListItemSchema),
+  participated: z.array(reviewListItemSchema),
 });
 
 export const pullRequestSchema = pullRequestSummarySchema.extend({

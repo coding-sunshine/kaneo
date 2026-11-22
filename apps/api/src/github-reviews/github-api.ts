@@ -114,32 +114,74 @@ export type GithubUser = { id: number; login: string };
 export const getAuthenticatedUser = (token: string) =>
   githubRequest<GithubUser>(token, "/user");
 
-export type GithubSearchItem = {
+export type GithubSearchPull = {
   number: number;
   title: string;
-  html_url: string;
-  state: string;
-  draft?: boolean;
-  comments: number;
-  created_at: string;
-  updated_at: string;
-  repository_url: string;
-  user: { login: string; avatar_url: string } | null;
-  pull_request?: { merged_at: string | null };
+  url: string;
+  state: "OPEN" | "CLOSED" | "MERGED";
+  isDraft: boolean;
+  createdAt: string;
+  updatedAt: string;
+  additions: number;
+  deletions: number;
+  reviewDecision: "APPROVED" | "CHANGES_REQUESTED" | "REVIEW_REQUIRED" | null;
+  comments: { totalCount: number };
+  author: { login: string; avatarUrl: string } | null;
+  repository: { name: string; owner: { login: string } };
+  commits: {
+    nodes: { commit: { statusCheckRollup: { state: string } | null } }[];
+  };
 };
 
+const SEARCH_QUERY = `query($q: String!) {
+  search(query: $q, type: ISSUE, first: 50) {
+    nodes {
+      ... on PullRequest {
+        number title url state isDraft createdAt updatedAt additions deletions
+        reviewDecision
+        comments { totalCount }
+        author { login avatarUrl }
+        repository { name owner { login } }
+        commits(last: 1) { nodes { commit { statusCheckRollup { state } } } }
+      }
+    }
+  }
+}`;
+
 export async function searchPullRequests(token: string, query: string) {
-  const params = new URLSearchParams({
-    q: query,
-    sort: "updated",
-    order: "desc",
-    per_page: "50",
+  const response = await fetch(`${API}/graphql`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      query: SEARCH_QUERY,
+      variables: { q: `${query} sort:updated-desc` },
+    }),
   });
-  const result = await githubRequest<{ items: GithubSearchItem[] }>(
-    token,
-    `/search/issues?${params}`,
+  const body = (await response.json().catch(() => ({}))) as {
+    data?: { search: { nodes: Partial<GithubSearchPull>[] } };
+    errors?: { message: string }[];
+    message?: string;
+  };
+  if (!response.ok) {
+    throw new GithubApiError(
+      response.status,
+      body.message || `GitHub responded ${response.status}`,
+    );
+  }
+  if (!body.data) {
+    // GraphQL reports failures as HTTP 200 with an errors array.
+    throw new GithubApiError(
+      502,
+      body.errors?.[0]?.message ?? "GitHub GraphQL returned no data",
+    );
+  }
+  // Non-pull results (none, given is:pr) come back as empty objects.
+  return body.data.search.nodes.filter(
+    (node): node is GithubSearchPull => typeof node.number === "number",
   );
-  return result.items;
 }
 
 type GithubPerson = { login: string; avatar_url: string } | null;
@@ -182,17 +224,27 @@ export type GithubFile = {
   patch?: string;
 };
 
-// ponytail: first page only (100 files). Page through when huge PRs matter.
-export const listPullFiles = (
+const FILES_PAGE = 100;
+// GitHub serves at most 3000 files per pull request.
+const FILES_MAX_PAGES = 30;
+
+export async function listPullFiles(
   token: string,
   owner: string,
   repo: string,
   number: string,
-) =>
-  githubRequest<GithubFile[]>(
-    token,
-    `${pullPath(owner, repo, number)}/files?per_page=100`,
-  );
+) {
+  const files: GithubFile[] = [];
+  for (let page = 1; page <= FILES_MAX_PAGES; page++) {
+    const batch = await githubRequest<GithubFile[]>(
+      token,
+      `${pullPath(owner, repo, number)}/files?per_page=${FILES_PAGE}&page=${page}`,
+    );
+    files.push(...batch);
+    if (batch.length < FILES_PAGE) break;
+  }
+  return files;
+}
 
 export type GithubCheckRun = {
   name: string;
