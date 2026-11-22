@@ -1,4 +1,5 @@
 import { HTTPException } from "hono/http-exception";
+import { type EstimateSettings, estimateOptions } from "../estimate/scales";
 import { nullableResponseTimestamp, responseTimestamp, z } from "../openapi";
 import { boardColumnSchema, boardTaskSchema } from "../task/response";
 
@@ -14,6 +15,17 @@ export const projectSchema = z
     cycleAutoAddStarted: z.boolean().optional(),
     cycleAutoAddCompleted: z.boolean().optional(),
     cycleAutoRollover: z.boolean().optional(),
+    estimateType: z.string().optional(),
+    estimateExtended: z.boolean().optional(),
+    estimateAllowZero: z.boolean().optional(),
+    estimateCountUnestimated: z.boolean().optional(),
+    estimateOptions: z
+      .array(z.object({ value: z.number(), label: z.string() }))
+      .optional()
+      .openapi({
+        description:
+          "The points an issue can take on this team's estimate scale; empty when estimates are off.",
+      }),
     id: z.string(),
     workspaceId: z.string(),
     backgroundVersion: z.string().nullable(),
@@ -71,6 +83,9 @@ export const teamMembershipSchema = z
 export const projectListItemSchema = projectSchema
   .extend({
     statistics: projectStatisticsSchema,
+    memberCount: z.number().openapi({
+      description: "Workspace members who can open this team.",
+    }),
     membership: teamMembershipSchema,
     // Legacy, always empty. Fetch the board via GET /task/tasks/{id}.
     archivedTasks: z
@@ -109,7 +124,7 @@ export function toPublicProject<
   T extends {
     backgroundObjectKey: string | null;
     backgroundMimeType: string | null;
-  },
+  } & EstimateSettings,
 >(project: T | undefined) {
   if (!project)
     throw new HTTPException(500, {
@@ -120,5 +135,5 @@ export function toPublicProject<
     backgroundMimeType: _mime,
     ...publicProject
   } = project;
-  return publicProject;
+  return { ...publicProject, estimateOptions: estimateOptions(project) };
 }

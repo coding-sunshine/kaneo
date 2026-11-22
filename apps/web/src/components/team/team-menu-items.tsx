@@ -1,7 +1,10 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Archive, Bell, Link as LinkIcon, Settings, Star } from "lucide-react";
+import { SlackIcon } from "@/components/icons/slack-icon";
 import { useTranslation } from "react-i18next";
+import { ShortcutKeys } from "@/components/shortcuts/shortcut-keys";
 import type { LeavingTeam } from "@/components/team/leave-team-dialog";
+import { useTeamActions } from "@/components/team/use-team-actions";
 import {
   DropdownMenuCheckboxItem,
   DropdownMenuItem,
@@ -11,7 +14,6 @@ import {
   DropdownMenuSubTrigger,
 } from "@/components/ui/menu";
 import useUpdateTeamMembership from "@/hooks/mutations/project/use-update-team-membership";
-import { useFavorite } from "@/hooks/queries/favorite/use-favorites";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import { toast } from "@/lib/toast";
 
@@ -38,10 +40,10 @@ export function TeamMenuItems({
 }: TeamMenuItemsProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { isFavorite, toggle } = useFavorite(workspaceId, {
-    type: "project",
-    targetId: projectId,
-  });
+  const { isFavorite, toggleFavorite, copyUrl } = useTeamActions(
+    workspaceId,
+    projectId,
+  );
   const { data: projects } = useGetProjects({ workspaceId });
   const team = projects?.find((project) => project.id === projectId);
   const { mutate } = useUpdateTeamMembership(workspaceId);
@@ -50,13 +52,18 @@ export function TeamMenuItems({
 
   return (
     <>
-      <DropdownMenuItem className={item} onClick={toggle}>
+      <DropdownMenuItem className={item} onClick={toggleFavorite}>
         <Star className="text-muted-foreground" />
         <span>
           {isFavorite
             ? t("navigation:projectList.unfavorite")
             : t("navigation:projectList.favorite")}
         </span>
+        <ShortcutKeys
+          id="toggleTeamFavorite"
+          tone="muted"
+          className="ms-auto"
+        />
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem
@@ -71,19 +78,10 @@ export function TeamMenuItems({
         <Settings className="text-muted-foreground" />
         <span>{t("navigation:projectList.teamSettings")}</span>
       </DropdownMenuItem>
-      <DropdownMenuItem
-        className={item}
-        onClick={() => {
-          navigator.clipboard.writeText(
-            `${window.location.origin}/dashboard/workspace/${workspaceId}/project/${projectId}`,
-          );
-          toast.success(t("navigation:projectList.linkCopied"), {
-            icon: LinkIcon,
-          });
-        }}
-      >
+      <DropdownMenuItem className={item} onClick={copyUrl}>
         <LinkIcon className="text-muted-foreground" />
         <span>{t("navigation:projectList.copyUrl")}</span>
+        <ShortcutKeys id="copyTeamUrl" tone="muted" className="ms-auto" />
       </DropdownMenuItem>
       <DropdownMenuItem
         className={item}
@@ -124,7 +122,20 @@ export function TeamMenuItems({
               </DropdownMenuSubContent>
             </DropdownMenuSub>
           )}
-          {team.membership.joined && <DropdownMenuSeparator />}
+          <DropdownMenuItem
+            className={item}
+            onClick={() =>
+              navigate({
+                to: "/dashboard/settings/projects/$projectId/integrations",
+                params: { projectId },
+                hash: "slack",
+              })
+            }
+          >
+            <SlackIcon className="size-4 text-muted-foreground" />
+            <span>{t("navigation:projectList.configureSlack")}</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           {/* Linear's leave row has no icon and no danger colour. */}
           <DropdownMenuItem
             className={item}

@@ -8,6 +8,7 @@ import {
   Layers,
   Tag,
   UserRound,
+  Hexagon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cycleTitle } from "@/lib/cycle/cycle-label";
@@ -137,6 +138,7 @@ export function useFilterSubjects({
     priority: countValues(tasks, (task) => [task.priority]),
     workProject: countValues(tasks, (task) => [task.workProjectId]),
     cycle: countValues(tasks, (task) => [task.cycleId]),
+    estimate: countValues(tasks, (task) => [String(task.estimate ?? "none")]),
     labels: countValues(tasks, (task) =>
       (task.labels ?? []).map((label) =>
         groupIdByLabel.get(labelGroupKey(label)),
@@ -235,6 +237,31 @@ export function useFilterSubjects({
             selected: filters.cycle ?? [],
             onToggle: (value) => toggleFilter("cycle", value),
             onClear: () => updateFilter("cycle", null),
+          }),
+        ]
+      : []),
+    ...((options.estimates ?? []).length > 0
+      ? [
+          subject("estimate", {
+            label: t("tasks:boardFilters.subjects.estimate"),
+            icon: <Hexagon />,
+            options: [
+              ...(options.estimates ?? []).map((option) => ({
+                value: String(option.value),
+                label: option.label,
+                icon: <Hexagon />,
+                count: counts.estimate[String(option.value)],
+              })),
+              {
+                value: "none",
+                label: t("tasks:boardFilters.subjects.noEstimate"),
+                icon: <Hexagon />,
+                count: counts.estimate.none,
+              },
+            ],
+            selected: filters.estimate ?? [],
+            onToggle: (value) => toggleFilter("estimate", value),
+            onClear: () => updateFilter("estimate", null),
           }),
         ]
       : []),

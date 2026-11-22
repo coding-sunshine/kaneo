@@ -5,6 +5,7 @@ export type TaskActionName =
   | "labels"
   | "dueDate"
   | "cycle"
+  | "estimate"
   | "move"
   | "title"
   | "description"

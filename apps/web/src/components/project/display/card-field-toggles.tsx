@@ -1,10 +1,12 @@
 import { useTranslation } from "react-i18next";
+import { useEstimateOptions } from "@/hooks/queries/project/use-estimate-options";
 import { Toggle } from "@/components/ui/toggle";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 
-export function CardFieldToggles() {
+export function CardFieldToggles({ projectId }: { projectId: string }) {
   const { t } = useTranslation();
   const preferences = useUserPreferencesStore();
+  const estimating = useEstimateOptions(projectId).length > 0;
 
   const fields = [
     {
@@ -49,6 +51,16 @@ export function CardFieldToggles() {
       pressed: preferences.showPriority,
       onPressedChange: preferences.setShowPriority,
     },
+    ...(estimating
+      ? [
+          {
+            id: "estimate",
+            label: t("tasks:properties.estimate"),
+            pressed: preferences.showEstimate,
+            onPressedChange: preferences.setShowEstimate,
+          },
+        ]
+      : []),
     {
       id: "checklist",
       label: t("tasks:display.checklistProgress"),

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "@tanstack/react-router";
 import {
   ChevronRight,
   CircleUserRound,
+  GitPullRequest,
   Box,
   FileText,
   Inbox,
@@ -31,6 +32,7 @@ import { usePendingInvitations } from "@/hooks/queries/invitation/use-pending-in
 import useGetNotifications from "@/hooks/queries/notification/use-get-notifications";
 import useGetAssignedTasks from "@/hooks/queries/task/use-get-assigned-tasks";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
+import { useUserPreferencesStore } from "@/store/user-preferences";
 
 type NavItem = {
   title: string;
@@ -68,6 +70,9 @@ function NavItems({ items, pathname }: { items: NavItem[]; pathname: string }) {
 
 export function NavMain() {
   const { t } = useTranslation();
+  const codeReviewsEnabled = useUserPreferencesStore(
+    (state) => state.codeReviewsEnabled,
+  );
   const { data: workspace } = useActiveWorkspace();
   const pathname = useLocation({
     select: (location) => location.pathname.replace(/\/+$/, ""),
@@ -97,6 +102,15 @@ export function NavMain() {
       url: `${homeUrl}/my-tasks`,
       count: assignedTasks?.total,
     },
+    ...(codeReviewsEnabled
+      ? [
+          {
+            title: t("navigation:sidebar.reviews"),
+            icon: GitPullRequest,
+            url: `${homeUrl}/reviews`,
+          },
+        ]
+      : []),
     {
       title: t("navigation:sidebar.documents"),
       icon: FileText,

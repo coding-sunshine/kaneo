@@ -4,6 +4,7 @@ import { useHasAgent } from "@/hooks/queries/agent/use-agent";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { useShortcut } from "@/lib/shortcuts/use-shortcut";
+import { useUserPreferencesStore } from "@/store/user-preferences";
 
 export function GlobalShortcuts() {
   const navigate = useNavigate();
@@ -11,6 +12,9 @@ export function GlobalShortcuts() {
   const { data: projects = [] } = useGetProjects(
     { workspaceId: workspace?.id ?? "" },
     true,
+  );
+  const codeReviewsEnabled = useUserPreferencesStore(
+    (state) => state.codeReviewsEnabled,
   );
   const base = workspace ? `/dashboard/workspace/${workspace.id}` : null;
   const enabled = Boolean(base);
@@ -29,6 +33,9 @@ export function GlobalShortcuts() {
     },
     { enabled: enabled && hasAgent },
   );
+  useShortcut("goToReviews", () => go("/reviews"), {
+    enabled: enabled && codeReviewsEnabled,
+  });
   useShortcut("goToProjects", () => go("/work-projects"), { enabled });
   useShortcut("goToSettings", () =>
     navigate({ to: "/dashboard/settings/account/information" }),

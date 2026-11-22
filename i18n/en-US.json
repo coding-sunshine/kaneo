@@ -1187,6 +1187,8 @@
 			"priorityIconsClassic": "Classic",
 			"sidebarDefault": "Keep the sidebar open",
 			"sidebarDefaultDescription": "Start with the sidebar expanded.",
+			"codeReviews": "Enable code reviews",
+			"codeReviewsDescription": "Show Reviews in the sidebar and enable the G then R shortcut.",
 			"displayOptions": "Issue details",
 			"displayOptionsDescription": "What shows on cards and rows in your boards and lists.",
 			"taskNumbers": "Issue numbers",
@@ -1550,9 +1552,24 @@
 			"title": "Teams",
 			"create": "Create team",
 			"empty": "No teams yet",
+			"exportCsv": "Export CSV",
+			"filterPlaceholder": "Filter by name...",
+			"statusLabel": "Status",
+			"status": {
+				"active": "Active",
+				"archived": "Archived"
+			},
+			"openMenu": "Open menu",
+			"menuSettings": "Settings",
+			"menuDelete": "Delete",
+			"visibilityPublic": "Public",
+			"visibilityWorkspace": "Workspace",
 			"columns": {
 				"name": "Name",
 				"identifier": "Identifier",
+				"description": "Description",
+				"visibility": "Visibility",
+				"members": "Members",
 				"issues": "Issues",
 				"created": "Created"
 			}
@@ -1828,6 +1845,26 @@
 			"projectInfoTitle": "Project",
 			"iconLabel": "Icon",
 			"iconHint": "Shown in the sidebar and project lists.",
+			"estimates": {
+				"title": "Estimates",
+				"subtitle": "How issues in this team are sized.",
+				"type": "Issue estimation",
+				"typeHint": "How issues in this team are sized.",
+				"saveFailed": "Could not save the estimate settings",
+				"types": {
+					"none": "Not in use",
+					"exponential": "Exponential (1, 2, 4, 8, 16 Points)",
+					"fibonacci": "Fibonacci (1, 2, 3, 5, 8 Points)",
+					"linear": "Linear (1, 2, 3, 4, 5 Points)",
+					"tshirt": "T-Shirt (XS, S, M, L, XL)"
+				},
+				"extended": "Extended estimates",
+				"extendedHint": "Add larger sizes to the scale.",
+				"allowZero": "Allow zero estimates",
+				"allowZeroHint": "Let issues be estimated at 0.",
+				"countUnestimated": "Count unestimated issues",
+				"countUnestimatedHint": "Treat issues with no estimate as 1 point in Insights. On by default."
+			},
 			"pickIconTitle": "Pick icon",
 			"searchIconsPlaceholder": "Search icons...",
 			"projectNameLabel": "Name",
@@ -2914,6 +2951,7 @@
 			"home": "Home",
 			"inbox": "Inbox",
 			"myTasks": "My issues",
+			"reviews": "Reviews",
 			"invitePeople": "Invite people",
 			"issues": "Issues",
 			"allIssues": "All issues",
@@ -2956,6 +2994,7 @@
 			"subscribeIssueAdded": "An issue is added to the team",
 			"subscribeIssueClosed": "An issue is marked completed or canceled",
 			"subscribeIssueTriage": "An issue is added to the triage queue",
+			"configureSlack": "Configure Slack notifications…",
 			"leaveTeam": "Leave team",
 			"joinTeam": "Join team",
 			"leaveConfirmTitle": "Leave {{name}}?",
@@ -3025,6 +3064,7 @@
 				"goToHome": "Go to home",
 				"goToInbox": "Go to inbox",
 				"goToMyTasks": "Go to my issues",
+				"goToReviews": "Go to reviews",
 				"goToProjects": "Go to projects",
 				"goToSettings": "Go to settings",
 				"goToTasks": "Go to issues",
@@ -3035,6 +3075,8 @@
 				"createTask": "Create issue",
 				"createProject": "Create project",
 				"toggleLayout": "Switch between board and list",
+				"toggleTeamFavorite": "Favorite team",
+				"copyTeamUrl": "Copy team URL",
 				"toggleInsights": "Toggle insights",
 				"deleteTask": "Delete issue",
 				"copyTaskUrl": "Copy issue URL",
@@ -3051,6 +3093,7 @@
 				"assignToMe": "Assign to me",
 				"changeLabels": "Change labels",
 				"changeCycle": "Change cycle",
+				"setEstimate": "Set estimate",
 				"setDueDate": "Set due date",
 				"removeDueDate": "Remove due date",
 				"renameTask": "Rename",
@@ -3940,7 +3983,9 @@
 			"milestone": "Milestone",
 			"addMilestone": "Add to milestone",
 			"cycle": "Cycle",
-			"addCycle": "Add to cycle"
+			"addCycle": "Add to cycle",
+			"estimate": "Estimate",
+			"addEstimate": "Set estimate"
 		},
 		"move": {
 			"title": "Move issue",
@@ -4041,6 +4086,11 @@
 				"current": "Current",
 				"upcoming": "Upcoming",
 				"previous": "Previous"
+			},
+			"estimate": {
+				"placeholder": "Set estimate…",
+				"none": "No estimate",
+				"updateError": "Could not update the estimate"
 			}
 		},
 		"backlog": {
@@ -4090,7 +4140,9 @@
 				"dueDate": "Due date",
 				"labels": "Labels",
 				"workProject": "Project",
-				"cycle": "Cycle"
+				"cycle": "Cycle",
+				"estimate": "Estimate",
+				"noEstimate": "No estimate"
 			},
 			"operators": {
 				"isAnyOf": "is any of",
@@ -4384,6 +4436,7 @@
 			"noSegment": "No segment",
 			"measures": {
 				"count": "Issue count",
+				"effort": "Effort",
 				"cycleTime": "Cycle time",
 				"leadTime": "Lead time",
 				"triageTime": "Triage time",
@@ -4393,6 +4446,19 @@
 			"share": "Share",
 			"median": "Median",
 			"percentile": "{{percent}}% of issues take {{duration}} or less. Select to zoom.",
+			"ageBreakdown": "Issue age, share of issues at or under",
+			"burnUp": "Burn-up",
+			"showArchived": "Show archived issues",
+			"interval": "Interval",
+			"intervals": {
+				"month": "Month",
+				"week": "Week"
+			},
+			"burnUpSeries": {
+				"created": "Created",
+				"started": "Started",
+				"completed": "Completed"
+			},
 			"days_one": "{{count}} day",
 			"days_other": "{{count}} days",
 			"hours_one": "{{count}} hour",
@@ -4620,6 +4686,106 @@
 				"thisWeek": "This week",
 				"later": "Later",
 				"noDueDate": "No due date"
+			}
+		},
+		"reviews": {
+			"pageTitle": "Reviews",
+			"detail": {
+				"submitted": "Review submitted",
+				"reviewPlaceholder": "Leave a review comment",
+				"comment": "Comment",
+				"approve": "Approve",
+				"requestChanges": "Request changes",
+				"noPatch": "No preview for this file. Open it on GitHub.",
+				"noChecks": "No checks have run for this pull request.",
+				"details": "Details",
+				"noDescription": "No description provided.",
+				"openOnGithub": "Open on GitHub",
+				"notFound": "This pull request could not be loaded. It may not exist, or the Kaneo GitHub App may not be installed on its repository.",
+				"tabs": {
+					"overview": "Overview",
+					"files": "Files changed",
+					"checks": "Checks"
+				}
+			},
+			"dismiss": "I don't do code review",
+			"loadError": "Could not load your pull requests.",
+			"showDrafts": "Drafts",
+			"showClosed": "Closed",
+			"tabs": {
+				"created": "Created",
+				"toReview": "To Review"
+			},
+			"status": {
+				"open": "Open",
+				"draft": "Draft",
+				"merged": "Merged",
+				"closed": "Closed"
+			},
+			"empty": {
+				"title": "No pull requests",
+				"description": "Pull requests you created or are asked to review show up here. If you expect to see some, check that the Kaneo GitHub App is installed on those repositories."
+			},
+			"connect": {
+				"title": "Connect GitHub to start reviewing",
+				"description": "Your GitHub account needs to be connected before you can review pull requests in Kaneo",
+				"action": "Connect your GitHub account"
+			},
+			"reconnect": {
+				"title": "Reconnect GitHub to keep reviewing",
+				"description": "Your GitHub account needs to be connected again before you can review pull requests in Kaneo",
+				"action": "Reconnect your GitHub account"
+			},
+			"notConfigured": {
+				"title": "GitHub reviews are not set up",
+				"description": "An administrator needs to add the Kaneo GitHub App credentials before pull requests can be reviewed here."
+			},
+			"filterPlaceholder": "Filter",
+			"noAuthor": "No author",
+			"pinGroup": "Pin to bottom",
+			"unpinGroup": "Unpin from bottom",
+			"display": {
+				"label": "Display options",
+				"grouping": "Grouping",
+				"subGrouping": "Sub-grouping",
+				"ordering": "Ordering",
+				"repository": "Repository",
+				"checks": "Checks",
+				"size": "Size"
+			},
+			"groupBy": {
+				"none": "No grouping",
+				"status": "Status",
+				"reviewStatus": "Review status",
+				"checks": "Checks",
+				"author": "Author",
+				"repository": "Repository",
+				"size": "Size"
+			},
+			"sortBy": {
+				"updated": "Last updated",
+				"created": "Created",
+				"size": "Size",
+				"title": "Title"
+			},
+			"reviewStatus": {
+				"changes_requested": "Changes requested",
+				"review_required": "Review required",
+				"approved": "Approved",
+				"no_decision": "No review decision"
+			},
+			"checks": {
+				"success": "Checks passing",
+				"failure": "Checks failing",
+				"pending": "Checks running",
+				"none": "No checks"
+			},
+			"size": {
+				"xs": "Extra small",
+				"s": "Small",
+				"m": "Medium",
+				"l": "Large",
+				"xl": "Extra large"
 			}
 		},
 		"myTasks": {

@@ -220,6 +220,13 @@
             "type": "string",
             "description": "One of: no-priority, low, medium, high, urgent."
           },
+          "estimate": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Points on the team's estimate scale (see the project's estimateOptions). Null when unestimated."
+          },
           "startDate": {
             "type": [
               "string",
@@ -959,6 +966,37 @@
           "cycleAutoRollover": {
             "type": "boolean"
           },
+          "estimateType": {
+            "type": "string"
+          },
+          "estimateExtended": {
+            "type": "boolean"
+          },
+          "estimateAllowZero": {
+            "type": "boolean"
+          },
+          "estimateCountUnestimated": {
+            "type": "boolean"
+          },
+          "estimateOptions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number"
+                },
+                "label": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value",
+                "label"
+              ]
+            },
+            "description": "The points an issue can take on this team's estimate scale; empty when estimates are off."
+          },
           "id": {
             "type": "string"
           },
@@ -1044,6 +1082,10 @@
               "statistics": {
                 "$ref": "#/components/schemas/ProjectStatistics"
               },
+              "memberCount": {
+                "type": "number",
+                "description": "Workspace members who can open this team."
+              },
               "membership": {
                 "$ref": "#/components/schemas/TeamMembership"
               },
@@ -1071,6 +1113,7 @@
             },
             "required": [
               "statistics",
+              "memberCount",
               "membership",
               "archivedTasks",
               "plannedTasks",
@@ -1492,6 +1535,13 @@
           "priority": {
             "type": "string",
             "description": "One of: no-priority, low, medium, high, urgent."
+          },
+          "estimate": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Points on the team's estimate scale (see the project's estimateOptions). Null when unestimated."
           },
           "startDate": {
             "type": [
@@ -12352,6 +12402,26 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 120
+                  },
+                  "estimateType": {
+                    "type": "string",
+                    "enum": [
+                      "none",
+                      "exponential",
+                      "fibonacci",
+                      "linear",
+                      "tshirt"
+                    ],
+                    "description": "Issue estimation scale: none turns estimates off."
+                  },
+                  "estimateExtended": {
+                    "type": "boolean"
+                  },
+                  "estimateAllowZero": {
+                    "type": "boolean"
+                  },
+                  "estimateCountUnestimated": {
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -15606,6 +15676,104 @@
           },
           "400": {
             "description": "Invalid priority",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing task:update permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/task/estimate/{id}": {
+      "put": {
+        "operationId": "updateTaskEstimate",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Update task estimate",
+        "description": "Set a task's estimate in points on its team's scale, or send null to clear it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "estimate": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "description": "Points from the team's estimate scale (see the project's estimateOptions). Null clears it."
+                  }
+                },
+                "required": [
+                  "estimate"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Estimate is not on the team's scale",
             "content": {
               "application/json": {
                 "schema": {
@@ -26562,6 +26730,1427 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/github-reviews/status": {
+      "get": {
+        "operationId": "getGithubReviewsStatus",
+        "tags": [
+          "GitHub Reviews"
+        ],
+        "summary": "Get GitHub reviews connection status",
+        "description": "Whether pull request reviews are configured on this instance and whether the signed-in user has a working GitHub connection.",
+        "responses": {
+          "200": {
+            "description": "Connection status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "state": {
+                      "type": "string",
+                      "enum": [
+                        "not_configured",
+                        "not_connected",
+                        "needs_reconnect",
+                        "connected"
+                      ]
+                    },
+                    "login": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "state",
+                    "login"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/github-reviews/connect": {
+      "get": {
+        "operationId": "connectGithubReviews",
+        "tags": [
+          "GitHub Reviews"
+        ],
+        "summary": "Connect a GitHub account",
+        "description": "Starts GitHub user authorization for the signed-in user and redirects the browser to GitHub. Open it as a page, not through fetch.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "App-relative path to return to after connecting."
+            },
+            "required": false,
+            "description": "App-relative path to return to after connecting.",
+            "name": "returnTo",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirects to GitHub to authorize"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "GitHub reviews are not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/github-reviews/callback": {
+      "get": {
+        "operationId": "completeGithubReviewsConnection",
+        "tags": [
+          "GitHub Reviews"
+        ],
+        "summary": "Finish connecting a GitHub account",
+        "description": "GitHub redirects here after authorization. Verifies the state, stores the user's token, and returns the browser to the Reviews page.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "code",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "state",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "error",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirects back to the web app"
+          },
+          "400": {
+            "description": "The state did not match this browser session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "502": {
+            "description": "GitHub rejected the authorization",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/github-reviews/connection": {
+      "delete": {
+        "operationId": "disconnectGithubReviews",
+        "tags": [
+          "GitHub Reviews"
+        ],
+        "summary": "Disconnect the GitHub account",
+        "description": "Deletes the signed-in user's stored GitHub token.",
+        "responses": {
+          "200": {
+            "description": "Disconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/github-reviews/pulls/{owner}/{repo}/{number}": {
+      "get": {
+        "operationId": "getGithubPullRequest",
+        "tags": [
+          "GitHub Reviews"
+        ],
+        "summary": "Get a pull request",
+        "description": "Pull request details read with the user's GitHub token.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "owner",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "repo",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d+$"
+            },
+            "required": true,
+            "name": "number",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get a pull request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "owner": {
+                      "type": "string"
+                    },
+                    "repo": {
+                      "type": "string"
+                    },
+                    "number": {
+                      "type": "number"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "author": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "login": {
+                          "type": "string"
+                        },
+                        "avatarUrl": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "login",
+                        "avatarUrl"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "open",
+                        "merged",
+                        "closed"
+                      ]
+                    },
+                    "comments": {
+                      "type": "number"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "type": "string"
+                    },
+                    "labels": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "color": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "color"
+                        ]
+                      }
+                    },
+                    "headSha": {
+                      "type": "string"
+                    },
+                    "headRef": {
+                      "type": "string"
+                    },
+                    "baseRef": {
+                      "type": "string"
+                    },
+                    "additions": {
+                      "type": "number"
+                    },
+                    "deletions": {
+                      "type": "number"
+                    },
+                    "changedFiles": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "owner",
+                    "repo",
+                    "number",
+                    "title",
+                    "url",
+                    "author",
+                    "status",
+                    "comments",
+                    "createdAt",
+                    "updatedAt",
+                    "body",
+                    "labels",
+                    "headSha",
+                    "headRef",
+                    "baseRef",
+                    "additions",
+                    "deletions",
+                    "changedFiles"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "GitHub is not connected or must be reconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/github-reviews/pulls/{owner}/{repo}/{number}/files": {
+      "get": {
+        "operationId": "listGithubPullRequestFiles",
+        "tags": [
+          "GitHub Reviews"
+        ],
+        "summary": "List changed files",
+        "description": "Changed files with GitHub's unified diff patch text. The patch is null for binary or very large files.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "owner",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "repo",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d+$"
+            },
+            "required": true,
+            "name": "number",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List changed files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "filename": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "additions": {
+                        "type": "number"
+                      },
+                      "deletions": {
+                        "type": "number"
+                      },
+                      "patch": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "filename",
+                      "status",
+                      "additions",
+                      "deletions",
+                      "patch"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "GitHub is not connected or must be reconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/github-reviews/pulls/{owner}/{repo}/{number}/checks": {
+      "get": {
+        "operationId": "getGithubPullRequestChecks",
+        "tags": [
+          "GitHub Reviews"
+        ],
+        "summary": "Get CI checks",
+        "description": "Check runs and commit statuses for the pull request head commit.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "owner",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "repo",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d+$"
+            },
+            "required": true,
+            "name": "number",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get CI checks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "state": {
+                      "type": "string",
+                      "enum": [
+                        "success",
+                        "failure",
+                        "pending",
+                        "none"
+                      ]
+                    },
+                    "checks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "success",
+                              "failure",
+                              "pending"
+                            ]
+                          },
+                          "url": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "state",
+                          "url"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "state",
+                    "checks"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "GitHub is not connected or must be reconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/github-reviews/pulls/{owner}/{repo}/{number}/conversation": {
+      "get": {
+        "operationId": "listGithubPullRequestConversation",
+        "tags": [
+          "GitHub Reviews"
+        ],
+        "summary": "List conversation",
+        "description": "Issue comments and submitted reviews in time order.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "owner",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "repo",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d+$"
+            },
+            "required": true,
+            "name": "number",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List conversation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "comment",
+                          "review"
+                        ]
+                      },
+                      "author": {
+                        "type": [
+                          "object",
+                          "null"
+                        ],
+                        "properties": {
+                          "login": {
+                            "type": "string"
+                          },
+                          "avatarUrl": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "login",
+                          "avatarUrl"
+                        ]
+                      },
+                      "body": {
+                        "type": "string"
+                      },
+                      "reviewState": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "kind",
+                      "author",
+                      "body",
+                      "reviewState",
+                      "createdAt"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "GitHub is not connected or must be reconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/github-reviews/pulls/{owner}/{repo}/{number}/reviews": {
+      "post": {
+        "operationId": "submitGithubPullRequestReview",
+        "tags": [
+          "GitHub Reviews"
+        ],
+        "summary": "Submit a review",
+        "description": "Approve, request changes or comment. Posted to GitHub as the signed-in user.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "owner",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "repo",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d+$"
+            },
+            "required": true,
+            "name": "number",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "event": {
+                    "type": "string",
+                    "enum": [
+                      "APPROVE",
+                      "REQUEST_CHANGES",
+                      "COMMENT"
+                    ]
+                  },
+                  "body": {
+                    "type": "string",
+                    "maxLength": 65536,
+                    "default": ""
+                  }
+                },
+                "required": [
+                  "event"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Submit a review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "GitHub is not connected or must be reconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "GitHub rejected the review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/github-reviews": {
+      "get": {
+        "operationId": "listGithubReviews",
+        "tags": [
+          "GitHub Reviews"
+        ],
+        "summary": "List pull requests to review",
+        "description": "Pull requests awaiting the user's review, authored by them, and ones they took part in, read from GitHub with the user's own token. A GitHub App user token only sees repositories where the Kaneo GitHub App is installed.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ],
+              "default": "false"
+            },
+            "required": false,
+            "name": "includeDrafts",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ],
+              "default": "false"
+            },
+            "required": false,
+            "name": "includeClosed",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pull requests by group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "toReview": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "owner": {
+                            "type": "string"
+                          },
+                          "repo": {
+                            "type": "string"
+                          },
+                          "number": {
+                            "type": "number"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "url": {
+                            "type": "string"
+                          },
+                          "author": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "login": {
+                                "type": "string"
+                              },
+                              "avatarUrl": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "login",
+                              "avatarUrl"
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "draft",
+                              "open",
+                              "merged",
+                              "closed"
+                            ]
+                          },
+                          "comments": {
+                            "type": "number"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          },
+                          "reviewDecision": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "enum": [
+                              "approved",
+                              "changes_requested",
+                              "review_required",
+                              null
+                            ]
+                          },
+                          "checks": {
+                            "type": "string",
+                            "enum": [
+                              "success",
+                              "failure",
+                              "pending",
+                              "none"
+                            ]
+                          },
+                          "additions": {
+                            "type": "number"
+                          },
+                          "deletions": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "owner",
+                          "repo",
+                          "number",
+                          "title",
+                          "url",
+                          "author",
+                          "status",
+                          "comments",
+                          "createdAt",
+                          "updatedAt",
+                          "reviewDecision",
+                          "checks",
+                          "additions",
+                          "deletions"
+                        ]
+                      }
+                    },
+                    "created": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "owner": {
+                            "type": "string"
+                          },
+                          "repo": {
+                            "type": "string"
+                          },
+                          "number": {
+                            "type": "number"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "url": {
+                            "type": "string"
+                          },
+                          "author": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "login": {
+                                "type": "string"
+                              },
+                              "avatarUrl": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "login",
+                              "avatarUrl"
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "draft",
+                              "open",
+                              "merged",
+                              "closed"
+                            ]
+                          },
+                          "comments": {
+                            "type": "number"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          },
+                          "reviewDecision": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "enum": [
+                              "approved",
+                              "changes_requested",
+                              "review_required",
+                              null
+                            ]
+                          },
+                          "checks": {
+                            "type": "string",
+                            "enum": [
+                              "success",
+                              "failure",
+                              "pending",
+                              "none"
+                            ]
+                          },
+                          "additions": {
+                            "type": "number"
+                          },
+                          "deletions": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "owner",
+                          "repo",
+                          "number",
+                          "title",
+                          "url",
+                          "author",
+                          "status",
+                          "comments",
+                          "createdAt",
+                          "updatedAt",
+                          "reviewDecision",
+                          "checks",
+                          "additions",
+                          "deletions"
+                        ]
+                      }
+                    },
+                    "participated": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "owner": {
+                            "type": "string"
+                          },
+                          "repo": {
+                            "type": "string"
+                          },
+                          "number": {
+                            "type": "number"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "url": {
+                            "type": "string"
+                          },
+                          "author": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "login": {
+                                "type": "string"
+                              },
+                              "avatarUrl": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "login",
+                              "avatarUrl"
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "draft",
+                              "open",
+                              "merged",
+                              "closed"
+                            ]
+                          },
+                          "comments": {
+                            "type": "number"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          },
+                          "reviewDecision": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "enum": [
+                              "approved",
+                              "changes_requested",
+                              "review_required",
+                              null
+                            ]
+                          },
+                          "checks": {
+                            "type": "string",
+                            "enum": [
+                              "success",
+                              "failure",
+                              "pending",
+                              "none"
+                            ]
+                          },
+                          "additions": {
+                            "type": "number"
+                          },
+                          "deletions": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "owner",
+                          "repo",
+                          "number",
+                          "title",
+                          "url",
+                          "author",
+                          "status",
+                          "comments",
+                          "createdAt",
+                          "updatedAt",
+                          "reviewDecision",
+                          "checks",
+                          "additions",
+                          "deletions"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "toReview",
+                    "created",
+                    "participated"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "GitHub is not connected or must be reconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
           }
         }
       }

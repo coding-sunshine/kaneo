@@ -31,9 +31,12 @@ CREATE TABLE "loop" (
 	"creator_id" text NOT NULL,
 	"name" text NOT NULL,
 	"instructions" text NOT NULL,
-	"frequency" text NOT NULL,
+	"actions" text[] DEFAULT '{}'::text[] NOT NULL,
+	"trigger" text DEFAULT 'schedule' NOT NULL,
+	"project_id" text,
+	"frequency" text,
 	"enabled" boolean DEFAULT true NOT NULL,
-	"next_run_at" timestamp NOT NULL,
+	"next_run_at" timestamp,
 	"created_at" timestamp DEFAULT (now() AT TIME ZONE 'utc') NOT NULL,
 	"updated_at" timestamp DEFAULT (now() AT TIME ZONE 'utc') NOT NULL
 );
@@ -44,6 +47,7 @@ ALTER TABLE "agent_message" ADD CONSTRAINT "agent_message_chat_id_agent_chat_id_
 ALTER TABLE "loop_run" ADD CONSTRAINT "loop_run_loop_id_loop_id_fk" FOREIGN KEY ("loop_id") REFERENCES "public"."loop"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "loop" ADD CONSTRAINT "loop_workspace_id_workspace_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspace"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "loop" ADD CONSTRAINT "loop_creator_id_user_id_fk" FOREIGN KEY ("creator_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "loop" ADD CONSTRAINT "loop_project_id_project_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."project"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 CREATE INDEX "agent_chat_user_workspace_idx" ON "agent_chat" USING btree ("user_id","workspace_id");--> statement-breakpoint
 CREATE INDEX "agent_message_chat_idx" ON "agent_message" USING btree ("chat_id");--> statement-breakpoint
 CREATE INDEX "loop_run_loop_idx" ON "loop_run" USING btree ("loop_id","started_at");--> statement-breakpoint

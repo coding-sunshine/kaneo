@@ -22,6 +22,12 @@ export function GeneralPreferencesSection() {
   const setSidebarDefaultOpen = useUserPreferencesStore(
     (state) => state.setSidebarDefaultOpen,
   );
+  const codeReviewsEnabled = useUserPreferencesStore(
+    (state) => state.codeReviewsEnabled,
+  );
+  const setCodeReviewsEnabled = useUserPreferencesStore(
+    (state) => state.setCodeReviewsEnabled,
+  );
 
   return (
     <SettingsSection title={t("settings:preferencesPage.appearanceTitle")}>
@@ -43,6 +49,12 @@ export function GeneralPreferencesSection() {
           description={t("settings:preferencesPage.sidebarDefaultDescription")}
           checked={sidebarDefaultOpen}
           onCheckedChange={setSidebarDefaultOpen}
+        />
+        <PreferenceSwitchRow
+          title={t("settings:preferencesPage.codeReviews")}
+          description={t("settings:preferencesPage.codeReviewsDescription")}
+          checked={codeReviewsEnabled}
+          onCheckedChange={setCodeReviewsEnabled}
         />
       </SettingsCard>
     </SettingsSection>

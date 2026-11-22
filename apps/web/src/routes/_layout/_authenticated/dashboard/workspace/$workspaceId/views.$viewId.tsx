@@ -8,6 +8,8 @@ import ListView from "@/components/list-view";
 import PageTitle from "@/components/page-title";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ViewDetailsPanel } from "@/components/views/view-details-panel";
+import { narrowToIssues } from "@/lib/insights/insight-selection";
+import { useInsightsSelectionStore } from "@/store/insights-selection";
 import { ViewInsights } from "@/components/views/view-insights";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
@@ -32,9 +34,13 @@ function TeamIssues({
   filters: Partial<BoardFilters>;
 }) {
   const { data } = useGetTasks(projectId);
+  const insightIds = useInsightsSelectionStore((state) => state.ids);
   const project = useMemo(
-    () => (data ? applyViewFilters(data, filters) : undefined),
-    [data, filters],
+    () =>
+      data
+        ? narrowToIssues(applyViewFilters(data, filters), insightIds)
+        : undefined,
+    [data, filters, insightIds],
   );
   if (!project) return null;
   return <ListView project={project} />;

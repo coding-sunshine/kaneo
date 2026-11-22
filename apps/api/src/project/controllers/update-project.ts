@@ -19,6 +19,15 @@ async function updateProject(
   canShare: boolean,
   includeSubtasks?: boolean,
   autoArchiveMonths?: number,
+  estimation: Partial<
+    Pick<
+      typeof projectTable.$inferInsert,
+      | "estimateType"
+      | "estimateExtended"
+      | "estimateAllowZero"
+      | "estimateCountUnestimated"
+    >
+  > = {},
 ) {
   return db.transaction(async (tx) => {
     await tx.execute(
@@ -68,6 +77,7 @@ async function updateProject(
         isPublic,
         ...(includeSubtasks === undefined ? {} : { includeSubtasks }),
         ...(autoArchiveMonths === undefined ? {} : { autoArchiveMonths }),
+        ...estimation,
       })
       .where(eq(projectTable.id, id))
       .returning();

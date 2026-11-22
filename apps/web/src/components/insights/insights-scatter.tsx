@@ -15,6 +15,9 @@ type InsightsScatterProps = {
   /** Team key for issues that carry none (single-team boards). */
   slug: string;
   segmented: boolean;
+  /** The slice whose table row or points the pointer is over. */
+  hovered: string | null;
+  onHover: (sliceKey: string | null) => void;
 };
 
 /**
@@ -26,6 +29,8 @@ export function InsightsScatter({
   insights,
   slug,
   segmented,
+  hovered,
+  onHover,
 }: InsightsScatterProps) {
   const { t } = useTranslation();
   const { workspaceId = "" } = useParams({ strict: false });
@@ -76,7 +81,14 @@ export function InsightsScatter({
                     tabIndex={-1}
                     aria-label={`${id} ${point.task.title}`}
                     title={`${id} ${point.task.title}\n${where} · ${formatDuration(t, point.days)}`}
-                    className="absolute size-1.5 -translate-x-1/2 translate-y-1/2 rounded-full transition-transform hover:scale-150"
+                    onMouseEnter={() => onHover(slice.key)}
+                    onMouseLeave={() => onHover(null)}
+                    className={cn(
+                      "absolute size-1.5 -translate-x-1/2 translate-y-1/2 rounded-full transition-transform hover:scale-150",
+                      hovered === slice.key &&
+                        "scale-150 ring-2 ring-foreground/40",
+                      hovered && hovered !== slice.key && "opacity-30",
+                    )}
                     style={{
                       // Spread points across the column so equal times stay visible.
                       left: `${15 + ((index * 37) % 70)}%`,

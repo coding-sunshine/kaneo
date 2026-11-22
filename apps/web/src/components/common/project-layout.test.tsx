@@ -73,6 +73,9 @@ vi.mock("@/components/team/leave-team-dialog", () => ({
 vi.mock("@/components/team/team-menu-items", () => ({
   TeamMenuItems: () => null,
 }));
+vi.mock("@/components/team/use-team-actions", () => ({
+  useTeamShortcuts: () => {},
+}));
 vi.mock("@/components/page-title", () => ({ default: () => null }));
 
 afterEach(cleanup);

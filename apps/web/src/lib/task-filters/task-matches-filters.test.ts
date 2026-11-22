@@ -239,3 +239,23 @@ it("combines both date fields with assignee, priority and labels", () => {
     ),
   ).toBe(false);
 });
+
+it("filters by estimate, with none matching unestimated issues", () => {
+  const filters = { ...noFilters, estimate: ["3", "none"] };
+  expect(taskMatchesFilters(task({ estimate: 3 }), filters, context)).toBe(
+    true,
+  );
+  expect(taskMatchesFilters(task({ estimate: null }), filters, context)).toBe(
+    true,
+  );
+  expect(taskMatchesFilters(task({ estimate: 5 }), filters, context)).toBe(
+    false,
+  );
+  expect(
+    taskMatchesFilters(
+      task({ estimate: 5 }),
+      { ...filters, negated: ["estimate"] },
+      context,
+    ),
+  ).toBe(true);
+});

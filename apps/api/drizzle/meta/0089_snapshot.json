@@ -1,6 +1,6 @@
 {
-  "id": "f1a0bb47-b61f-4109-9880-014e722a3907",
-  "prevId": "6eb268b3-eb65-4410-8c47-a3c945c63694",
+  "id": "c2ebe9db-507e-44b2-80d2-177087a6b648",
+  "prevId": "baffbd35-f735-4fb0-9400-90a21f282b91",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -4659,6 +4659,13 @@
           "primaryKey": false,
           "notNull": true
         },
+        "actions": {
+          "name": "actions",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::text[]"
+        },
         "trigger": {
           "name": "trigger",
           "type": "text",
@@ -5336,6 +5343,34 @@
         },
         "cycle_auto_rollover": {
           "name": "cycle_auto_rollover",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "estimate_type": {
+          "name": "estimate_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'none'"
+        },
+        "estimate_extended": {
+          "name": "estimate_extended",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "estimate_allow_zero": {
+          "name": "estimate_allow_zero",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "estimate_count_unestimated": {
+          "name": "estimate_count_unestimated",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
@@ -6126,6 +6161,12 @@
         "triaged_at": {
           "name": "triaged_at",
           "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "estimate": {
+          "name": "estimate",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false
         },

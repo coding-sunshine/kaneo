@@ -41,6 +41,7 @@ export function mergeTeamIssues(
     ORDER.indexOf(statusCategory(column));
   return {
     ...first,
+    archivedTasks: boards.flatMap((board) => board.archivedTasks ?? []),
     columns: [...columns.values()].sort((a, b) => rank(a) - rank(b)),
   };
 }
