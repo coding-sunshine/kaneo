@@ -226,6 +226,51 @@ describe("API integration: loops", () => {
     expect(JSON.stringify(rows[0]?.messages)).toContain("task t1");
   });
 
+  // Each trigger fires from the real route, so a payload missing taskId or
+  // projectId fails here.
+  it.each([
+    ["task_created", "task.created"],
+    ["task_status_changed", "task.status_changed"],
+    ["comment_created", "comment.created"],
+  ] as const)("fires a %s loop from its route", async (trigger, eventType) => {
+    const { owner, project, app } = await setup();
+    await makeEventLoop(app, owner.workspace.id, { trigger });
+    model.queue.push(reply("done"));
+
+    const created = await app.request(
+      `/api/task/${project.id}`,
+      json("POST", {
+        title: "Event source",
+        description: "",
+        priority: "low",
+        status: "to-do",
+      }),
+    );
+    expect(created.status).toBe(200);
+    const task = await created.json();
+    if (trigger === "task_status_changed") {
+      const moved = await app.request(
+        `/api/task/status/${task.id}`,
+        json("PUT", { status: "in-progress" }),
+      );
+      expect(moved.status).toBe(200);
+    }
+    if (trigger === "comment_created") {
+      const commented = await app.request(
+        "/api/activity/comment",
+        json("POST", { taskId: task.id, comment: "Looks good" }),
+      );
+      expect(commented.status).toBe(200);
+    }
+
+    const rows = await runs(1);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ trigger: "event", status: "succeeded" });
+    expect(JSON.stringify(rows[0]?.messages)).toContain(
+      `Triggered by ${eventType}: task ${task.id}`,
+    );
+  });
+
   it("caps event runs per hour", async () => {
     const { owner, project, app } = await setup();
     const loop = await makeEventLoop(app, owner.workspace.id);
