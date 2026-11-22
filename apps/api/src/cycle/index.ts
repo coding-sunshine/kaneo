@@ -21,6 +21,7 @@ import {
   projectIdParam,
   updateCycleBody,
 } from "./schema";
+import { publishEvent } from "../events";
 import "./subscribe";
 
 const body = <T extends import("zod").ZodType>(schema: T) => ({
@@ -139,6 +140,7 @@ const cycle = apiRouter()
         endsAt: end,
       })
       .where(eq(cycleTable.id, id));
+    await publishEvent("cycle.updated", { cycleId: id });
     return c.json(await loadCycle(id), 200);
   })
   .openapi(settingsRoute, async (c) => {

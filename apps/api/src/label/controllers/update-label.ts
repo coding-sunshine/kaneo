@@ -110,6 +110,12 @@ async function updateLabel(
           taskId: result.original.taskId,
         });
   }
+  if (!result.original.taskId && result.original.workspaceId)
+    await publishEvent("label.updated", {
+      labelId: id,
+      workspaceId: result.original.workspaceId,
+      projectId: result.original.projectId,
+    });
   return result.updatedLabel;
 }
 

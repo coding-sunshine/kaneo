@@ -125,6 +125,13 @@ async function createLabel(
     throw new Error("Failed to create or resolve label");
   }
 
+  if (inserted)
+    await publishEvent("label.created", {
+      labelId: label.id,
+      workspaceId,
+      projectId: label.projectId,
+    });
+
   return label;
 }
 

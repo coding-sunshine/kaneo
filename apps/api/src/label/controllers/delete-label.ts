@@ -131,6 +131,12 @@ async function deleteLabel(
       .where(eq(labelTable.id, id))
       .returning();
     if (!deleted) throw new HTTPException(404, { message: "Label not found" });
+    await publishEvent("label.deleted", {
+      labelId: id,
+      workspaceId: deleted.workspaceId,
+      projectId: deleted.projectId,
+      name: deleted.name,
+    });
     return deleted;
   });
 }
