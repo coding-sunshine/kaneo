@@ -3,6 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
   taskTable,
+  workProjectLabelTable,
   workProjectMemberTable,
   workProjectMilestoneTable,
   workProjectTable,
@@ -59,7 +60,7 @@ export async function loadWorkProjects(
   const ids = rows.map((row) => row.id);
   if (ids.length === 0) return [];
 
-  const [teams, members, progress] = await Promise.all([
+  const [teams, members, labels, progress] = await Promise.all([
     db
       .select()
       .from(workProjectTeamTable)
@@ -68,6 +69,10 @@ export async function loadWorkProjects(
       .select()
       .from(workProjectMemberTable)
       .where(inArray(workProjectMemberTable.workProjectId, ids)),
+    db
+      .select()
+      .from(workProjectLabelTable)
+      .where(inArray(workProjectLabelTable.workProjectId, ids)),
     progressBy(taskTable.workProjectId, ids),
   ]);
 
@@ -79,6 +84,9 @@ export async function loadWorkProjects(
     memberIds: members
       .filter((m) => m.workProjectId === row.id)
       .map((m) => m.userId),
+    labelIds: labels
+      .filter((l) => l.workProjectId === row.id)
+      .map((l) => l.labelId),
     progress: progress.get(row.id) ?? noProgress,
   }));
 }

@@ -906,6 +906,53 @@ export const workProjectTeamTable = pgTable(
   ],
 );
 
+// Linear project labels: workspace-scoped, attached to projects (work_project).
+export const projectLabelTable = pgTable(
+  "project_label",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    color: text("color").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    unique("project_label_workspace_name_unique").on(
+      table.workspaceId,
+      table.name,
+    ),
+  ],
+);
+
+export const workProjectLabelTable = pgTable(
+  "work_project_label",
+  {
+    workProjectId: text("work_project_id")
+      .notNull()
+      .references(() => workProjectTable.id, { onDelete: "cascade" }),
+    labelId: text("label_id")
+      .notNull()
+      .references(() => projectLabelTable.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.workProjectId, table.labelId] }),
+    index("work_project_label_labelId_idx").on(table.labelId),
+  ],
+);
+
 export const workProjectMemberTable = pgTable(
   "work_project_member",
   {

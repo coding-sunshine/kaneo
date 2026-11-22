@@ -1551,6 +1551,16 @@
 			"emptyDescription": "Add labels to sort and filter issues across projects.",
 			"loadError": "Could not load labels. Please try again."
 		},
+		"projectLabels": {
+			"title": "Project labels",
+			"subtitle": "Project labels sort and filter projects across all teams.",
+			"sectionTitle": "Project labels",
+			"sectionDescription": "Attach labels to a project from its page. Names are unique in the workspace.",
+			"dialogDescription": "Projects in this workspace can use it.",
+			"deleteConfirmDescription": "The label is removed from every project that uses it. This can't be undone.",
+			"emptyTitle": "No project labels yet",
+			"emptyDescription": "Add labels to group and filter projects."
+		},
 		"teams": {
 			"title": "Teams",
 			"create": "Create team",
@@ -4846,6 +4856,13 @@
 			},
 			"noLead": "No lead",
 			"noDate": "No date",
+			"labels": {
+				"title": "Labels",
+				"add": "Labels",
+				"filter": "Filter by label",
+				"all": "All labels",
+				"error": "Could not update the project labels"
+			},
 			"create": {
 				"title": "New project",
 				"name": "Project name",

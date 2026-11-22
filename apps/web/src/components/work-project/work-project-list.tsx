@@ -1,5 +1,5 @@
 import { Box } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Empty,
@@ -10,6 +10,14 @@ import {
 } from "@/components/ui/empty";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useGetProjectLabels } from "@/hooks/queries/project-label/use-get-project-labels";
 import { useGetWorkProjects } from "@/hooks/queries/work-project/use-get-work-projects";
 import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
 import { WORK_PROJECT_GRID } from "./work-project-grid";
@@ -25,6 +33,8 @@ const COLUMNS = [
   "status",
 ] as const;
 
+const ALL_LABELS = "all";
+
 type WorkProjectListProps = { workspaceId: string; teamId?: string };
 
 export function WorkProjectList({ workspaceId, teamId }: WorkProjectListProps) {
@@ -33,6 +43,12 @@ export function WorkProjectList({ workspaceId, teamId }: WorkProjectListProps) {
     workspaceId,
     teamId,
   );
+  const { data: projectLabels = [] } = useGetProjectLabels(workspaceId);
+  const [labelId, setLabelId] = useState(ALL_LABELS);
+  const visible =
+    labelId === ALL_LABELS
+      ? data
+      : data?.filter((project) => project.labelIds.includes(labelId));
   const { data: users } = useGetActiveWorkspaceUsers(workspaceId);
   const leads = useMemo(
     () => new Map((users?.members ?? []).map((m) => [m.userId, m.user])),
@@ -76,6 +92,35 @@ export function WorkProjectList({ workspaceId, teamId }: WorkProjectListProps) {
 
   return (
     <div className="h-full overflow-y-auto">
+      {projectLabels.length > 0 && (
+        <div className="flex h-10 items-center gap-2 border-b px-4">
+          <Select
+            value={labelId}
+            onValueChange={(next) => setLabelId(next ?? ALL_LABELS)}
+          >
+            <SelectTrigger
+              size="sm"
+              aria-label={t("workspace:workProject.labels.filter")}
+              className="w-44"
+            >
+              <SelectValue>
+                {projectLabels.find((label) => label.id === labelId)?.name ??
+                  t("workspace:workProject.labels.all")}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_LABELS}>
+                {t("workspace:workProject.labels.all")}
+              </SelectItem>
+              {projectLabels.map((label) => (
+                <SelectItem key={label.id} value={label.id}>
+                  {label.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
       <div
         role="row"
         className={`${WORK_PROJECT_GRID} h-6 text-muted-foreground text-xs`}
@@ -95,7 +140,7 @@ export function WorkProjectList({ workspaceId, teamId }: WorkProjectListProps) {
               <Skeleton className="h-3.5 w-64" />
             </div>
           ))
-        : data?.map((project) => (
+        : visible?.map((project) => (
             <WorkProjectRow
               key={project.id}
               project={project}

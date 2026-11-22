@@ -210,6 +210,12 @@ export function buildSettingsNav({
           to: "/dashboard/settings/workspace/labels",
           icon: Tag,
         },
+        {
+          id: "workspace-project-labels",
+          label: t("settings:projectLabels.title"),
+          to: "/dashboard/settings/workspace/project-labels",
+          icon: Tag,
+        },
         ...(canImport
           ? [
               {

@@ -11,23 +11,28 @@ import { SettingsRow } from "@/components/settings/settings-row";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 
-type LabelRowProps = {
-  label: WorkspaceLabel;
+// Project labels render through the same row, without deletion bookkeeping.
+type RowLabel = Pick<WorkspaceLabel, "id" | "name" | "color"> & {
+  deletionStartedAt?: WorkspaceLabel["deletionStartedAt"];
+};
+
+type LabelRowProps<L extends RowLabel> = {
+  label: L;
   groupName?: string;
   canUpdate: boolean;
   canDelete: boolean;
-  onEdit: (label: WorkspaceLabel) => void;
-  onDelete: (label: WorkspaceLabel) => void;
+  onEdit: (label: L) => void;
+  onDelete: (label: L) => void;
 };
 
-export function LabelRow({
+export function LabelRow<L extends RowLabel>({
   label,
   groupName,
   canUpdate,
   canDelete,
   onEdit,
   onDelete,
-}: LabelRowProps) {
+}: LabelRowProps<L>) {
   const { t } = useTranslation();
   const removing = Boolean(label.deletionStartedAt);
   const editable = canUpdate && !removing;

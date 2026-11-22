@@ -62,6 +62,7 @@ import { stopActiveImports } from "./import/runs/stop-active-imports";
 import getInstanceStatus from "./instance/controllers/get-instance-status";
 import invitation from "./invitation";
 import label from "./label";
+import projectLabel from "./project-label";
 import cycle from "./cycle";
 import workProject from "./work-project";
 import agent from "./agent";
@@ -831,6 +832,7 @@ export function createApp() {
   const commentApi = api.route("/comment", comment);
   const timeEntryApi = api.route("/time-entry", timeEntry);
   const labelApi = api.route("/label", label);
+  const projectLabelApi = api.route("/project-label", projectLabel);
   const cycleApi = api.route("/cycle", cycle);
   const workProjectApi = api.route("/work-project", workProject);
   const savedViewApi = api.route("/view", savedView);
@@ -1018,6 +1020,7 @@ export function createApp() {
     invitationApi,
     invitationPublicApi,
     labelApi,
+    projectLabelApi,
     cycleApi,
     workProjectApi,
     savedViewApi,
@@ -1162,6 +1165,7 @@ const {
   invitationApi,
   invitationPublicApi,
   labelApi,
+  projectLabelApi,
   cycleApi,
   workProjectApi,
   savedViewApi,
@@ -1212,6 +1216,7 @@ export type AppType =
   | typeof commentApi
   | typeof timeEntryApi
   | typeof labelApi
+  | typeof projectLabelApi
   | typeof cycleApi
   | typeof workProjectApi
   | typeof savedViewApi
