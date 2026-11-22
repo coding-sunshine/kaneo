@@ -11,6 +11,7 @@ import {
   jsonb,
   pgTable,
   primaryKey,
+  serial,
   text,
   timestamp,
   unique,
@@ -2315,4 +2316,126 @@ export const documentCommentTable = pgTable(
       table.externalId,
     ),
   ],
+);
+
+// Agent chats are private to their user within a workspace. `message` holds
+// one OpenAI-format chat message (user, assistant with tool calls, or tool).
+export const agentChatTable = pgTable(
+  "agent_chat",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    title: text("title").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("agent_chat_user_workspace_idx").on(table.userId, table.workspaceId),
+  ],
+);
+
+export const agentMessageTable = pgTable(
+  "agent_message",
+  {
+    seq: serial("seq").primaryKey(),
+    chatId: text("chat_id")
+      .notNull()
+      .references(() => agentChatTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    message: jsonb("message").$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [index("agent_message_chat_idx").on(table.chatId)],
+);
+
+// A loop runs its instructions as the agent on a schedule, with the creator's
+// permissions at run time. `nextRunAt` null means never scheduled (disabled).
+export const loopTable = pgTable(
+  "loop",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    creatorId: text("creator_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    instructions: text("instructions").notNull(),
+    frequency: text("frequency")
+      .$type<"hourly" | "daily" | "weekly" | "monthly" | "yearly">()
+      .notNull(),
+    enabled: boolean("enabled").default(true).notNull(),
+    nextRunAt: timestamp("next_run_at", { mode: "date" }).notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("loop_workspace_idx").on(table.workspaceId),
+    index("loop_due_idx").on(table.enabled, table.nextRunAt),
+  ],
+);
+
+export const loopRunTable = pgTable(
+  "loop_run",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    loopId: text("loop_id")
+      .notNull()
+      .references(() => loopTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    trigger: text("trigger").$type<"schedule" | "manual">().notNull(),
+    status: text("status")
+      .$type<"running" | "succeeded" | "failed">()
+      .notNull(),
+    error: text("error"),
+    messages: jsonb("messages")
+      .$type<Record<string, unknown>[]>()
+      .notNull()
+      .default([]),
+    startedAt: timestamp("started_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    finishedAt: timestamp("finished_at", { mode: "date" }),
+  },
+  (table) => [index("loop_run_loop_idx").on(table.loopId, table.startedAt)],
 );
