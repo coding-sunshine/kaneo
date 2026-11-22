@@ -56,6 +56,7 @@ let storedProject: { id: string; columns: unknown[] } | null = null;
 let uploadAsset: ((file: File) => Promise<unknown>) | undefined;
 const stageUpload = vi.fn();
 let customFieldDefs: unknown[] | undefined;
+let issueTemplates: Record<string, unknown>[] = [];
 let projectMembers:
   | { id: string; name: string; image: string | null }[]
   | undefined;
@@ -71,6 +72,8 @@ beforeEach(() => {
   ];
   storedProject = null;
   customFieldDefs = undefined;
+  issueTemplates = [];
+  localStorage.clear();
   projectMembers = undefined;
   columnsError = false;
   columnsFetching = false;
@@ -187,6 +190,10 @@ vi.mock(
     default: () => ({ data: customFieldDefs }),
   }),
 );
+
+vi.mock("@/hooks/queries/issue-template/use-get-issue-templates", () => ({
+  default: () => ({ data: issueTemplates }),
+}));
 
 vi.mock("@/hooks/queries/project/use-get-projects", () => ({
   default: () => ({ data: projects }),
@@ -328,6 +335,76 @@ describe("CreateTaskModal", () => {
     fireEvent.click(screen.getByText("common:modals.createTask.discardButton"));
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("saves an unsaved issue as a draft and restores it on reopen", async () => {
+    useLocation.mockReturnValue({
+      pathname: "/dashboard/workspace/workspace-1/project/project-1/board",
+    });
+    const onClose = vi.fn();
+    const first = render(<CreateTaskModal open onClose={onClose} />, {
+      wrapper: createWrapper(),
+    });
+    const placeholder = "common:modals.createTask.taskTitlePlaceholder";
+    fireEvent.change(screen.getByPlaceholderText(placeholder), {
+      target: { value: "Half written" },
+    });
+    const backdrop = document.querySelector('[data-slot="dialog-backdrop"]');
+    fireEvent.pointerDown(backdrop as Element);
+    fireEvent.pointerUp(backdrop as Element);
+    fireEvent.click(backdrop as Element);
+    fireEvent.click(
+      await screen.findByText("common:modals.createTask.saveDraftButton"),
+    );
+    expect(onClose).toHaveBeenCalledTimes(1);
+    first.unmount();
+
+    render(<CreateTaskModal open onClose={vi.fn()} />, {
+      wrapper: createWrapper(),
+    });
+    await vi.waitFor(() =>
+      expect(screen.getByPlaceholderText(placeholder)).toHaveValue(
+        "Half written",
+      ),
+    );
+  });
+
+  it("applies a template's defaults and its status when creating", async () => {
+    useLocation.mockReturnValue({
+      pathname: "/dashboard/workspace/workspace-1/project/project-1/board",
+    });
+    projectColumns = [
+      { id: "todo", slug: "to-do", name: "To Do", isFinal: false },
+      { id: "prog", slug: "in-progress", name: "In Progress", isFinal: false },
+    ];
+    issueTemplates = [
+      {
+        id: "t1",
+        name: "Bug",
+        title: "Bug: ",
+        description: "",
+        columnId: "prog",
+        priority: "high",
+        assigneeId: null,
+        labels: [{ name: "bug", color: "red" }],
+      },
+    ];
+    render(<CreateTaskModal open onClose={vi.fn()} />, {
+      wrapper: createWrapper(),
+    });
+    fireEvent.click(screen.getByText("common:modals.createTask.template"));
+    fireEvent.click(await screen.findByText("Bug"));
+    expect(
+      screen.getByPlaceholderText(
+        "common:modals.createTask.taskTitlePlaceholder",
+      ),
+    ).toHaveValue("Bug: ");
+    submit();
+    await vi.waitFor(() =>
+      expect(createTask).toHaveBeenCalledWith(
+        expect.objectContaining({ status: "in-progress", priority: "high" }),
+      ),
+    );
   });
 
   it("treats a selected project as unsaved input", async () => {

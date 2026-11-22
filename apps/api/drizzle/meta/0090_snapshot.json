@@ -1,5 +1,5 @@
 {
-  "id": "f4b51b8a-ffb0-4ab5-a851-adae33c6c333",
+  "id": "e8bcaf52-bdef-471a-a7cd-7dd47ef02fd1",
   "prevId": "c2ebe9db-507e-44b2-80d2-177087a6b648",
   "version": "7",
   "dialect": "postgresql",
@@ -4393,18 +4393,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
-        },
-        "project_id": {
-          "name": "project_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "parent_label_id": {
-          "name": "parent_label_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {
@@ -4413,36 +4401,6 @@
           "columns": [
             {
               "expression": "task_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "label_project_id_idx": {
-          "name": "label_project_id_idx",
-          "columns": [
-            {
-              "expression": "project_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "label_parent_label_id_idx": {
-          "name": "label_parent_label_id_idx",
-          "columns": [
-            {
-              "expression": "parent_label_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -4550,32 +4508,6 @@
             "id"
           ],
           "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "label_project_id_project_id_fk": {
-          "name": "label_project_id_project_id_fk",
-          "tableFrom": "label",
-          "tableTo": "project",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "label_parent_label_id_label_id_fk": {
-          "name": "label_parent_label_id_label_id_fk",
-          "tableFrom": "label",
-          "tableTo": "label",
-          "columnsFrom": [
-            "parent_label_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
           "onUpdate": "cascade"
         }
       },
@@ -8062,6 +7994,106 @@
           ]
         }
       },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.work_project_update": {
+      "name": "work_project_update",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "work_project_id": {
+          "name": "work_project_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "health": {
+          "name": "health",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "body": {
+          "name": "body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "(now() AT TIME ZONE 'utc')"
+        }
+      },
+      "indexes": {
+        "work_project_update_projectId_idx": {
+          "name": "work_project_update_projectId_idx",
+          "columns": [
+            {
+              "expression": "work_project_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "work_project_update_work_project_id_work_project_id_fk": {
+          "name": "work_project_update_work_project_id_work_project_id_fk",
+          "tableFrom": "work_project_update",
+          "tableTo": "work_project",
+          "columnsFrom": [
+            "work_project_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "work_project_update_user_id_user_id_fk": {
+          "name": "work_project_update_user_id_user_id_fk",
+          "tableFrom": "work_project_update",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},

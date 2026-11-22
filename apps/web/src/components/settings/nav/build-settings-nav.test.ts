@@ -117,6 +117,7 @@ describe("buildSettingsNav", () => {
       "/dashboard/settings/projects/p1/general",
       "/dashboard/settings/projects/p1/workflow",
       "/dashboard/settings/projects/p1/custom-fields",
+      "/dashboard/settings/projects/p1/templates",
       "/dashboard/settings/projects/p1/visibility",
       "/dashboard/settings/projects/p1/integrations",
       "/dashboard/settings/projects/p1/cycles",

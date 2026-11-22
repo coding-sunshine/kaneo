@@ -9,6 +9,13 @@ import {
   type CreateMilestoneInput,
 } from "@/fetchers/work-project/milestones";
 import type { UpdateWorkProjectInput } from "@/fetchers/work-project/types";
+import {
+  type CreateUpdateInput,
+  createWorkProjectUpdate,
+  deleteWorkProjectUpdate,
+  type EditUpdateInput,
+  editWorkProjectUpdate,
+} from "@/fetchers/work-project/updates";
 import updateWorkProject from "@/fetchers/work-project/update-work-project";
 import { invalidateWorkProjects } from "./invalidate-work-projects";
 
@@ -58,6 +65,33 @@ export function useDeleteMilestone(workProjectId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteMilestone,
+    onSuccess: () => invalidateWorkProjects(queryClient, workProjectId),
+  });
+}
+
+export function useCreateWorkProjectUpdate(workProjectId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (json: CreateUpdateInput) =>
+      createWorkProjectUpdate(workProjectId, json),
+    // The post also moves the project's health shown in lists and details.
+    onSuccess: () => invalidateWorkProjects(queryClient, workProjectId),
+  });
+}
+
+export function useEditWorkProjectUpdate(workProjectId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...json }: EditUpdateInput & { id: string }) =>
+      editWorkProjectUpdate(id, json),
+    onSuccess: () => invalidateWorkProjects(queryClient, workProjectId),
+  });
+}
+
+export function useDeleteWorkProjectUpdate(workProjectId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteWorkProjectUpdate,
     onSuccess: () => invalidateWorkProjects(queryClient, workProjectId),
   });
 }

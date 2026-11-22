@@ -995,6 +995,33 @@ export const workProjectMilestoneTable = pgTable(
   ],
 );
 
+export const workProjectUpdateTable = pgTable(
+  "work_project_update",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workProjectId: text("work_project_id")
+      .notNull()
+      .references(() => workProjectTable.id, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => userTable.id, {
+      onDelete: "set null",
+    }),
+    // onTrack | atRisk | offTrack
+    health: text("health").notNull(),
+    body: text("body").notNull().default(""),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("work_project_update_projectId_idx").on(
+      table.workProjectId,
+      table.createdAt,
+    ),
+  ],
+);
+
 export const taskTable = pgTable(
   "task",
   {
@@ -2109,6 +2136,49 @@ export const customFieldDefinitionTable = pgTable(
       .notNull(),
   },
   (table) => [index("custom_field_def_projectId_idx").on(table.projectId)],
+);
+
+// Linear-style issue templates of a team (Kaneo project): defaults that prefill
+// the create-issue dialog. Labels are stored as name and color because task
+// labels are per-task copies.
+export const issueTemplateTable = pgTable(
+  "issue_template",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projectTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    title: text("title").notNull().default(""),
+    description: text("description").notNull().default(""),
+    columnId: text("column_id").references(() => columnTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    priority: text("priority").notNull().default("no-priority"),
+    assigneeId: text("assignee_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    labels: jsonb("labels")
+      .$type<{ name: string; color: string }[]>()
+      .default([])
+      .notNull(),
+    position: integer("position").default(0).notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("issue_template_projectId_idx").on(table.projectId)],
 );
 
 export const customFieldValueTable = pgTable(
