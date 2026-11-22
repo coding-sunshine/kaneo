@@ -87,6 +87,7 @@ describe("TeamMenuItems", () => {
     expect(navigate).toHaveBeenCalledWith({
       to: "/dashboard/settings/projects/$projectId/integrations",
       params: { projectId: "p1" },
+      hash: "slack",
     });
   });
 

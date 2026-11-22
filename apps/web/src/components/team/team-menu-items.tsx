@@ -128,6 +128,7 @@ export function TeamMenuItems({
               navigate({
                 to: "/dashboard/settings/projects/$projectId/integrations",
                 params: { projectId },
+                hash: "slack",
               })
             }
           >
