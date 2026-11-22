@@ -645,6 +645,13 @@
       "when": 1795316760092,
       "tag": "0091_lovely_blindfold",
       "breakpoints": true
+    },
+    {
+      "idx": 92,
+      "version": "7",
+      "when": 1795317563770,
+      "tag": "0092_fantastic_squadron_supreme",
+      "breakpoints": true
     }
   ]
 }

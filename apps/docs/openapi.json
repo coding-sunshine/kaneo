@@ -308,6 +308,14 @@
             "format": "date-time",
             "description": "When the task entered a completed status; null unless completed."
           },
+          "slaDueAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "The task's SLA deadline; null when the team's SLA rules do not apply."
+          },
           "startedTriageAt": {
             "type": [
               "string",
@@ -404,6 +412,7 @@
           "snoozedUntil",
           "startedAt",
           "completedAt",
+          "slaDueAt",
           "startedTriageAt",
           "triagedAt",
           "userId",
@@ -965,6 +974,18 @@
           },
           "cycleAutoRollover": {
             "type": "boolean"
+          },
+          "slaEnabled": {
+            "type": "boolean"
+          },
+          "slaUrgentHours": {
+            "type": "number"
+          },
+          "slaHighHours": {
+            "type": "number"
+          },
+          "triageResponsibilityMode": {
+            "type": "string"
           },
           "estimateType": {
             "type": "string"
@@ -2573,6 +2594,28 @@
           "completedAt",
           "createdAt",
           "progress"
+        ]
+      },
+      "TriageResponsibility": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "notify",
+              "assign"
+            ]
+          },
+          "userIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "mode",
+          "userIds"
         ]
       },
       "WorkProject": {
@@ -20661,6 +20704,263 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/team-automation/sla/{projectId}": {
+      "put": {
+        "operationId": "updateSlaSettings",
+        "tags": [
+          "Team automation"
+        ],
+        "summary": "Update a team's SLA settings",
+        "description": "Turn SLAs on and set the deadline for urgent and high priority issues. The rule applies when an issue is created or its priority changes.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "slaEnabled": {
+                    "type": "boolean"
+                  },
+                  "slaUrgentHours": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 8760
+                  },
+                  "slaHighHours": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 8760
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/team-automation/triage/{projectId}": {
+      "get": {
+        "operationId": "getTriageResponsibility",
+        "tags": [
+          "Team automation"
+        ],
+        "summary": "Get a team's triage responsibility",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Who handles incoming triage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TriageResponsibility"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateTriageResponsibility",
+        "tags": [
+          "Team automation"
+        ],
+        "summary": "Set a team's triage responsibility",
+        "description": "Name the people who handle incoming triage issues. In notify mode they are notified; in assign mode new triage issues rotate through them.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "notify",
+                      "assign"
+                    ]
+                  },
+                  "userIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 50
+                  }
+                },
+                "required": [
+                  "mode",
+                  "userIds"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Who handles incoming triage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TriageResponsibility"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A listed user cannot work on this team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
