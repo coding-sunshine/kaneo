@@ -148,8 +148,8 @@ const SEARCH_QUERY = `query($q: String!) {
   }
 }`;
 
-export async function searchPullRequests(token: string, query: string) {
-  const response = await fetch(`${API}/graphql`, {
+const postSearch = (token: string, query: string) =>
+  fetch(`${API}/graphql`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -160,6 +160,14 @@ export async function searchPullRequests(token: string, query: string) {
       variables: { q: `${query} sort:updated-desc` },
     }),
   });
+
+export async function searchPullRequests(token: string, query: string) {
+  let response = await postSearch(token, query);
+  // Broad searches (closed PRs included) sometimes hit GitHub's GraphQL
+  // timeout and come back 502; a second try usually lands.
+  if (response.status === 502 || response.status === 504) {
+    response = await postSearch(token, query);
+  }
   const body = (await response.json().catch(() => ({}))) as {
     data?: { search: { nodes: Partial<GithubSearchPull>[] } };
     errors?: { message: string }[];

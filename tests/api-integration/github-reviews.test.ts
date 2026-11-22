@@ -381,6 +381,30 @@ describe("list", () => {
     }
   });
 
+  it("retries a search once when GitHub times out", async () => {
+    const actual = await vi.importActual<
+      typeof import("../../apps/api/src/github-reviews/github-api")
+    >("../../apps/api/src/github-reviews/github-api");
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response("", { status: 502 }))
+      .mockResolvedValueOnce(
+        Response.json({ data: { search: { nodes: [item(1)] } } }),
+      )
+      .mockResolvedValue(new Response("", { status: 502 }));
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      expect(await actual.searchPullRequests("tok", "is:pr x")).toHaveLength(1);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      await expect(
+        actual.searchPullRequests("tok", "is:pr x"),
+      ).rejects.toMatchObject({ status: 502 });
+      expect(fetchMock).toHaveBeenCalledTimes(4);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("does not give another user your pull requests or token", async () => {
     const owner = await signedInUser();
     await connectFlow(owner.id);
