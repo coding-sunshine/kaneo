@@ -50,6 +50,7 @@ import { eventContext } from "./events";
 import externalLink from "./external-link";
 import genericWebhookIntegration from "./generic-webhook-integration";
 import giteaIntegration, { handleGiteaWebhookRoute } from "./gitea-integration";
+import githubReviews from "./github-reviews";
 import githubIntegration, {
   handleGithubWebhookRoute,
 } from "./github-integration";
@@ -851,6 +852,7 @@ export function createApp() {
   api.use("/integration-sync/project/:projectId/:provider", syncProvider);
   api.use("/integration-sync/project/:projectId/:provider/*", syncProvider);
   const integrationSyncApi = api.route("/integration-sync", integrationSync);
+  const githubReviewsApi = api.route("/github-reviews", githubReviews);
   const githubIntegrationApi = api.route(
     "/github-integration",
     githubIntegration,
@@ -1003,6 +1005,7 @@ export function createApp() {
     externalLinkApi,
     genericWebhookIntegrationApi,
     integrationSyncApi,
+    githubReviewsApi,
     githubIntegrationApi,
     giteaIntegrationApi,
     gitlabIntegrationApi,
@@ -1144,6 +1147,7 @@ const {
   externalLinkApi,
   genericWebhookIntegrationApi,
   integrationSyncApi,
+  githubReviewsApi,
   githubIntegrationApi,
   giteaIntegrationApi,
   gitlabIntegrationApi,
@@ -1207,6 +1211,7 @@ export type AppType =
   | typeof notificationPreferencesApi
   | typeof searchApi
   | typeof integrationSyncApi
+  | typeof githubReviewsApi
   | typeof githubIntegrationApi
   | typeof giteaIntegrationApi
   | typeof gitlabIntegrationApi
