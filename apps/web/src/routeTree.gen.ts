@@ -60,6 +60,7 @@ import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceImportRouteImport
 import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/labels'
 import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceProjectLabelsRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/project-labels'
 import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceRolesRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/roles'
+import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceWebhooksRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/webhooks'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/index'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/agent'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/inbox'
@@ -392,6 +393,12 @@ const LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute =
   LayoutAuthenticatedDashboardSettingsWorkspaceRolesRouteImport.update({
     id: '/roles',
     path: '/roles',
+    getParentRoute: () => LayoutAuthenticatedDashboardSettingsWorkspaceRoute,
+  } as any)
+const LayoutAuthenticatedDashboardSettingsWorkspaceWebhooksRoute =
+  LayoutAuthenticatedDashboardSettingsWorkspaceWebhooksRouteImport.update({
+    id: '/webhooks',
+    path: '/webhooks',
     getParentRoute: () => LayoutAuthenticatedDashboardSettingsWorkspaceRoute,
   } as any)
 const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRoute =
@@ -787,6 +794,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/workspace/labels': typeof LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRoute
   '/dashboard/settings/workspace/project-labels': typeof LayoutAuthenticatedDashboardSettingsWorkspaceProjectLabelsRoute
   '/dashboard/settings/workspace/roles': typeof LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute
+  '/dashboard/settings/workspace/webhooks': typeof LayoutAuthenticatedDashboardSettingsWorkspaceWebhooksRoute
   '/dashboard/workspace/$workspaceId/agent': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute
   '/dashboard/workspace/$workspaceId/inbox': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute
   '/dashboard/workspace/$workspaceId/loops': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute
@@ -877,6 +885,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings/workspace/labels': typeof LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRoute
   '/dashboard/settings/workspace/project-labels': typeof LayoutAuthenticatedDashboardSettingsWorkspaceProjectLabelsRoute
   '/dashboard/settings/workspace/roles': typeof LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute
+  '/dashboard/settings/workspace/webhooks': typeof LayoutAuthenticatedDashboardSettingsWorkspaceWebhooksRoute
   '/dashboard/workspace/$workspaceId/agent': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute
   '/dashboard/workspace/$workspaceId/inbox': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute
   '/dashboard/workspace/$workspaceId/loops': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute
@@ -974,6 +983,7 @@ export interface FileRoutesById {
   '/_layout/_authenticated/dashboard/settings/workspace/labels': typeof LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRoute
   '/_layout/_authenticated/dashboard/settings/workspace/project-labels': typeof LayoutAuthenticatedDashboardSettingsWorkspaceProjectLabelsRoute
   '/_layout/_authenticated/dashboard/settings/workspace/roles': typeof LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute
+  '/_layout/_authenticated/dashboard/settings/workspace/webhooks': typeof LayoutAuthenticatedDashboardSettingsWorkspaceWebhooksRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/agent': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/inbox': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/loops': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute
@@ -1070,6 +1080,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/workspace/labels'
     | '/dashboard/settings/workspace/project-labels'
     | '/dashboard/settings/workspace/roles'
+    | '/dashboard/settings/workspace/webhooks'
     | '/dashboard/workspace/$workspaceId/agent'
     | '/dashboard/workspace/$workspaceId/inbox'
     | '/dashboard/workspace/$workspaceId/loops'
@@ -1160,6 +1171,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/workspace/labels'
     | '/dashboard/settings/workspace/project-labels'
     | '/dashboard/settings/workspace/roles'
+    | '/dashboard/settings/workspace/webhooks'
     | '/dashboard/workspace/$workspaceId/agent'
     | '/dashboard/workspace/$workspaceId/inbox'
     | '/dashboard/workspace/$workspaceId/loops'
@@ -1256,6 +1268,7 @@ export interface FileRouteTypes {
     | '/_layout/_authenticated/dashboard/settings/workspace/labels'
     | '/_layout/_authenticated/dashboard/settings/workspace/project-labels'
     | '/_layout/_authenticated/dashboard/settings/workspace/roles'
+    | '/_layout/_authenticated/dashboard/settings/workspace/webhooks'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/agent'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/inbox'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/loops'
@@ -1670,6 +1683,13 @@ declare module '@tanstack/react-router' {
       path: '/roles'
       fullPath: '/dashboard/settings/workspace/roles'
       preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceRolesRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceRoute
+    }
+    '/_layout/_authenticated/dashboard/settings/workspace/webhooks': {
+      id: '/_layout/_authenticated/dashboard/settings/workspace/webhooks'
+      path: '/webhooks'
+      fullPath: '/dashboard/settings/workspace/webhooks'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceWebhooksRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceRoute
     }
     '/_layout/_authenticated/dashboard/workspace/$workspaceId/': {
@@ -2097,6 +2117,7 @@ interface LayoutAuthenticatedDashboardSettingsWorkspaceRouteChildren {
   LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRoute
   LayoutAuthenticatedDashboardSettingsWorkspaceProjectLabelsRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceProjectLabelsRoute
   LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute
+  LayoutAuthenticatedDashboardSettingsWorkspaceWebhooksRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceWebhooksRoute
 }
 
 const LayoutAuthenticatedDashboardSettingsWorkspaceRouteChildren: LayoutAuthenticatedDashboardSettingsWorkspaceRouteChildren =
@@ -2113,6 +2134,8 @@ const LayoutAuthenticatedDashboardSettingsWorkspaceRouteChildren: LayoutAuthenti
       LayoutAuthenticatedDashboardSettingsWorkspaceProjectLabelsRoute,
     LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute:
       LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute,
+    LayoutAuthenticatedDashboardSettingsWorkspaceWebhooksRoute:
+      LayoutAuthenticatedDashboardSettingsWorkspaceWebhooksRoute,
   }
 
 const LayoutAuthenticatedDashboardSettingsWorkspaceRouteWithChildren =

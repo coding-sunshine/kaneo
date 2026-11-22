@@ -37,6 +37,7 @@ type BuildSettingsNavInput = {
   workspaceName?: string;
   billingEnabled: boolean;
   canImport: boolean;
+  canManageWebhooks?: boolean;
   /** The signed-in user's instance permissions. */
   adminPermissions: readonly InstancePermission[];
   projects: { id: string; name: string; icon?: string | null }[];
@@ -138,6 +139,7 @@ export function buildSettingsNav({
   workspaceName,
   billingEnabled,
   canImport,
+  canManageWebhooks = false,
   adminPermissions,
   projects,
 }: BuildSettingsNavInput): SettingsNav {
@@ -219,6 +221,16 @@ export function buildSettingsNav({
           to: "/dashboard/settings/workspace/project-labels",
           icon: Tag,
         },
+        ...(canManageWebhooks
+          ? [
+              {
+                id: "workspace-webhooks",
+                label: t("settings:workspaceWebhooks.title"),
+                to: "/dashboard/settings/workspace/webhooks",
+                icon: Webhook,
+              },
+            ]
+          : []),
         ...(canImport
           ? [
               {

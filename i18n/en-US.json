@@ -2937,6 +2937,33 @@
 			},
 			"save": "Save"
 		},
+		"workspaceWebhooks": {
+			"title": "Webhooks",
+			"add": "Add webhook",
+			"edit": "Edit webhook",
+			"label": "Name",
+			"url": "URL",
+			"resources": "Events",
+			"teams": "Teams",
+			"teamsHint": "Leave empty to receive events from every team.",
+			"allTeams": "All teams",
+			"enabled": "Enabled",
+			"disabled": "Disabled",
+			"toggle": "Enable {{label}}",
+			"actions": "Actions for {{label}}",
+			"deleteTitle": "Delete webhook?",
+			"loadError": "Webhooks could not be loaded.",
+			"saveError": "The webhook could not be saved.",
+			"empty": "No webhooks",
+			"save": "Save",
+			"types": {
+				"task": "Issues",
+				"comment": "Comments",
+				"project": "Teams and projects",
+				"label": "Labels",
+				"cycle": "Cycles"
+			}
+		},
 		"projectCycles": {
 			"title": "Cycles",
 			"subtitle": "Time-boxed periods of work for this team.",
@@ -3613,6 +3640,14 @@
 			"due_date_reminder": {
 				"title": "Issue due soon",
 				"content": "{{taskTitle}} is due in {{leadTime}}"
+			},
+			"sla_warning": {
+				"title": "SLA at risk",
+				"content": "{{taskTitle}} is about to breach its SLA"
+			},
+			"sla_breach": {
+				"title": "SLA breached",
+				"content": "{{taskTitle}} has breached its SLA"
 			},
 			"task_overdue": {
 				"title": "Issue overdue",

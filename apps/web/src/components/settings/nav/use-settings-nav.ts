@@ -6,6 +6,7 @@ import useGetConfig from "@/hooks/queries/config/use-get-config";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { useCanImport } from "@/hooks/use-can-import";
+import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 
 export function useSettingsNav() {
   const { t } = useTranslation();
@@ -16,6 +17,7 @@ export function useSettingsNav() {
   const { data: config } = useGetConfig();
   const { permissions: adminPermissions } = useAdminAccess();
   const { canImport } = useCanImport();
+  const canManageWebhooks = useWorkspacePermission().canManageSettings();
 
   return useMemo(
     () =>
@@ -24,6 +26,7 @@ export function useSettingsNav() {
         workspaceName: workspace?.name,
         billingEnabled: Boolean(config?.billingEnabled),
         canImport,
+        canManageWebhooks,
         adminPermissions,
         // "Your teams" lists only teams you joined, like the app sidebar.
         projects: (projects ?? []).filter(
@@ -35,6 +38,7 @@ export function useSettingsNav() {
       workspace?.name,
       config?.billingEnabled,
       canImport,
+      canManageWebhooks,
       adminPermissions,
       projects,
     ],
