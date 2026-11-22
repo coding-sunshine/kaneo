@@ -1550,9 +1550,24 @@
 			"title": "Teams",
 			"create": "Create team",
 			"empty": "No teams yet",
+			"exportCsv": "Export CSV",
+			"filterPlaceholder": "Filter by name...",
+			"statusLabel": "Status",
+			"status": {
+				"active": "Active",
+				"archived": "Archived"
+			},
+			"openMenu": "Open menu",
+			"menuSettings": "Settings",
+			"menuDelete": "Delete",
+			"visibilityPublic": "Public",
+			"visibilityWorkspace": "Workspace",
 			"columns": {
 				"name": "Name",
 				"identifier": "Identifier",
+				"description": "Description",
+				"visibility": "Visibility",
+				"members": "Members",
 				"issues": "Issues",
 				"created": "Created"
 			}
