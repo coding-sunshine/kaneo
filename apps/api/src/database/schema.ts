@@ -17,6 +17,7 @@ import {
   unique,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { bodyVector, titleBodyVector } from "../search/fts";
 import type { ChatMessage } from "../agent/openrouter";
 import type { WEBHOOK_CATEGORIES } from "../admin/webhooks/categories";
 import type { AuditWebhookPayload } from "../admin/webhooks/audit-webhook-payload";
@@ -1102,6 +1103,10 @@ export const taskTable = pgTable(
     index("task_workProjectId_idx").on(table.workProjectId),
     index("task_cycleId_idx").on(table.cycleId),
     index("task_projectId_idx").on(table.projectId),
+    index("task_search_idx").using(
+      "gin",
+      titleBodyVector(table.title, table.description),
+    ),
     index("task_project_scheduled_id_idx")
       .on(table.projectId, table.id)
       .where(
@@ -1295,6 +1300,7 @@ export const activityTable = pgTable(
     index("activity_userId_idx").on(table.userId),
     index("activity_createdAt_idx").on(table.createdAt),
     index("activity_parent_id_idx").on(table.parentId),
+    index("activity_search_idx").using("gin", bodyVector(table.content)),
     unique("activity_task_external_source_external_url_unique").on(
       table.taskId,
       table.externalSource,
@@ -2308,6 +2314,10 @@ export const documentTable = pgTable(
   },
   (table) => [
     index("document_workspace_idx").on(table.workspaceId),
+    index("document_search_idx").using(
+      "gin",
+      titleBodyVector(table.title, table.content),
+    ),
     index("document_project_idx").on(table.projectId),
     index("document_work_project_idx").on(table.workProjectId),
     index("document_task_idx").on(table.taskId),

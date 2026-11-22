@@ -4071,7 +4071,8 @@
               "project",
               "workspace",
               "comment",
-              "activity"
+              "activity",
+              "document"
             ]
           },
           "title": {
@@ -26918,7 +26919,8 @@
                 "projects",
                 "workspaces",
                 "comments",
-                "activities"
+                "activities",
+                "documents"
               ],
               "default": "all"
             },
