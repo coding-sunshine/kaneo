@@ -5025,7 +5025,8 @@
 				"properties": "Display properties",
 				"badgeCount": "Badge count",
 				"badgeCountSelected_one": "{{count, number}} selected",
-				"badgeCountSelected_other": "{{count, number}} selected"
+				"badgeCountSelected_other": "{{count, number}} selected",
+				"showSnoozed": "Show snoozed reviews"
 			},
 			"groupBy": {
 				"none": "No grouping",
@@ -5247,7 +5248,10 @@
 				"customSet": "Snooze",
 				"snoozed": "Snoozed until {{date}}",
 				"snoozedMode": "Snoozed",
-				"unsnoozed": "Unsnoozed"
+				"unsnoozed": "Unsnoozed",
+				"group": "Snoozed",
+				"tipComment": "Snoozed until a new comment",
+				"tipReview": "Snoozed until a new review"
 			},
 			"prActions": {
 				"favorite": "Favorite",
@@ -5267,7 +5271,8 @@
 				"closeTitle": "Close \"{{title}}\"?",
 				"closeDescription": "This closes the pull request on GitHub without merging it.",
 				"closed": "Pull request closed",
-				"githubChip": "{{name}}, pull request actions"
+				"githubChip": "{{name}}, pull request actions",
+				"checks": "Checks"
 			},
 			"checksPopover": {
 				"placeholder": "Open pull request checks...",

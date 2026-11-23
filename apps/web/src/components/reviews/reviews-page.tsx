@@ -43,6 +43,8 @@ import {
   tabItems,
   visibleRows,
 } from "@/lib/reviews-view";
+import { splitSnoozed } from "@/lib/reviews-snooze";
+import { useReviewsSnoozeStore } from "@/store/reviews-snooze";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 
 type DetailParams = { owner?: string; repo?: string; number?: string };
@@ -96,21 +98,21 @@ export function ReviewsPage({
     [data, tab, view],
   );
   const subjects = useReviewsFilterSubjects(items, filters, setFilters, ctx);
-  const groups = useMemo(
-    () =>
-      data
-        ? buildGroups(
-            sortPullRequests(
-              filterPullRequests(
-                filterByReviewFilters(items, filters, ctx),
-                query,
-              ),
-              view,
-            ),
-            view,
-          )
-        : [],
-    [data, items, filters, ctx, view, query],
+  const snoozes = useReviewsSnoozeStore((state) => state.entries);
+  const groups = useMemo(() => {
+    if (!data) return [];
+    const { active, snoozed } = splitSnoozed(
+      sortPullRequests(
+        filterPullRequests(filterByReviewFilters(items, filters, ctx), query),
+        view,
+      ),
+      snoozes,
+    );
+    return buildGroups(active, view, view.showSnoozed ? snoozed : []);
+  }, [data, items, filters, ctx, view, query, snoozes]);
+  const toReviewCount = useMemo(
+    () => (data ? splitSnoozed(data.toReview, snoozes).active.length : 0),
+    [data, snoozes],
   );
   const shown = useMemo(
     () => visibleRows(groups, view.collapsed).length,
@@ -187,13 +189,11 @@ export function ReviewsPage({
                     onClick={() => setTab(entry)}
                   >
                     {t(`workspace:reviews.tabs.${entry}`)}
-                    {entry === "toReview" &&
-                      data &&
-                      data.toReview.length > 0 && (
-                        <span className="text-muted-foreground tabular-nums">
-                          {data.toReview.length}
-                        </span>
-                      )}
+                    {entry === "toReview" && toReviewCount > 0 && (
+                      <span className="text-muted-foreground tabular-nums">
+                        {toReviewCount}
+                      </span>
+                    )}
                   </ReviewsTabPill>
                 </ReviewsTabMenu>
               ))}

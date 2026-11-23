@@ -134,6 +134,8 @@ export type GithubSearchPull = {
   };
   mergeable: "MERGEABLE" | "CONFLICTING" | "UNKNOWN";
   mergeStateStatus: string;
+  headRefName: string;
+  baseRefName: string;
   mergeQueueEntry: { id: string } | null;
   labels: { nodes: { name: string; color: string }[] };
   reviewRequests: {
@@ -167,7 +169,7 @@ const SEARCH_QUERY = `query($q: String!) {
         author { login avatarUrl }
         repository { name owner { login } }
         commits(last: 1) { nodes { commit { statusCheckRollup { state } } } }
-        mergeable mergeStateStatus
+        mergeable mergeStateStatus headRefName baseRefName
         mergeQueueEntry { id }
         labels(first: 10) { nodes { name color } }
         reviewRequests(first: 10) {

@@ -1,5 +1,9 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import {
+  PullRequestActionDialog,
+  type PullRequestAction,
+} from "@/components/reviews/pull-request-action-dialog";
 import { ReviewGroupHeader } from "@/components/reviews/review-group-header";
 import {
   ReviewRow,
@@ -38,6 +42,10 @@ export function ReviewsList({
     [groups, view.collapsed],
   );
   const [active, setActive] = useState<string | null>(null);
+  const [pending, setPending] = useState<{
+    pr: ReviewItem;
+    action: PullRequestAction;
+  } | null>(null);
   const index = order.findIndex((pr) => reviewRowKey(pr) === active);
 
   const focusRow = (pr: ReviewItem | undefined) => {
@@ -79,6 +87,7 @@ export function ReviewsList({
         properties={view.properties}
         selected={reviewRowKey(pr) === selectedKey}
         onFocus={() => setActive(reviewRowKey(pr))}
+        onAction={(row, action) => setPending({ pr: row, action })}
       />
     ));
 
@@ -95,6 +104,18 @@ export function ReviewsList({
 
   return (
     <div className="flex flex-col gap-px py-2">
+      {pending && (
+        <PullRequestActionDialog
+          pullRef={{
+            owner: pending.pr.owner,
+            repo: pending.pr.repo,
+            number: String(pending.pr.number),
+          }}
+          pull={pending.pr}
+          action={pending.action}
+          onClose={() => setPending(null)}
+        />
+      )}
       {groups.map((group) => {
         if (group.by === "none") return rows(group.items);
         const id = groupId(group);

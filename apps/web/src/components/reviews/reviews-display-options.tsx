@@ -146,6 +146,16 @@ export function ReviewsDisplayOptions({ tab, view, onChange }: Props) {
               aria-label={t("workspace:reviews.display.showDrafts")}
             />
           </div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm">
+              {t("workspace:reviews.display.showSnoozed")}
+            </span>
+            <Switch
+              checked={view.showSnoozed}
+              onCheckedChange={(showSnoozed) => onChange({ showSnoozed })}
+              aria-label={t("workspace:reviews.display.showSnoozed")}
+            />
+          </div>
           <ReviewsBadgeCountMenu />
         </div>
       </DisplaySection>

@@ -295,6 +295,8 @@ describe("list", () => {
     repository: { name: "web", owner: { login: "acme" } },
     author: { login: "ada", avatarUrl: "https://avatars.test/ada" },
     commits: { nodes: [{ commit: { statusCheckRollup: null } }] },
+    headRefName: `feat-${n}`,
+    baseRefName: "main",
     ...over,
   });
 
@@ -416,6 +418,8 @@ describe("list", () => {
       teamRequested: true,
       hasConflicts: true,
       mergeState: "blocked",
+      headRef: "feat-1",
+      baseRef: "main",
       labels: [{ name: "bug", color: "d73a4a" }],
       teamReviewers: ["core"],
       approvedBy: ["cy"],

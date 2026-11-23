@@ -31990,6 +31990,12 @@
                               "unknown"
                             ]
                           },
+                          "headRef": {
+                            "type": "string"
+                          },
+                          "baseRef": {
+                            "type": "string"
+                          },
                           "teamRequested": {
                             "type": "boolean"
                           },
@@ -32086,6 +32092,8 @@
                           "changesRequestedBy",
                           "hasConflicts",
                           "mergeState",
+                          "headRef",
+                          "baseRef",
                           "teamRequested",
                           "issue"
                         ]
@@ -32249,6 +32257,12 @@
                               "unknown"
                             ]
                           },
+                          "headRef": {
+                            "type": "string"
+                          },
+                          "baseRef": {
+                            "type": "string"
+                          },
                           "teamRequested": {
                             "type": "boolean"
                           },
@@ -32345,6 +32359,8 @@
                           "changesRequestedBy",
                           "hasConflicts",
                           "mergeState",
+                          "headRef",
+                          "baseRef",
                           "teamRequested",
                           "issue"
                         ]
@@ -32508,6 +32524,12 @@
                               "unknown"
                             ]
                           },
+                          "headRef": {
+                            "type": "string"
+                          },
+                          "baseRef": {
+                            "type": "string"
+                          },
                           "teamRequested": {
                             "type": "boolean"
                           },
@@ -32604,6 +32626,8 @@
                           "changesRequestedBy",
                           "hasConflicts",
                           "mergeState",
+                          "headRef",
+                          "baseRef",
                           "teamRequested",
                           "issue"
                         ]

@@ -1,9 +1,13 @@
 import { Link } from "@tanstack/react-router";
+import { Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ReviewRowLabels } from "@/components/reviews/review-row-labels";
+import type { PullRequestAction } from "@/components/reviews/pull-request-action-dialog";
+import { ReviewRowMenu } from "@/components/reviews/review-row-menu";
 import { ReviewRowReviewers } from "@/components/reviews/review-row-reviewers";
 import { PullRequestStatusIcon } from "@/components/task/task-pull-requests/pull-request-status-icon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import {
   reviewDate,
   type ReviewItem,
@@ -15,7 +19,10 @@ import {
   repoRef,
   statusDetailsKey,
 } from "@/lib/review-row-details";
+import { formatDate } from "@/lib/format";
+import { isSnoozed } from "@/lib/reviews-snooze";
 import { shortAge } from "@/lib/short-age";
+import { useReviewsSnoozeStore } from "@/store/reviews-snooze";
 
 export const reviewRowKey = (pr: ReviewItem) =>
   `${pr.owner}/${pr.repo}#${pr.number}`;
@@ -36,12 +43,14 @@ export function ReviewRow({
   properties,
   selected,
   onFocus,
+  onAction,
 }: {
   pr: ReviewItem;
   workspaceId: string;
   properties: ReviewsProperty[];
   selected: boolean;
   onFocus: () => void;
+  onAction: (pr: ReviewItem, action: PullRequestAction) => void;
 }) {
   const { t } = useTranslation();
   const show = (property: ReviewsProperty) => properties.includes(property);
@@ -54,7 +63,27 @@ export function ReviewRow({
     : null;
   const ref = repoRef(pr, properties);
   const secondLine = hasSecondLine(properties);
-  return (
+  const entry = useReviewsSnoozeStore(
+    (state) => state.entries[reviewRowKey(pr)],
+  );
+  const snoozed = isSnoozed(entry, pr);
+  const snoozeTip = !entry
+    ? ""
+    : entry.until
+      ? t("workspace:reviews.snooze.snoozed", {
+          date: formatDate(new Date(entry.until), {
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+          }),
+        })
+      : t(
+          entry.mode === "newComment"
+            ? "workspace:reviews.snooze.tipComment"
+            : "workspace:reviews.snooze.tipReview",
+        );
+  const link = (
     <Link
       to={reviewDetailRoute}
       params={reviewDetailParams(pr, workspaceId)}
@@ -88,6 +117,14 @@ export function ReviewRow({
             <AvatarFallback>{pr.author.login.slice(0, 2)}</AvatarFallback>
           </Avatar>
         )}
+        {snoozed && (
+          <Clock
+            aria-label={snoozeTip}
+            className="size-3.5 shrink-0 text-indigo-500"
+          >
+            <title>{snoozeTip}</title>
+          </Clock>
+        )}
         {show("date") && (
           <span className="w-8 shrink-0 text-right text-muted-foreground tabular-nums">
             {shortAge(reviewDate(pr))}
@@ -100,5 +137,15 @@ export function ReviewRow({
         </span>
       )}
     </Link>
+  );
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger render={link} />
+      <ReviewRowMenu
+        pr={pr}
+        workspaceId={workspaceId}
+        onAction={(action) => onAction(pr, action)}
+      />
+    </ContextMenu>
   );
 }

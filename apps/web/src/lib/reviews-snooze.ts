@@ -1,3 +1,5 @@
+import { pullRequestKey } from "@/lib/pull-request-key";
+
 export type SnoozeMode = "newComment" | "newReview";
 
 /** What the snooze captured, so a later change on the pull request can end it. */
@@ -10,6 +12,7 @@ export type SnoozeEntry = {
 };
 
 type SnoozeSubject = { updatedAt: string; comments: number };
+type PullKeyParts = { owner: string; repo: string; number: number };
 
 // ponytail: the list exposes no review timestamps, so "new review" watches
 // GitHub's updatedAt (any activity) and "new comment" the comment count.
@@ -34,3 +37,18 @@ export const entryFor = (
   updatedAt: pull.updatedAt,
   comments: pull.comments,
 });
+
+/** Splits rows into those still showing and those snoozed now, keeping order. */
+export function splitSnoozed<T extends SnoozeSubject & PullKeyParts>(
+  items: T[],
+  entries: Record<string, SnoozeEntry>,
+  now = new Date(),
+) {
+  const active: T[] = [];
+  const snoozed: T[] = [];
+  for (const pr of items) {
+    const key = pullRequestKey({ ...pr, number: String(pr.number) });
+    (isSnoozed(entries[key], pr, now) ? snoozed : active).push(pr);
+  }
+  return { active, snoozed };
+}

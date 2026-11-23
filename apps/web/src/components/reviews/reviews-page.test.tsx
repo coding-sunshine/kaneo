@@ -11,6 +11,8 @@ import {
 import "@/lib/i18n";
 import { ShortcutListener } from "@/lib/shortcuts/shortcut-listener";
 import { DEFAULT_REVIEWS_VIEWS, REVIEWS_TABS } from "@/lib/reviews-view";
+import { entryFor } from "@/lib/reviews-snooze";
+import { useReviewsSnoozeStore } from "@/store/reviews-snooze";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 import { ReviewsPage } from "./reviews-page";
 
@@ -103,6 +105,7 @@ beforeEach(() => {
     reviewsView: DEFAULT_REVIEWS_VIEWS,
     reviewsTabOrder: REVIEWS_TABS,
   });
+  useReviewsSnoozeStore.setState({ entries: {} });
   mocks.navigate.mockClear();
   mocks.params = {};
 });
@@ -131,6 +134,64 @@ describe("ReviewsPage", () => {
       "Draft1",
       "Open1",
     ]);
+  });
+
+  describe("snoozed reviews", () => {
+    const hour = new Date(Date.now() + 3_600_000);
+    const snooze = (number: number, when: Parameters<typeof entryFor>[1]) =>
+      useReviewsSnoozeStore.setState({
+        entries: {
+          [`acme/web#${number}`]: entryFor(
+            { updatedAt: "2026-01-02T00:00:00Z", comments: 0 },
+            when,
+          ),
+        },
+      });
+    const showSnoozed = () =>
+      useUserPreferencesStore.setState({
+        reviewsView: {
+          ...DEFAULT_REVIEWS_VIEWS,
+          toReview: { ...DEFAULT_REVIEWS_VIEWS.toReview, showSnoozed: true },
+        },
+      });
+
+    it("drops a snoozed row and the tab count", () => {
+      snooze(1, { until: hour });
+      render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+      expect(screen.queryByText("Review me")).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("tab", { name: "To review" }),
+      ).toBeInTheDocument();
+    });
+
+    it("shows snoozed rows in a last Snoozed group when the option is on, with the clock tooltip", () => {
+      snooze(1, { until: hour });
+      state.list.toReview = [pr(1, "Review me"), pr(4, "Other")];
+      showSnoozed();
+      render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+      const headings = screen.getAllByRole("heading", { level: 2 });
+      expect(headings.map((heading) => heading.textContent)).toEqual([
+        "Needs your review1",
+        "Snoozed1",
+      ]);
+      expect(screen.getByText("Review me")).toBeInTheDocument();
+      expect(screen.getByText(/^Snoozed until /)).toBeInTheDocument();
+    });
+
+    it("lists an expired snooze as a normal row", () => {
+      snooze(1, { until: new Date(Date.now() - 1000) });
+      render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+      expect(screen.getByText("Review me")).toBeInTheDocument();
+    });
+
+    it("words the tooltip for until-new-comment", () => {
+      snooze(1, { mode: "newComment" });
+      showSnoozed();
+      render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+      expect(
+        screen.getByText("Snoozed until a new comment"),
+      ).toBeInTheDocument();
+    });
   });
 
   it("starts Done collapsed and collapses a group on click", () => {

@@ -95,6 +95,23 @@ describe("reviews view", () => {
     ]);
   });
 
+  it("puts snoozed rows in a last group with every grouping", () => {
+    const items = [pr({ number: 1, status: "open" })];
+    const snoozed = [pr({ number: 2, status: "merged" })];
+    for (const groupBy of ["status", "none", "repository"] as const) {
+      const groups = buildGroups(
+        items,
+        { groupBy, subGroupBy: "status", pinned: ["status:open"] },
+        snoozed,
+      );
+      const last = groups[groups.length - 1];
+      expect(last).toMatchObject({ by: "snoozed", key: "snoozed" });
+      expect(last?.items.map((p) => p.number)).toEqual([2]);
+      expect(visibleRows(groups).map((p) => p.number)).toEqual([1, 2]);
+    }
+    expect(buildGroups(items, DEFAULT_REVIEWS_VIEWS.created)).toHaveLength(1);
+  });
+
   it("nests a subgroup and skips rows in collapsed groups", () => {
     const items = [
       pr({ number: 1, repo: "web", status: "open" }),

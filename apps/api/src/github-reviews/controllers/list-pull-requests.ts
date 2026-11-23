@@ -57,6 +57,8 @@ function toSummary(pull: GithubSearchPull) {
     ...toReviewFields(pull),
     hasConflicts: pull.mergeable === "CONFLICTING",
     mergeState: toMergeState(pull),
+    headRef: pull.headRefName,
+    baseRef: pull.baseRefName,
   };
 }
 

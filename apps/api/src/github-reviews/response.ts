@@ -67,6 +67,8 @@ export const reviewListItemSchema = pullRequestSummarySchema.extend({
   changesRequestedBy: z.array(z.string()),
   hasConflicts: z.boolean(),
   mergeState: z.enum(mergeStates),
+  headRef: z.string(),
+  baseRef: z.string(),
   /** Review requested through a team only, not from you directly. */
   teamRequested: z.boolean(),
   issue: linkedIssue.nullable(),

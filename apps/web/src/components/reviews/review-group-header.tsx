@@ -36,14 +36,16 @@ export function ReviewGroupHeader({
 }) {
   const { t } = useTranslation();
   const label =
-    group.by === "priority"
-      ? t(`tasks:priority.${group.key}`)
-      : group.by === "author" ||
-          group.by === "repository" ||
-          group.by === "project" ||
-          group.by === "team"
-        ? group.key || t(`workspace:reviews.none.${group.by}`)
-        : t(`workspace:reviews.${group.by}.${group.key}`);
+    group.by === "snoozed"
+      ? t("workspace:reviews.snooze.group")
+      : group.by === "priority"
+        ? t(`tasks:priority.${group.key}`)
+        : group.by === "author" ||
+            group.by === "repository" ||
+            group.by === "project" ||
+            group.by === "team"
+          ? group.key || t(`workspace:reviews.none.${group.by}`)
+          : t(`workspace:reviews.${group.by}.${group.key}`);
   const content = (
     <>
       <span className="truncate">{label}</span>

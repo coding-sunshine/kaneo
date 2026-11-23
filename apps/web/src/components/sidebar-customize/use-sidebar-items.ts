@@ -27,7 +27,9 @@ import {
 import useGetNotifications from "@/hooks/queries/notification/use-get-notifications";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { reviewsCount } from "@/lib/reviews-count";
+import { splitSnoozed } from "@/lib/reviews-snooze";
 import { fetchWindow } from "@/lib/reviews-view";
+import { useReviewsSnoozeStore } from "@/store/reviews-snooze";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 
 export type NavItem = {
@@ -63,6 +65,7 @@ export function useSidebarItems() {
     reviewsWindow,
     codeReviewsEnabled && reviewsStatus.data?.state === "connected",
   );
+  const snoozes = useReviewsSnoozeStore((state) => state.entries);
   const { data: drafts = [] } = useTaskDrafts(workspace?.id);
 
   if (!workspace) return null;
@@ -98,7 +101,15 @@ export function useSidebarItems() {
             GitPullRequest,
             `${homeUrl}/reviews`,
             reviewsList.data &&
-              reviewsCount(reviewsList.data, reviewsCountOptions),
+              reviewsCount(
+                {
+                  toReview: splitSnoozed(reviewsList.data.toReview, snoozes)
+                    .active,
+                  created: splitSnoozed(reviewsList.data.created, snoozes)
+                    .active,
+                },
+                reviewsCountOptions,
+              ),
           ),
         ]
       : []),

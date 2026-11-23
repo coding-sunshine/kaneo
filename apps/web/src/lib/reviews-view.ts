@@ -55,6 +55,8 @@ export type ReviewsView = {
   sortDirection: SortDirection;
   closed: ClosedWindow;
   showDrafts: boolean;
+  /** Snoozed pull requests show in a group at the bottom instead of being hidden. */
+  showSnoozed: boolean;
   properties: ReviewsProperty[];
   /** Top-level group ids, as `${groupBy}:${key}`, shown collapsed. */
   collapsed: string[];
@@ -137,6 +139,7 @@ export const DEFAULT_REVIEWS_VIEWS: ReviewsViews = {
     sortDirection: "desc",
     closed: "week",
     showDrafts: true,
+    showSnoozed: false,
     properties: ["date"],
     collapsed: ["status:merged", "status:closed"],
     pinned: [],
@@ -149,6 +152,7 @@ export const DEFAULT_REVIEWS_VIEWS: ReviewsViews = {
     sortDirection: "asc",
     closed: "day",
     showDrafts: true,
+    showSnoozed: false,
     properties: ["date"],
     collapsed: ["focus:done"],
     pinned: [],
@@ -187,6 +191,10 @@ export function sanitizeReviewsViews(saved: unknown): ReviewsViews {
         typeof view.showDrafts === "boolean"
           ? view.showDrafts
           : base.showDrafts,
+      showSnoozed:
+        typeof view.showSnoozed === "boolean"
+          ? view.showSnoozed
+          : base.showSnoozed,
       properties: strings(view.properties, base.properties).filter(
         (property): property is ReviewsProperty =>
           REVIEWS_PROPERTIES.includes(property as ReviewsProperty),
@@ -392,7 +400,7 @@ export function filterPullRequests(items: ReviewItem[], query: string) {
 }
 
 export type ReviewsGroup = {
-  by: ReviewsGroupBy;
+  by: ReviewsGroupBy | "snoozed";
   key: string;
   items: ReviewItem[];
   children: ReviewsGroup[];
@@ -416,12 +424,21 @@ export function groupId(group: Pick<ReviewsGroup, "by" | "key">) {
   return `${group.by}:${group.key}`;
 }
 
+/**
+ * `snoozed` rows form one group after the others, whatever the grouping, and
+ * stay below pinned groups.
+ */
 export function buildGroups(
   items: ReviewItem[],
   view: Pick<ReviewsView, "groupBy" | "subGroupBy" | "pinned">,
+  snoozed: ReviewItem[] = [],
 ): ReviewsGroup[] {
+  const snoozedGroup: ReviewsGroup[] =
+    snoozed.length > 0
+      ? [{ by: "snoozed", key: "snoozed", items: snoozed, children: [] }]
+      : [];
   if (view.groupBy === "none") {
-    return [{ by: "none", key: "all", items, children: [] }];
+    return [{ by: "none", key: "all", items, children: [] }, ...snoozedGroup];
   }
   const groups = bucket(items, view.groupBy).map((group) => ({
     ...group,
@@ -432,7 +449,7 @@ export function buildGroups(
   }));
   const pinned = (group: ReviewsGroup) =>
     view.pinned.includes(groupId(group)) ? 1 : 0;
-  return groups.sort((a, b) => pinned(a) - pinned(b));
+  return [...groups.sort((a, b) => pinned(a) - pinned(b)), ...snoozedGroup];
 }
 
 /**
