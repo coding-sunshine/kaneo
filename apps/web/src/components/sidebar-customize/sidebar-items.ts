@@ -9,6 +9,7 @@ export type SidebarItemId =
   | "pulse"
   | "documents"
   | "agent"
+  | "drafts"
   | "projects"
   | "views"
   | "members"
@@ -38,16 +39,27 @@ export const DEFAULT_SIDEBAR_PREFS: SidebarPrefs = {
 };
 
 export const SIDEBAR_SECTIONS: Record<SidebarSection, SidebarItemId[]> = {
-  personal: ["inbox", "myTasks", "reviews", "pulse", "documents", "agent"],
+  personal: [
+    "inbox",
+    "myTasks",
+    "reviews",
+    "pulse",
+    "documents",
+    "agent",
+    "drafts",
+  ],
   workspace: ["projects", "views", "members", "loops", "teams"],
 };
 
 // Linear keeps these two behind the workspace "More" menu until asked.
 const HIDDEN_BY_DEFAULT = new Set<SidebarItemId>(["members", "teams"]);
 
+// Linear shows Drafts only once something is waiting in it.
+const BADGED_BY_DEFAULT = new Set<SidebarItemId>(["drafts"]);
+
 // "Show when badged" and the Badge submenu only make sense for a row that
 // has a count to show.
-export const BADGEABLE = new Set<SidebarItemId>(["inbox", "reviews"]);
+export const BADGEABLE = new Set<SidebarItemId>(["inbox", "reviews", "drafts"]);
 
 // Literal keys so the i18n tooling can see every label in use.
 export const VISIBILITY_LABELS = {
@@ -74,7 +86,12 @@ export function visibilityOf(
   visibility: SidebarPrefs["visibility"],
 ): SidebarVisibility {
   const value =
-    visibility[id] ?? (HIDDEN_BY_DEFAULT.has(id) ? "never" : "always");
+    visibility[id] ??
+    (HIDDEN_BY_DEFAULT.has(id)
+      ? "never"
+      : BADGED_BY_DEFAULT.has(id)
+        ? "badged"
+        : "always");
   return visibilityOptions(id).includes(value) ? value : "always";
 }
 

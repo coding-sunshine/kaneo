@@ -79,4 +79,20 @@ describe("sidebar items", () => {
     expect(visibilityOptions("reviews")).toEqual(["always", "badged", "never"]);
     expect(visibilityOptions("pulse")).toEqual(["always", "never"]);
   });
+
+  it("shows Drafts only when badged, and never files it under More", () => {
+    expect(visibilityOf("drafts", {})).toBe("badged");
+    const empty = arrangeSection(
+      "personal",
+      [{ id: "drafts" as const }],
+      prefs(),
+    );
+    expect(empty).toEqual({ shown: [], hidden: [] });
+    const full = arrangeSection(
+      "personal",
+      [{ id: "drafts" as const, count: 2 }],
+      prefs(),
+    );
+    expect(ids(full.shown)).toEqual(["drafts"]);
+  });
 });

@@ -71,11 +71,16 @@ vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => ({
 vi.mock("@/hooks/queries/agent/use-agent", () => ({
   useHasAgent: () => false,
 }));
+const drafts = vi.hoisted(() => ({ list: [] as unknown[] }));
+vi.mock("@/hooks/queries/task-draft/use-task-drafts", () => ({
+  useTaskDrafts: () => ({ data: drafts.list }),
+}));
 
 const defaultSidebar = useUserPreferencesStore.getState().sidebar;
 beforeEach(() => {
   reviews.state = "connected";
   reviews.toReview = [];
+  drafts.list = [];
   useUserPreferencesStore.setState({
     codeReviewsEnabled: true,
     sidebar: defaultSidebar,
@@ -111,6 +116,15 @@ describe("NavMain reviews row", () => {
     expect(
       screen.queryByText("navigation:sidebar.reviews"),
     ).not.toBeInTheDocument();
+  });
+
+  it("shows Drafts with its count only once a draft exists", () => {
+    const { unmount } = render(<NavMain />);
+    expect(buttonLabels()).not.toContain("navigation:sidebar.drafts");
+    unmount();
+    drafts.list = [{}, {}, {}];
+    render(<NavMain />);
+    expect(buttonLabels()).toContain("navigation:sidebar.drafts3");
   });
 
   it("shows a Pulse row", () => {

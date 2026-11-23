@@ -914,6 +914,49 @@ export const favoriteTable = pgTable(
   ],
 );
 
+// Per-user unfinished create-issue forms ("Drafts"). Private to the author.
+// `properties` is opaque to the API: the web create form owns its shape.
+export const taskDraftTable = pgTable(
+  "task_draft",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    projectId: text("project_id").references(() => projectTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    title: text("title").notNull().default(""),
+    description: text("description").notNull().default(""),
+    properties: jsonb("properties")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("task_draft_user_workspace_idx").on(table.userId, table.workspaceId),
+  ],
+);
+
 // Linear-style "Projects": a workspace-level grouping of issues across teams.
 // Kaneo's own `project` table is what Linear calls a team, hence `work_project`.
 export const workProjectTable = pgTable(
