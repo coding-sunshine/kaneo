@@ -8,6 +8,7 @@ import {
 } from "../../database/schema";
 import { publishEvent } from "../../events";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
+import { getTaskIdentifier } from "../../task/get-task-identifier";
 
 async function deleteTaskRelation(
   id: string,
@@ -63,6 +64,21 @@ async function deleteTaskRelation(
       projectId: task.projectId,
       userId,
     });
+    if (relation.relationType === "subtask") {
+      const [child] = await db
+        .select({ projectId: taskTable.projectId })
+        .from(taskTable)
+        .where(eq(taskTable.id, relation.targetTaskId));
+      if (child)
+        await publishEvent("task.parent_changed", {
+          taskId: relation.targetTaskId,
+          projectId: child.projectId,
+          userId,
+          fromParent: await getTaskIdentifier(relation.sourceTaskId),
+          toParent: null,
+          type: "parent_changed",
+        });
+    }
   }
 
   return relation;

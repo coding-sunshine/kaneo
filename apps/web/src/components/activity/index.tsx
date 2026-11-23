@@ -12,6 +12,7 @@ import {
 } from "../ui/preview-card";
 import { TimelineContent, TimelineItem } from "../ui/timeline";
 import CommentThread, { type ThreadComment } from "./comment-thread";
+import { describeHistoryEvent } from "./describe-history-event";
 import { isCommentActivity } from "./utils";
 
 type ActivityItem = ThreadComment & {
@@ -370,6 +371,11 @@ function renderActivityContent({
     }
   }
 
+  const historyText = describeHistoryEvent(activity.type, eventData, t);
+  if (historyText) {
+    return <span className="text-muted-foreground">{historyText}</span>;
+  }
+
   if (["create", "created", "task"].includes(activity.type)) {
     return (
       <span className="text-muted-foreground">{t("activity:created")}</span>
@@ -405,7 +411,8 @@ function Activity({
       )
     : null;
 
-  const actorName = user?.user?.name || t("common:people.someone");
+  const actorName =
+    user?.user?.name || activity.externalUserName || t("common:people.someone");
 
   if (isCommentActivity(activity)) {
     return (

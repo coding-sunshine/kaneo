@@ -1,4 +1,5 @@
 import type { WorkspaceActivity } from "@/fetchers/activity/get-workspace-activities";
+import { describeHistoryEvent } from "@/components/activity/describe-history-event";
 import { formatDateMedium } from "@/lib/format";
 import { getPriorityLabel, getStatusDisplayLabel } from "@/lib/i18n/domain";
 
@@ -98,8 +99,10 @@ export function describeActivity(activity: WorkspaceActivity, t: Translate) {
             });
       }
       break;
-    default:
-      break;
+    default: {
+      const history = describeHistoryEvent(activity.type, eventData, t);
+      if (history) return history;
+    }
   }
 
   // Events recorded before eventData existed only have their English text.

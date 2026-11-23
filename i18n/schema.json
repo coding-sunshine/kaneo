@@ -10902,6 +10902,39 @@
 				"movedFromOtherProject": {
 					"type": "string"
 				},
+				"cycleChanged": {
+					"type": "string"
+				},
+				"cycleAdded": {
+					"type": "string"
+				},
+				"cycleRemoved": {
+					"type": "string"
+				},
+				"addedLabel": {
+					"type": "string"
+				},
+				"removedLabel": {
+					"type": "string"
+				},
+				"addedToProject": {
+					"type": "string"
+				},
+				"changedProject": {
+					"type": "string"
+				},
+				"removedFromProject": {
+					"type": "string"
+				},
+				"setParent": {
+					"type": "string"
+				},
+				"changedParent": {
+					"type": "string"
+				},
+				"removedParent": {
+					"type": "string"
+				},
 				"created": {
 					"type": "string"
 				},
@@ -11323,6 +11356,17 @@
 				"changedTitle",
 				"moved",
 				"movedFromOtherProject",
+				"cycleChanged",
+				"cycleAdded",
+				"cycleRemoved",
+				"addedLabel",
+				"removedLabel",
+				"addedToProject",
+				"changedProject",
+				"removedFromProject",
+				"setParent",
+				"changedParent",
+				"removedParent",
 				"created",
 				"githubUser",
 				"comment"

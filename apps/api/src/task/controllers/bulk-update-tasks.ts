@@ -394,6 +394,7 @@ async function bulkUpdateTasks({
           updatedCount++;
 
           await publishEvent("task.label_assigned", {
+            label: { name: label.name },
             projectId: task.projectId,
             taskId: task.id,
             userId,

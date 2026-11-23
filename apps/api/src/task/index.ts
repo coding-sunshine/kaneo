@@ -1406,6 +1406,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       await updateTaskCycle({
         id: c.req.valid("param").id,
         cycleId: c.req.valid("json").cycleId,
+        currentUserId: c.get("userId"),
       }),
       200,
     ),
@@ -1418,6 +1419,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
         id,
         workProjectId,
         workProjectMilestoneId: workProjectMilestoneId ?? null,
+        currentUserId: c.get("userId"),
       }),
       200,
     );

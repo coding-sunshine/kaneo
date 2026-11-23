@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, ne, sql } from "drizzle-orm";
 import db from "../../database";
 import { redactInaccessibleMoves } from "../redact-inaccessible-moves";
 import {
@@ -63,6 +63,7 @@ async function getWorkspaceActivities(workspaceId: string, userId: string) {
         sql`${taskTable.projectId} = ANY(${sql.param(projects.map((project) => project.id))}::text[])`,
         isNull(projectTable.archivedAt),
         gte(activityTable.createdAt, since),
+        ne(activityTable.type, "description_changed"),
       ),
     )
     .orderBy(desc(activityTable.createdAt), desc(activityTable.id))

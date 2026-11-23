@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
 import db from "../../database";
 import {
   activityTable,
@@ -68,7 +68,11 @@ async function getActivitiesFromTaskId(
   limit?: number,
 ) {
   const activities = await db.query.activityTable.findMany({
-    where: eq(activityTable.taskId, taskId),
+    // Imported Linear description edits carry no content to show.
+    where: and(
+      eq(activityTable.taskId, taskId),
+      ne(activityTable.type, "description_changed"),
+    ),
     orderBy: [desc(activityTable.createdAt), desc(activityTable.id)],
     limit,
   });

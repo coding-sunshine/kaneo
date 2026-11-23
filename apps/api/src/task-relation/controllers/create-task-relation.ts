@@ -8,6 +8,7 @@ import {
 } from "../../database/schema";
 import { publishEvent } from "../../events";
 import { assertProjectAccess } from "../../project-access/assert-project-access";
+import { getTaskIdentifier } from "../../task/get-task-identifier";
 
 async function createTaskRelation({
   sourceTaskId,
@@ -137,6 +138,22 @@ async function createTaskRelation({
     projectId: sourceTask.projectId,
     userId,
   });
+
+  // The relation's source is the parent; the subtask is its target.
+  if (relationType === "subtask")
+    await publishEvent("task.parent_changed", {
+      taskId: targetTaskId,
+      projectId: (
+        await db
+          .select({ projectId: taskTable.projectId })
+          .from(taskTable)
+          .where(eq(taskTable.id, targetTaskId))
+      )[0]?.projectId,
+      userId,
+      fromParent: null,
+      toParent: await getTaskIdentifier(sourceTaskId),
+      type: "parent_changed",
+    });
 
   return relation;
 }

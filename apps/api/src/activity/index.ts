@@ -606,4 +606,40 @@ subscribeToEvent<{
   });
 });
 
+for (const [event, field] of [
+  ["task.label_assigned", "addedLabels"],
+  ["task.label_unassigned", "removedLabels"],
+] as const)
+  subscribeToEvent<{
+    taskId: string;
+    userId: string;
+    label?: { name?: string };
+  }>(event, async (data) => {
+    if (!data.label?.name) return;
+    await createActivity(data.taskId, "labels_changed", data.userId, null, {
+      [field]: [data.label.name],
+    });
+  });
+
+for (const [event, type, fields] of [
+  ["task.cycle_changed", "cycle_changed", ["fromCycle", "toCycle"]],
+  [
+    "task.work_project_changed",
+    "work_project_changed",
+    ["fromProject", "toProject"],
+  ],
+  ["task.parent_changed", "parent_changed", ["fromParent", "toParent"]],
+] as const)
+  subscribeToEvent<
+    { taskId: string; userId: string } & Record<string, unknown>
+  >(event, async (data) => {
+    await createActivity(
+      data.taskId,
+      type,
+      data.userId,
+      null,
+      Object.fromEntries(fields.map((field) => [field, data[field]])),
+    );
+  });
+
 export default activity;
