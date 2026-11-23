@@ -64,3 +64,18 @@ export const workProjectUpdateSchema = z
   .openapi("WorkProjectUpdate");
 
 export const workProjectUpdateListSchema = z.array(workProjectUpdateSchema);
+
+export const workProjectCommentSchema = z
+  .object({
+    id: z.string(),
+    workProjectId: z.string(),
+    userId: z.string().nullable(),
+    userName: z.string().nullable(),
+    userImage: z.string().nullable(),
+    content: z.string(),
+    createdAt: responseTimestamp,
+    updatedAt: responseTimestamp,
+  })
+  .openapi("WorkProjectComment");
+
+export const workProjectCommentListSchema = z.array(workProjectCommentSchema);

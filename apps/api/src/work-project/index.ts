@@ -17,6 +17,12 @@ import {
   listProjectUpdates,
   listWorkspaceUpdates,
 } from "./controllers/work-project-updates";
+import {
+  createProjectComment,
+  deleteProjectComment,
+  editProjectComment,
+  listProjectComments,
+} from "./controllers/work-project-comments";
 import { saveWorkProject } from "./controllers/save-work-project";
 import {
   createMilestone,
@@ -32,10 +38,13 @@ import {
   workProjectDetailSchema,
   workProjectListSchema,
   workProjectMilestoneSchema,
+  workProjectCommentListSchema,
+  workProjectCommentSchema,
   workProjectUpdateListSchema,
   workProjectUpdateSchema,
 } from "./response";
 import {
+  commentBody,
   createMilestoneBody,
   createUpdateBody,
   createWorkProjectBody,
@@ -296,6 +305,82 @@ const deleteUpdateRoute = createRoute({
   },
 });
 
+const listCommentsRoute = createRoute({
+  method: "get",
+  operationId: "listWorkProjectComments",
+  path: "/{id}/comment",
+  tags: ["Work projects"],
+  summary: "List project comments",
+  description: "Comments on a project's activity feed, oldest first.",
+  middleware: [
+    workspaceAccess.fromWorkProject(),
+    requireWorkspacePermission({ project: ["read"] }),
+  ] as const,
+  request: { params: workProjectParam },
+  responses: {
+    200: jsonResponse("Project comments", workProjectCommentListSchema),
+    403: noAccess,
+    404: errorResponse("Project not found"),
+  },
+});
+
+const createCommentRoute = createRoute({
+  method: "post",
+  operationId: "createWorkProjectComment",
+  path: "/{id}/comment",
+  tags: ["Work projects"],
+  summary: "Comment on a project",
+  description: "Add a comment to a project's activity feed.",
+  middleware: [
+    workspaceAccess.fromWorkProject(),
+    requireWorkspacePermission({ task: ["update"] }),
+  ] as const,
+  request: { params: workProjectParam, body: body(commentBody) },
+  responses: {
+    200: jsonResponse("Comment posted", workProjectCommentSchema),
+    403: noAccess,
+    404: errorResponse("Project not found"),
+  },
+});
+
+const editCommentRoute = createRoute({
+  method: "put",
+  operationId: "updateWorkProjectComment",
+  path: "/comment/{id}",
+  tags: ["Work projects"],
+  summary: "Edit project comment",
+  description: "Edit a project comment. Only its author can.",
+  middleware: [
+    workspaceAccess.fromWorkProjectComment(),
+    requireWorkspacePermission({ task: ["update"] }),
+  ] as const,
+  request: { params: updateParam, body: body(commentBody) },
+  responses: {
+    200: jsonResponse("Comment edited", workProjectCommentSchema),
+    403: noAccess,
+    404: errorResponse("Comment not found"),
+  },
+});
+
+const deleteCommentRoute = createRoute({
+  method: "delete",
+  operationId: "deleteWorkProjectComment",
+  path: "/comment/{id}",
+  tags: ["Work projects"],
+  summary: "Delete project comment",
+  description: "Delete a project comment. Its author or a workspace admin can.",
+  middleware: [
+    workspaceAccess.fromWorkProjectComment(),
+    requireWorkspacePermission({ task: ["update"] }),
+  ] as const,
+  request: { params: updateParam },
+  responses: {
+    200: jsonResponse("Comment deleted", deletedSchema),
+    403: noAccess,
+    404: errorResponse("Comment not found"),
+  },
+});
+
 const pulseRoute = createRoute({
   method: "get",
   operationId: "listWorkspaceProjectUpdates",
@@ -356,6 +441,39 @@ const workProject = apiRouter()
   .openapi(deleteUpdateRoute, async (c) =>
     c.json(
       await deleteProjectUpdate(
+        c.req.valid("param").id,
+        c.get("userId"),
+        await hasWorkspacePermission(c, { project: ["delete"] }),
+      ),
+      200,
+    ),
+  )
+  .openapi(listCommentsRoute, async (c) =>
+    c.json(await listProjectComments(c.req.valid("param").id), 200),
+  )
+  .openapi(createCommentRoute, async (c) =>
+    c.json(
+      await createProjectComment(
+        c.req.valid("param").id,
+        c.get("userId"),
+        c.req.valid("json").content,
+      ),
+      200,
+    ),
+  )
+  .openapi(editCommentRoute, async (c) =>
+    c.json(
+      await editProjectComment(
+        c.req.valid("param").id,
+        c.get("userId"),
+        c.req.valid("json").content,
+      ),
+      200,
+    ),
+  )
+  .openapi(deleteCommentRoute, async (c) =>
+    c.json(
+      await deleteProjectComment(
         c.req.valid("param").id,
         c.get("userId"),
         await hasWorkspacePermission(c, { project: ["delete"] }),

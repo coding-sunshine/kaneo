@@ -1168,6 +1168,35 @@ export const workProjectUpdateTable = pgTable(
   ],
 );
 
+// Linear-style comments on a project's activity feed (separate from health updates).
+export const workProjectCommentTable = pgTable(
+  "work_project_comment",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workProjectId: text("work_project_id")
+      .notNull()
+      .references(() => workProjectTable.id, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => userTable.id, {
+      onDelete: "set null",
+    }),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("work_project_comment_projectId_idx").on(
+      table.workProjectId,
+      table.createdAt,
+    ),
+  ],
+);
+
 export const taskTable = pgTable(
   "task",
   {

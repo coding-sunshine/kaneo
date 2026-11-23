@@ -24,3 +24,8 @@ export type WorkProjectUpdate = InferResponseType<
   Api[":id"]["update"]["$get"],
   200
 >[number];
+
+export type WorkProjectComment = InferResponseType<
+  Api[":id"]["comment"]["$get"],
+  200
+>[number];

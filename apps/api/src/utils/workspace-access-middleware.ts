@@ -21,7 +21,8 @@ type LookupResource =
   | "projectLabel"
   | "workspaceWebhook"
   | "workProjectMilestone"
-  | "workProjectUpdate";
+  | "workProjectUpdate"
+  | "workProjectComment";
 
 type WorkspaceIdSource =
   | { type: "query"; key: string }
@@ -58,6 +59,7 @@ const RESOURCE_NOT_FOUND: Record<LookupResource, string> = {
   workspaceWebhook: "Webhook not found",
   workProjectMilestone: "Milestone not found",
   workProjectUpdate: "Update not found",
+  workProjectComment: "Comment not found",
 };
 
 type WorkspaceAccessMiddlewareConfig = {
@@ -447,6 +449,22 @@ async function lookupScope(
       return update ? { ...update, projectId: null } : null;
     }
 
+    case "workProjectComment": {
+      const [comment] = await db
+        .select({ workspaceId: schema.workProjectTable.workspaceId })
+        .from(schema.workProjectCommentTable)
+        .innerJoin(
+          schema.workProjectTable,
+          eq(
+            schema.workProjectCommentTable.workProjectId,
+            schema.workProjectTable.id,
+          ),
+        )
+        .where(eq(schema.workProjectCommentTable.id, id))
+        .limit(1);
+      return comment ? { ...comment, projectId: null } : null;
+    }
+
     default:
       return null;
   }
@@ -569,6 +587,11 @@ export const workspaceAccess = {
   fromWorkProjectUpdate: (idKey = "id") =>
     workspaceAccessMiddleware({
       sources: [{ type: "lookup", resource: "workProjectUpdate", idKey }],
+    }),
+
+  fromWorkProjectComment: (idKey = "id") =>
+    workspaceAccessMiddleware({
+      sources: [{ type: "lookup", resource: "workProjectComment", idKey }],
     }),
 
   fromWorkProjectMilestone: (idKey = "id") =>

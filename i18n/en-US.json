@@ -5343,6 +5343,18 @@
 				"deleteConfirm": "Delete this update?",
 				"pulseEmpty": "No project updates yet."
 			},
+			"comments": {
+				"title": "Comments",
+				"placeholder": "Leave a comment...",
+				"post": "Comment",
+				"empty": "No comments yet.",
+				"error": "Could not save the comment",
+				"edit": "Edit comment",
+				"delete": "Delete comment",
+				"save": "Save",
+				"cancel": "Cancel",
+				"deleteConfirm": "Delete this comment?"
+			},
 			"status": {
 				"backlog": "Backlog",
 				"planned": "Planned",

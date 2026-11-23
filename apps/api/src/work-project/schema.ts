@@ -80,3 +80,7 @@ export const createUpdateBody = z.object({
 });
 
 export const updateUpdateBody = createUpdateBody.partial();
+
+export const commentBody = z.object({
+  content: z.string().trim().min(1).max(20000),
+});

@@ -687,6 +687,13 @@
       "when": 1795407449174,
       "tag": "0097_lonely_newton_destine",
       "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "7",
+      "when": 1795438681714,
+      "tag": "0098_zippy_sprite",
+      "breakpoints": true
     }
   ]
 }

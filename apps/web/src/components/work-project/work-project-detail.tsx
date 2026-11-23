@@ -19,6 +19,7 @@ import { WorkProjectLabels } from "./work-project-labels";
 import { WorkProjectIcon } from "./work-project-icon";
 import { WorkProjectIssues } from "./work-project-issues";
 import { WorkProjectMilestones } from "./work-project-milestones";
+import { WorkProjectComments } from "./work-project-comments";
 import { WorkProjectUpdates } from "./work-project-updates";
 import { WorkProjectResources } from "./work-project-resources";
 
@@ -184,6 +185,11 @@ export function WorkProjectDetail({ workspaceId, workProjectId }: Props) {
 
             <WorkProjectUpdates
               workspaceId={workspaceId}
+              workProjectId={workProjectId}
+              editable={canUpdateTasks()}
+            />
+
+            <WorkProjectComments
               workProjectId={workProjectId}
               editable={canUpdateTasks()}
             />
