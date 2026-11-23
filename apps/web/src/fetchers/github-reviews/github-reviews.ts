@@ -19,15 +19,14 @@ export async function getReviewsStatus(): Promise<ReviewsStatus> {
   return response.json();
 }
 
-export async function getReviewsList(options: {
-  includeDrafts: boolean;
-  includeClosed: boolean;
-}): Promise<ReviewsList> {
+/** How far back merged and closed pull requests are listed. */
+export type ClosedWindow = "all" | "day" | "week" | "month" | "none";
+
+export async function getReviewsList(
+  closed: ClosedWindow,
+): Promise<ReviewsList> {
   const response = await client["github-reviews"].$get({
-    query: {
-      includeDrafts: options.includeDrafts ? "true" : "false",
-      includeClosed: options.includeClosed ? "true" : "false",
-    },
+    query: { closed },
   });
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();

@@ -30,6 +30,7 @@ export async function getPullRequest(
     comments: pull.comments ?? 0,
     createdAt: pull.created_at,
     updatedAt: pull.updated_at,
+    closedAt: pull.closed_at,
     body: pull.body ?? "",
     mergeable:
       pull.state === "open" && !pull.draft ? (pull.mergeable ?? null) : false,
@@ -40,5 +41,9 @@ export async function getPullRequest(
     additions: pull.additions,
     deletions: pull.deletions,
     changedFiles: pull.changed_files,
+    requestedReviewers: pull.requested_reviewers.map((user) => ({
+      login: user.login,
+      avatarUrl: user.avatar_url,
+    })),
   };
 }

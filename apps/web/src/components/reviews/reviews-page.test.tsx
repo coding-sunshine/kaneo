@@ -111,8 +111,8 @@ describe("ReviewsPage", () => {
     expect(screen.queryByText("Review me")).not.toBeInTheDocument();
     const headings = screen.getAllByRole("heading", { level: 2 });
     expect(headings.map((heading) => heading.textContent)).toEqual([
-      "Open1",
       "Draft1",
+      "Open1",
     ]);
   });
 

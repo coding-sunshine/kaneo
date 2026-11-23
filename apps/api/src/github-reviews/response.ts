@@ -23,6 +23,8 @@ export const pullRequestSummarySchema = z.object({
   comments: z.number(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  /** Set once merged or closed. */
+  closedAt: z.string().nullable(),
 });
 
 export const reviewListItemSchema = pullRequestSummarySchema.extend({
@@ -50,6 +52,8 @@ export const pullRequestSchema = pullRequestSummarySchema.extend({
   additions: z.number(),
   deletions: z.number(),
   changedFiles: z.number(),
+  /** Reviews still requested; people who already reviewed are in the conversation. */
+  requestedReviewers: z.array(person),
 });
 
 export const filesSchema = z.array(

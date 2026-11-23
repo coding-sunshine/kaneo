@@ -122,6 +122,7 @@ export type GithubSearchPull = {
   isDraft: boolean;
   createdAt: string;
   updatedAt: string;
+  closedAt: string | null;
   additions: number;
   deletions: number;
   reviewDecision: "APPROVED" | "CHANGES_REQUESTED" | "REVIEW_REQUIRED" | null;
@@ -140,7 +141,8 @@ const SEARCH_QUERY = `query($q: String!) {
   search(query: $q, type: ISSUE, first: 25) {
     nodes {
       ... on PullRequest {
-        number title url state isDraft createdAt updatedAt additions deletions
+        number title url state isDraft createdAt updatedAt closedAt
+        additions deletions
         reviewDecision
         comments { totalCount }
         author { login avatarUrl }
@@ -209,7 +211,9 @@ export type GithubPull = {
   comments: number;
   created_at: string;
   updated_at: string;
+  closed_at: string | null;
   user: GithubPerson;
+  requested_reviewers: { login: string; avatar_url: string }[];
   labels: { name: string; color: string }[];
   head: { sha: string; ref: string };
   base: { ref: string };

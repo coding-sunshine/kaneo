@@ -29491,6 +29491,12 @@
                     "updatedAt": {
                       "type": "string"
                     },
+                    "closedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "body": {
                       "type": "string"
                     },
@@ -29535,6 +29541,24 @@
                     },
                     "changedFiles": {
                       "type": "number"
+                    },
+                    "requestedReviewers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "login": {
+                            "type": "string"
+                          },
+                          "avatarUrl": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "login",
+                          "avatarUrl"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -29548,6 +29572,7 @@
                     "comments",
                     "createdAt",
                     "updatedAt",
+                    "closedAt",
                     "body",
                     "mergeable",
                     "labels",
@@ -29556,7 +29581,8 @@
                     "baseRef",
                     "additions",
                     "deletions",
-                    "changedFiles"
+                    "changedFiles",
+                    "requestedReviewers"
                   ]
                 }
               }
@@ -30482,26 +30508,18 @@
             "schema": {
               "type": "string",
               "enum": [
-                "true",
-                "false"
+                "all",
+                "day",
+                "week",
+                "month",
+                "none"
               ],
-              "default": "false"
+              "default": "week",
+              "description": "How far back to include merged and closed pull requests you created or took part in. Drafts are always included."
             },
             "required": false,
-            "name": "includeDrafts",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true",
-                "false"
-              ],
-              "default": "false"
-            },
-            "required": false,
-            "name": "includeClosed",
+            "description": "How far back to include merged and closed pull requests you created or took part in. Drafts are always included.",
+            "name": "closed",
             "in": "query"
           }
         ],
@@ -30569,6 +30587,12 @@
                           "updatedAt": {
                             "type": "string"
                           },
+                          "closedAt": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
                           "reviewDecision": {
                             "type": [
                               "string",
@@ -30608,6 +30632,7 @@
                           "comments",
                           "createdAt",
                           "updatedAt",
+                          "closedAt",
                           "reviewDecision",
                           "checks",
                           "additions",
@@ -30671,6 +30696,12 @@
                           "updatedAt": {
                             "type": "string"
                           },
+                          "closedAt": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
                           "reviewDecision": {
                             "type": [
                               "string",
@@ -30710,6 +30741,7 @@
                           "comments",
                           "createdAt",
                           "updatedAt",
+                          "closedAt",
                           "reviewDecision",
                           "checks",
                           "additions",
@@ -30773,6 +30805,12 @@
                           "updatedAt": {
                             "type": "string"
                           },
+                          "closedAt": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
                           "reviewDecision": {
                             "type": [
                               "string",
@@ -30812,6 +30850,7 @@
                           "comments",
                           "createdAt",
                           "updatedAt",
+                          "closedAt",
                           "reviewDecision",
                           "checks",
                           "additions",

@@ -1,4 +1,10 @@
-import type { ReviewPullRequest } from "@/fetchers/github-reviews/github-reviews";
+import type {
+  ClosedWindow,
+  ReviewPullRequest,
+} from "@/fetchers/github-reviews/github-reviews";
+
+/** Shared by the Reviews page and the sidebar badge so both hit one cache entry. */
+export const REVIEWS_CLOSED_WINDOW: ClosedWindow = "week";
 
 // GitHub search has no team or priority, so Linear's team and priority
 // groupings have nothing to read from here.
@@ -50,7 +56,7 @@ export const REVIEWS_SORT_BYS: ReviewsSortBy[] = [
 ];
 
 const FIXED_ORDER: Partial<Record<ReviewsGroupBy, string[]>> = {
-  status: ["open", "draft", "merged", "closed"],
+  status: ["draft", "open", "merged", "closed"],
   reviewStatus: [
     "changes_requested",
     "review_required",

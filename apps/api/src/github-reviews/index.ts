@@ -365,13 +365,7 @@ const githubReviews = apiRouter()
   })
   .openapi(listRoute, async (c) => {
     const query = c.req.valid("query");
-    return c.json(
-      await listPullRequests(c.get("userId"), {
-        includeDrafts: query.includeDrafts === "true",
-        includeClosed: query.includeClosed === "true",
-      }),
-      200,
-    );
+    return c.json(await listPullRequests(c.get("userId"), query.closed), 200);
   });
 
 export default githubReviews;

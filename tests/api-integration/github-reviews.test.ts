@@ -275,6 +275,7 @@ describe("list", () => {
     comments: { totalCount: 2 },
     createdAt: "2026-01-01T00:00:00Z",
     updatedAt: "2026-01-02T00:00:00Z",
+    closedAt: null,
     additions: 10,
     deletions: 2,
     reviewDecision: null,
@@ -299,13 +300,15 @@ describe("list", () => {
               },
             }),
           ]
-        : query.includes("author:@me") && !query.includes("-author")
-          ? [item(2, { isDraft: true }), item(3, { state: "MERGED" })]
-          : [item(4, { state: "CLOSED" })],
+        : query.includes("-author")
+          ? query.includes("is:closed")
+            ? [item(4, { state: "CLOSED", closedAt: "2026-01-03T00:00:00Z" })]
+            : [item(1)]
+          : query.includes("is:closed")
+            ? [item(3, { state: "MERGED", closedAt: "2026-01-03T00:00:00Z" })]
+            : [item(2, { isDraft: true })],
     );
-    const response = await app.request(
-      `${BASE}?includeDrafts=true&includeClosed=true`,
-    );
+    const response = await app.request(`${BASE}?closed=all`);
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.toReview).toHaveLength(1);
@@ -321,29 +324,62 @@ describe("list", () => {
       "draft",
       "merged",
     ]);
+    // #1 is both requested and involved; it shows once, under toReview.
+    expect(body.participated).toHaveLength(1);
     expect(body.participated[0]).toMatchObject({
       owner: "acme",
       repo: "web",
       status: "closed",
+      closedAt: "2026-01-03T00:00:00Z",
       author: { login: "ada" },
     });
-    expect(gh.searchPullRequests).toHaveBeenCalledTimes(3);
+    expect(gh.searchPullRequests).toHaveBeenCalledTimes(5);
     for (const call of gh.searchPullRequests.mock.calls) {
       expect(call[0]).toBe("gho_access");
     }
   });
 
-  it("hides drafts and closed pull requests unless asked", async () => {
+  it("includes drafts and the past week of closed pull requests by default", async () => {
+    const user = await signedInUser();
+    await connectFlow(user.id);
+    const daysAgo = (days: number) =>
+      new Date(Date.now() - days * 86_400_000).toISOString();
+    // GitHub's closed: qualifier misses some PRs, so the API searches by
+    // update date and drops ones closed before the window.
+    gh.searchPullRequests.mockImplementation(async (_token, query: string) =>
+      query.includes("author:@me is:closed")
+        ? [
+            item(5, { state: "MERGED", closedAt: daysAgo(1) }),
+            item(6, { state: "CLOSED", closedAt: daysAgo(30) }),
+          ]
+        : [],
+    );
+    const response = await app.request(BASE);
+    const body = await response.json();
+    expect(body.created.map((pr: { number: number }) => pr.number)).toEqual([
+      5,
+    ]);
+    const since = daysAgo(7).slice(0, 10);
+    const queries = gh.searchPullRequests.mock.calls.map((call) => call[1]);
+    expect(queries.sort()).toEqual(
+      [
+        "is:pr is:open review-requested:@me archived:false",
+        "is:pr author:@me is:open archived:false",
+        `is:pr author:@me is:closed updated:>=${since} archived:false`,
+        "is:pr involves:@me -author:@me is:open archived:false",
+        `is:pr involves:@me -author:@me is:closed updated:>=${since} archived:false`,
+      ].sort(),
+    );
+  });
+
+  it("skips closed pull requests when the window is none", async () => {
     const user = await signedInUser();
     await connectFlow(user.id);
     gh.searchPullRequests.mockResolvedValue([]);
-    await app.request(BASE);
+    await app.request(`${BASE}?closed=none`);
     const queries = gh.searchPullRequests.mock.calls.map((call) => call[1]);
-    expect(queries).toEqual([
-      "is:pr is:open review-requested:@me archived:false draft:false",
-      "is:pr author:@me is:open archived:false draft:false",
-      "is:pr involves:@me -author:@me is:open archived:false draft:false",
-    ]);
+    expect(queries.some((query) => query.includes("is:closed"))).toBe(false);
+    expect(queries).toHaveLength(3);
   });
 
   it("reads the search through GraphQL and pages the files list", async () => {
@@ -448,7 +484,9 @@ describe("pull request detail", () => {
     comments: 1,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-02T00:00:00Z",
+    closed_at: null,
     user: { login: "ada", avatar_url: "a" },
+    requested_reviewers: [{ login: "cy", avatar_url: "c" }],
     labels: [],
     head: { sha: "abc", ref: "feat" },
     base: { ref: "main" },
@@ -533,6 +571,8 @@ describe("pull request detail", () => {
       labels: [],
       additions: 3,
       deletions: 1,
+      closedAt: null,
+      requestedReviewers: [{ login: "cy", avatarUrl: "c" }],
     });
     const files = await (await app.request(`${P}/files`)).json();
     expect(

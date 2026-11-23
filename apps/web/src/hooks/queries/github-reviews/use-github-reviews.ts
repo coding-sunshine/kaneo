@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   addPullRequestComment,
+  type ClosedWindow,
   disconnectReviews,
   getPullRequest,
   getPullRequestChecks,
@@ -23,13 +24,10 @@ export function useReviewsStatus(enabled = true) {
   });
 }
 
-export function useReviewsList(
-  options: { includeDrafts: boolean; includeClosed: boolean },
-  enabled: boolean,
-) {
+export function useReviewsList(closed: ClosedWindow, enabled: boolean) {
   return useQuery({
-    queryKey: ["github-reviews", "list", options],
-    queryFn: () => getReviewsList(options),
+    queryKey: ["github-reviews", "list", closed],
+    queryFn: () => getReviewsList(closed),
     enabled,
   });
 }

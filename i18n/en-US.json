@@ -4920,8 +4920,6 @@
 			},
 			"dismiss": "I don't do code review",
 			"loadError": "Could not load your pull requests.",
-			"showDrafts": "Drafts",
-			"showClosed": "Closed",
 			"tabs": {
 				"created": "Created",
 				"toReview": "To Review"

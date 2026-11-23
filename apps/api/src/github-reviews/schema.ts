@@ -12,9 +12,13 @@ export const callbackQuery = z.object({
   error: z.string().optional(),
 });
 
+export const closedWindows = ["all", "day", "week", "month", "none"] as const;
+
 export const listQuery = z.object({
-  includeDrafts: z.enum(["true", "false"]).default("false"),
-  includeClosed: z.enum(["true", "false"]).default("false"),
+  closed: z.enum(closedWindows).default("week").openapi({
+    description:
+      "How far back to include merged and closed pull requests you created or took part in. Drafts are always included.",
+  }),
 });
 
 const githubName = z.string().regex(/^[\w.-]+$/);

@@ -21,7 +21,11 @@ import {
   useReviewsStatus,
 } from "@/hooks/queries/github-reviews/use-github-reviews";
 import { cn } from "@/lib/cn";
-import { filterPullRequests, sortPullRequests } from "@/lib/reviews-view";
+import {
+  filterPullRequests,
+  REVIEWS_CLOSED_WINDOW,
+  sortPullRequests,
+} from "@/lib/reviews-view";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 
 type ReviewsTab = "created" | "toReview";
@@ -70,11 +74,9 @@ export function ReviewsPage({
   const setView = useUserPreferencesStore((state) => state.setReviewsView);
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<ReviewsTab>("toReview");
-  const [includeDrafts, setIncludeDrafts] = useState(false);
-  const [includeClosed, setIncludeClosed] = useState(false);
   const status = useReviewsStatus();
   const connected = status.data?.state === "connected";
-  const list = useReviewsList({ includeDrafts, includeClosed }, connected);
+  const list = useReviewsList(REVIEWS_CLOSED_WINDOW, connected);
 
   const title = t("workspace:reviews.pageTitle");
   const data = list.data;
@@ -130,18 +132,6 @@ export function ReviewsPage({
                   aria-label={t("workspace:reviews.filterPlaceholder")}
                   className="h-7 w-40"
                 />
-                <Pill
-                  active={includeDrafts}
-                  onClick={() => setIncludeDrafts((value) => !value)}
-                >
-                  {t("workspace:reviews.showDrafts")}
-                </Pill>
-                <Pill
-                  active={includeClosed}
-                  onClick={() => setIncludeClosed((value) => !value)}
-                >
-                  {t("workspace:reviews.showClosed")}
-                </Pill>
                 <ReviewsDisplayOptions view={view} onChange={setView} />
               </div>
             </div>
