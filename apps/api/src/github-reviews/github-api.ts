@@ -133,8 +133,11 @@ export type GithubSearchPull = {
   };
 };
 
+// 50 results with each PR's check rollup took ~10s for a busy author and hit
+// GitHub's GraphQL timeout (502); 25 returns in ~2.5s.
+// ponytail: newest 25 per group, paginate with a cursor if people need older PRs.
 const SEARCH_QUERY = `query($q: String!) {
-  search(query: $q, type: ISSUE, first: 50) {
+  search(query: $q, type: ISSUE, first: 25) {
     nodes {
       ... on PullRequest {
         number title url state isDraft createdAt updatedAt additions deletions
