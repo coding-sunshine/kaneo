@@ -31,8 +31,10 @@ export async function withGithubToken<T>(
         code: "GITHUB_RECONNECT_REQUIRED",
       });
     }
-    const status = [403, 404, 422].includes(error.status) ? error.status : 502;
-    throw new ApiError(status as 403 | 404 | 422 | 502, {
+    const status = [403, 404, 405, 422].includes(error.status)
+      ? error.status
+      : 502;
+    throw new ApiError(status as 403 | 404 | 405 | 422 | 502, {
       message: error.message,
       code: "GITHUB_REQUEST_FAILED",
     });

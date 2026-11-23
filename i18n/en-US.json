@@ -4890,6 +4890,23 @@
 					"overview": "Overview",
 					"files": "Files changed",
 					"checks": "Checks"
+				},
+				"review": "Review",
+				"reviewTitle": "Finish your review",
+				"submitReview": "Submit review",
+				"merge": "Merge",
+				"mergeTitle": "Merge \"{{title}}\"?",
+				"mergeDescription": "This merges the pull request into {{base}} on GitHub.",
+				"merged": "Pull request merged",
+				"commentPlaceholder": "Leave a comment",
+				"addComment": "Comment",
+				"conversation": "Conversation",
+				"noConversation": "No comments yet.",
+				"noFiles": "No files changed.",
+				"fileList": "Changed files",
+				"layout": {
+					"unified": "Unified",
+					"split": "Split"
 				}
 			},
 			"dismiss": "I don't do code review",

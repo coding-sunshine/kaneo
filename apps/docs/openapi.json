@@ -29037,6 +29037,12 @@
                     "body": {
                       "type": "string"
                     },
+                    "mergeable": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ]
+                    },
                     "labels": {
                       "type": "array",
                       "items": {
@@ -29086,6 +29092,7 @@
                     "createdAt",
                     "updatedAt",
                     "body",
+                    "mergeable",
                     "labels",
                     "headSha",
                     "headRef",
@@ -29414,7 +29421,7 @@
           "GitHub Reviews"
         ],
         "summary": "List conversation",
-        "description": "Issue comments and submitted reviews in time order.",
+        "description": "Issue comments, submitted reviews and inline review comments in time order. Inline comments carry their file path and line.",
         "parameters": [
           {
             "schema": {
@@ -29461,7 +29468,8 @@
                         "type": "string",
                         "enum": [
                           "comment",
-                          "review"
+                          "review",
+                          "review_comment"
                         ]
                       },
                       "author": {
@@ -29491,6 +29499,29 @@
                           "null"
                         ]
                       },
+                      "path": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "line": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "side": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "enum": [
+                          "LEFT",
+                          "RIGHT",
+                          null
+                        ]
+                      },
                       "createdAt": {
                         "type": "string"
                       }
@@ -29501,6 +29532,9 @@
                       "author",
                       "body",
                       "reviewState",
+                      "path",
+                      "line",
+                      "side",
                       "createdAt"
                     ]
                   }
@@ -29683,6 +29717,287 @@
           },
           "422": {
             "description": "GitHub rejected the review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/github-reviews/pulls/{owner}/{repo}/{number}/comments": {
+      "post": {
+        "operationId": "addGithubPullRequestComment",
+        "tags": [
+          "GitHub Reviews"
+        ],
+        "summary": "Add a conversation comment",
+        "description": "Posts a comment on the pull request as the signed-in user.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "owner",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "repo",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d+$"
+            },
+            "required": true,
+            "name": "number",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "body": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 65536
+                  }
+                },
+                "required": [
+                  "body"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Add a conversation comment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "GitHub is not connected or must be reconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "GitHub rejected the comment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/github-reviews/pulls/{owner}/{repo}/{number}/merge": {
+      "put": {
+        "operationId": "mergeGithubPullRequest",
+        "tags": [
+          "GitHub Reviews"
+        ],
+        "summary": "Merge a pull request",
+        "description": "Merges the pull request as the signed-in user. GitHub answers 405 when it is not mergeable and 403 without permission.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "owner",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "repo",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d+$"
+            },
+            "required": true,
+            "name": "number",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "mergeMethod": {
+                    "type": "string",
+                    "enum": [
+                      "merge",
+                      "squash",
+                      "rebase"
+                    ],
+                    "default": "merge"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Merge a pull request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "The pull request is not mergeable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "GitHub is not connected or must be reconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "GitHub rejected the merge",
             "content": {
               "application/json": {
                 "schema": {

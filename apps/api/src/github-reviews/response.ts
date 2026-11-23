@@ -42,6 +42,7 @@ export const reviewListSchema = z.object({
 
 export const pullRequestSchema = pullRequestSummarySchema.extend({
   body: z.string(),
+  mergeable: z.boolean().nullable(),
   labels: z.array(z.object({ name: z.string(), color: z.string() })),
   headSha: z.string(),
   headRef: z.string(),
@@ -75,13 +76,18 @@ export const checksSchema = z.object({
 export const conversationSchema = z.array(
   z.object({
     id: z.string(),
-    kind: z.enum(["comment", "review"]),
+    kind: z.enum(["comment", "review", "review_comment"]),
     author: person.nullable(),
     body: z.string(),
     reviewState: z.string().nullable(),
+    // Only inline review comments carry a position; line is null once outdated.
+    path: z.string().nullable(),
+    line: z.number().nullable(),
+    side: z.enum(["LEFT", "RIGHT"]).nullable(),
     createdAt: z.string(),
   }),
 );
 
 export const reviewSubmittedSchema = z.object({ ok: z.literal(true) });
+export const mergedSchema = z.object({ ok: z.literal(true) });
 export const disconnectedSchema = z.object({ ok: z.literal(true) });
