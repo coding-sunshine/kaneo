@@ -132,6 +132,25 @@ export type GithubSearchPull = {
   commits: {
     nodes: { commit: { statusCheckRollup: { state: string } | null } }[];
   };
+  mergeable: "MERGEABLE" | "CONFLICTING" | "UNKNOWN";
+  mergeStateStatus: string;
+  mergeQueueEntry: { id: string } | null;
+  labels: { nodes: { name: string; color: string }[] };
+  reviewRequests: {
+    nodes: {
+      requestedReviewer:
+        | { __typename: "User"; login: string; avatarUrl: string }
+        | { __typename: "Team"; slug: string }
+        | { __typename: "Bot" | "Mannequin" }
+        | null;
+    }[];
+  };
+  latestOpinionatedReviews: {
+    nodes: {
+      state: string;
+      author: { login: string; avatarUrl: string } | null;
+    }[];
+  };
 };
 
 // 50 results with each PR's check rollup took ~10s for a busy author and hit
@@ -148,6 +167,21 @@ const SEARCH_QUERY = `query($q: String!) {
         author { login avatarUrl }
         repository { name owner { login } }
         commits(last: 1) { nodes { commit { statusCheckRollup { state } } } }
+        mergeable mergeStateStatus
+        mergeQueueEntry { id }
+        labels(first: 10) { nodes { name color } }
+        reviewRequests(first: 10) {
+          nodes {
+            requestedReviewer {
+              __typename
+              ... on User { login avatarUrl }
+              ... on Team { slug }
+            }
+          }
+        }
+        latestOpinionatedReviews(first: 10) {
+          nodes { state author { login avatarUrl } }
+        }
       }
     }
   }

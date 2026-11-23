@@ -1,5 +1,5 @@
 import { useParams } from "@tanstack/react-router";
-import { GitPullRequest, ListFilter } from "lucide-react";
+import { GitPullRequest, Search } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Layout from "@/components/common/layout";
@@ -8,6 +8,9 @@ import { ReviewsConnectCard } from "@/components/reviews/reviews-connect-card";
 import { ReviewsDisplayOptions } from "@/components/reviews/reviews-display-options";
 import { ReviewsList } from "@/components/reviews/reviews-list";
 import { ReviewsTabPill } from "@/components/reviews/reviews-tab-pill";
+import { ActiveFiltersBar } from "@/components/project/task-filters/active-filters-bar";
+import { FilterMenu } from "@/components/project/task-filters/filter-menu";
+import { useReviewsFilterSubjects } from "@/components/reviews/use-reviews-filter-subjects";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -23,6 +26,11 @@ import {
   useReviewsStatus,
 } from "@/hooks/queries/github-reviews/use-github-reviews";
 import { cn } from "@/lib/cn";
+import {
+  activeFilterCount,
+  filterByReviewFilters,
+  type ReviewsFilters,
+} from "@/lib/reviews-filters";
 import {
   buildGroups,
   fetchWindow,
@@ -53,6 +61,8 @@ export function ReviewsPage({
   const [tab, setTab] = useState<ReviewsTab>("toReview");
   const [filterOpen, setFilterOpen] = useState(false);
   const [query, setQuery] = useState("");
+  // ponytail: filters live for this visit only; saved filter views need a store field.
+  const [filters, setFilters] = useState<ReviewsFilters>({});
   const status = useReviewsStatus();
   const connected = status.data?.state === "connected";
   const list = useReviewsList(fetchWindow(views), connected);
@@ -64,18 +74,23 @@ export function ReviewsPage({
   const title = t("workspace:reviews.pageTitle");
   const view = views[tab];
   const data = list.data;
+  const items = useMemo(
+    () => (data ? tabItems(data, tab, view) : []),
+    [data, tab, view],
+  );
+  const subjects = useReviewsFilterSubjects(items, filters, setFilters);
   const groups = useMemo(
     () =>
       data
         ? buildGroups(
             sortPullRequests(
-              filterPullRequests(tabItems(data, tab, view), query),
+              filterPullRequests(filterByReviewFilters(items, filters), query),
               view,
             ),
             view,
           )
         : [],
-    [data, tab, view, query],
+    [data, items, filters, view, query],
   );
   const shown = useMemo(
     () => visibleRows(groups, view.collapsed).length,
@@ -109,17 +124,21 @@ export function ReviewsPage({
             </h1>
             {connected && (
               <>
+                <FilterMenu
+                  subjects={subjects}
+                  activeCount={activeFilterCount(filters)}
+                />
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  aria-label={t("workspace:reviews.filterPlaceholder")}
+                  aria-label={t("workspace:reviews.searchPlaceholder")}
                   aria-pressed={filterOpen}
                   className="aria-pressed:bg-accent"
                   onClick={() =>
                     filterOpen ? closeFilter() : setFilterOpen(true)
                   }
                 >
-                  <ListFilter />
+                  <Search />
                 </Button>
                 <ReviewsDisplayOptions
                   tab={tab}
@@ -152,6 +171,12 @@ export function ReviewsPage({
                 )}
               </ReviewsTabPill>
             </div>
+          )}
+          {connected && (
+            <ActiveFiltersBar
+              subjects={subjects}
+              onClear={() => setFilters({})}
+            />
           )}
           {connected && filterOpen && (
             <div className="shrink-0 px-3 pb-2">

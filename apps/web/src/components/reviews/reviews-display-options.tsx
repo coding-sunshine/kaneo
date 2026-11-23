@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ReviewsBadgeCountMenu } from "@/components/reviews/reviews-badge-count-menu";
 import { Switch } from "@/components/ui/switch";
 import { Toggle } from "@/components/ui/toggle";
 import type { ClosedWindow } from "@/fetchers/github-reviews/github-reviews";
@@ -145,6 +146,7 @@ export function ReviewsDisplayOptions({ tab, view, onChange }: Props) {
               aria-label={t("workspace:reviews.display.showDrafts")}
             />
           </div>
+          <ReviewsBadgeCountMenu />
         </div>
       </DisplaySection>
       <DisplaySection title={t("workspace:reviews.display.properties")}>

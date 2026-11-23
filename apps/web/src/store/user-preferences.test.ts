@@ -23,6 +23,7 @@ describe("sidebar prefs rehydrate", () => {
     expect(sidebar.inboxCount).toBe("all");
     expect(sidebar.badgeStyle).toBe("dot");
     expect(sidebar.visibility.pulse).toBe("never");
+    expect(sidebar.reviewsCount).toEqual(["requested", "team", "readyToMerge"]);
   });
 });
 

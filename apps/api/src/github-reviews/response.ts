@@ -27,6 +27,26 @@ export const pullRequestSummarySchema = z.object({
   closedAt: z.string().nullable(),
 });
 
+const mergeStates = [
+  "ready",
+  "blocked",
+  "behind",
+  "queued",
+  "unstable",
+  "draft",
+  "unknown",
+] as const;
+
+const linkedIssue = z.object({
+  taskId: z.string(),
+  title: z.string(),
+  priority: z.string(),
+  /** Linear's team is a Kaneo project. */
+  team: z.object({ id: z.string(), name: z.string() }),
+  /** Linear's project is a Kaneo work project. */
+  project: z.object({ id: z.string(), name: z.string() }).nullable(),
+});
+
 export const reviewListItemSchema = pullRequestSummarySchema.extend({
   reviewDecision: z
     .enum(["approved", "changes_requested", "review_required"])
@@ -34,6 +54,18 @@ export const reviewListItemSchema = pullRequestSummarySchema.extend({
   checks: z.enum(["success", "failure", "pending", "none"]),
   additions: z.number(),
   deletions: z.number(),
+  labels: z.array(z.object({ name: z.string(), color: z.string() })),
+  /** Requested and already-reviewed people. */
+  reviewers: z.array(person),
+  /** Slugs of requested teams. */
+  teamReviewers: z.array(z.string()),
+  approvedBy: z.array(z.string()),
+  changesRequestedBy: z.array(z.string()),
+  hasConflicts: z.boolean(),
+  mergeState: z.enum(mergeStates),
+  /** Review requested through a team only, not from you directly. */
+  teamRequested: z.boolean(),
+  issue: linkedIssue.nullable(),
 });
 
 export const reviewListSchema = z.object({

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { GroupBy } from "@/lib/group-project";
+import type { ReviewsCountOption } from "@/lib/reviews-count";
 import {
   DEFAULT_REVIEWS_VIEWS,
   type ReviewsTab,
@@ -130,6 +131,7 @@ type UserPreferencesStore = {
   /** null goes back to the default badge style. */
   setSidebarItemBadge: (id: SidebarItemId, badge: ItemBadge | null) => void;
   setSidebarInboxCount: (mode: InboxCountMode) => void;
+  setSidebarReviewsCount: (options: ReviewsCountOption[]) => void;
 };
 
 export const useUserPreferencesStore = create<UserPreferencesStore>()(
@@ -306,6 +308,8 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
         set(({ sidebar }) => ({ sidebar: { ...sidebar, badgeStyle } })),
       setSidebarInboxCount: (inboxCount) =>
         set(({ sidebar }) => ({ sidebar: { ...sidebar, inboxCount } })),
+      setSidebarReviewsCount: (reviewsCount) =>
+        set(({ sidebar }) => ({ sidebar: { ...sidebar, reviewsCount } })),
       setSidebarItemBadge: (id, badge) =>
         set(({ sidebar }) => {
           const { [id]: _previous, ...itemBadges } = sidebar.itemBadges;

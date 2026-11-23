@@ -30619,6 +30619,135 @@
                           },
                           "deletions": {
                             "type": "number"
+                          },
+                          "labels": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "color": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "color"
+                              ]
+                            }
+                          },
+                          "reviewers": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "login": {
+                                  "type": "string"
+                                },
+                                "avatarUrl": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "login",
+                                "avatarUrl"
+                              ]
+                            }
+                          },
+                          "teamReviewers": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "approvedBy": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "changesRequestedBy": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "hasConflicts": {
+                            "type": "boolean"
+                          },
+                          "mergeState": {
+                            "type": "string",
+                            "enum": [
+                              "ready",
+                              "blocked",
+                              "behind",
+                              "queued",
+                              "unstable",
+                              "draft",
+                              "unknown"
+                            ]
+                          },
+                          "teamRequested": {
+                            "type": "boolean"
+                          },
+                          "issue": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "taskId": {
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "priority": {
+                                "type": "string"
+                              },
+                              "team": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name"
+                                ]
+                              },
+                              "project": {
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "taskId",
+                              "title",
+                              "priority",
+                              "team",
+                              "project"
+                            ]
                           }
                         },
                         "required": [
@@ -30636,7 +30765,16 @@
                           "reviewDecision",
                           "checks",
                           "additions",
-                          "deletions"
+                          "deletions",
+                          "labels",
+                          "reviewers",
+                          "teamReviewers",
+                          "approvedBy",
+                          "changesRequestedBy",
+                          "hasConflicts",
+                          "mergeState",
+                          "teamRequested",
+                          "issue"
                         ]
                       }
                     },
@@ -30728,6 +30866,135 @@
                           },
                           "deletions": {
                             "type": "number"
+                          },
+                          "labels": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "color": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "color"
+                              ]
+                            }
+                          },
+                          "reviewers": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "login": {
+                                  "type": "string"
+                                },
+                                "avatarUrl": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "login",
+                                "avatarUrl"
+                              ]
+                            }
+                          },
+                          "teamReviewers": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "approvedBy": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "changesRequestedBy": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "hasConflicts": {
+                            "type": "boolean"
+                          },
+                          "mergeState": {
+                            "type": "string",
+                            "enum": [
+                              "ready",
+                              "blocked",
+                              "behind",
+                              "queued",
+                              "unstable",
+                              "draft",
+                              "unknown"
+                            ]
+                          },
+                          "teamRequested": {
+                            "type": "boolean"
+                          },
+                          "issue": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "taskId": {
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "priority": {
+                                "type": "string"
+                              },
+                              "team": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name"
+                                ]
+                              },
+                              "project": {
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "taskId",
+                              "title",
+                              "priority",
+                              "team",
+                              "project"
+                            ]
                           }
                         },
                         "required": [
@@ -30745,7 +31012,16 @@
                           "reviewDecision",
                           "checks",
                           "additions",
-                          "deletions"
+                          "deletions",
+                          "labels",
+                          "reviewers",
+                          "teamReviewers",
+                          "approvedBy",
+                          "changesRequestedBy",
+                          "hasConflicts",
+                          "mergeState",
+                          "teamRequested",
+                          "issue"
                         ]
                       }
                     },
@@ -30837,6 +31113,135 @@
                           },
                           "deletions": {
                             "type": "number"
+                          },
+                          "labels": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "color": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "color"
+                              ]
+                            }
+                          },
+                          "reviewers": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "login": {
+                                  "type": "string"
+                                },
+                                "avatarUrl": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "login",
+                                "avatarUrl"
+                              ]
+                            }
+                          },
+                          "teamReviewers": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "approvedBy": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "changesRequestedBy": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "hasConflicts": {
+                            "type": "boolean"
+                          },
+                          "mergeState": {
+                            "type": "string",
+                            "enum": [
+                              "ready",
+                              "blocked",
+                              "behind",
+                              "queued",
+                              "unstable",
+                              "draft",
+                              "unknown"
+                            ]
+                          },
+                          "teamRequested": {
+                            "type": "boolean"
+                          },
+                          "issue": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "taskId": {
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "priority": {
+                                "type": "string"
+                              },
+                              "team": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name"
+                                ]
+                              },
+                              "project": {
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "taskId",
+                              "title",
+                              "priority",
+                              "team",
+                              "project"
+                            ]
                           }
                         },
                         "required": [
@@ -30854,7 +31259,16 @@
                           "reviewDecision",
                           "checks",
                           "additions",
-                          "deletions"
+                          "deletions",
+                          "labels",
+                          "reviewers",
+                          "teamReviewers",
+                          "approvedBy",
+                          "changesRequestedBy",
+                          "hasConflicts",
+                          "mergeState",
+                          "teamRequested",
+                          "issue"
                         ]
                       }
                     }

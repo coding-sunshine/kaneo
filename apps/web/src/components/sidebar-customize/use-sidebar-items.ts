@@ -26,6 +26,7 @@ import {
 } from "@/hooks/queries/github-reviews/use-github-reviews";
 import useGetNotifications from "@/hooks/queries/notification/use-get-notifications";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
+import { reviewsCount } from "@/lib/reviews-count";
 import { fetchWindow } from "@/lib/reviews-view";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 
@@ -49,6 +50,9 @@ export function useSidebarItems() {
   const hasAgent = useHasAgent();
   const inboxCountMode = useUserPreferencesStore(
     (state) => state.sidebar.inboxCount,
+  );
+  const reviewsCountOptions = useUserPreferencesStore(
+    (state) => state.sidebar.reviewsCount,
   );
   // Same query keys as the Reviews page, so the badge shares its cache and polling.
   const reviewsStatus = useReviewsStatus(codeReviewsEnabled);
@@ -93,7 +97,8 @@ export function useSidebarItems() {
             t("navigation:sidebar.reviews"),
             GitPullRequest,
             `${homeUrl}/reviews`,
-            reviewsList.data?.toReview.length,
+            reviewsList.data &&
+              reviewsCount(reviewsList.data, reviewsCountOptions),
           ),
         ]
       : []),

@@ -15,6 +15,7 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
 } from "@/components/ui/context-menu";
+import { REVIEWS_COUNT_OPTIONS, toggleCountOption } from "@/lib/reviews-count";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 
 const BADGE_CHOICES: ItemBadge[] = ["count", "dot", "none"];
@@ -38,6 +39,9 @@ export function BadgeSubmenu({ id }: { id: SidebarItemId }) {
   const setInboxCount = useUserPreferencesStore(
     (state) => state.setSidebarInboxCount,
   );
+  const setReviewsCount = useUserPreferencesStore(
+    (state) => state.setSidebarReviewsCount,
+  );
   const override = sidebar.itemBadges[id];
   const query = filter.trim().toLowerCase();
   const matches = (label: string) => label.toLowerCase().includes(query);
@@ -50,7 +54,8 @@ export function BadgeSubmenu({ id }: { id: SidebarItemId }) {
   );
   const showDefault = matches(defaultLabel);
   const includeLabel = t("navigation:customizeSidebar.includeInCount");
-  const showInclude = id === "inbox" && matches(includeLabel);
+  const showInclude =
+    (id === "inbox" || id === "reviews") && matches(includeLabel);
 
   return (
     <ContextMenuSub>
@@ -106,16 +111,30 @@ export function BadgeSubmenu({ id }: { id: SidebarItemId }) {
             <ContextMenuSub>
               <ContextMenuSubTrigger>{includeLabel}</ContextMenuSubTrigger>
               <ContextMenuSubContent className="w-48">
-                {COUNT_MODES.map(([mode, label]) => (
-                  <ContextMenuCheckboxItem
-                    key={mode}
-                    checked={sidebar.inboxCount === mode}
-                    onCheckedChange={() => setInboxCount(mode)}
-                    closeOnClick
-                  >
-                    {t(label)}
-                  </ContextMenuCheckboxItem>
-                ))}
+                {id === "reviews"
+                  ? REVIEWS_COUNT_OPTIONS.map((option) => (
+                      <ContextMenuCheckboxItem
+                        key={option}
+                        checked={sidebar.reviewsCount.includes(option)}
+                        onCheckedChange={() =>
+                          setReviewsCount(
+                            toggleCountOption(sidebar.reviewsCount, option),
+                          )
+                        }
+                      >
+                        {t(`workspace:reviews.badgeCount.${option}`)}
+                      </ContextMenuCheckboxItem>
+                    ))
+                  : COUNT_MODES.map(([mode, label]) => (
+                      <ContextMenuCheckboxItem
+                        key={mode}
+                        checked={sidebar.inboxCount === mode}
+                        onCheckedChange={() => setInboxCount(mode)}
+                        closeOnClick
+                      >
+                        {t(label)}
+                      </ContextMenuCheckboxItem>
+                    ))}
               </ContextMenuSubContent>
             </ContextMenuSub>
           </>

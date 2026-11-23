@@ -9,18 +9,22 @@ export type ReviewsFocus = "needsReview" | "done";
 /** A list row: To review rows say whether they still need this person's review. */
 export type ReviewItem = ReviewPullRequest & { focus?: ReviewsFocus };
 
-// GitHub search has no team, project or issue priority, so Linear's groupings
-// by those have nothing to read from here.
+// Priority, project and team come from the Kaneo task linked to the pull
+// request (Linear's team is a Kaneo project, its project a work project).
 export type ReviewsGroupBy =
   | "none"
   | "status"
   | "focus"
   | "author"
   | "repository"
-  | "size";
+  | "size"
+  | "priority"
+  | "project"
+  | "team";
 export type ReviewsSortBy =
   | "author"
   | "closestToMerge"
+  | "issuePriority"
   | "name"
   | "date"
   | "size"
@@ -32,7 +36,10 @@ export type ReviewsProperty =
   | "id"
   | "author"
   | "date"
-  | "statusDetails";
+  | "statusDetails"
+  | "reviewers"
+  | "githubTeam"
+  | "labels";
 
 export type ReviewsView = {
   groupBy: ReviewsGroupBy;
@@ -50,12 +57,32 @@ export type ReviewsView = {
 export type ReviewsViews = Record<ReviewsTab, ReviewsView>;
 
 export const REVIEWS_GROUP_BYS: Record<ReviewsTab, ReviewsGroupBy[]> = {
-  created: ["none", "status", "author", "repository", "size"],
-  toReview: ["none", "focus", "status", "author", "repository", "size"],
+  created: [
+    "none",
+    "status",
+    "author",
+    "priority",
+    "project",
+    "repository",
+    "size",
+    "team",
+  ],
+  toReview: [
+    "none",
+    "focus",
+    "status",
+    "author",
+    "priority",
+    "project",
+    "repository",
+    "size",
+    "team",
+  ],
 };
 export const REVIEWS_SORT_BYS: ReviewsSortBy[] = [
   "author",
   "closestToMerge",
+  "issuePriority",
   "name",
   "date",
   "size",
@@ -68,6 +95,9 @@ export const REVIEWS_PROPERTIES: ReviewsProperty[] = [
   "author",
   "date",
   "statusDetails",
+  "reviewers",
+  "githubTeam",
+  "labels",
 ];
 export const CLOSED_WINDOWS: ClosedWindow[] = [
   "none",
@@ -81,6 +111,7 @@ export const CLOSED_WINDOWS: ClosedWindow[] = [
 export const DEFAULT_SORT_DIRECTION: Record<ReviewsSortBy, SortDirection> = {
   author: "asc",
   closestToMerge: "asc",
+  issuePriority: "asc",
   name: "asc",
   date: "desc",
   size: "desc",
@@ -206,10 +237,19 @@ export function tabItems(
   );
 }
 
+export const PRIORITY_ORDER = [
+  "urgent",
+  "high",
+  "medium",
+  "low",
+  "no-priority",
+];
+
 const FIXED_ORDER: Partial<Record<ReviewsGroupBy, string[]>> = {
   status: ["draft", "open", "merged", "closed"],
   focus: ["needsReview", "done"],
   size: ["xs", "s", "m", "l", "xl"],
+  priority: PRIORITY_ORDER,
 };
 
 export function sizeBucket(pr: ReviewPullRequest) {
@@ -233,6 +273,12 @@ export function groupKey(pr: ReviewItem, by: ReviewsGroupBy) {
       return `${pr.owner}/${pr.repo}`;
     case "size":
       return sizeBucket(pr);
+    case "priority":
+      return pr.issue?.priority ?? "no-priority";
+    case "project":
+      return pr.issue?.project?.name ?? "";
+    case "team":
+      return pr.issue?.team.name ?? "";
     default:
       return "all";
   }
@@ -256,6 +302,10 @@ function mergeDistance(pr: ReviewPullRequest) {
   return (pr.status === "draft" ? 10 : 0) + decision * 3 + checks;
 }
 
+/** Unlinked pull requests rank after every priority. */
+const issueRank = (pr: ReviewPullRequest) =>
+  pr.issue ? PRIORITY_ORDER.indexOf(pr.issue.priority) : PRIORITY_ORDER.length;
+
 const STATUS_ORDER = FIXED_ORDER.status ?? [];
 
 function compare(a: ReviewItem, b: ReviewItem, by: ReviewsSortBy) {
@@ -264,6 +314,8 @@ function compare(a: ReviewItem, b: ReviewItem, by: ReviewsSortBy) {
       return (a.author?.login ?? "").localeCompare(b.author?.login ?? "");
     case "closestToMerge":
       return mergeDistance(a) - mergeDistance(b);
+    case "issuePriority":
+      return issueRank(a) - issueRank(b);
     case "name":
       return a.title.localeCompare(b.title);
     case "date":

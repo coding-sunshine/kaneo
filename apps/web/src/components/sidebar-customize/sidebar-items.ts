@@ -2,6 +2,11 @@
 // can be reordered inside their section, and counts render as a number, a
 // dot or nothing.
 
+import {
+  REVIEWS_COUNT_OPTIONS,
+  type ReviewsCountOption,
+} from "@/lib/reviews-count";
+
 export type SidebarItemId =
   | "inbox"
   | "myTasks"
@@ -28,6 +33,7 @@ export type SidebarPrefs = {
   badgeStyle: BadgeStyle;
   itemBadges: Partial<Record<SidebarItemId, ItemBadge>>;
   inboxCount: InboxCountMode;
+  reviewsCount: ReviewsCountOption[];
 };
 
 export const DEFAULT_SIDEBAR_PREFS: SidebarPrefs = {
@@ -36,6 +42,7 @@ export const DEFAULT_SIDEBAR_PREFS: SidebarPrefs = {
   badgeStyle: "count",
   itemBadges: {},
   inboxCount: "all",
+  reviewsCount: REVIEWS_COUNT_OPTIONS,
 };
 
 export const SIDEBAR_SECTIONS: Record<SidebarSection, SidebarItemId[]> = {

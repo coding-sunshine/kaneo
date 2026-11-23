@@ -4,7 +4,10 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import { createWorkspaceMember } from "./helpers/fixtures";
+import {
+  createProjectFixture,
+  createWorkspaceMember,
+} from "./helpers/fixtures";
 
 const gh = vi.hoisted(() => ({
   exchangeCode: vi.fn(),
@@ -333,10 +336,116 @@ describe("list", () => {
       closedAt: "2026-01-03T00:00:00Z",
       author: { login: "ada" },
     });
-    expect(gh.searchPullRequests).toHaveBeenCalledTimes(5);
+    expect(gh.searchPullRequests).toHaveBeenCalledTimes(6);
     for (const call of gh.searchPullRequests.mock.calls) {
       expect(call[0]).toBe("gho_access");
     }
+  });
+
+  it("adds reviewers, labels, merge state, team requests and the linked task", async () => {
+    const { user, workspace } = await createWorkspaceMember();
+    mockAuthenticatedSession(user);
+    await connectFlow(user.id);
+    const { project } = await createProjectFixture({
+      workspaceId: workspace.id,
+      name: "Platform",
+    });
+    const [work] = await db
+      .insert(schema.workProjectTable)
+      .values({ workspaceId: workspace.id, name: "Launch" })
+      .returning();
+    const [task] = await db
+      .insert(schema.taskTable)
+      .values({
+        projectId: project.id,
+        title: "Ship it",
+        priority: "urgent",
+        workProjectId: work.id,
+      })
+      .returning();
+    await db.insert(schema.externalLinkTable).values({
+      taskId: task.id,
+      resourceType: "pull_request",
+      externalId: "1",
+      url: "https://github.com/acme/web/pull/1",
+    });
+    const rich = item(1, {
+      mergeable: "CONFLICTING",
+      mergeStateStatus: "BLOCKED",
+      labels: { nodes: [{ name: "bug", color: "d73a4a" }] },
+      reviewRequests: {
+        nodes: [
+          { requestedReviewer: { __typename: "Team", slug: "core" } },
+          {
+            requestedReviewer: {
+              __typename: "User",
+              login: "bo",
+              avatarUrl: "https://avatars.test/bo",
+            },
+          },
+        ],
+      },
+      latestOpinionatedReviews: {
+        nodes: [
+          {
+            state: "APPROVED",
+            author: { login: "cy", avatarUrl: "https://avatars.test/cy" },
+          },
+        ],
+      },
+    });
+    gh.searchPullRequests.mockImplementation(async (_token, query: string) =>
+      query.includes("user-review-requested:@me")
+        ? []
+        : query.includes("review-requested:@me")
+          ? [rich]
+          : [],
+    );
+    const body = await (await app.request(`${BASE}?closed=none`)).json();
+    expect(body.toReview[0]).toMatchObject({
+      teamRequested: true,
+      hasConflicts: true,
+      mergeState: "blocked",
+      labels: [{ name: "bug", color: "d73a4a" }],
+      teamReviewers: ["core"],
+      approvedBy: ["cy"],
+      issue: {
+        taskId: task.id,
+        priority: "urgent",
+        team: { name: "Platform" },
+        project: { name: "Launch" },
+      },
+    });
+    expect(
+      body.toReview[0].reviewers.map((p: { login: string }) => p.login),
+    ).toEqual(["bo", "cy"]);
+  });
+
+  it("does not link a task from a workspace the user is not in", async () => {
+    const user = await signedInUser();
+    await connectFlow(user.id);
+    const other = await createWorkspaceMember();
+    const { project } = await createProjectFixture({
+      workspaceId: other.workspace.id,
+    });
+    const [task] = await db
+      .insert(schema.taskTable)
+      .values({ projectId: project.id, title: "Theirs" })
+      .returning();
+    await db.insert(schema.externalLinkTable).values({
+      taskId: task.id,
+      resourceType: "pull_request",
+      externalId: "1",
+      url: "https://github.com/acme/web/pull/1",
+    });
+    gh.searchPullRequests.mockImplementation(async (_token, query: string) =>
+      query.includes("review-requested:@me") ? [item(1)] : [],
+    );
+    const body = await (await app.request(`${BASE}?closed=none`)).json();
+    expect(body.toReview[0]).toMatchObject({
+      teamRequested: false,
+      issue: null,
+    });
   });
 
   it("includes drafts and the past week of closed pull requests by default", async () => {
@@ -364,6 +473,7 @@ describe("list", () => {
     expect(queries.sort()).toEqual(
       [
         "is:pr is:open review-requested:@me archived:false",
+        "is:pr is:open user-review-requested:@me archived:false",
         "is:pr author:@me is:open archived:false",
         `is:pr author:@me is:closed updated:>=${since} archived:false`,
         "is:pr involves:@me -author:@me is:open archived:false",
@@ -379,7 +489,7 @@ describe("list", () => {
     await app.request(`${BASE}?closed=none`);
     const queries = gh.searchPullRequests.mock.calls.map((call) => call[1]);
     expect(queries.some((query) => query.includes("is:closed"))).toBe(false);
-    expect(queries).toHaveLength(3);
+    expect(queries).toHaveLength(4);
   });
 
   it("reads the search through GraphQL and pages the files list", async () => {

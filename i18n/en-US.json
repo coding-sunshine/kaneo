@@ -4965,7 +4965,13 @@
 				"description": "An administrator needs to add the Kaneo GitHub App credentials before pull requests can be reviewed here."
 			},
 			"filterPlaceholder": "Filter",
-			"noAuthor": "No author",
+			"searchPlaceholder": "Search",
+			"none": {
+				"author": "No author",
+				"repository": "No repository",
+				"project": "No project",
+				"team": "No team"
+			},
 			"pinGroup": "Pin to bottom",
 			"unpinGroup": "Unpin from bottom",
 			"display": {
@@ -4974,7 +4980,10 @@
 				"ordering": "Ordering",
 				"closed": "Closed reviews",
 				"showDrafts": "Show drafts",
-				"properties": "Display properties"
+				"properties": "Display properties",
+				"badgeCount": "Badge count",
+				"badgeCountSelected_one": "{{count, number}} selected",
+				"badgeCountSelected_other": "{{count, number}} selected"
 			},
 			"groupBy": {
 				"none": "No grouping",
@@ -4982,7 +4991,10 @@
 				"focus": "Focus",
 				"author": "Author",
 				"repository": "Repository",
-				"size": "Size"
+				"size": "Size",
+				"priority": "Priority",
+				"project": "Project",
+				"team": "Team"
 			},
 			"sortBy": {
 				"author": "Author",
@@ -4991,7 +5003,8 @@
 				"date": "Opened / Merged / Closed",
 				"size": "Size",
 				"status": "Status",
-				"updated": "Updated"
+				"updated": "Updated",
+				"issuePriority": "Issue priority"
 			},
 			"reviewStatus": {
 				"changes_requested": "Changes requested",
@@ -5028,10 +5041,31 @@
 				"id": "ID",
 				"author": "Author",
 				"date": "Opened / Merged / Closed",
-				"statusDetails": "Status details"
+				"statusDetails": "Status details",
+				"reviewers": "Reviewers",
+				"githubTeam": "GitHub team",
+				"labels": "Labels"
 			},
 			"count_one": "{{count}} review",
-			"count_other": "{{count}} reviews"
+			"count_other": "{{count}} reviews",
+			"badgeCount": {
+				"requested": "Requested from you",
+				"team": "Requested of your GitHub team",
+				"readyToMerge": "Ready to merge"
+			},
+			"filter": {
+				"hasConflicts": "Has conflicts",
+				"mergeStatus": "Merge status",
+				"approvedBy": "Approved by",
+				"yes": "Yes",
+				"noApprovers": "No approvals yet",
+				"merge": {
+					"ready": "Ready to merge",
+					"blocked": "Blocked",
+					"behind": "Behind base branch",
+					"queued": "Merging or queued"
+				}
+			}
 		},
 		"myTasks": {
 			"pageTitle": "My issues",

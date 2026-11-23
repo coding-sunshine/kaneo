@@ -168,4 +168,56 @@ describe("reviews view", () => {
       showDrafts: false,
     });
   });
+
+  describe("linked task", () => {
+    const issue = (
+      priority: string,
+      team = "Platform",
+      project: string | null = null,
+    ) => ({
+      taskId: "t",
+      title: "",
+      priority,
+      team: { id: team, name: team },
+      project: project ? { id: project, name: project } : null,
+    });
+    const items = [
+      pr({ number: 1 }),
+      pr({ number: 2, issue: issue("low", "Web", "Launch") }),
+      pr({ number: 3, issue: issue("urgent") }),
+      pr({ number: 4, issue: issue("urgent", "Web") }),
+    ];
+    const none = { subGroupBy: "none" as const, pinned: [] };
+
+    it("groups by the linked task's priority, unlinked last", () => {
+      const groups = buildGroups(items, { ...none, groupBy: "priority" });
+      expect(groups.map((g) => g.key)).toEqual([
+        "urgent",
+        "low",
+        "no-priority",
+      ]);
+      expect(groups[0]?.items.map((p) => p.number)).toEqual([3, 4]);
+    });
+
+    it("groups by team (Kaneo project) and project (work project)", () => {
+      const teams = buildGroups(items, { ...none, groupBy: "team" });
+      expect(teams.map((g) => g.key)).toEqual(["", "Platform", "Web"]);
+      const projects = buildGroups(items, { ...none, groupBy: "project" });
+      expect(projects.map((g) => g.key)).toEqual(["", "Launch"]);
+      expect(projects[0]?.items.map((p) => p.number)).toEqual([1, 3, 4]);
+    });
+
+    it("orders by issue priority in either direction, unlinked last", () => {
+      const asc = sortPullRequests(items, {
+        sortBy: "issuePriority",
+        sortDirection: "asc",
+      });
+      expect(asc.map((p) => p.number)).toEqual([3, 4, 2, 1]);
+      const desc = sortPullRequests(items, {
+        sortBy: "issuePriority",
+        sortDirection: "desc",
+      });
+      expect(desc.map((p) => p.number)).toEqual([1, 2, 3, 4]);
+    });
+  });
 });

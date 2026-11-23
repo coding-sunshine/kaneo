@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ChecksIcon } from "@/components/reviews/checks-icon";
+import { ReviewRowLabels } from "@/components/reviews/review-row-labels";
+import { ReviewRowReviewers } from "@/components/reviews/review-row-reviewers";
 import { PullRequestStatusIcon } from "@/components/task/task-pull-requests/pull-request-status-icon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -51,6 +53,16 @@ export function ReviewRow({
       <span className="min-w-0 flex-1 truncate text-foreground">
         {pr.title}
       </span>
+      {show("labels") && <ReviewRowLabels labels={pr.labels} />}
+      {show("githubTeam") && pr.teamReviewers.length > 0 && (
+        <span
+          title={pr.teamReviewers.join(", ")}
+          className="max-w-24 shrink-0 truncate text-muted-foreground text-xs"
+        >
+          {pr.teamReviewers[0]}
+          {pr.teamReviewers.length > 1 && ` +${pr.teamReviewers.length - 1}`}
+        </span>
+      )}
       {show("repository") && (
         <span className="max-w-32 shrink-0 truncate text-muted-foreground text-xs">
           {pr.repo}
@@ -68,6 +80,7 @@ export function ReviewRow({
             t(`workspace:reviews.reviewStatus.${pr.reviewDecision}`)}
         </span>
       )}
+      {show("reviewers") && <ReviewRowReviewers reviewers={pr.reviewers} />}
       {show("author") && pr.author && (
         <Avatar className="size-4.5" title={pr.author.login}>
           <AvatarImage src={pr.author.avatarUrl} alt={pr.author.login} />

@@ -1,5 +1,7 @@
 import { type GithubSearchPull, searchPullRequests } from "../github-api";
 import type { closedWindows } from "../schema";
+import { findLinkedIssues } from "../linked-issues";
+import { toMergeState, toReviewFields } from "../review-fields";
 import { withGithubToken } from "../with-github-token";
 
 type ClosedWindow = (typeof closedWindows)[number];
@@ -51,6 +53,10 @@ function toSummary(pull: GithubSearchPull) {
     checks: toChecks(pull.commits.nodes[0]?.commit.statusCheckRollup?.state),
     additions: pull.additions,
     deletions: pull.deletions,
+    labels: pull.labels?.nodes ?? [],
+    ...toReviewFields(pull),
+    hasConflicts: pull.mergeable === "CONFLICTING",
+    mergeState: toMergeState(pull),
   };
 }
 
@@ -78,17 +84,35 @@ export function listPullRequests(userId: string, closed: ClosedWindow) {
     return [...open, ...done];
   };
   return withGithubToken(userId, async (token) => {
-    const [toReview, created, participated] = await Promise.all([
+    const [requested, direct, created, participated] = await Promise.all([
       search(token, "is:open review-requested:@me"),
+      search(token, "is:open user-review-requested:@me"),
       openAndClosed(token, "author:@me"),
       openAndClosed(token, "involves:@me -author:@me"),
     ]);
+    // review-requested includes team requests, user-review-requested does not.
+    const directUrls = new Set(direct.map((pr) => pr.url));
+    const toReview = requested.map((pr) => ({
+      ...pr,
+      teamRequested: !directUrls.has(pr.url),
+    }));
     // A requested review also matches involves:@me; list it once, as waiting.
     const waiting = new Set(toReview.map((pr) => pr.url));
+    const rest = participated.filter((pr) => !waiting.has(pr.url));
+    const all = [...toReview, ...created, ...rest];
+    const issues = await findLinkedIssues(userId, [
+      ...new Set(all.map((pr) => pr.url)),
+    ]);
+    const withIssue = <T extends { url: string }>(pr: T) => ({
+      ...pr,
+      issue: issues.get(pr.url) ?? null,
+    });
     return {
-      toReview,
-      created,
-      participated: participated.filter((pr) => !waiting.has(pr.url)),
+      toReview: toReview.map(withIssue),
+      created: created.map((pr) => withIssue({ ...pr, teamRequested: false })),
+      participated: rest.map((pr) =>
+        withIssue({ ...pr, teamRequested: false }),
+      ),
     };
   });
 }

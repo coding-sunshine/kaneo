@@ -34,6 +34,15 @@ const pr = (
   checks: "none",
   additions: 3,
   deletions: 1,
+  labels: [],
+  reviewers: [],
+  teamReviewers: [],
+  approvedBy: [],
+  changesRequestedBy: [],
+  hasConflicts: false,
+  mergeState: "unknown",
+  teamRequested: false,
+  issue: null,
   ...extra,
 });
 
@@ -176,12 +185,85 @@ describe("ReviewsPage", () => {
     state.list.toReview = [pr(1, "Fix login"), pr(2, "Add billing")];
     render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
     expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Filter" }));
+    fireEvent.click(screen.getByRole("button", { name: "Search" }));
     fireEvent.change(screen.getByRole("searchbox"), {
       target: { value: "billing" },
     });
     expect(screen.getByText("Add billing")).toBeInTheDocument();
     expect(screen.queryByText("Fix login")).not.toBeInTheDocument();
+  });
+
+  it("shows reviewers, GitHub team and labels when those properties are on", () => {
+    state.list.toReview = [
+      pr(1, "Chips", "open", {
+        reviewers: [{ login: "bo", avatarUrl: "" }],
+        teamReviewers: ["core"],
+        labels: [{ name: "bug", color: "d73a4a" }],
+      }),
+    ];
+    useUserPreferencesStore.setState({
+      reviewsView: {
+        ...DEFAULT_REVIEWS_VIEWS,
+        toReview: {
+          ...DEFAULT_REVIEWS_VIEWS.toReview,
+          properties: ["reviewers", "githubTeam", "labels"],
+        },
+      },
+    });
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    expect(screen.getByTitle("bo")).toBeInTheDocument();
+    expect(screen.getByText("core")).toBeInTheDocument();
+    expect(screen.getByText("bug")).toBeInTheDocument();
+  });
+
+  it("groups by the linked task priority, unlinked rows under No priority", () => {
+    state.list.toReview = [
+      pr(1, "Urgent one", "open", {
+        issue: {
+          taskId: "t1",
+          title: "T",
+          priority: "urgent",
+          team: { id: "p1", name: "Eng" },
+          project: null,
+        },
+      }),
+      pr(2, "Loose one"),
+    ];
+    useUserPreferencesStore.setState({
+      reviewsView: {
+        ...DEFAULT_REVIEWS_VIEWS,
+        toReview: { ...DEFAULT_REVIEWS_VIEWS.toReview, groupBy: "priority" },
+      },
+    });
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    expect(screen.getByText("Urgent")).toBeInTheDocument();
+    expect(screen.getByText("No priority")).toBeInTheDocument();
+  });
+
+  it("saves the badge count options from the Display menu", async () => {
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    fireEvent.click(screen.getByRole("button", { name: "Display" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Badge count" }));
+    fireEvent.click(
+      await screen.findByRole("menuitemcheckbox", { name: "Ready to merge" }),
+    );
+    expect(useUserPreferencesStore.getState().sidebar.reviewsCount).toEqual([
+      "requested",
+      "team",
+    ]);
+  });
+
+  it("narrows the list with the Merge status filter", async () => {
+    state.list.toReview = [
+      pr(1, "Ready one", "open", { mergeState: "ready" }),
+      pr(2, "Blocked one", "open", { mergeState: "blocked" }),
+    ];
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    fireEvent.click(screen.getByRole("button", { name: "Filter" }));
+    fireEvent.click(await screen.findByText("Merge status"));
+    fireEvent.click(await screen.findByText("Blocked"));
+    expect(screen.getByText("Blocked one")).toBeInTheDocument();
+    expect(screen.queryByText("Ready one")).not.toBeInTheDocument();
   });
 
   it("moves with j and k and opens the focused row with Enter", () => {
