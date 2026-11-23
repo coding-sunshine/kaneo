@@ -202,6 +202,7 @@ export type GithubPull = {
   state: string;
   draft: boolean;
   merged: boolean;
+  mergeable: boolean | null;
   comments: number;
   created_at: string;
   updated_at: string;
@@ -339,4 +340,53 @@ export const submitReview = (
     token,
     `${pullPath(owner, repo, number)}/reviews`,
     { method: "POST", body: review },
+  );
+
+export type GithubReviewComment = {
+  id: number;
+  user: GithubPerson;
+  body: string;
+  path: string;
+  // line is null once the commented code is outdated.
+  line: number | null;
+  original_line: number | null;
+  side: "LEFT" | "RIGHT";
+  created_at: string;
+};
+
+export const listReviewComments = (
+  token: string,
+  owner: string,
+  repo: string,
+  number: string,
+) =>
+  githubRequest<GithubReviewComment[]>(
+    token,
+    `${pullPath(owner, repo, number)}/comments?per_page=100`,
+  );
+
+export const addIssueComment = (
+  token: string,
+  owner: string,
+  repo: string,
+  number: string,
+  body: string,
+) =>
+  githubRequest<{ id: number }>(
+    token,
+    `/repos/${owner}/${repo}/issues/${number}/comments`,
+    { method: "POST", body: { body } },
+  );
+
+export const mergePull = (
+  token: string,
+  owner: string,
+  repo: string,
+  number: string,
+  mergeMethod: string,
+) =>
+  githubRequest<{ merged: boolean }>(
+    token,
+    `${pullPath(owner, repo, number)}/merge`,
+    { method: "PUT", body: { merge_method: mergeMethod } },
   );

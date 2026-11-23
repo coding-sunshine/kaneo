@@ -19,6 +19,9 @@ const gh = vi.hoisted(() => ({
   listIssueComments: vi.fn(),
   listReviews: vi.fn(),
   submitReview: vi.fn(),
+  listReviewComments: vi.fn(),
+  addIssueComment: vi.fn(),
+  mergePull: vi.fn(),
 }));
 vi.mock("../../apps/api/src/github-reviews/github-api", async (original) => ({
   ...(await original<object>()),
@@ -441,6 +444,7 @@ describe("pull request detail", () => {
     state: "open",
     draft: false,
     merged: false,
+    mergeable: true,
     comments: 1,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-02T00:00:00Z",
@@ -483,6 +487,18 @@ describe("pull request detail", () => {
       ],
     });
     gh.getCombinedStatus.mockResolvedValue({ statuses: [] });
+    gh.listReviewComments.mockResolvedValue([
+      {
+        id: 9,
+        user: { login: "cy", avatar_url: "c" },
+        body: "nit",
+        path: "a.ts",
+        line: null,
+        original_line: 4,
+        side: "RIGHT",
+        created_at: "2026-01-02T12:00:00Z",
+      },
+    ]);
     gh.listIssueComments.mockResolvedValue([
       {
         id: 1,
@@ -513,6 +529,10 @@ describe("pull request detail", () => {
       status: "open",
       body: "",
       headSha: "abc",
+      mergeable: true,
+      labels: [],
+      additions: 3,
+      deletions: 1,
     });
     const files = await (await app.request(`${P}/files`)).json();
     expect(
@@ -525,8 +545,15 @@ describe("pull request detail", () => {
     const conversation = await (await app.request(`${P}/conversation`)).json();
     expect(conversation.map((entry: { id: string }) => entry.id)).toEqual([
       "comment-1",
+      "review-comment-9",
       "review-3",
     ]);
+    expect(conversation[1]).toMatchObject({
+      kind: "review_comment",
+      path: "a.ts",
+      line: 4,
+      side: "RIGHT",
+    });
   });
 
   it("posts the review to GitHub as the user and requires a body unless approving", async () => {
@@ -552,6 +579,88 @@ describe("pull request detail", () => {
         body: "",
       },
     );
+  });
+
+  it("adds a conversation comment as the user and refuses an empty one", async () => {
+    await connected();
+    gh.addIssueComment.mockResolvedValue({ id: 5 });
+    const post = (body: object) =>
+      app.request(`${P}/comments`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    expect((await post({ body: "  " })).status).toBe(400);
+    expect(gh.addIssueComment).not.toHaveBeenCalled();
+    expect((await post({ body: "looks good" })).status).toBe(200);
+    expect(gh.addIssueComment).toHaveBeenCalledWith(
+      "gho_access",
+      "acme",
+      "web",
+      "7",
+      "looks good",
+    );
+  });
+
+  it("submits each review event with its body", async () => {
+    await connected();
+    gh.submitReview.mockResolvedValue({ id: 1 });
+    for (const event of ["COMMENT", "REQUEST_CHANGES", "APPROVE"]) {
+      const response = await app.request(`${P}/reviews`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ event, body: "note" }),
+      });
+      expect(response.status).toBe(200);
+    }
+    expect(gh.submitReview.mock.calls.map((call) => call[4])).toEqual([
+      { event: "COMMENT", body: "note" },
+      { event: "REQUEST_CHANGES", body: "note" },
+      { event: "APPROVE", body: "note" },
+    ]);
+  });
+
+  it("merges with the chosen method and maps GitHub's 405 and 403", async () => {
+    await connected();
+    const put = (body: object = {}) =>
+      app.request(`${P}/merge`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    gh.mergePull.mockResolvedValueOnce({ merged: true });
+    expect((await put({ mergeMethod: "squash" })).status).toBe(200);
+    expect(gh.mergePull).toHaveBeenLastCalledWith(
+      "gho_access",
+      "acme",
+      "web",
+      "7",
+      "squash",
+    );
+
+    const { GithubApiError } = await vi.importActual<
+      typeof import("../../apps/api/src/github-reviews/github-api")
+    >("../../apps/api/src/github-reviews/github-api");
+    gh.mergePull.mockRejectedValueOnce(
+      new GithubApiError(405, "Pull Request is not mergeable"),
+    );
+    const notMergeable = await put();
+    expect(notMergeable.status).toBe(405);
+    expect((await notMergeable.json()).message).toBe(
+      "Pull Request is not mergeable",
+    );
+    expect(gh.mergePull).toHaveBeenLastCalledWith(
+      "gho_access",
+      "acme",
+      "web",
+      "7",
+      "merge",
+    );
+
+    gh.mergePull.mockRejectedValueOnce(
+      new GithubApiError(403, "Resource not accessible by integration"),
+    );
+    expect((await put()).status).toBe(403);
   });
 
   it("refuses another user who has not connected", async () => {

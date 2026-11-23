@@ -31,6 +31,8 @@ export async function getPullRequest(
     createdAt: pull.created_at,
     updatedAt: pull.updated_at,
     body: pull.body ?? "",
+    mergeable:
+      pull.state === "open" && !pull.draft ? (pull.mergeable ?? null) : false,
     labels: pull.labels,
     headSha: pull.head.sha,
     headRef: pull.head.ref,

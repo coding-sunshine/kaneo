@@ -33,3 +33,11 @@ export const reviewBody = z
     message: "A comment is required unless you approve",
     path: ["body"],
   });
+
+export const commentBody = z.object({
+  body: z.string().trim().min(1).max(65536),
+});
+
+export const mergeBody = z.object({
+  mergeMethod: z.enum(["merge", "squash", "rebase"]).default("merge"),
+});

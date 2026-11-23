@@ -14,11 +14,15 @@ import { getPullRequest } from "./controllers/get-pull-request";
 import { getPullRequestChecks } from "./controllers/get-pull-request-checks";
 import { listPullRequestConversation } from "./controllers/list-pull-request-conversation";
 import { listPullRequestFiles } from "./controllers/list-pull-request-files";
+import { addComment } from "./controllers/add-comment";
+import { mergePullRequest } from "./controllers/merge-pull-request";
 import { submitReview } from "./controllers/submit-review";
 import {
   callbackQuery,
+  commentBody,
   connectQuery,
   listQuery,
+  mergeBody,
   pullParams,
   reviewBody,
 } from "./schema";
@@ -27,6 +31,7 @@ import {
   conversationSchema,
   disconnectedSchema,
   filesSchema,
+  mergedSchema,
   pullRequestSchema,
   reviewListSchema,
   reviewSubmittedSchema,
@@ -186,7 +191,8 @@ const conversationRoute = createRoute({
   path: "/pulls/{owner}/{repo}/{number}/conversation",
   tags,
   summary: "List conversation",
-  description: "Issue comments and submitted reviews in time order.",
+  description:
+    "Issue comments, submitted reviews and inline review comments in time order. Inline comments carry their file path and line.",
   middleware: [requireUserSession] as const,
   request: { params: pullParams },
   responses: {
@@ -223,6 +229,60 @@ const reviewRoute = createRoute({
     ),
     409: needsGithub,
     422: errorResponse("GitHub rejected the review"),
+  },
+});
+
+const commentRoute = createRoute({
+  method: "post",
+  operationId: "addGithubPullRequestComment",
+  path: "/pulls/{owner}/{repo}/{number}/comments",
+  tags,
+  summary: "Add a conversation comment",
+  description: "Posts a comment on the pull request as the signed-in user.",
+  middleware: [requireUserSession] as const,
+  request: {
+    params: pullParams,
+    body: {
+      content: { "application/json": { schema: commentBody } },
+      required: true,
+    },
+  },
+  responses: {
+    200: jsonResponse("Add a conversation comment", reviewSubmittedSchema),
+    403: needsSession,
+    404: errorResponse(
+      "Pull request not found or not visible to the Kaneo GitHub App",
+    ),
+    409: needsGithub,
+    422: errorResponse("GitHub rejected the comment"),
+  },
+});
+
+const mergeRoute = createRoute({
+  method: "put",
+  operationId: "mergeGithubPullRequest",
+  path: "/pulls/{owner}/{repo}/{number}/merge",
+  tags,
+  summary: "Merge a pull request",
+  description:
+    "Merges the pull request as the signed-in user. GitHub answers 405 when it is not mergeable and 403 without permission.",
+  middleware: [requireUserSession] as const,
+  request: {
+    params: pullParams,
+    body: {
+      content: { "application/json": { schema: mergeBody } },
+      required: true,
+    },
+  },
+  responses: {
+    200: jsonResponse("Merge a pull request", mergedSchema),
+    403: needsSession,
+    404: errorResponse(
+      "Pull request not found or not visible to the Kaneo GitHub App",
+    ),
+    405: errorResponse("The pull request is not mergeable"),
+    409: needsGithub,
+    422: errorResponse("GitHub rejected the merge"),
   },
 });
 
@@ -273,6 +333,32 @@ const githubReviews = apiRouter()
         repo,
         number,
         c.req.valid("json"),
+      ),
+      200,
+    );
+  })
+  .openapi(commentRoute, async (c) => {
+    const { owner, repo, number } = c.req.valid("param");
+    return c.json(
+      await addComment(
+        c.get("userId"),
+        owner,
+        repo,
+        number,
+        c.req.valid("json").body,
+      ),
+      200,
+    );
+  })
+  .openapi(mergeRoute, async (c) => {
+    const { owner, repo, number } = c.req.valid("param");
+    return c.json(
+      await mergePullRequest(
+        c.get("userId"),
+        owner,
+        repo,
+        number,
+        c.req.valid("json").mergeMethod,
       ),
       200,
     );
