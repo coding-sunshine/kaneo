@@ -26,7 +26,7 @@ import {
 } from "@/hooks/queries/github-reviews/use-github-reviews";
 import useGetNotifications from "@/hooks/queries/notification/use-get-notifications";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
-import { REVIEWS_CLOSED_WINDOW } from "@/lib/reviews-view";
+import { fetchWindow } from "@/lib/reviews-view";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 
 export type NavItem = {
@@ -52,8 +52,11 @@ export function useSidebarItems() {
   );
   // Same query keys as the Reviews page, so the badge shares its cache and polling.
   const reviewsStatus = useReviewsStatus(codeReviewsEnabled);
+  const reviewsWindow = useUserPreferencesStore((state) =>
+    fetchWindow(state.reviewsView),
+  );
   const reviewsList = useReviewsList(
-    REVIEWS_CLOSED_WINDOW,
+    reviewsWindow,
     codeReviewsEnabled && reviewsStatus.data?.state === "connected",
   );
   const { data: drafts = [] } = useTaskDrafts(workspace?.id);

@@ -7,8 +7,10 @@ import {
   it,
   vi,
 } from "vite-plus/test";
+// Loads the real English copy, so the assertions read like the page does.
+import "@/lib/i18n";
 import { ShortcutListener } from "@/lib/shortcuts/shortcut-listener";
-import { DEFAULT_REVIEWS_VIEW } from "@/lib/reviews-view";
+import { DEFAULT_REVIEWS_VIEWS } from "@/lib/reviews-view";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 import { ReviewsPage } from "./reviews-page";
 
@@ -35,7 +37,10 @@ const pr = (
   ...extra,
 });
 
-const mocks = vi.hoisted(() => ({ navigate: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  navigate: vi.fn(),
+  params: {} as Record<string, string>,
+}));
 
 const state = vi.hoisted(() => ({
   status: { state: "connected", login: "octo" } as { state: string },
@@ -50,30 +55,30 @@ vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => ({
   useReviewsStatus: () => ({ data: state.status, isLoading: false }),
   useReviewsList: () => ({ data: state.list, isLoading: false }),
 }));
-vi.mock("@/components/common/workspace-layout", () => ({
-  default: ({
-    children,
-    headerActions,
-  }: {
-    children: React.ReactNode;
-    headerActions: React.ReactNode;
-  }) => (
-    <>
-      {headerActions}
-      {children}
-    </>
-  ),
+// The real shell pulls in the whole sidebar; only its header row is used here.
+vi.mock("@/components/common/layout", () => ({
+  default: {
+    Header: ({ children }: { children: React.ReactNode }) => (
+      <header>{children}</header>
+    ),
+  },
 }));
+vi.mock("@/components/ui/sidebar", () => ({ SidebarTrigger: () => null }));
 vi.mock("@tanstack/react-router", () => ({
   Link: ({
     children,
     ...props
   }: { children: React.ReactNode } & Record<string, unknown>) => (
-    <a href="/pr" data-review-row={props["data-review-row"] as string}>
+    <a
+      href="/pr"
+      data-review-row={props["data-review-row"] as string}
+      aria-current={props["aria-current"] as "page" | undefined}
+    >
       {children}
     </a>
   ),
   useNavigate: () => mocks.navigate,
+  useParams: () => mocks.params,
 }));
 vi.mock("@/components/page-title", () => ({ default: () => null }));
 
@@ -86,9 +91,10 @@ beforeEach(() => {
   };
   useUserPreferencesStore.setState({
     codeReviewsEnabled: true,
-    reviewsView: DEFAULT_REVIEWS_VIEW,
+    reviewsView: DEFAULT_REVIEWS_VIEWS,
   });
   mocks.navigate.mockClear();
+  mocks.params = {};
 });
 afterEach(cleanup);
 
@@ -100,8 +106,9 @@ describe("ReviewsPage", () => {
     expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
   });
 
-  it("switches between To Review and Created, grouped by status", () => {
+  it("switches between To review and Created, grouped by status", () => {
     render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    expect(screen.getByRole("tab", { name: "To review1" })).toBeInTheDocument();
     expect(screen.getByText("Review me")).toBeInTheDocument();
     expect(screen.queryByText("Mine")).not.toBeInTheDocument();
 
@@ -116,43 +123,60 @@ describe("ReviewsPage", () => {
     ]);
   });
 
-  it("hides Reviews when the user says they do not do code review", () => {
-    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
-    fireEvent.click(
-      screen.getByRole("button", { name: "I don't do code review" }),
-    );
-    expect(useUserPreferencesStore.getState().codeReviewsEnabled).toBe(false);
-  });
-
-  it("groups by review status, with pinned groups last", () => {
-    state.list = {
-      toReview: [
-        pr(1, "A", "open", { reviewDecision: "approved" }),
-        pr(2, "B", "open", { reviewDecision: "changes_requested" }),
-        pr(3, "C", "open"),
-      ],
-      created: [],
-      participated: [],
-    };
-    useUserPreferencesStore.setState({
-      reviewsView: {
-        ...DEFAULT_REVIEWS_VIEW,
-        groupBy: "reviewStatus",
-        pinned: ["reviewStatus:changes_requested"],
-      },
-    });
+  it("starts Done collapsed and collapses a group on click", () => {
+    state.list.participated = [pr(9, "Already reviewed")];
     render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
     const headings = screen.getAllByRole("heading", { level: 2 });
     expect(headings.map((heading) => heading.textContent)).toEqual([
-      "Approved1",
-      "No review decision1",
-      "Changes requested1",
+      "Needs your review1",
+      "Done1",
     ]);
+    expect(screen.queryByText("Already reviewed")).not.toBeInTheDocument();
+    expect(screen.getByText("1 review")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Needs your review/ }));
+    expect(screen.queryByText("Review me")).not.toBeInTheDocument();
+    expect(screen.getByText("0 reviews")).toBeInTheDocument();
+    expect(
+      useUserPreferencesStore.getState().reviewsView.toReview.collapsed,
+    ).toContain("focus:needsReview");
+  });
+
+  it("keeps pinned groups last", () => {
+    useUserPreferencesStore.setState({
+      reviewsView: {
+        ...DEFAULT_REVIEWS_VIEWS,
+        created: { ...DEFAULT_REVIEWS_VIEWS.created, pinned: ["status:draft"] },
+      },
+    });
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    fireEvent.click(screen.getByRole("tab", { name: "Created" }));
+    const headings = screen.getAllByRole("heading", { level: 2 });
+    expect(headings.map((heading) => heading.textContent)).toEqual([
+      "Open1",
+      "Draft1",
+    ]);
+  });
+
+  it("shows the opened pull request beside the list", () => {
+    mocks.params = { owner: "acme", repo: "web", number: "1" };
+    render(
+      <ReviewsPage returnTo="/r" workspaceId="w1">
+        <p>Detail pane</p>
+      </ReviewsPage>,
+    );
+    expect(screen.getByText("Detail pane")).toBeInTheDocument();
+    expect(screen.queryByText("1 review")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Review me").closest("[data-review-row]"),
+    ).toHaveAttribute("aria-current", "page");
   });
 
   it("filters rows by text", () => {
     state.list.toReview = [pr(1, "Fix login"), pr(2, "Add billing")];
     render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Filter" }));
     fireEvent.change(screen.getByRole("searchbox"), {
       target: { value: "billing" },
     });

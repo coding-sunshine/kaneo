@@ -1,20 +1,22 @@
-import { GitPullRequest } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useParams } from "@tanstack/react-router";
+import { GitPullRequest, ListFilter } from "lucide-react";
+import { type ReactNode, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import WorkspaceLayout from "@/components/common/workspace-layout";
+import Layout from "@/components/common/layout";
 import PageTitle from "@/components/page-title";
 import { ReviewsConnectCard } from "@/components/reviews/reviews-connect-card";
 import { ReviewsDisplayOptions } from "@/components/reviews/reviews-display-options";
 import { ReviewsList } from "@/components/reviews/reviews-list";
+import { ReviewsTabPill } from "@/components/reviews/reviews-tab-pill";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
-  EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useReviewsList,
@@ -22,131 +24,157 @@ import {
 } from "@/hooks/queries/github-reviews/use-github-reviews";
 import { cn } from "@/lib/cn";
 import {
+  buildGroups,
+  fetchWindow,
   filterPullRequests,
-  REVIEWS_CLOSED_WINDOW,
+  type ReviewsTab,
   sortPullRequests,
+  tabItems,
+  visibleRows,
 } from "@/lib/reviews-view";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 
-type ReviewsTab = "created" | "toReview";
+type DetailParams = { owner?: string; repo?: string; number?: string };
 
-function Pill({
-  active,
-  onClick,
-  role,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  role?: "tab";
-  children: React.ReactNode;
-}) {
-  return (
-    <Button
-      role={role}
-      aria-selected={role === "tab" ? active : undefined}
-      aria-pressed={role === "tab" ? undefined : active}
-      variant="outline"
-      size="xs"
-      onClick={onClick}
-      className={cn(
-        "rounded-full",
-        active ? "bg-accent text-foreground" : "text-muted-foreground",
-      )}
-    >
-      {children}
-    </Button>
-  );
-}
-
+/** Linear's split: the list on the left, the opened pull request (children) beside it. */
 export function ReviewsPage({
   returnTo,
   workspaceId,
+  children,
 }: {
   returnTo: string;
   workspaceId: string;
+  children?: ReactNode;
 }) {
   const { t } = useTranslation();
-  const setCodeReviewsEnabled = useUserPreferencesStore(
-    (state) => state.setCodeReviewsEnabled,
-  );
-  const view = useUserPreferencesStore((state) => state.reviewsView);
+  const views = useUserPreferencesStore((state) => state.reviewsView);
   const setView = useUserPreferencesStore((state) => state.setReviewsView);
-  const [query, setQuery] = useState("");
   const [tab, setTab] = useState<ReviewsTab>("toReview");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const status = useReviewsStatus();
   const connected = status.data?.state === "connected";
-  const list = useReviewsList(REVIEWS_CLOSED_WINDOW, connected);
+  const list = useReviewsList(fetchWindow(views), connected);
+  const params = useParams({ strict: false }) as DetailParams;
+  const selectedKey = params.number
+    ? `${params.owner}/${params.repo}#${params.number}`
+    : undefined;
 
   const title = t("workspace:reviews.pageTitle");
+  const view = views[tab];
   const data = list.data;
-  const pullRequests = useMemo(() => {
-    const items = data
-      ? tab === "created"
-        ? data.created
-        : [...data.toReview, ...data.participated]
-      : [];
-    return sortPullRequests(filterPullRequests(items, query), view.sortBy);
-  }, [data, tab, query, view.sortBy]);
+  const groups = useMemo(
+    () =>
+      data
+        ? buildGroups(
+            sortPullRequests(
+              filterPullRequests(tabItems(data, tab, view), query),
+              view,
+            ),
+            view,
+          )
+        : [],
+    [data, tab, view, query],
+  );
+  const shown = useMemo(
+    () => visibleRows(groups, view.collapsed).length,
+    [groups, view.collapsed],
+  );
+  const empty = groups.every((group) => group.items.length === 0);
+
+  const closeFilter = () => {
+    setFilterOpen(false);
+    setQuery("");
+  };
 
   return (
     <>
       <PageTitle title={title} />
-      <WorkspaceLayout
-        title={title}
-        headerActions={
-          <Button
-            variant="ghost"
-            size="xs"
-            onClick={() => setCodeReviewsEnabled(false)}
-          >
-            {t("workspace:reviews.dismiss")}
-          </Button>
-        }
-      >
-        <div className="flex h-full min-h-0 flex-col">
-          {connected && (
-            <div className="flex h-11 shrink-0 items-center justify-between border-border/50 border-b px-4">
-              <div role="tablist" className="inline-flex items-center gap-1.5">
-                <Pill
-                  role="tab"
-                  active={tab === "created"}
-                  onClick={() => setTab("created")}
-                >
-                  {t("workspace:reviews.tabs.created")}
-                </Pill>
-                <Pill
-                  role="tab"
-                  active={tab === "toReview"}
-                  onClick={() => setTab("toReview")}
-                >
-                  {t("workspace:reviews.tabs.toReview")}
-                </Pill>
-              </div>
-              <div className="inline-flex items-center gap-1.5">
-                <Input
-                  type="search"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder={t("workspace:reviews.filterPlaceholder")}
+      <div className="flex h-full min-h-0">
+        {/* One pane at a time below lg: the list, or the opened pull request. */}
+        <div
+          className={cn(
+            "flex min-h-0 w-full shrink-0 flex-col border-border/60",
+            connected && "lg:w-[30.5rem] lg:border-r",
+            connected && selectedKey && "max-lg:hidden",
+          )}
+        >
+          <Layout.Header className="items-center gap-1">
+            <SidebarTrigger className="-ml-1 size-6 shrink-0" />
+            <h1 className="ml-1 min-w-0 flex-1 truncate font-medium text-[13px]">
+              {title}
+            </h1>
+            {connected && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   aria-label={t("workspace:reviews.filterPlaceholder")}
-                  className="h-7 w-40"
+                  aria-pressed={filterOpen}
+                  className="aria-pressed:bg-accent"
+                  onClick={() =>
+                    filterOpen ? closeFilter() : setFilterOpen(true)
+                  }
+                >
+                  <ListFilter />
+                </Button>
+                <ReviewsDisplayOptions
+                  tab={tab}
+                  view={view}
+                  onChange={(patch) => setView(tab, patch)}
                 />
-                <ReviewsDisplayOptions view={view} onChange={setView} />
-              </div>
+              </>
+            )}
+          </Layout.Header>
+          {connected && (
+            <div
+              role="tablist"
+              className="flex h-11 shrink-0 items-center gap-1 px-3"
+            >
+              <ReviewsTabPill
+                active={tab === "created"}
+                onClick={() => setTab("created")}
+              >
+                {t("workspace:reviews.tabs.created")}
+              </ReviewsTabPill>
+              <ReviewsTabPill
+                active={tab === "toReview"}
+                onClick={() => setTab("toReview")}
+              >
+                {t("workspace:reviews.tabs.toReview")}
+                {data && data.toReview.length > 0 && (
+                  <span className="text-muted-foreground tabular-nums">
+                    {data.toReview.length}
+                  </span>
+                )}
+              </ReviewsTabPill>
+            </div>
+          )}
+          {connected && filterOpen && (
+            <div className="shrink-0 px-3 pb-2">
+              <Input
+                type="search"
+                autoFocus
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                onKeyDown={(event) => event.key === "Escape" && closeFilter()}
+                placeholder={t("workspace:reviews.filterPlaceholder")}
+                aria-label={t("workspace:reviews.filterPlaceholder")}
+                className="h-7"
+              />
             </div>
           )}
           <div className="min-h-0 flex-1 overflow-y-auto">
             {status.isLoading || (connected && list.isLoading) ? (
-              <div className="flex flex-col px-4">
+              <div className="flex flex-col gap-px px-2 py-2">
                 {[1, 2, 3, 4].map((row) => (
                   <div
                     key={row}
-                    className="flex h-10 items-center gap-3 border-border/50 border-b px-1"
+                    className="flex h-9 items-center gap-2.5 px-2.5"
                   >
                     <Skeleton className="size-4 rounded-full" />
                     <Skeleton className="h-3.5 flex-1" />
-                    <Skeleton className="h-3.5 w-16" />
+                    <Skeleton className="h-3.5 w-8" />
                   </div>
                 ))}
               </div>
@@ -159,12 +187,9 @@ export function ReviewsPage({
                 state={status.data.state}
                 returnTo={returnTo}
               />
-            ) : pullRequests.length === 0 ? (
-              <Empty className="min-h-[60vh]">
+            ) : empty ? (
+              <Empty className="min-h-[50vh]">
                 <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <GitPullRequest />
-                  </EmptyMedia>
                   <EmptyTitle>{t("workspace:reviews.empty.title")}</EmptyTitle>
                   <EmptyDescription>
                     {t("workspace:reviews.empty.description")}
@@ -173,15 +198,36 @@ export function ReviewsPage({
               </Empty>
             ) : (
               <ReviewsList
-                pullRequests={pullRequests}
-                workspaceId={workspaceId}
+                groups={groups}
                 view={view}
-                onViewChange={setView}
+                workspaceId={workspaceId}
+                selectedKey={selectedKey}
+                onViewChange={(patch) => setView(tab, patch)}
               />
             )}
           </div>
         </div>
-      </WorkspaceLayout>
+        {connected && (
+          <div
+            className={cn("min-w-0 flex-1", !selectedKey && "hidden lg:block")}
+          >
+            {selectedKey ? (
+              children
+            ) : (
+              <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+                <GitPullRequest
+                  aria-hidden
+                  className="size-16 text-muted-foreground/40"
+                  strokeWidth={1}
+                />
+                <p className="text-muted-foreground text-sm">
+                  {t("workspace:reviews.count", { count: shown })}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </>
   );
 }

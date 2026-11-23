@@ -1,6 +1,12 @@
 import { create } from "zustand";
 import type { GroupBy } from "@/lib/group-project";
-import { DEFAULT_REVIEWS_VIEW, type ReviewsView } from "@/lib/reviews-view";
+import {
+  DEFAULT_REVIEWS_VIEWS,
+  type ReviewsTab,
+  type ReviewsView,
+  type ReviewsViews,
+  sanitizeReviewsViews,
+} from "@/lib/reviews-view";
 import type { CompletedIssues } from "@/lib/status-category";
 import {
   DEFAULT_SIDEBAR_PREFS,
@@ -111,8 +117,8 @@ type UserPreferencesStore = {
   // if it should follow people across devices.
   codeReviewsEnabled: boolean;
   setCodeReviewsEnabled: (enabled: boolean) => void;
-  reviewsView: ReviewsView;
-  setReviewsView: (patch: Partial<ReviewsView>) => void;
+  reviewsView: ReviewsViews;
+  setReviewsView: (tab: ReviewsTab, patch: Partial<ReviewsView>) => void;
 
   sidebar: SidebarPrefs;
   setSidebarVisibility: (id: SidebarItemId, value: SidebarVisibility) => void;
@@ -270,9 +276,14 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
       codeReviewsEnabled: true,
       setCodeReviewsEnabled: (codeReviewsEnabled) =>
         set({ codeReviewsEnabled }),
-      reviewsView: DEFAULT_REVIEWS_VIEW,
-      setReviewsView: (patch) =>
-        set((state) => ({ reviewsView: { ...state.reviewsView, ...patch } })),
+      reviewsView: DEFAULT_REVIEWS_VIEWS,
+      setReviewsView: (tab, patch) =>
+        set(({ reviewsView }) => ({
+          reviewsView: {
+            ...reviewsView,
+            [tab]: { ...reviewsView[tab], ...patch },
+          },
+        })),
 
       sidebar: DEFAULT_SIDEBAR_PREFS,
       setSidebarVisibility: (id, value) =>
@@ -312,6 +323,7 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
           ...current,
           ...saved,
           sidebar: { ...current.sidebar, ...saved?.sidebar },
+          reviewsView: sanitizeReviewsViews(saved?.reviewsView),
         };
       },
       onRehydrateStorage: () => (state) => {

@@ -4918,11 +4918,10 @@
 					"split": "Split"
 				}
 			},
-			"dismiss": "I don't do code review",
 			"loadError": "Could not load your pull requests.",
 			"tabs": {
 				"created": "Created",
-				"toReview": "To Review"
+				"toReview": "To review"
 			},
 			"status": {
 				"open": "Open",
@@ -4953,28 +4952,29 @@
 			"pinGroup": "Pin to bottom",
 			"unpinGroup": "Unpin from bottom",
 			"display": {
-				"label": "Display options",
 				"grouping": "Grouping",
 				"subGrouping": "Sub-grouping",
 				"ordering": "Ordering",
-				"repository": "Repository",
-				"checks": "Checks",
-				"size": "Size"
+				"closed": "Closed reviews",
+				"showDrafts": "Show drafts",
+				"properties": "Display properties"
 			},
 			"groupBy": {
 				"none": "No grouping",
 				"status": "Status",
-				"reviewStatus": "Review status",
-				"checks": "Checks",
+				"focus": "Focus",
 				"author": "Author",
 				"repository": "Repository",
 				"size": "Size"
 			},
 			"sortBy": {
-				"updated": "Last updated",
-				"created": "Created",
+				"author": "Author",
+				"closestToMerge": "Closest to merge",
+				"name": "Name",
+				"date": "Opened / Merged / Closed",
 				"size": "Size",
-				"title": "Title"
+				"status": "Status",
+				"updated": "Updated"
 			},
 			"reviewStatus": {
 				"changes_requested": "Changes requested",
@@ -4994,7 +4994,27 @@
 				"m": "Medium",
 				"l": "Large",
 				"xl": "Extra large"
-			}
+			},
+			"focus": {
+				"needsReview": "Needs your review",
+				"done": "Done"
+			},
+			"closed": {
+				"all": "All",
+				"day": "Past day",
+				"week": "Past week",
+				"month": "Past month",
+				"none": "None"
+			},
+			"property": {
+				"repository": "Repository",
+				"id": "ID",
+				"author": "Author",
+				"date": "Opened / Merged / Closed",
+				"statusDetails": "Status details"
+			},
+			"count_one": "{{count}} review",
+			"count_other": "{{count}} reviews"
 		},
 		"myTasks": {
 			"pageTitle": "My issues",

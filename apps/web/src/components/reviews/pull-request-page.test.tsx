@@ -79,8 +79,13 @@ vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => ({
 vi.mock("@/components/reviews/markdown", () => ({
   Markdown: ({ value }: { value: string }) => <p>{value}</p>,
 }));
-vi.mock("@/components/common/workspace-layout", () => ({
-  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+// The real shell pulls in the whole sidebar; only its header row is used here.
+vi.mock("@/components/common/layout", () => ({
+  default: {
+    Header: ({ children }: { children: React.ReactNode }) => (
+      <header>{children}</header>
+    ),
+  },
 }));
 vi.mock("@/components/page-title", () => ({ default: () => null }));
 vi.mock("@tanstack/react-router", () => ({
