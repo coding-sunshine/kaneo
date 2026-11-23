@@ -204,6 +204,7 @@ async function getTasksPage(
     snoozedUntil: taskTable.snoozedUntil,
     startedAt: taskTable.startedAt,
     completedAt: taskTable.completedAt,
+    canceledAt: taskTable.canceledAt,
     slaDueAt: taskTable.slaDueAt,
     startedTriageAt: taskTable.startedTriageAt,
     triagedAt: taskTable.triagedAt,

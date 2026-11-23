@@ -45,6 +45,7 @@ type Task = {
   /** Linear's workflow timestamps, stamped by the database on status changes. */
   startedAt?: string | null;
   completedAt?: string | null;
+  canceledAt?: string | null;
   slaDueAt?: string | null;
   startedTriageAt?: string | null;
   triagedAt?: string | null;

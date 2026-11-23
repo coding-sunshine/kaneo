@@ -149,6 +149,10 @@ export const boardTaskSchema = z
       description:
         "When the task entered a completed status; null unless completed.",
     }),
+    canceledAt: nullableResponseTimestamp.openapi({
+      description:
+        "When the task entered a canceled status; null unless canceled.",
+    }),
     slaDueAt: nullableResponseTimestamp.openapi({
       description:
         "The task's SLA deadline; null when the team's SLA rules do not apply.",

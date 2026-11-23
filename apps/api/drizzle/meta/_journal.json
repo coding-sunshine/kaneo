@@ -694,6 +694,13 @@
       "when": 1795438681714,
       "tag": "0098_zippy_sprite",
       "breakpoints": true
+    },
+    {
+      "idx": 99,
+      "version": "7",
+      "when": 1795448135787,
+      "tag": "0099_task_canceled_at",
+      "breakpoints": true
     }
   ]
 }

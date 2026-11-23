@@ -1234,6 +1234,7 @@ export const taskTable = pgTable(
     // The task_stamp_status_times trigger keeps them in step with status.
     startedAt: timestamp("started_at", { mode: "date" }),
     completedAt: timestamp("completed_at", { mode: "date" }),
+    canceledAt: timestamp("canceled_at", { mode: "date" }),
     startedTriageAt: timestamp("started_triage_at", { mode: "date" }),
     triagedAt: timestamp("triaged_at", { mode: "date" }),
     // Linear SLA deadline, set from the team's SLA rules when the priority is set.

@@ -308,6 +308,14 @@
             "format": "date-time",
             "description": "When the task entered a completed status; null unless completed."
           },
+          "canceledAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the task entered a canceled status; null unless canceled."
+          },
           "slaDueAt": {
             "type": [
               "string",
@@ -412,6 +420,7 @@
           "snoozedUntil",
           "startedAt",
           "completedAt",
+          "canceledAt",
           "slaDueAt",
           "startedTriageAt",
           "triagedAt",
@@ -2012,7 +2021,7 @@
           },
           "type": {
             "type": "string",
-            "description": "One of: comment, task, create, status_changed, priority_changed, assignee_changed, unassigned, due_date_changed, title_changed, description_changed."
+            "description": "One of: comment, task, create, status_changed, priority_changed, assignee_changed, unassigned, due_date_changed, title_changed, description_changed, cycle_changed, labels_changed, work_project_changed, parent_changed."
           },
           "createdAt": {
             "type": "string",
@@ -2222,7 +2231,7 @@
           },
           "type": {
             "type": "string",
-            "description": "One of: comment, task, create, status_changed, priority_changed, assignee_changed, unassigned, due_date_changed, title_changed, description_changed."
+            "description": "One of: comment, task, create, status_changed, priority_changed, assignee_changed, unassigned, due_date_changed, title_changed, description_changed, cycle_changed, labels_changed, work_project_changed, parent_changed."
           },
           "createdAt": {
             "type": "string",
