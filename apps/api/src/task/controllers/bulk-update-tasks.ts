@@ -18,6 +18,7 @@ import { removeLabelFromGitHub } from "../../plugins/github/utils/sync-label-to-
 import { removeLabelFromGitlab } from "../../plugins/gitlab/utils/sync-label-to-gitlab";
 import { assertAssignableUser } from "../../utils/assert-assignable-user";
 import { publishTaskMutation } from "./task-mutation-effects";
+import { captureOrphanedSubtasks } from "../publish-orphaned-subtasks";
 import { getSubtaskParentProjects } from "../get-subtask-parent-projects";
 import {
   assertValidPriority,
@@ -306,6 +307,7 @@ async function bulkUpdateTasks({
     case "delete": {
       // Relations cascade away with the children, so capture parents first.
       const parentProjects = await getSubtaskParentProjects(foundIds);
+      const publishOrphans = await captureOrphanedSubtasks(foundIds);
       const result = await db.transaction(async (tx) => {
         const locked = await tx
           .select({ id: taskTable.id, projectId: taskTable.projectId })
@@ -346,6 +348,7 @@ async function bulkUpdateTasks({
           title: task.title,
         });
       }
+      await publishOrphans(userId);
       await publishEvent("subtask-parents.refresh", {
         projects: parentProjects,
       });

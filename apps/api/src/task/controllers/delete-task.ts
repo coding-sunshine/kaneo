@@ -7,6 +7,7 @@ import {
   taskTable,
 } from "../../database/schema";
 import { publishEvent } from "../../events";
+import { captureOrphanedSubtasks } from "../publish-orphaned-subtasks";
 import { queueStorageCleanup } from "../../storage/cleanup-queue";
 import getTask from "./get-task";
 
@@ -24,6 +25,7 @@ async function deleteTask(taskId: string, currentUserId: string) {
     )
     .execute();
 
+  const publishOrphans = await captureOrphanedSubtasks([taskId]);
   const deletedTask = await db.transaction(async (tx) => {
     const [locked] = await tx
       .select({ id: taskTable.id, projectId: taskTable.projectId })
@@ -72,6 +74,8 @@ async function deleteTask(taskId: string, currentUserId: string) {
       targetTaskId: relation.targetTaskId,
     });
   }
+
+  await publishOrphans(currentUserId);
 
   return task;
 }

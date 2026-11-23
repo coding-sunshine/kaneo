@@ -8,6 +8,7 @@ const templates: Record<string, string> = {
   "activity:removedLabel": "removed label {{names}}",
   "activity:addedToProject": "added to project {{to}}",
   "activity:setParent": "set parent issue {{to}}",
+  "activity:markedDuplicate": "marked this as a duplicate of {{to}}",
 };
 const t = (key: string, options: Record<string, unknown> = {}) =>
   (templates[key] ?? key).replace(/{{(\w+)}}/g, (_, name) =>
@@ -49,6 +50,13 @@ describe("describeHistoryEvent", () => {
         t,
       ),
     ).toBe("set parent issue ENG-72");
+    expect(
+      describeHistoryEvent(
+        "duplicate_changed",
+        { fromDuplicate: null, toDuplicate: "ENG-5" },
+        t,
+      ),
+    ).toBe("marked this as a duplicate of ENG-5");
   });
 
   it("returns null for unknown types or empty data", () => {

@@ -50,6 +50,13 @@ export function describeHistoryEvent(
       if (to) return t("activity:setParent", { to });
       return from ? t("activity:removedParent", { from }) : null;
     }
+    case "duplicate_changed": {
+      const from = text(eventData.fromDuplicate);
+      const to = text(eventData.toDuplicate);
+      if (from && to) return t("activity:changedDuplicate", { from, to });
+      if (to) return t("activity:markedDuplicate", { to });
+      return from ? t("activity:removedDuplicate", { from }) : null;
+    }
     default:
       return null;
   }

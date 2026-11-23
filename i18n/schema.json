@@ -10935,6 +10935,15 @@
 				"removedParent": {
 					"type": "string"
 				},
+				"markedDuplicate": {
+					"type": "string"
+				},
+				"changedDuplicate": {
+					"type": "string"
+				},
+				"removedDuplicate": {
+					"type": "string"
+				},
 				"created": {
 					"type": "string"
 				},
@@ -11367,6 +11376,9 @@
 				"setParent",
 				"changedParent",
 				"removedParent",
+				"markedDuplicate",
+				"changedDuplicate",
+				"removedDuplicate",
 				"created",
 				"githubUser",
 				"comment"

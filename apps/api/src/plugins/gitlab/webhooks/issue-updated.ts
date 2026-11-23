@@ -1,3 +1,4 @@
+import { recordLabelHistory } from "../../sync/record-label-history";
 import { resumeLabelChanges } from "../../sync/resume-label-changes";
 import { acceptsIssue, readSyncRules } from "../../sync/rules";
 import { handleGitlabIssueOpened } from "./issue-opened";
@@ -57,6 +58,7 @@ type IssueUpdatedPayload = {
     };
   };
   project: GitlabWebhookProject;
+  user?: { username?: string };
 };
 
 function nonSystemLabels(
@@ -76,6 +78,7 @@ async function syncGitlabLabelsToTask(
   gitlabLabels: Array<{ name: string; color: string }>,
   previousLabels: GitlabWebhookLabel[] | undefined,
   db: IntegrationDatabase,
+  actor: string,
   resumeBaseline?: string[],
 ) {
   const desiredNames = new Set(gitlabLabels.map((l) => l.name));
@@ -121,12 +124,16 @@ async function syncGitlabLabelsToTask(
   }
 
   if (labelsToInsert.length > 0) {
-    await db
+    const inserted = await db
       .insert(labelTable)
       .values(labelsToInsert)
       .onConflictDoNothing({
         target: [labelTable.taskId, labelTable.name],
-      });
+      })
+      .returning({ name: labelTable.name });
+    await recordLabelHistory(db, taskId, actor, {
+      added: inserted.map((row) => row.name),
+    });
   }
 
   // Absence from GitLab alone does not imply removal: local labels may not
@@ -135,17 +142,23 @@ async function syncGitlabLabelsToTask(
     resumeBaseline ??
       nonSystemLabels(previousLabels).map((label) => label.name),
   );
-  const labelsToDelete = existingRows
-    .filter(
-      (row) =>
-        !isSystemLabelName(row.name) &&
-        previousNames.has(row.name) &&
-        !desiredNames.has(row.name),
-    )
-    .map((row) => row.id);
+  const labelsToDelete = existingRows.filter(
+    (row) =>
+      !isSystemLabelName(row.name) &&
+      previousNames.has(row.name) &&
+      !desiredNames.has(row.name),
+  );
 
   if (labelsToDelete.length > 0) {
-    await db.delete(labelTable).where(inArray(labelTable.id, labelsToDelete));
+    await db.delete(labelTable).where(
+      inArray(
+        labelTable.id,
+        labelsToDelete.map((row) => row.id),
+      ),
+    );
+    await recordLabelHistory(db, taskId, actor, {
+      removed: labelsToDelete.map((row) => row.name),
+    });
   }
 }
 
@@ -339,6 +352,7 @@ export async function handleGitlabIssueUpdated(
               nonSystemLabels(currentLabels),
               changes?.labels?.previous,
               db,
+              payload.user?.username ?? "GitLab",
               labelChanges.baseline,
             );
             afterCommit(() =>

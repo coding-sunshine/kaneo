@@ -1,3 +1,4 @@
+import { recordLabelHistory } from "../../sync/record-label-history";
 import { resumeLabelChanges } from "../../sync/resume-label-changes";
 import {
   labelReadDeadline,
@@ -38,12 +39,16 @@ type IssueLabeledPayload = {
     name: string;
     color: string;
   };
+  sender?: { login?: string; username?: string };
   repository: {
     owner: { login?: string; username?: string };
     name: string;
     html_url: string;
   };
 };
+
+const giteaActor = ({ sender }: IssueLabeledPayload) =>
+  sender?.login ?? sender?.username ?? "Gitea";
 
 /** Non-system labels from a Gitea issue (used when action is label_updated). */
 function giteaLabelsForSync(
@@ -70,6 +75,7 @@ async function syncGiteaLabelsToTask(
   workspaceId: string,
   giteaLabels: Array<{ name: string; color?: string }>,
   db: IntegrationDatabase,
+  actor: string,
   previousNames?: string[],
 ) {
   const desiredNames = new Set(giteaLabels.map((l) => l.name));
@@ -119,25 +125,35 @@ async function syncGiteaLabelsToTask(
   }
 
   if (labelsToInsert.length > 0) {
-    await db
+    const inserted = await db
       .insert(labelTable)
       .values(labelsToInsert)
       .onConflictDoNothing({
         target: [labelTable.taskId, labelTable.name],
-      });
+      })
+      .returning({ name: labelTable.name });
+    await recordLabelHistory(db, taskId, actor, {
+      added: inserted.map((row) => row.name),
+    });
   }
 
-  const labelsToDelete = existingRows
-    .filter(
-      (row) =>
-        (!previous || previous.has(row.name)) &&
-        !desiredNames.has(row.name) &&
-        !isSystemLabelName(row.name),
-    )
-    .map((row) => row.id);
+  const labelsToDelete = existingRows.filter(
+    (row) =>
+      (!previous || previous.has(row.name)) &&
+      !desiredNames.has(row.name) &&
+      !isSystemLabelName(row.name),
+  );
 
   if (labelsToDelete.length > 0) {
-    await db.delete(labelTable).where(inArray(labelTable.id, labelsToDelete));
+    await db.delete(labelTable).where(
+      inArray(
+        labelTable.id,
+        labelsToDelete.map((row) => row.id),
+      ),
+    );
+    await recordLabelHistory(db, taskId, actor, {
+      removed: labelsToDelete.map((row) => row.name),
+    });
   }
 }
 
@@ -231,6 +247,7 @@ export async function handleGiteaIssueLabeled(
                 task.project.workspaceId,
                 giteaLabelsForSync(issue.labels),
                 db,
+                giteaActor(payload),
                 changes.baseline,
               );
               afterCommit(() =>
@@ -275,7 +292,7 @@ export async function handleGiteaIssueLabeled(
                 const color = addedLabel.color
                   ? `#${addedLabel.color.replace(/^#/, "")}`
                   : "#6B7280";
-                await db
+                const inserted = await db
                   .insert(labelTable)
                   .values({
                     name: addedLabel.name,
@@ -285,6 +302,11 @@ export async function handleGiteaIssueLabeled(
                   })
                   .onConflictDoNothing({
                     target: [labelTable.taskId, labelTable.name],
+                  })
+                  .returning({ id: labelTable.id });
+                if (inserted.length)
+                  await recordLabelHistory(db, task.id, giteaActor(payload), {
+                    added: [addedLabel.name],
                   });
               }
             }
@@ -302,6 +324,13 @@ export async function handleGiteaIssueLabeled(
             for (const label of labelsToDelete) {
               await db.delete(labelTable).where(eq(labelTable.id, label.id));
             }
+            if (labelsToDelete.length)
+              await recordLabelHistory(
+                db,
+                existingLink.taskId,
+                giteaActor(payload),
+                { removed: [addedLabel.name] },
+              );
           }
           afterCommit(() =>
             publishEvent("task.labels_updated", {

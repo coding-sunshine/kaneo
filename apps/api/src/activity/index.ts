@@ -629,6 +629,11 @@ for (const [event, type, fields] of [
     ["fromProject", "toProject"],
   ],
   ["task.parent_changed", "parent_changed", ["fromParent", "toParent"]],
+  [
+    "task.duplicate_changed",
+    "duplicate_changed",
+    ["fromDuplicate", "toDuplicate"],
+  ],
 ] as const)
   subscribeToEvent<
     { taskId: string; userId: string } & Record<string, unknown>

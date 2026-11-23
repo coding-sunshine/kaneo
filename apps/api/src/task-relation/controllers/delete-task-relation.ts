@@ -79,6 +79,15 @@ async function deleteTaskRelation(
           type: "parent_changed",
         });
     }
+    if (relation.relationType === "duplicate")
+      await publishEvent("task.duplicate_changed", {
+        taskId: relation.sourceTaskId,
+        projectId: task.projectId,
+        userId,
+        fromDuplicate: await getTaskIdentifier(relation.targetTaskId),
+        toDuplicate: null,
+        type: "duplicate_changed",
+      });
   }
 
   return relation;

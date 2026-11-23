@@ -995,6 +995,7 @@ const taskUpdateEvents = [
   "task.cycle_changed",
   "task.work_project_changed",
   "task.parent_changed",
+  "task.duplicate_changed",
   "task-relation.created",
   "task-relation.deleted",
   "comment.created",

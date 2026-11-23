@@ -155,6 +155,17 @@ async function createTaskRelation({
       type: "parent_changed",
     });
 
+  // The source is the duplicate; the target is the original.
+  if (relationType === "duplicate")
+    await publishEvent("task.duplicate_changed", {
+      taskId: sourceTaskId,
+      projectId: sourceTask.projectId,
+      userId,
+      fromDuplicate: null,
+      toDuplicate: await getTaskIdentifier(targetTaskId),
+      type: "duplicate_changed",
+    });
+
   return relation;
 }
 

@@ -1,3 +1,4 @@
+import { recordLabelHistory } from "../../sync/record-label-history";
 import { resumeLabelChanges } from "../../sync/resume-label-changes";
 import {
   labelReadDeadline,
@@ -24,6 +25,7 @@ type IssueLabeledPayload = {
     name: string;
     color: string;
   };
+  sender?: { login?: string };
   installation?: { id: number };
   repository: {
     id: number;
@@ -121,7 +123,7 @@ export async function handleIssueLabeled(payload: IssueLabeledPayload) {
               const color = addedLabel.color
                 ? `#${addedLabel.color}`
                 : "#6B7280";
-              await db
+              const inserted = await db
                 .insert(labelTable)
                 .values({
                   name: addedLabel.name,
@@ -131,7 +133,15 @@ export async function handleIssueLabeled(payload: IssueLabeledPayload) {
                 })
                 .onConflictDoNothing({
                   target: [labelTable.taskId, labelTable.name],
-                });
+                })
+                .returning({ id: labelTable.id });
+              if (inserted.length)
+                await recordLabelHistory(
+                  db,
+                  task.id,
+                  payload.sender?.login ?? "GitHub",
+                  { added: [addedLabel.name] },
+                );
             }
           }
         }
@@ -148,6 +158,13 @@ export async function handleIssueLabeled(payload: IssueLabeledPayload) {
           for (const label of labelsToDelete) {
             await db.delete(labelTable).where(eq(labelTable.id, label.id));
           }
+          if (labelsToDelete.length)
+            await recordLabelHistory(
+              db,
+              existingLink.taskId,
+              payload.sender?.login ?? "GitHub",
+              { removed: [addedLabel.name] },
+            );
         }
 
         afterCommit(() =>

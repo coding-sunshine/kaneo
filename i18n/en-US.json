@@ -3757,6 +3757,9 @@
 		"setParent": "set parent issue {{to}}",
 		"changedParent": "changed parent issue from {{from}} to {{to}}",
 		"removedParent": "removed parent issue {{from}}",
+		"markedDuplicate": "marked this as a duplicate of {{to}}",
+		"changedDuplicate": "changed the original issue from {{from}} to {{to}}",
+		"removedDuplicate": "unmarked this as a duplicate of {{from}}",
 		"created": "created",
 		"githubUser": "GitHub User",
 		"comment": {
