@@ -1,17 +1,16 @@
 import { describe, expect, it } from "vite-plus/test";
 import {
   arrangeSection,
+  DEFAULT_SIDEBAR_PREFS,
   orderSection,
   type SidebarItemId,
   type SidebarPrefs,
   visibilityOf,
+  visibilityOptions,
 } from "./sidebar-items";
 
 const prefs = (patch: Partial<SidebarPrefs> = {}): SidebarPrefs => ({
-  visibility: {},
-  order: {},
-  badgeStyle: "count",
-  itemBadges: {},
+  ...DEFAULT_SIDEBAR_PREFS,
   ...patch,
 });
 const rows = (...ids: SidebarItemId[]) => ids.map((id) => ({ id }));
@@ -73,5 +72,11 @@ describe("sidebar items", () => {
       prefs({ order: { personal: ["agent", "documents", "inbox"] } }),
     );
     expect(ids(shown)).toEqual(["documents", "inbox"]);
+  });
+
+  it("offers Inbox only Always and Show when badged; Reviews all three", () => {
+    expect(visibilityOptions("inbox")).toEqual(["always", "badged"]);
+    expect(visibilityOptions("reviews")).toEqual(["always", "badged", "never"]);
+    expect(visibilityOptions("pulse")).toEqual(["always", "never"]);
   });
 });

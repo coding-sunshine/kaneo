@@ -12,10 +12,11 @@ import {
   submitPullRequestReview,
 } from "@/fetchers/github-reviews/github-reviews";
 
-export function useReviewsStatus() {
+export function useReviewsStatus(enabled = true) {
   return useQuery({
     queryKey: ["github-reviews", "status"],
     queryFn: getReviewsStatus,
+    enabled,
   });
 }
 

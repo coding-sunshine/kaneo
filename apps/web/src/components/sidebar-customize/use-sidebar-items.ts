@@ -14,10 +14,14 @@ import {
   Workflow,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { isSnoozed } from "@/components/inbox/snooze";
+import { inboxCount } from "@/components/sidebar-customize/inbox-count";
 import type { SidebarItemId } from "@/components/sidebar-customize/sidebar-items";
 import { useHasAgent } from "@/hooks/queries/agent/use-agent";
 import { usePendingInvitations } from "@/hooks/queries/invitation/use-pending-invitations";
+import {
+  useReviewsList,
+  useReviewsStatus,
+} from "@/hooks/queries/github-reviews/use-github-reviews";
 import useGetNotifications from "@/hooks/queries/notification/use-get-notifications";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { useUserPreferencesStore } from "@/store/user-preferences";
@@ -40,6 +44,15 @@ export function useSidebarItems() {
   const { data: invitations = [] } = usePendingInvitations();
   const { data: notifications = [] } = useGetNotifications(workspace?.id);
   const hasAgent = useHasAgent();
+  const inboxCountMode = useUserPreferencesStore(
+    (state) => state.sidebar.inboxCount,
+  );
+  // Same query keys as the Reviews page, so the badge shares its cache and polling.
+  const reviewsStatus = useReviewsStatus(codeReviewsEnabled);
+  const reviewsList = useReviewsList(
+    { includeDrafts: false, includeClosed: false },
+    codeReviewsEnabled && reviewsStatus.data?.state === "connected",
+  );
 
   if (!workspace) return null;
 
@@ -58,9 +71,7 @@ export function useSidebarItems() {
       t("navigation:sidebar.inbox"),
       Inbox,
       `${homeUrl}/inbox`,
-      notifications.filter(
-        (notification) => !notification.isRead && !isSnoozed(notification),
-      ).length,
+      inboxCount(notifications, inboxCountMode),
     ),
     item(
       "myTasks",
@@ -75,6 +86,7 @@ export function useSidebarItems() {
             t("navigation:sidebar.reviews"),
             GitPullRequest,
             `${homeUrl}/reviews`,
+            reviewsList.data?.toReview.length,
           ),
         ]
       : []),

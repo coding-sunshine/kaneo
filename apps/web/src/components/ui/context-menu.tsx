@@ -182,18 +182,18 @@ function ContextMenuCheckboxItem({
     <ContextMenuPrimitive.CheckboxItem
       checked={checked}
       className={cn(
-        "grid min-h-8 in-data-[side=none]:min-w-[calc(var(--anchor-width)+1.25rem)] cursor-default grid-cols-[1rem_1fr] items-center gap-2 rounded-sm py-1 ps-2 pe-4 text-base text-foreground outline-none data-disabled:pointer-events-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-64 sm:min-h-7 sm:text-sm [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        "grid min-h-8 in-data-[side=none]:min-w-[calc(var(--anchor-width)+1.25rem)] cursor-default grid-cols-[1fr_1rem] items-center gap-2 rounded-sm py-1 ps-2 pe-2 text-base text-foreground outline-none data-disabled:pointer-events-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-64 sm:min-h-7 sm:text-sm [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
         className,
       )}
       data-slot="context-menu-checkbox-item"
       {...props}
     >
-      <ContextMenuPrimitive.CheckboxItemIndicator className="col-start-1">
-        <CheckIcon />
-      </ContextMenuPrimitive.CheckboxItemIndicator>
-      <div className="col-start-2 inline-flex items-center gap-2">
+      <div className="col-start-1 inline-flex items-center gap-2">
         {children}
       </div>
+      <ContextMenuPrimitive.CheckboxItemIndicator className="col-start-2">
+        <CheckIcon />
+      </ContextMenuPrimitive.CheckboxItemIndicator>
     </ContextMenuPrimitive.CheckboxItem>
   );
 }
@@ -206,18 +206,18 @@ function ContextMenuRadioItem({
   return (
     <ContextMenuPrimitive.RadioItem
       className={cn(
-        "grid min-h-8 in-data-[side=none]:min-w-[calc(var(--anchor-width)+1.25rem)] cursor-default grid-cols-[1rem_1fr] items-center gap-2 rounded-sm py-1 ps-2 pe-4 text-base text-foreground outline-none data-disabled:pointer-events-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-64 sm:min-h-7 sm:text-sm [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        "grid min-h-8 in-data-[side=none]:min-w-[calc(var(--anchor-width)+1.25rem)] cursor-default grid-cols-[1fr_1rem] items-center gap-2 rounded-sm py-1 ps-2 pe-2 text-base text-foreground outline-none data-disabled:pointer-events-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-64 sm:min-h-7 sm:text-sm [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
         className,
       )}
       data-slot="context-menu-radio-item"
       {...props}
     >
-      <ContextMenuPrimitive.RadioItemIndicator className="col-start-1">
-        <CircleIcon className="size-2 fill-current" />
-      </ContextMenuPrimitive.RadioItemIndicator>
-      <div className="col-start-2 inline-flex items-center gap-2">
+      <div className="col-start-1 inline-flex items-center gap-2">
         {children}
       </div>
+      <ContextMenuPrimitive.RadioItemIndicator className="col-start-2">
+        <CircleIcon className="size-2 fill-current" />
+      </ContextMenuPrimitive.RadioItemIndicator>
     </ContextMenuPrimitive.RadioItem>
   );
 }

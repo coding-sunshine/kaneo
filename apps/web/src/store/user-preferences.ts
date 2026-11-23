@@ -2,12 +2,14 @@ import { create } from "zustand";
 import type { GroupBy } from "@/lib/group-project";
 import { DEFAULT_REVIEWS_VIEW, type ReviewsView } from "@/lib/reviews-view";
 import type { CompletedIssues } from "@/lib/status-category";
-import type {
-  ItemBadge,
-  SidebarItemId,
-  SidebarPrefs,
-  SidebarSection,
-  SidebarVisibility,
+import {
+  DEFAULT_SIDEBAR_PREFS,
+  type InboxCountMode,
+  type ItemBadge,
+  type SidebarItemId,
+  type SidebarPrefs,
+  type SidebarSection,
+  type SidebarVisibility,
 } from "@/components/sidebar-customize/sidebar-items";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -118,6 +120,7 @@ type UserPreferencesStore = {
   setSidebarBadgeStyle: (style: SidebarPrefs["badgeStyle"]) => void;
   /** null goes back to the default badge style. */
   setSidebarItemBadge: (id: SidebarItemId, badge: ItemBadge | null) => void;
+  setSidebarInboxCount: (mode: InboxCountMode) => void;
 };
 
 export const useUserPreferencesStore = create<UserPreferencesStore>()(
@@ -271,12 +274,7 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
       setReviewsView: (patch) =>
         set((state) => ({ reviewsView: { ...state.reviewsView, ...patch } })),
 
-      sidebar: {
-        visibility: {},
-        order: {},
-        badgeStyle: "count",
-        itemBadges: {},
-      },
+      sidebar: DEFAULT_SIDEBAR_PREFS,
       setSidebarVisibility: (id, value) =>
         set(({ sidebar }) => ({
           sidebar: {
@@ -290,6 +288,8 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
         })),
       setSidebarBadgeStyle: (badgeStyle) =>
         set(({ sidebar }) => ({ sidebar: { ...sidebar, badgeStyle } })),
+      setSidebarInboxCount: (inboxCount) =>
+        set(({ sidebar }) => ({ sidebar: { ...sidebar, inboxCount } })),
       setSidebarItemBadge: (id, badge) =>
         set(({ sidebar }) => {
           const { [id]: _previous, ...itemBadges } = sidebar.itemBadges;
@@ -304,6 +304,16 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
     {
       name: "user-preferences",
       storage: createJSONStorage(() => localStorage),
+      // The default merge is shallow, so a saved `sidebar` from before a field
+      // existed would replace the whole object and drop that field's default.
+      merge: (persisted, current) => {
+        const saved = persisted as Partial<UserPreferencesStore> | undefined;
+        return {
+          ...current,
+          ...saved,
+          sidebar: { ...current.sidebar, ...saved?.sidebar },
+        };
+      },
       onRehydrateStorage: () => (state) => {
         if (state && !isWeekStartDay(state.weekStartsOn)) {
           state.setWeekStartsOn(0);
