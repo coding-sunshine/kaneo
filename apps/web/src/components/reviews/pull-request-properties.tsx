@@ -1,7 +1,9 @@
 import { ListChecks } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { AddReviewersPopover } from "@/components/reviews/add-reviewers-popover";
 import { ChecksList } from "@/components/reviews/checks-list";
 import { Person } from "@/components/reviews/person";
+import { PullRequestIssueLink } from "@/components/reviews/pull-request-issue-link";
 import { PullRequestProperty } from "@/components/reviews/pull-request-property";
 import { PullRequestStatusIcon } from "@/components/task/task-pull-requests/pull-request-status-icon";
 import {
@@ -21,11 +23,15 @@ import { cn } from "@/lib/cn";
 export function PullRequestProperties({
   pullRef,
   pull,
+  workspaceId,
 }: {
   pullRef: PullRef;
   pull: PullRequestDetail;
+  workspaceId: string;
 }) {
   const { t } = useTranslation();
+  // Reviewers can only be asked while the pull request is still open.
+  const isActive = pull.status === "open" || pull.status === "draft";
   const checks = usePullRequestChecks(pullRef).data;
   const count = (state: string) =>
     checks?.checks.filter((check) => check.state === state).length ?? 0;
@@ -45,15 +51,25 @@ export function PullRequestProperties({
           {t(`workspace:reviews.status.${pull.status}`)}
         </span>
       </PullRequestProperty>
-      {pull.requestedReviewers.length > 0 && (
+      {(pull.requestedReviewers.length > 0 || isActive) && (
         <PullRequestProperty
           label={t("workspace:reviews.detail.properties.reviewers")}
         >
           {pull.requestedReviewers.map((person) => (
             <Person key={person.login} author={person} />
           ))}
+          {isActive && <AddReviewersPopover pullRef={pullRef} pull={pull} />}
         </PullRequestProperty>
       )}
+      <PullRequestProperty
+        label={t("workspace:reviews.detail.properties.issues")}
+      >
+        <PullRequestIssueLink
+          pullRef={pullRef}
+          pull={pull}
+          workspaceId={workspaceId}
+        />
+      </PullRequestProperty>
       {checks && checks.checks.length > 0 && (
         <PullRequestProperty
           label={t("workspace:reviews.detail.properties.checks")}

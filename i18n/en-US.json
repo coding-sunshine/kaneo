@@ -4922,7 +4922,8 @@
 					"status": "Status",
 					"reviewers": "Reviewers",
 					"checks": "Checks",
-					"labels": "Labels"
+					"labels": "Labels",
+					"issues": "Issues"
 				},
 				"checksPassed": "{{count}} passed",
 				"checksFailed": "{{count}} failed",
@@ -4933,7 +4934,29 @@
 				"unchangedLines_other": "{{count, number}} unchanged lines",
 				"reviewed": "Reviewed",
 				"filterFiles": "Filter files...",
-				"noMatchingFiles": "No files match this filter."
+				"noMatchingFiles": "No files match this filter.",
+				"noIssue": "No issue",
+				"linkIssue": "Link issue",
+				"linkIssueLabel": "Link issue to pull request",
+				"unlinkIssue": "Unlink issue",
+				"searchIssues": "Search issues...",
+				"noIssuesFound": "No issues found.",
+				"addReviewers": "Add reviewers",
+				"selectReviewers": "Select reviewers...",
+				"noReviewers": "No one to add.",
+				"ready": "Ready for review",
+				"readyDone": "Marked ready for review",
+				"menu": {
+					"label": "Pull request actions",
+					"copyGithubUrl": "Copy GitHub URL",
+					"copyBranch": "Copy branch name",
+					"copyReviewUrl": "Copy review URL",
+					"markReady": "Mark ready for review",
+					"githubUrlCopied": "GitHub URL copied",
+					"branchCopied": "Branch name copied",
+					"reviewUrlCopied": "Review URL copied",
+					"copyFailed": "Could not copy to the clipboard"
+				}
 			},
 			"loadError": "Could not load your pull requests.",
 			"tabs": {

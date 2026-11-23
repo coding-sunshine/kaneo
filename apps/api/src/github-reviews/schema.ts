@@ -45,3 +45,7 @@ export const commentBody = z.object({
 export const mergeBody = z.object({
   mergeMethod: z.enum(["merge", "squash", "rebase"]).default("merge"),
 });
+
+export const reviewersBody = z.object({
+  reviewers: z.array(githubName).min(1).max(15),
+});

@@ -1,4 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import createExternalLink from "@/fetchers/external-link/create-external-link";
+import deleteExternalLink from "@/fetchers/external-link/delete-external-link";
 import {
   addPullRequestComment,
   type ClosedWindow,
@@ -7,11 +9,14 @@ import {
   getPullRequestChecks,
   getPullRequestConversation,
   getPullRequestFiles,
+  getReviewerCandidates,
+  markPullRequestReady,
   getReviewsList,
   getReviewsStatus,
   type MergeMethod,
   mergePullRequest,
   type PullRef,
+  requestPullRequestReviewers,
   type ReviewEvent,
   submitPullRequestReview,
 } from "@/fetchers/github-reviews/github-reviews";
@@ -72,6 +77,14 @@ export const usePullRequestConversation = (ref: PullRef) =>
     queryFn: () => getPullRequestConversation(ref),
   });
 
+export const useReviewerCandidates = (ref: PullRef, enabled: boolean) =>
+  useQuery({
+    queryKey: pullKey(ref, "reviewer-candidates"),
+    queryFn: () => getReviewerCandidates(ref),
+    enabled,
+    staleTime: 5 * 60_000,
+  });
+
 // Every write changes the conversation, review state or merge status, so the
 // pull request's queries are refetched together.
 function usePullMutation<T>(
@@ -98,3 +111,53 @@ export const useAddPullRequestComment = (ref: PullRef) =>
 
 export const useMergePullRequest = (ref: PullRef) =>
   usePullMutation(ref, (method: MergeMethod) => mergePullRequest(ref, method));
+
+export const useRequestReviewers = (ref: PullRef) =>
+  usePullMutation(ref, (reviewers: string[]) =>
+    requestPullRequestReviewers(ref, reviewers),
+  );
+
+export const useMarkPullRequestReady = (ref: PullRef) =>
+  usePullMutation(ref, () => markPullRequestReady(ref));
+
+// Linking goes through the task's external link API, so the task's own
+// permission check applies. The pull request's status travels with the link.
+export function useLinkPullRequestIssue(ref: PullRef) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      taskId,
+      url,
+      status,
+    }: {
+      taskId: string;
+      url: string;
+      status: "draft" | "open" | "merged" | "closed";
+    }) =>
+      createExternalLink({
+        taskId,
+        url,
+        resourceType: "pull_request",
+        metadata: {
+          state: status === "open" || status === "draft" ? "open" : "closed",
+          merged: status === "merged",
+          draft: status === "draft",
+        },
+      }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: pullKey(ref, "detail"),
+      }),
+  });
+}
+
+export function useUnlinkPullRequestIssue(ref: PullRef) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteExternalLink,
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: pullKey(ref, "detail"),
+      }),
+  });
+}

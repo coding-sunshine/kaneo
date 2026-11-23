@@ -15,7 +15,10 @@ import { getPullRequestChecks } from "./controllers/get-pull-request-checks";
 import { listPullRequestConversation } from "./controllers/list-pull-request-conversation";
 import { listPullRequestFiles } from "./controllers/list-pull-request-files";
 import { addComment } from "./controllers/add-comment";
+import { listReviewerCandidates } from "./controllers/list-reviewer-candidates";
+import { markPullRequestReady } from "./controllers/mark-ready-for-review";
 import { mergePullRequest } from "./controllers/merge-pull-request";
+import { requestPullRequestReviewers } from "./controllers/request-reviewers";
 import { submitReview } from "./controllers/submit-review";
 import {
   callbackQuery,
@@ -25,6 +28,7 @@ import {
   mergeBody,
   pullParams,
   reviewBody,
+  reviewersBody,
 } from "./schema";
 import {
   checksSchema,
@@ -33,6 +37,8 @@ import {
   filesSchema,
   mergedSchema,
   pullRequestSchema,
+  readySchema,
+  reviewerCandidatesSchema,
   reviewListSchema,
   reviewSubmittedSchema,
   statusSchema,
@@ -286,6 +292,72 @@ const mergeRoute = createRoute({
   },
 });
 
+const notVisible = errorResponse(
+  "Pull request not found or not visible to the Kaneo GitHub App",
+);
+
+const reviewerCandidatesRoute = createRoute({
+  method: "get",
+  operationId: "listGithubReviewerCandidates",
+  path: "/pulls/{owner}/{repo}/{number}/reviewers",
+  tags,
+  summary: "List people who can be asked to review",
+  description:
+    "The repository's assignable users, as GitHub reports them for the signed-in user.",
+  middleware: [requireUserSession] as const,
+  request: { params: pullParams },
+  responses: {
+    200: jsonResponse("List reviewer candidates", reviewerCandidatesSchema),
+    403: needsSession,
+    404: notVisible,
+    409: needsGithub,
+  },
+});
+
+const requestReviewersRoute = createRoute({
+  method: "post",
+  operationId: "requestGithubPullRequestReviewers",
+  path: "/pulls/{owner}/{repo}/{number}/reviewers",
+  tags,
+  summary: "Request reviewers",
+  description:
+    "Asks the given GitHub users to review, as the signed-in user. GitHub refuses the author and people without access.",
+  middleware: [requireUserSession] as const,
+  request: {
+    params: pullParams,
+    body: {
+      content: { "application/json": { schema: reviewersBody } },
+      required: true,
+    },
+  },
+  responses: {
+    200: jsonResponse("Request reviewers", reviewSubmittedSchema),
+    403: needsSession,
+    404: notVisible,
+    409: needsGithub,
+    422: errorResponse("GitHub rejected the review request"),
+  },
+});
+
+const readyRoute = createRoute({
+  method: "post",
+  operationId: "markGithubPullRequestReady",
+  path: "/pulls/{owner}/{repo}/{number}/ready",
+  tags,
+  summary: "Mark a draft ready for review",
+  description:
+    "Takes the pull request out of draft as the signed-in user, through GitHub's GraphQL API.",
+  middleware: [requireUserSession] as const,
+  request: { params: pullParams },
+  responses: {
+    200: jsonResponse("Mark ready for review", readySchema),
+    403: needsSession,
+    404: notVisible,
+    409: needsGithub,
+    422: errorResponse("GitHub rejected the change"),
+  },
+});
+
 const githubReviews = apiRouter()
   .openapi(statusRoute, async (c) =>
     c.json(await getStatus(c.get("userId")), 200),
@@ -360,6 +432,33 @@ const githubReviews = apiRouter()
         number,
         c.req.valid("json").mergeMethod,
       ),
+      200,
+    );
+  })
+  .openapi(reviewerCandidatesRoute, async (c) => {
+    const { owner, repo } = c.req.valid("param");
+    return c.json(
+      await listReviewerCandidates(c.get("userId"), owner, repo),
+      200,
+    );
+  })
+  .openapi(requestReviewersRoute, async (c) => {
+    const { owner, repo, number } = c.req.valid("param");
+    return c.json(
+      await requestPullRequestReviewers(
+        c.get("userId"),
+        owner,
+        repo,
+        number,
+        c.req.valid("json").reviewers,
+      ),
+      200,
+    );
+  })
+  .openapi(readyRoute, async (c) => {
+    const { owner, repo, number } = c.req.valid("param");
+    return c.json(
+      await markPullRequestReady(c.get("userId"), owner, repo, number),
       200,
     );
   })

@@ -25,6 +25,9 @@ const gh = vi.hoisted(() => ({
   listReviewComments: vi.fn(),
   addIssueComment: vi.fn(),
   mergePull: vi.fn(),
+  listAssignees: vi.fn(),
+  requestReviewers: vi.fn(),
+  markReadyForReview: vi.fn(),
 }));
 vi.mock("../../apps/api/src/github-reviews/github-api", async (original) => ({
   ...(await original<object>()),
@@ -583,6 +586,7 @@ describe("list", () => {
 describe("pull request detail", () => {
   const P = `${BASE}/pulls/acme/web/7`;
   const pull = {
+    node_id: "PR_node7",
     number: 7,
     title: "Add thing",
     body: null,
@@ -811,6 +815,118 @@ describe("pull request detail", () => {
       new GithubApiError(403, "Resource not accessible by integration"),
     );
     expect((await put()).status).toBe(403);
+  });
+
+  it("lists reviewer candidates and requests reviewers as the user", async () => {
+    await connected();
+    gh.listAssignees.mockResolvedValue([
+      { login: "cy", avatar_url: "c", id: 1 },
+    ]);
+    expect(await (await app.request(`${P}/reviewers`)).json()).toEqual([
+      { login: "cy", avatarUrl: "c" },
+    ]);
+    expect(gh.listAssignees).toHaveBeenCalledWith("gho_access", "acme", "web");
+
+    gh.requestReviewers.mockResolvedValue({ number: 7 });
+    const post = (body: object) =>
+      app.request(`${P}/reviewers`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    expect((await post({ reviewers: [] })).status).toBe(400);
+    expect((await post({ reviewers: ["../x"] })).status).toBe(400);
+    expect(gh.requestReviewers).not.toHaveBeenCalled();
+    expect((await post({ reviewers: ["cy", "di"] })).status).toBe(200);
+    expect(gh.requestReviewers).toHaveBeenCalledWith(
+      "gho_access",
+      "acme",
+      "web",
+      "7",
+      ["cy", "di"],
+    );
+  });
+
+  it("marks a draft ready for review through its GraphQL node id and maps a refusal", async () => {
+    await connected();
+    gh.getPull.mockResolvedValue({ ...pull, draft: true });
+    gh.markReadyForReview.mockResolvedValueOnce(undefined);
+    const post = () => app.request(`${P}/ready`, { method: "POST" });
+    expect((await post()).status).toBe(200);
+    expect(gh.markReadyForReview).toHaveBeenLastCalledWith(
+      "gho_access",
+      "PR_node7",
+    );
+
+    const { GithubApiError } = await vi.importActual<
+      typeof import("../../apps/api/src/github-reviews/github-api")
+    >("../../apps/api/src/github-reviews/github-api");
+    gh.markReadyForReview.mockRejectedValueOnce(
+      new GithubApiError(403, "Resource not accessible by integration"),
+    );
+    expect((await post()).status).toBe(403);
+  });
+
+  it("links a task to the pull request, shows it as the issue and unlinks it", async () => {
+    const member = await createWorkspaceMember();
+    mockAuthenticatedSession(member.user);
+    await connectFlow(member.user.id);
+    const { project } = await createProjectFixture({
+      workspaceId: member.workspace.id,
+    });
+    const [task] = await db
+      .insert(schema.taskTable)
+      .values({ projectId: project.id, title: "Ship it", number: 1 })
+      .returning();
+    gh.getPull.mockResolvedValue(pull);
+    const detail = async () => (await (await app.request(P)).json()).issue;
+    expect(await detail()).toBeNull();
+
+    const created = await app.request(`/api/external-link/task/${task.id}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        url: pull.html_url,
+        resourceType: "pull_request",
+        metadata: { state: "open", merged: false, draft: false },
+      }),
+    });
+    expect(created.status).toBe(200);
+    const { id } = (await created.json()) as { id: string };
+    expect(await detail()).toMatchObject({
+      taskId: task.id,
+      workspaceId: member.workspace.id,
+      linkId: id,
+      manual: true,
+      title: "Ship it",
+    });
+
+    // A user outside the workspace can neither link nor unlink.
+    const outsider = await createWorkspaceMember();
+    mockAuthenticatedSession(outsider.user);
+    const refused = await app.request(`/api/external-link/task/${task.id}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        url: "https://github.com/acme/web/pull/8",
+        resourceType: "pull_request",
+      }),
+    });
+    expect([403, 404]).toContain(refused.status);
+    const refusedDelete = await app.request(
+      `/api/external-link/task/${task.id}/${id}`,
+      { method: "DELETE" },
+    );
+    expect([403, 404]).toContain(refusedDelete.status);
+    expect(await db.select().from(schema.externalLinkTable)).toHaveLength(1);
+
+    mockAuthenticatedSession(member.user);
+    const removed = await app.request(
+      `/api/external-link/task/${task.id}/${id}`,
+      { method: "DELETE" },
+    );
+    expect(removed.status).toBe(200);
+    expect(await detail()).toBeNull();
   });
 
   it("refuses another user who has not connected", async () => {

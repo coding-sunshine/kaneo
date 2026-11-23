@@ -66,6 +66,10 @@ export type PullRequestConversation = InferResponseType<
   200
 >;
 export type ConversationEntry = PullRequestConversation[number];
+export type ReviewerCandidates = InferResponseType<
+  ReturnType<typeof pull>["reviewers"]["$get"],
+  200
+>;
 export type MergeMethod = "merge" | "squash" | "rebase";
 export type ReviewEvent = "APPROVE" | "REQUEST_CHANGES" | "COMMENT";
 
@@ -119,5 +123,27 @@ export async function mergePullRequest(ref: PullRef, mergeMethod: MergeMethod) {
     ...param(ref),
     json: { mergeMethod },
   });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+}
+
+export async function getReviewerCandidates(ref: PullRef) {
+  const response = await pull(ref).reviewers.$get(param(ref));
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function requestPullRequestReviewers(
+  ref: PullRef,
+  reviewers: string[],
+) {
+  const response = await pull(ref).reviewers.$post({
+    ...param(ref),
+    json: { reviewers },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+}
+
+export async function markPullRequestReady(ref: PullRef) {
+  const response = await pull(ref).ready.$post(param(ref));
   if (!response.ok) throw await HttpError.fromResponse(response);
 }

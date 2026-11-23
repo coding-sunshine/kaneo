@@ -10,8 +10,12 @@ import { useTranslation } from "react-i18next";
 import Layout from "@/components/common/layout";
 import PageTitle from "@/components/page-title";
 import { FilesTab } from "@/components/reviews/files-tab";
+import { CopyReviewLinkButton } from "@/components/reviews/copy-review-link-button";
 import { MergeButton } from "@/components/reviews/merge-button";
 import { OverviewTab } from "@/components/reviews/overview-tab";
+import { PullRequestIssueCrumb } from "@/components/reviews/pull-request-issue-crumb";
+import { PullRequestMenu } from "@/components/reviews/pull-request-menu";
+import { ReadyForReviewButton } from "@/components/reviews/ready-for-review-button";
 import { ReviewDialog } from "@/components/reviews/review-dialog";
 import { ReviewsTabPill } from "@/components/reviews/reviews-tab-pill";
 import { PullRequestStatusIcon } from "@/components/task/task-pull-requests/pull-request-status-icon";
@@ -53,12 +57,17 @@ export function PullRequestPage({
         <Link
           to="/dashboard/workspace/$workspaceId/reviews"
           params={{ workspaceId }}
-          className="shrink-0 px-1 text-muted-foreground hover:text-foreground"
+          className="shrink-0 px-1 text-muted-foreground hover:text-foreground lg:hidden"
         >
           {t("workspace:reviews.pageTitle")}
         </Link>
         {pull.data && (
           <>
+            <ChevronRight
+              aria-hidden
+              className="size-3.5 shrink-0 text-muted-foreground lg:hidden"
+            />
+            <PullRequestIssueCrumb issue={pull.data.issue} />
             <ChevronRight
               aria-hidden
               className="size-3.5 shrink-0 text-muted-foreground"
@@ -79,6 +88,7 @@ export function PullRequestPage({
             <span className="shrink-0 text-destructive-foreground tabular-nums">
               -{pull.data.deletions}
             </span>
+            <PullRequestMenu pullRef={pullRef} pull={pull.data} />
           </>
         )}
         <span className="flex-1" />
@@ -100,6 +110,7 @@ export function PullRequestPage({
             {githubLabel}
           </Button>
         )}
+        {pull.data && <CopyReviewLinkButton />}
         <Button
           variant="ghost"
           size="icon-xs"
@@ -143,13 +154,21 @@ export function PullRequestPage({
                 pull.data.status === "draft") && (
                 <span className="ml-auto flex shrink-0 items-center gap-1.5">
                   <ReviewDialog pullRef={pullRef} />
-                  <MergeButton pullRef={pullRef} pull={pull.data} />
+                  {pull.data.status === "draft" ? (
+                    <ReadyForReviewButton pullRef={pullRef} />
+                  ) : (
+                    <MergeButton pullRef={pullRef} pull={pull.data} />
+                  )}
                 </span>
               )}
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto">
               {tab === "overview" && (
-                <OverviewTab pullRef={pullRef} pull={pull.data} />
+                <OverviewTab
+                  pullRef={pullRef}
+                  pull={pull.data}
+                  workspaceId={workspaceId}
+                />
               )}
               {tab === "files" && (
                 <FilesTab

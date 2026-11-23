@@ -1,4 +1,5 @@
 import { getPull } from "../github-api";
+import { findLinkedIssues } from "../linked-issues";
 import { withGithubToken } from "../with-github-token";
 
 export const person = (user: { login: string; avatar_url: string } | null) =>
@@ -13,6 +14,7 @@ export async function getPullRequest(
   const pull = await withGithubToken(userId, (token) =>
     getPull(token, owner, repo, number),
   );
+  const issues = await findLinkedIssues(userId, [pull.html_url]);
   return {
     owner,
     repo,
@@ -45,5 +47,6 @@ export async function getPullRequest(
       login: user.login,
       avatarUrl: user.avatar_url,
     })),
+    issue: issues.get(pull.html_url) ?? null,
   };
 }

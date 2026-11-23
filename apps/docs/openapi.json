@@ -29559,6 +29559,75 @@
                           "avatarUrl"
                         ]
                       }
+                    },
+                    "issue": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "taskId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "linkId": {
+                          "type": "string"
+                        },
+                        "manual": {
+                          "type": "boolean"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "priority": {
+                          "type": "string"
+                        },
+                        "team": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ]
+                        },
+                        "project": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "taskId",
+                        "workspaceId",
+                        "linkId",
+                        "manual",
+                        "title",
+                        "priority",
+                        "team",
+                        "project"
+                      ]
                     }
                   },
                   "required": [
@@ -29582,7 +29651,8 @@
                     "additions",
                     "deletions",
                     "changedFiles",
-                    "requestedReviewers"
+                    "requestedReviewers",
+                    "issue"
                   ]
                 }
               }
@@ -30495,6 +30565,367 @@
         }
       }
     },
+    "/github-reviews/pulls/{owner}/{repo}/{number}/reviewers": {
+      "get": {
+        "operationId": "listGithubReviewerCandidates",
+        "tags": [
+          "GitHub Reviews"
+        ],
+        "summary": "List people who can be asked to review",
+        "description": "The repository's assignable users, as GitHub reports them for the signed-in user.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "owner",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "repo",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d+$"
+            },
+            "required": true,
+            "name": "number",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List reviewer candidates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "login": {
+                        "type": "string"
+                      },
+                      "avatarUrl": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "login",
+                      "avatarUrl"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "GitHub is not connected or must be reconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "post": {
+        "operationId": "requestGithubPullRequestReviewers",
+        "tags": [
+          "GitHub Reviews"
+        ],
+        "summary": "Request reviewers",
+        "description": "Asks the given GitHub users to review, as the signed-in user. GitHub refuses the author and people without access.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "owner",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "repo",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d+$"
+            },
+            "required": true,
+            "name": "number",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reviewers": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[\\w.-]+$"
+                    },
+                    "minItems": 1,
+                    "maxItems": 15
+                  }
+                },
+                "required": [
+                  "reviewers"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Request reviewers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "GitHub is not connected or must be reconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "GitHub rejected the review request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/github-reviews/pulls/{owner}/{repo}/{number}/ready": {
+      "post": {
+        "operationId": "markGithubPullRequestReady",
+        "tags": [
+          "GitHub Reviews"
+        ],
+        "summary": "Mark a draft ready for review",
+        "description": "Takes the pull request out of draft as the signed-in user, through GitHub's GraphQL API.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "owner",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "repo",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d+$"
+            },
+            "required": true,
+            "name": "number",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mark ready for review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "GitHub is not connected or must be reconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "GitHub rejected the change",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/github-reviews": {
       "get": {
         "operationId": "listGithubReviews",
@@ -30701,6 +31132,15 @@
                               "taskId": {
                                 "type": "string"
                               },
+                              "workspaceId": {
+                                "type": "string"
+                              },
+                              "linkId": {
+                                "type": "string"
+                              },
+                              "manual": {
+                                "type": "boolean"
+                              },
                               "title": {
                                 "type": "string"
                               },
@@ -30743,6 +31183,9 @@
                             },
                             "required": [
                               "taskId",
+                              "workspaceId",
+                              "linkId",
+                              "manual",
                               "title",
                               "priority",
                               "team",
@@ -30948,6 +31391,15 @@
                               "taskId": {
                                 "type": "string"
                               },
+                              "workspaceId": {
+                                "type": "string"
+                              },
+                              "linkId": {
+                                "type": "string"
+                              },
+                              "manual": {
+                                "type": "boolean"
+                              },
                               "title": {
                                 "type": "string"
                               },
@@ -30990,6 +31442,9 @@
                             },
                             "required": [
                               "taskId",
+                              "workspaceId",
+                              "linkId",
+                              "manual",
                               "title",
                               "priority",
                               "team",
@@ -31195,6 +31650,15 @@
                               "taskId": {
                                 "type": "string"
                               },
+                              "workspaceId": {
+                                "type": "string"
+                              },
+                              "linkId": {
+                                "type": "string"
+                              },
+                              "manual": {
+                                "type": "boolean"
+                              },
                               "title": {
                                 "type": "string"
                               },
@@ -31237,6 +31701,9 @@
                             },
                             "required": [
                               "taskId",
+                              "workspaceId",
+                              "linkId",
+                              "manual",
                               "title",
                               "priority",
                               "team",

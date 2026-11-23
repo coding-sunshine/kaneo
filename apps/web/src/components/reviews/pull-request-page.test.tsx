@@ -16,6 +16,10 @@ const mocks = vi.hoisted(() => ({
   submit: vi.fn(),
   merge: vi.fn(),
   pull: {} as Record<string, unknown>,
+  requestReviewers: vi.fn(),
+  markReady: vi.fn(),
+  link: vi.fn(),
+  unlink: vi.fn(),
 }));
 
 const basePull = {
@@ -36,6 +40,7 @@ const basePull = {
   deletions: 1,
   changedFiles: 1,
   requestedReviewers: [] as { login: string; avatarUrl: string }[],
+  issue: null as null | Record<string, unknown>,
 };
 
 vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => ({
@@ -85,6 +90,35 @@ vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => ({
   useSubmitReview: () => ({ mutate: mocks.submit, isPending: false }),
   useMergePullRequest: () => ({ mutate: mocks.merge, isPending: false }),
   useAddPullRequestComment: () => ({ mutate: vi.fn(), isPending: false }),
+  useReviewerCandidates: () => ({
+    data: [
+      { login: "ada", avatarUrl: "" },
+      { login: "grace", avatarUrl: "" },
+      { login: "linus", avatarUrl: "" },
+    ],
+    isLoading: false,
+  }),
+  useRequestReviewers: () => ({
+    mutate: mocks.requestReviewers,
+    isPending: false,
+  }),
+  useMarkPullRequestReady: () => ({
+    mutate: mocks.markReady,
+    isPending: false,
+  }),
+  useLinkPullRequestIssue: () => ({ mutate: mocks.link, isPending: false }),
+  useUnlinkPullRequestIssue: () => ({ mutate: mocks.unlink, isPending: false }),
+}));
+vi.mock("@/hooks/queries/search/use-global-search", () => ({
+  default: () => ({
+    data: {
+      results: [
+        { id: "t1", type: "task", title: "Fix login", archivedAt: null },
+        { id: "t2", type: "task", title: "Old task", archivedAt: "2026-01-01" },
+      ],
+    },
+    isFetching: false,
+  }),
 }));
 vi.mock("@/components/reviews/markdown", () => ({
   Markdown: ({ value }: { value: string }) => <p>{value}</p>,
@@ -119,6 +153,10 @@ beforeEach(() => {
   mocks.pull = { ...basePull };
   mocks.submit.mockClear();
   mocks.merge.mockClear();
+  mocks.requestReviewers.mockClear();
+  mocks.markReady.mockClear();
+  mocks.link.mockClear();
+  mocks.unlink.mockClear();
   useUserPreferencesStore.setState({ reviewsExpanded: false });
 });
 afterEach(cleanup);
@@ -131,8 +169,10 @@ describe("PullRequestPage", () => {
     );
     expect(screen.getByText("bug")).toBeInTheDocument();
     expect(screen.getByText("ship it")).toBeInTheDocument();
-    // No reviewers requested, so Linear's Reviewers row is left out.
-    expect(screen.queryByText("Reviewers")).toBeNull();
+    // Nobody is requested yet; an open pull request still offers Add reviewers.
+    expect(screen.getByText("Reviewers").nextElementSibling).toHaveTextContent(
+      "Add reviewers",
+    );
     fireEvent.click(screen.getByRole("button", { name: "1 failed, 1 passed" }));
     expect((await screen.findByText("ci")).closest("li")).toHaveAttribute(
       "data-state",
@@ -240,5 +280,147 @@ describe("PullRequestPage", () => {
     expect(container.querySelector("[data-layout=split]")).not.toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Unified" }));
     expect(container.querySelector("[data-layout=unified]")).not.toBeNull();
+  });
+
+  it("leaves the Reviewers row out of a merged pull request without reviewers", () => {
+    mocks.pull = { ...basePull, status: "merged", mergeable: false };
+    renderPage();
+    expect(screen.queryByText("Reviewers")).toBeNull();
+  });
+
+  it("requests the chosen person and hides the author and people already asked", async () => {
+    mocks.pull = {
+      ...basePull,
+      requestedReviewers: [{ login: "grace", avatarUrl: "" }],
+    };
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Add reviewers" }));
+    expect(await screen.findByRole("button", { name: /linus/ })).toBeVisible();
+    // ada wrote the pull request; grace is already requested.
+    expect(screen.queryByRole("button", { name: /ada/ })).toBeNull();
+    expect(
+      screen
+        .getAllByText("grace")
+        .every((node) => node.closest("button") === null),
+    ).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: /linus/ }));
+    expect(mocks.requestReviewers.mock.calls[0][0]).toEqual(["linus"]);
+  });
+
+  it("offers Ready for review on a draft instead of Merge", () => {
+    mocks.pull = { ...basePull, status: "draft", mergeable: false };
+    renderPage();
+    expect(screen.queryByRole("button", { name: "Merge" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Ready for review" }));
+    expect(mocks.markReady).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows no Ready for review on an open pull request", async () => {
+    renderPage();
+    expect(
+      screen.queryByRole("button", { name: "Ready for review" }),
+    ).toBeNull();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Pull request actions" }),
+    );
+    expect(await screen.findByText("Copy branch name")).toBeVisible();
+    expect(screen.queryByText("Mark ready for review")).toBeNull();
+  });
+
+  it("marks a draft ready from the actions menu", async () => {
+    mocks.pull = { ...basePull, status: "draft", mergeable: false };
+    renderPage();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Pull request actions" }),
+    );
+    fireEvent.click(await screen.findByText("Mark ready for review"));
+    expect(mocks.markReady).toHaveBeenCalledTimes(1);
+  });
+
+  it("copies the GitHub URL and the branch name from the actions menu", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText },
+      configurable: true,
+    });
+    renderPage();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Pull request actions" }),
+    );
+    fireEvent.click(await screen.findByText("Copy GitHub URL"));
+    expect(writeText).toHaveBeenLastCalledWith(basePull.url);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Pull request actions" }),
+    );
+    fireEvent.click(await screen.findByText("Copy branch name"));
+    expect(writeText).toHaveBeenLastCalledWith("feat");
+  });
+
+  it("copies this page's URL from the header link control", () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText },
+      configurable: true,
+    });
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Copy review URL" }));
+    expect(writeText).toHaveBeenCalledWith(window.location.href);
+  });
+
+  it("shows No issue, then links a searched task with the pull request status", async () => {
+    renderPage();
+    expect(screen.getByText("No issue")).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Link issue to pull request" }),
+    );
+    fireEvent.change(await screen.findByLabelText("Search issues..."), {
+      target: { value: "log" },
+    });
+    // Archived tasks are not offered.
+    expect(screen.queryByText("Old task")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Fix login" }));
+    expect(mocks.link.mock.calls[0][0]).toEqual({
+      taskId: "t1",
+      url: basePull.url,
+      status: "open",
+    });
+  });
+
+  it("shows the linked issue in the breadcrumb and Issues row and unlinks a manual link", () => {
+    mocks.pull = {
+      ...basePull,
+      issue: {
+        taskId: "t1",
+        workspaceId: "w1",
+        linkId: "l1",
+        manual: true,
+        title: "Fix login",
+        team: { id: "p1", name: "Eng" },
+      },
+    };
+    renderPage();
+    expect(screen.queryByText("No issue")).toBeNull();
+    expect(screen.getAllByText("Fix login")).toHaveLength(2);
+    fireEvent.click(screen.getByRole("button", { name: "Unlink issue" }));
+    expect(mocks.unlink.mock.calls[0][0]).toEqual({
+      taskId: "t1",
+      id: "l1",
+    });
+  });
+
+  it("does not offer to unlink an integration-managed link", () => {
+    mocks.pull = {
+      ...basePull,
+      issue: {
+        taskId: "t1",
+        workspaceId: "w1",
+        linkId: "l1",
+        manual: false,
+        title: "Fix login",
+        team: { id: "p1", name: "Eng" },
+      },
+    };
+    renderPage();
+    expect(screen.queryByRole("button", { name: "Unlink issue" })).toBeNull();
   });
 });

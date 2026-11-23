@@ -10,6 +10,11 @@ import {
 
 export type LinkedIssue = {
   taskId: string;
+  workspaceId: string;
+  /** The external_link row, so a manual link can be removed. */
+  linkId: string;
+  /** False for links an integration manages; those cannot be removed here. */
+  manual: boolean;
   title: string;
   priority: string;
   team: { id: string; name: string };
@@ -24,6 +29,9 @@ export async function findLinkedIssues(userId: string, urls: string[]) {
     .select({
       url: externalLinkTable.url,
       taskId: taskTable.id,
+      workspaceId: projectTable.workspaceId,
+      linkId: externalLinkTable.id,
+      integrationId: externalLinkTable.integrationId,
       title: taskTable.title,
       priority: taskTable.priority,
       teamId: projectTable.id,
@@ -56,6 +64,9 @@ export async function findLinkedIssues(userId: string, urls: string[]) {
     if (issues.has(row.url)) continue;
     issues.set(row.url, {
       taskId: row.taskId,
+      workspaceId: row.workspaceId,
+      linkId: row.linkId,
+      manual: row.integrationId === null,
       title: row.title,
       priority: row.priority,
       team: { id: row.teamId, name: row.teamName },

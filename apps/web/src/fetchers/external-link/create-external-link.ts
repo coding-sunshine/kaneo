@@ -5,18 +5,24 @@ export type CreateExternalLinkRequest = {
   taskId: string;
   url: string;
   title?: string;
+  resourceType?: "url" | "pull_request";
+  metadata?: { state: "open" | "closed"; merged: boolean; draft: boolean };
 };
 
 async function createExternalLink({
   taskId,
   url,
   title,
+  resourceType,
+  metadata,
 }: CreateExternalLinkRequest) {
   const response = await client["external-link"].task[":taskId"].$post({
     param: { taskId },
     json: {
       url,
       ...(title ? { title } : {}),
+      ...(resourceType ? { resourceType } : {}),
+      ...(metadata ? { metadata } : {}),
     },
   });
 

@@ -234,6 +234,7 @@ export async function searchPullRequests(token: string, query: string) {
 type GithubPerson = { login: string; avatar_url: string } | null;
 
 export type GithubPull = {
+  node_id: string;
   number: number;
   title: string;
   body: string | null;
@@ -431,3 +432,58 @@ export const mergePull = (
     `${pullPath(owner, repo, number)}/merge`,
     { method: "PUT", body: { merge_method: mergeMethod } },
   );
+
+export const listAssignees = (token: string, owner: string, repo: string) =>
+  githubRequest<{ login: string; avatar_url: string }[]>(
+    token,
+    `/repos/${owner}/${repo}/assignees?per_page=100`,
+  );
+
+export const requestReviewers = (
+  token: string,
+  owner: string,
+  repo: string,
+  number: string,
+  reviewers: string[],
+) =>
+  githubRequest<{ number: number }>(
+    token,
+    `${pullPath(owner, repo, number)}/requested_reviewers`,
+    { method: "POST", body: { reviewers } },
+  );
+
+// REST has no way to take a pull request out of draft; only GraphQL does.
+export async function markReadyForReview(token: string, nodeId: string) {
+  const response = await fetch(`${API}/graphql`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      query: `mutation($id: ID!) {
+        markPullRequestReadyForReview(input: { pullRequestId: $id }) {
+          pullRequest { isDraft }
+        }
+      }`,
+      variables: { id: nodeId },
+    }),
+  });
+  const body = (await response.json().catch(() => ({}))) as {
+    errors?: { message: string; type?: string }[];
+    message?: string;
+  };
+  if (!response.ok) {
+    throw new GithubApiError(
+      response.status,
+      body.message || `GitHub responded ${response.status}`,
+    );
+  }
+  // GraphQL reports failures as HTTP 200 with an errors array.
+  if (body.errors?.length) {
+    throw new GithubApiError(
+      body.errors[0]?.type === "FORBIDDEN" ? 403 : 422,
+      body.errors[0]?.message ?? "GitHub rejected the request",
+    );
+  }
+}

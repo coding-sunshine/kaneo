@@ -39,6 +39,10 @@ const mergeStates = [
 
 const linkedIssue = z.object({
   taskId: z.string(),
+  workspaceId: z.string(),
+  linkId: z.string(),
+  /** Only manual links can be removed through the external link API. */
+  manual: z.boolean(),
   title: z.string(),
   priority: z.string(),
   /** Linear's team is a Kaneo project. */
@@ -86,7 +90,11 @@ export const pullRequestSchema = pullRequestSummarySchema.extend({
   changedFiles: z.number(),
   /** Reviews still requested; people who already reviewed are in the conversation. */
   requestedReviewers: z.array(person),
+  issue: linkedIssue.nullable(),
 });
+
+export const reviewerCandidatesSchema = z.array(person);
+export const readySchema = z.object({ ok: z.literal(true) });
 
 export const filesSchema = z.array(
   z.object({

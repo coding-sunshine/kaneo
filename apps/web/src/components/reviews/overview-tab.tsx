@@ -12,9 +12,11 @@ import type {
 export function OverviewTab({
   pullRef,
   pull,
+  workspaceId,
 }: {
   pullRef: PullRef;
   pull: PullRequestDetail;
+  workspaceId: string;
 }) {
   const { t } = useTranslation();
   return (
@@ -31,7 +33,11 @@ export function OverviewTab({
           </span>
         </p>
       </header>
-      <PullRequestProperties pullRef={pullRef} pull={pull} />
+      <PullRequestProperties
+        pullRef={pullRef}
+        pull={pull}
+        workspaceId={workspaceId}
+      />
       {pull.body ? (
         // Linear sets a PR description at its document scale, headings included.
         <div className="kaneo-document-body">
