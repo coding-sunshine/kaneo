@@ -36,7 +36,7 @@ export async function importIssueLabels(
   const names = issueLabelNames(labels).filter(
     (name) => !name.startsWith("status:") && !name.startsWith("priority:"),
   );
-  if (!names.length) return;
+  if (!names.length) return [];
   const providerColors = new Map<string, string>();
   if (Array.isArray(labels))
     for (const label of labels) {
@@ -56,7 +56,7 @@ export async function importIssueLabels(
     .where(
       and(eq(labelTable.workspaceId, workspaceId), isNull(labelTable.taskId)),
     );
-  await database
+  const inserted = await database
     .insert(labelTable)
     .values(
       [...new Set(names)].map((name) => ({
@@ -69,5 +69,7 @@ export async function importIssueLabels(
         workspaceId,
       })),
     )
-    .onConflictDoNothing({ target: [labelTable.taskId, labelTable.name] });
+    .onConflictDoNothing({ target: [labelTable.taskId, labelTable.name] })
+    .returning({ name: labelTable.name });
+  return inserted.map((label) => label.name);
 }

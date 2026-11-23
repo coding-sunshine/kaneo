@@ -203,6 +203,35 @@ describe("GitLab label reconciliation", () => {
   );
 });
 
+describe("GitLab import label history", () => {
+  it("records labels added when an existing task is refreshed", async () => {
+    const { task, request } = await setup();
+    mocks.listIssues.mockResolvedValue([
+      { ...remoteIssue, labels: ["triaged"] },
+    ]);
+    expect((await request()).status).toBe(200);
+    expect(
+      (
+        await db.query.activityTable.findMany({
+          where: eq(schema.activityTable.type, "labels_changed"),
+        })
+      ).map((row) => ({
+        taskId: row.taskId,
+        userId: row.userId,
+        externalUserName: row.externalUserName,
+        eventData: row.eventData,
+      })),
+    ).toEqual([
+      {
+        taskId: task.id,
+        userId: null,
+        externalUserName: "GitLab",
+        eventData: { addedLabels: ["triaged"] },
+      },
+    ]);
+  });
+});
+
 describe("GitLab status label snapshots", () => {
   it.each([
     { statusLabel: "status:to-do", expected: "done" },

@@ -86,6 +86,16 @@ async function setup() {
 async function storedTask() {
   return db.query.taskTable.findFirst();
 }
+async function labelHistory() {
+  const rows = await db.query.activityTable.findMany({
+    where: eq(schema.activityTable.type, "labels_changed"),
+  });
+  return rows.map((row) => ({
+    userId: row.userId,
+    externalUserName: row.externalUserName,
+    eventData: row.eventData,
+  }));
+}
 
 describe("GitHub import project workflow validation", () => {
   it("maps arbitrary external statuses to a real local column for new tasks", async () => {
@@ -191,5 +201,23 @@ describe("GitHub import project workflow validation", () => {
       title: "Untouched",
       status: "to-do",
     });
+  });
+});
+
+describe("GitHub import label history", () => {
+  it("records only labels added when an existing task is refreshed", async () => {
+    const { project } = await setup();
+    m.labels = ["bug"];
+    await importIssues(project.id);
+    expect(await labelHistory()).toEqual([]);
+    m.labels = ["bug", "triaged"];
+    await importIssues(project.id);
+    expect(await labelHistory()).toEqual([
+      {
+        userId: null,
+        externalUserName: "GitHub",
+        eventData: { addedLabels: ["triaged"] },
+      },
+    ]);
   });
 });

@@ -2,6 +2,7 @@ import { confirmedFieldLabels } from "../../plugins/sync/field-labels";
 import { acceptsIssue, readSyncRules } from "../../plugins/sync/rules";
 import { canSyncTask } from "../../plugins/sync/eligibility";
 import { importIssueLabels } from "../../plugins/sync/issue-labels";
+import { recordLabelHistory } from "../../plugins/sync/record-label-history";
 import { parseLinkMetadata } from "../../plugins/github/utils/parse-link-metadata";
 import { createId } from "@paralleldrive/cuid2";
 import { and, asc, eq, isNull } from "drizzle-orm";
@@ -362,8 +363,22 @@ async function applyPage(
         label.name.startsWith("priority:"),
       ),
     };
-    await importIssueLabels(task.id, project.workspaceId, scopeLabels, tx);
-    await importLabels(tx, issue.labels.nodes, task.id, project.workspaceId);
+    const added = [
+      ...(await importIssueLabels(
+        task.id,
+        project.workspaceId,
+        scopeLabels,
+        tx,
+      )),
+      ...(await importLabels(
+        tx,
+        issue.labels.nodes,
+        task.id,
+        project.workspaceId,
+      )),
+    ];
+    if (!state.currentIssue.isNewTask)
+      await recordLabelHistory(tx, task.id, "GitHub", { added });
     await canSyncTask(task.id, integrationId, tx);
     await importComments(tx, issue.comments.nodes, task.id, state.startedAt);
     announce(task.id, "task.updated", "task.labels_updated", "comment.updated");
@@ -473,7 +488,9 @@ async function applyPage(
     current.statusSeen ||= labels.some((label) =>
       label.name.startsWith("status:"),
     );
-    await importLabels(tx, labels, task.id, project.workspaceId);
+    const added = await importLabels(tx, labels, task.id, project.workspaceId);
+    if (!current.isNewTask)
+      await recordLabelHistory(tx, task.id, "GitHub", { added });
     announce(task.id, "task.updated", "task.labels_updated");
     nextIssuePart(state);
   } else if (state.phase === "comments") {
@@ -594,6 +611,7 @@ async function importLabels(
   taskId: string,
   workspaceId: string,
 ) {
+  const added: string[] = [];
   for (const label of labels) {
     if (label.name.startsWith("priority:") || label.name.startsWith("status:"))
       continue;
@@ -604,7 +622,7 @@ async function importLabels(
         isNull(labelTable.taskId),
       ),
     });
-    await tx
+    const inserted = await tx
       .insert(labelTable)
       .values({
         name: label.name,
@@ -612,8 +630,11 @@ async function importLabels(
         taskId,
         workspaceId,
       })
-      .onConflictDoNothing({ target: [labelTable.taskId, labelTable.name] });
+      .onConflictDoNothing({ target: [labelTable.taskId, labelTable.name] })
+      .returning({ name: labelTable.name });
+    added.push(...inserted.map((row) => row.name));
   }
+  return added;
 }
 async function importComments(
   tx: Transaction,

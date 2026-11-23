@@ -10,6 +10,7 @@ import {
   createWorkspaceMember,
 } from "./helpers/fixtures";
 
+const gitea = vi.hoisted(() => ({ labels: [] as string[] }));
 vi.mock("../../apps/api/src/events", () => ({
   publishEvent: vi.fn(async () => undefined),
 }));
@@ -21,7 +22,7 @@ vi.mock("../../apps/api/src/plugins/gitea/utils/gitea-api", () => ({
         title: "Imported issue",
         body: "Body",
         state: "open",
-        labels: [],
+        labels: gitea.labels,
         html_url: "https://gitea.example/owner/repo/issues/1",
       },
     ],
@@ -38,6 +39,7 @@ const repair = readFileSync(
 );
 beforeEach(async () => {
   await resetTestDatabase();
+  gitea.labels = [];
 });
 async function setup() {
   const { user, workspace } = await createWorkspaceMember();
@@ -126,5 +128,42 @@ describe("Gitea import task numbers", () => {
         where: eq(schema.projectTable.id, project.id),
       }),
     ).toHaveProperty("lastTaskNumber", 101);
+  });
+});
+
+describe("Gitea import label history", () => {
+  it("records added and removed labels on refresh but not on first import", async () => {
+    const { project } = await setup();
+    gitea.labels = ["bug"];
+    await importGiteaIssues(project.id);
+    const history = async () =>
+      (
+        await db.query.activityTable.findMany({
+          where: eq(schema.activityTable.type, "labels_changed"),
+        })
+      ).map((row) => ({
+        userId: row.userId,
+        externalUserName: row.externalUserName,
+        eventData: row.eventData,
+      }));
+    expect(await history()).toEqual([]);
+    gitea.labels = ["triaged"];
+    expect(await importGiteaIssues(project.id)).toMatchObject({ updated: 1 });
+    const rows = await history();
+    expect(rows).toHaveLength(2);
+    expect(rows).toEqual(
+      expect.arrayContaining([
+        {
+          userId: null,
+          externalUserName: "Gitea",
+          eventData: { addedLabels: ["triaged"] },
+        },
+        {
+          userId: null,
+          externalUserName: "Gitea",
+          eventData: { removedLabels: ["bug"] },
+        },
+      ]),
+    );
   });
 });

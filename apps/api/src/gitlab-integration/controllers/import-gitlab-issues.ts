@@ -1,5 +1,6 @@
 import { acceptsIssue } from "../../plugins/sync/rules";
 import { canSyncTask } from "../../plugins/sync/eligibility";
+import { recordLabelHistory } from "../../plugins/sync/record-label-history";
 import { sameConfig } from "../../plugins/sync/same-config";
 import { and, eq, inArray } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
@@ -235,12 +236,14 @@ async function importSingleIssue(
           .set(updateData)
           .where(linkedTaskScope(existingLink.taskId, projectId));
 
-        await importLabelsForTask(
-          labels,
-          existingLink.taskId,
-          workspaceId,
-          database,
-        );
+        await recordLabelHistory(database, existingLink.taskId, "GitLab", {
+          added: await importLabelsForTask(
+            labels,
+            existingLink.taskId,
+            workspaceId,
+            database,
+          ),
+        });
         await importNotesForTask(issue, notes, existingLink.taskId, database);
 
         afterCommit(async () => {
@@ -340,14 +343,15 @@ async function importLabelsForTask(
   taskId: string,
   workspaceId: string,
   database: IntegrationDatabase = db,
-): Promise<void> {
+) {
   const names = issueLabels.filter((name) => name && !isSystemLabelName(name));
 
   // GitLab issue, so its absence there is not a reason to remove labels.
   if (names.length === 0) {
-    return;
+    return [];
   }
 
+  const added: string[] = [];
   const existingLabelsOnTask = await database.query.labelTable.findMany({
     where: and(eq(labelTable.taskId, taskId), inArray(labelTable.name, names)),
   });
@@ -364,7 +368,7 @@ async function importLabelsForTask(
       ),
     });
 
-    await database
+    const inserted = await database
       .insert(labelTable)
       .values({
         name,
@@ -374,8 +378,11 @@ async function importLabelsForTask(
       })
       .onConflictDoNothing({
         target: [labelTable.taskId, labelTable.name],
-      });
+      })
+      .returning({ name: labelTable.name });
+    added.push(...inserted.map((label) => label.name));
   }
+  return added;
 }
 
 async function fetchIssueNotes(

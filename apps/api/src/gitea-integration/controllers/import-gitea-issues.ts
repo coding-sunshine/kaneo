@@ -1,6 +1,7 @@
 import { confirmedFieldLabels } from "../../plugins/sync/field-labels";
 import { acceptsIssue } from "../../plugins/sync/rules";
 import { canSyncTask } from "../../plugins/sync/eligibility";
+import { recordLabelHistory } from "../../plugins/sync/record-label-history";
 import { sameConfig } from "../../plugins/sync/same-config";
 import { and, eq, inArray, notInArray } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
@@ -260,11 +261,16 @@ async function importSingleIssue(
           .set(updateData)
           .where(linkedTaskScope(existingLink.taskId, projectId));
 
-        await importLabelsForTask(
-          labels,
-          existingLink.taskId,
-          workspaceId,
+        await recordLabelHistory(
           database,
+          existingLink.taskId,
+          "Gitea",
+          await importLabelsForTask(
+            labels,
+            existingLink.taskId,
+            workspaceId,
+            database,
+          ),
         );
         await canSyncTask(existingLink.taskId, integrationId, database);
 
@@ -374,7 +380,7 @@ async function importLabelsForTask(
   taskId: string,
   workspaceId: string,
   database: IntegrationDatabase = db,
-): Promise<void> {
+) {
   const nonSystemLabels = (issueLabels ?? [])
     .map((label) => {
       if (typeof label === "string") {
@@ -396,18 +402,23 @@ async function importLabelsForTask(
 
   const expectedNames = nonSystemLabels.map((label) => label.name);
 
-  if (expectedNames.length > 0) {
-    await database
-      .delete(labelTable)
-      .where(
-        and(
-          eq(labelTable.taskId, taskId),
-          notInArray(labelTable.name, expectedNames),
-        ),
-      );
-  } else {
-    await database.delete(labelTable).where(eq(labelTable.taskId, taskId));
-  }
+  const removed = (
+    expectedNames.length > 0
+      ? await database
+          .delete(labelTable)
+          .where(
+            and(
+              eq(labelTable.taskId, taskId),
+              notInArray(labelTable.name, expectedNames),
+            ),
+          )
+          .returning({ name: labelTable.name })
+      : await database
+          .delete(labelTable)
+          .where(eq(labelTable.taskId, taskId))
+          .returning({ name: labelTable.name })
+  ).map((label) => label.name);
+  const added: string[] = [];
 
   const existingLabelsOnTask = await database.query.labelTable.findMany({
     where:
@@ -437,7 +448,7 @@ async function importLabelsForTask(
 
     const colorToUse = existingWorkspaceLabel?.color || labelData.color;
 
-    await database
+    const inserted = await database
       .insert(labelTable)
       .values({
         name: labelData.name,
@@ -447,8 +458,11 @@ async function importLabelsForTask(
       })
       .onConflictDoNothing({
         target: [labelTable.taskId, labelTable.name],
-      });
+      })
+      .returning({ name: labelTable.name });
+    added.push(...inserted.map((label) => label.name));
   }
+  return { added, removed };
 }
 
 async function fetchIssueComments(
