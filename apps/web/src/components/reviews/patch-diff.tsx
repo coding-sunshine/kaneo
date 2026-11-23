@@ -1,9 +1,10 @@
 import { ArrowUpToLine, UnfoldVertical } from "lucide-react";
-import { Fragment, useMemo } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { InlineComments } from "@/components/reviews/inline-comments";
 import {
   type DiffLine,
+  expandGaps,
   isCommentOnLine,
   parsePatch,
   toSplitRows,
@@ -32,28 +33,37 @@ const sign = { hunk: "", add: "+", del: "-", ctx: "" };
 const numberClass =
   "w-14 shrink-0 select-none pr-3 text-right text-muted-foreground/70 tabular-nums";
 
-/** Linear's "N unchanged lines" in place of the hunk header. */
-function Skipped({ line }: { line: DiffLine }) {
+/** Linear's "N unchanged lines" in place of the hunk header; a click shows them. */
+function Skipped({
+  line,
+  onOpen,
+}: {
+  line: DiffLine;
+  onOpen: (id: number) => void;
+}) {
   const { t } = useTranslation();
   const Icon = line.id === 0 ? ArrowUpToLine : UnfoldVertical;
   return (
-    <div
+    <button
+      type="button"
       data-kind="hunk"
-      className="col-span-2 flex items-center justify-center gap-1.5 py-1.5 font-sans text-muted-foreground"
+      onClick={() => onOpen(line.id)}
+      className="col-span-2 flex w-full cursor-pointer items-center justify-center gap-1.5 py-1.5 font-sans text-muted-foreground hover:bg-accent/50 hover:text-foreground"
     >
       <Icon aria-hidden className="size-3.5" />
       {t("workspace:reviews.detail.unchangedLines", { count: line.skipped })}
-    </div>
+    </button>
   );
 }
 
 // One number column, as in Linear: the new line number, or a dash for a removal.
-function UnifiedRow({ line }: { line: DiffLine }) {
+function UnifiedRow({ line, wrap }: { line: DiffLine; wrap: boolean }) {
   return (
     <div
       data-kind={line.kind}
       className={cn(
-        "flex min-w-max border-l-2 border-l-transparent",
+        "flex border-l-2 border-l-transparent",
+        !wrap && "min-w-max",
         rowClass[line.kind],
       )}
     >
@@ -61,17 +71,22 @@ function UnifiedRow({ line }: { line: DiffLine }) {
         {line.newNo ?? (line.kind === "del" ? "−" : "")}
       </span>
       <span className="sr-only">{sign[line.kind]}</span>
-      <span className="whitespace-pre pr-4">{line.text}</span>
+      <span className={cn("pr-4", textClass(wrap))}>{line.text}</span>
     </div>
   );
 }
 
+const textClass = (wrap: boolean) =>
+  wrap ? "min-w-0 whitespace-pre-wrap break-words" : "whitespace-pre";
+
 function SplitCell({
   line,
   side,
+  wrap,
 }: {
   line: DiffLine | null;
   side: "LEFT" | "RIGHT";
+  wrap: boolean;
 }) {
   return (
     <div
@@ -85,7 +100,7 @@ function SplitCell({
         {(side === "LEFT" ? line?.oldNo : line?.newNo) ?? ""}
       </span>
       <span className="sr-only">{line ? sign[line.kind] : ""}</span>
-      <span className="whitespace-pre pr-4">{line?.text}</span>
+      <span className={cn("pr-4", textClass(wrap))}>{line?.text}</span>
     </div>
   );
 }
@@ -94,13 +109,30 @@ export function PatchDiff({
   patch,
   layout,
   comments = [],
+  wrap = false,
+  fileLines = null,
+  onExpand,
 }: {
   patch: string;
   layout?: DiffLayout;
+  wrap?: boolean;
+  // The whole file at the head commit; null until it is known or when it has no lines.
+  fileLines?: string[] | null;
+  // Called when the reader opens a gap, so the file text can be fetched.
+  onExpand?: () => void;
   // Inline review comments for this file only.
   comments?: ConversationEntry[];
 }) {
-  const lines = useMemo(() => parsePatch(patch), [patch]);
+  const [opened, setOpened] = useState<ReadonlySet<number>>(new Set());
+  const open = (id: number) => {
+    setOpened((current) => new Set(current).add(id));
+    onExpand?.();
+  };
+  const parsed = useMemo(() => parsePatch(patch), [patch]);
+  const lines = useMemo(
+    () => expandGaps(parsed, fileLines, opened),
+    [parsed, fileLines, opened],
+  );
   const rows = useMemo(
     () => (layout === "split" ? toSplitRows(lines) : []),
     [layout, lines],
@@ -117,7 +149,7 @@ export function PatchDiff({
         {rows.map((row) => {
           if (row.kind === "hunk") {
             return row.line.skipped ? (
-              <Skipped key={row.id} line={row.line} />
+              <Skipped key={row.id} line={row.line} onOpen={open} />
             ) : null;
           }
           const found = [
@@ -126,8 +158,8 @@ export function PatchDiff({
           ];
           return (
             <Fragment key={row.id}>
-              <SplitCell line={row.left} side="LEFT" />
-              <SplitCell line={row.right} side="RIGHT" />
+              <SplitCell line={row.left} side="LEFT" wrap={wrap} />
+              <SplitCell line={row.right} side="RIGHT" wrap={wrap} />
               {found.length > 0 && (
                 <div className="col-span-2">
                   <InlineComments comments={found} />
@@ -142,16 +174,18 @@ export function PatchDiff({
   return (
     <div
       data-layout="unified"
-      className="overflow-x-auto font-mono text-xs leading-5"
+      className={cn("font-mono text-xs leading-5", !wrap && "overflow-x-auto")}
     >
       {lines.map((line) => {
         if (line.kind === "hunk") {
-          return line.skipped ? <Skipped key={line.id} line={line} /> : null;
+          return line.skipped ? (
+            <Skipped key={line.id} line={line} onOpen={open} />
+          ) : null;
         }
         const found = [...under(line, "LEFT"), ...under(line, "RIGHT")];
         return (
           <Fragment key={line.id}>
-            <UnifiedRow line={line} />
+            <UnifiedRow line={line} wrap={wrap} />
             {found.length > 0 && <InlineComments comments={found} />}
           </Fragment>
         );

@@ -57,6 +57,10 @@ export type PullRequestFiles = InferResponseType<
   ReturnType<typeof pull>["files"]["$get"],
   200
 >;
+export type PullRequestCommits = InferResponseType<
+  ReturnType<typeof pull>["commits"]["$get"],
+  200
+>;
 export type PullRequestChecks = InferResponseType<
   ReturnType<typeof pull>["checks"]["$get"],
   200
@@ -83,6 +87,38 @@ export async function getPullRequest(ref: PullRef) {
 
 export async function getPullRequestFiles(ref: PullRef) {
   const response = await pull(ref).files.$get(param(ref));
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function getPullRequestCommits(ref: PullRef) {
+  const response = await pull(ref).commits.$get(param(ref));
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function comparePullRequestCommits(
+  ref: PullRef,
+  base: string,
+  head: string,
+) {
+  const response = await pull(ref).compare.$get({
+    ...param(ref),
+    query: { base, head },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function getPullRequestFileContent(
+  ref: PullRef,
+  path: string,
+  sha: string,
+) {
+  const response = await pull(ref).content.$get({
+    ...param(ref),
+    query: { path, ref: sha },
+  });
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }

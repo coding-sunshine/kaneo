@@ -6,6 +6,8 @@ export type DiffLine = {
   newNo: number | null;
   /** On a hunk: the unchanged lines between it and the hunk before (or the file start). */
   skipped?: number;
+  /** On a hunk: the old and new line numbers of the first skipped line. */
+  gapFrom?: { old: number; new: number };
 };
 
 export type SplitRow =
@@ -28,6 +30,7 @@ export function parsePatch(patch: string): DiffLine[] {
       const start = Number(match?.[1] ?? 0);
       // A new file's hunk starts at old line 0, with nothing above it.
       const skipped = Math.max(0, start - oldNo);
+      const gapFrom = { old: oldNo, new: newNo };
       oldNo = start;
       newNo = Number(match?.[2] ?? 0);
       return {
@@ -37,6 +40,7 @@ export function parsePatch(patch: string): DiffLine[] {
         oldNo: null,
         newNo: null,
         skipped,
+        gapFrom,
       };
     }
     if (line.startsWith("+")) {
@@ -114,3 +118,56 @@ export const isCommentOnLine = (
   comment.line !== null &&
   (comment.side ?? "RIGHT") === side &&
   (side === "LEFT" ? line.oldNo : line.newNo) === comment.line;
+
+/** The file's lines from its text; a final newline does not start another line. */
+export const splitFileText = (text: string) =>
+  text.replace(/\n$/, "").split("\n");
+
+// Fills the gaps the reader opened with the file's own lines, and ends the
+// list with a separator for the lines after the last hunk. Ids stay unique and
+// ordered by sitting between the hunk's id and the next one.
+export function expandGaps(
+  lines: DiffLine[],
+  fileLines: string[] | null,
+  opened: ReadonlySet<number>,
+): DiffLine[] {
+  if (!fileLines) return lines;
+  const fill = (
+    id: number,
+    from: { old: number; new: number },
+    count: number,
+  ) =>
+    Array.from({ length: count }, (_, i): DiffLine => ({
+      id: id + (i + 1) / (count + 1),
+      kind: "ctx",
+      text: fileLines[from.new - 1 + i] ?? "",
+      oldNo: from.old + i,
+      newNo: from.new + i,
+    }));
+  const out = lines.flatMap((line) =>
+    line.kind === "hunk" && line.skipped && line.gapFrom && opened.has(line.id)
+      ? [{ ...line, skipped: 0 }, ...fill(line.id, line.gapFrom, line.skipped)]
+      : [line],
+  );
+  const last = (key: "oldNo" | "newNo") =>
+    [...lines].reverse().find((line) => line[key] !== null)?.[key] ?? 0;
+  const from = { old: last("oldNo") + 1, new: last("newNo") + 1 };
+  const rest = fileLines.length - from.new + 1;
+  if (rest <= 0 || lines.length === 0) return out;
+  const id = lines.length;
+  const trailing: DiffLine = {
+    id,
+    kind: "hunk",
+    text: "",
+    oldNo: null,
+    newNo: null,
+    skipped: rest,
+    gapFrom: from,
+  };
+  return [
+    ...out,
+    ...(opened.has(id)
+      ? [{ ...trailing, skipped: 0 }, ...fill(id, from, rest)]
+      : [trailing]),
+  ];
+}

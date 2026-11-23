@@ -106,6 +106,21 @@ export const filesSchema = z.array(
   }),
 );
 
+export const commitsSchema = z.array(
+  z.object({
+    sha: z.string(),
+    title: z.string(),
+    date: z.string().nullable(),
+    /** First parent; the base of a diff that starts at this commit. */
+    parent: z.string().nullable(),
+  }),
+);
+
+export const fileContentSchema = z.object({
+  /** Null for binary, oversized or non-file paths. */
+  content: z.string().nullable(),
+});
+
 export const checksSchema = z.object({
   state: z.enum(["success", "failure", "pending", "none"]),
   checks: z.array(

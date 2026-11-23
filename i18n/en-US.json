@@ -4899,7 +4899,8 @@
 					"overview": "Overview",
 					"files": "Files",
 					"checks": "Checks",
-					"diff": "Diff"
+					"diff": "Diff",
+					"commits": "Commits"
 				},
 				"review": "Review",
 				"reviewTitle": "Finish your review",
@@ -4956,6 +4957,22 @@
 					"branchCopied": "Branch name copied",
 					"reviewUrlCopied": "Review URL copied",
 					"copyFailed": "Could not copy to the clipboard"
+				},
+				"fileActions": "File actions",
+				"copyPath": "Copy path",
+				"pathCopied": "Path copied",
+				"tooLarge": "This review is too large to show in full",
+				"tooLargeBody_one": "Very large pull requests exceed what GitHub’s API can return in full. Only the first {{count, number}} commit is shown.",
+				"tooLargeBody_other": "Very large pull requests exceed what GitHub’s API can return in full. Only the first {{count, number}} commits are shown.",
+				"allCommits": "All commits",
+				"specificCommits": "Specific commits",
+				"commitCount_one": "{{count, number}} commit",
+				"commitCount_other": "{{count, number}} commits",
+				"options": {
+					"title": "Diff options",
+					"wrap": "Wrap lines",
+					"showCounts": "Show changed lines per file",
+					"hideReviewed": "Hide reviewed"
 				}
 			},
 			"loadError": "Could not load your pull requests.",

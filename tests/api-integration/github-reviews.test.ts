@@ -17,6 +17,9 @@ const gh = vi.hoisted(() => ({
   githubRequest: vi.fn(),
   getPull: vi.fn(),
   listPullFiles: vi.fn(),
+  listPullCommits: vi.fn(),
+  compareCommits: vi.fn(),
+  getFileContent: vi.fn(),
   listCheckRuns: vi.fn(),
   getCombinedStatus: vi.fn(),
   listIssueComments: vi.fn(),
@@ -708,6 +711,70 @@ describe("pull request detail", () => {
       line: 4,
       side: "RIGHT",
     });
+  });
+
+  it("lists commits, compares a range and reads file text at a commit", async () => {
+    await connected();
+    gh.listPullCommits.mockResolvedValue([
+      {
+        sha: "a".repeat(40),
+        commit: { message: "first\n\nbody", author: { date: "2026-01-01" } },
+        parents: [{ sha: "b".repeat(40) }],
+        author: null,
+      },
+    ]);
+    expect(await (await app.request(`${P}/commits`)).json()).toEqual([
+      {
+        sha: "a".repeat(40),
+        title: "first",
+        date: "2026-01-01",
+        parent: "b".repeat(40),
+      },
+    ]);
+
+    gh.compareCommits.mockResolvedValue({
+      files: [
+        { filename: "a.ts", status: "added", additions: 1, deletions: 0 },
+      ],
+    });
+    const compare = await app.request(
+      `${P}/compare?base=${"b".repeat(40)}&head=${"a".repeat(40)}`,
+    );
+    expect(await compare.json()).toEqual([
+      {
+        filename: "a.ts",
+        status: "added",
+        additions: 1,
+        deletions: 0,
+        patch: null,
+      },
+    ]);
+    expect((await app.request(`${P}/compare?base=x&head=y`)).status).toBe(400);
+
+    const ref = "a".repeat(40);
+    gh.getFileContent.mockResolvedValue({
+      type: "file",
+      content: Buffer.from("one\ntwo\n").toString("base64"),
+    });
+    expect(
+      await (
+        await app.request(`${P}/content?path=src/a%20b.ts&ref=${ref}`)
+      ).json(),
+    ).toEqual({ content: "one\ntwo\n" });
+    expect(gh.getFileContent).toHaveBeenCalledWith(
+      "gho_access",
+      "acme",
+      "web",
+      "src/a b.ts",
+      ref,
+    );
+    gh.getFileContent.mockResolvedValue({
+      type: "file",
+      content: Buffer.from("a\0b").toString("base64"),
+    });
+    expect(
+      await (await app.request(`${P}/content?path=x.bin&ref=${ref}`)).json(),
+    ).toEqual({ content: null });
   });
 
   it("posts the review to GitHub as the user and requires a body unless approving", async () => {

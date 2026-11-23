@@ -5,7 +5,10 @@ import {
   addPullRequestComment,
   type ClosedWindow,
   disconnectReviews,
+  comparePullRequestCommits,
   getPullRequest,
+  getPullRequestCommits,
+  getPullRequestFileContent,
   getPullRequestChecks,
   getPullRequestConversation,
   getPullRequestFiles,
@@ -65,6 +68,34 @@ export const usePullRequestFiles = (ref: PullRef, enabled: boolean) =>
     queryKey: pullKey(ref, "files"),
     queryFn: () => getPullRequestFiles(ref),
     enabled,
+  });
+export const usePullRequestCommits = (ref: PullRef, enabled: boolean) =>
+  useQuery({
+    queryKey: pullKey(ref, "commits"),
+    queryFn: () => getPullRequestCommits(ref),
+    enabled,
+  });
+export const useComparedFiles = (
+  ref: PullRef,
+  range: { base: string; head: string } | null,
+) =>
+  useQuery({
+    queryKey: pullKey(ref, `compare-${range?.base}-${range?.head}`),
+    queryFn: () => comparePullRequestCommits(ref, range!.base, range!.head),
+    enabled: range !== null,
+  });
+// A file's text at a commit never changes, so it is fetched once.
+export const useFileContent = (
+  ref: PullRef,
+  path: string,
+  sha: string | undefined,
+  enabled: boolean,
+) =>
+  useQuery({
+    queryKey: pullKey(ref, `content-${sha}-${path}`),
+    queryFn: () => getPullRequestFileContent(ref, path, sha!),
+    enabled: enabled && !!sha,
+    staleTime: Number.POSITIVE_INFINITY,
   });
 export const usePullRequestChecks = (ref: PullRef) =>
   useQuery({

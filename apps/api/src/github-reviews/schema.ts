@@ -28,6 +28,13 @@ export const pullParams = z.object({
   number: z.string().regex(/^\d+$/),
 });
 
+const sha = z.string().regex(/^[0-9a-f]{7,40}$/i);
+export const compareQuery = z.object({ base: sha, head: sha });
+export const contentQuery = z.object({
+  path: z.string().min(1).max(1024),
+  ref: sha,
+});
+
 export const reviewBody = z
   .object({
     event: z.enum(["APPROVE", "REQUEST_CHANGES", "COMMENT"]),

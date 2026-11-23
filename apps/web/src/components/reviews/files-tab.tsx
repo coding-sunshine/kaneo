@@ -1,19 +1,34 @@
-import { File, ListTree } from "lucide-react";
+import { ListTree } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { CommitsPicker } from "@/components/reviews/commits-picker";
+import {
+  DEFAULT_DIFF_OPTIONS,
+  DiffOptionsMenu,
+} from "@/components/reviews/diff-options-menu";
+import { DiffTooLargeBanner } from "@/components/reviews/diff-too-large-banner";
 import { FileDiff } from "@/components/reviews/file-diff";
-import type { DiffLayout } from "@/components/reviews/patch-diff";
-import { ShortcutKeys } from "@/components/shortcuts/shortcut-keys";
-import { Button } from "@/components/ui/button";
+import { FileIcon } from "@/components/reviews/file-icon";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { PullRef } from "@/fetchers/github-reviews/github-reviews";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
+  useComparedFiles,
+  usePullRequest,
+  usePullRequestCommits,
   usePullRequestConversation,
   usePullRequestFiles,
 } from "@/hooks/queries/github-reviews/use-github-reviews";
+import type { CommitRange } from "@/lib/commit-range";
 import { useShortcut } from "@/lib/shortcuts/use-shortcut";
+
+// GitHub lists at most this many commits of a pull request.
+const COMMITS_CAP = 250;
+// Fetching every file's text up front is a request per file; above this the
+// text is fetched when a separator is opened and the trailing one waits for it.
+// ponytail: a flat cap, replace it with fetching only the files near the viewport.
+const PREFETCH_LIMIT = 40;
 
 export function FilesTab({
   pullRef,
@@ -26,16 +41,33 @@ export function FilesTab({
   onReviewedChange: (filename: string, reviewed: boolean) => void;
 }) {
   const { t } = useTranslation();
-  const files = usePullRequestFiles(pullRef, true);
+  const pull = usePullRequest(pullRef);
+  const commits = usePullRequestCommits(pullRef, true);
+  const [range, setRange] = useState<CommitRange | null>(null);
+  const picked = range && commits.data ? commits.data : null;
+  const scope =
+    picked && range
+      ? {
+          base: picked[range.from].parent ?? picked[range.from].sha,
+          head: picked[range.to].sha,
+        }
+      : null;
+  const allFiles = usePullRequestFiles(pullRef, true);
+  const compared = useComparedFiles(pullRef, scope);
+  const files = scope ? compared : allFiles;
   const conversation = usePullRequestConversation(pullRef);
-  const [chosen, setChosen] = useState<DiffLayout>("unified");
+  const [options, setOptions] = useState(DEFAULT_DIFF_OPTIONS);
   const [query, setQuery] = useState("");
   // Split needs the width; narrow screens always read unified.
   const narrow = useIsMobile();
-  const layout = narrow ? "unified" : chosen;
+  const layout = narrow ? "unified" : options.layout;
   useShortcut(
     "toggleLayout",
-    () => setChosen((value) => (value === "split" ? "unified" : "split")),
+    () =>
+      setOptions((value) => ({
+        ...value,
+        layout: value.layout === "split" ? "unified" : "split",
+      })),
     { enabled: !narrow },
   );
 
@@ -58,8 +90,10 @@ export function FilesTab({
     (entry) => entry.kind === "review_comment",
   );
   const needle = query.trim().toLowerCase();
-  const shown = files.data.filter((file) =>
-    file.filename.toLowerCase().includes(needle),
+  const shown = files.data.filter(
+    (file) =>
+      file.filename.toLowerCase().includes(needle) &&
+      !(options.hideReviewed && reviewed.includes(file.filename)),
   );
   return (
     <div className="@container flex flex-col gap-3 px-4 pb-4">
@@ -71,27 +105,23 @@ export function FilesTab({
             {files.data.length}
           </span>
         </span>
-        <span className="flex-1" />
-        {!narrow && (
-          <div className="flex shrink-0 items-center gap-1.5">
-            {(["unified", "split"] as const).map((value) => (
-              <Button
-                key={value}
-                size="xs"
-                variant="outline"
-                aria-pressed={layout === value}
-                onClick={() => setChosen(value)}
-                className={
-                  layout === value ? "bg-accent" : "text-muted-foreground"
-                }
-              >
-                {t(`workspace:reviews.detail.layout.${value}`)}
-              </Button>
-            ))}
-            <ShortcutKeys id="toggleLayout" />
-          </div>
+        {commits.data && commits.data.length > 0 && (
+          <CommitsPicker
+            commits={commits.data}
+            range={range}
+            onRangeChange={setRange}
+          />
         )}
+        <span className="flex-1" />
+        <DiffOptionsMenu
+          options={options}
+          onChange={(patch) => setOptions((value) => ({ ...value, ...patch }))}
+          canSplit={!narrow}
+        />
       </div>
+      {commits.data && commits.data.length >= COMMITS_CAP && pull.data && (
+        <DiffTooLargeBanner url={pull.data.url} shown={commits.data.length} />
+      )}
       {/* Linear keeps the file list in a column beside the diffs when there is room. */}
       <div className="grid gap-3 @4xl:grid-cols-[16rem_minmax(0,1fr)]">
         <nav
@@ -114,19 +144,20 @@ export function FilesTab({
                   title={file.filename}
                   className="flex h-8 items-center gap-2 rounded-md px-2 hover:bg-accent"
                 >
-                  <File
-                    aria-hidden
-                    className="size-3.5 shrink-0 text-muted-foreground"
-                  />
+                  <FileIcon filename={file.filename} />
                   <span className="min-w-0 flex-1 truncate">
                     {file.filename.split("/").pop()}
                   </span>
-                  <span className="shrink-0 text-success-foreground tabular-nums">
-                    +{file.additions}
-                  </span>
-                  <span className="shrink-0 text-destructive-foreground tabular-nums">
-                    -{file.deletions}
-                  </span>
+                  {options.showCounts && (
+                    <>
+                      <span className="shrink-0 text-success-foreground tabular-nums">
+                        +{file.additions}
+                      </span>
+                      <span className="shrink-0 text-destructive-foreground tabular-nums">
+                        -{file.deletions}
+                      </span>
+                    </>
+                  )}
                 </a>
               </li>
             ))}
@@ -141,8 +172,13 @@ export function FilesTab({
           {shown.map((file) => (
             <FileDiff
               key={file.filename}
+              pullRef={pullRef}
+              headSha={scope?.head ?? pull.data?.headSha}
               file={file}
               layout={layout}
+              wrap={options.wrap}
+              showCounts={options.showCounts}
+              prefetch={files.data.length <= PREFETCH_LIMIT}
               comments={inline.filter((entry) => entry.path === file.filename)}
               reviewed={reviewed.includes(file.filename)}
               onReviewedChange={(value) =>

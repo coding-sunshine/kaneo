@@ -22,6 +22,7 @@ import { PullRequestStatusIcon } from "@/components/task/task-pull-requests/pull
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { PullRef } from "@/fetchers/github-reviews/github-reviews";
+import { useReviewedFiles } from "@/hooks/use-reviewed-files";
 import { usePullRequest } from "@/hooks/queries/github-reviews/use-github-reviews";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 
@@ -36,13 +37,12 @@ export function PullRequestPage({
 }) {
   const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>("overview");
-  // ponytail: reviewed files last until the page closes; persisting them is in todo.json.
-  const [reviewed, setReviewed] = useState<string[]>([]);
   const expanded = useUserPreferencesStore((state) => state.reviewsExpanded);
   const setExpanded = useUserPreferencesStore(
     (state) => state.setReviewsExpanded,
   );
   const pull = usePullRequest(pullRef);
+  const [reviewed, setReviewed] = useReviewedFiles(pullRef, pull.data?.headSha);
   const title = pull.data
     ? `${pull.data.title} #${pull.data.number}`
     : t("workspace:reviews.pageTitle");
@@ -174,13 +174,7 @@ export function PullRequestPage({
                 <FilesTab
                   pullRef={pullRef}
                   reviewed={reviewed}
-                  onReviewedChange={(filename, value) =>
-                    setReviewed((files) =>
-                      value
-                        ? [...files, filename]
-                        : files.filter((file) => file !== filename),
-                    )
-                  }
+                  onReviewedChange={setReviewed}
                 />
               )}
             </div>

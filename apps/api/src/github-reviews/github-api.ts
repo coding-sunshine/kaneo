@@ -297,6 +297,66 @@ export async function listPullFiles(
   return files;
 }
 
+export type GithubCommit = {
+  sha: string;
+  commit: { message: string; author: { date: string } | null };
+  parents: { sha: string }[];
+  author: { login: string; avatar_url: string } | null;
+};
+
+const COMMITS_PAGE = 100;
+// GitHub lists at most 250 commits of a pull request.
+const COMMITS_MAX_PAGES = 3;
+
+export async function listPullCommits(
+  token: string,
+  owner: string,
+  repo: string,
+  number: string,
+) {
+  const commits: GithubCommit[] = [];
+  for (let page = 1; page <= COMMITS_MAX_PAGES; page++) {
+    const batch = await githubRequest<GithubCommit[]>(
+      token,
+      `${pullPath(owner, repo, number)}/commits?per_page=${COMMITS_PAGE}&page=${page}`,
+    );
+    commits.push(...batch);
+    if (batch.length < COMMITS_PAGE) break;
+  }
+  return commits;
+}
+
+// ponytail: the compare endpoint returns at most 300 files; page it if ranges get that wide.
+export const compareCommits = (
+  token: string,
+  owner: string,
+  repo: string,
+  base: string,
+  head: string,
+) =>
+  githubRequest<{ files?: GithubFile[] }>(
+    token,
+    `/repos/${owner}/${repo}/compare/${base}...${head}?per_page=300`,
+  );
+
+export type GithubContent = {
+  type: string;
+  encoding?: string;
+  content?: string;
+};
+
+export const getFileContent = (
+  token: string,
+  owner: string,
+  repo: string,
+  path: string,
+  ref: string,
+) =>
+  githubRequest<GithubContent | GithubContent[]>(
+    token,
+    `/repos/${owner}/${repo}/contents/${path.split("/").map(encodeURIComponent).join("/")}?ref=${encodeURIComponent(ref)}`,
+  );
+
 export type GithubCheckRun = {
   name: string;
   status: string;

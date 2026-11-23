@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vite-plus/test";
-import { isCommentOnLine, parsePatch, toSplitRows } from "./diff-parser";
+import {
+  expandGaps,
+  isCommentOnLine,
+  parsePatch,
+  splitFileText,
+  toSplitRows,
+} from "./diff-parser";
 
 const PATCH = [
   "@@ -10,4 +20,5 @@ fn",
@@ -104,5 +110,43 @@ describe("isCommentOnLine", () => {
       isCommentOnLine({ path: "f", line: null, side: "RIGHT" }, add, "RIGHT"),
     ).toBe(false);
     expect(isCommentOnLine(on(6, "RIGHT"), null, "RIGHT")).toBe(false);
+  });
+});
+
+describe("expandGaps", () => {
+  const FILE = ["a", "b", "c", "d", "e", "f", "g", "h"];
+  const patch = "@@ -4,2 +4,2 @@\n d\n-e\n+E";
+  const lines = parsePatch(patch);
+
+  it("keeps the lines and adds a trailing separator when the length is known", () => {
+    const out = expandGaps(lines, FILE, new Set());
+    expect(out[0].skipped).toBe(3);
+    expect(out.at(-1)).toMatchObject({ kind: "hunk", skipped: 3 });
+  });
+
+  it("returns the patch as it is while the file text is unknown", () => {
+    expect(expandGaps(lines, null, new Set())).toBe(lines);
+  });
+
+  it("fills an opened gap with numbered context lines", () => {
+    const out = expandGaps(lines, FILE, new Set([0, lines.length]));
+    const ctx = out.filter((line) => line.kind === "ctx");
+    expect(ctx.map((line) => [line.newNo, line.text])).toEqual([
+      [1, "a"],
+      [2, "b"],
+      [3, "c"],
+      [4, "d"],
+      [6, "f"],
+      [7, "g"],
+      [8, "h"],
+    ]);
+    expect(out.every((line) => line.kind !== "hunk" || !line.skipped)).toBe(
+      true,
+    );
+    expect(new Set(out.map((line) => line.id)).size).toBe(out.length);
+  });
+
+  it("splits file text without a phantom last line", () => {
+    expect(splitFileText("a\nb\n")).toEqual(["a", "b"]);
   });
 });

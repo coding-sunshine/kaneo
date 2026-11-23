@@ -13,6 +13,9 @@ import { deleteConnection } from "./connection";
 import { getPullRequest } from "./controllers/get-pull-request";
 import { getPullRequestChecks } from "./controllers/get-pull-request-checks";
 import { listPullRequestConversation } from "./controllers/list-pull-request-conversation";
+import { comparePullRequestCommits } from "./controllers/compare-pull-request-commits";
+import { getPullRequestFileContent } from "./controllers/get-file-content";
+import { listPullRequestCommits } from "./controllers/list-pull-request-commits";
 import { listPullRequestFiles } from "./controllers/list-pull-request-files";
 import { addComment } from "./controllers/add-comment";
 import { listReviewerCandidates } from "./controllers/list-reviewer-candidates";
@@ -23,6 +26,8 @@ import { submitReview } from "./controllers/submit-review";
 import {
   callbackQuery,
   commentBody,
+  compareQuery,
+  contentQuery,
   connectQuery,
   listQuery,
   mergeBody,
@@ -32,7 +37,9 @@ import {
 } from "./schema";
 import {
   checksSchema,
+  commitsSchema,
   conversationSchema,
+  fileContentSchema,
   disconnectedSchema,
   filesSchema,
   mergedSchema,
@@ -163,6 +170,66 @@ const filesRoute = createRoute({
   request: { params: pullParams },
   responses: {
     200: jsonResponse("List changed files", filesSchema),
+    403: needsSession,
+    404: errorResponse(
+      "Pull request not found or not visible to the Kaneo GitHub App",
+    ),
+    409: needsGithub,
+  },
+});
+
+const commitsRoute = createRoute({
+  method: "get",
+  operationId: "listGithubPullRequestCommits",
+  path: "/pulls/{owner}/{repo}/{number}/commits",
+  tags,
+  summary: "List commits",
+  description:
+    "Commits of the pull request, oldest first. GitHub returns at most 250.",
+  middleware: [requireUserSession] as const,
+  request: { params: pullParams },
+  responses: {
+    200: jsonResponse("List commits", commitsSchema),
+    403: needsSession,
+    404: errorResponse(
+      "Pull request not found or not visible to the Kaneo GitHub App",
+    ),
+    409: needsGithub,
+  },
+});
+
+const compareRoute = createRoute({
+  method: "get",
+  operationId: "compareGithubPullRequestCommits",
+  path: "/pulls/{owner}/{repo}/{number}/compare",
+  tags,
+  summary: "Changed files between two commits",
+  description:
+    "Files changed from base to head, to scope the diff to some of the pull request's commits.",
+  middleware: [requireUserSession] as const,
+  request: { params: pullParams, query: compareQuery },
+  responses: {
+    200: jsonResponse("Changed files between two commits", filesSchema),
+    403: needsSession,
+    404: errorResponse(
+      "Pull request not found or not visible to the Kaneo GitHub App",
+    ),
+    409: needsGithub,
+  },
+});
+
+const contentRoute = createRoute({
+  method: "get",
+  operationId: "getGithubPullRequestFileContent",
+  path: "/pulls/{owner}/{repo}/{number}/content",
+  tags,
+  summary: "Get a file's text at a commit",
+  description:
+    "The file's text at the given commit, used to expand unchanged lines. Content is null for binary or very large files.",
+  middleware: [requireUserSession] as const,
+  request: { params: pullParams, query: contentQuery },
+  responses: {
+    200: jsonResponse("File text", fileContentSchema),
     403: needsSession,
     404: errorResponse(
       "Pull request not found or not visible to the Kaneo GitHub App",
@@ -379,6 +446,29 @@ const githubReviews = apiRouter()
     const { owner, repo, number } = c.req.valid("param");
     return c.json(
       await listPullRequestFiles(c.get("userId"), owner, repo, number),
+      200,
+    );
+  })
+  .openapi(commitsRoute, async (c) => {
+    const { owner, repo, number } = c.req.valid("param");
+    return c.json(
+      await listPullRequestCommits(c.get("userId"), owner, repo, number),
+      200,
+    );
+  })
+  .openapi(compareRoute, async (c) => {
+    const { owner, repo } = c.req.valid("param");
+    const { base, head } = c.req.valid("query");
+    return c.json(
+      await comparePullRequestCommits(c.get("userId"), owner, repo, base, head),
+      200,
+    );
+  })
+  .openapi(contentRoute, async (c) => {
+    const { owner, repo } = c.req.valid("param");
+    const { path, ref } = c.req.valid("query");
+    return c.json(
+      await getPullRequestFileContent(c.get("userId"), owner, repo, path, ref),
       200,
     );
   })

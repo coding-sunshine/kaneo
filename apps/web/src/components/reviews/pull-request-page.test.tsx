@@ -20,6 +20,9 @@ const mocks = vi.hoisted(() => ({
   markReady: vi.fn(),
   link: vi.fn(),
   unlink: vi.fn(),
+  commits: [] as { sha: string; title: string; date: string; parent: string }[],
+  compare: vi.fn(),
+  content: "" as string | null,
 }));
 
 const basePull = {
@@ -68,6 +71,32 @@ vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => ({
         createdAt: "2026-01-01T00:00:00Z",
       },
     ],
+  }),
+  usePullRequestCommits: () => ({ data: mocks.commits }),
+  useComparedFiles: (_ref: unknown, range: unknown) => {
+    mocks.compare(range);
+    return {
+      data: [
+        {
+          filename: "scoped.ts",
+          status: "modified",
+          additions: 1,
+          deletions: 0,
+          patch: "@@ -1 +1 @@\n-x\n+y",
+        },
+      ],
+    };
+  },
+  useFileContent: (
+    _ref: unknown,
+    _path: string,
+    _sha: unknown,
+    enabled: boolean,
+  ) => ({
+    data:
+      enabled && mocks.content !== null
+        ? { content: mocks.content }
+        : undefined,
   }),
   usePullRequestFiles: () => ({
     data: [
@@ -151,6 +180,9 @@ const renderPage = () =>
 
 beforeEach(() => {
   mocks.pull = { ...basePull };
+  mocks.commits = [];
+  mocks.content = null;
+  mocks.compare.mockClear();
   mocks.submit.mockClear();
   mocks.merge.mockClear();
   mocks.requestReviewers.mockClear();
@@ -261,8 +293,8 @@ describe("PullRequestPage", () => {
         target: { value: "LIB/" },
       },
     );
-    expect(screen.getAllByText("lib/c.ts")).toHaveLength(1);
-    expect(screen.queryByText("a.ts")).toBeNull();
+    expect(screen.getAllByTitle("lib/c.ts").length).toBeGreaterThan(0);
+    expect(screen.queryAllByTitle("a.ts")).toHaveLength(0);
     fireEvent.change(
       screen.getByRole("searchbox", { name: "Filter files..." }),
       {
@@ -278,8 +310,105 @@ describe("PullRequestPage", () => {
     expect(container.querySelector("[data-layout=unified]")).not.toBeNull();
     fireEvent.keyDown(document.body, { key: "b", ctrlKey: true });
     expect(container.querySelector("[data-layout=split]")).not.toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Diff options" }));
     fireEvent.click(screen.getByRole("button", { name: "Unified" }));
     expect(container.querySelector("[data-layout=unified]")).not.toBeNull();
+  });
+
+  it("keeps the ticked files for this head commit after the page remounts", () => {
+    localStorage.clear();
+    const first = renderPage();
+    fireEvent.click(screen.getByRole("tab", { name: "Diff" }));
+    fireEvent.click(screen.getAllByRole("checkbox", { name: "Reviewed" })[0]);
+    first.unmount();
+    renderPage();
+    fireEvent.click(screen.getByRole("tab", { name: "Diff" }));
+    expect(
+      screen.getAllByRole("checkbox", { name: "Reviewed" })[0],
+    ).toBeChecked();
+    cleanup();
+    mocks.pull = { ...basePull, headSha: "def" };
+    renderPage();
+    fireEvent.click(screen.getByRole("tab", { name: "Diff" }));
+    expect(
+      screen.getAllByRole("checkbox", { name: "Reviewed" })[0],
+    ).not.toBeChecked();
+    localStorage.clear();
+  });
+
+  it("wraps lines and hides reviewed files from the Diff options menu", () => {
+    localStorage.clear();
+    const { container } = renderPage();
+    fireEvent.click(screen.getByRole("tab", { name: "Diff" }));
+    fireEvent.click(screen.getAllByRole("checkbox", { name: "Reviewed" })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Diff options" }));
+    fireEvent.click(screen.getByRole("switch", { name: "Wrap lines" }));
+    expect(container.querySelector("[data-layout]")?.className).not.toContain(
+      "overflow-x-auto",
+    );
+    expect(container.querySelectorAll("section")).toHaveLength(2);
+    fireEvent.click(screen.getByRole("switch", { name: "Hide reviewed" }));
+    expect(container.querySelectorAll("section")).toHaveLength(1);
+    fireEvent.click(
+      screen.getByRole("switch", { name: "Show changed lines per file" }),
+    );
+    expect(screen.queryByText("+1")).toBeNull();
+    localStorage.clear();
+  });
+
+  it("opens an unchanged-lines separator and shows a trailing one", () => {
+    mocks.content = "1\n2\n3\n4\n5";
+    renderPage();
+    fireEvent.click(screen.getByRole("tab", { name: "Diff" }));
+    // a.ts changes line 1 of 5: only a trailing separator.
+    const before = screen.getAllByRole("button", { name: "4 unchanged lines" });
+    fireEvent.click(before[0]);
+    expect(
+      screen.getAllByRole("button", { name: "4 unchanged lines" }),
+    ).toHaveLength(before.length - 1);
+  });
+
+  it("scopes the diff to the commits picked in the Commits list", () => {
+    mocks.commits = [
+      {
+        sha: "a".repeat(40),
+        title: "first",
+        date: "2026-01-01",
+        parent: "p".repeat(40),
+      },
+      {
+        sha: "b".repeat(40),
+        title: "second",
+        date: "2026-01-02",
+        parent: "a".repeat(40),
+      },
+    ];
+    renderPage();
+    fireEvent.click(screen.getByRole("tab", { name: "Diff" }));
+    fireEvent.click(screen.getByRole("tab", { name: /Commits/ }));
+    expect(screen.getByText("2 commits")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: /second/ }));
+    expect(mocks.compare).toHaveBeenLastCalledWith({
+      base: "a".repeat(40),
+      head: "b".repeat(40),
+    });
+    expect(screen.getAllByText("scoped.ts").length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole("button", { name: /All commits/ }));
+    expect(screen.queryByText("scoped.ts")).toBeNull();
+  });
+
+  it("warns when GitHub cannot return every commit", () => {
+    mocks.commits = Array.from({ length: 250 }, (_, i) => ({
+      sha: i.toString(16).padStart(40, "0"),
+      title: `c${i}`,
+      date: "2026-01-01",
+      parent: "p".repeat(40),
+    }));
+    renderPage();
+    fireEvent.click(screen.getByRole("tab", { name: "Diff" }));
+    expect(
+      screen.getByText("This review is too large to show in full"),
+    ).toBeInTheDocument();
   });
 
   it("leaves the Reviewers row out of a merged pull request without reviewers", () => {
