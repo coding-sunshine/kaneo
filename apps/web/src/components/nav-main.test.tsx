@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import {
   afterEach,
   beforeEach,
@@ -30,9 +30,14 @@ vi.mock("@/components/ui/sidebar", () => ({
   SidebarMenuItem: ({ children }: { children: React.ReactNode }) => (
     <li>{children}</li>
   ),
-  SidebarMenuButton: ({ children }: { children: React.ReactNode }) => (
-    <button type="button">{children}</button>
-  ),
+  SidebarMenuButton: ({
+    tooltip: _tooltip,
+    isActive: _isActive,
+    ...props
+  }: React.ComponentProps<"button"> & {
+    tooltip?: unknown;
+    isActive?: boolean;
+  }) => <button type="button" {...props} />,
 }));
 vi.mock("@/components/ui/collapsible", () => ({
   Collapsible: ({ children }: { children: React.ReactNode }) => (
@@ -65,7 +70,7 @@ const reviews = vi.hoisted(() => ({
 vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => ({
   useReviewsStatus: () => ({ data: { state: reviews.state } }),
   useReviewsList: (_options: unknown, enabled: boolean) => ({
-    data: enabled ? { toReview: reviews.toReview } : undefined,
+    data: enabled ? { toReview: reviews.toReview, created: [] } : undefined,
   }),
 }));
 vi.mock("@/hooks/queries/agent/use-agent", () => ({
@@ -169,6 +174,25 @@ describe("NavMain customization", () => {
       "navigation:sidebar.views",
       "navigation:sidebar.members",
       "navigation:sidebar.more",
+    ]);
+  });
+
+  it("lists a hidden personal row in More, above the workspace rows", async () => {
+    useUserPreferencesStore.setState({
+      sidebar: { ...defaultSidebar, visibility: { reviews: "never" } },
+    });
+    render(<NavMain />);
+    expect(buttonLabels()).not.toContain("navigation:sidebar.reviews");
+    fireEvent.click(
+      screen.getByRole("button", { name: "navigation:sidebar.more" }),
+    );
+    const items = (await screen.findAllByRole("menuitem")).map(
+      (item) => item.textContent,
+    );
+    expect(items.slice(0, 3)).toEqual([
+      "navigation:sidebar.reviews",
+      "navigation:sidebar.members",
+      "navigation:sidebar.teams",
     ]);
   });
 });

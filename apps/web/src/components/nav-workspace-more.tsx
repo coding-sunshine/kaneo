@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/menu";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 
-// Linear keeps the workspace rows set to "Don't show" behind a "More" row.
+// Linear keeps the rows set to "Don't show" behind a "More" row.
 export function NavWorkspaceMore({
   hidden,
   onCustomize,

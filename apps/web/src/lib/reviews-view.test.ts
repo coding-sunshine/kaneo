@@ -176,6 +176,9 @@ describe("reviews view", () => {
       project: string | null = null,
     ) => ({
       taskId: "t",
+      workspaceId: "w",
+      linkId: "l",
+      manual: false,
       title: "",
       priority,
       team: { id: team, name: team },

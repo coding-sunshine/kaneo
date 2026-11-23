@@ -91,8 +91,9 @@ export function NavMain() {
             <SidebarGroupContent>
               <SidebarMenu className="gap-px">
                 {rows(workspace.shown)}
+                {/* Linear lists hidden personal rows in More, above the workspace ones. */}
                 <NavWorkspaceMore
-                  hidden={workspace.hidden}
+                  hidden={[...personal.hidden, ...workspace.hidden]}
                   onCustomize={customize}
                 />
               </SidebarMenu>
