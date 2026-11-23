@@ -61,10 +61,12 @@ import { useGetColumns } from "@/hooks/queries/column/use-get-columns";
 import { CreateTaskTemplatePicker } from "@/components/shared/modals/create-task-template-picker";
 import type { IssueTemplate } from "@/components/project/issue-templates/issue-template-dialog";
 import {
-  clearCreateTaskDraft,
-  loadCreateTaskDraft,
-  saveCreateTaskDraft,
+  fromDraft,
+  toDraftInput,
 } from "@/components/shared/modals/create-task-draft";
+import type { TaskDraft } from "@/fetchers/task-draft/task-drafts";
+import { useDeleteTaskDraft } from "@/hooks/mutations/task-draft/use-delete-task-draft";
+import { useSaveTaskDraft } from "@/hooks/mutations/task-draft/use-save-task-draft";
 import { getColumnIcon } from "@/lib/column";
 import { getStatusDisplayLabel } from "@/lib/i18n/domain";
 import useCreateLabel from "@/hooks/mutations/label/use-create-label";
@@ -104,6 +106,8 @@ type CreateTaskModalProps = {
   instant?: boolean;
   /** Starting values, e.g. "New issue from comment". */
   prefill?: CreateIssueDraft;
+  /** A saved draft to continue; creating the issue deletes it. */
+  savedDraft?: TaskDraft;
 };
 
 type Priority = "no-priority" | "low" | "medium" | "high" | "urgent";
@@ -162,6 +166,7 @@ function CreateTaskModalContent({
   projectId,
   instant = false,
   prefill,
+  savedDraft,
 }: CreateTaskModalProps) {
   const { t } = useTranslation();
   const { project, setProject } = useProjectStore();
@@ -368,11 +373,15 @@ function CreateTaskModalContent({
 
   const workspaceIdForDraft = workspace?.id;
   useEffect(() => {
-    if (!open || !workspaceIdForDraft || prefill || draftRestoredRef.current)
+    if (
+      !open ||
+      !workspaceIdForDraft ||
+      !savedDraft ||
+      draftRestoredRef.current
+    )
       return;
     draftRestoredRef.current = true;
-    const draft = loadCreateTaskDraft(workspaceIdForDraft);
-    if (!draft) return;
+    const draft = fromDraft(savedDraft);
     setTitle(draft.title);
     setDescription(draft.description);
     setEditorVersion((version) => version + 1);
@@ -392,8 +401,10 @@ function CreateTaskModalContent({
     );
     setSelectedProjectId(draft.projectId);
     setCycleId(draft.cycleId);
-  }, [open, workspaceIdForDraft, prefill]);
+  }, [open, workspaceIdForDraft, savedDraft]);
 
+  const { mutateAsync: saveDraft } = useSaveTaskDraft(workspace?.id);
+  const { mutateAsync: deleteDraft } = useDeleteTaskDraft(workspace?.id);
   const { mutateAsync: createTask } = useCreateTask();
   const { mutateAsync: createRelation } = useCreateTaskRelation();
 
@@ -499,24 +510,30 @@ function CreateTaskModalContent({
   };
 
   const closeAndReset = () => {
-    if (workspace?.id) clearCreateTaskDraft(workspace.id);
     setDiscardConfirmationOpen(false);
     handleClose();
   };
 
-  const saveDraftAndClose = () => {
-    if (workspace?.id) {
-      saveCreateTaskDraft(workspace.id, {
-        title,
-        description,
-        priority,
-        assigneeId,
-        startDate: startDate?.toISOString() ?? null,
-        dueDate: dueDate?.toISOString() ?? null,
-        labels: labels.map(({ name, color }) => ({ name, color })),
-        projectId: resolvedProjectId,
-        cycleId: validCycleId,
+  const saveDraftAndClose = async () => {
+    if (!workspace?.id) return;
+    try {
+      await saveDraft({
+        id: savedDraft?.id,
+        input: toDraftInput({
+          title,
+          description,
+          priority,
+          assigneeId,
+          startDate: startDate?.toISOString() ?? null,
+          dueDate: dueDate?.toISOString() ?? null,
+          labels: labels.map(({ name, color }) => ({ name, color })),
+          projectId: resolvedProjectId,
+          cycleId: validCycleId,
+        }),
       });
+    } catch {
+      toast.error(t("common:modals.createTask.saveDraftFailed"));
+      return;
     }
     setDiscardConfirmationOpen(false);
     handleClose();
@@ -734,7 +751,11 @@ function CreateTaskModalContent({
       }
 
       stagedAssetsRef.current = [];
-      if (workspace?.id) clearCreateTaskDraft(workspace.id);
+      if (savedDraft) {
+        deleteDraft(savedDraft.id).catch((error) =>
+          console.error("Failed to delete draft:", error),
+        );
+      }
       if (!activeRef.current) return;
       syncTaskIntoProject(savedTask);
       toast.success(t("common:modals.createTask.successCreated"), {

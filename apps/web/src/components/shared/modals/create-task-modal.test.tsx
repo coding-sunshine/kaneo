@@ -41,6 +41,8 @@ function createWrapper() {
 
 const useLocation = vi.fn();
 const deleteTask = vi.fn(async () => {});
+const saveDraft = vi.fn(async () => ({}));
+const deleteDraft = vi.fn(async () => ({}));
 const createRelation = vi.fn(async () => ({}));
 const updateTask = vi.fn(async (input: Record<string, unknown>) => input);
 const setProject = vi.fn();
@@ -127,6 +129,14 @@ vi.mock("@/components/task/task-description-editor", () => ({
       />
     );
   },
+}));
+
+vi.mock("@/hooks/mutations/task-draft/use-save-task-draft", () => ({
+  useSaveTaskDraft: () => ({ mutateAsync: saveDraft }),
+}));
+
+vi.mock("@/hooks/mutations/task-draft/use-delete-task-draft", () => ({
+  useDeleteTaskDraft: () => ({ mutateAsync: deleteDraft }),
 }));
 
 vi.mock("@/hooks/mutations/label/use-create-label", () => ({
@@ -337,18 +347,20 @@ describe("CreateTaskModal", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("saves an unsaved issue as a draft and restores it on reopen", async () => {
+  it("saves an unsaved issue as a draft on the server", async () => {
     useLocation.mockReturnValue({
       pathname: "/dashboard/workspace/workspace-1/project/project-1/board",
     });
     const onClose = vi.fn();
-    const first = render(<CreateTaskModal open onClose={onClose} />, {
+    render(<CreateTaskModal open onClose={onClose} />, {
       wrapper: createWrapper(),
     });
-    const placeholder = "common:modals.createTask.taskTitlePlaceholder";
-    fireEvent.change(screen.getByPlaceholderText(placeholder), {
-      target: { value: "Half written" },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText(
+        "common:modals.createTask.taskTitlePlaceholder",
+      ),
+      { target: { value: "Half written" } },
+    );
     const backdrop = document.querySelector('[data-slot="dialog-backdrop"]');
     fireEvent.pointerDown(backdrop as Element);
     fireEvent.pointerUp(backdrop as Element);
@@ -356,17 +368,42 @@ describe("CreateTaskModal", () => {
     fireEvent.click(
       await screen.findByText("common:modals.createTask.saveDraftButton"),
     );
-    expect(onClose).toHaveBeenCalledTimes(1);
-    first.unmount();
+    await vi.waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+    expect(saveDraft).toHaveBeenCalledWith({
+      id: undefined,
+      input: expect.objectContaining({
+        title: "Half written",
+        projectId: "project-1",
+      }),
+    });
+  });
 
-    render(<CreateTaskModal open onClose={vi.fn()} />, {
+  it("restores a saved draft and deletes it once the issue is created", async () => {
+    useLocation.mockReturnValue({
+      pathname: "/dashboard/workspace/workspace-1/project/project-1/board",
+    });
+    const savedDraft = {
+      id: "draft-1",
+      workspaceId: "workspace-1",
+      projectId: "project-1",
+      title: "Continue me",
+      description: "",
+      properties: { priority: "high" },
+      createdAt: "2026-08-05T00:00:00.000Z",
+      updatedAt: "2026-08-05T00:00:00.000Z",
+    };
+    render(<CreateTaskModal open onClose={vi.fn()} savedDraft={savedDraft} />, {
       wrapper: createWrapper(),
     });
     await vi.waitFor(() =>
-      expect(screen.getByPlaceholderText(placeholder)).toHaveValue(
-        "Half written",
-      ),
+      expect(
+        screen.getByPlaceholderText(
+          "common:modals.createTask.taskTitlePlaceholder",
+        ),
+      ).toHaveValue("Continue me"),
     );
+    submit();
+    await vi.waitFor(() => expect(deleteDraft).toHaveBeenCalledWith("draft-1"));
   });
 
   it("applies a template's defaults and its status when creating", async () => {

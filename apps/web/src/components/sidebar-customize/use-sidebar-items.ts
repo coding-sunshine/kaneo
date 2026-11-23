@@ -2,6 +2,7 @@ import {
   Activity,
   Box,
   CircleUserRound,
+  FilePen,
   FileText,
   GitPullRequest,
   Inbox,
@@ -16,6 +17,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { isSnoozed } from "@/components/inbox/snooze";
 import type { SidebarItemId } from "@/components/sidebar-customize/sidebar-items";
+import { useTaskDrafts } from "@/hooks/queries/task-draft/use-task-drafts";
 import { useHasAgent } from "@/hooks/queries/agent/use-agent";
 import { usePendingInvitations } from "@/hooks/queries/invitation/use-pending-invitations";
 import useGetNotifications from "@/hooks/queries/notification/use-get-notifications";
@@ -40,6 +42,7 @@ export function useSidebarItems() {
   const { data: invitations = [] } = usePendingInvitations();
   const { data: notifications = [] } = useGetNotifications(workspace?.id);
   const hasAgent = useHasAgent();
+  const { data: drafts = [] } = useTaskDrafts(workspace?.id);
 
   if (!workspace) return null;
 
@@ -95,6 +98,13 @@ export function useSidebarItems() {
           ),
         ]
       : []),
+    item(
+      "drafts",
+      t("navigation:sidebar.drafts"),
+      FilePen,
+      `${homeUrl}/drafts`,
+      drafts.length,
+    ),
   ];
 
   const workspaceItems = [

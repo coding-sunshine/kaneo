@@ -84,6 +84,7 @@ function CommandPalette() {
   const isCreateTaskOpen = useCreateIssueStore((state) => state.open);
   const setIsCreateTaskOpen = useCreateIssueStore((state) => state.setOpen);
   const createIssueDraft = useCreateIssueStore((state) => state.draft);
+  const savedDraft = useCreateIssueStore((state) => state.savedDraft);
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
   const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false);
   const projectIdFromRoute =
@@ -348,6 +349,7 @@ function CommandPalette() {
         open={isCreateTaskOpen}
         projectId={createIssueDraft?.projectId ?? projectIdFromRoute}
         prefill={createIssueDraft ?? undefined}
+        savedDraft={savedDraft ?? undefined}
         status={isBacklogView ? "planned" : undefined}
         onClose={() => setIsCreateTaskOpen(false)}
         instant

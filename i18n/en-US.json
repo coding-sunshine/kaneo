@@ -139,7 +139,7 @@
 				"createButton": "Create issue",
 				"discardTitle": "Discard issue?",
 				"discardDescription": "Save it as a draft to continue later, or discard it.",
-				"discardButton": "Discard issue",
+				"discardButton": "Discard",
 				"untitledTask": "Untitled issue",
 				"labelColors": {
 					"stone": "Stone",
@@ -157,7 +157,8 @@
 					"orchid": "Orchid"
 				},
 				"template": "Template",
-				"saveDraftButton": "Save draft"
+				"saveDraftButton": "Save as draft",
+				"saveDraftFailed": "Could not save the draft"
 			}
 		},
 		"editor": {
@@ -3108,7 +3109,8 @@
 			"agent": "Agent",
 			"loops": "Loops",
 			"pulse": "Pulse",
-			"teams": "Teams"
+			"teams": "Teams",
+			"drafts": "Drafts"
 		},
 		"projectList": {
 			"viewProject": "View Project",
@@ -3617,6 +3619,13 @@
 			"copyLink": "Copy link",
 			"linkCopied": "Link copied to clipboard",
 			"copyFailed": "Couldn't copy the link"
+		},
+		"drafts": {
+			"title": "Drafts",
+			"untitled": "Untitled draft",
+			"delete": "Delete draft",
+			"empty": "No drafts",
+			"emptyHint": "Close the new issue dialog and choose Save as draft to keep one here."
 		}
 	},
 	"notifications": {
