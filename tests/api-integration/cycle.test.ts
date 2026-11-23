@@ -148,5 +148,19 @@ describe("API integration: cycles", () => {
       .from(schema.cycleTable)
       .where(eq(schema.cycleTable.id, first.id));
     expect(after.completedAt).not.toBeNull();
+    const history = await db
+      .select()
+      .from(schema.activityTable)
+      .where(eq(schema.activityTable.type, "cycle_changed"));
+    expect(
+      history.map((a) => [a.taskId, a.userId, a.externalUserName, a.eventData]),
+    ).toEqual([
+      [
+        open.id,
+        null,
+        "Linear",
+        { fromCycle: first.number, toCycle: first.number + 1 },
+      ],
+    ]);
   });
 });

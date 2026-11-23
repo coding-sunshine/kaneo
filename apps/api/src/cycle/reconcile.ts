@@ -1,6 +1,7 @@
 import { and, asc, eq, gt, isNull, lte, sql } from "drizzle-orm";
 import db from "../database";
 import {
+  activityTable,
   columnTable,
   cycleTable,
   projectTable,
@@ -69,7 +70,7 @@ export async function reconcileCycles(projectId: string, now = new Date()) {
       if (cycle.completedAt || cycle.endsAt > now) continue;
       const next = cycles[i + 1];
       if (project.cycleAutoRollover && next) {
-        await tx
+        const moved = await tx
           .update(taskTable)
           .set({ cycleId: next.id })
           .where(
@@ -78,6 +79,18 @@ export async function reconcileCycles(projectId: string, now = new Date()) {
               isNull(taskTable.archivedAt),
               sql`${taskTable.status} not in (select ${columnTable.slug} from ${columnTable} where ${columnTable.projectId} = ${projectId} and ${columnTable.isFinal})`,
             ),
+          )
+          .returning({ id: taskTable.id });
+        // Same shape as imported Linear rollovers, so history reads
+        // "Linear moved from Cycle N to Cycle N+1".
+        if (moved.length > 0)
+          await tx.insert(activityTable).values(
+            moved.map(({ id }) => ({
+              taskId: id,
+              type: "cycle_changed",
+              externalUserName: "Linear",
+              eventData: { fromCycle: cycle.number, toCycle: next.number },
+            })),
           );
       }
       await tx
