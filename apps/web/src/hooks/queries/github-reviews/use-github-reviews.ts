@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  addPullRequestComment,
   disconnectReviews,
   getPullRequest,
   getPullRequestChecks,
@@ -7,6 +8,8 @@ import {
   getPullRequestFiles,
   getReviewsList,
   getReviewsStatus,
+  type MergeMethod,
+  mergePullRequest,
   type PullRef,
   type ReviewEvent,
   submitPullRequestReview,
@@ -70,14 +73,29 @@ export const usePullRequestConversation = (ref: PullRef) =>
     queryFn: () => getPullRequestConversation(ref),
   });
 
-export function useSubmitReview(ref: PullRef) {
+// Every write changes the conversation, review state or merge status, so the
+// pull request's queries are refetched together.
+function usePullMutation<T>(
+  ref: PullRef,
+  mutationFn: (input: T) => Promise<void>,
+) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (review: { event: ReviewEvent; body: string }) =>
-      submitPullRequestReview(ref, review),
+    mutationFn,
     onSuccess: () =>
       queryClient.invalidateQueries({
         queryKey: ["github-reviews", "pull", ref.owner, ref.repo, ref.number],
       }),
   });
 }
+
+export const useSubmitReview = (ref: PullRef) =>
+  usePullMutation(ref, (review: { event: ReviewEvent; body: string }) =>
+    submitPullRequestReview(ref, review),
+  );
+
+export const useAddPullRequestComment = (ref: PullRef) =>
+  usePullMutation(ref, (body: string) => addPullRequestComment(ref, body));
+
+export const useMergePullRequest = (ref: PullRef) =>
+  usePullMutation(ref, (method: MergeMethod) => mergePullRequest(ref, method));
