@@ -1,16 +1,14 @@
 import { useNavigate } from "@tanstack/react-router";
-import { BadgeInfo, Eye, Link, SquarePen } from "lucide-react";
+import { Eye, Link, SquarePen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
-  BADGE_LABELS,
   BADGEABLE,
   badgeOf,
-  type ItemBadge,
   VISIBILITY_LABELS,
   visibilityOf,
   visibilityOptions,
 } from "@/components/sidebar-customize/sidebar-items";
-import { BadgeSample } from "@/components/sidebar-customize/badge-sample";
+import { BadgeSubmenu } from "@/components/sidebar-customize/badge-submenu";
 import { MarkAllReadItem } from "@/components/sidebar-customize/mark-all-read-item";
 import type { SidebarNavItem } from "@/components/sidebar-customize/use-sidebar-items";
 import {
@@ -36,8 +34,6 @@ type SidebarRowProps = {
   onCustomize: () => void;
 };
 
-const BADGE_CHOICES: ItemBadge[] = ["count", "dot", "none"];
-
 /** A customizable top-level sidebar row with Linear's right-click menu. */
 export function SidebarRow({
   item,
@@ -51,12 +47,8 @@ export function SidebarRow({
   const setVisibility = useUserPreferencesStore(
     (state) => state.setSidebarVisibility,
   );
-  const setItemBadge = useUserPreferencesStore(
-    (state) => state.setSidebarItemBadge,
-  );
   const visibility = visibilityOf(item.id, sidebar.visibility);
   const badge = badgeOf(item.id, sidebar);
-  const override = sidebar.itemBadges[item.id];
   const count = item.count ?? 0;
 
   const copyLink = async () => {
@@ -115,40 +107,7 @@ export function SidebarRow({
             ))}
           </ContextMenuSubContent>
         </ContextMenuSub>
-        {BADGEABLE.has(item.id) ? (
-          <ContextMenuSub>
-            <ContextMenuSubTrigger>
-              <BadgeInfo aria-hidden="true" />
-              {t("navigation:customizeSidebar.badge")}
-            </ContextMenuSubTrigger>
-            <ContextMenuSubContent className="w-48">
-              <ContextMenuCheckboxItem
-                checked={!override}
-                onCheckedChange={() => setItemBadge(item.id, null)}
-                closeOnClick
-              >
-                {t("navigation:customizeSidebar.badgeDefault", {
-                  style: t(BADGE_LABELS[sidebar.badgeStyle]),
-                })}
-              </ContextMenuCheckboxItem>
-              {BADGE_CHOICES.map((choice) => (
-                <ContextMenuCheckboxItem
-                  key={choice}
-                  checked={override === choice}
-                  onCheckedChange={() => setItemBadge(item.id, choice)}
-                  closeOnClick
-                >
-                  {t(BADGE_LABELS[choice])}
-                  {choice === "none" ? null : (
-                    <span className="ms-auto flex items-center">
-                      <BadgeSample style={choice} />
-                    </span>
-                  )}
-                </ContextMenuCheckboxItem>
-              ))}
-            </ContextMenuSubContent>
-          </ContextMenuSub>
-        ) : null}
+        {BADGEABLE.has(item.id) ? <BadgeSubmenu id={item.id} /> : null}
         <ContextMenuItem onClick={onCustomize}>
           <SquarePen aria-hidden="true" />
           {t("navigation:customizeSidebar.open")}

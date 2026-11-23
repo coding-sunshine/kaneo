@@ -59,7 +59,7 @@ describe("CustomizeSidebarDialog", () => {
     fireEvent.click(projects);
     expect(
       (await screen.findAllByRole("menuitemradio")).map(
-        (item) => item.querySelector(".col-start-2")?.textContent,
+        (item) => item.querySelector(".col-start-1")?.textContent,
       ),
     ).toEqual(["Always show", "Don't show"]);
 

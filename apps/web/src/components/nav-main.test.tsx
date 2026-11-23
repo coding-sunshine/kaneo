@@ -58,22 +58,44 @@ vi.mock("@/hooks/queries/invitation/use-pending-invitations", () => ({
 vi.mock("@/hooks/queries/notification/use-get-notifications", () => ({
   default: () => ({ data: [] }),
 }));
+const reviews = vi.hoisted(() => ({
+  state: "connected" as string,
+  toReview: [] as unknown[],
+}));
+vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => ({
+  useReviewsStatus: () => ({ data: { state: reviews.state } }),
+  useReviewsList: (_options: unknown, enabled: boolean) => ({
+    data: enabled ? { toReview: reviews.toReview } : undefined,
+  }),
+}));
 vi.mock("@/hooks/queries/agent/use-agent", () => ({
   useHasAgent: () => false,
 }));
 
 const defaultSidebar = useUserPreferencesStore.getState().sidebar;
-beforeEach(() =>
+beforeEach(() => {
+  reviews.state = "connected";
+  reviews.toReview = [];
   useUserPreferencesStore.setState({
     codeReviewsEnabled: true,
     sidebar: defaultSidebar,
-  }),
-);
+  });
+});
 const buttonLabels = () =>
   screen.getAllByRole("button").map((button) => button.textContent);
 afterEach(cleanup);
 
 describe("NavMain reviews row", () => {
+  it("badges Reviews with the PRs awaiting review, and not when GitHub is disconnected", () => {
+    reviews.toReview = [{}, {}];
+    const { unmount } = render(<NavMain />);
+    expect(screen.getByText("2")).toBeTruthy();
+    unmount();
+    reviews.state = "disconnected";
+    render(<NavMain />);
+    expect(screen.queryByText("2")).toBeNull();
+  });
+
   it("shows Reviews after My issues and hides it when disabled", () => {
     const { unmount } = render(<NavMain />);
     const labels = screen

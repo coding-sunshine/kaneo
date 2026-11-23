@@ -18,12 +18,23 @@ export type SidebarSection = "personal" | "workspace";
 export type SidebarVisibility = "always" | "badged" | "never";
 export type BadgeStyle = "count" | "dot";
 export type ItemBadge = BadgeStyle | "none";
+/** Which inbox notifications feed the Inbox badge. */
+export type InboxCountMode = "all" | "priority" | "none";
 
 export type SidebarPrefs = {
   visibility: Partial<Record<SidebarItemId, SidebarVisibility>>;
   order: Partial<Record<SidebarSection, SidebarItemId[]>>;
   badgeStyle: BadgeStyle;
   itemBadges: Partial<Record<SidebarItemId, ItemBadge>>;
+  inboxCount: InboxCountMode;
+};
+
+export const DEFAULT_SIDEBAR_PREFS: SidebarPrefs = {
+  visibility: {},
+  order: {},
+  badgeStyle: "count",
+  itemBadges: {},
+  inboxCount: "all",
 };
 
 export const SIDEBAR_SECTIONS: Record<SidebarSection, SidebarItemId[]> = {
@@ -36,7 +47,7 @@ const HIDDEN_BY_DEFAULT = new Set<SidebarItemId>(["members", "teams"]);
 
 // "Show when badged" and the Badge submenu only make sense for a row that
 // has a count to show.
-export const BADGEABLE = new Set<SidebarItemId>(["inbox"]);
+export const BADGEABLE = new Set<SidebarItemId>(["inbox", "reviews"]);
 
 // Literal keys so the i18n tooling can see every label in use.
 export const VISIBILITY_LABELS = {
@@ -52,6 +63,7 @@ export const BADGE_LABELS = {
 } as const satisfies Record<ItemBadge, string>;
 
 export function visibilityOptions(id: SidebarItemId): SidebarVisibility[] {
+  if (id === "inbox") return ["always", "badged"];
   return BADGEABLE.has(id)
     ? ["always", "badged", "never"]
     : ["always", "never"];

@@ -3616,7 +3616,11 @@
 			"markAllRead": "Mark all as read",
 			"copyLink": "Copy link",
 			"linkCopied": "Link copied to clipboard",
-			"copyFailed": "Couldn't copy the link"
+			"copyFailed": "Couldn't copy the link",
+			"badgeFilter": "Filter...",
+			"includeInCount": "Include in count",
+			"countAll": "Priority & Other",
+			"countPriority": "Priority only"
 		}
 	},
 	"notifications": {
