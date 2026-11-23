@@ -3,7 +3,11 @@ import { useTranslation } from "react-i18next";
 import icons from "@/constants/project-icons";
 import { getColumnIcon } from "@/lib/column";
 import { cn } from "@/lib/cn";
-import { formatDateShort } from "@/lib/format";
+import {
+  formatDateMedium,
+  formatDateShort,
+  formatDateTime,
+} from "@/lib/format";
 import { getPriorityLabel } from "@/lib/i18n/domain";
 import { getPriorityIcon } from "@/lib/priority";
 import { TaskCustomFieldRows } from "../custom-fields/task-custom-field-rows";
@@ -70,6 +74,18 @@ export function PropertiesRail({
             </PropertyValue>
           </TaskStatusPopover>
         </PropertyRow>
+
+        {task.canceledAt && (
+          <PropertyRow label={t("tasks:properties.canceledAt")}>
+            <time
+              dateTime={task.canceledAt}
+              title={formatDateTime(task.canceledAt)}
+              className="flex h-7.5 min-w-0 items-center px-2 text-[13px] text-foreground"
+            >
+              {formatDateMedium(task.canceledAt)}
+            </time>
+          </PropertyRow>
+        )}
 
         <PropertyRow label={t("tasks:properties.team")}>
           {canMoveTask ? (

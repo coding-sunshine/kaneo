@@ -4176,7 +4176,8 @@
 			"cycle": "Cycle",
 			"addCycle": "Add to cycle",
 			"estimate": "Estimate",
-			"addEstimate": "Set estimate"
+			"addEstimate": "Set estimate",
+			"canceledAt": "Canceled"
 		},
 		"move": {
 			"title": "Move issue",

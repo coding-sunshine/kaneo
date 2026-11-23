@@ -1776,6 +1776,14 @@
               "isSubscribed": {
                 "type": "boolean",
                 "description": "Whether the caller follows the task. Detail view only."
+              },
+              "canceledAt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "description": "When the task entered a canceled status; null unless canceled. Detail view only."
               }
             },
             "required": [

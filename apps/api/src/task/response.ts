@@ -85,6 +85,10 @@ export const taskWithAssigneeSchema = taskSchema
     isSubscribed: z.boolean().optional().openapi({
       description: "Whether the caller follows the task. Detail view only.",
     }),
+    canceledAt: nullableResponseTimestamp.optional().openapi({
+      description:
+        "When the task entered a canceled status; null unless canceled. Detail view only.",
+    }),
   })
   .openapi("TaskWithAssignee");
 
