@@ -362,6 +362,8 @@ export type GithubCheckRun = {
   status: string;
   conclusion: string | null;
   html_url: string | null;
+  started_at?: string | null;
+  completed_at?: string | null;
 };
 
 export const listCheckRuns = (
@@ -512,8 +514,13 @@ export const requestReviewers = (
     { method: "POST", body: { reviewers } },
   );
 
-// REST has no way to take a pull request out of draft; only GraphQL does.
-export async function markReadyForReview(token: string, nodeId: string) {
+// REST can neither take a pull request out of draft nor put it back; only
+// GraphQL can.
+async function pullRequestMutation(
+  token: string,
+  mutation: "markPullRequestReadyForReview" | "convertPullRequestToDraft",
+  nodeId: string,
+) {
   const response = await fetch(`${API}/graphql`, {
     method: "POST",
     headers: {
@@ -522,7 +529,7 @@ export async function markReadyForReview(token: string, nodeId: string) {
     },
     body: JSON.stringify({
       query: `mutation($id: ID!) {
-        markPullRequestReadyForReview(input: { pullRequestId: $id }) {
+        ${mutation}(input: { pullRequestId: $id }) {
           pullRequest { isDraft }
         }
       }`,
@@ -547,3 +554,40 @@ export async function markReadyForReview(token: string, nodeId: string) {
     );
   }
 }
+
+export const markReadyForReview = (token: string, nodeId: string) =>
+  pullRequestMutation(token, "markPullRequestReadyForReview", nodeId);
+
+export const convertToDraft = (token: string, nodeId: string) =>
+  pullRequestMutation(token, "convertPullRequestToDraft", nodeId);
+
+export const closePull = (
+  token: string,
+  owner: string,
+  repo: string,
+  number: string,
+) =>
+  githubRequest<{ state: string }>(token, pullPath(owner, repo, number), {
+    method: "PATCH",
+    body: { state: "closed" },
+  });
+
+export const listRepoLabels = (token: string, owner: string, repo: string) =>
+  githubRequest<{ name: string; color: string }[]>(
+    token,
+    `/repos/${owner}/${repo}/labels?per_page=100`,
+  );
+
+// A pull request is an issue to GitHub, which owns the label list.
+export const setPullLabels = (
+  token: string,
+  owner: string,
+  repo: string,
+  number: string,
+  labels: string[],
+) =>
+  githubRequest<{ name: string }[]>(
+    token,
+    `/repos/${owner}/${repo}/issues/${number}/labels`,
+    { method: "PUT", body: { labels } },
+  );

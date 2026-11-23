@@ -95,6 +95,12 @@ export const pullRequestSchema = pullRequestSummarySchema.extend({
 
 export const reviewerCandidatesSchema = z.array(person);
 export const readySchema = z.object({ ok: z.literal(true) });
+export const draftSchema = z.object({ ok: z.literal(true) });
+export const closedSchema = z.object({ ok: z.literal(true) });
+export const labelsSetSchema = z.object({ ok: z.literal(true) });
+export const repoLabelsSchema = z.array(
+  z.object({ name: z.string(), color: z.string() }),
+);
 
 export const filesSchema = z.array(
   z.object({
@@ -128,6 +134,8 @@ export const checksSchema = z.object({
       name: z.string(),
       state: z.enum(["success", "failure", "pending"]),
       url: z.string().nullable(),
+      /** Only check runs know how long they took. */
+      durationSeconds: z.number().nullable(),
     }),
   ),
 });

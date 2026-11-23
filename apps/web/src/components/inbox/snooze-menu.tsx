@@ -7,7 +7,7 @@ import useSnoozeNotification from "@/hooks/mutations/notification/use-snooze-not
 import { formatDate } from "@/lib/format";
 import { getSnoozeOptions, parseSnooze } from "./snooze";
 
-const formatSnoozeDate = (date: Date) =>
+export const formatSnoozeDate = (date: Date) =>
   formatDate(date, {
     weekday: "short",
     day: "numeric",

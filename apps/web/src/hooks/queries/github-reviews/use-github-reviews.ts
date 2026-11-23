@@ -3,6 +3,10 @@ import createExternalLink from "@/fetchers/external-link/create-external-link";
 import deleteExternalLink from "@/fetchers/external-link/delete-external-link";
 import {
   addPullRequestComment,
+  closePullRequest,
+  convertPullRequestToDraft,
+  getRepoLabels,
+  setPullRequestLabels,
   type ClosedWindow,
   disconnectReviews,
   comparePullRequestCommits,
@@ -116,8 +120,16 @@ export const useReviewerCandidates = (ref: PullRef, enabled: boolean) =>
     staleTime: 5 * 60_000,
   });
 
+export const useRepoLabels = (ref: PullRef, enabled: boolean) =>
+  useQuery({
+    queryKey: ["github-reviews", "labels", ref.owner, ref.repo],
+    queryFn: () => getRepoLabels(ref),
+    enabled,
+    staleTime: 5 * 60_000,
+  });
+
 // Every write changes the conversation, review state or merge status, so the
-// pull request's queries are refetched together.
+// pull request's queries and the reviews list are refetched together.
 function usePullMutation<T>(
   ref: PullRef,
   mutationFn: (input: T) => Promise<void>,
@@ -126,9 +138,12 @@ function usePullMutation<T>(
   return useMutation({
     mutationFn,
     onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: ["github-reviews", "pull", ref.owner, ref.repo, ref.number],
-      }),
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["github-reviews", "pull", ref.owner, ref.repo, ref.number],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["github-reviews", "list"] }),
+      ]),
   });
 }
 
@@ -147,6 +162,15 @@ export const useRequestReviewers = (ref: PullRef) =>
   usePullMutation(ref, (reviewers: string[]) =>
     requestPullRequestReviewers(ref, reviewers),
   );
+
+export const useConvertToDraft = (ref: PullRef) =>
+  usePullMutation(ref, () => convertPullRequestToDraft(ref));
+
+export const useClosePullRequest = (ref: PullRef) =>
+  usePullMutation(ref, () => closePullRequest(ref));
+
+export const useSetPullRequestLabels = (ref: PullRef) =>
+  usePullMutation(ref, (labels: string[]) => setPullRequestLabels(ref, labels));
 
 export const useMarkPullRequestReady = (ref: PullRef) =>
   usePullMutation(ref, () => markPullRequestReady(ref));

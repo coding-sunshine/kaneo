@@ -74,6 +74,10 @@ export type ReviewerCandidates = InferResponseType<
   ReturnType<typeof pull>["reviewers"]["$get"],
   200
 >;
+export type RepoLabels = InferResponseType<
+  (typeof client)["github-reviews"]["repos"][":owner"][":repo"]["labels"]["$get"],
+  200
+>;
 export type MergeMethod = "merge" | "squash" | "rebase";
 export type ReviewEvent = "APPROVE" | "REQUEST_CHANGES" | "COMMENT";
 
@@ -181,5 +185,31 @@ export async function requestPullRequestReviewers(
 
 export async function markPullRequestReady(ref: PullRef) {
   const response = await pull(ref).ready.$post(param(ref));
+  if (!response.ok) throw await HttpError.fromResponse(response);
+}
+
+export async function convertPullRequestToDraft(ref: PullRef) {
+  const response = await pull(ref).draft.$post(param(ref));
+  if (!response.ok) throw await HttpError.fromResponse(response);
+}
+
+export async function closePullRequest(ref: PullRef) {
+  const response = await pull(ref).close.$post(param(ref));
+  if (!response.ok) throw await HttpError.fromResponse(response);
+}
+
+export async function getRepoLabels(ref: PullRef) {
+  const response = await client["github-reviews"].repos[":owner"][
+    ":repo"
+  ].labels.$get({ param: ref });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function setPullRequestLabels(ref: PullRef, labels: string[]) {
+  const response = await pull(ref).labels.$put({
+    ...param(ref),
+    json: { labels },
+  });
   if (!response.ok) throw await HttpError.fromResponse(response);
 }

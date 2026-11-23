@@ -31,6 +31,10 @@ const gh = vi.hoisted(() => ({
   listAssignees: vi.fn(),
   requestReviewers: vi.fn(),
   markReadyForReview: vi.fn(),
+  convertToDraft: vi.fn(),
+  closePull: vi.fn(),
+  listRepoLabels: vi.fn(),
+  setPullLabels: vi.fn(),
 }));
 vi.mock("../../apps/api/src/github-reviews/github-api", async (original) => ({
   ...(await original<object>()),
@@ -697,7 +701,7 @@ describe("pull request detail", () => {
     ).toEqual([false, true]);
     expect(await (await app.request(`${P}/checks`)).json()).toMatchObject({
       state: "failure",
-      checks: [{ name: "ci", state: "failure" }],
+      checks: [{ name: "ci", state: "failure", durationSeconds: null }],
     });
     const conversation = await (await app.request(`${P}/conversation`)).json();
     expect(conversation.map((entry: { id: string }) => entry.id)).toEqual([
@@ -932,6 +936,114 @@ describe("pull request detail", () => {
       new GithubApiError(403, "Resource not accessible by integration"),
     );
     expect((await post()).status).toBe(403);
+  });
+
+  it("converts to draft through the GraphQL node id and maps a refusal", async () => {
+    await connected();
+    gh.getPull.mockResolvedValue(pull);
+    gh.convertToDraft.mockResolvedValueOnce(undefined);
+    const post = () => app.request(`${P}/draft`, { method: "POST" });
+    expect((await post()).status).toBe(200);
+    expect(gh.convertToDraft).toHaveBeenLastCalledWith(
+      "gho_access",
+      "PR_node7",
+    );
+
+    const { GithubApiError } = await vi.importActual<
+      typeof import("../../apps/api/src/github-reviews/github-api")
+    >("../../apps/api/src/github-reviews/github-api");
+    gh.convertToDraft.mockRejectedValueOnce(
+      new GithubApiError(422, "Pull request is already a draft"),
+    );
+    expect((await post()).status).toBe(422);
+  });
+
+  it("closes a pull request as the user and maps a refusal", async () => {
+    await connected();
+    gh.closePull.mockResolvedValueOnce({ state: "closed" });
+    const post = () => app.request(`${P}/close`, { method: "POST" });
+    expect((await post()).status).toBe(200);
+    expect(gh.closePull).toHaveBeenLastCalledWith(
+      "gho_access",
+      "acme",
+      "web",
+      "7",
+    );
+
+    const { GithubApiError } = await vi.importActual<
+      typeof import("../../apps/api/src/github-reviews/github-api")
+    >("../../apps/api/src/github-reviews/github-api");
+    gh.closePull.mockRejectedValueOnce(
+      new GithubApiError(403, "Resource not accessible by integration"),
+    );
+    expect((await post()).status).toBe(403);
+  });
+
+  it("lists a repo's labels and replaces a pull request's labels", async () => {
+    await connected();
+    gh.listRepoLabels.mockResolvedValue([
+      { name: "bug", color: "d73a4a", id: 1 },
+      { name: "docs", color: "0075ca", id: 2 },
+    ]);
+    expect(
+      await (await app.request(`${BASE}/repos/acme/web/labels`)).json(),
+    ).toEqual([
+      { name: "bug", color: "d73a4a" },
+      { name: "docs", color: "0075ca" },
+    ]);
+    expect(gh.listRepoLabels).toHaveBeenCalledWith("gho_access", "acme", "web");
+
+    gh.setPullLabels.mockResolvedValue([{ name: "bug" }]);
+    const put = (body: object) =>
+      app.request(`${P}/labels`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    expect((await put({ labels: "bug" })).status).toBe(400);
+    expect((await put({ labels: [""] })).status).toBe(400);
+    expect(gh.setPullLabels).not.toHaveBeenCalled();
+    expect((await put({ labels: ["bug"] })).status).toBe(200);
+    expect(gh.setPullLabels).toHaveBeenCalledWith(
+      "gho_access",
+      "acme",
+      "web",
+      "7",
+      ["bug"],
+    );
+    expect((await put({ labels: [] })).status).toBe(200);
+
+    const { GithubApiError } = await vi.importActual<
+      typeof import("../../apps/api/src/github-reviews/github-api")
+    >("../../apps/api/src/github-reviews/github-api");
+    gh.setPullLabels.mockRejectedValueOnce(
+      new GithubApiError(403, "Resource not accessible by integration"),
+    );
+    expect((await put({ labels: ["bug"] })).status).toBe(403);
+  });
+
+  it("reports how long each check run took", async () => {
+    await connected();
+    gh.getPull.mockResolvedValue(pull);
+    gh.listCheckRuns.mockResolvedValue({
+      check_runs: [
+        {
+          name: "build",
+          status: "completed",
+          conclusion: "success",
+          html_url: "u",
+          started_at: "2026-01-01T00:00:00Z",
+          completed_at: "2026-01-01T00:01:51Z",
+        },
+      ],
+    });
+    gh.getCombinedStatus.mockResolvedValue({
+      statuses: [{ context: "legacy", state: "pending", target_url: null }],
+    });
+    expect((await (await app.request(`${P}/checks`)).json()).checks).toEqual([
+      { name: "build", state: "success", url: "u", durationSeconds: 111 },
+      { name: "legacy", state: "pending", url: null, durationSeconds: null },
+    ]);
   });
 
   it("links a task to the pull request, shows it as the issue and unlinks it", async () => {

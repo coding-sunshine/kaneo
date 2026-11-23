@@ -30,6 +30,16 @@ export async function getPullRequestChecks(
       name: run.name,
       state: fromRun(run.status, run.conclusion),
       url: run.html_url,
+      durationSeconds:
+        run.started_at && run.completed_at
+          ? Math.max(
+              0,
+              Math.round(
+                (Date.parse(run.completed_at) - Date.parse(run.started_at)) /
+                  1000,
+              ),
+            )
+          : null,
     })),
     ...combined.statuses.map((status) => ({
       name: status.context,
@@ -39,6 +49,7 @@ export async function getPullRequestChecks(
           ? "pending"
           : "failure") as State,
       url: status.target_url,
+      durationSeconds: null,
     })),
   ];
   const state = !checks.length

@@ -75,7 +75,7 @@ export function PullRequestProperties({
           label={t("workspace:reviews.detail.properties.checks")}
         >
           <Popover>
-            <PopoverTrigger className="-mx-1.5 inline-flex h-7 items-center gap-2 rounded-md px-1.5 hover:bg-accent">
+            <PopoverTrigger className="-mx-1.5 inline-flex h-7 items-center gap-2 rounded-full px-2.5 hover:bg-accent data-popup-open:bg-accent">
               <ListChecks
                 aria-hidden
                 className={cn(
@@ -92,7 +92,7 @@ export function PullRequestProperties({
                 )
                 .join(", ")}
             </PopoverTrigger>
-            <PopoverContent align="start" className="w-80 p-1">
+            <PopoverContent align="center" className="w-96 p-1">
               <ChecksList pullRef={pullRef} />
             </PopoverContent>
           </Popover>

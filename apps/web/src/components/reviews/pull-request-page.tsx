@@ -1,19 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import {
-  ChevronRight,
-  GitPullRequest,
-  Maximize2,
-  Minimize2,
-} from "lucide-react";
+import { ChevronRight, Maximize2, Minimize2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Layout from "@/components/common/layout";
+import { FavoriteStar } from "@/components/common/favorite-star";
 import PageTitle from "@/components/page-title";
 import { FilesTab } from "@/components/reviews/files-tab";
 import { CopyReviewLinkButton } from "@/components/reviews/copy-review-link-button";
 import { MergeButton } from "@/components/reviews/merge-button";
 import { OverviewTab } from "@/components/reviews/overview-tab";
 import { PullRequestIssueCrumb } from "@/components/reviews/pull-request-issue-crumb";
+import { PullRequestGithubMenu } from "@/components/reviews/pull-request-github-menu";
 import { PullRequestMenu } from "@/components/reviews/pull-request-menu";
 import { ReadyForReviewButton } from "@/components/reviews/ready-for-review-button";
 import { ReviewDialog } from "@/components/reviews/review-dialog";
@@ -23,6 +20,7 @@ import { PullRequestStatusIcon } from "@/components/task/task-pull-requests/pull
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { PullRef } from "@/fetchers/github-reviews/github-reviews";
+import { pullRequestKey } from "@/lib/pull-request-key";
 import { useReviewedFiles } from "@/hooks/use-reviewed-files";
 import { usePullRequest } from "@/hooks/queries/github-reviews/use-github-reviews";
 import { useUserPreferencesStore } from "@/store/user-preferences";
@@ -47,7 +45,6 @@ export function PullRequestPage({
   const title = pull.data
     ? `${pull.data.title} #${pull.data.number}`
     : t("workspace:reviews.pageTitle");
-  const githubLabel = pull.data ? `${pull.data.repo}#${pull.data.number}` : "";
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -89,27 +86,23 @@ export function PullRequestPage({
               additions={pull.data.additions}
               deletions={pull.data.deletions}
             />
-            <PullRequestMenu pullRef={pullRef} pull={pull.data} />
+            <PullRequestMenu
+              pullRef={pullRef}
+              pull={pull.data}
+              workspaceId={workspaceId}
+            />
+            <FavoriteStar
+              workspaceId={workspaceId}
+              target={{
+                type: "pullRequest",
+                targetId: pullRequestKey(pullRef),
+              }}
+            />
           </>
         )}
         <span className="flex-1" />
         {pull.data && (
-          <Button
-            variant="ghost"
-            size="xs"
-            className="shrink-0 font-mono text-muted-foreground max-sm:hidden"
-            render={
-              <a
-                href={pull.data.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`${githubLabel}, ${t("workspace:reviews.detail.openOnGithub")}`}
-              />
-            }
-          >
-            <GitPullRequest />
-            {githubLabel}
-          </Button>
+          <PullRequestGithubMenu pull={pull.data} workspaceId={workspaceId} />
         )}
         {pull.data && <CopyReviewLinkButton />}
         <Button

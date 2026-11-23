@@ -56,3 +56,9 @@ export const mergeBody = z.object({
 export const reviewersBody = z.object({
   reviewers: z.array(githubName).min(1).max(15),
 });
+
+export const repoParams = z.object({ owner: githubName, repo: githubName });
+
+export const labelsBody = z.object({
+  labels: z.array(z.string().min(1).max(100)).max(100),
+});

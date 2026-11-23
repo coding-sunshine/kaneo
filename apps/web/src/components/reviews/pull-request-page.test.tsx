@@ -137,6 +137,13 @@ vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => ({
   }),
   useLinkPullRequestIssue: () => ({ mutate: mocks.link, isPending: false }),
   useUnlinkPullRequestIssue: () => ({ mutate: mocks.unlink, isPending: false }),
+  useConvertToDraft: () => ({ mutate: vi.fn(), isPending: false }),
+  useClosePullRequest: () => ({ mutate: vi.fn(), isPending: false }),
+  useRepoLabels: () => ({ data: [] }),
+  useSetPullRequestLabels: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+vi.mock("@/hooks/queries/favorite/use-favorites", () => ({
+  useFavorite: () => ({ isFavorite: false, toggle: vi.fn() }),
 }));
 vi.mock("@/hooks/queries/search/use-global-search", () => ({
   default: () => ({
@@ -464,7 +471,7 @@ describe("PullRequestPage", () => {
     fireEvent.click(
       screen.getByRole("button", { name: "Pull request actions" }),
     );
-    expect(await screen.findByText("Copy branch name")).toBeVisible();
+    expect(await screen.findByText("Squash & merge")).toBeVisible();
     expect(screen.queryByText("Mark ready for review")).toBeNull();
   });
 
@@ -478,21 +485,19 @@ describe("PullRequestPage", () => {
     expect(mocks.markReady).toHaveBeenCalledTimes(1);
   });
 
-  it("copies the GitHub URL and the branch name from the actions menu", async () => {
+  it("copies the GitHub URL and the branch name from the GitHub chip menu", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", {
       value: { writeText },
       configurable: true,
     });
     renderPage();
-    fireEvent.click(
-      screen.getByRole("button", { name: "Pull request actions" }),
-    );
+    const chip = () =>
+      screen.getByRole("button", { name: /web#7, pull request actions/ });
+    fireEvent.click(chip());
     fireEvent.click(await screen.findByText("Copy GitHub URL"));
     expect(writeText).toHaveBeenLastCalledWith(basePull.url);
-    fireEvent.click(
-      screen.getByRole("button", { name: "Pull request actions" }),
-    );
+    fireEvent.click(chip());
     fireEvent.click(await screen.findByText("Copy branch name"));
     expect(writeText).toHaveBeenLastCalledWith("feat");
   });

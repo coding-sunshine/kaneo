@@ -108,6 +108,24 @@ describe("API integration: views and favorites", () => {
     expect(removed.status).toBe(200);
     expect(await (await app.request(url)).json()).toHaveLength(0);
   });
+  it("favorites a pull request by owner/repo#number", async () => {
+    const member = await createWorkspaceMember({ role: "owner" });
+    mockAuthenticatedSession(member.user);
+    const { app } = createApp();
+    const url = `/api/favorite/workspace/${member.workspace.id}`;
+    const fav = { type: "pullRequest", targetId: "acme/web#7" };
+
+    expect((await app.request(url, json("PUT", fav))).status).toBe(200);
+    expect(await (await app.request(url)).json()).toMatchObject([fav]);
+
+    const removed = await app.request(
+      `${url}?type=pullRequest&targetId=${encodeURIComponent(fav.targetId)}`,
+      { method: "DELETE" },
+    );
+    expect(removed.status).toBe(200);
+    expect(await (await app.request(url)).json()).toHaveLength(0);
+  });
+
   describe("view visibility", () => {
     async function setup() {
       const owner = await createWorkspaceMember({ role: "owner" });

@@ -19,6 +19,10 @@ import { listPullRequestCommits } from "./controllers/list-pull-request-commits"
 import { listPullRequestFiles } from "./controllers/list-pull-request-files";
 import { addComment } from "./controllers/add-comment";
 import { listReviewerCandidates } from "./controllers/list-reviewer-candidates";
+import { closePullRequest } from "./controllers/close-pull-request";
+import { convertPullRequestToDraft } from "./controllers/convert-to-draft";
+import { listLabels } from "./controllers/list-repo-labels";
+import { setPullRequestLabels } from "./controllers/set-pull-labels";
 import { markPullRequestReady } from "./controllers/mark-ready-for-review";
 import { mergePullRequest } from "./controllers/merge-pull-request";
 import { requestPullRequestReviewers } from "./controllers/request-reviewers";
@@ -29,10 +33,12 @@ import {
   compareQuery,
   contentQuery,
   connectQuery,
+  labelsBody,
   listQuery,
   mergeBody,
   pullParams,
   reviewBody,
+  repoParams,
   reviewersBody,
 } from "./schema";
 import {
@@ -40,13 +46,17 @@ import {
   commitsSchema,
   conversationSchema,
   fileContentSchema,
+  closedSchema,
   disconnectedSchema,
+  draftSchema,
   filesSchema,
+  labelsSetSchema,
   mergedSchema,
   pullRequestSchema,
   readySchema,
   reviewerCandidatesSchema,
   reviewListSchema,
+  repoLabelsSchema,
   reviewSubmittedSchema,
   statusSchema,
 } from "./response";
@@ -425,6 +435,87 @@ const readyRoute = createRoute({
   },
 });
 
+const draftRoute = createRoute({
+  method: "post",
+  operationId: "convertGithubPullRequestToDraft",
+  path: "/pulls/{owner}/{repo}/{number}/draft",
+  tags,
+  summary: "Convert a pull request to draft",
+  description:
+    "Puts the pull request back into draft as the signed-in user, through GitHub's GraphQL API.",
+  middleware: [requireUserSession] as const,
+  request: { params: pullParams },
+  responses: {
+    200: jsonResponse("Convert to draft", draftSchema),
+    403: needsSession,
+    404: notVisible,
+    409: needsGithub,
+    422: errorResponse("GitHub rejected the change"),
+  },
+});
+
+const closeRoute = createRoute({
+  method: "post",
+  operationId: "closeGithubPullRequest",
+  path: "/pulls/{owner}/{repo}/{number}/close",
+  tags,
+  summary: "Close a pull request",
+  description:
+    "Closes the pull request without merging, as the signed-in user.",
+  middleware: [requireUserSession] as const,
+  request: { params: pullParams },
+  responses: {
+    200: jsonResponse("Close a pull request", closedSchema),
+    403: needsSession,
+    404: notVisible,
+    409: needsGithub,
+    422: errorResponse("GitHub rejected the change"),
+  },
+});
+
+const repoLabelsRoute = createRoute({
+  method: "get",
+  operationId: "listGithubRepoLabels",
+  path: "/repos/{owner}/{repo}/labels",
+  tags,
+  summary: "List a repository's labels",
+  description:
+    "The repository's labels with their colours, as GitHub has them.",
+  middleware: [requireUserSession] as const,
+  request: { params: repoParams },
+  responses: {
+    200: jsonResponse("List repository labels", repoLabelsSchema),
+    403: needsSession,
+    404: notVisible,
+    409: needsGithub,
+  },
+});
+
+const setLabelsRoute = createRoute({
+  method: "put",
+  operationId: "setGithubPullRequestLabels",
+  path: "/pulls/{owner}/{repo}/{number}/labels",
+  tags,
+  summary: "Set a pull request's labels",
+  description:
+    "Replaces the pull request's labels with the given names, as the signed-in user.",
+  middleware: [requireUserSession] as const,
+  request: {
+    params: pullParams,
+    body: {
+      content: { "application/json": { schema: labelsBody } },
+      required: true,
+    },
+  },
+  responses: {
+    200: jsonResponse("Set labels", labelsSetSchema),
+    403: needsSession,
+    404: notVisible,
+    409: needsGithub,
+    422: errorResponse("GitHub rejected the labels"),
+  },
+});
+
 const githubReviews = apiRouter()
   .openapi(statusRoute, async (c) =>
     c.json(await getStatus(c.get("userId")), 200),
@@ -549,6 +640,37 @@ const githubReviews = apiRouter()
     const { owner, repo, number } = c.req.valid("param");
     return c.json(
       await markPullRequestReady(c.get("userId"), owner, repo, number),
+      200,
+    );
+  })
+  .openapi(draftRoute, async (c) => {
+    const { owner, repo, number } = c.req.valid("param");
+    return c.json(
+      await convertPullRequestToDraft(c.get("userId"), owner, repo, number),
+      200,
+    );
+  })
+  .openapi(closeRoute, async (c) => {
+    const { owner, repo, number } = c.req.valid("param");
+    return c.json(
+      await closePullRequest(c.get("userId"), owner, repo, number),
+      200,
+    );
+  })
+  .openapi(repoLabelsRoute, async (c) => {
+    const { owner, repo } = c.req.valid("param");
+    return c.json(await listLabels(c.get("userId"), owner, repo), 200);
+  })
+  .openapi(setLabelsRoute, async (c) => {
+    const { owner, repo, number } = c.req.valid("param");
+    return c.json(
+      await setPullRequestLabels(
+        c.get("userId"),
+        owner,
+        repo,
+        number,
+        c.req.valid("json").labels,
+      ),
       200,
     );
   })

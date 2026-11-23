@@ -14,7 +14,7 @@ import { workspaceAccess } from "../utils/workspace-access-middleware";
 const tags = ["Favorites"];
 const params = z.object({ workspaceId: z.string() });
 const favoriteBody = z.object({
-  type: z.enum(["project", "view", "document"]),
+  type: z.enum(["project", "view", "document", "pullRequest"]),
   targetId: z.string().min(1),
 });
 const favoriteSchema = favoriteBody.extend({ id: z.string() });
@@ -35,7 +35,7 @@ const listRoute = createRoute({
   tags,
   summary: "List favorites",
   description:
-    "The signed-in user's favorite teams, views and documents, oldest first.",
+    "The signed-in user's favorite teams, views, documents and pull requests, oldest first. A pull request's targetId is owner/repo#number.",
   middleware: [...middleware] as const,
   request: { params },
   responses: {
@@ -51,7 +51,7 @@ const addRoute = createRoute({
   tags,
   summary: "Add favorite",
   description:
-    "Favorite a team, view or document. Repeating the call is a no-op.",
+    "Favorite a team, view, document or pull request. Repeating the call is a no-op.",
   middleware: [...middleware] as const,
   request: { params, body: json(favoriteBody) },
   responses: {
@@ -66,7 +66,7 @@ const removeRoute = createRoute({
   path: "/workspace/{workspaceId}",
   tags,
   summary: "Remove favorite",
-  description: "Unfavorite a team, view or document.",
+  description: "Unfavorite a team, view, document or pull request.",
   middleware: [...middleware] as const,
   request: { params, query: favoriteBody },
   responses: {

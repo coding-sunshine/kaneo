@@ -1,6 +1,6 @@
 import { useQueries } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, FileText, Layers2 } from "lucide-react";
+import { ChevronRight, FileText, GitPullRequest, Layers2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   Collapsible,
@@ -21,10 +21,11 @@ import { documentKey } from "@/hooks/queries/document/use-documents";
 import { useFavorites } from "@/hooks/queries/favorite/use-favorites";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import { useViews } from "@/hooks/queries/view/use-views";
+import { parsePullRequestKey } from "@/lib/pull-request-key";
 import { teamColor } from "@/lib/team-color";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 
-/** Linear's Favorites section: starred teams, views and documents. */
+/** Linear's Favorites section: starred teams, views, documents and pull requests. */
 export function FavoritesNav({ workspaceId }: { workspaceId: string }) {
   const { t } = useTranslation();
   const { data: favorites = [] } = useFavorites(workspaceId);
@@ -76,6 +77,23 @@ export function FavoritesNav({ workspaceId }: { workspaceId: string }) {
             <Link
               to="/dashboard/workspace/$workspaceId/document/$documentId"
               params={{ workspaceId, documentId: document.id }}
+            />
+          ),
+        },
+      ];
+    }
+    if (favorite.type === "pullRequest") {
+      const pull = parsePullRequestKey(favorite.targetId);
+      if (!pull) return [];
+      return [
+        {
+          key: favorite.id,
+          name: `${pull.repo}#${pull.number}`,
+          icon: <GitPullRequest />,
+          link: (
+            <Link
+              to="/dashboard/workspace/$workspaceId/reviews/$owner/$repo/$number"
+              params={{ workspaceId, ...pull }}
             />
           ),
         },

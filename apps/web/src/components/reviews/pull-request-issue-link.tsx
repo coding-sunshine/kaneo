@@ -3,7 +3,7 @@ import { Plus, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { IssuePicker } from "@/components/reviews/issue-picker";
 import {
   Popover,
   PopoverContent,
@@ -13,11 +13,7 @@ import type {
   PullRef,
   PullRequestDetail,
 } from "@/fetchers/github-reviews/github-reviews";
-import {
-  useLinkPullRequestIssue,
-  useUnlinkPullRequestIssue,
-} from "@/hooks/queries/github-reviews/use-github-reviews";
-import useGlobalSearch from "@/hooks/queries/search/use-global-search";
+import { useUnlinkPullRequestIssue } from "@/hooks/queries/github-reviews/use-github-reviews";
 import { toast } from "@/lib/toast";
 
 /** Linear's Issues row: the linked Kaneo task, or a picker to link one. */
@@ -32,18 +28,7 @@ export function PullRequestIssueLink({
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const link = useLinkPullRequestIssue(pullRef);
   const unlink = useUnlinkPullRequestIssue(pullRef);
-  const search = useGlobalSearch({
-    q: query.trim(),
-    type: "tasks",
-    workspaceId,
-    limit: 8,
-  });
-  const tasks = (search.data?.results ?? []).filter(
-    (result) => result.type === "task" && !result.archivedAt,
-  );
   const onError = (error: Error) => toast.error(error.message);
 
   if (pull.issue) {
@@ -82,13 +67,7 @@ export function PullRequestIssueLink({
   }
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) setQuery("");
-      }}
-    >
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         className="-mx-1.5 inline-flex h-7 items-center gap-2 rounded-full px-2.5 text-muted-foreground hover:bg-accent hover:text-foreground data-popup-open:bg-accent"
         aria-label={t("workspace:reviews.detail.linkIssueLabel")}
@@ -97,38 +76,12 @@ export function PullRequestIssueLink({
         {t("workspace:reviews.detail.linkIssue")}
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 p-1">
-        <Input
-          size="sm"
-          autoFocus
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder={t("workspace:reviews.detail.searchIssues")}
-          aria-label={t("workspace:reviews.detail.searchIssues")}
+        <IssuePicker
+          pullRef={pullRef}
+          pull={pull}
+          workspaceId={workspaceId}
+          onDone={() => setOpen(false)}
         />
-        <ul className="mt-1 flex flex-col">
-          {tasks.map((task) => (
-            <li key={task.id}>
-              <button
-                type="button"
-                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent disabled:opacity-60"
-                disabled={link.isPending}
-                onClick={() =>
-                  link.mutate(
-                    { taskId: task.id, url: pull.url, status: pull.status },
-                    { onSuccess: () => setOpen(false), onError },
-                  )
-                }
-              >
-                <span className="truncate">{task.title}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-        {query.trim() !== "" && !search.isFetching && tasks.length === 0 && (
-          <p className="px-2 py-1.5 text-muted-foreground text-sm">
-            {t("workspace:reviews.detail.noIssuesFound")}
-          </p>
-        )}
       </PopoverContent>
     </Popover>
   );
