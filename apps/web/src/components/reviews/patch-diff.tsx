@@ -1,10 +1,11 @@
+import { ArrowUpToLine, UnfoldVertical } from "lucide-react";
 import { Fragment, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { InlineComments } from "@/components/reviews/inline-comments";
 import {
   type DiffLine,
   isCommentOnLine,
   parsePatch,
-  type SplitRow,
   toSplitRows,
 } from "@/components/reviews/diff-parser";
 import type { ConversationEntry } from "@/fetchers/github-reviews/github-reviews";
@@ -12,28 +13,54 @@ import { cn } from "@/lib/cn";
 
 export type DiffLayout = "unified" | "split";
 
+// Linear marks changed lines with a tinted row and a colored left edge.
 const rowClass = {
-  hunk: "bg-muted/60 text-muted-foreground",
-  add: "bg-success/10",
-  del: "bg-destructive/10",
+  hunk: "",
+  add: "border-l-success bg-success/10",
+  del: "border-l-destructive bg-destructive/10",
   ctx: "",
 };
+const numberColor = {
+  hunk: "",
+  add: "text-success-foreground",
+  del: "text-destructive-foreground",
+  ctx: "",
+};
+// The color carries the change on screen; screen readers get the sign.
 const sign = { hunk: "", add: "+", del: "-", ctx: "" };
 
 const numberClass =
-  "w-12 shrink-0 select-none pr-2 text-right text-muted-foreground/70 tabular-nums";
+  "w-14 shrink-0 select-none pr-3 text-right text-muted-foreground/70 tabular-nums";
 
+/** Linear's "N unchanged lines" in place of the hunk header. */
+function Skipped({ line }: { line: DiffLine }) {
+  const { t } = useTranslation();
+  const Icon = line.id === 0 ? ArrowUpToLine : UnfoldVertical;
+  return (
+    <div
+      data-kind="hunk"
+      className="col-span-2 flex items-center justify-center gap-1.5 py-1.5 font-sans text-muted-foreground"
+    >
+      <Icon aria-hidden className="size-3.5" />
+      {t("workspace:reviews.detail.unchangedLines", { count: line.skipped })}
+    </div>
+  );
+}
+
+// One number column, as in Linear: the new line number, or a dash for a removal.
 function UnifiedRow({ line }: { line: DiffLine }) {
   return (
     <div
       data-kind={line.kind}
-      className={cn("flex min-w-max", rowClass[line.kind])}
+      className={cn(
+        "flex min-w-max border-l-2 border-l-transparent",
+        rowClass[line.kind],
+      )}
     >
-      <span className={numberClass}>{line.oldNo ?? ""}</span>
-      <span className={numberClass}>{line.newNo ?? ""}</span>
-      <span className="w-4 shrink-0 select-none text-center">
-        {sign[line.kind]}
+      <span className={cn(numberClass, numberColor[line.kind])}>
+        {line.newNo ?? (line.kind === "del" ? "−" : "")}
       </span>
+      <span className="sr-only">{sign[line.kind]}</span>
       <span className="whitespace-pre pr-4">{line.text}</span>
     </div>
   );
@@ -50,35 +77,16 @@ function SplitCell({
     <div
       data-kind={line?.kind ?? "empty"}
       className={cn(
-        "flex min-w-0 overflow-hidden",
+        "flex min-w-0 overflow-hidden border-l-2 border-l-transparent",
         line ? rowClass[line.kind] : "bg-muted/20",
-        side === "RIGHT" && "border-l",
       )}
     >
-      <span className={numberClass}>
+      <span className={cn(numberClass, line && numberColor[line.kind])}>
         {(side === "LEFT" ? line?.oldNo : line?.newNo) ?? ""}
       </span>
-      <span className="w-4 shrink-0 select-none text-center">
-        {line ? sign[line.kind] : ""}
-      </span>
+      <span className="sr-only">{line ? sign[line.kind] : ""}</span>
       <span className="whitespace-pre pr-4">{line?.text}</span>
     </div>
-  );
-}
-
-function SplitRowView({ row }: { row: SplitRow }) {
-  if (row.kind === "hunk") {
-    return (
-      <div data-kind="hunk" className={cn("col-span-2", rowClass.hunk)}>
-        <span className="whitespace-pre px-3">{row.line.text}</span>
-      </div>
-    );
-  }
-  return (
-    <>
-      <SplitCell line={row.left} side="LEFT" />
-      <SplitCell line={row.right} side="RIGHT" />
-    </>
   );
 }
 
@@ -107,13 +115,19 @@ export function PatchDiff({
         className="grid grid-cols-2 font-mono text-xs leading-5"
       >
         {rows.map((row) => {
-          const found =
-            row.kind === "pair"
-              ? [...under(row.left, "LEFT"), ...under(row.right, "RIGHT")]
-              : [];
+          if (row.kind === "hunk") {
+            return row.line.skipped ? (
+              <Skipped key={row.id} line={row.line} />
+            ) : null;
+          }
+          const found = [
+            ...under(row.left, "LEFT"),
+            ...under(row.right, "RIGHT"),
+          ];
           return (
             <Fragment key={row.id}>
-              <SplitRowView row={row} />
+              <SplitCell line={row.left} side="LEFT" />
+              <SplitCell line={row.right} side="RIGHT" />
               {found.length > 0 && (
                 <div className="col-span-2">
                   <InlineComments comments={found} />
@@ -131,6 +145,9 @@ export function PatchDiff({
       className="overflow-x-auto font-mono text-xs leading-5"
     >
       {lines.map((line) => {
+        if (line.kind === "hunk") {
+          return line.skipped ? <Skipped key={line.id} line={line} /> : null;
+        }
         const found = [...under(line, "LEFT"), ...under(line, "RIGHT")];
         return (
           <Fragment key={line.id}>

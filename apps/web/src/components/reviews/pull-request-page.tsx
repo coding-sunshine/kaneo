@@ -32,6 +32,8 @@ export function PullRequestPage({
 }) {
   const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>("overview");
+  // ponytail: reviewed files last until the page closes; persisting them is in todo.json.
+  const [reviewed, setReviewed] = useState<string[]>([]);
   const expanded = useUserPreferencesStore((state) => state.reviewsExpanded);
   const setExpanded = useUserPreferencesStore(
     (state) => state.setReviewsExpanded,
@@ -149,7 +151,19 @@ export function PullRequestPage({
               {tab === "overview" && (
                 <OverviewTab pullRef={pullRef} pull={pull.data} />
               )}
-              {tab === "files" && <FilesTab pullRef={pullRef} />}
+              {tab === "files" && (
+                <FilesTab
+                  pullRef={pullRef}
+                  reviewed={reviewed}
+                  onReviewedChange={(filename, value) =>
+                    setReviewed((files) =>
+                      value
+                        ? [...files, filename]
+                        : files.filter((file) => file !== filename),
+                    )
+                  }
+                />
+              )}
             </div>
           </>
         )}

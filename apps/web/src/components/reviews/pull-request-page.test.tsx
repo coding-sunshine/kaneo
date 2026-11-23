@@ -73,6 +73,13 @@ vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => ({
         deletions: 1,
         patch: "@@ -1 +1 @@\n-a\n+b",
       },
+      {
+        filename: "lib/c.ts",
+        status: "added",
+        additions: 1,
+        deletions: 0,
+        patch: "@@ -0,0 +1 @@\n+c",
+      },
     ],
   }),
   useSubmitReview: () => ({ mutate: mocks.submit, isPending: false }),
@@ -189,6 +196,40 @@ describe("PullRequestPage", () => {
       event: "REQUEST_CHANGES",
       body: "needs work",
     });
+  });
+
+  it("folds a reviewed file and keeps it folded across tabs", () => {
+    const { container } = renderPage();
+    fireEvent.click(screen.getByRole("tab", { name: "Diff" }));
+    expect(container.querySelectorAll("[data-layout]")).toHaveLength(2);
+    fireEvent.click(screen.getAllByRole("checkbox", { name: "Reviewed" })[0]);
+    expect(container.querySelectorAll("[data-layout]")).toHaveLength(1);
+    fireEvent.click(screen.getByRole("tab", { name: "Overview" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Diff" }));
+    expect(container.querySelectorAll("[data-layout]")).toHaveLength(1);
+    expect(
+      screen.getAllByRole("checkbox", { name: "Reviewed" })[0],
+    ).toBeChecked();
+  });
+
+  it("filters the file list and the diffs by name", () => {
+    renderPage();
+    fireEvent.click(screen.getByRole("tab", { name: "Diff" }));
+    fireEvent.change(
+      screen.getByRole("searchbox", { name: "Filter files..." }),
+      {
+        target: { value: "LIB/" },
+      },
+    );
+    expect(screen.getAllByText("lib/c.ts")).toHaveLength(1);
+    expect(screen.queryByText("a.ts")).toBeNull();
+    fireEvent.change(
+      screen.getByRole("searchbox", { name: "Filter files..." }),
+      {
+        target: { value: "zzz" },
+      },
+    );
+    expect(screen.getByText("No files match this filter.")).toBeInTheDocument();
   });
 
   it("switches the Files diff between unified and split with Ctrl+B", () => {

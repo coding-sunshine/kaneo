@@ -34,6 +34,13 @@ describe("parsePatch", () => {
     expect(lines[11]).toMatchObject({ kind: "add", newNo: 50 });
   });
 
+  it("counts the unchanged lines above each hunk", () => {
+    const hunks = parsePatch(PATCH).filter((line) => line.kind === "hunk");
+    expect(hunks.map((hunk) => hunk.skipped)).toEqual([9, 26]);
+    expect(parsePatch("@@ -0,0 +1,2 @@\n+a\n+b")[0].skipped).toBe(0);
+    expect(parsePatch("@@ -1,2 +1,2 @@\n a\n-b\n+c")[0].skipped).toBe(0);
+  });
+
   it("strips the diff marker from the text", () => {
     expect(parsePatch("@@ -1 +1 @@\n-a\n+b\n c").map((l) => l.text)).toEqual([
       "@@ -1 +1 @@",

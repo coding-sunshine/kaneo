@@ -4,6 +4,8 @@ export type DiffLine = {
   text: string;
   oldNo: number | null;
   newNo: number | null;
+  /** On a hunk: the unchanged lines between it and the hunk before (or the file start). */
+  skipped?: number;
 };
 
 export type SplitRow =
@@ -18,14 +20,24 @@ export type InlineComment = {
 
 // Turns GitHub's unified `patch` text into numbered lines.
 export function parsePatch(patch: string): DiffLine[] {
-  let oldNo = 0;
-  let newNo = 0;
+  let oldNo = 1;
+  let newNo = 1;
   return patch.split("\n").map((line, id): DiffLine => {
     if (line.startsWith("@@")) {
       const match = line.match(/^@@ -(\d+)(?:,\d+)? \+(\d+)/);
-      oldNo = Number(match?.[1] ?? 0);
+      const start = Number(match?.[1] ?? 0);
+      // A new file's hunk starts at old line 0, with nothing above it.
+      const skipped = Math.max(0, start - oldNo);
+      oldNo = start;
       newNo = Number(match?.[2] ?? 0);
-      return { id, kind: "hunk", text: line, oldNo: null, newNo: null };
+      return {
+        id,
+        kind: "hunk",
+        text: line,
+        oldNo: null,
+        newNo: null,
+        skipped,
+      };
     }
     if (line.startsWith("+")) {
       return {

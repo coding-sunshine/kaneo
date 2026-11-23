@@ -10,7 +10,9 @@ export const Route = createFileRoute(
 function RouteComponent() {
   const { workspaceId, owner, repo, number } = Route.useParams();
   return (
+    // A new key per pull request resets its tab and reviewed files.
     <PullRequestPage
+      key={`${owner}/${repo}/${number}`}
       pullRef={{ owner, repo, number }}
       workspaceId={workspaceId}
     />

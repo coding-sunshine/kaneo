@@ -4897,7 +4897,7 @@
 				"notFound": "This pull request could not be loaded. It may not exist, or the Kaneo GitHub App may not be installed on its repository.",
 				"tabs": {
 					"overview": "Overview",
-					"files": "Files changed",
+					"files": "Files",
 					"checks": "Checks",
 					"diff": "Diff"
 				},
@@ -4928,7 +4928,12 @@
 				"checksFailed": "{{count}} failed",
 				"checksRunning": "{{count}} running",
 				"expand": "Expand",
-				"collapse": "Collapse"
+				"collapse": "Collapse",
+				"unchangedLines_one": "{{count, number}} unchanged line",
+				"unchangedLines_other": "{{count, number}} unchanged lines",
+				"reviewed": "Reviewed",
+				"filterFiles": "Filter files...",
+				"noMatchingFiles": "No files match this filter."
 			},
 			"loadError": "Could not load your pull requests.",
 			"tabs": {

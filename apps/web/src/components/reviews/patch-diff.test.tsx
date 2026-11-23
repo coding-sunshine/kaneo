@@ -1,5 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import "@/lib/i18n";
 import { PatchDiff } from "./patch-diff";
 
 vi.mock("@/components/reviews/markdown", () => ({
@@ -8,7 +9,7 @@ vi.mock("@/components/reviews/markdown", () => ({
 
 afterEach(cleanup);
 
-const PATCH = "@@ -1,2 +1,2 @@\n keep\n-old\n+new";
+const PATCH = "@@ -3,2 +3,2 @@\n keep\n-old\n+new";
 const comment = (over: Record<string, unknown>) => ({
   id: "review-comment-1",
   kind: "review_comment" as const,
@@ -41,6 +42,33 @@ describe("PatchDiff", () => {
     ).toEqual(["hunk", "ctx", "del", "add"]);
   });
 
+  it("replaces hunk headers with the count of unchanged lines", () => {
+    const { container } = render(
+      <PatchDiff patch={`${PATCH}\n@@ -1010 +1010 @@\n-z`} />,
+    );
+    expect(
+      [...container.querySelectorAll("[data-kind=hunk]")].map(
+        (row) => row.textContent,
+      ),
+    ).toEqual(["2 unchanged lines", "1,005 unchanged lines"]);
+    expect(container.textContent).not.toContain("@@");
+  });
+
+  it("leaves out the separator when a hunk starts at the top", () => {
+    const { container } = render(<PatchDiff patch={"@@ -1 +1 @@\n-a\n+b"} />);
+    expect(container.querySelector("[data-kind=hunk]")).toBeNull();
+  });
+
+  it("numbers lines once, with a dash for a removal", () => {
+    const { container } = render(<PatchDiff patch={PATCH} />);
+    const numbers = [
+      ...container.querySelectorAll(
+        "[data-kind=ctx], [data-kind=del], [data-kind=add]",
+      ),
+    ].map((row) => row.firstElementChild?.textContent);
+    expect(numbers).toEqual(["3", "−", "4"]);
+  });
+
   it("pairs a removal with its addition on one row when split", () => {
     const { container } = render(<PatchDiff patch={PATCH} layout="split" />);
     expect(container.querySelector("[data-layout=split]")).not.toBeNull();
@@ -55,7 +83,7 @@ describe("PatchDiff", () => {
       <PatchDiff
         patch={PATCH}
         layout="unified"
-        comments={[comment({ line: 2, side: "RIGHT" })]}
+        comments={[comment({ line: 4, side: "RIGHT" })]}
       />,
     );
     expect(screen.getAllByTestId("inline-comment")).toHaveLength(1);
@@ -69,7 +97,7 @@ describe("PatchDiff", () => {
       <PatchDiff
         patch={PATCH}
         layout="split"
-        comments={[comment({ line: 2, side: "LEFT" })]}
+        comments={[comment({ line: 4, side: "LEFT" })]}
       />,
     );
     expect(screen.getAllByTestId("inline-comment")).toHaveLength(1);
