@@ -5175,6 +5175,44 @@
 					"6m": "6 months ago",
 					"1y": "1 year ago"
 				}
+			},
+			"diffOptions2": {
+				"structural": "Structural highlighting",
+				"minimizeGenerated": "Minimize generated",
+				"minimizeTests": "Minimize tests",
+				"fileList": {
+					"label": "File list",
+					"flat": "Flat",
+					"tree": "Tree"
+				},
+				"grouping": {
+					"label": "Grouping",
+					"none": "No grouping",
+					"type": "File type"
+				},
+				"ordering": {
+					"label": "Ordering",
+					"path": "Path",
+					"changes": "Changed lines",
+					"asc": "Ascending",
+					"desc": "Descending"
+				},
+				"expand": "Show diff",
+				"collapse": "Hide diff",
+				"category": {
+					"implementation": "Implementation",
+					"test": "Tests",
+					"documentation": "Documentation",
+					"generated": "Generated",
+					"agentGuidance": "Agent guidance",
+					"localization": "Localization",
+					"assets": "Assets"
+				},
+				"counts": {
+					"generatedOnly": "Generated only",
+					"generatedOnlyLabel": "Generated only. Show total line counts",
+					"total": "Total changed lines: {{total}}"
+				}
 			}
 		},
 		"myTasks": {

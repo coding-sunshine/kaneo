@@ -356,6 +356,18 @@ describe("PullRequestPage", () => {
     localStorage.clear();
   });
 
+  it("lists files as a tree and groups them by file type from the Diff options menu", () => {
+    renderPage();
+    fireEvent.click(screen.getByRole("tab", { name: "Diff" }));
+    fireEvent.click(screen.getByRole("button", { name: "Diff options" }));
+    fireEvent.click(screen.getByRole("button", { name: "Tree" }));
+    expect(screen.getByRole("button", { name: "lib" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "File type" }));
+    expect(
+      screen.getAllByRole("heading", { name: "Implementation" }).length,
+    ).toBeGreaterThan(0);
+  });
+
   it("opens an unchanged-lines separator and shows a trailing one", () => {
     mocks.content = "1\n2\n3\n4\n5";
     renderPage();

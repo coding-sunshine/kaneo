@@ -1,6 +1,8 @@
 import { ListTree } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { arrangeFiles } from "@/components/reviews/arrange-files";
+import { CategoryHeading } from "@/components/reviews/category-heading";
 import { CommitsPicker } from "@/components/reviews/commits-picker";
 import {
   DEFAULT_DIFF_OPTIONS,
@@ -8,11 +10,12 @@ import {
 } from "@/components/reviews/diff-options-menu";
 import { DiffTooLargeBanner } from "@/components/reviews/diff-too-large-banner";
 import { FileDiff } from "@/components/reviews/file-diff";
-import { FileIcon } from "@/components/reviews/file-icon";
+import { FileList } from "@/components/reviews/file-list";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { PullRef } from "@/fetchers/github-reviews/github-reviews";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useElementWidth } from "@/hooks/use-element-width";
+import { useFileCategories } from "@/hooks/use-file-categories";
 import {
   useComparedFiles,
   usePullRequest,
@@ -25,6 +28,8 @@ import { useShortcut } from "@/lib/shortcuts/use-shortcut";
 
 // GitHub lists at most this many commits of a pull request.
 const COMMITS_CAP = 250;
+// Split needs room; a narrower pane reads unified. Setting stays "split".
+const SPLIT_MIN_WIDTH = 630;
 // Fetching every file's text up front is a request per file; above this the
 // text is fetched when a separator is opened and the trailing one waits for it.
 // ponytail: a flat cap, replace it with fetching only the files near the viewport.
@@ -58,17 +63,18 @@ export function FilesTab({
   const conversation = usePullRequestConversation(pullRef);
   const [options, setOptions] = useState(DEFAULT_DIFF_OPTIONS);
   const [query, setQuery] = useState("");
-  // Split needs the width; narrow screens always read unified.
-  const narrow = useIsMobile();
+  const [measure, width] = useElementWidth();
+  const narrow = width !== null && width < SPLIT_MIN_WIDTH;
   const layout = narrow ? "unified" : options.layout;
-  useShortcut(
-    "toggleLayout",
-    () =>
-      setOptions((value) => ({
-        ...value,
-        layout: value.layout === "split" ? "unified" : "split",
-      })),
-    { enabled: !narrow },
+  const categoryOf = useFileCategories(
+    pullRef,
+    scope?.head ?? pull.data?.headSha,
+  );
+  useShortcut("toggleLayout", () =>
+    setOptions((value) => ({
+      ...value,
+      layout: value.layout === "split" ? "unified" : "split",
+    })),
   );
 
   if (files.isLoading) return <Skeleton className="m-4 h-40" />;
@@ -95,8 +101,35 @@ export function FilesTab({
       file.filename.toLowerCase().includes(needle) &&
       !(options.hideReviewed && reviewed.includes(file.filename)),
   );
+  const sections = arrangeFiles(shown, categoryOf, options);
+  // Generated files fold away unless the whole pull request is generated.
+  const allGenerated = files.data.every(
+    (file) => categoryOf(file.filename) === "generated",
+  );
+  const minimizedFor = (path: string) => {
+    const category = categoryOf(path);
+    const fold =
+      (category === "generated" &&
+        options.minimizeGenerated &&
+        !allGenerated) ||
+      (category === "test" && options.minimizeTests);
+    return fold
+      ? t(`workspace:reviews.diffOptions2.category.${category}`)
+      : null;
+  };
+  const listed = sections.map((section) => ({
+    ...section,
+    files: section.files.filter(
+      (file) =>
+        !(
+          options.minimizeGenerated &&
+          !allGenerated &&
+          categoryOf(file.filename) === "generated"
+        ),
+    ),
+  }));
   return (
-    <div className="@container flex flex-col gap-3 px-4 pb-4">
+    <div ref={measure} className="@container flex flex-col gap-3 px-4 pb-4">
       <div className="flex items-center gap-2 rounded-lg border px-2 py-1.5">
         <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-accent px-2.5 font-medium text-xs">
           <ListTree aria-hidden className="size-3.5" />
@@ -116,7 +149,6 @@ export function FilesTab({
         <DiffOptionsMenu
           options={options}
           onChange={(patch) => setOptions((value) => ({ ...value, ...patch }))}
-          canSplit={!narrow}
         />
       </div>
       {commits.data && commits.data.length >= COMMITS_CAP && pull.data && (
@@ -136,32 +168,21 @@ export function FilesTab({
             placeholder={t("workspace:reviews.detail.filterFiles")}
             aria-label={t("workspace:reviews.detail.filterFiles")}
           />
-          <ul className="flex flex-col text-[13px]">
-            {shown.map((file) => (
-              <li key={file.filename}>
-                <a
-                  href={`#file-${file.filename}`}
-                  title={file.filename}
-                  className="flex h-8 items-center gap-2 rounded-md px-2 hover:bg-accent"
-                >
-                  <FileIcon filename={file.filename} />
-                  <span className="min-w-0 flex-1 truncate">
-                    {file.filename.split("/").pop()}
-                  </span>
-                  {options.showCounts && (
-                    <>
-                      <span className="shrink-0 text-success-foreground tabular-nums">
-                        +{file.additions}
-                      </span>
-                      <span className="shrink-0 text-destructive-foreground tabular-nums">
-                        -{file.deletions}
-                      </span>
-                    </>
+          {listed.map(
+            (section) =>
+              section.files.length > 0 && (
+                <div key={section.category ?? "all"}>
+                  {section.category && (
+                    <CategoryHeading category={section.category} />
                   )}
-                </a>
-              </li>
-            ))}
-          </ul>
+                  <FileList
+                    files={section.files}
+                    tree={options.fileList === "tree"}
+                    showCounts={options.showCounts}
+                  />
+                </div>
+              ),
+          )}
         </nav>
         <div className="flex min-w-0 flex-col gap-3">
           {shown.length === 0 && (
@@ -169,22 +190,36 @@ export function FilesTab({
               {t("workspace:reviews.detail.noMatchingFiles")}
             </p>
           )}
-          {shown.map((file) => (
-            <FileDiff
-              key={file.filename}
-              pullRef={pullRef}
-              headSha={scope?.head ?? pull.data?.headSha}
-              file={file}
-              layout={layout}
-              wrap={options.wrap}
-              showCounts={options.showCounts}
-              prefetch={files.data.length <= PREFETCH_LIMIT}
-              comments={inline.filter((entry) => entry.path === file.filename)}
-              reviewed={reviewed.includes(file.filename)}
-              onReviewedChange={(value) =>
-                onReviewedChange(file.filename, value)
-              }
-            />
+          {sections.map((section) => (
+            <div
+              key={section.category ?? "all"}
+              className="flex flex-col gap-3"
+            >
+              {section.category && (
+                <CategoryHeading category={section.category} />
+              )}
+              {section.files.map((file) => (
+                <FileDiff
+                  key={file.filename}
+                  pullRef={pullRef}
+                  headSha={scope?.head ?? pull.data?.headSha}
+                  file={file}
+                  layout={layout}
+                  wrap={options.wrap}
+                  structural={options.structural}
+                  minimized={minimizedFor(file.filename)}
+                  showCounts={options.showCounts}
+                  prefetch={files.data.length <= PREFETCH_LIMIT}
+                  comments={inline.filter(
+                    (entry) => entry.path === file.filename,
+                  )}
+                  reviewed={reviewed.includes(file.filename)}
+                  onReviewedChange={(value) =>
+                    onReviewedChange(file.filename, value)
+                  }
+                />
+              ))}
+            </div>
           ))}
         </div>
       </div>

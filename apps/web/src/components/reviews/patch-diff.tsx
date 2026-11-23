@@ -9,6 +9,10 @@ import {
   parsePatch,
   toSplitRows,
 } from "@/components/reviews/diff-parser";
+import {
+  pairChanges,
+  type Segment,
+} from "@/components/reviews/intra-line-diff";
 import type { ConversationEntry } from "@/fetchers/github-reviews/github-reviews";
 import { cn } from "@/lib/cn";
 
@@ -57,7 +61,15 @@ function Skipped({
 }
 
 // One number column, as in Linear: the new line number, or a dash for a removal.
-function UnifiedRow({ line, wrap }: { line: DiffLine; wrap: boolean }) {
+function UnifiedRow({
+  line,
+  wrap,
+  marks,
+}: {
+  line: DiffLine;
+  wrap: boolean;
+  marks?: Segment[];
+}) {
   return (
     <div
       data-kind={line.kind}
@@ -71,10 +83,33 @@ function UnifiedRow({ line, wrap }: { line: DiffLine; wrap: boolean }) {
         {line.newNo ?? (line.kind === "del" ? "−" : "")}
       </span>
       <span className="sr-only">{sign[line.kind]}</span>
-      <span className={cn("pr-4", textClass(wrap))}>{line.text}</span>
+      <span className={cn("pr-4", textClass(wrap))}>
+        {lineText(line, marks)}
+      </span>
     </div>
   );
 }
+
+// Words that changed inside a paired line get a stronger background.
+const markClass = { add: "bg-success/30", del: "bg-destructive/30" };
+const lineText = (line: DiffLine, marks?: Segment[]) => {
+  if (!marks || (line.kind !== "add" && line.kind !== "del")) return line.text;
+  let at = 0;
+  return marks.map((part) => {
+    const key = at;
+    at += part.text.length;
+    return part.changed ? (
+      <span
+        key={key}
+        className={cn("rounded-[2px]", markClass[line.kind as "add" | "del"])}
+      >
+        {part.text}
+      </span>
+    ) : (
+      part.text
+    );
+  });
+};
 
 const textClass = (wrap: boolean) =>
   wrap ? "min-w-0 whitespace-pre-wrap break-words" : "whitespace-pre";
@@ -83,10 +118,12 @@ function SplitCell({
   line,
   side,
   wrap,
+  marks,
 }: {
   line: DiffLine | null;
   side: "LEFT" | "RIGHT";
   wrap: boolean;
+  marks?: Segment[];
 }) {
   return (
     <div
@@ -100,7 +137,9 @@ function SplitCell({
         {(side === "LEFT" ? line?.oldNo : line?.newNo) ?? ""}
       </span>
       <span className="sr-only">{line ? sign[line.kind] : ""}</span>
-      <span className={cn("pr-4", textClass(wrap))}>{line?.text}</span>
+      <span className={cn("pr-4", textClass(wrap))}>
+        {line && lineText(line, marks)}
+      </span>
     </div>
   );
 }
@@ -110,12 +149,15 @@ export function PatchDiff({
   layout,
   comments = [],
   wrap = false,
+  structural = false,
   fileLines = null,
   onExpand,
 }: {
   patch: string;
   layout?: DiffLayout;
   wrap?: boolean;
+  // Mark the words that changed inside paired removed and added lines.
+  structural?: boolean;
   // The whole file at the head commit; null until it is known or when it has no lines.
   fileLines?: string[] | null;
   // Called when the reader opens a gap, so the file text can be fetched.
@@ -132,6 +174,10 @@ export function PatchDiff({
   const lines = useMemo(
     () => expandGaps(parsed, fileLines, opened),
     [parsed, fileLines, opened],
+  );
+  const marks = useMemo(
+    () => (structural ? pairChanges(lines) : new Map<number, Segment[]>()),
+    [structural, lines],
   );
   const rows = useMemo(
     () => (layout === "split" ? toSplitRows(lines) : []),
@@ -158,8 +204,18 @@ export function PatchDiff({
           ];
           return (
             <Fragment key={row.id}>
-              <SplitCell line={row.left} side="LEFT" wrap={wrap} />
-              <SplitCell line={row.right} side="RIGHT" wrap={wrap} />
+              <SplitCell
+                line={row.left}
+                side="LEFT"
+                wrap={wrap}
+                marks={marks.get(row.left?.id ?? -1)}
+              />
+              <SplitCell
+                line={row.right}
+                side="RIGHT"
+                wrap={wrap}
+                marks={marks.get(row.right?.id ?? -1)}
+              />
               {found.length > 0 && (
                 <div className="col-span-2">
                   <InlineComments comments={found} />
@@ -185,7 +241,7 @@ export function PatchDiff({
         const found = [...under(line, "LEFT"), ...under(line, "RIGHT")];
         return (
           <Fragment key={line.id}>
-            <UnifiedRow line={line} wrap={wrap} />
+            <UnifiedRow line={line} wrap={wrap} marks={marks.get(line.id)} />
             {found.length > 0 && <InlineComments comments={found} />}
           </Fragment>
         );

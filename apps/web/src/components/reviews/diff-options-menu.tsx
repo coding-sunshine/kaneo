@@ -1,6 +1,7 @@
-import { SlidersHorizontal } from "lucide-react";
+import { ArrowDownUp, SlidersHorizontal } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { DiffLayout } from "@/components/reviews/patch-diff";
+import { SegmentedOptions } from "@/components/reviews/segmented-options";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -15,6 +16,13 @@ export type DiffOptions = {
   wrap: boolean;
   showCounts: boolean;
   hideReviewed: boolean;
+  structural: boolean;
+  fileList: "flat" | "tree";
+  group: "none" | "type";
+  order: "path" | "changes";
+  desc: boolean;
+  minimizeGenerated: boolean;
+  minimizeTests: boolean;
 };
 
 export const DEFAULT_DIFF_OPTIONS: DiffOptions = {
@@ -22,23 +30,47 @@ export const DEFAULT_DIFF_OPTIONS: DiffOptions = {
   wrap: false,
   showCounts: true,
   hideReviewed: false,
+  structural: true,
+  fileList: "flat",
+  group: "none",
+  order: "path",
+  desc: false,
+  minimizeGenerated: true,
+  minimizeTests: true,
 };
 
-const toggles = ["wrap", "showCounts", "hideReviewed"] as const;
+const toggles = [
+  "structural",
+  "wrap",
+  "showCounts",
+  "minimizeGenerated",
+  "minimizeTests",
+  "hideReviewed",
+] as const;
+const toggleKey = (name: (typeof toggles)[number]) =>
+  name === "structural" || name.startsWith("minimize")
+    ? `workspace:reviews.diffOptions2.${name}`
+    : `workspace:reviews.detail.options.${name}`;
 
 /** Linear's sliders menu, with the options Kaneo can back. */
 export function DiffOptionsMenu({
   options,
   onChange,
-  canSplit,
 }: {
   options: DiffOptions;
   onChange: (patch: Partial<DiffOptions>) => void;
-  /** Split needs room; narrow screens read unified only. */
-  canSplit: boolean;
 }) {
   const { t } = useTranslation();
   const title = t("workspace:reviews.detail.options.title");
+  const toggle = (name: (typeof toggles)[number]) => (
+    <label key={name} className="flex items-center gap-2 text-sm">
+      <span className="flex-1">{t(toggleKey(name))}</span>
+      <Switch
+        checked={options[name]}
+        onCheckedChange={(checked) => onChange({ [name]: checked })}
+      />
+    </label>
+  );
   return (
     <Popover>
       <PopoverTrigger
@@ -56,37 +88,53 @@ export function DiffOptionsMenu({
       <PopoverContent align="end" className="w-72">
         <PopoverTitle className="sr-only">{title}</PopoverTitle>
         <div className="flex flex-col gap-3 p-1">
-          {canSplit && (
-            <div role="group" className="grid grid-cols-2 gap-1.5">
-              {(["split", "unified"] as const).map((value) => (
-                <Button
-                  key={value}
-                  size="xs"
-                  variant="outline"
-                  aria-pressed={options.layout === value}
-                  onClick={() => onChange({ layout: value })}
-                  className={
-                    options.layout === value
-                      ? "bg-accent"
-                      : "text-muted-foreground"
-                  }
-                >
-                  {t(`workspace:reviews.detail.layout.${value}`)}
-                </Button>
-              ))}
-            </div>
-          )}
-          {toggles.map((name) => (
-            <label key={name} className="flex items-center gap-2 text-sm">
-              <span className="flex-1">
-                {t(`workspace:reviews.detail.options.${name}`)}
-              </span>
-              <Switch
-                checked={options[name]}
-                onCheckedChange={(checked) => onChange({ [name]: checked })}
-              />
-            </label>
-          ))}
+          <SegmentedOptions
+            values={["split", "unified"] as const}
+            value={options.layout}
+            text={(value) => t(`workspace:reviews.detail.layout.${value}`)}
+            onChange={(layout) => onChange({ layout })}
+          />
+          {toggles.slice(0, 3).map(toggle)}
+          <SegmentedOptions
+            title={t("workspace:reviews.diffOptions2.fileList.label")}
+            values={["flat", "tree"] as const}
+            value={options.fileList}
+            text={(value) =>
+              t(`workspace:reviews.diffOptions2.fileList.${value}`)
+            }
+            onChange={(fileList) => onChange({ fileList })}
+          />
+          <SegmentedOptions
+            title={t("workspace:reviews.diffOptions2.grouping.label")}
+            values={["none", "type"] as const}
+            value={options.group}
+            text={(value) =>
+              t(`workspace:reviews.diffOptions2.grouping.${value}`)
+            }
+            onChange={(group) => onChange({ group })}
+          />
+          <SegmentedOptions
+            title={t("workspace:reviews.diffOptions2.ordering.label")}
+            values={["path", "changes"] as const}
+            value={options.order}
+            text={(value) =>
+              t(`workspace:reviews.diffOptions2.ordering.${value}`)
+            }
+            onChange={(order) => onChange({ order })}
+            lead={
+              <Button
+                size="icon-xs"
+                variant="outline"
+                aria-label={t(
+                  `workspace:reviews.diffOptions2.ordering.${options.desc ? "desc" : "asc"}`,
+                )}
+                onClick={() => onChange({ desc: !options.desc })}
+              >
+                <ArrowDownUp />
+              </Button>
+            }
+          />
+          {toggles.slice(3).map(toggle)}
         </div>
       </PopoverContent>
     </Popover>

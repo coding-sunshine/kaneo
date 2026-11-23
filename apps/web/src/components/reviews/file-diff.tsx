@@ -1,9 +1,11 @@
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { splitFileText } from "@/components/reviews/diff-parser";
 import { FileActionsMenu } from "@/components/reviews/file-actions-menu";
 import { FileIcon } from "@/components/reviews/file-icon";
 import { type DiffLayout, PatchDiff } from "@/components/reviews/patch-diff";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import type {
   ConversationEntry,
@@ -18,6 +20,8 @@ export function FileDiff({
   file,
   layout,
   wrap,
+  structural,
+  minimized,
   showCounts,
   prefetch,
   comments,
@@ -30,6 +34,9 @@ export function FileDiff({
   file: PullRequestFiles[number];
   layout: DiffLayout;
   wrap: boolean;
+  structural: boolean;
+  /** A generated or test file: folded to its header until opened. */
+  minimized: string | null;
   showCounts: boolean;
   /** Fetch the file text up front, so the trailing separator shows at once. */
   prefetch: boolean;
@@ -39,12 +46,14 @@ export function FileDiff({
 }) {
   const { t } = useTranslation();
   const [wanted, setWanted] = useState(false);
+  const [opened, setOpened] = useState(false);
+  const folded = reviewed || (minimized !== null && !opened);
   const removed = file.status === "removed";
   const content = useFileContent(
     pullRef,
     file.filename,
     headSha,
-    (prefetch || wanted) && !!file.patch && !removed && !reviewed,
+    (prefetch || wanted) && !!file.patch && !removed && !folded,
   );
   const fileLines =
     content.data?.content != null ? splitFileText(content.data.content) : null;
@@ -59,6 +68,19 @@ export function FileDiff({
       className="scroll-mt-4 overflow-hidden rounded-lg border"
     >
       <h3 className="flex h-10 items-center gap-2 px-3 font-normal text-[13px]">
+        {minimized && (
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            aria-expanded={opened}
+            aria-label={t(
+              `workspace:reviews.diffOptions2.${opened ? "collapse" : "expand"}`,
+            )}
+            onClick={() => setOpened(!opened)}
+          >
+            {opened ? <ChevronDown /> : <ChevronRight />}
+          </Button>
+        )}
         <FileIcon filename={file.filename} />
         <span className="min-w-0 flex-1 truncate" title={file.filename}>
           {file.filename.slice(slash + 1)}
@@ -68,6 +90,11 @@ export function FileDiff({
             </span>
           )}
         </span>
+        {minimized && (
+          <span className="shrink-0 text-muted-foreground text-xs">
+            {minimized}
+          </span>
+        )}
         {showCounts && (
           <>
             <span className="shrink-0 text-success-foreground tabular-nums">
@@ -85,13 +112,14 @@ export function FileDiff({
         </label>
         <FileActionsMenu filename={file.filename} githubUrl={githubUrl} />
       </h3>
-      {!reviewed &&
+      {!folded &&
         (file.patch ? (
           <div className="border-t">
             <PatchDiff
               patch={file.patch}
               layout={layout}
               wrap={wrap}
+              structural={structural}
               comments={comments}
               fileLines={fileLines}
               onExpand={() => setWanted(true)}

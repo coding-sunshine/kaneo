@@ -17,6 +17,7 @@ import { PullRequestIssueCrumb } from "@/components/reviews/pull-request-issue-c
 import { PullRequestMenu } from "@/components/reviews/pull-request-menu";
 import { ReadyForReviewButton } from "@/components/reviews/ready-for-review-button";
 import { ReviewDialog } from "@/components/reviews/review-dialog";
+import { PullRequestLineCounts } from "@/components/reviews/pull-request-line-counts";
 import { ReviewsTabPill } from "@/components/reviews/reviews-tab-pill";
 import { PullRequestStatusIcon } from "@/components/task/task-pull-requests/pull-request-status-icon";
 import { Button } from "@/components/ui/button";
@@ -82,12 +83,12 @@ export function PullRequestPage({
             <span className="shrink-0 text-muted-foreground tabular-nums">
               #{pull.data.number}
             </span>
-            <span className="shrink-0 text-success-foreground tabular-nums">
-              +{pull.data.additions}
-            </span>
-            <span className="shrink-0 text-destructive-foreground tabular-nums">
-              -{pull.data.deletions}
-            </span>
+            <PullRequestLineCounts
+              pullRef={pullRef}
+              headSha={pull.data.headSha}
+              additions={pull.data.additions}
+              deletions={pull.data.deletions}
+            />
             <PullRequestMenu pullRef={pullRef} pull={pull.data} />
           </>
         )}
