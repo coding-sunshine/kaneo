@@ -49,6 +49,7 @@ export function ReviewsPage({
   const { t } = useTranslation();
   const views = useUserPreferencesStore((state) => state.reviewsView);
   const setView = useUserPreferencesStore((state) => state.setReviewsView);
+  const expanded = useUserPreferencesStore((state) => state.reviewsExpanded);
   const [tab, setTab] = useState<ReviewsTab>("toReview");
   const [filterOpen, setFilterOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -97,6 +98,8 @@ export function ReviewsPage({
             "flex min-h-0 w-full shrink-0 flex-col border-border/60",
             connected && "lg:w-[30.5rem] lg:border-r",
             connected && selectedKey && "max-lg:hidden",
+            // Expanded only applies with a pull request open, so the list never vanishes on its own.
+            connected && selectedKey && expanded && "lg:hidden",
           )}
         >
           <Layout.Header className="items-center gap-1">

@@ -1,5 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { ExternalLink } from "lucide-react";
+import {
+  ChevronRight,
+  GitPullRequest,
+  Maximize2,
+  Minimize2,
+} from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Layout from "@/components/common/layout";
@@ -7,14 +12,14 @@ import PageTitle from "@/components/page-title";
 import { FilesTab } from "@/components/reviews/files-tab";
 import { MergeButton } from "@/components/reviews/merge-button";
 import { OverviewTab } from "@/components/reviews/overview-tab";
-import { Person } from "@/components/reviews/person";
 import { ReviewDialog } from "@/components/reviews/review-dialog";
+import { ReviewsTabPill } from "@/components/reviews/reviews-tab-pill";
 import { PullRequestStatusIcon } from "@/components/task/task-pull-requests/pull-request-status-icon";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { PullRef } from "@/fetchers/github-reviews/github-reviews";
 import { usePullRequest } from "@/hooks/queries/github-reviews/use-github-reviews";
-import { cn } from "@/lib/cn";
+import { useUserPreferencesStore } from "@/store/user-preferences";
 
 type Tab = "overview" | "files";
 
@@ -27,39 +32,86 @@ export function PullRequestPage({
 }) {
   const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>("overview");
+  const expanded = useUserPreferencesStore((state) => state.reviewsExpanded);
+  const setExpanded = useUserPreferencesStore(
+    (state) => state.setReviewsExpanded,
+  );
   const pull = usePullRequest(pullRef);
   const title = pull.data
     ? `${pull.data.title} #${pull.data.number}`
     : t("workspace:reviews.pageTitle");
+  const githubLabel = pull.data ? `${pull.data.repo}#${pull.data.number}` : "";
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PageTitle title={title} />
-      {/* Opens beside the list, so it brings its own header row. */}
-      <Layout.Header className="items-center justify-between">
+      {/* Linear's breadcrumb row: Reviews › status, title, number and size. */}
+      <Layout.Header className="items-center gap-1.5 text-[13px]">
+        {/* Below lg the list is hidden, so this link is the way back. */}
         <Link
           to="/dashboard/workspace/$workspaceId/reviews"
           params={{ workspaceId }}
-          className="truncate px-1 text-card-foreground text-xs"
+          className="shrink-0 px-1 text-muted-foreground hover:text-foreground"
         >
           {t("workspace:reviews.pageTitle")}
         </Link>
         {pull.data && (
+          <>
+            <ChevronRight
+              aria-hidden
+              className="size-3.5 shrink-0 text-muted-foreground"
+            />
+            <PullRequestStatusIcon
+              status={pull.data.status}
+              className="size-4 shrink-0"
+            />
+            <span className="min-w-0 truncate font-medium">
+              {pull.data.title}
+            </span>
+            <span className="shrink-0 text-muted-foreground tabular-nums">
+              #{pull.data.number}
+            </span>
+            <span className="shrink-0 text-success-foreground tabular-nums">
+              +{pull.data.additions}
+            </span>
+            <span className="shrink-0 text-destructive-foreground tabular-nums">
+              -{pull.data.deletions}
+            </span>
+          </>
+        )}
+        <span className="flex-1" />
+        {pull.data && (
           <Button
             variant="ghost"
             size="xs"
+            className="shrink-0 font-mono text-muted-foreground max-sm:hidden"
             render={
               <a
                 href={pull.data.url}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label={`${githubLabel}, ${t("workspace:reviews.detail.openOnGithub")}`}
               />
             }
           >
-            <ExternalLink />
-            {t("workspace:reviews.detail.openOnGithub")}
+            <GitPullRequest />
+            {githubLabel}
           </Button>
         )}
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          className="shrink-0 max-lg:hidden"
+          aria-label={t(
+            expanded
+              ? "workspace:reviews.detail.collapse"
+              : "workspace:reviews.detail.expand",
+          )}
+          aria-pressed={expanded}
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? <Minimize2 /> : <Maximize2 />}
+        </Button>
       </Layout.Header>
       <div className="flex min-h-0 flex-1 flex-col">
         {pull.isLoading ? (
@@ -70,62 +122,28 @@ export function PullRequestPage({
           </p>
         ) : (
           <>
-            <div className="flex shrink-0 flex-col gap-2 border-border/50 border-b px-4 py-3">
-              <h2 className="flex items-center gap-2 font-semibold text-base">
-                <PullRequestStatusIcon
-                  status={pull.data.status}
-                  className="size-4"
-                />
-                <span className="min-w-0 flex-1 truncate">
-                  {pull.data.title}
-                </span>
-                <span className="font-normal text-muted-foreground">
-                  #{pull.data.number}
-                </span>
-                {(pull.data.status === "open" ||
-                  pull.data.status === "draft") && (
-                  <span className="ml-2 flex shrink-0 items-center gap-1.5">
-                    <ReviewDialog pullRef={pullRef} />
-                    <MergeButton pullRef={pullRef} pull={pull.data} />
-                  </span>
-                )}
-              </h2>
-              <p className="flex flex-wrap items-center gap-2 text-muted-foreground text-xs">
-                <Person author={pull.data.author} />
-                <span>
-                  {pull.data.owner}/{pull.data.repo}
-                </span>
-                <span className="font-mono">
-                  {pull.data.baseRef} ← {pull.data.headRef}
-                </span>
-                <span className="text-success-foreground">
-                  +{pull.data.additions}
-                </span>
-                <span className="text-destructive-foreground">
-                  -{pull.data.deletions}
-                </span>
-              </p>
-              <div role="tablist" className="inline-flex items-center gap-1.5">
-                {(["overview", "files"] as const).map((id) => (
-                  <Button
-                    key={id}
-                    role="tab"
-                    aria-selected={tab === id}
-                    variant="outline"
-                    size="xs"
-                    onClick={() => setTab(id)}
-                    className={cn(
-                      "rounded-full",
-                      tab === id
-                        ? "bg-accent text-foreground"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    {t(`workspace:reviews.detail.tabs.${id}`)}
-                    {id === "files" && ` ${pull.data.changedFiles}`}
-                  </Button>
-                ))}
+            <div className="flex shrink-0 items-center gap-1.5 px-4 py-2.5">
+              <div role="tablist" className="flex items-center gap-1.5">
+                <ReviewsTabPill
+                  active={tab === "overview"}
+                  onClick={() => setTab("overview")}
+                >
+                  {t("workspace:reviews.detail.tabs.overview")}
+                </ReviewsTabPill>
+                <ReviewsTabPill
+                  active={tab === "files"}
+                  onClick={() => setTab("files")}
+                >
+                  {t("workspace:reviews.detail.tabs.diff")}
+                </ReviewsTabPill>
               </div>
+              {(pull.data.status === "open" ||
+                pull.data.status === "draft") && (
+                <span className="ml-auto flex shrink-0 items-center gap-1.5">
+                  <ReviewDialog pullRef={pullRef} />
+                  <MergeButton pullRef={pullRef} pull={pull.data} />
+                </span>
+              )}
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto">
               {tab === "overview" && (

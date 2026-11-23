@@ -1,8 +1,9 @@
 import { useTranslation } from "react-i18next";
-import { ChecksList } from "@/components/reviews/checks-list";
 import { CommentComposer } from "@/components/reviews/comment-composer";
 import { ConversationTimeline } from "@/components/reviews/conversation-timeline";
 import { Markdown } from "@/components/reviews/markdown";
+import { Person } from "@/components/reviews/person";
+import { PullRequestProperties } from "@/components/reviews/pull-request-properties";
 import type {
   PullRef,
   PullRequestDetail,
@@ -17,40 +18,37 @@ export function OverviewTab({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
-      {pull.labels.length > 0 && (
-        <ul className="flex flex-wrap gap-1.5">
-          {pull.labels.map((label) => (
-            <li
-              key={label.name}
-              className="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs"
-            >
-              <span
-                aria-hidden
-                className="size-2 rounded-full"
-                style={{ backgroundColor: `#${label.color}` }}
-              />
-              {label.name}
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="mx-auto flex max-w-4xl flex-col gap-6 px-5 py-6">
+      <header className="flex flex-col gap-2">
+        <h1 className="text-balance font-semibold text-2xl leading-8">
+          {pull.title}
+        </h1>
+        <p className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-muted-foreground text-xs">
+          <Person author={pull.author} />
+          <span aria-hidden>·</span>
+          <span className="min-w-0 truncate font-mono">
+            {pull.baseRef} ← {pull.headRef}
+          </span>
+        </p>
+      </header>
+      <PullRequestProperties pullRef={pullRef} pull={pull} />
       {pull.body ? (
-        <Markdown value={pull.body} />
+        // Linear sets a PR description at its document scale, headings included.
+        <div className="kaneo-document-body">
+          <Markdown value={pull.body} />
+        </div>
       ) : (
         <p className="text-muted-foreground text-sm">
           {t("workspace:reviews.detail.noDescription")}
         </p>
       )}
-      <h2 className="font-medium text-sm">
-        {t("workspace:reviews.detail.tabs.checks")}
-      </h2>
-      <ChecksList pullRef={pullRef} />
-      <h2 className="font-medium text-sm">
-        {t("workspace:reviews.detail.conversation")}
-      </h2>
-      <ConversationTimeline pullRef={pullRef} />
-      <CommentComposer pullRef={pullRef} />
+      <section className="flex flex-col gap-4 border-border/60 border-t pt-6">
+        <h2 className="font-medium text-sm">
+          {t("workspace:reviews.detail.conversation")}
+        </h2>
+        <ConversationTimeline pullRef={pullRef} />
+        <CommentComposer pullRef={pullRef} />
+      </section>
     </div>
   );
 }

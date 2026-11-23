@@ -4898,7 +4898,8 @@
 				"tabs": {
 					"overview": "Overview",
 					"files": "Files changed",
-					"checks": "Checks"
+					"checks": "Checks",
+					"diff": "Diff"
 				},
 				"review": "Review",
 				"reviewTitle": "Finish your review",
@@ -4916,7 +4917,18 @@
 				"layout": {
 					"unified": "Unified",
 					"split": "Split"
-				}
+				},
+				"properties": {
+					"status": "Status",
+					"reviewers": "Reviewers",
+					"checks": "Checks",
+					"labels": "Labels"
+				},
+				"checksPassed": "{{count}} passed",
+				"checksFailed": "{{count}} failed",
+				"checksRunning": "{{count}} running",
+				"expand": "Expand",
+				"collapse": "Collapse"
 			},
 			"loadError": "Could not load your pull requests.",
 			"tabs": {

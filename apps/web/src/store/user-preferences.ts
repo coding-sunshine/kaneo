@@ -119,6 +119,9 @@ type UserPreferencesStore = {
   setCodeReviewsEnabled: (enabled: boolean) => void;
   reviewsView: ReviewsViews;
   setReviewsView: (tab: ReviewsTab, patch: Partial<ReviewsView>) => void;
+  /** An opened pull request takes the whole page, hiding the list. */
+  reviewsExpanded: boolean;
+  setReviewsExpanded: (expanded: boolean) => void;
 
   sidebar: SidebarPrefs;
   setSidebarVisibility: (id: SidebarItemId, value: SidebarVisibility) => void;
@@ -284,6 +287,8 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
             [tab]: { ...reviewsView[tab], ...patch },
           },
         })),
+      reviewsExpanded: false,
+      setReviewsExpanded: (reviewsExpanded) => set({ reviewsExpanded }),
 
       sidebar: DEFAULT_SIDEBAR_PREFS,
       setSidebarVisibility: (id, value) =>

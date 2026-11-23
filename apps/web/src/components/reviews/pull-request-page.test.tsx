@@ -7,7 +7,9 @@ import {
   it,
   vi,
 } from "vite-plus/test";
+import "@/lib/i18n";
 import { ShortcutTestWrapper } from "@/lib/shortcuts/shortcut-test-wrapper";
+import { useUserPreferencesStore } from "@/store/user-preferences";
 import { PullRequestPage } from "./pull-request-page";
 
 const mocks = vi.hoisted(() => ({
@@ -33,6 +35,7 @@ const basePull = {
   additions: 2,
   deletions: 1,
   changedFiles: 1,
+  requestedReviewers: [] as { login: string; avatarUrl: string }[],
 };
 
 vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => ({
@@ -109,14 +112,22 @@ beforeEach(() => {
   mocks.pull = { ...basePull };
   mocks.submit.mockClear();
   mocks.merge.mockClear();
+  useUserPreferencesStore.setState({ reviewsExpanded: false });
 });
 afterEach(cleanup);
 
 describe("PullRequestPage", () => {
-  it("shows labels, checks and the conversation on Overview", () => {
+  it("lists status, labels and a checks summary, then the conversation", async () => {
     renderPage();
+    expect(screen.getByText("Status").nextElementSibling).toHaveTextContent(
+      "Open",
+    );
     expect(screen.getByText("bug")).toBeInTheDocument();
-    expect(screen.getByText("ci").closest("li")).toHaveAttribute(
+    expect(screen.getByText("ship it")).toBeInTheDocument();
+    // No reviewers requested, so Linear's Reviewers row is left out.
+    expect(screen.queryByText("Reviewers")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "1 failed, 1 passed" }));
+    expect((await screen.findByText("ci")).closest("li")).toHaveAttribute(
       "data-state",
       "failure",
     );
@@ -124,7 +135,25 @@ describe("PullRequestPage", () => {
       "data-state",
       "success",
     );
-    expect(screen.getByText("ship it")).toBeInTheDocument();
+  });
+
+  it("shows requested reviewers", () => {
+    mocks.pull = {
+      ...basePull,
+      requestedReviewers: [{ login: "grace", avatarUrl: "" }],
+    };
+    renderPage();
+    expect(screen.getByText("Reviewers").nextElementSibling).toHaveTextContent(
+      "grace",
+    );
+  });
+
+  it("expands the pull request over the list and back", () => {
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Expand" }));
+    expect(useUserPreferencesStore.getState().reviewsExpanded).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Collapse" }));
+    expect(useUserPreferencesStore.getState().reviewsExpanded).toBe(false);
   });
 
   it("disables Merge unless GitHub says the pull request is mergeable", () => {
@@ -164,7 +193,7 @@ describe("PullRequestPage", () => {
 
   it("switches the Files diff between unified and split with Ctrl+B", () => {
     const { container } = renderPage();
-    fireEvent.click(screen.getByRole("tab", { name: /Files changed/ }));
+    fireEvent.click(screen.getByRole("tab", { name: "Diff" }));
     expect(container.querySelector("[data-layout=unified]")).not.toBeNull();
     fireEvent.keyDown(document.body, { key: "b", ctrlKey: true });
     expect(container.querySelector("[data-layout=split]")).not.toBeNull();

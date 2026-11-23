@@ -23,7 +23,7 @@ export function ChecksList({ pullRef }: { pullRef: PullRef }) {
     );
   }
   return (
-    <ul className="flex flex-col rounded-lg border px-3">
+    <ul className="flex flex-col px-3">
       {checks.data.checks.map((check) => (
         <li
           key={`${check.name}-${check.url}`}
