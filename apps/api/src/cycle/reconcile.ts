@@ -81,7 +81,7 @@ export async function reconcileCycles(projectId: string, now = new Date()) {
             ),
           )
           .returning({ id: taskTable.id });
-        // Same shape as imported Linear rollovers, so history reads
+        // Same actor as imported Linear rollovers, so history reads
         // "Linear moved from Cycle N to Cycle N+1".
         if (moved.length > 0)
           await tx.insert(activityTable).values(

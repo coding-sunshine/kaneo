@@ -829,7 +829,10 @@ export default function CommentEditor({
           return false;
         },
       },
-      onUpdate: ({ editor: activeEditor }) => {
+      onUpdate: ({ editor: activeEditor, transaction }) => {
+        // setEditable and other non-edit transactions also fire "update";
+        // reporting those would save imported text in Tiptap's formatting.
+        if (!transaction.docChanged) return;
         if (readOnly || disabled || !onChange || isSyncingRef.current) return;
         // A replacement editor (e.g. after Shiki loads) starts empty; ignore it
         // until it has been hydrated with the current value.
@@ -978,7 +981,7 @@ export default function CommentEditor({
 
   useEffect(() => {
     if (!editor) return;
-    editor.setEditable(!readOnly && !disabled);
+    editor.setEditable(!readOnly && !disabled, false);
   }, [disabled, editor, readOnly]);
 
   useEffect(() => {
