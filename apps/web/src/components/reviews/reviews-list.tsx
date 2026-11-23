@@ -82,6 +82,17 @@ export function ReviewsList({
       />
     ));
 
+  const topIds = groups.filter((g) => g.by !== "none").map(groupId);
+  const allCollapsed =
+    topIds.length > 0 && topIds.every((id) => view.collapsed.includes(id));
+  // Expanding all frees only these groups; collapsed ids from other groupings stay.
+  const toggleAll = () =>
+    onViewChange({
+      collapsed: allCollapsed
+        ? view.collapsed.filter((id) => !topIds.includes(id))
+        : [...new Set([...view.collapsed, ...topIds])],
+    });
+
   return (
     <div className="flex flex-col gap-px py-2">
       {groups.map((group) => {
@@ -95,6 +106,8 @@ export function ReviewsList({
               level={0}
               collapsed={collapsed}
               pinned={view.pinned.includes(id)}
+              allCollapsed={allCollapsed}
+              onToggleAllCollapsed={toggleAll}
               onToggleCollapsed={() =>
                 onViewChange({ collapsed: toggle(view.collapsed, id) })
               }

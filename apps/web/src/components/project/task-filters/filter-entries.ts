@@ -51,13 +51,15 @@ export function rootFilterEntries(
   customFieldsLabel: string,
 ): FilterEntryGroup[] {
   if (!query.trim()) {
+    const core = subjects.filter((subject) => subject.kind === "core");
+    const sections = [...new Set(core.map((subject) => subject.section ?? ""))];
     return [
-      {
-        value: "core",
-        items: subjects
-          .filter((subject) => subject.kind === "core")
+      ...sections.map((section) => ({
+        value: `core:${section}`,
+        items: core
+          .filter((subject) => (subject.section ?? "") === section)
           .map(subjectEntry),
-      },
+      })),
       {
         value: "customFields",
         label: customFieldsLabel,

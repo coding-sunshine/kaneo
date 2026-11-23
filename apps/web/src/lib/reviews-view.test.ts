@@ -8,6 +8,9 @@ import {
   DEFAULT_REVIEWS_VIEWS,
   fetchWindow,
   sanitizeReviewsViews,
+  moveTab,
+  sanitizeTabOrder,
+  type ReviewsTab,
   sizeBucket,
   sortPullRequests,
   tabItems,
@@ -23,6 +26,8 @@ const pr = (over: Partial<ReviewPullRequest>) =>
     status: "open",
     author: { login: "ada", avatarUrl: "" },
     reviewDecision: null,
+    approvedBy: [],
+    changesRequestedBy: [],
     checks: "none",
     additions: 0,
     deletions: 0,
@@ -36,8 +41,58 @@ const now = new Date("2026-03-10T12:00:00Z");
 
 describe("reviews view", () => {
   it("buckets size by changed lines", () => {
-    expect(sizeBucket(pr({ additions: 5, deletions: 4 }))).toBe("xs");
-    expect(sizeBucket(pr({ additions: 600, deletions: 500 }))).toBe("xl");
+    const bucket = (lines: number) =>
+      sizeBucket(pr({ additions: lines, deletions: 0 }));
+    expect([0, 10, 11, 50, 250, 1000, 5000, 5001].map(bucket)).toEqual([
+      "u10",
+      "u10",
+      "u50",
+      "u50",
+      "u250",
+      "u1000",
+      "u5000",
+      "over",
+    ]);
+  });
+
+  it("moves tabs one step and keeps a valid saved order", () => {
+    expect(moveTab(["created", "toReview"], "created", 1)).toEqual([
+      "toReview",
+      "created",
+    ]);
+    const order: ReviewsTab[] = ["created", "toReview"];
+    expect(moveTab(order, "created", -1)).toBe(order);
+    expect(moveTab(order, "toReview", 1)).toBe(order);
+    expect(sanitizeTabOrder(["toReview", "created"])).toEqual([
+      "toReview",
+      "created",
+    ]);
+    expect(sanitizeTabOrder(["toReview", "toReview"])).toEqual(order);
+    expect(sanitizeTabOrder(undefined)).toEqual(order);
+  });
+
+  it("groups by the six Status values in Linear's order", () => {
+    const items = [
+      pr({ number: 1, status: "closed" }),
+      pr({ number: 2, status: "open", reviewDecision: "approved" }),
+      pr({ number: 3, status: "open", approvedBy: ["ada"] }),
+      pr({ number: 4, status: "open" }),
+      pr({ number: 5, status: "merged" }),
+      pr({ number: 6, status: "draft" }),
+    ];
+    const groups = buildGroups(items, {
+      groupBy: "status",
+      subGroupBy: "none",
+      pinned: [],
+    });
+    expect(groups.map((g) => g.key)).toEqual([
+      "draft",
+      "open",
+      "inReview",
+      "approved",
+      "merged",
+      "closed",
+    ]);
   });
 
   it("nests a subgroup and skips rows in collapsed groups", () => {

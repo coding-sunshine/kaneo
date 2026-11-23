@@ -4,7 +4,14 @@ import type {
   ReviewsList,
 } from "@/fetchers/github-reviews/github-reviews";
 
+import { reviewStatus, REVIEW_STATUSES } from "@/lib/reviews-status";
+import {
+  type ReviewsFilters,
+  sanitizeReviewsFilters,
+} from "@/lib/reviews-filters";
+
 export type ReviewsTab = "created" | "toReview";
+export const REVIEWS_TABS: ReviewsTab[] = ["created", "toReview"];
 export type ReviewsFocus = "needsReview" | "done";
 /** A list row: To review rows say whether they still need this person's review. */
 export type ReviewItem = ReviewPullRequest & { focus?: ReviewsFocus };
@@ -53,6 +60,7 @@ export type ReviewsView = {
   collapsed: string[];
   /** Top-level group ids kept below the others. */
   pinned: string[];
+  filters: ReviewsFilters;
 };
 export type ReviewsViews = Record<ReviewsTab, ReviewsView>;
 
@@ -132,6 +140,7 @@ export const DEFAULT_REVIEWS_VIEWS: ReviewsViews = {
     properties: ["date"],
     collapsed: ["status:merged", "status:closed"],
     pinned: [],
+    filters: {},
   },
   toReview: {
     groupBy: "focus",
@@ -143,6 +152,7 @@ export const DEFAULT_REVIEWS_VIEWS: ReviewsViews = {
     properties: ["date"],
     collapsed: ["focus:done"],
     pinned: [],
+    filters: {},
   },
 };
 
@@ -183,9 +193,33 @@ export function sanitizeReviewsViews(saved: unknown): ReviewsViews {
       ),
       collapsed: strings(view.collapsed, base.collapsed),
       pinned: strings(view.pinned, base.pinned),
+      filters: sanitizeReviewsFilters(view.filters),
     };
   };
   return { created: one("created"), toReview: one("toReview") };
+}
+
+/** A saved tab order must hold each tab once; anything else falls back to the default. */
+export function sanitizeTabOrder(saved: unknown): ReviewsTab[] {
+  return Array.isArray(saved) &&
+    saved.length === REVIEWS_TABS.length &&
+    REVIEWS_TABS.every((tab) => saved.includes(tab))
+    ? (saved as ReviewsTab[])
+    : REVIEWS_TABS;
+}
+
+/** Swaps a tab with its neighbour; the first tab cannot go left nor the last right. */
+export function moveTab(
+  order: ReviewsTab[],
+  tab: ReviewsTab,
+  by: -1 | 1,
+): ReviewsTab[] {
+  const from = order.indexOf(tab);
+  const to = from + by;
+  if (from === -1 || to < 0 || to >= order.length) return order;
+  const next = [...order];
+  [next[from], next[to]] = [next[to], next[from]];
+  return next;
 }
 
 /**
@@ -245,26 +279,27 @@ export const PRIORITY_ORDER = [
   "no-priority",
 ];
 
+/** Linear's Size buckets, by changed lines: up to 10, 10 to 50, ... over 5,000. */
+export const SIZE_BUCKETS = ["u10", "u50", "u250", "u1000", "u5000", "over"];
+
 const FIXED_ORDER: Partial<Record<ReviewsGroupBy, string[]>> = {
-  status: ["draft", "open", "merged", "closed"],
+  status: [...REVIEW_STATUSES],
   focus: ["needsReview", "done"],
-  size: ["xs", "s", "m", "l", "xl"],
+  size: [...SIZE_BUCKETS],
   priority: PRIORITY_ORDER,
 };
 
 export function sizeBucket(pr: ReviewPullRequest) {
   const lines = pr.additions + pr.deletions;
-  if (lines < 10) return "xs";
-  if (lines < 50) return "s";
-  if (lines < 250) return "m";
-  if (lines < 1000) return "l";
-  return "xl";
+  const limits = [10, 50, 250, 1000, 5000];
+  const index = limits.findIndex((limit) => lines <= limit);
+  return SIZE_BUCKETS[index === -1 ? limits.length : index];
 }
 
 export function groupKey(pr: ReviewItem, by: ReviewsGroupBy) {
   switch (by) {
     case "status":
-      return pr.status;
+      return reviewStatus(pr);
     case "focus":
       return pr.focus ?? "needsReview";
     case "author":
@@ -323,7 +358,10 @@ function compare(a: ReviewItem, b: ReviewItem, by: ReviewsSortBy) {
     case "size":
       return a.additions + a.deletions - (b.additions + b.deletions);
     case "status":
-      return STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status);
+      return (
+        STATUS_ORDER.indexOf(reviewStatus(a)) -
+        STATUS_ORDER.indexOf(reviewStatus(b))
+      );
     default:
       return a.updatedAt.localeCompare(b.updatedAt);
   }

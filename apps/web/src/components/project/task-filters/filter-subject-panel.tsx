@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { parseDateCondition } from "@/lib/task-filters/date-condition";
 import { subjectFilterEntries } from "./filter-entries";
 import { FilterListbox } from "./filter-listbox";
+import { FilterTextInput } from "./filter-text-input";
 import type { FilterSubject } from "./filter-subject";
 
 type FilterSubjectPanelProps = {
@@ -20,14 +21,30 @@ export function FilterSubjectPanel({
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
 
+  if (subject.onTextApply) {
+    return (
+      <FilterTextInput
+        placeholder={subject.textPlaceholder ?? subject.label}
+        initial={subject.selected[0]}
+        onApply={(value) => {
+          subject.onTextApply?.(value);
+          onApplied?.();
+        }}
+      />
+    );
+  }
+
   return (
     <div className="-mx-1 -my-0.5">
       <FilterListbox
         placeholder={t("tasks:filterMenu.searchSubject", {
           name: subject.label,
         })}
-        groups={subjectFilterEntries(subject, query, (count) =>
-          t("tasks:toolbar.taskCount", { count }),
+        groups={subjectFilterEntries(
+          subject,
+          query,
+          subject.formatCount ??
+            ((count) => t("tasks:toolbar.taskCount", { count })),
         )}
         query={query}
         onQueryChange={setQuery}

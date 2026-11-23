@@ -7,6 +7,7 @@ import PageTitle from "@/components/page-title";
 import { ReviewsConnectCard } from "@/components/reviews/reviews-connect-card";
 import { ReviewsDisplayOptions } from "@/components/reviews/reviews-display-options";
 import { ReviewsList } from "@/components/reviews/reviews-list";
+import { ReviewsTabMenu } from "@/components/reviews/reviews-tab-menu";
 import { ReviewsTabPill } from "@/components/reviews/reviews-tab-pill";
 import { ActiveFiltersBar } from "@/components/project/task-filters/active-filters-bar";
 import { FilterMenu } from "@/components/project/task-filters/filter-menu";
@@ -35,6 +36,8 @@ import {
   buildGroups,
   fetchWindow,
   filterPullRequests,
+  moveTab,
+  REVIEWS_TABS,
   type ReviewsTab,
   sortPullRequests,
   tabItems,
@@ -58,11 +61,16 @@ export function ReviewsPage({
   const views = useUserPreferencesStore((state) => state.reviewsView);
   const setView = useUserPreferencesStore((state) => state.setReviewsView);
   const expanded = useUserPreferencesStore((state) => state.reviewsExpanded);
-  const [tab, setTab] = useState<ReviewsTab>("toReview");
+  const tabOrder = useUserPreferencesStore((state) => state.reviewsTabOrder);
+  const setTabOrder = useUserPreferencesStore(
+    (state) => state.setReviewsTabOrder,
+  );
+  const [tab, setTab] = useState<ReviewsTab>(() => {
+    const linked = new URLSearchParams(window.location.search).get("tab");
+    return REVIEWS_TABS.find((entry) => entry === linked) ?? "toReview";
+  });
   const [filterOpen, setFilterOpen] = useState(false);
   const [query, setQuery] = useState("");
-  // ponytail: filters live for this visit only; saved filter views need a store field.
-  const [filters, setFilters] = useState<ReviewsFilters>({});
   const status = useReviewsStatus();
   const connected = status.data?.state === "connected";
   const list = useReviewsList(fetchWindow(views), connected);
@@ -73,24 +81,36 @@ export function ReviewsPage({
 
   const title = t("workspace:reviews.pageTitle");
   const view = views[tab];
+  const filters = view.filters;
+  const setFilters = (next: ReviewsFilters) => setView(tab, { filters: next });
   const data = list.data;
+  const me = status.data?.login ?? null;
+  // Date presets count back from the last fetch, so they stay stable between renders.
+  const updatedAt = list.dataUpdatedAt;
+  const ctx = useMemo(
+    () => ({ me, now: new Date(updatedAt || Date.now()) }),
+    [me, updatedAt],
+  );
   const items = useMemo(
     () => (data ? tabItems(data, tab, view) : []),
     [data, tab, view],
   );
-  const subjects = useReviewsFilterSubjects(items, filters, setFilters);
+  const subjects = useReviewsFilterSubjects(items, filters, setFilters, ctx);
   const groups = useMemo(
     () =>
       data
         ? buildGroups(
             sortPullRequests(
-              filterPullRequests(filterByReviewFilters(items, filters), query),
+              filterPullRequests(
+                filterByReviewFilters(items, filters, ctx),
+                query,
+              ),
               view,
             ),
             view,
           )
         : [],
-    [data, items, filters, view, query],
+    [data, items, filters, ctx, view, query],
   );
   const shown = useMemo(
     () => visibleRows(groups, view.collapsed).length,
@@ -153,23 +173,30 @@ export function ReviewsPage({
               role="tablist"
               className="flex h-11 shrink-0 items-center gap-1 px-3"
             >
-              <ReviewsTabPill
-                active={tab === "created"}
-                onClick={() => setTab("created")}
-              >
-                {t("workspace:reviews.tabs.created")}
-              </ReviewsTabPill>
-              <ReviewsTabPill
-                active={tab === "toReview"}
-                onClick={() => setTab("toReview")}
-              >
-                {t("workspace:reviews.tabs.toReview")}
-                {data && data.toReview.length > 0 && (
-                  <span className="text-muted-foreground tabular-nums">
-                    {data.toReview.length}
-                  </span>
-                )}
-              </ReviewsTabPill>
+              {tabOrder.map((entry, index) => (
+                <ReviewsTabMenu
+                  key={entry}
+                  tab={entry}
+                  first={index === 0}
+                  onMove={() =>
+                    setTabOrder(moveTab(tabOrder, entry, index === 0 ? 1 : -1))
+                  }
+                >
+                  <ReviewsTabPill
+                    active={tab === entry}
+                    onClick={() => setTab(entry)}
+                  >
+                    {t(`workspace:reviews.tabs.${entry}`)}
+                    {entry === "toReview" &&
+                      data &&
+                      data.toReview.length > 0 && (
+                        <span className="text-muted-foreground tabular-nums">
+                          {data.toReview.length}
+                        </span>
+                      )}
+                  </ReviewsTabPill>
+                </ReviewsTabMenu>
+              ))}
             </div>
           )}
           {connected && (

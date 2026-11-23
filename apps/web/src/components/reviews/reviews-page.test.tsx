@@ -10,7 +10,7 @@ import {
 // Loads the real English copy, so the assertions read like the page does.
 import "@/lib/i18n";
 import { ShortcutListener } from "@/lib/shortcuts/shortcut-listener";
-import { DEFAULT_REVIEWS_VIEWS } from "@/lib/reviews-view";
+import { DEFAULT_REVIEWS_VIEWS, REVIEWS_TABS } from "@/lib/reviews-view";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 import { ReviewsPage } from "./reviews-page";
 
@@ -101,6 +101,7 @@ beforeEach(() => {
   useUserPreferencesStore.setState({
     codeReviewsEnabled: true,
     reviewsView: DEFAULT_REVIEWS_VIEWS,
+    reviewsTabOrder: REVIEWS_TABS,
   });
   mocks.navigate.mockClear();
   mocks.params = {};
@@ -264,6 +265,74 @@ describe("ReviewsPage", () => {
     fireEvent.click(await screen.findByText("Blocked"));
     expect(screen.getByText("Blocked one")).toBeInTheDocument();
     expect(screen.queryByText("Ready one")).not.toBeInTheDocument();
+  });
+
+  it("shows a second line with status details and repo#num when those properties are on", () => {
+    state.list.toReview = [pr(7, "Two lines", "draft")];
+    const withProperties = (properties: string[]) =>
+      useUserPreferencesStore.setState({
+        reviewsView: {
+          ...DEFAULT_REVIEWS_VIEWS,
+          toReview: {
+            ...DEFAULT_REVIEWS_VIEWS.toReview,
+            properties: properties as never,
+          },
+        },
+      });
+    withProperties(["date"]);
+    const one = render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    expect(screen.queryByText("Draft · web#7")).not.toBeInTheDocument();
+    one.unmount();
+    withProperties(["date", "repository", "id", "statusDetails"]);
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    expect(screen.getByText("Draft · web#7")).toBeInTheDocument();
+  });
+
+  it("collapses and pins from the group header menu", async () => {
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    fireEvent.contextMenu(
+      screen.getByRole("button", { name: /Needs your review/ }),
+    );
+    expect(
+      (await screen.findAllByRole("menuitem")).map((item) => item.textContent),
+    ).toEqual(["Collapse", "Collapse all", "Pin to bottom"]);
+    fireEvent.click(screen.getByRole("menuitem", { name: "Collapse all" }));
+    expect(
+      useUserPreferencesStore.getState().reviewsView.toReview.collapsed,
+    ).toEqual(["focus:done", "focus:needsReview"]);
+  });
+
+  it("moves a tab from its menu and keeps the order", async () => {
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    fireEvent.contextMenu(screen.getByRole("tab", { name: "Created" }));
+    expect(
+      (await screen.findAllByRole("menuitem")).map((item) => item.textContent),
+    ).toEqual(["Copy link", "Move right"]);
+    fireEvent.click(screen.getByRole("menuitem", { name: "Move right" }));
+    expect(useUserPreferencesStore.getState().reviewsTabOrder).toEqual([
+      "toReview",
+      "created",
+    ]);
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+      "To review1",
+      "Created",
+    ]);
+  });
+
+  it("keeps each tab's filters", async () => {
+    state.list.toReview = [
+      pr(1, "Ready one", "open", { mergeState: "ready" }),
+      pr(2, "Blocked one", "open", { mergeState: "blocked" }),
+    ];
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    fireEvent.click(screen.getByRole("button", { name: "Filter" }));
+    fireEvent.click(await screen.findByText("Merge status"));
+    fireEvent.click(await screen.findByText("Blocked"));
+    const { reviewsView } = useUserPreferencesStore.getState();
+    expect(reviewsView.toReview.filters.mergeStatus?.values).toEqual([
+      "blocked",
+    ]);
+    expect(reviewsView.created.filters).toEqual({});
   });
 
   it("moves with j and k and opens the focused row with Enter", () => {

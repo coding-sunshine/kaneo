@@ -29,6 +29,13 @@ export type FilterSubject = {
   selected: string[];
   negated: boolean;
   onDateApply?: (value: string) => void;
+  /** A free-text subject (Reviews' Content): the panel shows an input instead of options. */
+  textPlaceholder?: string;
+  onTextApply?: (value: string) => void;
+  /** Root menu section; a new section starts a separator. */
+  section?: string;
+  /** Overrides the "N tasks" meta shown beside an option's count. */
+  formatCount?: (count: number) => string;
   onToggle: (value: string) => void;
   onNegate: (negated: boolean) => void;
   onClear: () => void;

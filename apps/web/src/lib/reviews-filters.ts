@@ -1,25 +1,145 @@
-import type { ReviewItem } from "@/lib/reviews-view";
+import { subDays, subMonths, subYears } from "date-fns";
+import { reviewStatus } from "@/lib/reviews-status";
+import { type ReviewItem, sizeBucket } from "@/lib/reviews-view";
 
 /** Linear's Merge status values; GitHub states with no Linear name never match. */
 export const MERGE_STATUSES = ["ready", "blocked", "behind", "queued"] as const;
+export const CHECK_STATES = [
+  "failure",
+  "canceled",
+  "pending",
+  "success",
+  "none",
+] as const;
+export const APPROVAL_COUNTS = ["none", "exactly1", "min1", "min2", "min3"];
+export const DATE_PRESETS = ["1d", "3d", "1w", "1m", "3m", "6m", "1y"] as const;
 
-export type ReviewFilterId = "hasConflicts" | "mergeStatus" | "approvedBy";
+/** Filter ids in the order Linear's filter menu lists them. */
+export const REVIEW_FILTER_IDS = [
+  "status",
+  "mergeStatus",
+  "checks",
+  "hasConflicts",
+  "size",
+  "author",
+  "reviewers",
+  "teamReviewers",
+  "approvedBy",
+  "changesRequestedBy",
+  "approvals",
+  "project",
+  "team",
+  "priority",
+  "missingIssue",
+  "repoOwner",
+  "repoName",
+  "labels",
+  "content",
+  "opened",
+  "updated",
+  "merged",
+  "closed",
+] as const;
+export type ReviewFilterId = (typeof REVIEW_FILTER_IDS)[number];
 export type ReviewFilter = { values: string[]; negated: boolean };
 export type ReviewsFilters = Partial<Record<ReviewFilterId, ReviewFilter>>;
 
+/** The signed-in GitHub login (what "Current user" means) and the clock for date presets. */
+export type FilterContext = { me: string | null; now: Date };
+export const ME = "@me";
+
+const cutoff = (preset: string, now: Date) => {
+  switch (preset) {
+    case "1d":
+      return subDays(now, 1);
+    case "3d":
+      return subDays(now, 3);
+    case "1w":
+      return subDays(now, 7);
+    case "1m":
+      return subMonths(now, 1);
+    case "3m":
+      return subMonths(now, 3);
+    case "6m":
+      return subMonths(now, 6);
+    default:
+      return subYears(now, 1);
+  }
+};
+
+/** A preset means "within the last N", as the counts in Linear's menu grow with the window. */
+const within = (iso: string | null, values: string[], now: Date) =>
+  !!iso && values.some((v) => new Date(iso) >= cutoff(v, now));
+
+const people = (logins: string[], values: string[], me: string | null) =>
+  logins.some((login) =>
+    values.some((v) => (v === ME ? login === me : v === login)),
+  );
+
+const approvalMatches = (count: number, value: string) =>
+  value === "none"
+    ? count === 0
+    : value === "exactly1"
+      ? count === 1
+      : count >= Number(value.slice(3));
+
 const matchers: Record<
   ReviewFilterId,
-  (pr: ReviewItem, values: string[]) => boolean
+  (pr: ReviewItem, values: string[], ctx: FilterContext) => boolean
 > = {
-  hasConflicts: (pr) => pr.hasConflicts,
+  status: (pr, values) => values.includes(reviewStatus(pr)),
   mergeStatus: (pr, values) => values.includes(pr.mergeState),
-  approvedBy: (pr, values) =>
-    pr.approvedBy.some((login) => values.includes(login)),
+  // ponytail: GitHub's status rollup has no cancelled state, so Canceled lists but matches nothing.
+  checks: (pr, values) => values.includes(pr.checks),
+  hasConflicts: (pr) => pr.hasConflicts,
+  size: (pr, values) => values.includes(sizeBucket(pr)),
+  author: (pr, values, { me }) =>
+    people(pr.author ? [pr.author.login] : [], values, me),
+  reviewers: (pr, values, { me }) =>
+    people(
+      pr.reviewers.map((r) => r.login),
+      values,
+      me,
+    ),
+  teamReviewers: (pr, values) =>
+    pr.teamReviewers.some((slug) => values.includes(slug)),
+  approvedBy: (pr, values, { me }) => people(pr.approvedBy, values, me),
+  changesRequestedBy: (pr, values, { me }) =>
+    people(pr.changesRequestedBy, values, me),
+  approvals: (pr, values) =>
+    values.some((v) => approvalMatches(pr.approvedBy.length, v)),
+  project: (pr, values) => values.includes(pr.issue?.project?.name ?? ""),
+  team: (pr, values) => values.includes(pr.issue?.team.name ?? ""),
+  priority: (pr, values) =>
+    values.includes(pr.issue?.priority ?? "no-priority"),
+  missingIssue: (pr) => pr.issue === null,
+  repoOwner: (pr, values) => values.includes(pr.owner),
+  repoName: (pr, values) => values.includes(pr.repo),
+  labels: (pr, values) =>
+    pr.labels.some((label) => values.includes(label.name)),
+  // The list data carries no body, so Content matches the title only.
+  content: (pr, values) =>
+    values.some((v) => pr.title.toLowerCase().includes(v.trim().toLowerCase())),
+  opened: (pr, values, { now }) => within(pr.createdAt, values, now),
+  updated: (pr, values, { now }) => within(pr.updatedAt, values, now),
+  merged: (pr, values, { now }) =>
+    pr.status === "merged" && within(pr.closedAt, values, now),
+  closed: (pr, values, { now }) =>
+    pr.status === "closed" && within(pr.closedAt, values, now),
 };
+
+/** How many pull requests one value alone would match, for the "N reviews" counts. */
+export const countMatches = (
+  items: ReviewItem[],
+  id: ReviewFilterId,
+  value: string,
+  ctx: FilterContext,
+) => items.filter((pr) => matchers[id](pr, [value], ctx)).length;
 
 export function filterByReviewFilters(
   items: ReviewItem[],
   filters: ReviewsFilters,
+  ctx: FilterContext,
 ) {
   const active = (
     Object.entries(filters) as [ReviewFilterId, ReviewFilter][]
@@ -27,13 +147,39 @@ export function filterByReviewFilters(
   if (active.length === 0) return items;
   return items.filter((pr) =>
     active.every(
-      ([id, filter]) => matchers[id](pr, filter.values) !== filter.negated,
+      ([id, filter]) => matchers[id](pr, filter.values, ctx) !== filter.negated,
     ),
   );
 }
 
+/** Saved filters can hold an id since dropped; keep what still fits. */
+export function sanitizeReviewsFilters(saved: unknown): ReviewsFilters {
+  if (!saved || typeof saved !== "object") return {};
+  const kept: ReviewsFilters = {};
+  for (const id of REVIEW_FILTER_IDS) {
+    const entry = (saved as Record<string, Partial<ReviewFilter>>)[id];
+    if (
+      entry &&
+      Array.isArray(entry.values) &&
+      entry.values.every((value) => typeof value === "string")
+    ) {
+      kept[id] = { values: entry.values, negated: entry.negated === true };
+    }
+  }
+  return kept;
+}
+
 export const activeFilterCount = (filters: ReviewsFilters) =>
   Object.values(filters).filter((filter) => filter.values.length > 0).length;
+
+/** Date and Content filters hold one value; every other filter is a multi-select. */
+export const SINGLE_VALUE_FILTERS: ReviewFilterId[] = [
+  "content",
+  "opened",
+  "updated",
+  "merged",
+  "closed",
+];
 
 export function toggleFilterValue(
   filters: ReviewsFilters,
@@ -43,7 +189,9 @@ export function toggleFilterValue(
   const current = filters[id] ?? { values: [], negated: false };
   const values = current.values.includes(value)
     ? current.values.filter((entry) => entry !== value)
-    : [...current.values, value];
+    : SINGLE_VALUE_FILTERS.includes(id)
+      ? [value]
+      : [...current.values, value];
   return { ...filters, [id]: { ...current, values } };
 }
 
@@ -62,9 +210,3 @@ export function clearFilter(
   const { [id]: _removed, ...rest } = filters;
   return rest;
 }
-
-/** Everyone who approved one of these pull requests, for the Approved by choices. */
-export const approverLogins = (items: ReviewItem[]) =>
-  [...new Set(items.flatMap((pr) => pr.approvedBy))].sort((a, b) =>
-    a.localeCompare(b),
-  );

@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { ChecksIcon } from "@/components/reviews/checks-icon";
 import { ReviewRowLabels } from "@/components/reviews/review-row-labels";
 import { ReviewRowReviewers } from "@/components/reviews/review-row-reviewers";
 import { PullRequestStatusIcon } from "@/components/task/task-pull-requests/pull-request-status-icon";
@@ -10,6 +9,12 @@ import {
   type ReviewItem,
   type ReviewsProperty,
 } from "@/lib/reviews-view";
+import { cn } from "@/lib/cn";
+import {
+  hasSecondLine,
+  repoRef,
+  statusDetailsKey,
+} from "@/lib/review-row-details";
 import { shortAge } from "@/lib/short-age";
 
 export const reviewRowKey = (pr: ReviewItem) =>
@@ -40,6 +45,15 @@ export function ReviewRow({
 }) {
   const { t } = useTranslation();
   const show = (property: ReviewsProperty) => properties.includes(property);
+  const detailsKey = show("statusDetails") ? statusDetailsKey(pr) : null;
+  const details = show("statusDetails")
+    ? detailsKey
+      ? t(`workspace:reviews.statusDetails.${detailsKey}`)
+      : pr.reviewDecision &&
+        t(`workspace:reviews.reviewStatus.${pr.reviewDecision}`)
+    : null;
+  const ref = repoRef(pr, properties);
+  const secondLine = hasSecondLine(properties);
   return (
     <Link
       to={reviewDetailRoute}
@@ -47,49 +61,42 @@ export function ReviewRow({
       data-review-row={reviewRowKey(pr)}
       aria-current={selected ? "page" : undefined}
       onFocus={onFocus}
-      className="mx-2 flex h-9 items-center gap-2.5 rounded-md px-2.5 text-[13px] outline-none transition-colors hover:bg-accent/60 focus-visible:bg-accent/60 aria-[current=page]:bg-accent"
+      className={cn(
+        "mx-2 flex flex-col justify-center rounded-md px-2.5 text-[13px] outline-none transition-colors hover:bg-accent/60 focus-visible:bg-accent/60 aria-[current=page]:bg-accent",
+        secondLine ? "min-h-12 py-1.5" : "h-9",
+      )}
     >
-      <PullRequestStatusIcon status={pr.status} className="size-4" />
-      <span className="min-w-0 flex-1 truncate text-foreground">
-        {pr.title}
+      <span className="flex items-center gap-2.5">
+        <PullRequestStatusIcon status={pr.status} className="size-4" />
+        <span className="min-w-0 flex-1 truncate text-foreground">
+          {pr.title}
+        </span>
+        {show("labels") && <ReviewRowLabels labels={pr.labels} />}
+        {show("githubTeam") && pr.teamReviewers.length > 0 && (
+          <span
+            title={pr.teamReviewers.join(", ")}
+            className="max-w-24 shrink-0 truncate text-muted-foreground text-xs"
+          >
+            {pr.teamReviewers[0]}
+            {pr.teamReviewers.length > 1 && ` +${pr.teamReviewers.length - 1}`}
+          </span>
+        )}
+        {show("reviewers") && <ReviewRowReviewers reviewers={pr.reviewers} />}
+        {show("author") && pr.author && (
+          <Avatar className="size-4.5" title={pr.author.login}>
+            <AvatarImage src={pr.author.avatarUrl} alt={pr.author.login} />
+            <AvatarFallback>{pr.author.login.slice(0, 2)}</AvatarFallback>
+          </Avatar>
+        )}
+        {show("date") && (
+          <span className="w-8 shrink-0 text-right text-muted-foreground tabular-nums">
+            {shortAge(reviewDate(pr))}
+          </span>
+        )}
       </span>
-      {show("labels") && <ReviewRowLabels labels={pr.labels} />}
-      {show("githubTeam") && pr.teamReviewers.length > 0 && (
-        <span
-          title={pr.teamReviewers.join(", ")}
-          className="max-w-24 shrink-0 truncate text-muted-foreground text-xs"
-        >
-          {pr.teamReviewers[0]}
-          {pr.teamReviewers.length > 1 && ` +${pr.teamReviewers.length - 1}`}
-        </span>
-      )}
-      {show("repository") && (
-        <span className="max-w-32 shrink-0 truncate text-muted-foreground text-xs">
-          {pr.repo}
-        </span>
-      )}
-      {show("id") && (
-        <span className="shrink-0 text-muted-foreground text-xs tabular-nums">
-          #{pr.number}
-        </span>
-      )}
-      {show("statusDetails") && (
-        <span className="flex shrink-0 items-center gap-1.5 text-muted-foreground text-xs">
-          <ChecksIcon state={pr.checks} />
-          {pr.reviewDecision &&
-            t(`workspace:reviews.reviewStatus.${pr.reviewDecision}`)}
-        </span>
-      )}
-      {show("reviewers") && <ReviewRowReviewers reviewers={pr.reviewers} />}
-      {show("author") && pr.author && (
-        <Avatar className="size-4.5" title={pr.author.login}>
-          <AvatarImage src={pr.author.avatarUrl} alt={pr.author.login} />
-          <AvatarFallback>{pr.author.login.slice(0, 2)}</AvatarFallback>
-        </Avatar>
-      )}
-      {show("date") && (
-        <span className="w-8 shrink-0 text-right text-muted-foreground tabular-nums">
-          {shortAge(reviewDate(pr))}
+      {secondLine && (
+        <span className="flex items-center gap-1.5 truncate pl-6.5 text-muted-foreground text-xs">
+          {[details, ref].filter(Boolean).join(" · ")}
         </span>
       )}
     </Link>

@@ -6,7 +6,9 @@ import {
   type ReviewsTab,
   type ReviewsView,
   type ReviewsViews,
+  REVIEWS_TABS,
   sanitizeReviewsViews,
+  sanitizeTabOrder,
 } from "@/lib/reviews-view";
 import type { CompletedIssues } from "@/lib/status-category";
 import {
@@ -120,6 +122,8 @@ type UserPreferencesStore = {
   setCodeReviewsEnabled: (enabled: boolean) => void;
   reviewsView: ReviewsViews;
   setReviewsView: (tab: ReviewsTab, patch: Partial<ReviewsView>) => void;
+  reviewsTabOrder: ReviewsTab[];
+  setReviewsTabOrder: (order: ReviewsTab[]) => void;
   /** An opened pull request takes the whole page, hiding the list. */
   reviewsExpanded: boolean;
   setReviewsExpanded: (expanded: boolean) => void;
@@ -289,6 +293,8 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
             [tab]: { ...reviewsView[tab], ...patch },
           },
         })),
+      reviewsTabOrder: REVIEWS_TABS,
+      setReviewsTabOrder: (reviewsTabOrder) => set({ reviewsTabOrder }),
       reviewsExpanded: false,
       setReviewsExpanded: (reviewsExpanded) => set({ reviewsExpanded }),
 
@@ -333,6 +339,7 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
           ...saved,
           sidebar: { ...current.sidebar, ...saved?.sidebar },
           reviewsView: sanitizeReviewsViews(saved?.reviewsView),
+          reviewsTabOrder: sanitizeTabOrder(saved?.reviewsTabOrder),
         };
       },
       onRehydrateStorage: () => (state) => {

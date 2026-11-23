@@ -4,6 +4,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { cn } from "@/lib/cn";
@@ -18,14 +19,19 @@ export function ReviewGroupHeader({
   level,
   collapsed = false,
   pinned = false,
+  allCollapsed = false,
   onToggleCollapsed,
+  onToggleAllCollapsed,
   onTogglePin,
 }: {
   group: ReviewsGroup;
   level: 0 | 1;
   collapsed?: boolean;
   pinned?: boolean;
+  /** Every top-level group is collapsed, so the menu offers to expand them. */
+  allCollapsed?: boolean;
   onToggleCollapsed?: () => void;
+  onToggleAllCollapsed?: () => void;
   onTogglePin?: () => void;
 }) {
   const { t } = useTranslation();
@@ -77,6 +83,17 @@ export function ReviewGroupHeader({
         }
       />
       <ContextMenuContent>
+        <ContextMenuItem onClick={onToggleCollapsed}>
+          {collapsed
+            ? t("workspace:reviews.groupMenu.expand")
+            : t("workspace:reviews.groupMenu.collapse")}
+        </ContextMenuItem>
+        <ContextMenuItem onClick={onToggleAllCollapsed}>
+          {allCollapsed
+            ? t("workspace:reviews.groupMenu.expandAll")
+            : t("workspace:reviews.groupMenu.collapseAll")}
+        </ContextMenuItem>
+        <ContextMenuSeparator />
         <ContextMenuItem onClick={onTogglePin}>
           {pinned
             ? t("workspace:reviews.unpinGroup")

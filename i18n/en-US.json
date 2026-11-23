@@ -4984,7 +4984,9 @@
 				"open": "Open",
 				"draft": "Draft",
 				"merged": "Merged",
-				"closed": "Closed"
+				"closed": "Closed",
+				"inReview": "In review",
+				"approved": "Approved"
 			},
 			"empty": {
 				"title": "No pull requests",
@@ -5059,11 +5061,12 @@
 				"none": "No checks"
 			},
 			"size": {
-				"xs": "Extra small",
-				"s": "Small",
-				"m": "Medium",
-				"l": "Large",
-				"xl": "Extra large"
+				"u10": "Up to 10 lines",
+				"u50": "From 10 to 50 lines",
+				"u250": "From 50 to 250 lines",
+				"u1000": "From 250 to 1,000 lines",
+				"u5000": "From 1,000 to 5,000 lines",
+				"over": "Over 5,000 lines"
 			},
 			"focus": {
 				"needsReview": "Needs your review",
@@ -5093,17 +5096,84 @@
 				"team": "Requested of your GitHub team",
 				"readyToMerge": "Ready to merge"
 			},
-			"filter": {
-				"hasConflicts": "Has conflicts",
-				"mergeStatus": "Merge status",
-				"approvedBy": "Approved by",
+			"statusDetails": {
+				"noReviewers": "No reviewers assigned",
+				"draft": "Draft",
+				"waitingForYou": "Waiting for your review"
+			},
+			"groupMenu": {
+				"collapse": "Collapse",
+				"expand": "Expand",
+				"collapseAll": "Collapse all",
+				"expandAll": "Expand all"
+			},
+			"tabMenu": {
+				"copyLink": "Copy link",
+				"moveLeft": "Move left",
+				"moveRight": "Move right",
+				"linkCopied": "Link copied"
+			},
+			"filters": {
+				"me": "Current user",
 				"yes": "Yes",
-				"noApprovers": "No approvals yet",
+				"noPeople": "No matching people",
+				"noLabels": "No matching labels",
+				"contentPlaceholder": "Filter by content…",
+				"count_one": "{{count, number}} review",
+				"count_other": "{{count, number}} reviews",
+				"subject": {
+					"status": "Status",
+					"mergeStatus": "Merge status",
+					"checks": "Checks",
+					"hasConflicts": "Has conflicts",
+					"size": "Size",
+					"author": "Author",
+					"reviewers": "Reviewers",
+					"teamReviewers": "GitHub team reviewers",
+					"approvedBy": "Approved by",
+					"changesRequestedBy": "Changes requested by",
+					"approvals": "Approvals",
+					"project": "Project",
+					"team": "Team",
+					"priority": "Issue priority",
+					"missingIssue": "Missing issue",
+					"repoOwner": "Repository owner",
+					"repoName": "Repository name",
+					"labels": "GitHub labels",
+					"content": "Content",
+					"opened": "Opened date",
+					"updated": "Updated date",
+					"merged": "Merged date",
+					"closed": "Closed date"
+				},
 				"merge": {
 					"ready": "Ready to merge",
 					"blocked": "Blocked",
 					"behind": "Behind base branch",
 					"queued": "Merging or queued"
+				},
+				"checks": {
+					"failure": "Failed",
+					"canceled": "Canceled",
+					"pending": "Running",
+					"success": "Passed",
+					"none": "No checks"
+				},
+				"approvals": {
+					"none": "No approvals",
+					"exactly1": "Exactly 1 approval",
+					"min1": "At least 1 approval",
+					"min2": "At least 2 approvals",
+					"min3": "At least 3 approvals"
+				},
+				"date": {
+					"1d": "1 day ago",
+					"3d": "3 days ago",
+					"1w": "1 week ago",
+					"1m": "1 month ago",
+					"3m": "3 months ago",
+					"6m": "6 months ago",
+					"1y": "1 year ago"
 				}
 			}
 		},
