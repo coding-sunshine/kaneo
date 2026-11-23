@@ -620,8 +620,11 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
           return true;
         },
       },
-      onUpdate: ({ editor: activeEditor }) => {
+      onUpdate: ({ editor: activeEditor, transaction }) => {
+        // setEditable() emits "update" with an empty transaction; only a real
+        // document change is a user edit worth saving.
         if (
+          !transaction.docChanged ||
           !isMountedRef.current ||
           !canEditRef.current ||
           isSyncingExternalContentRef.current
@@ -649,7 +652,7 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
   // the editor refuses content mutations.
   useLayoutEffect(() => {
     if (!editor) return;
-    editor.setEditable(canEdit);
+    editor.setEditable(canEdit, false);
   }, [editor, canEdit]);
 
   useEffect(() => {

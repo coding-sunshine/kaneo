@@ -9,6 +9,7 @@ import TaskList from "@tiptap/extension-task-list";
 import { Markdown } from "@tiptap/markdown";
 import StarterKit from "@tiptap/starter-kit";
 import { AttachmentCard } from "./attachment-card";
+import { dedentOrderedMarkers } from "./dedent-ordered-markers";
 import { EmbedBlock } from "./embed-block";
 import { KaneoImage } from "./kaneo-image";
 import { KaneoIssueLink } from "./kaneo-issue-link";
@@ -51,7 +52,22 @@ export function createBaseExtensions({
     }),
     SafeHardBreak,
     ...keymap,
-    Markdown.configure({ markedOptions: { breaks: true, gfm: true } }),
+    Markdown.extend({
+      onBeforeCreate(props) {
+        const { options } = this.editor;
+        // The parent parses the initial content itself, before we can wrap parse.
+        if (
+          options.contentType === "markdown" &&
+          typeof options.content === "string"
+        )
+          options.content = dedentOrderedMarkers(options.content);
+        this.parent?.(props);
+        const manager = this.editor.markdown;
+        if (!manager) return;
+        const parse = manager.parse.bind(manager);
+        manager.parse = (markdown) => parse(dedentOrderedMarkers(markdown));
+      },
+    }).configure({ markedOptions: { breaks: true, gfm: true } }),
     ...decorations,
     nodes.embedBlock ?? EmbedBlock,
     nodes.attachmentCard ?? AttachmentCard,
