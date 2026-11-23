@@ -1,4 +1,6 @@
 export type ExternalLinkMetadata = {
+  /** Secondary text under the title (e.g. a Linear link attachment subtitle). */
+  subtitle?: string;
   syncFilterPaused?: boolean;
   state?: string;
   merged?: boolean;

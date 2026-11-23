@@ -299,8 +299,15 @@ export function ExternalLinksAccordion({
                         ) : (
                           <GithubIcon className="size-3.5 shrink-0 text-muted-foreground" />
                         )}
-                        <span className="min-w-0 shrink truncate text-[13px] text-foreground/85 group-hover:text-foreground">
-                          {link.title || link.externalId}
+                        <span className="flex min-w-0 shrink flex-col">
+                          <span className="truncate text-[13px] text-foreground/85 group-hover:text-foreground">
+                            {link.title || link.externalId}
+                          </span>
+                          {link.metadata?.subtitle && (
+                            <span className="truncate text-muted-foreground/70 text-xs">
+                              {link.metadata.subtitle}
+                            </span>
+                          )}
                         </span>
                         <span
                           className={cn(
