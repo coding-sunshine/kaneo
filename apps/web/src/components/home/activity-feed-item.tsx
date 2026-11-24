@@ -38,9 +38,11 @@ export function ActivityFeedItem({
           {describeActivity(activity, t)}
         </p>
         {activity.type === "comment" && activity.excerpt && (
-          <p className="line-clamp-3 wrap-break-word rounded-lg bg-muted/70 px-2.5 py-2 text-[13px] text-foreground/85 leading-[18px]">
-            {activity.excerpt}
-          </p>
+          <div className="rounded-lg bg-muted/70 px-2.5 py-2">
+            <p className="line-clamp-3 wrap-break-word text-[13px] text-foreground/85 leading-[18px]">
+              {activity.excerpt}
+            </p>
+          </div>
         )}
         <p className="flex min-w-0 items-center gap-1.5 text-muted-foreground text-xs">
           <Link

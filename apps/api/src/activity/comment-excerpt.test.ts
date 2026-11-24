@@ -22,6 +22,22 @@ describe("commentExcerpt", () => {
     ).toBe("See and the docs");
   });
 
+  it("drops markdown syntax and keeps the words", () => {
+    expect(
+      commentExcerpt(
+        "## Progress\n\n**Status:** two PRs on `development`.\n\n* **Vault:** done\n- [x] ~~old~~ item\n> quoted\n```ts\nconst a = 1;\n```",
+      ),
+    ).toBe(
+      "Progress Status: two PRs on development. Vault: done old item quoted const a = 1;",
+    );
+  });
+
+  it("keeps arithmetic and identifiers that look like markdown", () => {
+    expect(commentExcerpt("2 * 3 = 6 and __init__ runs")).toBe(
+      "2 * 3 = 6 and __init__ runs",
+    );
+  });
+
   it("truncates long comments", () => {
     const excerpt = commentExcerpt("a".repeat(500));
     expect(excerpt).toHaveLength(240);

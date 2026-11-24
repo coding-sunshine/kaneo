@@ -6,6 +6,11 @@ export function commentExcerpt(content: string | null): string | null {
   if (!content) return null;
 
   const text = content
+    .replace(/^\s*```.*$/gm, " ")
+    .replace(/^\s{0,3}(?:#{1,6}|>+)\s+/gm, "")
+    .replace(/^\s*[-*+]\s+(?:\[[ xX]\]\s+)?/gm, "")
+    .replace(/(\*\*|~~)(.+?)\1/g, "$2")
+    .replace(/`([^`\n]+)`/g, "$1")
     .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
     .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
     .replace(/<[^>]*>/g, " ")
