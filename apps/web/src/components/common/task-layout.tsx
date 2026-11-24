@@ -120,14 +120,14 @@ export default function TaskLayout({
               workspaceId={workspaceId}
             />
           ) : (
-            <div className="h-full min-h-0 overflow-y-auto overscroll-y-contain">
+            <div className="relative h-full min-h-0 overflow-y-auto overscroll-y-contain">
               {children}
             </div>
           )}
         </Layout.Content>
       </div>
       {unavailableReason ? null : (
-        <div className="hidden border-border/80 border-l lg:flex lg:h-full lg:overflow-y-auto">
+        <div className="relative hidden border-border/80 border-l lg:flex lg:h-full lg:overflow-y-auto">
           {rail}
         </div>
       )}
