@@ -336,6 +336,44 @@ describe("MCP tool catalog", () => {
     expect(await agent.call("settle_document", "{}")).toContain("Unknown tool");
   });
 
+  it("reads a topic before writing, as the signed-in person", async () => {
+    await call("get_current", { workspaceId: "w1", topic: "launch plan" });
+    expect(lastRequest()).toMatchObject({
+      url: "http://api.test/api/topic/workspace/w1/current?topic=launch+plan",
+      method: "GET",
+      auth: "Bearer test-token",
+    });
+
+    await call("list_unreviewed", { workspaceId: "w1", topic: "t1" });
+    expect(lastRequest()).toMatchObject({
+      url: "http://api.test/api/topic/workspace/w1/unreviewed?topic=t1",
+      method: "GET",
+      auth: "Bearer test-token",
+    });
+
+    // The tracker's own assistant gets both reads through its name filter.
+    const asked: string[] = [];
+    const agent = buildAgentTools({
+      json: async <T>(path: string) => {
+        asked.push(path);
+        return { topics: [] } as T;
+      },
+    });
+    const offered = agent.definitions.map((tool) => tool.function.name);
+    expect(offered).toEqual(
+      expect.arrayContaining(["get_current", "list_unreviewed"]),
+    );
+    expect(
+      await agent.call(
+        "get_current",
+        JSON.stringify({ workspaceId: "w1", topic: "launch plan" }),
+      ),
+    ).toContain("topics");
+    expect(asked).toEqual([
+      "/api/topic/workspace/w1/current?topic=launch+plan",
+    ]);
+  });
+
   it("surfaces an API failure as a tool error", async () => {
     apiFetch.mockResolvedValueOnce(
       Response.json({ message: "Task not found" }, { status: 404 }),

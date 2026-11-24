@@ -4468,6 +4468,193 @@
           "updatedAt"
         ]
       },
+      "TopicCurrent": {
+        "type": "object",
+        "properties": {
+          "topics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "parentName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Team or project name. Null for a workspace topic."
+                },
+                "deciderName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "unreviewed": {
+                  "type": "number",
+                  "description": "How many documents wait for a decision on this topic. None of them is approved."
+                },
+                "current": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "approvedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "approvedByName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "reason": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Why the decider made this document current."
+                    },
+                    "editedSinceApproval": {
+                      "type": "boolean",
+                      "description": "The document was edited after it was approved. `text` is still what was approved."
+                    },
+                    "text": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "The approved text as it is stored. Null when more than one topic matches: ask again with one topic's id. Also null when the approved text was not kept."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title",
+                    "approvedAt",
+                    "approvedByName",
+                    "reason",
+                    "editedSinceApproval",
+                    "text"
+                  ],
+                  "description": "The topic's current document. Null when nothing is approved on the topic."
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "parentName",
+                "deciderName",
+                "unreviewed",
+                "current"
+              ]
+            }
+          }
+        },
+        "required": [
+          "topics"
+        ]
+      },
+      "TopicUnreviewed": {
+        "type": "object",
+        "properties": {
+          "topics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "parentName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Team or project name. Null for a workspace topic."
+                },
+                "deciderName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "documents": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "unsorted",
+                          "decision",
+                          "proposal",
+                          "brainstorm",
+                          "reference"
+                        ]
+                      },
+                      "creatorName": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "filedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "kind",
+                      "creatorName",
+                      "filedAt",
+                      "updatedAt"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "parentName",
+                "deciderName",
+                "documents"
+              ]
+            }
+          }
+        },
+        "required": [
+          "topics"
+        ]
+      },
       "Notification": {
         "type": "object",
         "properties": {
@@ -4874,7 +5061,7 @@
           },
           "relevanceScore": {
             "type": "number",
-            "description": "Higher is a better match. Results are sorted by score, then by createdAt descending."
+            "description": "Higher is a better match. Results are sorted by score, then by createdAt descending. Among documents, current ones come first."
           },
           "taskId": {
             "type": "string",
@@ -4887,7 +5074,8 @@
             "type": "string"
           },
           "status": {
-            "type": "string"
+            "type": "string",
+            "description": "A task's column, or where a document stands: `draft`, `in_review`, `current` or `superseded`."
           },
           "archivedAt": {
             "type": [
@@ -28418,6 +28606,140 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/current": {
+      "get": {
+        "operationId": "getTopicCurrent",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "Read what is approved on a topic",
+        "description": "Find topics by id or by name and return each one's current document with its approved text. The text is sent when exactly one topic matches. A topic you cannot open answers like a name nobody used: an empty list.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "A topic's id, its name, or a sentence that names it."
+            },
+            "required": true,
+            "description": "A topic's id, its name, or a sentence that names it.",
+            "name": "topic",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching topics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicCurrent"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/unreviewed": {
+      "get": {
+        "operationId": "listTopicUnreviewed",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "List what waits for a decision on a topic",
+        "description": "Find topics by id or by name and list the documents filed on each that its decider has not decided on. Titles only, never their text. A topic you cannot open answers like a name nobody used: an empty list.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "A topic's id, its name, or a sentence that names it."
+            },
+            "required": true,
+            "description": "A topic's id, its name, or a sentence that names it.",
+            "name": "topic",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching topics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicUnreviewed"
                 }
               }
             }

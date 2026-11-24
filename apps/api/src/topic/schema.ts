@@ -1,4 +1,4 @@
-import { TOPIC_SCOPES } from "../database/schema";
+import { DOCUMENT_KINDS, TOPIC_SCOPES } from "../database/schema";
 import { responseTimestamp, z } from "../openapi";
 
 export const workspaceIdParam = z.object({ workspaceId: z.string() });
@@ -69,3 +69,72 @@ export const topicSchema = z
   })
   .openapi("Topic");
 export const topicListSchema = z.array(topicSchema);
+
+export const topicReadQuery = z.object({
+  topic: name.openapi({
+    description: "A topic's id, its name, or a sentence that names it.",
+  }),
+});
+const topicHead = {
+  id: z.string(),
+  name: z.string(),
+  parentName: z.string().nullable().openapi({
+    description: "Team or project name. Null for a workspace topic.",
+  }),
+  deciderName: z.string().nullable(),
+};
+export const topicCurrentSchema = z
+  .object({
+    topics: z.array(
+      z.object({
+        ...topicHead,
+        unreviewed: z.number().openapi({
+          description:
+            "How many documents wait for a decision on this topic. None of them is approved.",
+        }),
+        current: z
+          .object({
+            id: z.string(),
+            title: z.string(),
+            approvedAt: responseTimestamp.nullable(),
+            approvedByName: z.string().nullable(),
+            reason: z.string().nullable().openapi({
+              description: "Why the decider made this document current.",
+            }),
+            editedSinceApproval: z.boolean().openapi({
+              description:
+                "The document was edited after it was approved. `text` is still what was approved.",
+            }),
+            text: z.string().nullable().openapi({
+              description:
+                "The approved text as it is stored. Null when more than one topic matches: ask again with one topic's id. Also null when the approved text was not kept.",
+            }),
+          })
+          .nullable()
+          .openapi({
+            description:
+              "The topic's current document. Null when nothing is approved on the topic.",
+          }),
+      }),
+    ),
+  })
+  .openapi("TopicCurrent");
+export const topicUnreviewedSchema = z
+  .object({
+    topics: z.array(
+      z.object({
+        ...topicHead,
+        documents: z.array(
+          z.object({
+            id: z.string(),
+            title: z.string(),
+            kind: z.enum(DOCUMENT_KINDS),
+            creatorName: z.string().nullable(),
+            filedAt: responseTimestamp.nullable(),
+            updatedAt: responseTimestamp,
+          }),
+        ),
+      }),
+    ),
+  })
+  .openapi("TopicUnreviewed");

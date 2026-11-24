@@ -603,6 +603,41 @@ describe("registerTools", () => {
     expect(() => schema?.parse({ ...settle, choice: "discard" })).not.toThrow();
   });
 
+  it("reads what is approved on a topic, and what waits, before writing", async () => {
+    const { server, tools } = createServerMock();
+    const client = { json: vi.fn().mockResolvedValue({ topics: [] }) };
+    registerTools(server as never, { client: client as never });
+
+    const read = await tools.get("get_current")?.handler({
+      workspaceId: "ws 1",
+      topic: "Launch plan & price",
+    });
+    expect(read?.isError).toBe(false);
+    expect(client.json).toHaveBeenLastCalledWith(
+      "/api/topic/workspace/ws%201/current?topic=Launch+plan+%26+price",
+    );
+    await tools.get("list_unreviewed")?.handler({
+      workspaceId: "ws-1",
+      topic: "topic-1",
+    });
+    expect(client.json).toHaveBeenLastCalledWith(
+      "/api/topic/workspace/ws-1/unreviewed?topic=topic-1",
+    );
+
+    // Where an assistant reads first: the start of each description.
+    const start = (name: string) =>
+      tools.get(name)?.config.description?.slice(0, 512) ?? "";
+    expect(start("get_current")).toContain("before you draft");
+    expect(start("file_document")).toContain("get_current");
+    expect(start("list_unreviewed")).toContain("not approved");
+
+    const schema = tools.get("get_current")?.config.inputSchema;
+    const ask = { workspaceId: "ws-1" };
+    expect(() => schema?.parse({ ...ask, topic: "  " })).toThrow();
+    expect(() => schema?.parse({ ...ask, topic: "x".repeat(201) })).toThrow();
+    expect(() => schema?.parse({ ...ask, topic: "Launch plan" })).not.toThrow();
+  });
+
   it("refuses a text too long for one call before it sends anything", async () => {
     const { server, tools } = createServerMock();
     const client = { json: vi.fn().mockResolvedValue({ id: "doc-1" }) };

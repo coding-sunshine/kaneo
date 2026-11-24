@@ -528,6 +528,29 @@ describe("API integration: document access leaks", () => {
     }
     expect(await names(open)).toContain("Beta");
 
+    // The two read routes find a topic by its name or its id. A hidden topic
+    // answers like a name nobody used, whoever shared its current document.
+    for (const route of ["current", "unreviewed"]) {
+      const read = async (user: Member, topic: string) => {
+        const response = await world.as(user)(
+          `${base}/${route}?topic=${encodeURIComponent(topic)}`,
+        );
+        return { status: response.status, body: await response.json() };
+      };
+      const nothing = await read(limited, "a name nobody used");
+      expect(nothing).toEqual({ status: 200, body: { topics: [] } });
+      for (const hidden of ["Beta", beta, "Project Beta", projectBeta]) {
+        expect(await read(limited, hidden)).toEqual(nothing);
+      }
+      const seen = (await read(open, "Beta")).body as {
+        topics: { name: string }[];
+      };
+      expect(seen.topics.map((topic) => topic.name)).toEqual([
+        "Beta",
+        "Project Beta",
+      ]);
+    }
+
     // A share opens the document, not the topic it is filed on.
     const seen = async (user: Member) =>
       (await (await world.as(user)(one(world, "sharedInBeta"))).json()) as {

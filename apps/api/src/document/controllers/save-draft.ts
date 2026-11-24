@@ -3,7 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
 import db from "../../database";
 import { documentSubscriberTable, documentTable } from "../../database/schema";
-import { listTopics } from "../../topic/controllers/get-topic";
+import { findTopics } from "../../topic/controllers/find-topics";
 import type { saveDraftBody } from "../schema";
 import { loadDocument } from "./load-document";
 import { recordVersion } from "./record-version";
@@ -11,29 +11,13 @@ import { recordVersion } from "./record-version";
 // What an assistant's tools save under: one draft per person and key.
 const SOURCE = "mcp";
 
-// Lowercase words of letters and digits with a space at each end, so one
-// phrase can be looked for inside another on whole words.
-const phrase = (text: string) =>
-  ` ${text
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, " ")
-    .trim()} `;
-
 // The topics the author can open that the title seems to be about.
-// ponytail: a topic matches when its name is in the title or the title is in
-// its name. Matching on the text itself belongs to a later step.
 async function matchingTopics(
   workspaceId: string,
   userId: string,
   title: string,
 ) {
-  const wanted = phrase(title);
-  // A title with no letters or digits would be inside every name.
-  if (!wanted.trim()) return [];
-  const topics = (await listTopics(workspaceId, userId)).filter((topic) => {
-    const name = phrase(topic.name);
-    return wanted.includes(name) || name.includes(wanted);
-  });
+  const topics = await findTopics(workspaceId, userId, title);
   const currentIds = topics.flatMap((topic) => topic.currentDocumentId ?? []);
   // Everyone who can open a topic can open its current document.
   const current =

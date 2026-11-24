@@ -535,6 +535,7 @@ async function globalSearch(params: SearchParams): Promise<{
         workspaceName: workspaceTable.name,
         userId: documentTable.creatorId,
         createdAt: documentTable.createdAt,
+        status: documentTable.status,
         relevanceScore: docScore.as("relevanceScore"),
       })
       .from(documentTable)
@@ -573,7 +574,12 @@ async function globalSearch(params: SearchParams): Promise<{
             ),
         ),
       )
-      .orderBy(desc(docScore), desc(documentTable.createdAt))
+      // Current documents first, so the limit never cuts one for a draft.
+      .orderBy(
+        desc(sql`${documentTable.status} = 'current'`),
+        desc(docScore),
+        desc(documentTable.createdAt),
+      )
       .limit(limit);
 
     for (const doc of documents) {
@@ -588,6 +594,7 @@ async function globalSearch(params: SearchParams): Promise<{
         userId: doc.userId || undefined,
         createdAt: doc.createdAt,
         relevanceScore: doc.relevanceScore,
+        status: doc.status,
       });
     }
   }
@@ -599,8 +606,19 @@ async function globalSearch(params: SearchParams): Promise<{
     return b.createdAt.getTime() - a.createdAt.getTime();
   });
 
+  // Among the documents, the current ones lead: they are what a reader can
+  // rely on. Every other result keeps the place its score gave it.
+  const documents = results
+    .filter((result) => result.type === "document")
+    .sort(
+      (a, b) => Number(b.status === "current") - Number(a.status === "current"),
+    );
+  const ordered = results.map((result) =>
+    result.type === "document" ? (documents.shift() ?? result) : result,
+  );
+
   const finalResults =
-    type === "all" ? pickAcrossTypes(results, limit) : results.slice(0, limit);
+    type === "all" ? pickAcrossTypes(ordered, limit) : ordered.slice(0, limit);
 
   return {
     results: finalResults,

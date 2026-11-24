@@ -12,14 +12,18 @@ import { createTopic } from "./controllers/create-topic";
 import { confirmCurrent, makeCurrent, setAside } from "./controllers/decide";
 import { fileDocument } from "./controllers/file-document";
 import { getTopic, listTopics } from "./controllers/get-topic";
+import { getCurrent, listUnreviewed } from "./controllers/read-topic";
 import { updateTopic } from "./controllers/update-topic";
 import {
   createTopicBody,
   makeCurrentBody,
   topicDocumentParam,
+  topicCurrentSchema,
   topicListSchema,
   topicParam,
+  topicReadQuery,
   topicSchema,
+  topicUnreviewedSchema,
   updateTopicBody,
   workspaceIdParam,
 } from "./schema";
@@ -56,6 +60,38 @@ const listRoute = createRoute({
   request: { params: workspaceIdParam },
   responses: {
     200: jsonResponse("Topics", topicListSchema),
+    403: noAccess,
+  },
+});
+
+const readCurrentRoute = createRoute({
+  method: "get",
+  operationId: "getTopicCurrent",
+  path: "/workspace/{workspaceId}/current",
+  tags,
+  summary: "Read what is approved on a topic",
+  description:
+    "Find topics by id or by name and return each one's current document with its approved text. The text is sent when exactly one topic matches. A topic you cannot open answers like a name nobody used: an empty list.",
+  middleware: [...read] as const,
+  request: { params: workspaceIdParam, query: topicReadQuery },
+  responses: {
+    200: jsonResponse("Matching topics", topicCurrentSchema),
+    403: noAccess,
+  },
+});
+
+const readUnreviewedRoute = createRoute({
+  method: "get",
+  operationId: "listTopicUnreviewed",
+  path: "/workspace/{workspaceId}/unreviewed",
+  tags,
+  summary: "List what waits for a decision on a topic",
+  description:
+    "Find topics by id or by name and list the documents filed on each that its decider has not decided on. Titles only, never their text. A topic you cannot open answers like a name nobody used: an empty list.",
+  middleware: [...read] as const,
+  request: { params: workspaceIdParam, query: topicReadQuery },
+  responses: {
+    200: jsonResponse("Matching topics", topicUnreviewedSchema),
     403: noAccess,
   },
 });
@@ -192,6 +228,28 @@ const topic = apiRouter()
   })
   .openapi(createTopicRoute, async (c) =>
     c.json(await createTopic(c.get("userId"), c.req.valid("json")), 200),
+  )
+  // Before the route for one topic: its `{id}` would take these two words
+  // for a topic's id and answer 404.
+  .openapi(readCurrentRoute, async (c) =>
+    c.json(
+      await getCurrent(
+        c.req.valid("param").workspaceId,
+        c.get("userId"),
+        c.req.valid("query").topic,
+      ),
+      200,
+    ),
+  )
+  .openapi(readUnreviewedRoute, async (c) =>
+    c.json(
+      await listUnreviewed(
+        c.req.valid("param").workspaceId,
+        c.get("userId"),
+        c.req.valid("query").topic,
+      ),
+      200,
+    ),
   )
   .openapi(getRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");

@@ -974,11 +974,46 @@ export function registerTools(
     async () => run(() => client.json("/api/notification")),
   );
 
+  const topicRead = {
+    workspaceId: nonEmptyString.describe("Workspace ID"),
+    topic: nonEmptyString
+      .max(200)
+      .describe("A topic's id, its name, or a short question that names it"),
+  };
+  const readTopic =
+    (route: "current" | "unreviewed") =>
+    async (args: { workspaceId: string; topic: string }) =>
+      run(() =>
+        client.json(
+          `/api/topic/workspace/${encodeURIComponent(args.workspaceId)}/${route}?${new URLSearchParams({ topic: args.topic }).toString()}`,
+        ),
+      );
+
+  registerTool(
+    "get_current",
+    {
+      description:
+        "Call this before you draft, answer or save anything about a topic. It returns what is approved: each matching topic's current document, who approved it, when and why, and its approved text. Answer from that text and quote it. The text comes only when one topic matches. With several, call again with one topic's id. An empty list, or a topic whose current is null, means nothing is approved on this: say so and do not guess. unreviewed counts the documents that wait for a decision. They are not approved.",
+      inputSchema: z.object(topicRead),
+    },
+    readTopic("current"),
+  );
+
+  registerTool(
+    "list_unreviewed",
+    {
+      description:
+        "List the documents that wait for a decision on a topic: filed on it, and not approved by its decider. Titles only. Never present one as decided, and never answer from one as if it were. Use get_current for what is approved.",
+      inputSchema: z.object(topicRead),
+    },
+    readTopic("unreviewed"),
+  );
+
   registerTool(
     "file_document",
     {
       description:
-        "Save a text from this conversation as a document. Send the whole text as Markdown, unchanged. It is saved as a private draft that only its author can open. Nothing is filed or replaced yet. The result lists the topics whose name matches the title, each with its current document. When needsDecision is true, show the author those topics and ask what the draft is: a replacement for a current document, a proposal, a brainstorm, or something to discard. Then call settle_document with their answer. Until then the draft stays private. The Markdown can be at most 900,000 bytes as JSON.",
+        "Save a text from this conversation as a document. Call get_current first, so you know what is already approved on its topic. Send the whole text as Markdown, unchanged. It is saved as a private draft that only its author can open. Nothing is filed or replaced yet. The result lists the topics whose name matches the title, each with its current document. When needsDecision is true, show the author those topics and ask what the draft is: a replacement for a current document, a proposal, a brainstorm, or something to discard. Then call settle_document with their answer. Until then the draft stays private. The Markdown can be at most 900,000 bytes as JSON.",
       inputSchema: z.object({
         workspaceId: nonEmptyString.describe("Workspace ID"),
         title: nonEmptyString,

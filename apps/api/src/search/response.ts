@@ -27,7 +27,7 @@ export const searchResultSchema = z
     createdAt: responseTimestamp,
     relevanceScore: z.number().openapi({
       description:
-        "Higher is a better match. Results are sorted by score, then by createdAt descending.",
+        "Higher is a better match. Results are sorted by score, then by createdAt descending. Among documents, current ones come first.",
     }),
     taskId: z
       .string()
@@ -35,7 +35,10 @@ export const searchResultSchema = z
       .openapi({ description: "The task a comment or activity belongs to." }),
     taskNumber: z.number().optional(),
     priority: z.string().optional(),
-    status: z.string().optional(),
+    status: z.string().optional().openapi({
+      description:
+        "A task's column, or where a document stands: `draft`, `in_review`, `current` or `superseded`.",
+    }),
     archivedAt: nullableResponseTimestamp.optional(),
   })
   .openapi("SearchResult");
