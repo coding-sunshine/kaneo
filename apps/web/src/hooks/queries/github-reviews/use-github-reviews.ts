@@ -7,6 +7,7 @@ import {
   convertPullRequestToDraft,
   getRepoLabels,
   setPullRequestLabels,
+  setPullRequestOwner,
   type ClosedWindow,
   disconnectReviews,
   comparePullRequestCommits,
@@ -36,10 +37,14 @@ export function useReviewsStatus(enabled = true) {
   });
 }
 
-export function useReviewsList(closed: ClosedWindow, enabled: boolean) {
+export function useReviewsList(
+  closed: ClosedWindow,
+  enabled: boolean,
+  workspaceId: string,
+) {
   return useQuery({
-    queryKey: ["github-reviews", "list", closed],
-    queryFn: () => getReviewsList(closed),
+    queryKey: ["github-reviews", "list", closed, workspaceId],
+    queryFn: () => getReviewsList(closed, workspaceId),
     enabled,
   });
 }
@@ -62,10 +67,10 @@ const pullKey = (ref: PullRef, part: string) => [
   part,
 ];
 
-export const usePullRequest = (ref: PullRef) =>
+export const usePullRequest = (ref: PullRef, workspaceId: string) =>
   useQuery({
-    queryKey: pullKey(ref, "detail"),
-    queryFn: () => getPullRequest(ref),
+    queryKey: [...pullKey(ref, "detail"), workspaceId],
+    queryFn: () => getPullRequest(ref, workspaceId),
   });
 export const usePullRequestFiles = (ref: PullRef, enabled: boolean) =>
   useQuery({
@@ -171,6 +176,11 @@ export const useClosePullRequest = (ref: PullRef) =>
 
 export const useSetPullRequestLabels = (ref: PullRef) =>
   usePullMutation(ref, (labels: string[]) => setPullRequestLabels(ref, labels));
+
+export const useSetPullRequestOwner = (ref: PullRef, workspaceId: string) =>
+  usePullMutation(ref, (userId: string | null) =>
+    setPullRequestOwner(ref, workspaceId, userId),
+  );
 
 export const useMarkPullRequestReady = (ref: PullRef) =>
   usePullMutation(ref, () => markPullRequestReady(ref));

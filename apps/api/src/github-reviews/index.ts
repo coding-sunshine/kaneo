@@ -5,6 +5,8 @@ import {
   jsonResponse,
 } from "../openapi";
 import { requireUserSession } from "../utils/require-user-session";
+import { requireWorkspacePermission } from "../utils/require-workspace-permission";
+import { workspaceAccess } from "../utils/workspace-access-middleware";
 import { callback } from "./controllers/callback";
 import { connect } from "./controllers/connect";
 import { getStatus } from "./controllers/get-status";
@@ -23,6 +25,7 @@ import { closePullRequest } from "./controllers/close-pull-request";
 import { convertPullRequestToDraft } from "./controllers/convert-to-draft";
 import { listLabels } from "./controllers/list-repo-labels";
 import { setPullRequestLabels } from "./controllers/set-pull-labels";
+import { setPullRequestOwner } from "./controllers/set-pull-owner";
 import { markPullRequestReady } from "./controllers/mark-ready-for-review";
 import { mergePullRequest } from "./controllers/merge-pull-request";
 import { requestPullRequestReviewers } from "./controllers/request-reviewers";
@@ -36,7 +39,9 @@ import {
   labelsBody,
   listQuery,
   mergeBody,
+  ownerBody,
   pullParams,
+  pullQuery,
   reviewBody,
   repoParams,
   reviewersBody,
@@ -52,6 +57,7 @@ import {
   filesSchema,
   labelsSetSchema,
   mergedSchema,
+  ownerSetSchema,
   pullRequestSchema,
   readySchema,
   reviewerCandidatesSchema,
@@ -157,7 +163,7 @@ const pullRoute = createRoute({
   summary: "Get a pull request",
   description: "Pull request details read with the user's GitHub token.",
   middleware: [requireUserSession] as const,
-  request: { params: pullParams },
+  request: { params: pullParams, query: pullQuery },
   responses: {
     200: jsonResponse("Get a pull request", pullRequestSchema),
     403: needsSession,
@@ -516,6 +522,35 @@ const setLabelsRoute = createRoute({
   },
 });
 
+const setOwnerRoute = createRoute({
+  method: "put",
+  operationId: "setGithubPullRequestOwner",
+  path: "/pulls/{owner}/{repo}/{number}/owner",
+  tags,
+  summary: "Set a pull request's owner",
+  description:
+    "Sets who owns the pull request for everyone in the workspace, or clears the override with a null userId so the owner is the author again. Kaneo-only: nothing changes on GitHub.",
+  middleware: [
+    requireUserSession,
+    workspaceAccess.fromBody(),
+    requireWorkspacePermission({ task: ["update"] }),
+  ] as const,
+  request: {
+    params: pullParams,
+    body: {
+      content: { "application/json": { schema: ownerBody } },
+      required: true,
+    },
+  },
+  responses: {
+    200: jsonResponse("Set owner", ownerSetSchema),
+    400: errorResponse("The owner is not a member of the workspace"),
+    403: needsSession,
+    404: notVisible,
+    409: needsGithub,
+  },
+});
+
 const githubReviews = apiRouter()
   .openapi(statusRoute, async (c) =>
     c.json(await getStatus(c.get("userId")), 200),
@@ -528,8 +563,9 @@ const githubReviews = apiRouter()
   })
   .openapi(pullRoute, async (c) => {
     const { owner, repo, number } = c.req.valid("param");
+    const { workspaceId } = c.req.valid("query");
     return c.json(
-      await getPullRequest(c.get("userId"), owner, repo, number),
+      await getPullRequest(c.get("userId"), owner, repo, number, workspaceId),
       200,
     );
   })
@@ -676,7 +712,25 @@ const githubReviews = apiRouter()
   })
   .openapi(listRoute, async (c) => {
     const query = c.req.valid("query");
-    return c.json(await listPullRequests(c.get("userId"), query.closed), 200);
+    return c.json(
+      await listPullRequests(c.get("userId"), query.closed, query.workspaceId),
+      200,
+    );
+  })
+  .openapi(setOwnerRoute, async (c) => {
+    const { owner, repo, number } = c.req.valid("param");
+    const { workspaceId, userId } = c.req.valid("json");
+    return c.json(
+      await setPullRequestOwner(
+        c.get("userId"),
+        owner,
+        repo,
+        number,
+        workspaceId,
+        userId,
+      ),
+      200,
+    );
   });
 
 export default githubReviews;

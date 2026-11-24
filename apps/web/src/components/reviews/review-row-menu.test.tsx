@@ -21,6 +21,7 @@ import { ReviewRowMenu } from "./review-row-menu";
 const mocks = vi.hoisted(() => ({
   toggleFavorite: vi.fn(),
   setLabels: vi.fn(),
+  setOwner: vi.fn(),
   requestReviewers: vi.fn(),
   onAction: vi.fn(),
   writeText: vi.fn().mockResolvedValue(undefined),
@@ -35,6 +36,10 @@ vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => ({
   }),
   useSetPullRequestLabels: () => ({
     mutate: mocks.setLabels,
+    isPending: false,
+  }),
+  useSetPullRequestOwner: () => ({
+    mutate: mocks.setOwner,
     isPending: false,
   }),
   useReviewerCandidates: () => ({
@@ -61,6 +66,19 @@ vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => ({
     },
   }),
 }));
+vi.mock(
+  "@/hooks/queries/workspace-users/use-get-active-workspace-users",
+  () => ({
+    useGetActiveWorkspaceUsers: () => ({
+      data: {
+        members: [
+          { userId: "u1", user: { name: "Ada Lovelace", image: null } },
+          { userId: "u2", user: { name: "Bo Peep", image: null } },
+        ],
+      },
+    }),
+  }),
+);
 vi.mock("@/hooks/queries/favorite/use-favorites", () => ({
   useFavorite: () => ({ isFavorite: false, toggle: mocks.toggleFavorite }),
 }));
@@ -72,6 +90,8 @@ const basePr = {
   title: "Add thing",
   url: "https://github.com/acme/web/pull/7",
   author: { login: "ada", avatarUrl: "" },
+  reviewOwner: null,
+  originalAuthorUserId: null,
   status: "open",
   headRef: "feat",
   baseRef: "main",
@@ -87,6 +107,7 @@ const basePr = {
   changesRequestedBy: [],
 };
 
+const owner = (userId: string) => ({ userId, name: userId, image: null });
 const renderMenu = (pr: Record<string, unknown> = {}) => {
   render(
     <ContextMenu>
@@ -116,7 +137,7 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("ReviewRowMenu", () => {
-  it("lists Linear's row items in order, minus Owner", async () => {
+  it("lists Linear's row items in order", async () => {
     renderMenu();
     await screen.findByText("Open on GitHub");
     expect(itemNames()).toEqual([
@@ -125,6 +146,7 @@ describe("ReviewRowMenu", () => {
       "Snooze",
       "Copy",
       "Checks",
+      "Owner",
       "Labels",
       "Convert to draft",
       "Squash & merge",
@@ -161,6 +183,31 @@ describe("ReviewRowMenu", () => {
     );
     expect(screen.queryByText("CI / Test")).toBeNull();
     expect(screen.getByText("CI / Lint")).toBeVisible();
+  });
+
+  it("checks the owner, tags the original author, and shares the pick", async () => {
+    renderMenu({ reviewOwner: owner("u2"), originalAuthorUserId: "u1" });
+    await open("Owner");
+    expect(
+      await screen.findByRole("menuitemcheckbox", { name: /Bo Peep/ }),
+    ).toBeChecked();
+    expect(
+      screen.getByRole("menuitemcheckbox", { name: /Ada Lovelace/ }),
+    ).not.toBeChecked();
+    expect(screen.getByText("Original author")).toBeVisible();
+    fireEvent.click(
+      screen.getByRole("menuitemcheckbox", { name: /Ada Lovelace/ }),
+    );
+    expect(mocks.setOwner.mock.calls[0][0]).toBeNull();
+  });
+
+  it("stores another member as the owner", async () => {
+    renderMenu({ reviewOwner: owner("u1"), originalAuthorUserId: "u1" });
+    await open("Owner");
+    fireEvent.click(
+      await screen.findByRole("menuitemcheckbox", { name: /Bo Peep/ }),
+    );
+    expect(mocks.setOwner.mock.calls[0][0]).toBe("u2");
   });
 
   it("sets labels on GitHub when one is toggled", async () => {
@@ -234,6 +281,7 @@ describe("ReviewRowMenu", () => {
         "Snooze",
         "Copy",
         "Checks",
+        "Owner",
       ]);
     },
   );

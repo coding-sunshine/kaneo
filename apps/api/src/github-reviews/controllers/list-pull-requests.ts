@@ -1,6 +1,7 @@
 import { type GithubSearchPull, searchPullRequests } from "../github-api";
 import type { closedWindows } from "../schema";
 import { findLinkedIssues } from "../linked-issues";
+import { findReviewOwners } from "../review-owners";
 import { toMergeState, toReviewFields } from "../review-fields";
 import { withGithubToken } from "../with-github-token";
 
@@ -36,7 +37,11 @@ function toSummary(pull: GithubSearchPull) {
     number: pull.number,
     title: pull.title,
     url: pull.url,
-    author: pull.author,
+    author: pull.author && {
+      login: pull.author.login,
+      avatarUrl: pull.author.avatarUrl,
+    },
+    authorGithubId: pull.author?.databaseId ?? null,
     status:
       pull.state === "MERGED"
         ? ("merged" as const)
@@ -62,7 +67,11 @@ function toSummary(pull: GithubSearchPull) {
   };
 }
 
-export function listPullRequests(userId: string, closed: ClosedWindow) {
+export function listPullRequests(
+  userId: string,
+  closed: ClosedWindow,
+  workspaceId?: string,
+) {
   const search = (token: string, query: string) =>
     searchPullRequests(token, `is:pr ${query} archived:false`).then((items) =>
       items.map(toSummary),
@@ -105,9 +114,16 @@ export function listPullRequests(userId: string, closed: ClosedWindow) {
     const issues = await findLinkedIssues(userId, [
       ...new Set(all.map((pr) => pr.url)),
     ]);
-    const withIssue = <T extends { url: string }>(pr: T) => ({
+    const reviewOwnerOf = await findReviewOwners(userId, workspaceId, all);
+    const withIssue = <
+      T extends { url: string; authorGithubId: number | null },
+    >({
+      authorGithubId: _authorGithubId,
+      ...pr
+    }: T) => ({
       ...pr,
       issue: issues.get(pr.url) ?? null,
+      ...reviewOwnerOf(pr.url),
     });
     return {
       toReview: toReview.map(withIssue),

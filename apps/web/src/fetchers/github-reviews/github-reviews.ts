@@ -24,9 +24,10 @@ export type ClosedWindow = "all" | "day" | "week" | "month" | "none";
 
 export async function getReviewsList(
   closed: ClosedWindow,
+  workspaceId: string,
 ): Promise<ReviewsList> {
   const response = await client["github-reviews"].$get({
-    query: { closed },
+    query: { closed, workspaceId },
   });
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
@@ -83,8 +84,11 @@ export type ReviewEvent = "APPROVE" | "REQUEST_CHANGES" | "COMMENT";
 
 const param = (ref: PullRef) => ({ param: ref });
 
-export async function getPullRequest(ref: PullRef) {
-  const response = await pull(ref).$get(param(ref));
+export async function getPullRequest(ref: PullRef, workspaceId: string) {
+  const response = await pull(ref).$get({
+    ...param(ref),
+    query: { workspaceId },
+  });
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }
@@ -204,6 +208,18 @@ export async function getRepoLabels(ref: PullRef) {
   ].labels.$get({ param: ref });
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
+}
+
+export async function setPullRequestOwner(
+  ref: PullRef,
+  workspaceId: string,
+  userId: string | null,
+) {
+  const response = await pull(ref).owner.$put({
+    ...param(ref),
+    json: { workspaceId, userId },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
 }
 
 export async function setPullRequestLabels(ref: PullRef, labels: string[]) {

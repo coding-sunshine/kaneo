@@ -15,6 +15,10 @@ export const callbackQuery = z.object({
 export const closedWindows = ["all", "day", "week", "month", "none"] as const;
 
 export const listQuery = z.object({
+  workspaceId: z.string().optional().openapi({
+    description:
+      "Workspace whose shared review owners to include. Without it, owners are null.",
+  }),
   closed: z.enum(closedWindows).default("week").openapi({
     description:
       "How far back to include merged and closed pull requests you created or took part in. Drafts are always included.",
@@ -61,4 +65,19 @@ export const repoParams = z.object({ owner: githubName, repo: githubName });
 
 export const labelsBody = z.object({
   labels: z.array(z.string().min(1).max(100)).max(100),
+});
+
+export const pullQuery = z.object({
+  workspaceId: z.string().optional().openapi({
+    description:
+      "Workspace whose shared review owners to include. Without it, owners are null.",
+  }),
+});
+
+export const ownerBody = z.object({
+  workspaceId: z.string().min(1),
+  userId: z.string().min(1).nullable().openapi({
+    description:
+      "Workspace member who owns the pull request for everyone, or null to go back to the author.",
+  }),
 });

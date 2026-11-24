@@ -701,6 +701,13 @@
       "when": 1795448135787,
       "tag": "0099_task_canceled_at",
       "breakpoints": true
+    },
+    {
+      "idx": 100,
+      "version": "7",
+      "when": 1795518372239,
+      "tag": "0100_smooth_silverclaw",
+      "breakpoints": true
     }
   ]
 }

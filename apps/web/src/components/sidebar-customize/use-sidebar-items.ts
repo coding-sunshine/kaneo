@@ -64,6 +64,7 @@ export function useSidebarItems() {
   const reviewsList = useReviewsList(
     reviewsWindow,
     codeReviewsEnabled && reviewsStatus.data?.state === "connected",
+    workspace?.id ?? "",
   );
   const snoozes = useReviewsSnoozeStore((state) => state.entries);
   const { data: drafts = [] } = useTaskDrafts(workspace?.id);

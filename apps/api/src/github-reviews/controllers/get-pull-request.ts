@@ -1,5 +1,6 @@
 import { getPull } from "../github-api";
 import { findLinkedIssues } from "../linked-issues";
+import { findReviewOwners } from "../review-owners";
 import { withGithubToken } from "../with-github-token";
 
 export const person = (user: { login: string; avatar_url: string } | null) =>
@@ -10,11 +11,15 @@ export async function getPullRequest(
   owner: string,
   repo: string,
   number: string,
+  workspaceId?: string,
 ) {
   const pull = await withGithubToken(userId, (token) =>
     getPull(token, owner, repo, number),
   );
   const issues = await findLinkedIssues(userId, [pull.html_url]);
+  const reviewOwnerOf = await findReviewOwners(userId, workspaceId, [
+    { url: pull.html_url, authorGithubId: pull.user?.id ?? null },
+  ]);
   return {
     owner,
     repo,
@@ -48,5 +53,6 @@ export async function getPullRequest(
       avatarUrl: user.avatar_url,
     })),
     issue: issues.get(pull.html_url) ?? null,
+    ...reviewOwnerOf(pull.html_url),
   };
 }

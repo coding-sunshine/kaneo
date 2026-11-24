@@ -51,6 +51,19 @@ const linkedIssue = z.object({
   project: z.object({ id: z.string(), name: z.string() }).nullable(),
 });
 
+const reviewOwnerFields = {
+  /** Shared across the workspace: a saved owner, else the author's member. Null without a workspace or a match. */
+  reviewOwner: z
+    .object({
+      userId: z.string(),
+      name: z.string(),
+      image: z.string().nullable(),
+    })
+    .nullable(),
+  /** The workspace member the author's GitHub login maps to; picking them clears the override. */
+  originalAuthorUserId: z.string().nullable(),
+};
+
 export const reviewListItemSchema = pullRequestSummarySchema.extend({
   reviewDecision: z
     .enum(["approved", "changes_requested", "review_required"])
@@ -72,6 +85,7 @@ export const reviewListItemSchema = pullRequestSummarySchema.extend({
   /** Review requested through a team only, not from you directly. */
   teamRequested: z.boolean(),
   issue: linkedIssue.nullable(),
+  ...reviewOwnerFields,
 });
 
 export const reviewListSchema = z.object({
@@ -93,12 +107,14 @@ export const pullRequestSchema = pullRequestSummarySchema.extend({
   /** Reviews still requested; people who already reviewed are in the conversation. */
   requestedReviewers: z.array(person),
   issue: linkedIssue.nullable(),
+  ...reviewOwnerFields,
 });
 
 export const reviewerCandidatesSchema = z.array(person);
 export const readySchema = z.object({ ok: z.literal(true) });
 export const draftSchema = z.object({ ok: z.literal(true) });
 export const closedSchema = z.object({ ok: z.literal(true) });
+export const ownerSetSchema = z.object({ ok: z.literal(true) });
 export const labelsSetSchema = z.object({ ok: z.literal(true) });
 export const repoLabelsSchema = z.array(
   z.object({ name: z.string(), color: z.string() }),

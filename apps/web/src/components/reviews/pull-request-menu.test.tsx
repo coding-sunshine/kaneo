@@ -23,6 +23,7 @@ const mocks = vi.hoisted(() => ({
   toggleFavorite: vi.fn(),
   isFavorite: false,
   setLabels: vi.fn(),
+  setOwner: vi.fn(),
   requestReviewers: vi.fn(),
   link: vi.fn(),
   draft: vi.fn(),
@@ -42,6 +43,7 @@ vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => {
       ],
     }),
     useSetPullRequestLabels: mutation(mocks.setLabels),
+    useSetPullRequestOwner: mutation(mocks.setOwner),
     useReviewerCandidates: () => ({
       data: [
         { login: "ada", avatarUrl: "" },
@@ -57,6 +59,19 @@ vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => {
     useMarkPullRequestReady: mutation(mocks.markReady),
   };
 });
+vi.mock(
+  "@/hooks/queries/workspace-users/use-get-active-workspace-users",
+  () => ({
+    useGetActiveWorkspaceUsers: () => ({
+      data: {
+        members: [
+          { userId: "u1", user: { name: "Ada Lovelace", image: null } },
+          { userId: "u2", user: { name: "Bo Peep", image: null } },
+        ],
+      },
+    }),
+  }),
+);
 vi.mock("@/hooks/queries/favorite/use-favorites", () => ({
   useFavorite: () => ({
     isFavorite: mocks.isFavorite,
@@ -82,6 +97,8 @@ const basePull = {
   title: "Add thing",
   url: "https://github.com/acme/web/pull/7",
   author: { login: "ada", avatarUrl: "" },
+  reviewOwner: null,
+  originalAuthorUserId: null,
   status: "open" as "open" | "draft" | "merged" | "closed",
   body: "Body text",
   mergeable: true as boolean | null,
@@ -136,6 +153,7 @@ describe("PullRequestMenu", () => {
       "Copy",
       "Link issue",
       "Create new issue",
+      "Owner",
       "Labels",
       "Select reviewers",
       "Convert to draft",

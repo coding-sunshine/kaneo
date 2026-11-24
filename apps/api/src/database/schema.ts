@@ -2044,6 +2044,42 @@ export const externalLinkTable = pgTable(
   ],
 );
 
+export const pullRequestOwnerTable = pgTable(
+  "pull_request_owner",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    url: text("url").notNull(),
+    ownerUserId: text("owner_user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    unique("pull_request_owner_workspace_url_unique").on(
+      table.workspaceId,
+      table.url,
+    ),
+    index("pull_request_owner_ownerUserId_idx").on(table.ownerUserId),
+  ],
+);
+
 export const commentTable = pgTable(
   "comment",
   {

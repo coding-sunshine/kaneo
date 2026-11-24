@@ -75,7 +75,7 @@ export function ReviewsPage({
   const [query, setQuery] = useState("");
   const status = useReviewsStatus();
   const connected = status.data?.state === "connected";
-  const list = useReviewsList(fetchWindow(views), connected);
+  const list = useReviewsList(fetchWindow(views), connected, workspaceId);
   const params = useParams({ strict: false }) as DetailParams;
   const selectedKey = params.number
     ? `${params.owner}/${params.repo}#${params.number}`

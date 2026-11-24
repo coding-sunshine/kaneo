@@ -40,7 +40,7 @@ export function PullRequestPage({
   const setExpanded = useUserPreferencesStore(
     (state) => state.setReviewsExpanded,
   );
-  const pull = usePullRequest(pullRef);
+  const pull = usePullRequest(pullRef, workspaceId);
   const [reviewed, setReviewed] = useReviewedFiles(pullRef, pull.data?.headSha);
   const title = pull.data
     ? `${pull.data.title} #${pull.data.number}`
@@ -167,6 +167,7 @@ export function PullRequestPage({
               {tab === "files" && (
                 <FilesTab
                   pullRef={pullRef}
+                  workspaceId={workspaceId}
                   reviewed={reviewed}
                   onReviewedChange={setReviewed}
                 />

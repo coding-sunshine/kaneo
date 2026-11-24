@@ -17,6 +17,7 @@ import {
 import { PullRequestCopySubmenu } from "@/components/reviews/pull-request-copy-submenu";
 import { PullRequestCreateIssueItem } from "@/components/reviews/pull-request-create-issue-item";
 import { PullRequestFavoriteItem } from "@/components/reviews/pull-request-favorite-item";
+import { PullRequestOwnerSubmenu } from "@/components/reviews/pull-request-owner-submenu";
 import { PullRequestLabelsSubmenu } from "@/components/reviews/pull-request-labels-submenu";
 import { PullRequestReviewersSubmenu } from "@/components/reviews/pull-request-reviewers-submenu";
 import { PullRequestSnoozeSubmenu } from "@/components/reviews/pull-request-snooze-submenu";
@@ -81,16 +82,21 @@ export function PullRequestMenu({
           <PullRequestSnoozeSubmenu pull={pull} />
           <MenuSeparator />
           <PullRequestCopySubmenu pull={pull} workspaceId={workspaceId} />
+          <MenuSeparator />
+          {live && !pull.issue && (
+            <MenuItem onClick={() => setLinkOpen(true)}>
+              <Link2 />
+              {t("workspace:reviews.prActions.linkIssue")}
+            </MenuItem>
+          )}
+          {live && <PullRequestCreateIssueItem pull={pull} />}
+          <PullRequestOwnerSubmenu
+            pullRef={pullRef}
+            workspaceId={workspaceId}
+            pull={pull}
+          />
           {live && (
             <>
-              <MenuSeparator />
-              {!pull.issue && (
-                <MenuItem onClick={() => setLinkOpen(true)}>
-                  <Link2 />
-                  {t("workspace:reviews.prActions.linkIssue")}
-                </MenuItem>
-              )}
-              <PullRequestCreateIssueItem pull={pull} />
               <PullRequestLabelsSubmenu
                 pullRef={pullRef}
                 labels={pull.labels}

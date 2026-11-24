@@ -29809,6 +29809,16 @@
             "required": true,
             "name": "number",
             "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Workspace whose shared review owners to include. Without it, owners are null."
+            },
+            "required": false,
+            "description": "Workspace whose shared review owners to include. Without it, owners are null.",
+            "name": "workspaceId",
+            "in": "query"
           }
         ],
         "responses": {
@@ -30007,6 +30017,37 @@
                         "team",
                         "project"
                       ]
+                    },
+                    "reviewOwner": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "userId": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "image": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "userId",
+                        "name",
+                        "image"
+                      ]
+                    },
+                    "originalAuthorUserId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   },
                   "required": [
@@ -30031,7 +30072,9 @@
                     "deletions",
                     "changedFiles",
                     "requestedReviewers",
-                    "issue"
+                    "issue",
+                    "reviewOwner",
+                    "originalAuthorUserId"
                   ]
                 }
               }
@@ -32182,6 +32225,16 @@
           {
             "schema": {
               "type": "string",
+              "description": "Workspace whose shared review owners to include. Without it, owners are null."
+            },
+            "required": false,
+            "description": "Workspace whose shared review owners to include. Without it, owners are null.",
+            "name": "workspaceId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
               "enum": [
                 "all",
                 "day",
@@ -32441,6 +32494,37 @@
                               "team",
                               "project"
                             ]
+                          },
+                          "reviewOwner": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "userId": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "image": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "userId",
+                              "name",
+                              "image"
+                            ]
+                          },
+                          "originalAuthorUserId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           }
                         },
                         "required": [
@@ -32469,7 +32553,9 @@
                           "headRef",
                           "baseRef",
                           "teamRequested",
-                          "issue"
+                          "issue",
+                          "reviewOwner",
+                          "originalAuthorUserId"
                         ]
                       }
                     },
@@ -32708,6 +32794,37 @@
                               "team",
                               "project"
                             ]
+                          },
+                          "reviewOwner": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "userId": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "image": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "userId",
+                              "name",
+                              "image"
+                            ]
+                          },
+                          "originalAuthorUserId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           }
                         },
                         "required": [
@@ -32736,7 +32853,9 @@
                           "headRef",
                           "baseRef",
                           "teamRequested",
-                          "issue"
+                          "issue",
+                          "reviewOwner",
+                          "originalAuthorUserId"
                         ]
                       }
                     },
@@ -32975,6 +33094,37 @@
                               "team",
                               "project"
                             ]
+                          },
+                          "reviewOwner": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "userId": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "image": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "userId",
+                              "name",
+                              "image"
+                            ]
+                          },
+                          "originalAuthorUserId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           }
                         },
                         "required": [
@@ -33003,7 +33153,9 @@
                           "headRef",
                           "baseRef",
                           "teamRequested",
-                          "issue"
+                          "issue",
+                          "reviewOwner",
+                          "originalAuthorUserId"
                         ]
                       }
                     }
@@ -33029,6 +33181,149 @@
           },
           "403": {
             "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "GitHub is not connected or must be reconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/github-reviews/pulls/{owner}/{repo}/{number}/owner": {
+      "put": {
+        "operationId": "setGithubPullRequestOwner",
+        "tags": [
+          "GitHub Reviews"
+        ],
+        "summary": "Set a pull request's owner",
+        "description": "Sets who owns the pull request for everyone in the workspace, or clears the override with a null userId so the owner is the author again. Kaneo-only: nothing changes on GitHub.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "owner",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[\\w.-]+$"
+            },
+            "required": true,
+            "name": "repo",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d+$"
+            },
+            "required": true,
+            "name": "number",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "userId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "description": "Workspace member who owns the pull request for everyone, or null to go back to the author."
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "userId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Set owner",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The owner is not a member of the workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pull request not found or not visible to the Kaneo GitHub App",
             "content": {
               "application/json": {
                 "schema": {

@@ -35,16 +35,18 @@ const PREFETCH_LIMIT = 40;
 
 export function FilesTab({
   pullRef,
+  workspaceId,
   reviewed,
   onReviewedChange,
 }: {
   pullRef: PullRef;
+  workspaceId: string;
   /** Kept by the page, so switching to Overview and back keeps it. */
   reviewed: string[];
   onReviewedChange: (filename: string, reviewed: boolean) => void;
 }) {
   const { t } = useTranslation();
-  const pull = usePullRequest(pullRef);
+  const pull = usePullRequest(pullRef, workspaceId);
   const commits = usePullRequestCommits(pullRef, true);
   const [range, setRange] = useState<CommitRange | null>(null);
   const picked = range && commits.data ? commits.data : null;

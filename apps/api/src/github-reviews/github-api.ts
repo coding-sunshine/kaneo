@@ -127,7 +127,7 @@ export type GithubSearchPull = {
   deletions: number;
   reviewDecision: "APPROVED" | "CHANGES_REQUESTED" | "REVIEW_REQUIRED" | null;
   comments: { totalCount: number };
-  author: { login: string; avatarUrl: string } | null;
+  author: { login: string; avatarUrl: string; databaseId?: number } | null;
   repository: { name: string; owner: { login: string } };
   commits: {
     nodes: { commit: { statusCheckRollup: { state: string } | null } }[];
@@ -166,7 +166,7 @@ const SEARCH_QUERY = `query($q: String!) {
         additions deletions
         reviewDecision
         comments { totalCount }
-        author { login avatarUrl }
+        author { login avatarUrl ... on User { databaseId } }
         repository { name owner { login } }
         commits(last: 1) { nodes { commit { statusCheckRollup { state } } } }
         mergeable mergeStateStatus headRefName baseRefName
@@ -249,7 +249,7 @@ export type GithubPull = {
   created_at: string;
   updated_at: string;
   closed_at: string | null;
-  user: GithubPerson;
+  user: (NonNullable<GithubPerson> & { id: number }) | null;
   requested_reviewers: { login: string; avatar_url: string }[];
   labels: { name: string; color: string }[];
   head: { sha: string; ref: string };

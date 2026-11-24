@@ -9,6 +9,7 @@ import type { PullRequestAction } from "@/components/reviews/pull-request-action
 import { PullRequestChecksSubmenu } from "@/components/reviews/pull-request-checks-submenu";
 import { PullRequestCopySubmenu } from "@/components/reviews/pull-request-copy-submenu";
 import { PullRequestFavoriteItem } from "@/components/reviews/pull-request-favorite-item";
+import { PullRequestOwnerSubmenu } from "@/components/reviews/pull-request-owner-submenu";
 import { PullRequestLabelsSubmenu } from "@/components/reviews/pull-request-labels-submenu";
 import { PullRequestReviewersSubmenu } from "@/components/reviews/pull-request-reviewers-submenu";
 import { PullRequestSnoozeSubmenu } from "@/components/reviews/pull-request-snooze-submenu";
@@ -17,7 +18,7 @@ import { MenuItem, MenuSeparator } from "@/components/ui/menu";
 import type { ReviewPullRequest } from "@/fetchers/github-reviews/github-reviews";
 import { requestedReviewers, rowActions } from "@/lib/review-row-actions";
 
-/** Linear's row context menu minus Owner; GitHub writes only show where the state allows them. */
+/** Linear's row context menu; GitHub writes only show where the state allows them. */
 export function ReviewRowMenu({
   pr,
   workspaceId,
@@ -45,6 +46,11 @@ export function ReviewRowMenu({
       <PullRequestCopySubmenu pull={pr} workspaceId={workspaceId} />
       <MenuSeparator />
       <PullRequestChecksSubmenu pullRef={pullRef} />
+      <PullRequestOwnerSubmenu
+        pullRef={pullRef}
+        workspaceId={workspaceId}
+        pull={pr}
+      />
       {actions.edit && (
         <PullRequestLabelsSubmenu pullRef={pullRef} labels={pr.labels} />
       )}
