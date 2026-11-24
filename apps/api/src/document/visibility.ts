@@ -13,7 +13,7 @@ type DocumentColumns = {
 // Who may use a work project as a place for documents: anyone who can enter
 // one of its teams. A project with no team is open to the whole workspace.
 export function workProjectDocumentAccess(
-  userId: string,
+  userId: string | SQLWrapper,
   workProjectId: SQLWrapper,
 ) {
   return sql<boolean>`(
@@ -33,7 +33,10 @@ export function workProjectDocumentAccess(
 // documents are open to every workspace member; team and issue documents
 // follow team access, and work project documents follow the project's teams.
 // Callers check workspace membership.
-export function documentParentAccess(userId: string, doc: DocumentColumns) {
+export function documentParentAccess(
+  userId: string | SQLWrapper,
+  doc: DocumentColumns,
+) {
   return sql<boolean>`(
     ${doc.scope} = 'workspace'
     OR (${doc.scope} = 'project' AND ${workProjectDocumentAccess(userId, doc.workProjectId)})
@@ -47,7 +50,10 @@ export function documentParentAccess(userId: string, doc: DocumentColumns) {
 }
 
 // The one visibility rule for documents: lists, reads and notifications.
-export function documentVisibility(userId: string, doc: DocumentColumns) {
+export function documentVisibility(
+  userId: string | SQLWrapper,
+  doc: DocumentColumns,
+) {
   return sql<boolean>`(
     ${doc.creatorId} = ${userId}
     OR EXISTS (

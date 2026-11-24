@@ -3792,6 +3792,70 @@
           "subscriberIds"
         ]
       },
+      "DocumentAudience": {
+        "type": "object",
+        "properties": {
+          "current": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "userId",
+                "name",
+                "image"
+              ]
+            },
+            "description": "Workspace members who can open the document now."
+          },
+          "proposed": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "userId",
+                "name",
+                "image"
+              ]
+            },
+            "description": "Members who could open it in the place asked about. Null when no place was asked about."
+          }
+        },
+        "required": [
+          "current",
+          "proposed"
+        ]
+      },
       "DocumentVersion": {
         "type": "object",
         "properties": {
@@ -26458,6 +26522,132 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/audience": {
+      "get": {
+        "operationId": "getDocumentAudience",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Who can open a document",
+        "description": "The workspace members who can open the document, and who could after a move to the place given in the query.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "private",
+                "workspace",
+                "team",
+                "project",
+                "issue"
+              ],
+              "description": "With any of these: also return who could open the document after a move to that place."
+            },
+            "required": false,
+            "description": "With any of these: also return who could open the document after a move to that place.",
+            "name": "scope",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Team"
+            },
+            "required": false,
+            "description": "Team",
+            "name": "projectId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "workProjectId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "taskId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document audience",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentAudience"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Document parent not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }

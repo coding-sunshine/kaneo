@@ -15,6 +15,7 @@ import {
 } from "./controllers/comments";
 import { createDocument } from "./controllers/create-document";
 import { deleteDocument, restoreDocument } from "./controllers/delete-document";
+import { documentAudience } from "./controllers/document-audience";
 import { getDocument } from "./controllers/get-document";
 import { listDocuments } from "./controllers/list-documents";
 import { moveDocument } from "./controllers/move-document";
@@ -23,10 +24,12 @@ import { shareDocument, unshareDocument } from "./controllers/share-document";
 import { updateDocument } from "./controllers/update-document";
 import { listVersions, restoreVersion } from "./controllers/versions";
 import {
+  audienceQuery,
   createCommentBody,
   createDocumentBody,
   documentCommentListSchema,
   documentCommentParam,
+  documentAudienceSchema,
   documentCommentSchema,
   documentListSchema,
   documentParam,
@@ -216,6 +219,24 @@ const unshareRoute = createRoute({
   },
 });
 
+const audienceRoute = createRoute({
+  method: "get",
+  operationId: "getDocumentAudience",
+  path: `${one}/audience`,
+  tags,
+  summary: "Who can open a document",
+  description:
+    "The workspace members who can open the document, and who could after a move to the place given in the query.",
+  middleware: [...read] as const,
+  request: { params: documentParam, query: audienceQuery },
+  responses: {
+    200: jsonResponse("Document audience", documentAudienceSchema),
+    400: errorResponse("Document parent not found"),
+    403: noAccess,
+    404: notFound,
+  },
+});
+
 const subscribersRoute = createRoute({
   method: "put",
   operationId: "setDocumentSubscribers",
@@ -373,6 +394,18 @@ const document = apiRouter()
   .openapi(restoreRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");
     return c.json(await restoreDocument(workspaceId, id, c.get("userId")), 200);
+  })
+  .openapi(audienceRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(
+      await documentAudience(
+        workspaceId,
+        id,
+        c.get("userId"),
+        c.req.valid("query"),
+      ),
+      200,
+    );
   })
   .openapi(shareRoute, async (c) => {
     const { workspaceId, id, userId: target } = c.req.valid("param");

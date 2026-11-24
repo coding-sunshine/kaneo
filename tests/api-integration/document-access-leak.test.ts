@@ -169,6 +169,8 @@ describe("API integration: document access leaks", () => {
         [`/share/${limited.id}`, json("PUT", { access: "edit" })],
         [`/share/${limited.id}`, json("DELETE")],
         ["/subscribers", json("PUT", { userIds: [limited.id] })],
+        ["/audience", undefined],
+        ["/audience?scope=workspace", undefined],
         ["/versions", undefined],
         [`/versions/${version?.id}/restore`, json("POST")],
         ["/comments", undefined],

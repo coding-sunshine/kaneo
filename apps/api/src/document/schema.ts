@@ -66,6 +66,16 @@ export const moveDocumentBody = z.object({
 
 export const shareBody = z.object({ access });
 
+export const audienceQuery = z.object({
+  scope: z.enum(DOCUMENT_SCOPES).optional().openapi({
+    description:
+      "With any of these: also return who could open the document after a move to that place.",
+  }),
+  projectId: z.string().optional().openapi({ description: "Team" }),
+  workProjectId: z.string().optional(),
+  taskId: z.string().optional(),
+});
+
 export const subscribersBody = z.object({
   userIds: z.array(z.string()).max(500),
 });
@@ -163,5 +173,22 @@ export const documentCommentSchema = z
   })
   .openapi("DocumentComment");
 export const documentCommentListSchema = z.array(documentCommentSchema);
+
+const audiencePerson = z.object({
+  userId: z.string(),
+  name: z.string(),
+  image: z.string().nullable(),
+});
+export const documentAudienceSchema = z
+  .object({
+    current: z.array(audiencePerson).openapi({
+      description: "Workspace members who can open the document now.",
+    }),
+    proposed: z.array(audiencePerson).nullable().openapi({
+      description:
+        "Members who could open it in the place asked about. Null when no place was asked about.",
+    }),
+  })
+  .openapi("DocumentAudience");
 
 export const idSchema = z.object({ id: z.string() });
