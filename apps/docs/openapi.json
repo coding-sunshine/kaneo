@@ -3824,7 +3824,7 @@
               "string",
               "null"
             ],
-            "description": "The document that was current on the topic before this one."
+            "description": "The document that was current on the topic before this one. On a proposal, the current document its author means it to replace."
           },
           "statusReason": {
             "type": [
@@ -3974,6 +3974,198 @@
           "role",
           "shares",
           "subscriberIds"
+        ]
+      },
+      "SavedDraft": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "characters": {
+            "type": "integer",
+            "description": "How long the stored text is. The text is not sent back."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "unsorted",
+              "decision",
+              "proposal",
+              "brainstorm",
+              "reference"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "in_review",
+              "current",
+              "superseded"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "private",
+              "workspace",
+              "team",
+              "project",
+              "issue"
+            ]
+          },
+          "created": {
+            "type": "boolean",
+            "description": "False when the key was used before and nothing was saved."
+          },
+          "needsDecision": {
+            "type": "boolean",
+            "description": "True while the author has not said what the draft is. Ask them, then settle it."
+          },
+          "topics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "parentName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "currentDocument": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "approvedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title",
+                    "approvedAt"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "parentName",
+                "currentDocument"
+              ]
+            },
+            "description": "Topics the author can open whose name matches the title, each with its current document."
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "characters",
+          "kind",
+          "status",
+          "scope",
+          "created",
+          "needsDecision",
+          "topics"
+        ]
+      },
+      "SettledDocument": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "choice": {
+            "type": "string",
+            "enum": [
+              "replace",
+              "proposal",
+              "brainstorm",
+              "discard"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "unsorted",
+              "decision",
+              "proposal",
+              "brainstorm",
+              "reference"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "in_review",
+              "current",
+              "superseded"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "private",
+              "workspace",
+              "team",
+              "project",
+              "issue"
+            ]
+          },
+          "topicId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "replacesDocumentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The current document the author means this one to replace. It stays current until the topic's decider approves this one."
+          },
+          "discarded": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "choice",
+          "title",
+          "kind",
+          "status",
+          "scope",
+          "topicId",
+          "replacesDocumentId",
+          "discarded"
         ]
       },
       "DocumentAudience": {
@@ -26380,6 +26572,229 @@
           },
           "403": {
             "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/file": {
+      "post": {
+        "operationId": "saveDocumentDraft",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Save a draft from an assistant",
+        "description": "Save text as a private draft of the signed-in person. The answer names the topics the title matches. A repeated call with the same key answers with the first draft.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "markdown": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1000000,
+                    "description": "The whole text as Markdown. It is stored as sent."
+                  },
+                  "idempotencyKey": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "description": "A key the caller makes up once per text. A repeated call with the same key answers with the first draft and saves nothing."
+                  },
+                  "sourceClient": {
+                    "type": "string",
+                    "enum": [
+                      "claude",
+                      "chatgpt"
+                    ],
+                    "description": "The assistant that sends the text. The assistant names itself and nothing checks it."
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "title",
+                  "markdown",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Draft saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedDraft"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The draft saved with this key was discarded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/settle": {
+      "post": {
+        "operationId": "settleDocument",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Settle a draft",
+        "description": "Record what the author decided for their draft: file it on a topic, keep it as a brainstorm, or discard it. No choice makes a document current.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "choice": {
+                    "type": "string",
+                    "enum": [
+                      "replace",
+                      "proposal",
+                      "brainstorm",
+                      "discard"
+                    ],
+                    "description": "replace: file it on the topic as a proposal that means to replace the current document. proposal: file it on the topic. brainstorm: keep it private as a brainstorm. discard: move it to trash."
+                  },
+                  "topicId": {
+                    "type": "string",
+                    "description": "The topic to file it on. Needed for replace and proposal."
+                  }
+                },
+                "required": [
+                  "choice"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Draft settled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettledDocument"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The choice needs a topic",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only the author can settle a draft",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document or topic not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The document is not a draft, or the topic has nothing to replace",
             "content": {
               "application/json": {
                 "schema": {

@@ -71,6 +71,43 @@ export const updateDocumentBody = z.object({
   }),
 });
 
+export const saveDraftBody = z.object({
+  workspaceId: z.string(),
+  title: z.string().trim().min(1).max(500),
+  markdown: z.string().min(1).max(1_000_000).openapi({
+    description: "The whole text as Markdown. It is stored as sent.",
+  }),
+  idempotencyKey: z.string().min(1).max(200).openapi({
+    description:
+      "A key the caller makes up once per text. A repeated call with the same key answers with the first draft and saves nothing.",
+  }),
+  sourceClient: z
+    .enum(DOCUMENT_SOURCE_CLIENTS)
+    .exclude(["web"])
+    .optional()
+    .openapi({
+      description:
+        "The assistant that sends the text. The assistant names itself and nothing checks it.",
+    }),
+});
+
+export const DOCUMENT_SETTLE_CHOICES = [
+  "replace",
+  "proposal",
+  "brainstorm",
+  "discard",
+] as const;
+
+export const settleDocumentBody = z.object({
+  choice: z.enum(DOCUMENT_SETTLE_CHOICES).openapi({
+    description:
+      "replace: file it on the topic as a proposal that means to replace the current document. proposal: file it on the topic. brainstorm: keep it private as a brainstorm. discard: move it to trash.",
+  }),
+  topicId: z.string().optional().openapi({
+    description: "The topic to file it on. Needed for replace and proposal.",
+  }),
+});
+
 export const moveDocumentBody = z.object({
   scope: z.enum(DOCUMENT_SCOPES),
   ...parent,
@@ -156,7 +193,7 @@ export const documentSchema = z
     topicName: z.string().nullable(),
     supersedesDocumentId: z.string().nullable().openapi({
       description:
-        "The document that was current on the topic before this one.",
+        "The document that was current on the topic before this one. On a proposal, the current document its author means it to replace.",
     }),
     statusReason: z.string().nullable().openapi({
       description: "The reason given when the document was made current.",
@@ -236,3 +273,59 @@ export const documentAudienceSchema = z
   .openapi("DocumentAudience");
 
 export const idSchema = z.object({ id: z.string() });
+
+export const savedDraftSchema = z
+  .object({
+    id: z.string(),
+    title: z.string(),
+    characters: z.number().int().openapi({
+      description: "How long the stored text is. The text is not sent back.",
+    }),
+    kind: z.enum(DOCUMENT_KINDS),
+    status: z.enum(DOCUMENT_STATUSES),
+    scope: z.enum(DOCUMENT_SCOPES),
+    created: z.boolean().openapi({
+      description: "False when the key was used before and nothing was saved.",
+    }),
+    needsDecision: z.boolean().openapi({
+      description:
+        "True while the author has not said what the draft is. Ask them, then settle it.",
+    }),
+    topics: z
+      .array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          parentName: z.string().nullable(),
+          currentDocument: z
+            .object({
+              id: z.string(),
+              title: z.string(),
+              approvedAt: nullableResponseTimestamp,
+            })
+            .nullable(),
+        }),
+      )
+      .openapi({
+        description:
+          "Topics the author can open whose name matches the title, each with its current document.",
+      }),
+  })
+  .openapi("SavedDraft");
+
+export const settledDocumentSchema = z
+  .object({
+    id: z.string(),
+    choice: z.enum(DOCUMENT_SETTLE_CHOICES),
+    title: z.string(),
+    kind: z.enum(DOCUMENT_KINDS),
+    status: z.enum(DOCUMENT_STATUSES),
+    scope: z.enum(DOCUMENT_SCOPES),
+    topicId: z.string().nullable(),
+    replacesDocumentId: z.string().nullable().openapi({
+      description:
+        "The current document the author means this one to replace. It stays current until the topic's decider approves this one.",
+    }),
+    discarded: z.boolean(),
+  })
+  .openapi("SettledDocument");

@@ -166,6 +166,7 @@ describe("API integration: document access leaks", () => {
         ["", json("DELETE")],
         ["/location", json("PUT", { scope: "private" })],
         ["/restore", json("POST")],
+        ["/settle", json("POST", { choice: "discard" })],
         [`/share/${limited.id}`, json("PUT", { access: "edit" })],
         [`/share/${limited.id}`, json("DELETE")],
         ["/subscribers", json("PUT", { userIds: [limited.id] })],

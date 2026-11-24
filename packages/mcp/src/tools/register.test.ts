@@ -563,6 +563,68 @@ describe("registerTools", () => {
     }
   });
 
+  it("saves a text as a draft, then settles it with the author's choice", async () => {
+    const { server, tools } = createServerMock();
+    const client = { json: vi.fn().mockResolvedValue({ id: "doc-1" }) };
+    registerTools(server as never, { client: client as never });
+    const draft = {
+      workspaceId: "ws-1",
+      title: "Launch plan v3",
+      markdown: "  # Plan\n\nWe launch in March.\n",
+      idempotencyKey: "key-1",
+      sourceClient: "claude",
+    };
+
+    const saved = await tools.get("file_document")?.handler(draft);
+    expect(saved?.isError).toBe(false);
+    // The text goes as sent: nothing trims or rewrites it.
+    expect(client.json).toHaveBeenLastCalledWith("/api/document/file", {
+      method: "POST",
+      body: JSON.stringify(draft),
+    });
+
+    await tools.get("settle_document")?.handler({
+      workspaceId: "ws 1",
+      documentId: "doc/1",
+      choice: "replace",
+      topicId: "topic-1",
+    });
+    expect(client.json).toHaveBeenLastCalledWith(
+      "/api/document/workspace/ws%201/doc%2F1/settle",
+      {
+        method: "POST",
+        body: JSON.stringify({ choice: "replace", topicId: "topic-1" }),
+      },
+    );
+
+    const schema = tools.get("settle_document")?.config.inputSchema;
+    const settle = { workspaceId: "ws-1", documentId: "doc-1" };
+    expect(() => schema?.parse({ ...settle, choice: "current" })).toThrow();
+    expect(() => schema?.parse({ ...settle, choice: "discard" })).not.toThrow();
+  });
+
+  it("refuses a text too long for one call before it sends anything", async () => {
+    const { server, tools } = createServerMock();
+    const client = { json: vi.fn().mockResolvedValue({ id: "doc-1" }) };
+    registerTools(server as never, { client: client as never });
+    const save = (markdown: string) =>
+      tools.get("file_document")?.handler({
+        workspaceId: "ws-1",
+        title: "Long",
+        markdown,
+        idempotencyKey: "key-1",
+      });
+
+    // The limit counts bytes as sent, not characters: é is two bytes.
+    const refused = await save("é".repeat(450_001));
+    expect(refused?.isError).toBe(true);
+    expect(refused?.content[0]?.text).toContain("900,000");
+    expect(client.json).not.toHaveBeenCalled();
+
+    expect((await save("é".repeat(400_000)))?.isError).toBe(false);
+    expect(client.json).toHaveBeenCalledTimes(1);
+  });
+
   it("returns resumable progress when a cascade exceeds one tool call", async () => {
     const { server, tools } = createServerMock();
     const client = {

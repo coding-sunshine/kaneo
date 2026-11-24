@@ -22,6 +22,8 @@ import { moveDocument } from "./controllers/move-document";
 import { setSubscribers } from "./controllers/set-subscribers";
 import { shareDocument, unshareDocument } from "./controllers/share-document";
 import { updateDocument } from "./controllers/update-document";
+import { saveDraft } from "./controllers/save-draft";
+import { settleDocument } from "./controllers/settle-document";
 import { listVersions, restoreVersion } from "./controllers/versions";
 import {
   audienceQuery,
@@ -40,6 +42,10 @@ import {
   idSchema,
   listDocumentsQuery,
   moveDocumentBody,
+  saveDraftBody,
+  savedDraftSchema,
+  settleDocumentBody,
+  settledDocumentSchema,
   shareBody,
   subscribersBody,
   subscribersSchema,
@@ -100,6 +106,47 @@ const createRouteDef = createRoute({
     200: jsonResponse("Document created", documentSchema),
     400: errorResponse("Document parent not found"),
     403: noAccess,
+  },
+});
+
+const saveDraftRoute = createRoute({
+  method: "post",
+  operationId: "saveDocumentDraft",
+  path: "/file",
+  tags,
+  summary: "Save a draft from an assistant",
+  description:
+    "Save text as a private draft of the signed-in person. The answer names the topics the title matches. A repeated call with the same key answers with the first draft.",
+  middleware: [
+    workspaceAccess.fromBody(),
+    requireWorkspacePermission({ task: ["create"] }),
+  ] as const,
+  request: { body: body(saveDraftBody) },
+  responses: {
+    200: jsonResponse("Draft saved", savedDraftSchema),
+    403: noAccess,
+    409: errorResponse("The draft saved with this key was discarded"),
+  },
+});
+
+const settleRoute = createRoute({
+  method: "post",
+  operationId: "settleDocument",
+  path: `${one}/settle`,
+  tags,
+  summary: "Settle a draft",
+  description:
+    "Record what the author decided for their draft: file it on a topic, keep it as a brainstorm, or discard it. No choice makes a document current.",
+  middleware: [...write] as const,
+  request: { params: documentParam, body: body(settleDocumentBody) },
+  responses: {
+    200: jsonResponse("Draft settled", settledDocumentSchema),
+    400: errorResponse("The choice needs a topic"),
+    403: errorResponse("Only the author can settle a draft"),
+    404: errorResponse("Document or topic not found"),
+    409: errorResponse(
+      "The document is not a draft, or the topic has nothing to replace",
+    ),
   },
 });
 
@@ -367,6 +414,17 @@ const document = apiRouter()
   .openapi(createRouteDef, async (c) =>
     c.json(await createDocument(c.get("userId"), c.req.valid("json")), 200),
   )
+  .openapi(saveDraftRoute, async (c) =>
+    c.json(await saveDraft(c.get("userId"), c.req.valid("json")), 200),
+  )
+  .openapi(settleRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    const userId = c.get("userId");
+    return c.json(
+      await settleDocument(workspaceId, id, userId, c.req.valid("json")),
+      200,
+    );
+  })
   .openapi(getRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");
     return c.json(await getDocument(workspaceId, id, c.get("userId")), 200);

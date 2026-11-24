@@ -8,7 +8,12 @@ import { getDocument } from "./get-document";
 import { loadDocument } from "./load-document";
 import { resolveParent } from "./resolve-parent";
 
-const OFF_TOPIC = { topicId: null, filedAt: null, status: "draft" } as const;
+const OFF_TOPIC = {
+  topicId: null,
+  filedAt: null,
+  status: "draft",
+  supersedesDocumentId: null,
+} as const;
 
 export async function moveDocument(
   workspaceId: string,

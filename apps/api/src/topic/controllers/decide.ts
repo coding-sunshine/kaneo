@@ -103,7 +103,8 @@ export async function makeCurrent(
         approvedHash: doc.contentHash,
         approvedVersionId,
         confirmedAt: null,
-        ...(replaced && { supersedesDocumentId: replaced.id }),
+        // Not what its author meant to replace: what it did replace.
+        supersedesDocumentId: replaced?.id ?? null,
       })
       .where(eq(documentTable.id, documentId));
   });

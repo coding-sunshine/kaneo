@@ -2701,7 +2701,8 @@ export const documentTable = pgTable(
       (): AnyPgColumn => documentVersionTable.id,
       { onDelete: "set null", onUpdate: "cascade" },
     ),
-    // The document that was current on the topic before this one.
+    // The document that was current on the topic before this one. On a
+    // proposal: the current document its author means it to replace.
     supersedesDocumentId: text("supersedes_document_id").references(
       (): AnyPgColumn => documentTable.id,
       { onDelete: "set null", onUpdate: "cascade" },

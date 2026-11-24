@@ -40,6 +40,10 @@ const hexColorSchema = z
     "Expected a hex color like #FF6600",
   );
 
+// The hosted endpoint refuses a request over 1 MiB before any tool runs.
+// This leaves room for the rest of the request and gives a clear answer.
+const MAX_MARKDOWN_BYTES = 900_000;
+
 function run(fn: () => Promise<unknown>): Promise<CallToolResult> {
   return fn()
     .then((data) => textResult(data))
@@ -968,5 +972,67 @@ export function registerTools(
       inputSchema: z.object({}),
     },
     async () => run(() => client.json("/api/notification")),
+  );
+
+  registerTool(
+    "file_document",
+    {
+      description:
+        "Save a text from this conversation as a document. Send the whole text as Markdown, unchanged. It is saved as a private draft that only its author can open. Nothing is filed or replaced yet. The result lists the topics whose name matches the title, each with its current document. When needsDecision is true, show the author those topics and ask what the draft is: a replacement for a current document, a proposal, a brainstorm, or something to discard. Then call settle_document with their answer. Until then the draft stays private. The Markdown can be at most 900,000 bytes as JSON.",
+      inputSchema: z.object({
+        workspaceId: nonEmptyString.describe("Workspace ID"),
+        title: nonEmptyString,
+        markdown: z.string().min(1).describe("The whole text, as Markdown"),
+        idempotencyKey: nonEmptyString.describe(
+          "A key you make up once per text. Send the same key when you retry a call, so the text is saved once.",
+        ),
+        sourceClient: z
+          .enum(["claude", "chatgpt"])
+          .optional()
+          .describe("The assistant you are, if it is one of these"),
+      }),
+    },
+    async ({ workspaceId, title, markdown, idempotencyKey, sourceClient }) =>
+      run(async () => {
+        const bytes = new TextEncoder().encode(JSON.stringify(markdown)).length;
+        if (bytes > MAX_MARKDOWN_BYTES) {
+          throw new Error(
+            `The text is ${bytes.toLocaleString("en-US")} bytes as JSON. One call can save at most ${MAX_MARKDOWN_BYTES.toLocaleString("en-US")}. Nothing was saved.`,
+          );
+        }
+        return client.json("/api/document/file", {
+          method: "POST",
+          body: JSON.stringify({
+            workspaceId,
+            title,
+            markdown,
+            idempotencyKey,
+            sourceClient,
+          }),
+        });
+      }),
+  );
+
+  registerTool(
+    "settle_document",
+    {
+      description:
+        "Record what the author decided for a draft saved with file_document. Ask the author first and send their answer, not your own guess. replace and proposal file the draft on the topic in topicId, where everyone who can open that topic can read it. replace also records that the author means it to replace the topic's current document. brainstorm keeps the draft private. discard moves it to trash. No choice makes a document current: only the topic's decider or the workspace owner can approve it.",
+      inputSchema: z.object({
+        workspaceId: nonEmptyString.describe("Workspace ID"),
+        documentId: nonEmptyString.describe("The id file_document returned"),
+        choice: z.enum(["replace", "proposal", "brainstorm", "discard"]),
+        topicId: optionalNonEmptyString.describe(
+          "A topic id from the file_document result. Needed for replace and proposal.",
+        ),
+      }),
+    },
+    async ({ workspaceId, documentId, choice, topicId }) =>
+      run(() =>
+        client.json(
+          `/api/document/workspace/${encodeURIComponent(workspaceId)}/${encodeURIComponent(documentId)}/settle`,
+          { method: "POST", body: JSON.stringify({ choice, topicId }) },
+        ),
+      ),
   );
 }

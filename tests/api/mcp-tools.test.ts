@@ -6,6 +6,7 @@ import {
   it,
   vi,
 } from "vite-plus/test";
+import { buildAgentTools } from "../../apps/api/src/agent/tools";
 import {
   type McpToolRegistrar,
   registerMcpTools,
@@ -290,6 +291,49 @@ describe("MCP tool catalog", () => {
 
     await call("list_notifications");
     expect(lastRequest().url).toBe("http://api.test/api/notification");
+  });
+
+  it("saves a draft from chat and settles it", async () => {
+    const draft = {
+      workspaceId: "ws1",
+      title: "Launch plan v3",
+      markdown: "# Plan",
+      idempotencyKey: "key-1",
+      sourceClient: "chatgpt",
+    };
+    await call("file_document", draft);
+    expect(lastRequest()).toMatchObject({
+      url: "http://api.test/api/document/file",
+      method: "POST",
+      body: draft,
+      auth: "Bearer test-token",
+    });
+
+    await call("settle_document", {
+      workspaceId: "ws1",
+      documentId: "d1",
+      choice: "proposal",
+      topicId: "t1",
+    });
+    expect(lastRequest()).toMatchObject({
+      url: "http://api.test/api/document/workspace/ws1/d1/settle",
+      method: "POST",
+      body: { choice: "proposal", topicId: "t1" },
+    });
+  });
+
+  it("keeps saving documents out of the tracker's own assistant", async () => {
+    // The catalog has both tools, so their absence below is the filter's work.
+    expect(tools.has("file_document")).toBe(true);
+    expect(tools.has("settle_document")).toBe(true);
+
+    const agent = buildAgentTools({ json: async <T>() => ({}) as T });
+    const offered = agent.definitions.map((tool) => tool.function.name);
+    expect(offered).toContain("create_task");
+    expect(offered).not.toContain("file_document");
+    expect(offered).not.toContain("settle_document");
+    expect(await agent.call("file_document", "{}")).toContain("Unknown tool");
+    expect(await agent.call("settle_document", "{}")).toContain("Unknown tool");
   });
 
   it("surfaces an API failure as a tool error", async () => {
