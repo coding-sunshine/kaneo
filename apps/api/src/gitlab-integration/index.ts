@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { and, eq } from "drizzle-orm";
 import type { Context } from "hono";
 import { HTTPException } from "hono/http-exception";
@@ -83,8 +84,7 @@ const verifyRoute = createRoute({
   path: "/verify",
   tags: ["GitLab"],
   summary: "Verify GitLab access",
-  description:
-    "Check that the base URL is a GitLab instance and that the token can reach the project with the permissions Kaneo needs. An unreachable instance, a missing project, or insufficient permissions are reported in a 200 body so the form can explain them; a token GitLab rejects outright is a 401.",
+  description: `Check that the base URL is a GitLab instance and that the token can reach the project with the permissions ${brand.name} needs. An unreachable instance, a missing project, or insufficient permissions are reported in a 200 body so the form can explain them; a token GitLab rejects outright is a 401.`,
   middleware: manageAccess,
   request: {
     body: {
@@ -134,8 +134,7 @@ const createIntegrationRoute = createRoute({
   path: "/project/{projectId}",
   tags: ["GitLab"],
   summary: "Create GitLab integration",
-  description:
-    "Link a project to a GitLab project. Kaneo generates the secret GitLab must send with each webhook; add the webhook in GitLab afterwards. Use the verify route first to confirm the token really reaches the project.",
+  description: `Link a project to a GitLab project. ${brand.name} generates the secret GitLab must send with each webhook; add the webhook in GitLab afterwards. Use the verify route first to confirm the token really reaches the project.`,
   middleware: manageAccess,
   request: {
     params: projectIdParam,
@@ -151,7 +150,7 @@ const createIntegrationRoute = createRoute({
       "No access to the project, or missing workspace:manage_settings",
     ),
     409: errorResponse(
-      "That GitLab project is already linked to another Kaneo project",
+      `That GitLab project is already linked to another ${brand.name} project`,
     ),
     404: errorResponse("Project not found"),
   },

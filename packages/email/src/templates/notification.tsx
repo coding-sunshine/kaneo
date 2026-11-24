@@ -43,10 +43,10 @@ export type NotificationEmailProps = {
 
 const messages = {
   en: {
-    preview: "You have a new Kaneo notification",
+    preview: "You have a new {{brand}} notification",
     subtitle: "A notification matched your delivery preferences.",
-    footer: "Kaneo notification",
-    actionLabel: "Open in Kaneo",
+    footer: "{{brand}} notification",
+    actionLabel: "Open in {{brand}}",
     openTask: "Open issue",
     manage: "Manage notifications",
     priority: {
@@ -57,11 +57,11 @@ const messages = {
     },
   },
   de: {
-    preview: "Du hast eine neue Kaneo-Benachrichtigung",
+    preview: "Du hast eine neue {{brand}}-Benachrichtigung",
     subtitle:
       "Eine Benachrichtigung entspricht deinen Zustellungs-Einstellungen.",
-    footer: "Kaneo Benachrichtigung",
-    actionLabel: "In Kaneo öffnen",
+    footer: "{{brand}} Benachrichtigung",
+    actionLabel: "In {{brand}} öffnen",
     openTask: "Aufgabe öffnen",
     manage: "Benachrichtigungen verwalten",
     priority: {
@@ -72,10 +72,10 @@ const messages = {
     },
   },
   vi: {
-    preview: "Bạn có thông báo mới từ Kaneo",
+    preview: "Bạn có thông báo mới từ {{brand}}",
     subtitle: "Một thông báo khớp với tùy chọn nhận thông báo của bạn.",
-    footer: "Thông báo Kaneo",
-    actionLabel: "Mở trong Kaneo",
+    footer: "Thông báo {{brand}}",
+    actionLabel: "Mở trong {{brand}}",
     openTask: "Mở công việc",
     manage: "Quản lý thông báo",
     priority: {
@@ -86,10 +86,10 @@ const messages = {
     },
   },
   ja: {
-    preview: "Kaneo の新しい通知",
+    preview: "{{brand}} の新しい通知",
     subtitle: "配信設定に一致する通知がありました。",
-    footer: "Kaneo 通知",
-    actionLabel: "Kaneo で開く",
+    footer: "{{brand}} 通知",
+    actionLabel: "{{brand}} で開く",
     openTask: "タスクを開く",
     manage: "通知を管理",
     priority: {
@@ -100,10 +100,10 @@ const messages = {
     },
   },
   "zh-tw": {
-    preview: "你有一則新的 Kaneo 通知",
+    preview: "你有一則新的 {{brand}} 通知",
     subtitle: "有一則通知符合你的通知設定。",
-    footer: "Kaneo 通知",
-    actionLabel: "在 Kaneo 中開啟",
+    footer: "{{brand}} 通知",
+    actionLabel: "在 {{brand}} 中開啟",
     openTask: "開啟任務",
     manage: "管理通知",
     priority: {

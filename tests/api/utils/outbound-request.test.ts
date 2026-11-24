@@ -26,7 +26,7 @@ beforeEach(async () => {
   receivedBody = "";
   server = createServer((request, response) => {
     if (request.url === "/signed") {
-      receivedSignature = request.headers["x-kaneo-signature"];
+      receivedSignature = request.headers["x-webhook-signature"];
       request.on("data", (chunk) => {
         receivedBody += chunk.toString();
       });

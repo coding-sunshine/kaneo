@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import {
   type AppLocale,
   defaultLocale,
@@ -142,6 +143,7 @@ void i18n
     defaultNS: "common",
     interpolation: {
       escapeValue: false,
+      defaultVariables: { appName: brand.name },
     },
   })
   .then(() => preloadNamespaces(initialLocale));

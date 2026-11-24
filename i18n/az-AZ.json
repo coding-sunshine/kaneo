@@ -1,6 +1,6 @@
 {
 	"common": {
-		"appName": "Organyz Work",
+		"appName": "{{appName}}",
 		"actions": {
 			"cancel": "Ləğv et",
 			"close": "Bağla",
@@ -98,7 +98,7 @@
 				"copySettingsFrom": "Copy settings from"
 			},
 			"createWorkspace": {
-				"breadcrumbKaneo": "KANEO",
+				"breadcrumbKaneo": "{{appName}}",
 				"title": "Yeni iş sahəsi yarat",
 				"description": "İş sahəniz üçün ad daxil edərək yeni iş sahəsi yaradın.",
 				"namePlaceholder": "İş sahəsinin adı",
@@ -190,7 +190,7 @@
 				"use_a_permanent_email_address_disposable_addresses_cannot_create_accounts_": "Daimi e-poçt ünvanından istifadə edin. Birdəfəlik ünvanlarla hesab yaratmaq olmur."
 			},
 			"instanceStatusError": "Serverə çatmaq mümkün olmadı. Bir az sonra yenidən cəhd edin.",
-			"heading": "Organyz Work-ya daxil olun",
+			"heading": "{{appName}}-ya daxil olun",
 			"submitPassword": "Daxil ol",
 			"invitation": {
 				"title": "{{inviterName}} sizi {{workspaceName}} iş sahəsinə dəvət edib",
@@ -198,7 +198,7 @@
 				"description": "Dəvətin göndərildiyi e-poçtla daxil olun. Dərhal sonra iş sahəsinə qoşulacaqsınız."
 			},
 			"footer": {
-				"newHere": "Organyz Work-da yenisiniz?",
+				"newHere": "{{appName}}-da yenisiniz?",
 				"createAccount": "Hesab yarat",
 				"inviteOnly": "Burada hesablar yalnız dəvətlə yaradılır. Administratordan dəvət istəyin.",
 				"providerSignUp": "Yenisiniz? Hesab yaratmaq üçün yuxarıdakı provayderlərdən biri ilə daxil olun.",
@@ -258,7 +258,7 @@
 			"toggleMessage": "Artıq hesabınız var?",
 			"toggleLink": "Daxil ol",
 			"instanceStatusError": "Serverə çatmaq mümkün olmadı. Bir az sonra yenidən cəhd edin.",
-			"instanceAdminTitle": "Organyz Work quraşdırmanızı hazırlayın",
+			"instanceAdminTitle": "{{appName}} quraşdırmanızı hazırlayın",
 			"instanceAdminSubtitle": "Bu hesab tam giriş hüququ ilə quraşdırmanın inzibatçısı olur.",
 			"heading": "Hesabınızı yaradın",
 			"submitPassword": "Hesab yarat",
@@ -312,7 +312,7 @@
 				"acceptFailed": "Dəvəti qəbul etmək alınmadı",
 				"acceptSuccess": "Dəvət qəbul edildi! Komandaya xoş gəlmisiniz."
 			},
-			"description": "{{inviterName}} sizi Organyz Work-da bu iş sahəsinə dəvət edib.",
+			"description": "{{inviterName}} sizi {{appName}}-da bu iş sahəsinə dəvət edib.",
 			"invitedBy": "Dəvət edən",
 			"sentTo": "Göndərildiyi ünvan",
 			"signedInAs": "Daxil olduğunuz hesab",
@@ -320,7 +320,7 @@
 			"notNow": "İndi yox",
 			"join": "İş sahəsinə qoşul",
 			"switchAccount": "Hesabı dəyiş",
-			"goToKaneo": "Organyz Work-ya keç",
+			"goToKaneo": "{{appName}}-ya keç",
 			"mismatch": {
 				"title": "Başqa e-poçtla daxil olmusunuz",
 				"description": "Bu dəvət {{invitedEmail}} ünvanına göndərilib. Siz {{email}} hesabı ilə daxil olmusunuz."
@@ -339,7 +339,7 @@
 			}
 		},
 		"onboarding": {
-			"pageTitle": "Organyz Work-ya xoş gəlmisiniz",
+			"pageTitle": "{{appName}}-ya xoş gəlmisiniz",
 			"workspaceName": "İş sahəsinin adı",
 			"workspaceNamePlaceholder": "Məs., Acme Inc, komandam",
 			"toast": {
@@ -387,7 +387,7 @@
 				},
 				"invite": {
 					"title": "Komandanızı dəvət edin",
-					"description": "Organyz Work hamı bir yerdə olanda daha yaxşı işləyir. İnsanları e-poçtla dəvət etmək üçün yan paneldə **Üzvlər** bölməsini açın."
+					"description": "{{appName}} hamı bir yerdə olanda daha yaxşı işləyir. İnsanları e-poçtla dəvət etmək üçün yan paneldə **Üzvlər** bölməsini açın."
 				},
 				"integrations": {
 					"title": "GitHub, GitLab və ya Gitea qoşun",
@@ -511,7 +511,7 @@
 		"device": {
 			"connect": {
 				"title": "Cihaz qoşun",
-				"description": "Organyz Work hesabınıza bağlamaq üçün terminalda və ya tətbiqdə göstərilən kodu daxil edin.",
+				"description": "{{appName}} hesabınıza bağlamaq üçün terminalda və ya tətbiqdə göstərilən kodu daxil edin.",
 				"label": "Cihaz kodu",
 				"submit": "Davam et",
 				"noCode": "Hələ kodunuz yoxdur? Əvvəlcə tətbiqinizdən girişə başlayın.",
@@ -545,7 +545,7 @@
 				"description": "Təsdiqləmək üçün dərhal bura qayıdacaqsınız.",
 				"submit": "Daxil ol"
 			},
-			"openApp": "Open Organyz Work"
+			"openApp": "Open {{appName}}"
 		},
 		"mcp": {
 			"authorize": {
@@ -618,7 +618,7 @@
 		"notificationsPage": {
 			"pageTitle": "Bildirişlər",
 			"title": "Bildirişlər",
-			"subtitle": "Organyz Work sizə nə barədə bildiriş göndərir və onlar sizə harada çatır.",
+			"subtitle": "{{appName}} sizə nə barədə bildiriş göndərir və onlar sizə harada çatır.",
 			"statusConnected": "Qoşulub",
 			"statusPaused": "Dayandırılıb",
 			"emailTitle": "E-poçt",
@@ -648,10 +648,10 @@
 			"webhookDescription": "Hər bildirişi JSON kimi öz son nöqtənizə göndərin.",
 			"endpointUrl": "Son nöqtənin URL-i",
 			"signingSecret": "İmzalama sirri",
-			"webhookUrlPlaceholder": "https://example.com/webhooks/kaneo",
+			"webhookUrlPlaceholder": "https://example.com/webhooks",
 			"webhookSecretPlaceholder": "İstəyə bağlı ortaq sirr",
 			"webhookSecretHintConfigured": "İmzalama sirri artıq təyin edilib ({{masked}}). Əvəzləmək üçün yenisini daxil edin.",
-			"webhookSecretHintOptional": "Sirr təyin edildikdə Organyz Work sorğunun gövdəsini imzalayır.",
+			"webhookSecretHintOptional": "Sirr təyin edildikdə {{appName}} sorğunun gövdəsini imzalayır.",
 			"connectWebhook": "Webhook-a qoşul",
 			"eventPreferencesTitle": "Mənə bunlar barədə bildir",
 			"eventPreferencesDescription": "Öz şərhləriniz, xatırlatmalarınız və etdiyiniz vəziyyət dəyişiklikləri barədə sizə bildiriş göndərilmir.",
@@ -689,7 +689,7 @@
 			"toastRuleRemovedGeneric": "İş sahəsinin bildiriş qaydası çıxarıldı",
 			"channelNotConnected": "Qoşulmayıb",
 			"channelOff": "Söndürülüb",
-			"channelsDescription": "Bildirişlər həmişə Organyz Work-da göstərilir. Onları başqa yerdə də almaq üçün kanal qoşun.",
+			"channelsDescription": "Bildirişlər həmişə {{appName}}-da göstərilir. Onları başqa yerdə də almaq üçün kanal qoşun.",
 			"channelsTitle": "Kanallar",
 			"configure": "Tənzimlə",
 			"configureChannel": "{{channel}} kanalını tənzimlə",
@@ -705,7 +705,7 @@
 			"eventStatusChangesHint": "Tapşırıqlarınızdan biri başqa sütuna keçdikdə.",
 			"eventTaskAssignmentsHint": "Kimsə sizə tapşırıq təyin etdikdə.",
 			"loadFailed": "Bildiriş parametrlərini yükləmək alınmadı.",
-			"onlyInKaneo": "Yalnız Organyz Work-da",
+			"onlyInKaneo": "Yalnız {{appName}}-da",
 			"optional": "İstəyə bağlı",
 			"projectCount_one": "{{count}} layihə",
 			"projectCount_other": "{{count}} layihə",
@@ -731,7 +731,7 @@
 			"statusSending": "Göndərilir",
 			"stopping": "Dayandırılır...",
 			"stopSending": "Göndərməni dayandır",
-			"stopSendingDescription": "Bu iş sahəsindən gələn bildirişlər yalnız Organyz Work-da göstəriləcək.",
+			"stopSendingDescription": "Bu iş sahəsindən gələn bildirişlər yalnız {{appName}}-da göstəriləcək.",
 			"stopSendingTitle": "{{workspaceName}} üçün göndərmə dayandırılsın?",
 			"workspacesDescription": "Kanallarınızdan hansı iş sahələrinin və layihələrin istifadə edə biləcəyini seçin.",
 			"workspacesTitle": "İş sahələri",
@@ -749,7 +749,7 @@
 		},
 		"preferencesPage": {
 			"title": "Tərcihlər",
-			"subtitle": "Organyz Work sizin üçün necə görünür və işləyir.",
+			"subtitle": "{{appName}} sizin üçün necə görünür və işləyir.",
 			"appearanceTitle": "Ümumi",
 			"theme": "Tema",
 			"selectTheme": "Tema seçin",
@@ -798,7 +798,7 @@
 		"developerPage": {
 			"pageTitle": "API açarları",
 			"title": "API açarları",
-			"subtitle": "Skriptlər, CLI və MCP klientləri Organyz Work-dan sizin adınızdan istifadə etsin.",
+			"subtitle": "Skriptlər, CLI və MCP klientləri {{appName}}-dan sizin adınızdan istifadə etsin.",
 			"unnamedKey": "Adsız",
 			"emptyDescription": "CLI, MCP klienti və ya öz skriptlərinizdən istifadə etmək üçün açar yaradın.",
 			"emptyTitle": "Hələ API açarı yoxdur",
@@ -1310,11 +1310,11 @@
 				"removeError": "GitHub inteqrasiyasını çıxarmaq alınmadı",
 				"issuesImported": "Məsələlər uğurla idxal edildi",
 				"importError": "Məsələləri idxal etmək alınmadı",
-				"commentOnEnabled": "Organyz Work yeni məsələlərə tapşırıq keçidi olan şərh yazacaq",
+				"commentOnEnabled": "{{appName}} yeni məsələlərə tapşırıq keçidi olan şərh yazacaq",
 				"commentOnDisabled": "Yeni məsələlərdə tapşırıq keçidi olan şərhlər söndürülüb",
 				"settingsUpdateError": "GitHub inteqrasiyasını yeniləmək alınmadı"
 			},
-			"commentTaskLinkTitle": "Yeni məsələlərə Organyz Work keçidi ilə şərh yaz",
+			"commentTaskLinkTitle": "Yeni məsələlərə {{appName}} keçidi ilə şərh yaz",
 			"commentTaskLinkHint": "GitHub-da olanlar tapşırığa birbaşa keçə bilsin deyə.",
 			"updatePermissions": "İcazələri yenilə",
 			"installGithubApp": "GitHub tətbiqini quraşdır",
@@ -1331,9 +1331,9 @@
 			"linkAccountTitle": "GitHub hesabınızı əlaqələndirin",
 			"linked": "Əlaqələndirilib",
 			"linkGithub": "GitHub-ı əlaqələndir",
-			"verifyMissingPermissions": "Organyz Work GitHub tətbiqində icazələr çatışmır: {{list}}.",
-			"verifyNotInstalled": "Organyz Work GitHub tətbiqi bu repozitoriyada quraşdırılmayıb.",
-			"verifyReady": "Organyz Work GitHub tətbiqi lazımi icazələrlə quraşdırılıb.",
+			"verifyMissingPermissions": "{{appName}} GitHub tətbiqində icazələr çatışmır: {{list}}.",
+			"verifyNotInstalled": "{{appName}} GitHub tətbiqi bu repozitoriyada quraşdırılmayıb.",
+			"verifyReady": "{{appName}} GitHub tətbiqi lazımi icazələrlə quraşdırılıb.",
 			"workflowHint": "Birləşdirmə sorğuları açıldıqda və ya birləşdirildikdə tapşırıqların köçürülməsini burada tənzimləyin:",
 			"workflowLink": "İş axını"
 		},
@@ -1351,13 +1351,13 @@
 				"removeError": "Gitea inteqrasiyasını çıxarmaq alınmadı",
 				"issuesImported": "Məsələlər uğurla idxal edildi",
 				"importError": "Məsələləri idxal etmək alınmadı",
-				"commentOnEnabled": "Organyz Work yeni məsələlərə tapşırıq keçidi olan şərh yazacaq",
+				"commentOnEnabled": "{{appName}} yeni məsələlərə tapşırıq keçidi olan şərh yazacaq",
 				"commentOnDisabled": "Yeni məsələlərdə tapşırıq keçidi olan şərhlər söndürülüb",
 				"settingsUpdateError": "Gitea inteqrasiyasını yeniləmək alınmadı"
 			},
-			"commentTaskLinkTitle": "Yeni məsələlərə Organyz Work keçidi ilə şərh yaz",
+			"commentTaskLinkTitle": "Yeni məsələlərə {{appName}} keçidi ilə şərh yaz",
 			"commentTaskLinkHint": "Gitea-da olanlar tapşırığa birbaşa keçə bilsin deyə.",
-			"webhookHint": "Dəyişikliklərin Organyz Work-ya qayıtması üçün bu Webhook-u repozitoriya parametrlərində əlavə edin.",
+			"webhookHint": "Dəyişikliklərin {{appName}}-ya qayıtması üçün bu Webhook-u repozitoriya parametrlərində əlavə edin.",
 			"baseUrlLabel": "Gitea URL-i",
 			"tokenLabel": "Şəxsi giriş nişanı",
 			"tokenPlaceholder": "Giriş nişanını yapışdırın",
@@ -1439,11 +1439,11 @@
 				"removeError": "Ümumi Webhook inteqrasiyasını çıxarmaq alınmadı"
 			},
 			"webhookLabel": "Son nöqtənin URL-i",
-			"webhookPlaceholder": "https://example.com/webhooks/kaneo",
-			"webhookHint": "Organyz Work hər aktiv hadisə üçün JSON məlumatları ilə POST sorğuları göndərir.",
+			"webhookPlaceholder": "https://example.com/webhooks",
+			"webhookHint": "{{appName}} hər aktiv hadisə üçün JSON məlumatları ilə POST sorğuları göndərir.",
 			"secretLabel": "İmzalama sirri",
 			"secretPlaceholder": "Ortaq sirr",
-			"secretHint": "Organyz Work hər sorğunu onunla imzalayır və heş dəyərini X-Kaneo-Signature başlığında göndərir.",
+			"secretHint": "{{appName}} hər sorğunu onunla imzalayır və heş dəyərini X-Webhook-Signature başlığında göndərir.",
 			"secretHintConfigured": "Cari sirr: {{secret}}. Əvəzləmək üçün yenisini yapışdırın.",
 			"eventsTitle": "Bu hallarda göndər",
 			"events": {
@@ -1463,7 +1463,7 @@
 			"reminderLeadTimeLabel": "Son tarixdən neçə saat əvvəl",
 			"connect": "Webhook-a qoşul",
 			"activeTitle": "Hadisələr göndərilir",
-			"disconnectDescription": "Organyz Work hadisələri göndərməyi dayandırır və yadda saxlanılmış son nöqtəni və sirri silir.",
+			"disconnectDescription": "{{appName}} hadisələri göndərməyi dayandırır və yadda saxlanılmış son nöqtəni və sirri silir.",
 			"disconnectTitle": "Webhook ayrılsın?",
 			"reminderLeadTimeAfter": "saat əvvəl göndər",
 			"reminderLeadTimeBefore": "Xatırlatmaları tapşırığın son tarixindən"
@@ -1499,7 +1499,7 @@
 		},
 		"repositoryBrowser": {
 			"title": "Repozitoriya seçin",
-			"description": "Organyz Work GitHub tətbiqinin gördüyü repozitoriyalar.",
+			"description": "{{appName}} GitHub tətbiqinin gördüyü repozitoriyalar.",
 			"searchPlaceholder": "Repozitoriyaları axtar",
 			"loadError": "Repozitoriyaları yükləmək alınmadı.",
 			"tryAgain": "Yenidən cəhd et",
@@ -1721,7 +1721,7 @@
 				"active": "Active",
 				"deactivated": "Deactivated"
 			},
-			"subtitle": "Bu Organyz Work serverində hesabı olan hər kəs.",
+			"subtitle": "Bu {{appName}} serverində hesabı olan hər kəs.",
 			"title": "İstifadəçilər",
 			"toast": {
 				"actionError": "Failed to update user status",
@@ -1818,7 +1818,7 @@
 			"sectionTitle": "Giriş",
 			"submit": "Parolu dəyiş",
 			"submitting": "Dəyişdirilir...",
-			"subtitle": "Organyz Work-ya necə daxil olursunuz.",
+			"subtitle": "{{appName}}-ya necə daxil olursunuz.",
 			"title": "Security",
 			"updateError": "Failed to update password.",
 			"updateSuccess": "Password updated.",
@@ -1864,14 +1864,14 @@
 			"browseModalHint": "Giriş nişanınızın üzv olduğu layihələr.",
 			"browseNeedsCredentials": "Baxmaq üçün GitLab URL-ini və giriş nişanını daxil edin.",
 			"commentTaskLinkHint": "GitLab-da olanlar tapşırığa birbaşa keçə bilsin deyə.",
-			"commentTaskLinkTitle": "Comment a Organyz Work link on issues opened in GitLab",
+			"commentTaskLinkTitle": "Comment a {{appName}} link on issues opened in GitLab",
 			"importSectionHint": "Açıq məsələləri və birləşdirmə sorğularını tapşırıq kimi idxal edin.",
 			"openInGitlab": "Open {{project}} in GitLab",
 			"projectPathLabel": "Project path",
 			"searchProjects": "Layihələri axtar",
 			"toast": {
 				"commentOnDisabled": "Task link comments on issues opened in GitLab are turned off",
-				"commentOnEnabled": "Organyz Work will comment with a task link on issues opened in GitLab",
+				"commentOnEnabled": "{{appName}} will comment with a task link on issues opened in GitLab",
 				"importError": "Failed to import issues",
 				"issuesImported": "Issues imported successfully",
 				"removed": "GitLab integration removed",
@@ -1893,7 +1893,7 @@
 				"baseUrlRequired": "GitLab base URL is required",
 				"pathInvalid": "Enter the full path, e.g. group/project"
 			},
-			"webhookHint": "Dəyişikliklərin Organyz Work-ya qayıtması üçün bu Webhook-u layihə parametrlərində əlavə edin.",
+			"webhookHint": "Dəyişikliklərin {{appName}}-ya qayıtması üçün bu Webhook-u layihə parametrlərində əlavə edin.",
 			"loadProjectsError": "Layihələri yükləmək alınmadı.",
 			"importPermissionHint": "Importing requires permission to create and update tasks.",
 			"browseEmpty": "Bu giriş nişanı heç bir layihənin üzvü deyil.",
@@ -1950,7 +1950,7 @@
 			"currentPlan": {
 				"title": "Current plan"
 			},
-			"disabled": "Billing isn't enabled on this instance. Self-hosted Kaneo includes every feature, free forever.",
+			"disabled": "Billing isn't enabled on this instance. Self-hosted {{appName}} includes every feature, free forever.",
 			"expiredCallout": {
 				"action": "Choose a plan",
 				"adminDescription": "You can still view everything, but creating and editing are paused until you choose a plan. Nothing has been deleted.",
@@ -1968,7 +1968,7 @@
 			},
 			"foundingFree": {
 				"badge": "Free",
-				"description": "This workspace has free access to Kaneo Cloud as an early supporter. Thank you for being here from the start.",
+				"description": "This workspace has free access to {{appName}} as an early supporter. Thank you for being here from the start.",
 				"title": "Founding Free"
 			},
 			"interval": {
@@ -2052,8 +2052,8 @@
 			"filtered": "Only matching labels",
 			"impact": "{{matching}} of {{total}} tasks match. {{create}} tasks will be exported, {{pause}} links will pause, and {{review}} links need review to resume.",
 			"impactTitle": "What will change",
-			"incoming": "Repository → Organyz Work",
-			"incomingHint": "Choose which issues can be imported or create tasks. Use exact repository label names. Existing links follow the Organyz Work task rule.",
+			"incoming": "Repository → {{appName}}",
+			"incomingHint": "Choose which issues can be imported or create tasks. Use exact repository label names. Existing links follow the {{appName}} task rule.",
 			"loadError": "Sync rules could not be loaded.",
 			"loading": "Loading sync rules…",
 			"matchLabels": "Label matching",
@@ -2063,8 +2063,8 @@
 			"noDescription": "No description",
 			"noLabels": "Create workspace labels before configuring a task filter.",
 			"open": "Open",
-			"outgoing": "Organyz Work → repository",
-			"outgoingHint": "Choose which Organyz Work tasks can sync. Losing a matching label pauses both directions for an existing task.",
+			"outgoing": "{{appName}} → repository",
+			"outgoingHint": "Choose which {{appName}} tasks can sync. Losing a matching label pauses both directions for an existing task.",
 			"paused": "Sync paused",
 			"pausedHint": "Records and links are preserved. Tasks that match again need review before syncing resumes.",
 			"preserveHint": "Pausing keeps both records and their link. Resuming requires a comparison; historical comments are never replayed.",
@@ -2086,7 +2086,7 @@
 			"sharedHint": "These rules apply to everyone using this project. Hiding advanced settings does not disable them.",
 			"title": "Nə sinxronlaşdırılır",
 			"unavailableLabel": "Unavailable label",
-			"useKaneo": "Keep Organyz Work values",
+			"useKaneo": "Keep {{appName}} values",
 			"useRepository": "Keep repository values",
 			"exportPending": "Export matching tasks",
 			"inactiveHint": "This integration is paused. No tasks will be exported until it is reactivated.",
@@ -2099,10 +2099,10 @@
 			"issuesLabelled": "Etiketi olan məsələlər:",
 			"joinAnd": "və",
 			"joinOr": "və ya",
-			"kaneoToProvider": "Organyz Work-dan {{provider}} xidmətinə",
+			"kaneoToProvider": "{{appName}}-dan {{provider}} xidmətinə",
 			"pausedSummary_one": "{{count}} tapşırığın sinxronlaşdırılması dayandı, çünki o artıq sinxronlaşdırma qaydalarına uyğun gəlmir.",
 			"pausedSummary_other": "{{count}} tapşırığın sinxronlaşdırılması dayandı, çünki onlar artıq sinxronlaşdırma qaydalarına uyğun gəlmir.",
-			"providerToKaneo": "{{provider}} xidmətindən Organyz Work-ya",
+			"providerToKaneo": "{{provider}} xidmətindən {{appName}}-ya",
 			"reviewPaused": "Nəzərdən keçir",
 			"tasksLabelled": "Etiketi olan tapşırıqlar:"
 		},
@@ -2188,7 +2188,7 @@
 			"searchCount_other": "{{count}} matching workspaces",
 			"searchLabel": "Search workspaces",
 			"searchPlaceholder": "Ad və ya slug ilə axtar",
-			"subtitle": "Bu Organyz Work serverindəki bütün iş sahələri, üzv olmadıqlarınız da daxil olmaqla.",
+			"subtitle": "Bu {{appName}} serverindəki bütün iş sahələri, üzv olmadıqlarınız da daxil olmaqla.",
 			"title": "İş sahələri",
 			"toast": {
 				"added": "Member added",
@@ -2223,7 +2223,7 @@
 				"cancel": "Cancel",
 				"continue": "Continue",
 				"hideSecret": "Hide {{field}}",
-				"sectionDescription": "Organyz Work only reads from {{source}}. The key is used for this import and never stored.",
+				"sectionDescription": "{{appName}} only reads from {{source}}. The key is used for this import and never stored.",
 				"sectionTitle": "Connect",
 				"showSecret": "Show {{field}}",
 				"title": "Import from {{source}}",
@@ -2252,11 +2252,11 @@
 				"title": "Recent imports"
 			},
 			"kaneo": {
-				"apiKeyDescription": "In that Kaneo, open Settings, then API Keys.",
+				"apiKeyDescription": "In that {{appName}}, open Settings, then API Keys.",
 				"apiKeyLabel": "API key",
 				"apiKeyPlaceholder": "Paste API key",
 				"urlDescription": "The instance you are moving from.",
-				"urlLabel": "Kaneo URL"
+				"urlLabel": "{{appName}} URL"
 			},
 			"linear": {
 				"apiKeyDescription": "Read access is enough. You can revoke it after the import.",
@@ -2343,9 +2343,9 @@
 				"connectTo": "Connect {{source}}",
 				"description": "Pick the tool you are moving from. Each project you choose becomes a new project here.",
 				"kaneo": {
-					"description": "Move projects between Kaneo Cloud and a self-hosted instance.",
+					"description": "Move projects between {{appName}} and a self-hosted instance.",
 					"intro": "Projects from every workspace the key can see. Each one you pick is copied here.",
-					"pickerName": "Another Kaneo"
+					"pickerName": "Another {{appName}}"
 				},
 				"linear": {
 					"description": "Teams, issues, labels, sub-issues and comments. Paste a personal API key.",
@@ -2383,7 +2383,7 @@
 				"import": "Import",
 				"label": "Import steps"
 			},
-			"subtitle": "Bring your projects from another tool into {{workspace}}. Organyz Work only reads from the source.",
+			"subtitle": "Bring your projects from another tool into {{workspace}}. {{appName}} only reads from the source.",
 			"title": "Import",
 			"toast": {
 				"failed": "Import from {{source}} failed",
@@ -2396,7 +2396,7 @@
 				"apiKeyPlaceholder": "Paste API key",
 				"authorizeButton": "Authorize on Trello",
 				"authorizeDescription": "Opens Trello in a new tab. Read only, expires after a day.",
-				"authorizeLabel": "Authorize Organyz Work",
+				"authorizeLabel": "Authorize {{appName}}",
 				"authorizeNeedsKey": "Enter the API key first. Read only, expires after a day.",
 				"tokenDescription": "Click Allow on Trello, then paste the token it shows you.",
 				"tokenLabel": "Token",
@@ -2484,7 +2484,7 @@
 			"channelLabel": "Kanal",
 			"channelPlaceholder": "#team-updates",
 			"disconnect": "Ayır",
-			"disconnectDescription": "Organyz Work {{provider}} xidmətinə paylaşımı dayandırır və yadda saxlanılmış parametrləri silir.",
+			"disconnectDescription": "{{appName}} {{provider}} xidmətinə paylaşımı dayandırır və yadda saxlanılmış parametrləri silir.",
 			"disconnecting": "Ayrılır…",
 			"disconnectTitle": "{{provider}} ayrılsın?",
 			"events": {
@@ -2707,7 +2707,7 @@
 				"storageOk": "Bucket reachable",
 				"storageWarning": "Can't check the bucket with these credentials ({{code}}).",
 				"title": "Instance",
-				"version": "Kaneo version",
+				"version": "Versiya",
 				"versionUnknown": "Unknown"
 			},
 			"integrations": {
@@ -3335,7 +3335,7 @@
 			"history": "Chat history",
 			"historyEmpty": "No chats yet",
 			"newChat": "New chat",
-			"placeholder": "Ask Organyz Work...",
+			"placeholder": "Ask {{appName}}...",
 			"send": "Send message",
 			"thinking": "Working on it...",
 			"toolInput": "Input",
@@ -3492,7 +3492,7 @@
 			"actions": "Allowed changes",
 			"all": "All",
 			"allProjects": "All projects",
-			"askPlaceholder": "Ask Organyz Work to build the loop for you",
+			"askPlaceholder": "Ask {{appName}} to build the loop for you",
 			"backToRuns": "All runs",
 			"category": {
 				"engineering": "Engineering",
@@ -4755,13 +4755,13 @@
 	"invitations": {
 		"email": {
 			"subject": "{{inviterName}} sizi {{instanceName}}-da {{workspaceName}} iş sahəsinə qoşulmağa dəvət etdi",
-			"preview": "Organyz Work-da {{workspaceName}} iş sahəsinə dəvət almısınız",
+			"preview": "{{appName}}-da {{workspaceName}} iş sahəsinə dəvət almısınız",
 			"title": "{{workspaceName}} iş sahəsinə qoşul",
-			"subtitle": "{{inviterName}} ({{inviterEmail}}) sizi Organyz Work-da əməkdaşlığa dəvət etdi.",
+			"subtitle": "{{inviterName}} ({{inviterEmail}}) sizi {{appName}}-da əməkdaşlığa dəvət etdi.",
 			"cta": "Dəvəti qəbul et",
 			"sameEmail": "Dəvəti bu məktubu aldığınız e-poçt ünvanı ilə qəbul edə bilərsiniz.",
 			"ignore": "Bu məktubu gözləmirdinizsə, ona məhəl qoymaya bilərsiniz.",
-			"footer": "Organyz Work iş sahəsi dəvəti",
+			"footer": "{{appName}} iş sahəsi dəvəti",
 			"details": {
 				"title": "Dəvət təfərrüatları",
 				"sentTo": "Göndərildi",
@@ -4973,7 +4973,7 @@
 			},
 			"connect": {
 				"action": "Connect your GitHub account",
-				"description": "Your GitHub account needs to be connected before you can review pull requests in Organyz Work",
+				"description": "Your GitHub account needs to be connected before you can review pull requests in {{appName}}",
 				"title": "Connect GitHub to start reviewing"
 			},
 			"copyMenu": {
@@ -5044,7 +5044,7 @@
 				"noMatchingFiles": "No files match this filter.",
 				"noPatch": "No preview for this file. Open it on GitHub.",
 				"noReviewers": "No one to add.",
-				"notFound": "This pull request could not be loaded. It may not exist, or the Organyz Work GitHub App may not be installed on its repository.",
+				"notFound": "This pull request could not be loaded. It may not exist, or the {{appName}} GitHub App may not be installed on its repository.",
 				"openOnGithub": "Open on GitHub",
 				"options": {
 					"hideReviewed": "Hide reviewed",
@@ -5137,7 +5137,7 @@
 				"subGrouping": "Sub-grouping"
 			},
 			"empty": {
-				"description": "Pull requests you created or are asked to review show up here. If you expect to see some, check that the Organyz Work GitHub App is installed on those repositories.",
+				"description": "Pull requests you created or are asked to review show up here. If you expect to see some, check that the {{appName}} GitHub App is installed on those repositories.",
 				"title": "No pull requests"
 			},
 			"filterPlaceholder": "Filter",
@@ -5233,7 +5233,7 @@
 				"team": "No team"
 			},
 			"notConfigured": {
-				"description": "An administrator needs to add the Organyz Work GitHub App credentials before pull requests can be reviewed here.",
+				"description": "An administrator needs to add the {{appName}} GitHub App credentials before pull requests can be reviewed here.",
 				"title": "GitHub reviews are not set up"
 			},
 			"pageTitle": "Reviews",
@@ -5271,7 +5271,7 @@
 			},
 			"reconnect": {
 				"action": "Reconnect your GitHub account",
-				"description": "Your GitHub account needs to be connected again before you can review pull requests in Organyz Work",
+				"description": "Your GitHub account needs to be connected again before you can review pull requests in {{appName}}",
 				"title": "Reconnect GitHub to keep reviewing"
 			},
 			"reviewStatus": {

@@ -1,6 +1,6 @@
 {
 	"common": {
-		"appName": "Organyz Work",
+		"appName": "{{appName}}",
 		"actions": {
 			"cancel": "Batal",
 			"close": "Tutup",
@@ -98,7 +98,7 @@
 				"copySettingsFrom": "Copy settings from"
 			},
 			"createWorkspace": {
-				"breadcrumbKaneo": "KANEO",
+				"breadcrumbKaneo": "{{appName}}",
 				"title": "Buat ruang kerja baru",
 				"description": "Buat ruang kerja baru dengan memberikan nama untuk ruang kerja Anda.",
 				"namePlaceholder": "Nama ruang kerja",
@@ -190,7 +190,7 @@
 				"use_a_permanent_email_address_disposable_addresses_cannot_create_accounts_": "Gunakan alamat email permanen. Alamat email sekali pakai tidak dapat digunakan untuk membuat akun."
 			},
 			"instanceStatusError": "Tidak dapat menghubungi server. Silakan coba lagi beberapa saat lagi.",
-			"heading": "Masuk ke Organyz Work",
+			"heading": "Masuk ke {{appName}}",
 			"submitPassword": "Masuk",
 			"invitation": {
 				"title": "{{inviterName}} mengundang Anda ke {{workspaceName}}",
@@ -198,7 +198,7 @@
 				"description": "Masuk dengan email yang menerima undangan. Anda akan langsung bergabung ke ruang kerja setelahnya."
 			},
 			"footer": {
-				"newHere": "Baru di Organyz Work?",
+				"newHere": "Baru di {{appName}}?",
 				"createAccount": "Buat akun",
 				"inviteOnly": "Akun di sini hanya bisa dibuat melalui undangan. Minta undangan kepada admin.",
 				"providerSignUp": "Baru di sini? Masuk dengan salah satu penyedia di atas untuk membuat akun.",
@@ -258,7 +258,7 @@
 			"toggleMessage": "Sudah punya akun?",
 			"toggleLink": "Masuk",
 			"instanceStatusError": "Tidak dapat menghubungi server. Silakan coba lagi beberapa saat lagi.",
-			"instanceAdminTitle": "Siapkan instans Organyz Work Anda",
+			"instanceAdminTitle": "Siapkan instans {{appName}} Anda",
 			"instanceAdminSubtitle": "Akun ini menjadi administrator instans dengan akses penuh.",
 			"heading": "Buat akun Anda",
 			"submitPassword": "Buat akun",
@@ -312,7 +312,7 @@
 				"acceptFailed": "Gagal menerima undangan",
 				"acceptSuccess": "Undangan diterima! Selamat bergabung dengan tim."
 			},
-			"description": "{{inviterName}} mengundang Anda ke ruang kerja ini di Organyz Work.",
+			"description": "{{inviterName}} mengundang Anda ke ruang kerja ini di {{appName}}.",
 			"invitedBy": "Diundang oleh",
 			"sentTo": "Dikirim ke",
 			"signedInAs": "Masuk sebagai",
@@ -320,7 +320,7 @@
 			"notNow": "Nanti saja",
 			"join": "Gabung ke ruang kerja",
 			"switchAccount": "Ganti akun",
-			"goToKaneo": "Buka Organyz Work",
+			"goToKaneo": "Buka {{appName}}",
 			"mismatch": {
 				"title": "Anda masuk dengan email lain",
 				"description": "Undangan ini dikirim ke {{invitedEmail}}. Anda masuk sebagai {{email}}."
@@ -339,7 +339,7 @@
 			}
 		},
 		"onboarding": {
-			"pageTitle": "Selamat datang di Organyz Work",
+			"pageTitle": "Selamat datang di {{appName}}",
 			"workspaceName": "Nama ruang kerja",
 			"workspaceNamePlaceholder": "contohnya: Acme Inc, Tim Saya",
 			"toast": {
@@ -386,7 +386,7 @@
 				},
 				"invite": {
 					"title": "Undang tim Anda",
-					"description": "Organyz Work bekerja paling baik jika semua orang ikut. Buka **Anggota** di bilah samping untuk mengundang orang lewat email."
+					"description": "{{appName}} bekerja paling baik jika semua orang ikut. Buka **Anggota** di bilah samping untuk mengundang orang lewat email."
 				},
 				"integrations": {
 					"title": "Hubungkan GitHub, GitLab, atau Gitea",
@@ -506,7 +506,7 @@
 		"device": {
 			"connect": {
 				"title": "Hubungkan perangkat",
-				"description": "Masukkan kode yang ditampilkan di terminal atau aplikasi Anda untuk menautkannya ke akun Organyz Work Anda.",
+				"description": "Masukkan kode yang ditampilkan di terminal atau aplikasi Anda untuk menautkannya ke akun {{appName}} Anda.",
 				"label": "Kode perangkat",
 				"submit": "Lanjutkan",
 				"noCode": "Belum punya kode? Mulai proses masuk dari aplikasi Anda terlebih dahulu.",
@@ -540,7 +540,7 @@
 				"description": "Anda akan langsung kembali ke sini untuk menyetujuinya.",
 				"submit": "Masuk"
 			},
-			"openApp": "Open Organyz Work"
+			"openApp": "Open {{appName}}"
 		},
 		"mcp": {
 			"authorize": {
@@ -613,7 +613,7 @@
 		"notificationsPage": {
 			"pageTitle": "Notifikasi",
 			"title": "Notifikasi",
-			"subtitle": "Apa yang diberitahukan Organyz Work kepada Anda, dan ke mana notifikasi dikirim.",
+			"subtitle": "Apa yang diberitahukan {{appName}} kepada Anda, dan ke mana notifikasi dikirim.",
 			"statusConnected": "Terhubung",
 			"statusPaused": "Dijeda",
 			"emailTitle": "Email",
@@ -643,10 +643,10 @@
 			"webhookDescription": "Kirim setiap notifikasi ke endpoint Anda sendiri sebagai JSON.",
 			"endpointUrl": "URL endpoint",
 			"signingSecret": "Rahasia penandatanganan",
-			"webhookUrlPlaceholder": "https://example.com/webhooks/kaneo",
+			"webhookUrlPlaceholder": "https://example.com/webhooks",
 			"webhookSecretPlaceholder": "Kunci rahasia bersama (opsional)",
 			"webhookSecretHintConfigured": "Signing secret sudah dikonfigurasi ({{masked}}). Masukkan yang baru untuk menggantinya.",
-			"webhookSecretHintOptional": "Organyz Work menandatangani body request jika rahasia diatur.",
+			"webhookSecretHintOptional": "{{appName}} menandatangani body request jika rahasia diatur.",
 			"connectWebhook": "Hubungkan webhook",
 			"allProjects": "Semua proyek",
 			"noProjectsInWorkspace": "Belum ada proyek yang tersedia untuk ruang kerja ini.",
@@ -684,7 +684,7 @@
 			"saveEventPreferences": "Simpan jenis notifikasi",
 			"channelNotConnected": "Tidak terhubung",
 			"channelOff": "Nonaktif",
-			"channelsDescription": "Notifikasi selalu muncul di Organyz Work. Hubungkan kanal untuk menerimanya juga di tempat lain.",
+			"channelsDescription": "Notifikasi selalu muncul di {{appName}}. Hubungkan kanal untuk menerimanya juga di tempat lain.",
 			"channelsTitle": "Kanal",
 			"configure": "Atur",
 			"configureChannel": "Atur {{channel}}",
@@ -700,7 +700,7 @@
 			"eventStatusChangesHint": "Saat salah satu tugas Anda dipindahkan ke kolom lain.",
 			"eventTaskAssignmentsHint": "Saat seseorang menugaskan tugas kepada Anda.",
 			"loadFailed": "Pengaturan notifikasi tidak dapat dimuat.",
-			"onlyInKaneo": "Hanya di Organyz Work",
+			"onlyInKaneo": "Hanya di {{appName}}",
 			"optional": "Opsional",
 			"projectCount_other": "{{count}} proyek",
 			"reminderLeadTimeUnitDaysBefore_other": "hari sebelumnya",
@@ -723,7 +723,7 @@
 			"statusSending": "Mengirim",
 			"stopping": "Menghentikan...",
 			"stopSending": "Berhenti mengirim",
-			"stopSendingDescription": "Notifikasi dari ruang kerja ini hanya akan muncul di Organyz Work.",
+			"stopSendingDescription": "Notifikasi dari ruang kerja ini hanya akan muncul di {{appName}}.",
 			"stopSendingTitle": "Berhenti mengirim dari {{workspaceName}}?",
 			"workspacesDescription": "Pilih ruang kerja dan proyek mana yang dapat menggunakan kanal Anda.",
 			"workspacesTitle": "Ruang kerja",
@@ -741,7 +741,7 @@
 		},
 		"preferencesPage": {
 			"title": "Preferensi",
-			"subtitle": "Tampilan dan cara kerja Organyz Work untuk Anda.",
+			"subtitle": "Tampilan dan cara kerja {{appName}} untuk Anda.",
 			"appearanceTitle": "Umum",
 			"theme": "Tema",
 			"selectTheme": "Pilih tema",
@@ -790,7 +790,7 @@
 		"developerPage": {
 			"pageTitle": "API key",
 			"title": "API key",
-			"subtitle": "Izinkan skrip, CLI, dan klien MCP menggunakan Organyz Work atas nama Anda.",
+			"subtitle": "Izinkan skrip, CLI, dan klien MCP menggunakan {{appName}} atas nama Anda.",
 			"unnamedKey": "Tanpa nama",
 			"emptyDescription": "Buat key untuk menggunakan CLI, klien MCP, atau skrip Anda sendiri.",
 			"emptyTitle": "Belum ada API key",
@@ -1054,11 +1054,11 @@
 				"removeError": "Gagal menghapus integrasi GitHub",
 				"issuesImported": "Issue berhasil diimpor",
 				"importError": "Gagal mengimpor issue",
-				"commentOnEnabled": "Organyz Work akan berkomentar dengan tautan tugas pada issue baru",
+				"commentOnEnabled": "{{appName}} akan berkomentar dengan tautan tugas pada issue baru",
 				"commentOnDisabled": "Komentar tautan tugas pada issue baru dimatikan",
 				"settingsUpdateError": "Gagal memperbarui integrasi GitHub"
 			},
-			"commentTaskLinkTitle": "Komentari issue baru dengan tautan Organyz Work",
+			"commentTaskLinkTitle": "Komentari issue baru dengan tautan {{appName}}",
 			"commentTaskLinkHint": "Agar orang di GitHub dapat langsung membuka tugasnya.",
 			"updatePermissions": "Perbarui izin",
 			"installGithubApp": "Pasang GitHub App",
@@ -1075,9 +1075,9 @@
 			"linkAccountTitle": "Tautkan akun GitHub Anda",
 			"linked": "Tertaut",
 			"linkGithub": "Tautkan GitHub",
-			"verifyMissingPermissions": "GitHub App Organyz Work belum memiliki izin: {{list}}.",
-			"verifyNotInstalled": "GitHub App Organyz Work belum terpasang di repositori ini.",
-			"verifyReady": "GitHub App Organyz Work sudah terpasang dengan izin yang diperlukan.",
+			"verifyMissingPermissions": "GitHub App {{appName}} belum memiliki izin: {{list}}.",
+			"verifyNotInstalled": "GitHub App {{appName}} belum terpasang di repositori ini.",
+			"verifyReady": "GitHub App {{appName}} sudah terpasang dengan izin yang diperlukan.",
 			"workflowHint": "Pindahkan tugas saat pull request dibuka atau digabungkan di",
 			"workflowLink": "Alur kerja"
 		},
@@ -1095,13 +1095,13 @@
 				"removeError": "Gagal menghapus integrasi Gitea",
 				"issuesImported": "Issue berhasil diimpor",
 				"importError": "Gagal mengimpor issue",
-				"commentOnEnabled": "Organyz Work akan berkomentar dengan tautan tugas pada issue baru",
+				"commentOnEnabled": "{{appName}} akan berkomentar dengan tautan tugas pada issue baru",
 				"commentOnDisabled": "Komentar tautan tugas pada issue baru dimatikan",
 				"settingsUpdateError": "Gagal memperbarui integrasi Gitea"
 			},
-			"commentTaskLinkTitle": "Komentari issue baru dengan tautan Organyz Work",
+			"commentTaskLinkTitle": "Komentari issue baru dengan tautan {{appName}}",
 			"commentTaskLinkHint": "Agar orang di Gitea dapat langsung membuka tugasnya.",
-			"webhookHint": "Tambahkan webhook ini di pengaturan repositori agar perubahan dikirim kembali ke Organyz Work.",
+			"webhookHint": "Tambahkan webhook ini di pengaturan repositori agar perubahan dikirim kembali ke {{appName}}.",
 			"baseUrlLabel": "URL Gitea",
 			"tokenLabel": "Token akses pribadi",
 			"tokenPlaceholder": "Tempel token",
@@ -1165,11 +1165,11 @@
 				"removeError": "Gagal menghapus integrasi webhook generik"
 			},
 			"webhookLabel": "URL endpoint",
-			"webhookPlaceholder": "https://example.com/webhooks/kaneo",
-			"webhookHint": "Organyz Work mengirim request POST dengan payload JSON untuk setiap event yang diaktifkan.",
+			"webhookPlaceholder": "https://example.com/webhooks",
+			"webhookHint": "{{appName}} mengirim request POST dengan payload JSON untuk setiap event yang diaktifkan.",
 			"secretLabel": "Rahasia penandatanganan",
 			"secretPlaceholder": "Rahasia bersama",
-			"secretHint": "Organyz Work menandatangani setiap request dengannya dan mengirim digest di header X-Kaneo-Signature.",
+			"secretHint": "{{appName}} menandatangani setiap request dengannya dan mengirim digest di header X-Webhook-Signature.",
 			"secretHintConfigured": "Rahasia saat ini: {{secret}}. Tempel yang baru untuk menggantinya.",
 			"eventsTitle": "Kirim saat",
 			"events": {
@@ -1189,7 +1189,7 @@
 			"connect": "Hubungkan webhook",
 			"reminderLeadTimeLabel": "Jam sebelum tenggat tugas",
 			"activeTitle": "Mengirim event",
-			"disconnectDescription": "Organyz Work berhenti mengirim event dan menghapus endpoint serta rahasia yang tersimpan.",
+			"disconnectDescription": "{{appName}} berhenti mengirim event dan menghapus endpoint serta rahasia yang tersimpan.",
 			"disconnectTitle": "Putuskan webhook?",
 			"reminderLeadTimeAfter": "jam sebelum tenggat tugas",
 			"reminderLeadTimeBefore": "Kirim pengingat"
@@ -1225,7 +1225,7 @@
 		},
 		"repositoryBrowser": {
 			"title": "Pilih repositori",
-			"description": "Repositori yang dapat dilihat GitHub App Organyz Work.",
+			"description": "Repositori yang dapat dilihat GitHub App {{appName}}.",
 			"searchPlaceholder": "Cari repositori",
 			"loadError": "Tidak dapat memuat repositori.",
 			"tryAgain": "Coba lagi",
@@ -1711,7 +1711,7 @@
 				"active": "Active",
 				"deactivated": "Deactivated"
 			},
-			"subtitle": "Semua orang yang memiliki akun di instans Organyz Work ini.",
+			"subtitle": "Semua orang yang memiliki akun di instans {{appName}} ini.",
 			"title": "Pengguna",
 			"toast": {
 				"actionError": "Failed to update user status",
@@ -1808,7 +1808,7 @@
 			"sectionTitle": "Masuk",
 			"submit": "Ubah kata sandi",
 			"submitting": "Mengubah...",
-			"subtitle": "Cara Anda masuk ke Organyz Work.",
+			"subtitle": "Cara Anda masuk ke {{appName}}.",
 			"title": "Security",
 			"updateError": "Failed to update password.",
 			"updateSuccess": "Password updated.",
@@ -1854,14 +1854,14 @@
 			"browseModalHint": "Proyek tempat token Anda menjadi anggota.",
 			"browseNeedsCredentials": "Masukkan URL GitLab dan token untuk menjelajah.",
 			"commentTaskLinkHint": "Agar orang di GitLab dapat langsung membuka tugasnya.",
-			"commentTaskLinkTitle": "Comment a Organyz Work link on issues opened in GitLab",
+			"commentTaskLinkTitle": "Comment a {{appName}} link on issues opened in GitLab",
 			"importSectionHint": "Impor issue terbuka dan merge request sebagai tugas.",
 			"openInGitlab": "Open {{project}} in GitLab",
 			"projectPathLabel": "Project path",
 			"searchProjects": "Cari proyek",
 			"toast": {
 				"commentOnDisabled": "Task link comments on issues opened in GitLab are turned off",
-				"commentOnEnabled": "Organyz Work will comment with a task link on issues opened in GitLab",
+				"commentOnEnabled": "{{appName}} will comment with a task link on issues opened in GitLab",
 				"importError": "Failed to import issues",
 				"issuesImported": "Issues imported successfully",
 				"removed": "GitLab integration removed",
@@ -1883,7 +1883,7 @@
 				"baseUrlRequired": "GitLab base URL is required",
 				"pathInvalid": "Enter the full path, e.g. group/project"
 			},
-			"webhookHint": "Tambahkan webhook ini di pengaturan proyek agar perubahan dikirim kembali ke Organyz Work.",
+			"webhookHint": "Tambahkan webhook ini di pengaturan proyek agar perubahan dikirim kembali ke {{appName}}.",
 			"loadProjectsError": "Tidak dapat memuat proyek.",
 			"importPermissionHint": "Importing requires permission to create and update tasks.",
 			"browseEmpty": "Token ini bukan anggota proyek mana pun.",
@@ -1940,7 +1940,7 @@
 			"currentPlan": {
 				"title": "Current plan"
 			},
-			"disabled": "Billing isn't enabled on this instance. Self-hosted Kaneo includes every feature, free forever.",
+			"disabled": "Billing isn't enabled on this instance. Self-hosted {{appName}} includes every feature, free forever.",
 			"expiredCallout": {
 				"action": "Choose a plan",
 				"adminDescription": "You can still view everything, but creating and editing are paused until you choose a plan. Nothing has been deleted.",
@@ -1958,7 +1958,7 @@
 			},
 			"foundingFree": {
 				"badge": "Free",
-				"description": "This workspace has free access to Kaneo Cloud as an early supporter. Thank you for being here from the start.",
+				"description": "This workspace has free access to {{appName}} as an early supporter. Thank you for being here from the start.",
 				"title": "Founding Free"
 			},
 			"interval": {
@@ -2039,8 +2039,8 @@
 			"filtered": "Only matching labels",
 			"impact": "{{matching}} of {{total}} tasks match. {{create}} tasks will be exported, {{pause}} links will pause, and {{review}} links need review to resume.",
 			"impactTitle": "What will change",
-			"incoming": "Repository → Organyz Work",
-			"incomingHint": "Choose which issues can be imported or create tasks. Use exact repository label names. Existing links follow the Organyz Work task rule.",
+			"incoming": "Repository → {{appName}}",
+			"incomingHint": "Choose which issues can be imported or create tasks. Use exact repository label names. Existing links follow the {{appName}} task rule.",
 			"loadError": "Sync rules could not be loaded.",
 			"loading": "Loading sync rules…",
 			"matchLabels": "Label matching",
@@ -2050,8 +2050,8 @@
 			"noDescription": "No description",
 			"noLabels": "Create workspace labels before configuring a task filter.",
 			"open": "Open",
-			"outgoing": "Organyz Work → repository",
-			"outgoingHint": "Choose which Organyz Work tasks can sync. Losing a matching label pauses both directions for an existing task.",
+			"outgoing": "{{appName}} → repository",
+			"outgoingHint": "Choose which {{appName}} tasks can sync. Losing a matching label pauses both directions for an existing task.",
 			"paused": "Sync paused",
 			"pausedHint": "Records and links are preserved. Tasks that match again need review before syncing resumes.",
 			"preserveHint": "Pausing keeps both records and their link. Resuming requires a comparison; historical comments are never replayed.",
@@ -2073,7 +2073,7 @@
 			"sharedHint": "These rules apply to everyone using this project. Hiding advanced settings does not disable them.",
 			"title": "Yang disinkronkan",
 			"unavailableLabel": "Unavailable label",
-			"useKaneo": "Keep Organyz Work values",
+			"useKaneo": "Keep {{appName}} values",
 			"useRepository": "Keep repository values",
 			"exportPending": "Export matching tasks",
 			"inactiveHint": "This integration is paused. No tasks will be exported until it is reactivated.",
@@ -2086,9 +2086,9 @@
 			"issuesLabelled": "Issue berlabel",
 			"joinAnd": "dan",
 			"joinOr": "atau",
-			"kaneoToProvider": "Organyz Work ke {{provider}}",
+			"kaneoToProvider": "{{appName}} ke {{provider}}",
 			"pausedSummary_other": "{{count}} tugas berhenti disinkronkan karena tidak lagi cocok dengan aturan sinkronisasi.",
-			"providerToKaneo": "{{provider}} ke Organyz Work",
+			"providerToKaneo": "{{provider}} ke {{appName}}",
 			"reviewPaused": "Tinjau",
 			"tasksLabelled": "Tugas berlabel"
 		},
@@ -2172,7 +2172,7 @@
 			"searchCount_other": "{{count}} matching workspaces",
 			"searchLabel": "Search workspaces",
 			"searchPlaceholder": "Cari berdasarkan nama atau slug",
-			"subtitle": "Semua ruang kerja di instans Organyz Work ini, termasuk yang tidak Anda ikuti.",
+			"subtitle": "Semua ruang kerja di instans {{appName}} ini, termasuk yang tidak Anda ikuti.",
 			"title": "Ruang kerja",
 			"toast": {
 				"added": "Member added",
@@ -2207,7 +2207,7 @@
 				"cancel": "Cancel",
 				"continue": "Continue",
 				"hideSecret": "Hide {{field}}",
-				"sectionDescription": "Organyz Work only reads from {{source}}. The key is used for this import and never stored.",
+				"sectionDescription": "{{appName}} only reads from {{source}}. The key is used for this import and never stored.",
 				"sectionTitle": "Connect",
 				"showSecret": "Show {{field}}",
 				"title": "Import from {{source}}",
@@ -2232,11 +2232,11 @@
 				"title": "Recent imports"
 			},
 			"kaneo": {
-				"apiKeyDescription": "In that Kaneo, open Settings, then API Keys.",
+				"apiKeyDescription": "In that {{appName}}, open Settings, then API Keys.",
 				"apiKeyLabel": "API key",
 				"apiKeyPlaceholder": "Paste API key",
 				"urlDescription": "The instance you are moving from.",
-				"urlLabel": "Kaneo URL"
+				"urlLabel": "{{appName}} URL"
 			},
 			"linear": {
 				"apiKeyDescription": "Read access is enough. You can revoke it after the import.",
@@ -2320,9 +2320,9 @@
 				"connectTo": "Connect {{source}}",
 				"description": "Pick the tool you are moving from. Each project you choose becomes a new project here.",
 				"kaneo": {
-					"description": "Move projects between Kaneo Cloud and a self-hosted instance.",
+					"description": "Move projects between {{appName}} and a self-hosted instance.",
 					"intro": "Projects from every workspace the key can see. Each one you pick is copied here.",
-					"pickerName": "Another Kaneo"
+					"pickerName": "Another {{appName}}"
 				},
 				"linear": {
 					"description": "Teams, issues, labels, sub-issues and comments. Paste a personal API key.",
@@ -2359,7 +2359,7 @@
 				"import": "Import",
 				"label": "Import steps"
 			},
-			"subtitle": "Bring your projects from another tool into {{workspace}}. Organyz Work only reads from the source.",
+			"subtitle": "Bring your projects from another tool into {{workspace}}. {{appName}} only reads from the source.",
 			"title": "Import",
 			"toast": {
 				"failed": "Import from {{source}} failed",
@@ -2372,7 +2372,7 @@
 				"apiKeyPlaceholder": "Paste API key",
 				"authorizeButton": "Authorize on Trello",
 				"authorizeDescription": "Opens Trello in a new tab. Read only, expires after a day.",
-				"authorizeLabel": "Authorize Organyz Work",
+				"authorizeLabel": "Authorize {{appName}}",
 				"authorizeNeedsKey": "Enter the API key first. Read only, expires after a day.",
 				"tokenDescription": "Click Allow on Trello, then paste the token it shows you.",
 				"tokenLabel": "Token",
@@ -2442,7 +2442,7 @@
 			"channelLabel": "Kanal",
 			"channelPlaceholder": "#team-updates",
 			"disconnect": "Putuskan",
-			"disconnectDescription": "Organyz Work berhenti mengirim ke {{provider}} dan menghapus pengaturan yang tersimpan.",
+			"disconnectDescription": "{{appName}} berhenti mengirim ke {{provider}} dan menghapus pengaturan yang tersimpan.",
 			"disconnecting": "Memutuskan…",
 			"disconnectTitle": "Putuskan {{provider}}?",
 			"events": {
@@ -2662,7 +2662,7 @@
 				"storageOk": "Bucket reachable",
 				"storageWarning": "Can't check the bucket with these credentials ({{code}}).",
 				"title": "Instance",
-				"version": "Kaneo version",
+				"version": "Versi",
 				"versionUnknown": "Unknown"
 			},
 			"integrations": {
@@ -3282,7 +3282,7 @@
 			"history": "Chat history",
 			"historyEmpty": "No chats yet",
 			"newChat": "New chat",
-			"placeholder": "Ask Organyz Work...",
+			"placeholder": "Ask {{appName}}...",
 			"send": "Send message",
 			"thinking": "Working on it...",
 			"toolInput": "Input",
@@ -3439,7 +3439,7 @@
 			"actions": "Allowed changes",
 			"all": "All",
 			"allProjects": "All projects",
-			"askPlaceholder": "Ask Organyz Work to build the loop for you",
+			"askPlaceholder": "Ask {{appName}} to build the loop for you",
 			"backToRuns": "All runs",
 			"category": {
 				"engineering": "Engineering",
@@ -4671,13 +4671,13 @@
 	"invitations": {
 		"email": {
 			"subject": "{{inviterName}} mengundang Anda bergabung ke {{workspaceName}} di {{instanceName}}",
-			"preview": "Anda diundang ke {{workspaceName}} di Organyz Work",
+			"preview": "Anda diundang ke {{workspaceName}} di {{appName}}",
 			"title": "Bergabung ke {{workspaceName}}",
-			"subtitle": "{{inviterName}} ({{inviterEmail}}) mengundang Anda untuk berkolaborasi di Organyz Work.",
+			"subtitle": "{{inviterName}} ({{inviterEmail}}) mengundang Anda untuk berkolaborasi di {{appName}}.",
 			"cta": "Terima undangan",
 			"sameEmail": "Anda dapat menerima undangan menggunakan alamat email yang menerima pesan ini.",
 			"ignore": "Jika ini tidak Anda harapkan, Anda dapat mengabaikan email ini dengan aman.",
-			"footer": "Undangan ruang kerja Organyz Work",
+			"footer": "Undangan ruang kerja {{appName}}",
 			"details": {
 				"title": "Detail undangan",
 				"sentTo": "Dikirim ke",
@@ -4882,7 +4882,7 @@
 			},
 			"connect": {
 				"action": "Connect your GitHub account",
-				"description": "Your GitHub account needs to be connected before you can review pull requests in Organyz Work",
+				"description": "Your GitHub account needs to be connected before you can review pull requests in {{appName}}",
 				"title": "Connect GitHub to start reviewing"
 			},
 			"copyMenu": {
@@ -4951,7 +4951,7 @@
 				"noMatchingFiles": "No files match this filter.",
 				"noPatch": "No preview for this file. Open it on GitHub.",
 				"noReviewers": "No one to add.",
-				"notFound": "This pull request could not be loaded. It may not exist, or the Organyz Work GitHub App may not be installed on its repository.",
+				"notFound": "This pull request could not be loaded. It may not exist, or the {{appName}} GitHub App may not be installed on its repository.",
 				"openOnGithub": "Open on GitHub",
 				"options": {
 					"hideReviewed": "Hide reviewed",
@@ -5041,7 +5041,7 @@
 				"subGrouping": "Sub-grouping"
 			},
 			"empty": {
-				"description": "Pull requests you created or are asked to review show up here. If you expect to see some, check that the Organyz Work GitHub App is installed on those repositories.",
+				"description": "Pull requests you created or are asked to review show up here. If you expect to see some, check that the {{appName}} GitHub App is installed on those repositories.",
 				"title": "No pull requests"
 			},
 			"filterPlaceholder": "Filter",
@@ -5136,7 +5136,7 @@
 				"team": "No team"
 			},
 			"notConfigured": {
-				"description": "An administrator needs to add the Organyz Work GitHub App credentials before pull requests can be reviewed here.",
+				"description": "An administrator needs to add the {{appName}} GitHub App credentials before pull requests can be reviewed here.",
 				"title": "GitHub reviews are not set up"
 			},
 			"pageTitle": "Reviews",
@@ -5174,7 +5174,7 @@
 			},
 			"reconnect": {
 				"action": "Reconnect your GitHub account",
-				"description": "Your GitHub account needs to be connected again before you can review pull requests in Organyz Work",
+				"description": "Your GitHub account needs to be connected again before you can review pull requests in {{appName}}",
 				"title": "Reconnect GitHub to keep reviewing"
 			},
 			"reviewStatus": {

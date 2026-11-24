@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { HTTPException } from "hono/http-exception";
 import { streamSSE } from "hono/streaming";
 import {
@@ -85,8 +86,7 @@ const sendRoute = createRoute({
   path: "/workspace/{workspaceId}/messages",
   tags,
   summary: "Send a message to the agent",
-  description:
-    "Send a message and wait for the agent to finish. The agent calls Kaneo tools with your own permissions and returns the full transcript of this turn.",
+  description: `Send a message and wait for the agent to finish. The agent calls ${brand.name} tools with your own permissions and returns the full transcript of this turn.`,
   middleware: [...read] as const,
   request: {
     params: workspaceParam,

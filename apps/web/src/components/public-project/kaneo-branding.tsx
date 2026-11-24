@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { useTranslation } from "react-i18next";
 
 export function KaneoBranding() {
@@ -5,13 +6,13 @@ export function KaneoBranding() {
 
   return (
     <a
-      href="https://kaneo.app"
+      href={brand.url}
       target="_blank"
       rel="noopener noreferrer"
       className="hover:text-foreground transition-colors"
     >
       {t("publicProject:branding.poweredBy")}{" "}
-      <span className="font-medium">Kaneo</span>
+      <span className="font-medium">{brand.name}</span>
     </a>
   );
 }

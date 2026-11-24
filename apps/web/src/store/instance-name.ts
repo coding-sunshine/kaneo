@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { create } from "zustand";
 
 type InstanceNameStore = {
@@ -7,6 +8,6 @@ type InstanceNameStore = {
 
 /** The instance name from config, for page titles. */
 export const useInstanceNameStore = create<InstanceNameStore>((set) => ({
-  instanceName: "Organyz Work",
+  instanceName: brand.name,
   setInstanceName: (instanceName) => set({ instanceName }),
 }));

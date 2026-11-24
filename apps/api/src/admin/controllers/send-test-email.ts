@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import {
   getSmtpErrorDetails,
   isSmtpConfigured,
@@ -17,8 +18,7 @@ const testEmailLimiter = createAttemptLimiter({
 
 function notConfigured() {
   return new ApiError(409, {
-    message:
-      "Email is not configured on this instance. Set SMTP_HOST and SMTP_FROM, then restart Kaneo.",
+    message: `Email is not configured on this instance. Set SMTP_HOST and SMTP_FROM, then restart ${brand.name}.`,
     code: "SMTP_NOT_CONFIGURED",
   });
 }

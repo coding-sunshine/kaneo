@@ -181,7 +181,7 @@ describe("API integration: recurrence permissions and project moves", () => {
         method: "PUT",
         headers: {
           "content-type": "application/json",
-          "X-Kaneo-Window-Id": "recurrence-move",
+          "X-Window-Id": "recurrence-move",
         },
         body: JSON.stringify({
           destinationProjectId: destination.project.id,

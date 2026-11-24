@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { Link } from "@tanstack/react-router";
 import useProjectStore from "@/store/project";
 
@@ -18,12 +19,12 @@ export function Logo({ className = "" }: LogoProps) {
     >
       <img
         src="/logo-dark.svg"
-        alt="Organyz Work"
+        alt={brand.name}
         className="h-6 w-auto dark:hidden"
       />
       <img
         src="/logo-light.svg"
-        alt="Organyz Work"
+        alt={brand.name}
         className="hidden h-6 w-auto dark:block"
       />
     </Link>

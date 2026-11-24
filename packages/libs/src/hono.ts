@@ -16,7 +16,7 @@ export const client = hc<AppType>(apiUrl, {
       headers: {
         ...init?.headers,
         "Content-Type": "application/json",
-        "X-Kaneo-Window-Id": windowId,
+        "X-Window-Id": windowId,
       },
       credentials: "include",
     }).catch((error) => {

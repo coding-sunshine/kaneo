@@ -61,6 +61,7 @@ describe("email instance name", () => {
         html: expect.stringContaining("Acme $&amp;"),
       }),
     );
+    expect(smtp.sendMail.mock.calls[0]?.[0].html).not.toContain("{{brand}}");
   });
 
   it("resolves the password reset subject to a string using one name per send", async () => {

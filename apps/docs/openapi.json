@@ -1,14 +1,14 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Kaneo API",
+    "title": "Organyz Work API",
     "version": "1.0.0",
-    "description": "Kaneo Project Management API - Manage projects, tasks, labels, and more"
+    "description": "Organyz Work Project Management API - Manage projects, tasks, labels, and more"
   },
   "servers": [
     {
       "url": "https://cloud.kaneo.app/api",
-      "description": "Kaneo API Server"
+      "description": "Organyz Work API Server"
     }
   ],
   "security": [
@@ -707,7 +707,7 @@
           },
           "instanceName": {
             "type": "string",
-            "description": "Name shown in page titles and emails. Defaults to Kaneo."
+            "description": "Name shown in page titles and emails. Defaults to Organyz Work."
           },
           "disableRegistration": {
             "type": "boolean"
@@ -4410,7 +4410,7 @@
                     ]
                   }
                 ],
-                "description": "Kaneo workspace label IDs controlling task sync. Missing labels pause sync."
+                "description": "Organyz Work workspace label IDs controlling task sync. Missing labels pause sync."
               },
               "incoming": {
                 "oneOf": [
@@ -4991,7 +4991,7 @@
           },
           "commentTaskLinkOnGitHubIssue": {
             "type": "boolean",
-            "description": "When on, Kaneo comments a link back to the task on the linked GitHub issue."
+            "description": "When on, Organyz Work comments a link back to the task on the linked GitHub issue."
           },
           "isActive": {
             "type": [
@@ -5082,7 +5082,7 @@
           },
           "commentTaskLinkOnGitHubIssue": {
             "type": "boolean",
-            "description": "When on, Kaneo comments a link back to the task on the linked GitHub issue."
+            "description": "When on, Organyz Work comments a link back to the task on the linked GitHub issue."
           },
           "isActive": {
             "type": [
@@ -5267,7 +5267,7 @@
           },
           "commentTaskLinkOnGiteaIssue": {
             "type": "boolean",
-            "description": "When on, Kaneo comments a link back to the task on the linked Gitea issue."
+            "description": "When on, Organyz Work comments a link back to the task on the linked Gitea issue."
           },
           "isActive": {
             "type": [
@@ -5479,7 +5479,7 @@
           },
           "commentTaskLinkOnGitlabIssue": {
             "type": "boolean",
-            "description": "When on, Kaneo comments a link back to the task on each issue opened in GitLab. Issues Kaneo creates from tasks are not commented on."
+            "description": "When on, Organyz Work comments a link back to the task on each issue opened in GitLab. Issues Organyz Work creates from tasks are not commented on."
           },
           "isActive": {
             "type": [
@@ -6212,7 +6212,7 @@
           },
           "eventType": {
             "type": "string",
-            "description": "The Kaneo event that triggers the move: `branch_push`, `pr_opened`, `pr_merged`, `issue_opened`, `issue_closed` or `issue_reopened`."
+            "description": "The Organyz Work event that triggers the move: `branch_push`, `pr_opened`, `pr_merged`, `issue_opened`, `issue_closed` or `issue_reopened`."
           },
           "columnId": {
             "type": "string",
@@ -7070,7 +7070,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 4096,
-            "description": "A Trello token authorized for this Kaneo instance. Used only for this import and never stored or logged."
+            "description": "A Trello token authorized for this Organyz Work instance. Used only for this import and never stored or logged."
           },
           "apiKey": {
             "type": "string",
@@ -7097,14 +7097,14 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 2048,
-            "description": "Address of the Kaneo instance to import from.",
+            "description": "Address of the Organyz Work instance to import from.",
             "example": "https://planka.example.com"
           },
           "apiKey": {
             "type": "string",
             "minLength": 1,
             "maxLength": 4096,
-            "description": "An API key from that Kaneo instance. Used only for this import and never stored or logged."
+            "description": "An API key from that Organyz Work instance. Used only for this import and never stored or logged."
           }
         },
         "required": [
@@ -7223,7 +7223,7 @@
               "string",
               "null"
             ],
-            "description": "The Kaneo project created by the import, once completed."
+            "description": "The Organyz Work project created by the import, once completed."
           },
           "projectSlug": {
             "type": [
@@ -7312,7 +7312,7 @@
               "string",
               "null"
             ],
-            "description": "Trello page where the user approves read access for Kaneo and copies a token. null when the server has no TRELLO_API_KEY; the user then sends their own Trello API key with the token."
+            "description": "Trello page where the user approves read access for Organyz Work and copies a token. null when the server has no TRELLO_API_KEY; the user then sends their own Trello API key with the token."
           }
         },
         "required": [
@@ -7353,7 +7353,7 @@
                 "locale"
               ]
             },
-            "description": "Profile fields the custom OAuth/OIDC provider manages for this user. Kaneo updates them at sign-in and refuses changes to them."
+            "description": "Profile fields the custom OAuth/OIDC provider manages for this user. Organyz Work updates them at sign-in and refuses changes to them."
           }
         },
         "required": [
@@ -8022,7 +8022,7 @@
               "string",
               "null"
             ],
-            "description": "Kaneo release version of this API instance."
+            "description": "Organyz Work release version of this API instance."
           },
           "api": {
             "type": "object",
@@ -8691,7 +8691,7 @@
               "string",
               "null"
             ],
-            "description": "The saved name, or null for the default Kaneo."
+            "description": "The saved name, or null for the default Organyz Work."
           },
           "instanceUrl": {
             "type": [
@@ -12122,7 +12122,7 @@
           "MCP"
         ],
         "summary": "Start MCP authorization",
-        "description": "Begin an MCP OAuth authorization. Redirects the browser to the Kaneo consent page, which then approves or denies the request.",
+        "description": "Begin an MCP OAuth authorization. Redirects the browser to the Organyz Work consent page, which then approves or denies the request.",
         "security": [],
         "parameters": [
           {
@@ -12190,7 +12190,7 @@
         ],
         "responses": {
           "302": {
-            "description": "Redirect to the Kaneo consent page"
+            "description": "Redirect to the Organyz Work consent page"
           },
           "400": {
             "description": "Invalid authorization request",
@@ -22157,10 +22157,10 @@
           {
             "schema": {
               "type": "string",
-              "description": "Only projects linked to this team (Kaneo project)."
+              "description": "Only projects linked to this team (Organyz Work project)."
             },
             "required": false,
-            "description": "Only projects linked to this team (Kaneo project).",
+            "description": "Only projects linked to this team (Organyz Work project).",
             "name": "teamId",
             "in": "query"
           }
@@ -24033,7 +24033,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Team (Kaneo project) the view belongs to; null for a workspace view."
+                    "description": "Team (Organyz Work project) the view belongs to; null for a workspace view."
                   },
                   "visibility": {
                     "type": "string",
@@ -24807,7 +24807,7 @@
           "Agent"
         ],
         "summary": "Send a message to the agent",
-        "description": "Send a message and wait for the agent to finish. The agent calls Kaneo tools with your own permissions and returns the full transcript of this turn.",
+        "description": "Send a message and wait for the agent to finish. The agent calls Organyz Work tools with your own permissions and returns the full transcript of this turn.",
         "parameters": [
           {
             "schema": {
@@ -25953,7 +25953,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Team (Kaneo project) to keep the document in."
+                    "description": "Team (Organyz Work project) to keep the document in."
                   },
                   "workProjectId": {
                     "type": [
@@ -26336,7 +26336,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Team (Kaneo project) to keep the document in."
+                    "description": "Team (Organyz Work project) to keep the document in."
                   },
                   "workProjectId": {
                     "type": [
@@ -28869,7 +28869,7 @@
                             ]
                           }
                         ],
-                        "description": "Kaneo workspace label IDs controlling task sync. Missing labels pause sync."
+                        "description": "Organyz Work workspace label IDs controlling task sync. Missing labels pause sync."
                       },
                       "incoming": {
                         "oneOf": [
@@ -29102,7 +29102,7 @@
                             ]
                           }
                         ],
-                        "description": "Kaneo workspace label IDs controlling task sync. Missing labels pause sync."
+                        "description": "Organyz Work workspace label IDs controlling task sync. Missing labels pause sync."
                       },
                       "incoming": {
                         "oneOf": [
@@ -29361,7 +29361,7 @@
           "Integration sync"
         ],
         "summary": "Resume a reviewed issue link",
-        "description": "Explicitly choose the current Kaneo or repository title, description and open/closed state. Existing links are reused; historical comments are not replayed. The task must still match its outgoing rule. A changed comparison requires another review.",
+        "description": "Explicitly choose the current Organyz Work or repository title, description and open/closed state. Existing links are reused; historical comments are not replayed. The task must still match its outgoing rule. A changed comparison requires another review.",
         "parameters": [
           {
             "schema": {
@@ -30101,7 +30101,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -30225,7 +30225,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -30348,7 +30348,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -30490,7 +30490,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -30614,7 +30614,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -30760,7 +30760,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -30934,7 +30934,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -31067,7 +31067,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -31202,7 +31202,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -31338,7 +31338,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -31467,7 +31467,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -31594,7 +31594,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -31709,7 +31709,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -31824,7 +31824,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -31939,7 +31939,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -32049,7 +32049,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -32178,7 +32178,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -32220,7 +32220,7 @@
           "GitHub Reviews"
         ],
         "summary": "List pull requests to review",
-        "description": "Pull requests awaiting the user's review, authored by them, and ones they took part in, read from GitHub with the user's own token. A GitHub App user token only sees repositories where the Kaneo GitHub App is installed.",
+        "description": "Pull requests awaiting the user's review, authored by them, and ones they took part in, read from GitHub with the user's own token. A GitHub App user token only sees repositories where the Organyz Work GitHub App is installed.",
         "parameters": [
           {
             "schema": {
@@ -33212,7 +33212,7 @@
           "GitHub Reviews"
         ],
         "summary": "Set a pull request's owner",
-        "description": "Sets who owns the pull request for everyone in the workspace, or clears the override with a null userId so the owner is the author again. Kaneo-only: nothing changes on GitHub.",
+        "description": "Sets who owns the pull request for everyone in the workspace, or clears the override with a null userId so the owner is the author again. Organyz Work-only: nothing changes on GitHub.",
         "parameters": [
           {
             "schema": {
@@ -33323,7 +33323,7 @@
             }
           },
           "404": {
-            "description": "Pull request not found or not visible to the Kaneo GitHub App",
+            "description": "Pull request not found or not visible to the Organyz Work GitHub App",
             "content": {
               "application/json": {
                 "schema": {
@@ -33486,7 +33486,7 @@
           "GitHub"
         ],
         "summary": "Verify GitHub installation",
-        "description": "Check that the GitHub App is installed on a repository and holds the permissions Kaneo needs. Always 200 -- problems are reported in the body so the client can guide the user.",
+        "description": "Check that the GitHub App is installed on a repository and holds the permissions Organyz Work needs. Always 200 -- problems are reported in the body so the client can guide the user.",
         "requestBody": {
           "required": true,
           "content": {
@@ -34141,7 +34141,7 @@
           "Gitea"
         ],
         "summary": "Verify Gitea access",
-        "description": "Check that the base URL is a Gitea instance and that the token can reach the repository with the permissions Kaneo needs. Repository permission failures are reported in the body; invalid credentials and upstream errors return an error status. Omit accessToken to use the saved token for the unchanged base URL.",
+        "description": "Check that the base URL is a Gitea instance and that the token can reach the repository with the permissions Organyz Work needs. Repository permission failures are reported in the body; invalid credentials and upstream errors return an error status. Omit accessToken to use the saved token for the unchanged base URL.",
         "requestBody": {
           "required": true,
           "content": {
@@ -34203,7 +34203,7 @@
             }
           },
           "401": {
-            "description": "Kaneo authentication required",
+            "description": "Organyz Work authentication required",
             "content": {
               "application/json": {
                 "schema": {
@@ -34775,7 +34775,7 @@
           "GitLab"
         ],
         "summary": "Verify GitLab access",
-        "description": "Check that the base URL is a GitLab instance and that the token can reach the project with the permissions Kaneo needs. An unreachable instance, a missing project, or insufficient permissions are reported in a 200 body so the form can explain them; a token GitLab rejects outright is a 401.",
+        "description": "Check that the base URL is a GitLab instance and that the token can reach the project with the permissions Organyz Work needs. An unreachable instance, a missing project, or insufficient permissions are reported in a 200 body so the form can explain them; a token GitLab rejects outright is a 401.",
         "requestBody": {
           "required": true,
           "content": {
@@ -34946,7 +34946,7 @@
           "GitLab"
         ],
         "summary": "Create GitLab integration",
-        "description": "Link a project to a GitLab project. Kaneo generates the secret GitLab must send with each webhook; add the webhook in GitLab afterwards. Use the verify route first to confirm the token really reaches the project.",
+        "description": "Link a project to a GitLab project. Organyz Work generates the secret GitLab must send with each webhook; add the webhook in GitLab afterwards. Use the verify route first to confirm the token really reaches the project.",
         "parameters": [
           {
             "schema": {
@@ -35045,7 +35045,7 @@
             }
           },
           "409": {
-            "description": "That GitLab project is already linked to another Kaneo project",
+            "description": "That GitLab project is already linked to another Organyz Work project",
             "content": {
               "application/json": {
                 "schema": {
@@ -35377,7 +35377,7 @@
           "Generic Webhook"
         ],
         "summary": "Create webhook integration",
-        "description": "Create or replace the outgoing webhook for a project. Kaneo POSTs the selected task events to this URL, signed with the secret when one is set.",
+        "description": "Create or replace the outgoing webhook for a project. Organyz Work POSTs the selected task events to this URL, signed with the secret when one is set.",
         "parameters": [
           {
             "schema": {
@@ -40388,7 +40388,7 @@
           "Import"
         ],
         "summary": "List projects in an import source",
-        "description": "Sign in to PLANKA, Plane, Linear, Jira, Trello or another Kaneo instance and list the projects that can be imported. The credentials are used only for this request; they are never stored, logged, or returned.",
+        "description": "Sign in to PLANKA, Plane, Linear, Jira, Trello or another Organyz Work instance and list the projects that can be imported. The credentials are used only for this request; they are never stored, logged, or returned.",
         "requestBody": {
           "required": true,
           "content": {
@@ -40496,7 +40496,7 @@
           "Import"
         ],
         "summary": "Start an import",
-        "description": "Import the selected source projects into the workspace as new Kaneo projects. The import runs in the background; poll getImportRun for progress. The credentials are held in memory only while the import runs; they are never stored, logged, or returned. Imported tasks do not send notifications or trigger integrations.",
+        "description": "Import the selected source projects into the workspace as new Organyz Work projects. The import runs in the background; poll getImportRun for progress. The credentials are held in memory only while the import runs; they are never stored, logged, or returned. Imported tasks do not send notifications or trigger integrations.",
         "requestBody": {
           "required": true,
           "content": {
@@ -42964,7 +42964,7 @@
           "Admin"
         ],
         "summary": "Remove a user's avatar",
-        "description": "Remove the user's profile picture. A picture managed by the identity provider can't be removed, but an earlier Kaneo upload can. Requires the `users:update` instance permission; API keys are rejected.",
+        "description": "Remove the user's profile picture. A picture managed by the identity provider can't be removed, but an earlier Organyz Work upload can. Requires the `users:update` instance permission; API keys are rejected.",
         "parameters": [
           {
             "schema": {
@@ -43800,7 +43800,7 @@
                       "null"
                     ],
                     "maxLength": 60,
-                    "description": "Shown in page titles and email headers and subjects. Empty or null restores Kaneo."
+                    "description": "Shown in page titles and email headers and subjects. Empty or null restores Organyz Work."
                   },
                   "registrationEnabled": {
                     "type": "boolean",

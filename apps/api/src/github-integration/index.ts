@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { and, eq } from "drizzle-orm";
 import type { Context } from "hono";
 import { HTTPException } from "hono/http-exception";
@@ -92,8 +93,7 @@ const verifyRoute = createRoute({
   path: "/verify",
   tags: ["GitHub"],
   summary: "Verify GitHub installation",
-  description:
-    "Check that the GitHub App is installed on a repository and holds the permissions Kaneo needs. Always 200 -- problems are reported in the body so the client can guide the user.",
+  description: `Check that the GitHub App is installed on a repository and holds the permissions ${brand.name} needs. Always 200 -- problems are reported in the body so the client can guide the user.`,
   middleware: [
     requireUserSession,
     scopeToProjectFromBody,

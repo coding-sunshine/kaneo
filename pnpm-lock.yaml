@@ -311,6 +311,9 @@ importers:
       '@hono/zod-openapi':
         specifier: ^1.6.3
         version: 1.6.3(hono@4.13.18)(zod@4.6.7)
+      '@kaneo/brand':
+        specifier: workspace:*
+        version: link:../../packages/brand
       '@kaneo/email':
         specifier: workspace:*
         version: link:../../packages/email
@@ -936,6 +939,9 @@ importers:
       '@babel/core':
         specifier: ^8.0.9
         version: 8.0.10
+      '@kaneo/brand':
+        specifier: workspace:*
+        version: link:../../packages/brand
       '@kaneo/editor':
         specifier: workspace:*
         version: link:../../packages/editor
@@ -983,6 +989,21 @@ importers:
         version: 4.3.3
       typescript:
         specifier: ~7.0.2
+        version: 7.0.2
+      vite:
+        specifier: 'catalog:'
+        version: '@voidzero-dev/vite-plus-core@1.6.0(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(typescript@7.0.2)(yaml@2.9.0)'
+      vite-plus:
+        specifier: 'catalog:'
+        version: 1.6.0(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(@vitest/coverage-v8@5.1.0)(@vitest/ui@5.1.0)(esbuild@0.28.2)(jiti@2.7.0)(jsdom@30.1.3(@noble/hashes@2.2.0))(msw@2.12.10(@types/node@26.6.5)(typescript@7.0.2))(terser@5.51.2)(tsx@4.23.15)(typescript@7.0.2)(yaml@2.9.0)
+
+  packages/brand:
+    devDependencies:
+      '@kaneo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      typescript:
+        specifier: ^7.0.2
         version: 7.0.2
       vite:
         specifier: 'catalog:'
@@ -1087,6 +1108,9 @@ importers:
 
   packages/email:
     dependencies:
+      '@kaneo/brand':
+        specifier: workspace:*
+        version: link:../brand
       '@types/node':
         specifier: ^26.6.5
         version: 26.6.5
@@ -11592,10 +11616,12 @@ packages:
   yuku-core@0.19.0:
     resolution: {integrity: sha512-kYK9e1XdfirNhkipzW0wmMcSWcVF/CWnuugodfVYRCUwvoBefweL9HzB96OiKEhsx78V5WbUxbJqlizMX869Qg==}
     engines: {node: '>=14.18.0'}
+    deprecated: 'Yuku is now one package with one core. Use "yuku" instead: https://yuku.fyi/javascript/. Existing installs keep working but get no more fixes.'
 
   yuku-parser@0.19.0:
     resolution: {integrity: sha512-XrBh9ZiQK5mJVRxZBAvD6LwRyAYrK3MFtH3+onyuxFL5hFD44EC3QOmIC1FjTj6H2MMwq46/NAI+NZxLZPZgxg==}
     engines: {node: '>=14.18.0'}
+    deprecated: 'Yuku is now one package with one core. Use "yuku" instead: https://yuku.fyi/javascript/. Existing installs keep working but get no more fixes.'
 
   zeptomatch@2.1.0:
     resolution: {integrity: sha512-KiGErG2J0G82LSpniV0CtIzjlJ10E04j02VOudJsPyPwNZgGnRKQy7I1R7GMyg/QswnE4l7ohSGrQbQbjXPPDA==}

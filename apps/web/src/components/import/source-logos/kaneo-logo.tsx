@@ -4,7 +4,7 @@ import { cn } from "@/lib/cn";
 export function KaneoLogo({ size }: SourceLogoProps) {
   return (
     <img
-      src="/kaneo-mark.svg"
+      src="/favicon.svg"
       alt=""
       aria-hidden="true"
       draggable={false}

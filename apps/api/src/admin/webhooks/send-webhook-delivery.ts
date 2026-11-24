@@ -51,7 +51,7 @@ export async function sendWebhookDelivery() {
         headers: {
           "content-type": "application/json",
           "x-kaneo-timestamp": timestamp,
-          "x-kaneo-signature": `sha256=${signature}`,
+          "x-webhook-signature": `sha256=${signature}`,
           "x-kaneo-delivery": delivery.id,
         },
       },

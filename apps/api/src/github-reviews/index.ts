@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import {
   apiRouter,
   createRoute,
@@ -144,8 +145,7 @@ const listRoute = createRoute({
   path: "/",
   tags,
   summary: "List pull requests to review",
-  description:
-    "Pull requests awaiting the user's review, authored by them, and ones they took part in, read from GitHub with the user's own token. A GitHub App user token only sees repositories where the Kaneo GitHub App is installed.",
+  description: `Pull requests awaiting the user's review, authored by them, and ones they took part in, read from GitHub with the user's own token. A GitHub App user token only sees repositories where the ${brand.name} GitHub App is installed.`,
   middleware: [requireUserSession] as const,
   request: { query: listQuery },
   responses: {
@@ -168,7 +168,7 @@ const pullRoute = createRoute({
     200: jsonResponse("Get a pull request", pullRequestSchema),
     403: needsSession,
     404: errorResponse(
-      "Pull request not found or not visible to the Kaneo GitHub App",
+      `Pull request not found or not visible to the ${brand.name} GitHub App`,
     ),
     409: needsGithub,
   },
@@ -188,7 +188,7 @@ const filesRoute = createRoute({
     200: jsonResponse("List changed files", filesSchema),
     403: needsSession,
     404: errorResponse(
-      "Pull request not found or not visible to the Kaneo GitHub App",
+      `Pull request not found or not visible to the ${brand.name} GitHub App`,
     ),
     409: needsGithub,
   },
@@ -208,7 +208,7 @@ const commitsRoute = createRoute({
     200: jsonResponse("List commits", commitsSchema),
     403: needsSession,
     404: errorResponse(
-      "Pull request not found or not visible to the Kaneo GitHub App",
+      `Pull request not found or not visible to the ${brand.name} GitHub App`,
     ),
     409: needsGithub,
   },
@@ -228,7 +228,7 @@ const compareRoute = createRoute({
     200: jsonResponse("Changed files between two commits", filesSchema),
     403: needsSession,
     404: errorResponse(
-      "Pull request not found or not visible to the Kaneo GitHub App",
+      `Pull request not found or not visible to the ${brand.name} GitHub App`,
     ),
     409: needsGithub,
   },
@@ -248,7 +248,7 @@ const contentRoute = createRoute({
     200: jsonResponse("File text", fileContentSchema),
     403: needsSession,
     404: errorResponse(
-      "Pull request not found or not visible to the Kaneo GitHub App",
+      `Pull request not found or not visible to the ${brand.name} GitHub App`,
     ),
     409: needsGithub,
   },
@@ -268,7 +268,7 @@ const checksRoute = createRoute({
     200: jsonResponse("Get CI checks", checksSchema),
     403: needsSession,
     404: errorResponse(
-      "Pull request not found or not visible to the Kaneo GitHub App",
+      `Pull request not found or not visible to the ${brand.name} GitHub App`,
     ),
     409: needsGithub,
   },
@@ -288,7 +288,7 @@ const conversationRoute = createRoute({
     200: jsonResponse("List conversation", conversationSchema),
     403: needsSession,
     404: errorResponse(
-      "Pull request not found or not visible to the Kaneo GitHub App",
+      `Pull request not found or not visible to the ${brand.name} GitHub App`,
     ),
     409: needsGithub,
   },
@@ -314,7 +314,7 @@ const reviewRoute = createRoute({
     200: jsonResponse("Submit a review", reviewSubmittedSchema),
     403: needsSession,
     404: errorResponse(
-      "Pull request not found or not visible to the Kaneo GitHub App",
+      `Pull request not found or not visible to the ${brand.name} GitHub App`,
     ),
     409: needsGithub,
     422: errorResponse("GitHub rejected the review"),
@@ -340,7 +340,7 @@ const commentRoute = createRoute({
     200: jsonResponse("Add a conversation comment", reviewSubmittedSchema),
     403: needsSession,
     404: errorResponse(
-      "Pull request not found or not visible to the Kaneo GitHub App",
+      `Pull request not found or not visible to the ${brand.name} GitHub App`,
     ),
     409: needsGithub,
     422: errorResponse("GitHub rejected the comment"),
@@ -367,7 +367,7 @@ const mergeRoute = createRoute({
     200: jsonResponse("Merge a pull request", mergedSchema),
     403: needsSession,
     404: errorResponse(
-      "Pull request not found or not visible to the Kaneo GitHub App",
+      `Pull request not found or not visible to the ${brand.name} GitHub App`,
     ),
     405: errorResponse("The pull request is not mergeable"),
     409: needsGithub,
@@ -376,7 +376,7 @@ const mergeRoute = createRoute({
 });
 
 const notVisible = errorResponse(
-  "Pull request not found or not visible to the Kaneo GitHub App",
+  `Pull request not found or not visible to the ${brand.name} GitHub App`,
 );
 
 const reviewerCandidatesRoute = createRoute({
@@ -528,8 +528,7 @@ const setOwnerRoute = createRoute({
   path: "/pulls/{owner}/{repo}/{number}/owner",
   tags,
   summary: "Set a pull request's owner",
-  description:
-    "Sets who owns the pull request for everyone in the workspace, or clears the override with a null userId so the owner is the author again. Kaneo-only: nothing changes on GitHub.",
+  description: `Sets who owns the pull request for everyone in the workspace, or clears the override with a null userId so the owner is the author again. ${brand.name}-only: nothing changes on GitHub.`,
   middleware: [
     requireUserSession,
     workspaceAccess.fromBody(),

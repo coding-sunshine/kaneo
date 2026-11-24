@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { startWebhookWorker } from "./admin/webhooks/start-webhook-worker";
 import { startWorkspaceWebhookWorker } from "./workspace-webhook/worker";
 import workspaceWebhook from "./workspace-webhook";
@@ -677,17 +678,16 @@ export function createApp() {
     const document = api.getOpenAPI31Document({
       openapi: "3.1.0",
       info: {
-        title: "Kaneo API",
+        title: `${brand.name} API`,
         version: "1.0.0",
-        description:
-          "Kaneo Project Management API - Manage projects, tasks, labels, and more",
+        description: `${brand.name} Project Management API - Manage projects, tasks, labels, and more`,
       },
       servers: [
         {
           url: normalizeApiServerUrl(
             process.env.KANEO_API_URL || "https://cloud.kaneo.app",
           ),
-          description: "Kaneo API Server",
+          description: `${brand.name} API Server`,
         },
       ],
       security: [{ bearerAuth: [] }],
@@ -810,7 +810,7 @@ export function createApp() {
       Sentry.setUser(null);
       try {
         await authenticateApiRequest(c);
-        const windowId = c.req.header("X-Kaneo-Window-Id");
+        const windowId = c.req.header("X-Window-Id");
         const userId = c.get("userId");
         const initiatorId = windowId ? `${userId}:${windowId}` : userId;
         return await eventContext.run({ initiatorId }, next);

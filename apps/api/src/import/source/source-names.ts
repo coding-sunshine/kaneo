@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import type { ImportSourceId } from "@kaneo/importers";
 
 export const IMPORT_SOURCE_NAMES: Record<ImportSourceId, string> = {
@@ -6,5 +7,5 @@ export const IMPORT_SOURCE_NAMES: Record<ImportSourceId, string> = {
   linear: "Linear",
   jira: "Jira",
   trello: "Trello",
-  kaneo: "Kaneo",
+  kaneo: brand.name,
 };

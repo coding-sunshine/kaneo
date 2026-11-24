@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
@@ -18,8 +19,7 @@ export async function requireWorkspaceEntitlement(workspaceId: string) {
 
   if (!entitlement.active) {
     throw new HTTPException(402, {
-      message:
-        "This workspace's Kaneo Cloud plan has expired. Subscribe to continue creating and editing.",
+      message: `This workspace's ${brand.name} Cloud plan has expired. Subscribe to continue creating and editing.`,
     });
   }
 }

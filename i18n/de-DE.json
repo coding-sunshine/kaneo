@@ -1,6 +1,6 @@
 {
 	"common": {
-		"appName": "Organyz Work",
+		"appName": "{{appName}}",
 		"actions": {
 			"cancel": "Abbrechen",
 			"close": "Schließen",
@@ -98,7 +98,7 @@
 				"copySettingsFrom": "Copy settings from"
 			},
 			"createWorkspace": {
-				"breadcrumbKaneo": "KANEO",
+				"breadcrumbKaneo": "{{appName}}",
 				"title": "Neuen Workspace erstellen",
 				"description": "Erstelle einen neuen Workspace, indem du einen Namen dafür angibst.",
 				"namePlaceholder": "Workspace-Name",
@@ -190,7 +190,7 @@
 				"use_a_permanent_email_address_disposable_addresses_cannot_create_accounts_": "Verwende eine dauerhafte E-Mail-Adresse. Mit Wegwerfadressen können keine Konten erstellt werden."
 			},
 			"instanceStatusError": "Der Server konnte nicht erreicht werden. Bitte versuche es gleich noch einmal.",
-			"heading": "Bei Organyz Work anmelden",
+			"heading": "Bei {{appName}} anmelden",
 			"submitPassword": "Anmelden",
 			"invitation": {
 				"title": "{{inviterName}} hat dich zu {{workspaceName}} eingeladen",
@@ -198,7 +198,7 @@
 				"description": "Melde dich mit der E-Mail-Adresse an, an die die Einladung ging. Danach trittst du dem Workspace direkt bei."
 			},
 			"footer": {
-				"newHere": "Neu bei Organyz Work?",
+				"newHere": "Neu bei {{appName}}?",
 				"createAccount": "Konto erstellen",
 				"inviteOnly": "Konten gibt es hier nur auf Einladung. Bitte deinen Administrator um eine Einladung.",
 				"providerSignUp": "Neu hier? Melde dich oben mit einem Anbieter an, um ein Konto zu erstellen.",
@@ -258,7 +258,7 @@
 			"toggleMessage": "Du hast bereits ein Konto?",
 			"toggleLink": "Anmelden",
 			"instanceStatusError": "Der Server konnte nicht erreicht werden. Bitte versuche es gleich noch einmal.",
-			"instanceAdminTitle": "Richte deine Organyz Work-Instanz ein",
+			"instanceAdminTitle": "Richte deine {{appName}}-Instanz ein",
 			"instanceAdminSubtitle": "Dieses Konto wird zum Instanz-Administrator mit vollem Zugriff.",
 			"heading": "Erstelle dein Konto",
 			"submitPassword": "Konto erstellen",
@@ -312,7 +312,7 @@
 				"acceptFailed": "Einladung konnte nicht angenommen werden",
 				"acceptSuccess": "Einladung angenommen! Willkommen im Team."
 			},
-			"description": "{{inviterName}} hat dich zu diesem Workspace auf Organyz Work eingeladen.",
+			"description": "{{inviterName}} hat dich zu diesem Workspace auf {{appName}} eingeladen.",
 			"invitedBy": "Eingeladen von",
 			"sentTo": "Gesendet an",
 			"signedInAs": "Angemeldet als",
@@ -320,7 +320,7 @@
 			"notNow": "Nicht jetzt",
 			"join": "Workspace beitreten",
 			"switchAccount": "Konto wechseln",
-			"goToKaneo": "Zu Organyz Work",
+			"goToKaneo": "Zu {{appName}}",
 			"mismatch": {
 				"title": "Mit einer anderen E-Mail-Adresse angemeldet",
 				"description": "Diese Einladung wurde an {{invitedEmail}} gesendet. Du bist als {{email}} angemeldet."
@@ -339,7 +339,7 @@
 			}
 		},
 		"onboarding": {
-			"pageTitle": "Willkommen bei Organyz Work",
+			"pageTitle": "Willkommen bei {{appName}}",
 			"workspaceName": "Workspace-Name",
 			"workspaceNamePlaceholder": "z. B. Acme Inc, Mein Team",
 			"toast": {
@@ -387,7 +387,7 @@
 				},
 				"invite": {
 					"title": "Lade dein Team ein",
-					"description": "Organyz Work funktioniert am besten, wenn alle dabei sind. Öffne **Mitglieder** in der Seitenleiste, um Leute per E-Mail einzuladen."
+					"description": "{{appName}} funktioniert am besten, wenn alle dabei sind. Öffne **Mitglieder** in der Seitenleiste, um Leute per E-Mail einzuladen."
 				},
 				"integrations": {
 					"title": "Verbinde GitHub, GitLab oder Gitea",
@@ -511,7 +511,7 @@
 		"device": {
 			"connect": {
 				"title": "Gerät verbinden",
-				"description": "Gib den Code ein, der in deinem Terminal oder deiner App angezeigt wird, um das Gerät mit deinem Organyz Work-Konto zu verknüpfen.",
+				"description": "Gib den Code ein, der in deinem Terminal oder deiner App angezeigt wird, um das Gerät mit deinem {{appName}}-Konto zu verknüpfen.",
 				"label": "Gerätecode",
 				"submit": "Weiter",
 				"noCode": "Noch keinen Code? Starte die Anmeldung zuerst in deiner App.",
@@ -545,7 +545,7 @@
 				"description": "Danach kommst du direkt hierher zurück, um es zu genehmigen.",
 				"submit": "Anmelden"
 			},
-			"openApp": "Organyz Work öffnen"
+			"openApp": "{{appName}} öffnen"
 		},
 		"mcp": {
 			"authorize": {
@@ -581,7 +581,7 @@
 		"apiKeys": "API-Schlüssel",
 		"adminUsers": {
 			"title": "Benutzer",
-			"subtitle": "Alle mit einem Konto auf dieser Organyz Work-Instanz.",
+			"subtitle": "Alle mit einem Konto auf dieser {{appName}}-Instanz.",
 			"directoryTitle": "Alle Benutzer",
 			"searchCount_one": "{{count}} passender Benutzer",
 			"searchCount_other": "{{count}} passende Benutzer",
@@ -781,7 +781,7 @@
 		"notificationsPage": {
 			"pageTitle": "Benachrichtigungen",
 			"title": "Benachrichtigungen",
-			"subtitle": "Worüber Organyz Work dich informiert und wo es dich erreicht.",
+			"subtitle": "Worüber {{appName}} dich informiert und wo es dich erreicht.",
 			"statusConnected": "Verbunden",
 			"statusPaused": "Pausiert",
 			"emailTitle": "E-Mail",
@@ -811,10 +811,10 @@
 			"webhookDescription": "Sende jede Benachrichtigung als JSON an deinen eigenen Endpunkt.",
 			"endpointUrl": "Endpunkt-URL",
 			"signingSecret": "Signatur-Geheimnis",
-			"webhookUrlPlaceholder": "https://example.com/webhooks/kaneo",
+			"webhookUrlPlaceholder": "https://example.com/webhooks",
 			"webhookSecretPlaceholder": "Optionales gemeinsames Geheimnis",
 			"webhookSecretHintConfigured": "Ein Signatur-Geheimnis ist bereits konfiguriert ({{masked}}). Gib ein neues ein, um es zu ersetzen.",
-			"webhookSecretHintOptional": "Organyz Work signiert den Anfragetext, wenn ein Geheimnis gesetzt ist.",
+			"webhookSecretHintOptional": "{{appName}} signiert den Anfragetext, wenn ein Geheimnis gesetzt ist.",
 			"connectWebhook": "Webhook verbinden",
 			"eventPreferencesTitle": "Benachrichtige mich über",
 			"eventPreferencesDescription": "Über deine eigenen Kommentare, Erwähnungen und Statusänderungen wirst du nie benachrichtigt.",
@@ -852,7 +852,7 @@
 			"toastRuleRemovedGeneric": "Arbeitsbereichs-Benachrichtigungsregel entfernt",
 			"channelNotConnected": "Nicht verbunden",
 			"channelOff": "Aus",
-			"channelsDescription": "Benachrichtigungen erscheinen immer in Organyz Work. Verbinde einen Kanal, um sie zusätzlich woanders zu erhalten.",
+			"channelsDescription": "Benachrichtigungen erscheinen immer in {{appName}}. Verbinde einen Kanal, um sie zusätzlich woanders zu erhalten.",
 			"channelsTitle": "Kanäle",
 			"configure": "Konfigurieren",
 			"configureChannel": "{{channel}} konfigurieren",
@@ -868,7 +868,7 @@
 			"eventStatusChangesHint": "Wenn eine deiner Aufgaben in eine andere Spalte verschoben wird.",
 			"eventTaskAssignmentsHint": "Wenn dir jemand eine Aufgabe zuweist.",
 			"loadFailed": "Benachrichtigungseinstellungen konnten nicht geladen werden.",
-			"onlyInKaneo": "Nur in Organyz Work",
+			"onlyInKaneo": "Nur in {{appName}}",
 			"optional": "Optional",
 			"projectCount_one": "{{count}} Projekt",
 			"projectCount_other": "{{count}} Projekte",
@@ -894,7 +894,7 @@
 			"statusSending": "Sendet",
 			"stopping": "Wird beendet...",
 			"stopSending": "Senden beenden",
-			"stopSendingDescription": "Benachrichtigungen aus diesem Workspace erscheinen dann nur noch in Organyz Work.",
+			"stopSendingDescription": "Benachrichtigungen aus diesem Workspace erscheinen dann nur noch in {{appName}}.",
 			"stopSendingTitle": "Senden aus {{workspaceName}} beenden?",
 			"workspacesDescription": "Wähle, welche Workspaces und Projekte deine Kanäle nutzen dürfen.",
 			"workspacesTitle": "Workspaces",
@@ -912,7 +912,7 @@
 		},
 		"preferencesPage": {
 			"title": "Einstellungen",
-			"subtitle": "Wie Organyz Work für dich aussieht und funktioniert.",
+			"subtitle": "Wie {{appName}} für dich aussieht und funktioniert.",
 			"appearanceTitle": "Allgemein",
 			"theme": "Design",
 			"selectTheme": "Design auswählen",
@@ -961,7 +961,7 @@
 		"developerPage": {
 			"pageTitle": "API-Schlüssel",
 			"title": "API-Schlüssel",
-			"subtitle": "Lass Skripte, die CLI und MCP-Clients Organyz Work in deinem Namen nutzen.",
+			"subtitle": "Lass Skripte, die CLI und MCP-Clients {{appName}} in deinem Namen nutzen.",
 			"unnamedKey": "Unbenannt",
 			"emptyDescription": "Erstelle einen Schlüssel, um die CLI, einen MCP-Client oder eigene Skripte zu nutzen.",
 			"emptyTitle": "Noch keine API-Schlüssel",
@@ -1225,11 +1225,11 @@
 				"removeError": "GitHub-Integration konnte nicht entfernt werden",
 				"issuesImported": "Issues erfolgreich importiert",
 				"importError": "Issues konnten nicht importiert werden",
-				"commentOnEnabled": "Organyz Work kommentiert bei neuen Issues mit einem Aufgabenlink",
+				"commentOnEnabled": "{{appName}} kommentiert bei neuen Issues mit einem Aufgabenlink",
 				"commentOnDisabled": "Aufgabenlink-Kommentare bei neuen Issues sind deaktiviert",
 				"settingsUpdateError": "GitHub-Integration konnte nicht aktualisiert werden"
 			},
-			"commentTaskLinkTitle": "Organyz Work-Link bei neuen Issues kommentieren",
+			"commentTaskLinkTitle": "{{appName}}-Link bei neuen Issues kommentieren",
 			"commentTaskLinkHint": "Damit Leute auf GitHub direkt zur Aufgabe springen können.",
 			"updatePermissions": "Berechtigungen aktualisieren",
 			"installGithubApp": "GitHub-App installieren",
@@ -1246,9 +1246,9 @@
 			"linkAccountTitle": "GitHub-Konto verknüpfen",
 			"linked": "Verknüpft",
 			"linkGithub": "GitHub verknüpfen",
-			"verifyMissingPermissions": "Der Organyz Work GitHub App fehlen Berechtigungen: {{list}}.",
-			"verifyNotInstalled": "Die Organyz Work GitHub App ist für dieses Repository nicht installiert.",
-			"verifyReady": "Die Organyz Work GitHub App ist mit den benötigten Berechtigungen installiert.",
+			"verifyMissingPermissions": "Der {{appName}} GitHub App fehlen Berechtigungen: {{list}}.",
+			"verifyNotInstalled": "Die {{appName}} GitHub App ist für dieses Repository nicht installiert.",
+			"verifyReady": "Die {{appName}} GitHub App ist mit den benötigten Berechtigungen installiert.",
 			"workflowHint": "Aufgaben verschieben, wenn Pull Requests geöffnet oder gemergt werden, unter",
 			"workflowLink": "Workflow"
 		},
@@ -1266,13 +1266,13 @@
 				"removeError": "Gitea-Integration konnte nicht entfernt werden",
 				"issuesImported": "Issues erfolgreich importiert",
 				"importError": "Issues konnten nicht importiert werden",
-				"commentOnEnabled": "Organyz Work kommentiert bei neuen Issues mit einem Aufgabenlink",
+				"commentOnEnabled": "{{appName}} kommentiert bei neuen Issues mit einem Aufgabenlink",
 				"commentOnDisabled": "Aufgabenlink-Kommentare bei neuen Issues sind deaktiviert",
 				"settingsUpdateError": "Gitea-Integration konnte nicht aktualisiert werden"
 			},
-			"commentTaskLinkTitle": "Organyz Work-Link bei neuen Issues kommentieren",
+			"commentTaskLinkTitle": "{{appName}}-Link bei neuen Issues kommentieren",
 			"commentTaskLinkHint": "Damit Leute auf Gitea direkt zur Aufgabe springen können.",
-			"webhookHint": "Füge diesen Webhook in den Repository-Einstellungen hinzu, damit Änderungen zurück an Organyz Work gehen.",
+			"webhookHint": "Füge diesen Webhook in den Repository-Einstellungen hinzu, damit Änderungen zurück an {{appName}} gehen.",
 			"baseUrlLabel": "Gitea-URL",
 			"tokenLabel": "Persönlicher Zugriffstoken",
 			"tokenPlaceholder": "Token einfügen",
@@ -1336,11 +1336,11 @@
 				"removeError": "Generische Webhook-Integration konnte nicht entfernt werden"
 			},
 			"webhookLabel": "Endpunkt-URL",
-			"webhookPlaceholder": "https://example.com/webhooks/kaneo",
-			"webhookHint": "Organyz Work sendet POST-Anfragen mit einer JSON-Nutzlast für jedes aktivierte Ereignis.",
+			"webhookPlaceholder": "https://example.com/webhooks",
+			"webhookHint": "{{appName}} sendet POST-Anfragen mit einer JSON-Nutzlast für jedes aktivierte Ereignis.",
 			"secretLabel": "Signatur-Secret",
 			"secretPlaceholder": "Gemeinsames Secret",
-			"secretHint": "Organyz Work signiert damit jede Anfrage und sendet den Digest im Header X-Kaneo-Signature.",
+			"secretHint": "{{appName}} signiert damit jede Anfrage und sendet den Digest im Header X-Webhook-Signature.",
 			"secretHintConfigured": "Aktuelles Secret: {{secret}}. Füge ein neues ein, um es zu ersetzen.",
 			"eventsTitle": "Senden bei",
 			"events": {
@@ -1360,7 +1360,7 @@
 			"reminderLeadTimeLabel": "Stunden vor Fälligkeit einer Aufgabe",
 			"connect": "Webhook verbinden",
 			"activeTitle": "Ereignisse senden",
-			"disconnectDescription": "Organyz Work sendet keine Ereignisse mehr und entfernt den gespeicherten Endpunkt und das Secret.",
+			"disconnectDescription": "{{appName}} sendet keine Ereignisse mehr und entfernt den gespeicherten Endpunkt und das Secret.",
 			"disconnectTitle": "Webhook trennen?",
 			"reminderLeadTimeAfter": "Stunden vor Fälligkeit einer Aufgabe senden",
 			"reminderLeadTimeBefore": "Erinnerungen"
@@ -1396,7 +1396,7 @@
 		},
 		"repositoryBrowser": {
 			"title": "Repository auswählen",
-			"description": "Repositories, auf die die Organyz Work GitHub App zugreifen kann.",
+			"description": "Repositories, auf die die {{appName}} GitHub App zugreifen kann.",
 			"searchPlaceholder": "Repositories suchen",
 			"loadError": "Repositories konnten nicht geladen werden.",
 			"tryAgain": "Erneut versuchen",
@@ -1818,7 +1818,7 @@
 			"sectionTitle": "Anmeldung",
 			"submit": "Passwort ändern",
 			"submitting": "Wird geändert...",
-			"subtitle": "Wie du dich bei Organyz Work anmeldest.",
+			"subtitle": "Wie du dich bei {{appName}} anmeldest.",
 			"title": "Sicherheit",
 			"updateError": "Passwort konnte nicht aktualisiert werden.",
 			"updateSuccess": "Passwort aktualisiert.",
@@ -1864,14 +1864,14 @@
 			"browseModalHint": "Projekte, in denen dein Token Mitglied ist.",
 			"browseNeedsCredentials": "Gib die GitLab-URL und einen Token ein, um zu durchsuchen.",
 			"commentTaskLinkHint": "Damit Leute auf GitLab direkt zur Aufgabe springen können.",
-			"commentTaskLinkTitle": "Einen Organyz Work-Link als Kommentar zu in GitLab erstellten Issues hinzufügen",
+			"commentTaskLinkTitle": "Einen {{appName}}-Link als Kommentar zu in GitLab erstellten Issues hinzufügen",
 			"importSectionHint": "Importiere offene Issues und Merge Requests als Aufgaben.",
 			"openInGitlab": "{{project}} in GitLab öffnen",
 			"projectPathLabel": "Projektpfad",
 			"searchProjects": "Projekte suchen",
 			"toast": {
 				"commentOnDisabled": "Kommentare mit Aufgabenlinks für in GitLab erstellte Issues sind deaktiviert",
-				"commentOnEnabled": "Organyz Work kommentiert in GitLab erstellte Issues mit einem Aufgabenlink",
+				"commentOnEnabled": "{{appName}} kommentiert in GitLab erstellte Issues mit einem Aufgabenlink",
 				"importError": "Issues konnten nicht importiert werden",
 				"issuesImported": "Issues erfolgreich importiert",
 				"removed": "GitLab-Integration entfernt",
@@ -1893,7 +1893,7 @@
 				"baseUrlRequired": "Die GitLab-Basis-URL ist erforderlich",
 				"pathInvalid": "Gib den vollständigen Pfad ein, z. B. gruppe/projekt"
 			},
-			"webhookHint": "Füge diesen Webhook in den Projekteinstellungen hinzu, damit Änderungen zurück an Organyz Work gehen.",
+			"webhookHint": "Füge diesen Webhook in den Projekteinstellungen hinzu, damit Änderungen zurück an {{appName}} gehen.",
 			"loadProjectsError": "Projekte konnten nicht geladen werden.",
 			"importPermissionHint": "Für den Import ist die Berechtigung zum Erstellen und Aktualisieren von Aufgaben erforderlich.",
 			"browseEmpty": "Dieser Token ist in keinem Projekt Mitglied.",
@@ -1950,7 +1950,7 @@
 			"currentPlan": {
 				"title": "Aktueller Plan"
 			},
-			"disabled": "Die Abrechnung ist auf dieser Instanz nicht aktiviert. Selbst gehostetes Kaneo enthält alle Funktionen, dauerhaft kostenlos.",
+			"disabled": "Die Abrechnung ist auf dieser Instanz nicht aktiviert. Selbst gehostetes {{appName}} enthält alle Funktionen, dauerhaft kostenlos.",
 			"expiredCallout": {
 				"action": "Wähle einen Plan",
 				"adminDescription": "Du kannst weiterhin alles ansehen. Das Erstellen und Bearbeiten ist pausiert, bis du einen Plan wählst. Es wurde nichts gelöscht.",
@@ -1968,7 +1968,7 @@
 			},
 			"foundingFree": {
 				"badge": "Kostenlos",
-				"description": "Als Unterstützer der ersten Stunde hat dieser Workspace kostenlosen Zugriff auf Kaneo Cloud. Danke, dass du von Anfang an dabei bist.",
+				"description": "Als Unterstützer der ersten Stunde hat dieser Workspace kostenlosen Zugriff auf {{appName}}. Danke, dass du von Anfang an dabei bist.",
 				"title": "Founding Free"
 			},
 			"interval": {
@@ -2052,8 +2052,8 @@
 			"filtered": "Nur passende Labels",
 			"impact": "Passende Aufgaben: {{matching}} / {{total}} · Neue Exporte: {{create}} · Zu pausieren: {{pause}} · Zu prüfen: {{review}}",
 			"impactTitle": "Was sich ändern wird",
-			"incoming": "Repository → Organyz Work",
-			"incomingHint": "Wähle, welche Issues importiert werden oder Aufgaben erstellen dürfen. Verwende die exakten Labelnamen im Repository. Bestehende Verknüpfungen folgen der Organyz Work-Regel.",
+			"incoming": "Repository → {{appName}}",
+			"incomingHint": "Wähle, welche Issues importiert werden oder Aufgaben erstellen dürfen. Verwende die exakten Labelnamen im Repository. Bestehende Verknüpfungen folgen der {{appName}}-Regel.",
 			"loadError": "Synchronisierungsregeln konnten nicht geladen werden.",
 			"loading": "Synchronisierungsregeln werden geladen…",
 			"matchLabels": "Labelübereinstimmung",
@@ -2063,8 +2063,8 @@
 			"noDescription": "Keine Beschreibung",
 			"noLabels": "Erstelle zuerst Workspace-Labels, um einen Aufgabenfilter einzurichten.",
 			"open": "Offen",
-			"outgoing": "Organyz Work → Repository",
-			"outgoingHint": "Wähle, welche Organyz Work-Aufgaben synchronisiert werden dürfen. Verliert eine verknüpfte Aufgabe ein erforderliches Label, pausieren beide Richtungen.",
+			"outgoing": "{{appName}} → Repository",
+			"outgoingHint": "Wähle, welche {{appName}}-Aufgaben synchronisiert werden dürfen. Verliert eine verknüpfte Aufgabe ein erforderliches Label, pausieren beide Richtungen.",
 			"paused": "Synchronisierung pausiert",
 			"pausedHint": "Einträge und Verknüpfungen bleiben erhalten. Aufgaben, die wieder passen, müssen vor dem Fortsetzen geprüft werden.",
 			"preserveHint": "Beim Pausieren bleiben beide Einträge und ihre Verknüpfung erhalten. Das Fortsetzen erfordert einen Vergleich; alte Kommentare werden nicht erneut übertragen.",
@@ -2086,7 +2086,7 @@
 			"sharedHint": "Diese Regeln gelten für alle im Projekt. Das Ausblenden erweiterter Einstellungen deaktiviert sie nicht.",
 			"title": "Was synchronisiert wird",
 			"unavailableLabel": "Nicht verfügbares Label",
-			"useKaneo": "Organyz Work-Werte übernehmen",
+			"useKaneo": "{{appName}}-Werte übernehmen",
 			"useRepository": "Repository-Werte übernehmen",
 			"exportPending": "Passende Aufgaben exportieren",
 			"inactiveHint": "Diese Integration ist pausiert. Aufgaben werden erst nach ihrer Reaktivierung exportiert.",
@@ -2099,10 +2099,10 @@
 			"issuesLabelled": "Issues mit Label",
 			"joinAnd": "und",
 			"joinOr": "oder",
-			"kaneoToProvider": "Von Organyz Work nach {{provider}}",
+			"kaneoToProvider": "Von {{appName}} nach {{provider}}",
 			"pausedSummary_one": "{{count}} Aufgabe wird nicht mehr synchronisiert, weil sie nicht mehr zu den Synchronisierungsregeln passt.",
 			"pausedSummary_other": "{{count}} Aufgaben werden nicht mehr synchronisiert, weil sie nicht mehr zu den Synchronisierungsregeln passen.",
-			"providerToKaneo": "Von {{provider}} nach Organyz Work",
+			"providerToKaneo": "Von {{provider}} nach {{appName}}",
 			"reviewPaused": "Prüfen",
 			"tasksLabelled": "Aufgaben mit Label"
 		},
@@ -2188,7 +2188,7 @@
 			"searchCount_other": "{{count}} passende Workspaces",
 			"searchLabel": "Workspaces suchen",
 			"searchPlaceholder": "Nach Name oder Slug suchen",
-			"subtitle": "Alle Workspaces auf dieser Organyz Work-Instanz, auch die, in denen du kein Mitglied bist.",
+			"subtitle": "Alle Workspaces auf dieser {{appName}}-Instanz, auch die, in denen du kein Mitglied bist.",
 			"title": "Workspaces",
 			"toast": {
 				"added": "Mitglied hinzugefügt",
@@ -2223,7 +2223,7 @@
 				"cancel": "Abbrechen",
 				"continue": "Weiter",
 				"hideSecret": "{{field}} ausblenden",
-				"sectionDescription": "Organyz Work greift nur lesend auf {{source}} zu. Der Schlüssel wird für diesen Import verwendet und niemals gespeichert.",
+				"sectionDescription": "{{appName}} greift nur lesend auf {{source}} zu. Der Schlüssel wird für diesen Import verwendet und niemals gespeichert.",
 				"sectionTitle": "Verbinden",
 				"showSecret": "{{field}} anzeigen",
 				"title": "Aus {{source}} importieren",
@@ -2252,11 +2252,11 @@
 				"title": "Letzte Importe"
 			},
 			"kaneo": {
-				"apiKeyDescription": "Öffne in dieser Kaneo-Instanz die Einstellungen und dann „API-Schlüssel“.",
+				"apiKeyDescription": "Öffne in dieser {{appName}}-Instanz die Einstellungen und dann „API-Schlüssel“.",
 				"apiKeyLabel": "API-Schlüssel",
 				"apiKeyPlaceholder": "API-Schlüssel einfügen",
 				"urlDescription": "Die Instanz, von der du wechselst.",
-				"urlLabel": "Kaneo-URL"
+				"urlLabel": "{{appName}}-URL"
 			},
 			"linear": {
 				"apiKeyDescription": "Lesezugriff reicht aus. Du kannst den Schlüssel nach dem Import widerrufen.",
@@ -2343,9 +2343,9 @@
 				"connectTo": "{{source}} verbinden",
 				"description": "Wähle das Tool aus, von dem du wechselst. Jedes ausgewählte Projekt wird hier zu einem neuen Projekt.",
 				"kaneo": {
-					"description": "Übertrage Projekte zwischen Kaneo Cloud und einer selbst gehosteten Instanz.",
+					"description": "Übertrage Projekte zwischen {{appName}} und einer selbst gehosteten Instanz.",
 					"intro": "Projekte aus allen Workspaces, auf die der Schlüssel Zugriff hat. Jedes ausgewählte Projekt wird hierher kopiert.",
-					"pickerName": "Andere Kaneo-Instanz"
+					"pickerName": "Andere {{appName}}-Instanz"
 				},
 				"linear": {
 					"description": "Teams, Issues, Labels, Unteraufgaben und Kommentare. Füge einen persönlichen API-Schlüssel ein.",
@@ -2383,7 +2383,7 @@
 				"import": "Importieren",
 				"label": "Importschritte"
 			},
-			"subtitle": "Übertrage deine Projekte aus einem anderen Tool in {{workspace}}. Organyz Work greift nur lesend auf die Quelle zu.",
+			"subtitle": "Übertrage deine Projekte aus einem anderen Tool in {{workspace}}. {{appName}} greift nur lesend auf die Quelle zu.",
 			"title": "Importieren",
 			"toast": {
 				"failed": "Import aus {{source}} fehlgeschlagen",
@@ -2396,7 +2396,7 @@
 				"apiKeyPlaceholder": "API-Schlüssel einfügen",
 				"authorizeButton": "Bei Trello autorisieren",
 				"authorizeDescription": "Öffnet Trello in einem neuen Tab. Nur Lesezugriff, läuft nach einem Tag ab.",
-				"authorizeLabel": "Organyz Work autorisieren",
+				"authorizeLabel": "{{appName}} autorisieren",
 				"authorizeNeedsKey": "Gib zuerst den API-Schlüssel ein. Nur Lesezugriff, läuft nach einem Tag ab.",
 				"tokenDescription": "Klicke in Trello auf „Zulassen“ und füge dann den angezeigten Token ein.",
 				"tokenLabel": "Token",
@@ -2484,7 +2484,7 @@
 			"channelLabel": "Kanal",
 			"channelPlaceholder": "#team-neuigkeiten",
 			"disconnect": "Trennen",
-			"disconnectDescription": "Organyz Work postet nicht mehr in {{provider}} und entfernt die gespeicherten Einstellungen.",
+			"disconnectDescription": "{{appName}} postet nicht mehr in {{provider}} und entfernt die gespeicherten Einstellungen.",
 			"disconnecting": "Wird getrennt…",
 			"disconnectTitle": "{{provider}} trennen?",
 			"events": {
@@ -2707,7 +2707,7 @@
 				"storageOk": "Bucket reachable",
 				"storageWarning": "Can't check the bucket with these credentials ({{code}}).",
 				"title": "Instance",
-				"version": "Kaneo version",
+				"version": "Version",
 				"versionUnknown": "Unknown"
 			},
 			"integrations": {
@@ -3335,7 +3335,7 @@
 			"history": "Chat history",
 			"historyEmpty": "No chats yet",
 			"newChat": "New chat",
-			"placeholder": "Ask Organyz Work...",
+			"placeholder": "Ask {{appName}}...",
 			"send": "Send message",
 			"thinking": "Working on it...",
 			"toolInput": "Input",
@@ -3492,7 +3492,7 @@
 			"actions": "Allowed changes",
 			"all": "All",
 			"allProjects": "All projects",
-			"askPlaceholder": "Ask Organyz Work to build the loop for you",
+			"askPlaceholder": "Ask {{appName}} to build the loop for you",
 			"backToRuns": "All runs",
 			"category": {
 				"engineering": "Engineering",
@@ -4755,13 +4755,13 @@
 	"invitations": {
 		"email": {
 			"subject": "{{inviterName}} hat dich eingeladen, {{workspaceName}} auf {{instanceName}} beizutreten",
-			"preview": "Du wurdest zu {{workspaceName}} auf Organyz Work eingeladen",
+			"preview": "Du wurdest zu {{workspaceName}} auf {{appName}} eingeladen",
 			"title": "{{workspaceName}} beitreten",
-			"subtitle": "{{inviterName}} ({{inviterEmail}}) hat dich eingeladen, in Organyz Work zusammenzuarbeiten.",
+			"subtitle": "{{inviterName}} ({{inviterEmail}}) hat dich eingeladen, in {{appName}} zusammenzuarbeiten.",
 			"cta": "Einladung annehmen",
 			"sameEmail": "Du kannst die Einladung mit derselben E-Mail-Adresse annehmen, die diese Nachricht erhalten hat.",
 			"ignore": "Falls du damit nicht gerechnet hast, kannst du diese E-Mail einfach ignorieren.",
-			"footer": "Organyz Work Workspace-Einladung",
+			"footer": "{{appName}} Workspace-Einladung",
 			"details": {
 				"title": "Einladungsdetails",
 				"sentTo": "Gesendet an",
@@ -4973,7 +4973,7 @@
 			},
 			"connect": {
 				"action": "Connect your GitHub account",
-				"description": "Your GitHub account needs to be connected before you can review pull requests in Organyz Work",
+				"description": "Your GitHub account needs to be connected before you can review pull requests in {{appName}}",
 				"title": "Connect GitHub to start reviewing"
 			},
 			"copyMenu": {
@@ -5044,7 +5044,7 @@
 				"noMatchingFiles": "No files match this filter.",
 				"noPatch": "No preview for this file. Open it on GitHub.",
 				"noReviewers": "No one to add.",
-				"notFound": "This pull request could not be loaded. It may not exist, or the Organyz Work GitHub App may not be installed on its repository.",
+				"notFound": "This pull request could not be loaded. It may not exist, or the {{appName}} GitHub App may not be installed on its repository.",
 				"openOnGithub": "Open on GitHub",
 				"options": {
 					"hideReviewed": "Hide reviewed",
@@ -5137,7 +5137,7 @@
 				"subGrouping": "Sub-grouping"
 			},
 			"empty": {
-				"description": "Pull requests you created or are asked to review show up here. If you expect to see some, check that the Organyz Work GitHub App is installed on those repositories.",
+				"description": "Pull requests you created or are asked to review show up here. If you expect to see some, check that the {{appName}} GitHub App is installed on those repositories.",
 				"title": "No pull requests"
 			},
 			"filterPlaceholder": "Filter",
@@ -5233,7 +5233,7 @@
 				"team": "No team"
 			},
 			"notConfigured": {
-				"description": "An administrator needs to add the Organyz Work GitHub App credentials before pull requests can be reviewed here.",
+				"description": "An administrator needs to add the {{appName}} GitHub App credentials before pull requests can be reviewed here.",
 				"title": "GitHub reviews are not set up"
 			},
 			"pageTitle": "Reviews",
@@ -5271,7 +5271,7 @@
 			},
 			"reconnect": {
 				"action": "Reconnect your GitHub account",
-				"description": "Your GitHub account needs to be connected again before you can review pull requests in Organyz Work",
+				"description": "Your GitHub account needs to be connected again before you can review pull requests in {{appName}}",
 				"title": "Reconnect GitHub to keep reviewing"
 			},
 			"reviewStatus": {

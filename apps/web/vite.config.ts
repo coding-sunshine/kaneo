@@ -1,11 +1,55 @@
 import path from "node:path";
+import { brand } from "@kaneo/brand";
 import babel from "@rolldown/plugin-babel";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { defineConfig, lazyPlugins } from "vite-plus";
+import type { Plugin } from "vite-plus";
 import packageJson from "../../package.json";
+
+const manifest = JSON.stringify(
+  {
+    name: brand.name,
+    short_name: brand.name,
+    icons: [192, 512].map((size) => ({
+      src: `/web-app-manifest-${size}x${size}.png`,
+      sizes: `${size}x${size}`,
+      type: "image/png",
+      purpose: "maskable",
+    })),
+    theme_color: brand.themeColor,
+    background_color: brand.backgroundColor,
+    display: "standalone",
+  },
+  null,
+  2,
+);
+
+// Fills the %BRAND_*% placeholders in index.html and serves/emits
+// site.webmanifest, so the brand lives only in @kaneo/brand.
+const brandPlugin: Plugin = {
+  name: "kaneo-brand",
+  transformIndexHtml: (html: string) =>
+    html
+      .replaceAll("%BRAND_NAME%", brand.name)
+      .replaceAll("%BRAND_DESCRIPTION%", brand.description)
+      .replaceAll("%BRAND_BACKGROUND%", brand.backgroundColor),
+  configureServer(server) {
+    server.middlewares.use("/site.webmanifest", (_req, res) => {
+      res.setHeader("Content-Type", "application/manifest+json");
+      res.end(manifest);
+    });
+  },
+  generateBundle() {
+    this.emitFile({
+      type: "asset",
+      fileName: "site.webmanifest",
+      source: manifest,
+    });
+  },
+};
 
 const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;
 const sentryOrg = process.env.SENTRY_ORG;
@@ -52,6 +96,7 @@ export default defineConfig({
       routeFileIgnorePattern: "\\.test\\.tsx?$",
     }),
     tailwindcss(),
+    brandPlugin,
     react(),
     babel({ presets: [reactCompilerPreset()] }),
     // Hidden when Sentry env vars are absent so local dev does not depend on it.

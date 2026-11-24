@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { DOCUMENT_ACCESS, DOCUMENT_SCOPES } from "../database/schema";
 import { nullableResponseTimestamp, responseTimestamp, z } from "../openapi";
 
@@ -28,9 +29,13 @@ export const listDocumentsQuery = z.object({
 });
 
 const parent = {
-  projectId: z.string().nullable().optional().openapi({
-    description: "Team (Kaneo project) to keep the document in.",
-  }),
+  projectId: z
+    .string()
+    .nullable()
+    .optional()
+    .openapi({
+      description: `Team (${brand.name} project) to keep the document in.`,
+    }),
   workProjectId: z.string().nullable().optional(),
   taskId: z.string().nullable().optional(),
 };

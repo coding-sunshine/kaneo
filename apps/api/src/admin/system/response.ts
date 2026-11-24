@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { z } from "../../openapi";
 import { serviceStatusSchema } from "./service-status";
 
@@ -9,9 +10,12 @@ const errorCode = z.string().nullable().openapi({
 export const adminSystemStatusSchema = z
   .object({
     checkedAt: z.string().openapi({ format: "date-time" }),
-    version: z.string().nullable().openapi({
-      description: "Kaneo release version of this API instance.",
-    }),
+    version: z
+      .string()
+      .nullable()
+      .openapi({
+        description: `${brand.name} release version of this API instance.`,
+      }),
     api: z.object({
       status: serviceStatusSchema,
       uptimeSeconds: z.number().int(),

@@ -529,7 +529,7 @@ describe("instance webhook delivery", () => {
     expect(await sendWebhookDelivery()).toBe(false);
     expect(requests).toHaveLength(1);
     const received = requests[0]!;
-    expect(received.headers["x-kaneo-signature"]).toBe(
+    expect(received.headers["x-webhook-signature"]).toBe(
       `sha256=${createHmac("sha256", secret).update(`${received.headers["x-kaneo-timestamp"]}.${received.body}`).digest("hex")}`,
     );
     expect(JSON.parse(received.body)).toMatchObject({
@@ -741,7 +741,7 @@ describe("instance webhook delivery", () => {
       })
     ).json()) as { secret: string };
     await sendWebhookDelivery();
-    expect(requests[0]!.headers["x-kaneo-signature"]).toBe(
+    expect(requests[0]!.headers["x-webhook-signature"]).toBe(
       `sha256=${createHmac("sha256", rotated.secret).update(`${requests[0]!.headers["x-kaneo-timestamp"]}.${requests[0]!.body}`).digest("hex")}`,
     );
     for (let i = 0; i < 22; i++) {

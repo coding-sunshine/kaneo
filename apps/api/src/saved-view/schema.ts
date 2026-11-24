@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { nullableResponseTimestamp, responseTimestamp, z } from "../openapi";
 
 export const workspaceIdParam = z.object({ workspaceId: z.string() });
@@ -11,10 +12,12 @@ const blob = z.record(z.string(), z.unknown());
 
 export const createViewBody = z.object({
   workspaceId: z.string(),
-  projectId: z.string().nullable().openapi({
-    description:
-      "Team (Kaneo project) the view belongs to; null for a workspace view.",
-  }),
+  projectId: z
+    .string()
+    .nullable()
+    .openapi({
+      description: `Team (${brand.name} project) the view belongs to; null for a workspace view.`,
+    }),
   visibility: visibility.default("shared").openapi({
     description: "personal: owner only; shared: the team or workspace.",
   }),

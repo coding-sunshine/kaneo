@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { and, eq } from "drizzle-orm";
 import db from "../../database";
 import {
@@ -138,7 +139,7 @@ async function sendMattermostMessage(
           },
           {
             title: "Triggered by",
-            value: data.actorName ? escapeText(data.actorName) : "Kaneo",
+            value: data.actorName ? escapeText(data.actorName) : brand.name,
             short: true,
           },
         ],

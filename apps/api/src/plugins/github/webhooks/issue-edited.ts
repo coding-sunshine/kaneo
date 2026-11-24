@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { issueEditScope } from "../utils/deferred-issue-edit";
 import { deferIssueEdit } from "../services/deferred-issue-edits";
 import { inboundStamp } from "../../github/utils/sync-echo";
@@ -138,7 +139,7 @@ export async function handleIssueEdited(payload: IssueEditedPayload) {
                   )
                 ) {
                   console.log(
-                    "Skipping title update - already synced from Kaneo",
+                    `Skipping title update - already synced from ${brand.name}`,
                   );
                   shouldUpdateTitle = false;
                 }
@@ -188,7 +189,7 @@ export async function handleIssueEdited(payload: IssueEditedPayload) {
                   )
                 ) {
                   console.log(
-                    "Skipping description update - already synced from Kaneo",
+                    `Skipping description update - already synced from ${brand.name}`,
                   );
                   shouldUpdateDescription = false;
                 }

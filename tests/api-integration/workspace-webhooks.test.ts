@@ -119,7 +119,7 @@ describe("workspace webhooks", () => {
     const expected = createHmac("sha256", secret)
       .update(`${timestamp}.${body}`)
       .digest("hex");
-    expect(headers["x-kaneo-signature"]).toBe(`sha256=${expected}`);
+    expect(headers["x-webhook-signature"]).toBe(`sha256=${expected}`);
     expect(body).not.toContain(secret);
   });
 

@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { z } from "../openapi";
 
 export const WORK_PROJECT_STATUSES = [
@@ -16,9 +17,12 @@ export const updateParam = z.object({ id: z.string() });
 export const milestoneParam = z.object({ id: z.string() });
 
 export const listWorkProjectsQuery = z.object({
-  teamId: z.string().optional().openapi({
-    description: "Only projects linked to this team (Kaneo project).",
-  }),
+  teamId: z
+    .string()
+    .optional()
+    .openapi({
+      description: `Only projects linked to this team (${brand.name} project).`,
+    }),
 });
 
 const date = z

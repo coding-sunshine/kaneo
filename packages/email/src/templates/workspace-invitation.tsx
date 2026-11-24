@@ -1,4 +1,5 @@
 import React from "react";
+import { BRAND_TOKEN } from "../brand";
 import { Badge } from "../components/badge";
 import { DetailRows } from "../components/detail-rows";
 import { EmailFooter } from "../components/email-footer";
@@ -48,14 +49,14 @@ export type WorkspaceInvitationEmailCopy = {
 const DEFAULT_COPY: WorkspaceInvitationEmailCopy = {
   subject:
     "{{inviterName}} invited you to join {{workspaceName}} on {{instanceName}}",
-  preview: "You're invited to {{workspaceName}} on Kaneo",
+  preview: "You're invited to {{workspaceName}} on {{appName}}",
   title: "Join {{workspaceName}}",
   subtitle:
-    "{{inviterName}} ({{inviterEmail}}) invited you to collaborate in Kaneo.",
+    "{{inviterName}} ({{inviterEmail}}) invited you to collaborate in {{appName}}.",
   cta: "Accept invitation",
   sameEmail: "You can accept with the same email that received this message.",
   ignore: "If this wasn't expected, you can safely ignore this email.",
-  footer: "Kaneo workspace invitation",
+  footer: "{{appName}} workspace invitation",
   details: {
     title: "Invitation details",
     sentTo: "Sent to",
@@ -67,7 +68,7 @@ const DEFAULT_COPY: WorkspaceInvitationEmailCopy = {
 
 function interpolate(template: string, values: Record<string, string>) {
   return template.replace(/\{\{(\w+)\}\}/g, (_match, key: string) => {
-    return values[key] ?? "";
+    return values[key] ?? _match;
   });
 }
 
@@ -83,7 +84,12 @@ const WorkspaceInvitationEmail = ({
   instance,
   copy = DEFAULT_COPY,
 }: WorkspaceInvitationEmailProps) => {
-  const values = { workspaceName, inviterName, inviterEmail };
+  const values = {
+    workspaceName,
+    inviterName,
+    inviterEmail,
+    appName: BRAND_TOKEN,
+  };
   const lang = locale ?? "en";
   const details = copy.details;
   const detailRows = details

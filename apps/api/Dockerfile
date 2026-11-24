@@ -12,6 +12,7 @@ WORKDIR /app
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml vite.config.ts ./
 COPY patches ./patches
 COPY packages/typescript-config/package.json ./packages/typescript-config/
+COPY packages/brand/package.json ./packages/brand/
 COPY packages/email/package.json ./packages/email/
 COPY packages/libs/package.json ./packages/libs/
 COPY packages/permissions/package.json ./packages/permissions/
@@ -24,6 +25,7 @@ RUN pnpm install --frozen-lockfile
 
 # Copy source files
 COPY packages/typescript-config ./packages/typescript-config
+COPY packages/brand ./packages/brand
 COPY packages/email ./packages/email
 COPY packages/libs ./packages/libs
 COPY packages/permissions ./packages/permissions
@@ -32,7 +34,11 @@ COPY packages/mcp ./packages/mcp
 COPY i18n ./i18n
 COPY apps/api ./apps/api
 
-# Build email package first
+# Build brand package first
+WORKDIR /app/packages/brand
+RUN pnpm run build
+
+# Build email package
 WORKDIR /app/packages/email
 RUN pnpm run build
 
@@ -62,6 +68,7 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml vite.config.ts ./
 COPY patches ./patches
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/libs/package.json ./packages/libs/
+COPY packages/brand/package.json ./packages/brand/
 COPY packages/email/package.json ./packages/email/
 COPY packages/permissions/package.json ./packages/permissions/
 COPY packages/importers/package.json ./packages/importers/
@@ -89,13 +96,14 @@ COPY --from=prod-deps --chown=appuser:appuser /app ./
 # Built application and workspace packages
 COPY --from=builder --chown=appuser:appuser /app/apps/api/dist ./apps/api/dist
 COPY --from=builder --chown=appuser:appuser /app/apps/api/drizzle ./apps/api/drizzle
+COPY --from=builder --chown=appuser:appuser /app/packages/brand ./packages/brand
 COPY --from=builder --chown=appuser:appuser /app/packages/email ./packages/email
 COPY --from=builder --chown=appuser:appuser /app/packages/permissions ./packages/permissions
 COPY --from=builder --chown=appuser:appuser /app/packages/importers/dist ./packages/importers/dist
 COPY --from=builder --chown=appuser:appuser /app/packages/mcp/dist ./packages/mcp/dist
 
 # Fail the build early if the runtime dependency layout is broken on the target architecture
-RUN cd /app/apps/api && node -e "const fs=require('fs');for(const m of ['bcryptjs','hono','pg','drizzle-orm','better-auth','ioredis','valibot','octokit','@modelcontextprotocol/sdk']){fs.accessSync('node_modules/'+m+'/package.json')}for(const m of ['email','permissions','importers']){fs.accessSync('node_modules/@kaneo/'+m+'/dist/index.js')}" && \
+RUN cd /app/apps/api && node -e "const fs=require('fs');for(const m of ['bcryptjs','hono','pg','drizzle-orm','better-auth','ioredis','valibot','octokit','@modelcontextprotocol/sdk']){fs.accessSync('node_modules/'+m+'/package.json')}for(const m of ['brand','email','permissions','importers']){fs.accessSync('node_modules/@kaneo/'+m+'/dist/index.js')}" && \
   node --input-type=module -e "import { registerTools } from '@kaneo/mcp/tools'; if (typeof registerTools !== 'function') process.exit(1)"
 
 # Switch to non-root user

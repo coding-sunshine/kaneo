@@ -74,7 +74,7 @@ const TrialReminderEmail = ({
     >
       <EmailIntro title={title(daysLeft)} subtitle={subtitle(daysLeft)} />
       <Frame
-        title="Kaneo Cloud trial"
+        title="{{brand}} trial"
         description={
           endDate
             ? `${workspaceName} workspace, ends ${endDate}`
@@ -96,11 +96,11 @@ const TrialReminderEmail = ({
         at any time.
       </EmailNote>
       <EmailFooter
-        title="Kaneo Cloud billing"
+        title="{{brand}} billing"
         reason={
           email
-            ? `Sent to ${email} because you own the ${workspaceName} workspace on Kaneo Cloud.`
-            : `You are receiving this because you own this workspace on Kaneo Cloud.`
+            ? `Sent to ${email} because you own the ${workspaceName} workspace on {{brand}}.`
+            : `You are receiving this because you own this workspace on {{brand}}.`
         }
         links={footerLinks("en", [{ label: "Billing", href: billingUrl }])}
       />

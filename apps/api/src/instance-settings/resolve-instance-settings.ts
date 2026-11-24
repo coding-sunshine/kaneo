@@ -1,4 +1,5 @@
-export const DEFAULT_INSTANCE_NAME = "Organyz Work";
+import { brand } from "@kaneo/brand";
+export const DEFAULT_INSTANCE_NAME = brand.name;
 
 /** What the `instance_settings` row holds, with defaults for a missing row. */
 export type StoredInstanceSettings = {

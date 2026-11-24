@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { and, eq } from "drizzle-orm";
 import db from "../../database";
 import { importRunTable } from "../../database/schema";
@@ -8,7 +9,7 @@ import {
 } from "../import-run-project";
 import { logImportError } from "../log-import-error";
 
-export const RESTART_ERROR = "Kaneo restarted during the import.";
+export const RESTART_ERROR = `${brand.name} restarted during the import.`;
 
 const SHUTDOWN_GRACE_MS = 5_000;
 

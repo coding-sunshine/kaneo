@@ -1,6 +1,6 @@
 {
 	"common": {
-		"appName": "Organyz Work",
+		"appName": "{{appName}}",
 		"actions": {
 			"cancel": "Cancel",
 			"close": "Close",
@@ -98,7 +98,7 @@
 				"copyNone": "None"
 			},
 			"createWorkspace": {
-				"breadcrumbKaneo": "KANEO",
+				"breadcrumbKaneo": "{{appName}}",
 				"title": "Create a new workspace",
 				"description": "Create a new workspace by providing a name for your workspace.",
 				"namePlaceholder": "Workspace name",
@@ -192,7 +192,7 @@
 				"use_a_permanent_email_address_disposable_addresses_cannot_create_accounts_": "Use a permanent email address. Disposable addresses cannot create accounts."
 			},
 			"instanceStatusError": "Couldn't reach the server. Please retry in a moment.",
-			"heading": "Sign in to Organyz Work",
+			"heading": "Sign in to {{appName}}",
 			"submitPassword": "Sign in",
 			"invitation": {
 				"title": "{{inviterName}} invited you to {{workspaceName}}",
@@ -200,7 +200,7 @@
 				"description": "Sign in with the email that received the invitation. You'll join the workspace right after."
 			},
 			"footer": {
-				"newHere": "New to Organyz Work?",
+				"newHere": "New to {{appName}}?",
 				"createAccount": "Create an account",
 				"inviteOnly": "Accounts here are invite-only. Ask an admin for an invitation.",
 				"providerSignUp": "New here? Sign in with a provider above to create an account.",
@@ -258,7 +258,7 @@
 			"toggleMessage": "Already have an account?",
 			"toggleLink": "Sign in",
 			"instanceStatusError": "Couldn't reach the server. Please retry in a moment.",
-			"instanceAdminTitle": "Set up your Organyz Work instance",
+			"instanceAdminTitle": "Set up your {{appName}} instance",
 			"instanceAdminSubtitle": "This account becomes the instance administrator with full access.",
 			"heading": "Create your account",
 			"submitPassword": "Create account",
@@ -312,7 +312,7 @@
 				"acceptFailed": "Failed to accept invitation",
 				"acceptSuccess": "Invitation accepted! Welcome to the team."
 			},
-			"description": "{{inviterName}} invited you to this workspace on Organyz Work.",
+			"description": "{{inviterName}} invited you to this workspace on {{appName}}.",
 			"invitedBy": "Invited by",
 			"sentTo": "Sent to",
 			"signedInAs": "Signed in as",
@@ -320,7 +320,7 @@
 			"notNow": "Not now",
 			"join": "Join workspace",
 			"switchAccount": "Switch account",
-			"goToKaneo": "Go to Organyz Work",
+			"goToKaneo": "Go to {{appName}}",
 			"mismatch": {
 				"title": "Signed in with a different email",
 				"description": "This invitation was sent to {{invitedEmail}}. You're signed in as {{email}}."
@@ -339,7 +339,7 @@
 			}
 		},
 		"onboarding": {
-			"pageTitle": "Welcome to Organyz Work",
+			"pageTitle": "Welcome to {{appName}}",
 			"workspaceName": "Workspace name",
 			"workspaceNamePlaceholder": "e.g. Acme Inc, My Team",
 			"restrictedTitle": "You need an invitation",
@@ -387,7 +387,7 @@
 				},
 				"invite": {
 					"title": "Invite your team",
-					"description": "Organyz Work works best with everyone in it. Open **Members** in the sidebar to invite people by email."
+					"description": "{{appName}} works best with everyone in it. Open **Members** in the sidebar to invite people by email."
 				},
 				"integrations": {
 					"title": "Connect GitHub, GitLab or Gitea",
@@ -511,7 +511,7 @@
 		"device": {
 			"connect": {
 				"title": "Connect a device",
-				"description": "Enter the code shown in your terminal or app to link it to your Organyz Work account.",
+				"description": "Enter the code shown in your terminal or app to link it to your {{appName}} account.",
 				"label": "Device code",
 				"submit": "Continue",
 				"noCode": "No code yet? Start signing in from your app first.",
@@ -535,7 +535,7 @@
 				"title": "Request denied",
 				"description": "Nothing was connected. You can close this tab."
 			},
-			"openApp": "Open Organyz Work",
+			"openApp": "Open {{appName}}",
 			"missing": {
 				"title": "No device code",
 				"description": "Open this page from your device, or enter the code yourself.",
@@ -576,10 +576,10 @@
 		"syncRules": {
 			"title": "What syncs",
 			"sharedHint": "These rules apply to everyone using this project. Hiding advanced settings does not disable them.",
-			"outgoing": "Organyz Work → repository",
-			"incoming": "Repository → Organyz Work",
-			"outgoingHint": "Choose which Organyz Work issues can sync. Losing a matching label pauses both directions for an existing issue.",
-			"incomingHint": "Choose which provider issues can be imported or create issues. Use exact repository label names. Existing links follow the Organyz Work issue rule.",
+			"outgoing": "{{appName}} → repository",
+			"incoming": "Repository → {{appName}}",
+			"outgoingHint": "Choose which {{appName}} issues can sync. Losing a matching label pauses both directions for an existing issue.",
+			"incomingHint": "Choose which provider issues can be imported or create issues. Use exact repository label names. Existing links follow the {{appName}} issue rule.",
 			"all": "All issues and provider issues",
 			"filtered": "Only matching labels",
 			"any": "Any selected label",
@@ -622,7 +622,7 @@
 			"closed": "Closed",
 			"noDescription": "No description",
 			"useRepository": "Keep repository values",
-			"useKaneo": "Keep Organyz Work values",
+			"useKaneo": "Keep {{appName}} values",
 			"exportPending": "Export matching issues",
 			"inactiveHint": "This integration is paused. No issues will be exported until it is reactivated.",
 			"allIssues": "All issues",
@@ -632,10 +632,10 @@
 			"issuesLabelled": "Issues labelled",
 			"joinAnd": "and",
 			"joinOr": "or",
-			"kaneoToProvider": "Organyz Work to {{provider}}",
+			"kaneoToProvider": "{{appName}} to {{provider}}",
 			"pausedSummary_one": "{{count}} issue stopped syncing because it no longer matched the sync rules.",
 			"pausedSummary_other": "{{count}} issues stopped syncing because they no longer matched the sync rules.",
-			"providerToKaneo": "{{provider}} to Organyz Work",
+			"providerToKaneo": "{{provider}} to {{appName}}",
 			"reviewPaused": "Review",
 			"tasksLabelled": "Issues labelled"
 		},
@@ -648,7 +648,7 @@
 		"apiKeys": "API keys",
 		"adminUsers": {
 			"title": "Users",
-			"subtitle": "Everyone with an account on this Organyz Work instance.",
+			"subtitle": "Everyone with an account on this {{appName}} instance.",
 			"directoryTitle": "All users",
 			"searchCount_one": "{{count}} matching user",
 			"searchCount_other": "{{count}} matching users",
@@ -810,7 +810,7 @@
 		},
 		"adminWorkspaces": {
 			"title": "Workspaces",
-			"subtitle": "Every workspace on this Organyz Work instance, including ones you don't belong to.",
+			"subtitle": "Every workspace on this {{appName}} instance, including ones you don't belong to.",
 			"directoryTitle": "All workspaces",
 			"searchCount_one": "{{count}} matching workspace",
 			"searchCount_other": "{{count}} matching workspaces",
@@ -1047,7 +1047,7 @@
 		"notificationsPage": {
 			"pageTitle": "Notifications",
 			"title": "Notifications",
-			"subtitle": "What Organyz Work tells you about, and where it reaches you.",
+			"subtitle": "What {{appName}} tells you about, and where it reaches you.",
 			"statusConnected": "Connected",
 			"statusPaused": "Paused",
 			"emailTitle": "Email",
@@ -1077,10 +1077,10 @@
 			"webhookDescription": "Send each notification to your own endpoint as JSON.",
 			"endpointUrl": "Endpoint URL",
 			"signingSecret": "Signing secret",
-			"webhookUrlPlaceholder": "https://example.com/webhooks/kaneo",
+			"webhookUrlPlaceholder": "https://example.com/webhooks",
 			"webhookSecretPlaceholder": "Optional shared secret",
 			"webhookSecretHintConfigured": "A signing secret is already configured ({{masked}}). Enter a new one to replace it.",
-			"webhookSecretHintOptional": "Organyz Work signs the request body when a secret is set.",
+			"webhookSecretHintOptional": "{{appName}} signs the request body when a secret is set.",
 			"connectWebhook": "Connect webhook",
 			"eventPreferencesTitle": "Notify me about",
 			"eventPreferencesDescription": "Your own comments, mentions, and status changes never notify you.",
@@ -1137,7 +1137,7 @@
 			"scheduleEnd": "End time",
 			"scheduleSave": "Save schedule",
 			"channelsTitle": "Channels",
-			"channelsDescription": "Notifications always show in Organyz Work. Connect a channel to get them somewhere else too.",
+			"channelsDescription": "Notifications always show in {{appName}}. Connect a channel to get them somewhere else too.",
 			"statusOn": "On",
 			"emailToggleLabel": "Send notifications by email",
 			"connect": "Connect",
@@ -1154,7 +1154,7 @@
 			"workspacesTitle": "Workspaces",
 			"workspacesDescription": "Choose which workspaces and projects can use your channels.",
 			"statusSending": "Sending",
-			"onlyInKaneo": "Only in Organyz Work",
+			"onlyInKaneo": "Only in {{appName}}",
 			"projectCount_one": "{{count}} project",
 			"projectCount_other": "{{count}} projects",
 			"ruleSummary": "{{channels}} · {{projects}}",
@@ -1173,12 +1173,12 @@
 			"save": "Save",
 			"stopSending": "Stop sending",
 			"stopSendingTitle": "Stop sending from {{workspaceName}}?",
-			"stopSendingDescription": "Notifications from this workspace will only show in Organyz Work.",
+			"stopSendingDescription": "Notifications from this workspace will only show in {{appName}}.",
 			"stopping": "Stopping..."
 		},
 		"preferencesPage": {
 			"title": "Preferences",
-			"subtitle": "How Organyz Work looks and works for you.",
+			"subtitle": "How {{appName}} looks and works for you.",
 			"appearanceTitle": "General",
 			"theme": "Theme",
 			"selectTheme": "Select a theme",
@@ -1227,7 +1227,7 @@
 		"developerPage": {
 			"pageTitle": "API keys",
 			"title": "API keys",
-			"subtitle": "Let scripts, the CLI, and MCP clients use Organyz Work as you.",
+			"subtitle": "Let scripts, the CLI, and MCP clients use {{appName}} as you.",
 			"unnamedKey": "Unnamed",
 			"newKey": "New key",
 			"keysTitle": "Keys",
@@ -1608,7 +1608,7 @@
 		"workspaceImport": {
 			"pageTitle": "Import",
 			"title": "Import",
-			"subtitle": "Bring your projects from another tool into {{workspace}}. Organyz Work only reads from the source.",
+			"subtitle": "Bring your projects from another tool into {{workspace}}. {{appName}} only reads from the source.",
 			"opensInNewTab": "(opens in a new tab)",
 			"retry": "Try again",
 			"notAllowed": {
@@ -1641,8 +1641,8 @@
 					"intro": "Each PLANKA board becomes a project, with its lists as columns."
 				},
 				"kaneo": {
-					"pickerName": "Another Kaneo",
-					"description": "Move projects between Kaneo Cloud and a self-hosted instance.",
+					"pickerName": "Another {{appName}} instance",
+					"description": "Move projects between two {{appName}} instances.",
 					"intro": "Projects from every workspace the key can see. Each one you pick is copied here."
 				}
 			},
@@ -1675,7 +1675,7 @@
 			"connect": {
 				"title": "Import from {{source}}",
 				"sectionTitle": "Connect",
-				"sectionDescription": "Organyz Work only reads from {{source}}. The key is used for this import and never stored.",
+				"sectionDescription": "{{appName}} only reads from {{source}}. The key is used for this import and never stored.",
 				"cancel": "Cancel",
 				"continue": "Continue",
 				"whereToFind": "Where to find it",
@@ -1709,7 +1709,7 @@
 				"apiKeyLabel": "API key",
 				"apiKeyDescription": "In a Power-Up you own, open the Trello Auth tab and generate an API key (not the OAuth 2.0 tab) at",
 				"apiKeyPlaceholder": "Paste API key",
-				"authorizeLabel": "Authorize Organyz Work",
+				"authorizeLabel": "Authorize {{appName}}",
 				"authorizeDescription": "Opens Trello in a new tab. Read only, expires after a day.",
 				"authorizeNeedsKey": "Enter the API key first. Read only, expires after a day.",
 				"authorizeButton": "Authorize on Trello",
@@ -1741,10 +1741,10 @@
 				"adminTip": "Use a PLANKA admin account. PLANKA only shows email addresses to admins, and card members are matched to people here by email."
 			},
 			"kaneo": {
-				"urlLabel": "Kaneo URL",
+				"urlLabel": "{{appName}} URL",
 				"urlDescription": "The instance you are moving from.",
 				"apiKeyLabel": "API key",
-				"apiKeyDescription": "In that Kaneo, open Settings, then API Keys.",
+				"apiKeyDescription": "In that {{appName}}, open Settings, then API Keys.",
 				"apiKeyPlaceholder": "Paste API key"
 			},
 			"select": {
@@ -2106,15 +2106,15 @@
 				"removeError": "Failed to remove GitHub integration",
 				"issuesImported": "Issues imported successfully",
 				"importError": "Failed to import issues",
-				"commentOnEnabled": "Organyz Work will comment with a link on new provider issues",
+				"commentOnEnabled": "{{appName}} will comment with a link on new provider issues",
 				"commentOnDisabled": "Link comments on new provider issues are turned off",
 				"settingsUpdateError": "Failed to update GitHub integration"
 			},
-			"commentTaskLinkTitle": "Comment a Organyz Work link on new issues",
+			"commentTaskLinkTitle": "Comment a link back to {{appName}} on new issues",
 			"commentTaskLinkHint": "So people on GitHub can jump to the issue.",
 			"updatePermissions": "Update permissions",
 			"installGithubApp": "Install GitHub App",
-			"importSectionHint": "Import the repository's open issues as Organyz Work issues.",
+			"importSectionHint": "Import the repository's open issues as {{appName}} issues.",
 			"importDisabledHint": "Reconnect the repository to enable importing.",
 			"accountVerificationHint": "Connect your GitHub account to verify that you administer this repository.",
 			"enableGithubSignInHint": "Ask your instance administrator to enable GitHub sign-in.",
@@ -2127,9 +2127,9 @@
 			"linkAccountTitle": "Link your GitHub account",
 			"linkGithub": "Link GitHub",
 			"linked": "Linked",
-			"verifyMissingPermissions": "The Organyz Work GitHub App is missing permissions: {{list}}.",
-			"verifyNotInstalled": "The Organyz Work GitHub App isn't installed on this repository.",
-			"verifyReady": "The Organyz Work GitHub App is installed with the permissions it needs.",
+			"verifyMissingPermissions": "The {{appName}} GitHub App is missing permissions: {{list}}.",
+			"verifyNotInstalled": "The {{appName}} GitHub App isn't installed on this repository.",
+			"verifyReady": "The {{appName}} GitHub App is installed with the permissions it needs.",
 			"workflowHint": "Move issues when pull requests open or merge in",
 			"workflowLink": "Workflow"
 		},
@@ -2147,18 +2147,18 @@
 				"removeError": "Failed to remove Gitea integration",
 				"issuesImported": "Issues imported successfully",
 				"importError": "Failed to import issues",
-				"commentOnEnabled": "Organyz Work will comment with a link on new provider issues",
+				"commentOnEnabled": "{{appName}} will comment with a link on new provider issues",
 				"commentOnDisabled": "Link comments on new provider issues are turned off",
 				"settingsUpdateError": "Failed to update Gitea integration"
 			},
-			"commentTaskLinkTitle": "Comment a Organyz Work link on new issues",
+			"commentTaskLinkTitle": "Comment a link back to {{appName}} on new issues",
 			"commentTaskLinkHint": "So people on Gitea can jump to the issue.",
-			"webhookHint": "Add this webhook in the repository settings so changes come back to Organyz Work.",
+			"webhookHint": "Add this webhook in the repository settings so changes come back to {{appName}}.",
 			"baseUrlLabel": "Gitea URL",
 			"tokenLabel": "Personal access token",
 			"tokenPlaceholder": "Paste token",
 			"tokenPlaceholderUpdate": "Paste new token to rotate",
-			"importSectionHint": "Import open issues and pull requests as Organyz Work issues.",
+			"importSectionHint": "Import open issues and pull requests as {{appName}} issues.",
 			"importDisabledHint": "Importing needs verified access. Check the token status above.",
 			"browseModalHint": "Repositories your token can access.",
 			"browseNeedsCredentials": "Enter the Gitea URL and a token to browse.",
@@ -2181,13 +2181,13 @@
 				"removeError": "Failed to remove GitLab integration",
 				"issuesImported": "Issues imported successfully",
 				"importError": "Failed to import issues",
-				"commentOnEnabled": "Organyz Work will comment with an issue link on issues opened in GitLab",
+				"commentOnEnabled": "{{appName}} will comment with an issue link on issues opened in GitLab",
 				"commentOnDisabled": "Issue link comments on issues opened in GitLab are turned off",
 				"settingsUpdateError": "Failed to update GitLab integration"
 			},
-			"commentTaskLinkTitle": "Comment a Organyz Work link on issues opened in GitLab",
+			"commentTaskLinkTitle": "Comment a link back to {{appName}} on issues opened in GitLab",
 			"commentTaskLinkHint": "So people on GitLab can jump to the issue.",
-			"webhookHint": "Add this webhook in the project settings so changes come back to Organyz Work.",
+			"webhookHint": "Add this webhook in the project settings so changes come back to {{appName}}.",
 			"baseUrlLabel": "GitLab URL",
 			"tokenTypeLabel": "Token type",
 			"tokenTypePrivate": "Personal, project or group access token",
@@ -2196,7 +2196,7 @@
 			"tokenPlaceholder": "Paste token",
 			"tokenPlaceholderUpdate": "Paste new token to rotate",
 			"projectPathLabel": "Project path",
-			"importSectionHint": "Import open issues and merge requests as Organyz Work issues.",
+			"importSectionHint": "Import open issues and merge requests as {{appName}} issues.",
 			"browseModalHint": "Projects your token is a member of.",
 			"searchProjects": "Search projects",
 			"browseNeedsCredentials": "Enter the GitLab URL and a token to browse.",
@@ -2278,11 +2278,11 @@
 				"removeError": "Failed to remove generic webhook integration"
 			},
 			"webhookLabel": "Endpoint URL",
-			"webhookPlaceholder": "https://example.com/webhooks/kaneo",
-			"webhookHint": "Organyz Work sends POST requests with a JSON payload for each enabled event.",
+			"webhookPlaceholder": "https://example.com/webhooks",
+			"webhookHint": "{{appName}} sends POST requests with a JSON payload for each enabled event.",
 			"secretLabel": "Signing secret",
 			"secretPlaceholder": "Shared secret",
-			"secretHint": "Organyz Work signs each request with it and sends the digest in the X-Kaneo-Signature header.",
+			"secretHint": "{{appName}} signs each request with it and sends the digest in the X-Webhook-Signature header.",
 			"secretHintConfigured": "Current secret: {{secret}}. Paste a new one to replace it.",
 			"eventsTitle": "Send when",
 			"events": {
@@ -2305,7 +2305,7 @@
 			"reminderLeadTimeBefore": "Send reminders",
 			"reminderLeadTimeAfter": "hours before an issue is due",
 			"disconnectTitle": "Disconnect webhook?",
-			"disconnectDescription": "Organyz Work stops sending events and removes the saved endpoint and secret."
+			"disconnectDescription": "{{appName}} stops sending events and removes the saved endpoint and secret."
 		},
 		"telegramIntegration": {
 			"validation": {
@@ -2338,7 +2338,7 @@
 		},
 		"repositoryBrowser": {
 			"title": "Choose a repository",
-			"description": "Repositories the Organyz Work GitHub App can see.",
+			"description": "Repositories the {{appName}} GitHub App can see.",
 			"searchPlaceholder": "Search repositories",
 			"loadError": "Couldn't load repositories.",
 			"tryAgain": "Retry",
@@ -2415,7 +2415,7 @@
 		"securityPage": {
 			"pageTitle": "Security",
 			"title": "Security",
-			"subtitle": "How you sign in to Organyz Work.",
+			"subtitle": "How you sign in to {{appName}}.",
 			"sectionTitle": "Sign-in",
 			"currentPassword": "Current password",
 			"newPassword": "New password",
@@ -2508,14 +2508,14 @@
 		"billing": {
 			"pageTitle": "Billing",
 			"subtitle": "Your plan for {{workspace}}.",
-			"disabled": "Billing isn't enabled on this instance. Self-hosted Kaneo includes every feature, free forever.",
+			"disabled": "Billing isn't enabled on this instance. Self-hosted {{appName}} includes every feature, free forever.",
 			"currentPlan": {
 				"title": "Current plan"
 			},
 			"foundingFree": {
 				"title": "Founding Free",
 				"badge": "Free",
-				"description": "This workspace has free access to Kaneo Cloud as an early supporter. Thank you for being here from the start."
+				"description": "This workspace has free access to {{appName}} as an early supporter. Thank you for being here from the start."
 			},
 			"seats_one": "{{count}} seat",
 			"seats_other": "{{count}} seats",
@@ -2628,7 +2628,7 @@
 			"disconnect": "Disconnect",
 			"disconnecting": "Disconnecting…",
 			"disconnectTitle": "Disconnect {{provider}}?",
-			"disconnectDescription": "Organyz Work stops posting to {{provider}} and removes the saved settings.",
+			"disconnectDescription": "{{appName}} stops posting to {{provider}} and removes the saved settings.",
 			"retry": "Retry"
 		},
 		"codeHosting": {
@@ -2720,7 +2720,7 @@
 			},
 			"instance": {
 				"title": "Instance",
-				"version": "Kaneo version",
+				"version": "{{appName}} version",
 				"versionUnknown": "Unknown",
 				"api": "API",
 				"apiDescription": "Up {{uptime}} · Node {{node}}",
@@ -3456,7 +3456,7 @@
 		},
 		"agent": {
 			"newChat": "New chat",
-			"placeholder": "Ask Organyz Work...",
+			"placeholder": "Ask {{appName}}...",
 			"followUp": "Reply...",
 			"send": "Send message",
 			"thinking": "Working on it...",
@@ -3498,7 +3498,7 @@
 			"createTitle": "Create a new loop",
 			"createSubtitle": "Automate manual work for your team and keep your process moving",
 			"startFresh": "Start fresh",
-			"askPlaceholder": "Ask Organyz Work to build the loop for you",
+			"askPlaceholder": "Ask {{appName}} to build the loop for you",
 			"noTemplates": "No templates in this category yet",
 			"newTitle": "New loop",
 			"editTitle": "Edit loop",
@@ -4755,13 +4755,13 @@
 	"invitations": {
 		"email": {
 			"subject": "{{inviterName}} invited you to join {{workspaceName}} on {{instanceName}}",
-			"preview": "You're invited to {{workspaceName}} on Organyz Work",
+			"preview": "You're invited to {{workspaceName}} on {{appName}}",
 			"title": "Join {{workspaceName}}",
-			"subtitle": "{{inviterName}} ({{inviterEmail}}) invited you to collaborate in Organyz Work.",
+			"subtitle": "{{inviterName}} ({{inviterEmail}}) invited you to collaborate in {{appName}}.",
 			"cta": "Accept invitation",
 			"sameEmail": "You can accept with the same email that received this message.",
 			"ignore": "If this wasn't expected, you can safely ignore this email.",
-			"footer": "Organyz Work workspace invitation",
+			"footer": "{{appName}} workspace invitation",
 			"details": {
 				"title": "Invitation details",
 				"sentTo": "Sent to",
@@ -4909,7 +4909,7 @@
 				"details": "Details",
 				"noDescription": "No description provided.",
 				"openOnGithub": "Open on GitHub",
-				"notFound": "This pull request could not be loaded. It may not exist, or the Organyz Work GitHub App may not be installed on its repository.",
+				"notFound": "This pull request could not be loaded. It may not exist, or the {{appName}} GitHub App may not be installed on its repository.",
 				"tabs": {
 					"overview": "Overview",
 					"files": "Files",
@@ -5005,21 +5005,21 @@
 			},
 			"empty": {
 				"title": "No pull requests",
-				"description": "Pull requests you created or are asked to review show up here. If you expect to see some, check that the Organyz Work GitHub App is installed on those repositories."
+				"description": "Pull requests you created or are asked to review show up here. If you expect to see some, check that the {{appName}} GitHub App is installed on those repositories."
 			},
 			"connect": {
 				"title": "Connect GitHub to start reviewing",
-				"description": "Your GitHub account needs to be connected before you can review pull requests in Organyz Work",
+				"description": "Your GitHub account needs to be connected before you can review pull requests in {{appName}}",
 				"action": "Connect your GitHub account"
 			},
 			"reconnect": {
 				"title": "Reconnect GitHub to keep reviewing",
-				"description": "Your GitHub account needs to be connected again before you can review pull requests in Organyz Work",
+				"description": "Your GitHub account needs to be connected again before you can review pull requests in {{appName}}",
 				"action": "Reconnect your GitHub account"
 			},
 			"notConfigured": {
 				"title": "GitHub reviews are not set up",
-				"description": "An administrator needs to add the Organyz Work GitHub App credentials before pull requests can be reviewed here."
+				"description": "An administrator needs to add the {{appName}} GitHub App credentials before pull requests can be reviewed here."
 			},
 			"filterPlaceholder": "Filter",
 			"searchPlaceholder": "Search",

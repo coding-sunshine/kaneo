@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { useQueryClient } from "@tanstack/react-query";
 import { ExternalLink, FolderGit, MessageSquareIcon } from "lucide-react";
 import { useCallback, useState } from "react";
@@ -120,7 +121,7 @@ export default function CommentCard({
             : externalSource === "linear"
               ? "Linear"
               : externalSource === "kaneo"
-                ? "Kaneo"
+                ? brand.name
                 : externalSource;
   // Gitea and GitLab profile URLs depend on the instance.
   const githubProfileUrl =

@@ -31,7 +31,7 @@ A notification needs a resolvable workspace context for external delivery. It mu
 
 ## Verify requests
 
-When a signing secret is set, Kaneo sends `X-Kaneo-Signature`: the lowercase hexadecimal HMAC-SHA256 digest of the exact JSON body. Verify the raw body before parsing it, using a constant-time comparison. Use the notification ID to avoid processing the same notification twice.
+When a signing secret is set, Kaneo sends `X-Webhook-Signature`: the lowercase hexadecimal HMAC-SHA256 digest of the exact JSON body. Verify the raw body before parsing it, using a constant-time comparison. Use the notification ID to avoid processing the same notification twice.
 
 The API needs `NOTIFICATION_SECRET_ENCRYPTION_KEY` to save the signing secret. Private receivers also need `KANEO_ALLOW_PRIVATE_WEBHOOK_DESTINATIONS`; see [server settings](/core/installation/environment-variables#notifications).
 

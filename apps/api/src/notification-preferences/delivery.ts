@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { createHmac } from "node:crypto";
 import { sendNotificationEmail } from "@kaneo/email";
 import { and, eq } from "drizzle-orm";
@@ -105,7 +106,7 @@ function buildDeliveryContent(
         title: "New task created",
         body: taskTitle
           ? `A new task was created: ${taskTitle}`
-          : "A new task was created in Kaneo.",
+          : `A new task was created in ${brand.name}.`,
       };
     }
     case "workspace_created": {
@@ -117,7 +118,7 @@ function buildDeliveryContent(
         title: "Workspace created",
         body: workspaceName
           ? `Workspace created: ${workspaceName}`
-          : "A new workspace was created in Kaneo.",
+          : `A new workspace was created in ${brand.name}.`,
       };
     }
     case "task_status_changed": {
@@ -129,7 +130,7 @@ function buildDeliveryContent(
         body:
           taskTitle && oldStatus && newStatus
             ? `${taskTitle} moved from ${oldStatus} to ${newStatus}.`
-            : "A task status changed in Kaneo.",
+            : `A task status changed in ${brand.name}.`,
       };
     }
     case "task_assignee_changed": {
@@ -138,7 +139,7 @@ function buildDeliveryContent(
         title: "Task assigned to you",
         body: taskTitle
           ? `You were assigned to ${taskTitle}.`
-          : "A task was assigned to you in Kaneo.",
+          : `A task was assigned to you in ${brand.name}.`,
       };
     }
     case "time_entry_created": {
@@ -147,7 +148,7 @@ function buildDeliveryContent(
         title: "Time entry created",
         body: taskTitle
           ? `A time entry was created for ${taskTitle}.`
-          : "A time entry was created in Kaneo.",
+          : `A time entry was created in ${brand.name}.`,
       };
     }
     case "due_date_reminder": {
@@ -194,7 +195,7 @@ function buildDeliveryContent(
           : "You were mentioned",
         body: taskTitle
           ? `You were mentioned in ${taskTitle}.`
-          : "You were mentioned in a Kaneo task.",
+          : `You were mentioned in a ${brand.name} task.`,
       };
     }
     case "task_comment": {
@@ -209,13 +210,15 @@ function buildDeliveryContent(
           : "New task comment",
         body: taskTitle
           ? `A new comment was added to ${taskTitle}.`
-          : "A new comment was added to a Kaneo task.",
+          : `A new comment was added to a ${brand.name} task.`,
       };
     }
     default:
       return {
-        title: notification.title ?? "New Kaneo notification",
-        body: notification.content ?? "You have a new notification in Kaneo.",
+        title: notification.title ?? `New ${brand.name} notification`,
+        body:
+          notification.content ??
+          `You have a new notification in ${brand.name}.`,
       };
   }
 }
@@ -364,7 +367,7 @@ async function sendWebhookNotification(input: {
   };
 
   if (input.secret) {
-    headers["X-Kaneo-Signature"] = createHmac("sha256", input.secret)
+    headers["X-Webhook-Signature"] = createHmac("sha256", input.secret)
       .update(body)
       .digest("hex");
   }

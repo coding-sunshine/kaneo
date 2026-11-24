@@ -112,6 +112,7 @@
 	},
 	"devDependencies": {
 		"@babel/core": "^8.0.9",
+		"@kaneo/brand": "workspace:*",
 		"@kaneo/editor": "workspace:*",
 		"@kaneo/libs": "workspace:*",
 		"@kaneo/permissions": "workspace:*",

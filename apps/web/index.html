@@ -3,24 +3,24 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Organyz Work</title>
-  <meta name="title" content="Organyz Work">
-  <meta name="description" content="Issues, projects, and code reviews for the Organyz team.">
+  <title>%BRAND_NAME%</title>
+  <meta name="title" content="%BRAND_NAME%">
+  <meta name="description" content="%BRAND_DESCRIPTION%">
 
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Organyz Work">
-  <meta property="og:description" content="Issues, projects, and code reviews for the Organyz team.">
+  <meta property="og:title" content="%BRAND_NAME%">
+  <meta property="og:description" content="%BRAND_DESCRIPTION%">
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="shortcut icon" href="/favicon.svg" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-  <meta name="apple-mobile-web-app-title" content="Organyz Work" />
+  <meta name="apple-mobile-web-app-title" content="%BRAND_NAME%" />
   <link rel="manifest" href="/site.webmanifest" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="application-name" content="Organyz Work">
+  <meta name="application-name" content="%BRAND_NAME%">
 
-  <style>html.dark{background:#141414}html.light{background:#fff}</style>
+  <style>html.dark{background:%BRAND_BACKGROUND%}html.light{background:#fff}</style>
   <script>
     // Set the theme class before first paint; ThemeProvider takes over after mount.
     (function () {
@@ -30,26 +30,6 @@
         document.documentElement.classList.add(t);
       } catch (e) { document.documentElement.classList.add('dark'); }
     })();
-  </script>
-  <script>
-    if (window.location.hostname === 'demo.kaneo.app') {
-      const script = document.createElement('script');
-      script.defer = true;
-      script.setAttribute('data-domain', 'demo.kaneo.app');
-      script.src = 'https://plausible.kaneo.app/js/script.js';
-      document.head.appendChild(script);
-    }
-
-    if (window.location.hostname === 'cloud.kaneo.app') {
-      window.plausible = window.plausible || function () {
-        (window.plausible.q = window.plausible.q || []).push(arguments);
-      };
-      const script = document.createElement('script');
-      script.defer = true;
-      script.setAttribute('data-domain', 'cloud.kaneo.app');
-      script.src = 'https://plausible.kaneo.app/js/script.js';
-      document.head.appendChild(script);
-    }
   </script>
 </head>
 

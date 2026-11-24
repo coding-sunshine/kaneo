@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { z } from "../openapi";
 import { MANAGED_PROFILE_FIELDS } from "../utils/custom-oauth-env";
 
@@ -28,8 +29,7 @@ export const currentUserSchema = z
     image: z.string().nullable(),
     role: z.string().nullable(),
     managedProfileFields: z.array(z.enum(MANAGED_PROFILE_FIELDS)).openapi({
-      description:
-        "Profile fields the custom OAuth/OIDC provider manages for this user. Kaneo updates them at sign-in and refuses changes to them.",
+      description: `Profile fields the custom OAuth/OIDC provider manages for this user. ${brand.name} updates them at sign-in and refuses changes to them.`,
     }),
   })
   .openapi("CurrentUser");

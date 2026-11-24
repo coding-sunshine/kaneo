@@ -2,7 +2,7 @@ import { createElement, type ReactElement } from "react";
 import { render as renderEmail } from "react-email";
 import { config } from "dotenv-mono";
 import * as nodemailer from "nodemailer";
-import { type EmailSubject, loadBrandName } from "./brand";
+import { applyBrandName, type EmailSubject, loadBrandName } from "./brand";
 import { BrandNameContext } from "./components/brand-name-context";
 import { instanceHost } from "./components/instance-host";
 import { getSmtpTransportOptions, isSmtpConfigured } from "./smtp-config";
@@ -37,8 +37,15 @@ const transporter = nodemailer.createTransport(getSmtpTransportOptions());
 
 async function render(template: ReactElement, subject: EmailSubject) {
   const instanceName = await loadBrandName();
-  const html = await renderEmail(
-    createElement(BrandNameContext.Provider, { value: instanceName }, template),
+  const html = applyBrandName(
+    await renderEmail(
+      createElement(
+        BrandNameContext.Provider,
+        { value: instanceName },
+        template,
+      ),
+    ),
+    instanceName,
   );
   return {
     html,
@@ -190,7 +197,7 @@ export const sendTrialReminderEmail = async (
 };
 
 /**
- * Emails an administrator asks Kaneo to send. They report delivery so the
+ * Emails an administrator asks this instance to send. They report delivery so the
  * administrator can be told, and throw when the SMTP server rejects them.
  */
 async function sendAdministratorEmail(

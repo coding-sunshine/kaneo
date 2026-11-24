@@ -23,6 +23,7 @@ COPY patches ./patches
 COPY apps/web/package.json ./apps/web/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/libs/package.json ./packages/libs/
+COPY packages/brand/package.json ./packages/brand/
 COPY packages/permissions/package.json ./packages/permissions/
 COPY packages/editor/package.json ./packages/editor/
 
@@ -32,12 +33,16 @@ RUN pnpm install --frozen-lockfile
 # Copy only necessary source code
 COPY packages/typescript-config ./packages/typescript-config
 COPY packages/libs ./packages/libs
+COPY packages/brand ./packages/brand
 COPY packages/permissions ./packages/permissions
 COPY packages/editor ./packages/editor
 COPY i18n ./i18n
 COPY apps/web ./apps/web
 
 # Build the shared packages first
+WORKDIR /app/packages/brand
+RUN pnpm run build
+
 WORKDIR /app/packages/permissions
 RUN pnpm run build
 

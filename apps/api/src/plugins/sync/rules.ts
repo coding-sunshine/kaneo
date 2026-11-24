@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { z } from "zod";
 
 const labelSelection = z.object({
@@ -20,7 +21,7 @@ export const labelRuleSchema = z.discriminatedUnion("mode", [
 
 export const syncRulesSchema = z.object({
   outgoing: labelRuleSchema.describe(
-    "Kaneo workspace label IDs controlling task sync. Missing labels pause sync.",
+    `${brand.name} workspace label IDs controlling task sync. Missing labels pause sync.`,
   ),
   incoming: labelRuleSchema.describe(
     "Exact repository label names controlling which issues can be imported.",

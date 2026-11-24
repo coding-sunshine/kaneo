@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../database";
@@ -108,8 +109,7 @@ const createGenericWebhookIntegrationRoute = createRoute({
   path: "/project/{projectId}",
   tags: ["Generic Webhook"],
   summary: "Create webhook integration",
-  description:
-    "Create or replace the outgoing webhook for a project. Kaneo POSTs the selected task events to this URL, signed with the secret when one is set.",
+  description: `Create or replace the outgoing webhook for a project. ${brand.name} POSTs the selected task events to this URL, signed with the secret when one is set.`,
   middleware: manageAccess,
   request: {
     params: projectIdParam,

@@ -1,3 +1,4 @@
+import { brand } from "@kaneo/brand";
 import { readClientIp } from "./utils/client-ip";
 import { deleteNativeWorkspace } from "./workspace/lifecycle/delete-native-workspace";
 import {
@@ -246,10 +247,7 @@ async function shouldDeliverSignInEmail(email: string) {
   return true;
 }
 
-function getAuthEmailCopy(
-  locale?: string | null,
-  instanceName = "Organyz Work",
-) {
+function getAuthEmailCopy(locale?: string | null, instanceName = brand.name) {
   const localeKey = getLocaleKey(locale);
 
   if (localeKey === "de") {
@@ -761,7 +759,7 @@ export const auth = betterAuth({
     passkey({
       // Derived from the same client URL as trustedOrigins, never from the request.
       rpID: clientHostname,
-      rpName: "Organyz Work",
+      rpName: brand.name,
       origin: clientUrl,
     }),
     deviceAuthorization({
