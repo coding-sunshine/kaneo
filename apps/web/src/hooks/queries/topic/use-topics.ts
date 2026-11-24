@@ -1,0 +1,30 @@
+import { useQuery } from "@tanstack/react-query";
+import { getTopic, getTopics } from "@/fetchers/topic/topics";
+import { documentsKey } from "@/hooks/queries/document/use-documents";
+
+/**
+ * Topics sit under the documents prefix: a decision changes a topic and the
+ * documents on it together, so one invalidation refreshes both.
+ */
+export const topicsKey = (workspaceId: string) => [
+  ...documentsKey(workspaceId),
+  "topics",
+];
+
+export function useTopics(workspaceId: string, enabled = true) {
+  return useQuery({
+    enabled: Boolean(workspaceId) && enabled,
+    queryKey: topicsKey(workspaceId),
+    queryFn: () => getTopics(workspaceId),
+  });
+}
+
+/** One topic. Pass no id for a document that is not on a topic you can open. */
+export function useTopic(workspaceId: string, id: string | null) {
+  return useQuery({
+    enabled: Boolean(workspaceId && id),
+    queryKey: [...topicsKey(workspaceId), id],
+    queryFn: () => getTopic(workspaceId, id ?? ""),
+    retry: false,
+  });
+}

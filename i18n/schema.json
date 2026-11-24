@@ -14211,9 +14211,15 @@
 										},
 										"detail": {
 											"type": "string"
+										},
+										"approved": {
+											"type": "string"
+										},
+										"confirmed": {
+											"type": "string"
 										}
 									},
-									"required": ["lead", "detail"]
+									"required": ["lead", "detail", "approved", "confirmed"]
 								},
 								"superseded": {
 									"type": "object",
@@ -14227,6 +14233,28 @@
 										}
 									},
 									"required": ["lead", "detail"]
+								},
+								"edited": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"lead": {
+											"type": "string"
+										},
+										"detail": {
+											"type": "string"
+										}
+									},
+									"required": ["lead", "detail"]
+								},
+								"reason": {
+									"type": "string"
+								},
+								"topic": {
+									"type": "string"
+								},
+								"openCurrent": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -14234,7 +14262,11 @@
 								"brainstorm",
 								"in_review",
 								"current",
-								"superseded"
+								"superseded",
+								"edited",
+								"reason",
+								"topic",
+								"openCurrent"
 							]
 						},
 						"savedFrom": {
@@ -14249,6 +14281,325 @@
 								}
 							},
 							"required": ["claude", "chatgpt"]
+						},
+						"topics": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"new": {
+									"type": "string"
+								},
+								"name": {
+									"type": "string"
+								},
+								"namePlaceholder": {
+									"type": "string"
+								},
+								"place": {
+									"type": "string"
+								},
+								"create": {
+									"type": "string"
+								},
+								"created": {
+									"type": "string"
+								},
+								"hint": {
+									"type": "string"
+								},
+								"current": {
+									"type": "string"
+								},
+								"proposals": {
+									"type": "string"
+								},
+								"replaced": {
+									"type": "string"
+								},
+								"noCurrent": {
+									"type": "string"
+								},
+								"noProposals": {
+									"type": "string"
+								},
+								"approved": {
+									"type": "string"
+								},
+								"reason": {
+									"type": "string"
+								},
+								"decider": {
+									"type": "string"
+								},
+								"backup": {
+									"type": "string"
+								},
+								"noDecider": {
+									"type": "string"
+								},
+								"notFound": {
+									"type": "string"
+								},
+								"notFoundHint": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"new",
+								"name",
+								"namePlaceholder",
+								"place",
+								"create",
+								"created",
+								"hint",
+								"current",
+								"proposals",
+								"replaced",
+								"noCurrent",
+								"noProposals",
+								"approved",
+								"reason",
+								"decider",
+								"backup",
+								"noDecider",
+								"notFound",
+								"notFoundHint"
+							]
+						},
+						"file": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"action": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"hint": {
+									"type": "string"
+								},
+								"topic": {
+									"type": "string"
+								},
+								"choose": {
+									"type": "string"
+								},
+								"noTopics": {
+									"type": "string"
+								},
+								"submit": {
+									"type": "string"
+								},
+								"done": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"action",
+								"title",
+								"hint",
+								"topic",
+								"choose",
+								"noTopics",
+								"submit",
+								"done"
+							]
+						},
+						"audience": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"loading": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								},
+								"count_one": {
+									"type": "string"
+								},
+								"count_zero": {
+									"type": "string"
+								},
+								"count_two": {
+									"type": "string"
+								},
+								"count_few": {
+									"type": "string"
+								},
+								"count_many": {
+									"type": "string"
+								},
+								"count_other": {
+									"type": "string"
+								},
+								"gains": {
+									"type": "string"
+								},
+								"loses": {
+									"type": "string"
+								},
+								"same": {
+									"type": "string"
+								}
+							},
+							"required": ["loading", "failed", "gains", "loses", "same"]
+						},
+						"makeCurrent": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"action": {
+									"type": "string"
+								},
+								"review": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"titleEdit": {
+									"type": "string"
+								},
+								"hintStart": {
+									"type": "string"
+								},
+								"hintReplaces": {
+									"type": "string"
+								},
+								"hintEdit": {
+									"type": "string"
+								},
+								"reasonLabel": {
+									"type": "string"
+								},
+								"reasonStart": {
+									"type": "string"
+								},
+								"reasonReplaces_one": {
+									"type": "string"
+								},
+								"reasonReplaces_zero": {
+									"type": "string"
+								},
+								"reasonReplaces_two": {
+									"type": "string"
+								},
+								"reasonReplaces_few": {
+									"type": "string"
+								},
+								"reasonReplaces_many": {
+									"type": "string"
+								},
+								"reasonReplaces_other": {
+									"type": "string"
+								},
+								"reasonReplacesFormat": {
+									"type": "string"
+								},
+								"reasonEdit_one": {
+									"type": "string"
+								},
+								"reasonEdit_zero": {
+									"type": "string"
+								},
+								"reasonEdit_two": {
+									"type": "string"
+								},
+								"reasonEdit_few": {
+									"type": "string"
+								},
+								"reasonEdit_many": {
+									"type": "string"
+								},
+								"reasonEdit_other": {
+									"type": "string"
+								},
+								"reasonEditFormat": {
+									"type": "string"
+								},
+								"comparing": {
+									"type": "string"
+								},
+								"noBase": {
+									"type": "string"
+								},
+								"formatOnly": {
+									"type": "string"
+								},
+								"added": {
+									"type": "string"
+								},
+								"removed": {
+									"type": "string"
+								},
+								"submit": {
+									"type": "string"
+								},
+								"approve": {
+									"type": "string"
+								},
+								"done": {
+									"type": "string"
+								},
+								"doneEdit": {
+									"type": "string"
+								},
+								"stillCurrent": {
+									"type": "string"
+								},
+								"confirmed": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"action",
+								"review",
+								"title",
+								"titleEdit",
+								"hintStart",
+								"hintReplaces",
+								"hintEdit",
+								"reasonLabel",
+								"reasonStart",
+								"reasonReplacesFormat",
+								"reasonEditFormat",
+								"comparing",
+								"noBase",
+								"formatOnly",
+								"added",
+								"removed",
+								"submit",
+								"approve",
+								"done",
+								"doneEdit",
+								"stillCurrent",
+								"confirmed"
+							]
+						},
+						"setAside": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"action": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"hint": {
+									"type": "string"
+								},
+								"done": {
+									"type": "string"
+								}
+							},
+							"required": ["action", "title", "hint", "done"]
 						}
 					},
 					"required": [
@@ -14300,7 +14651,12 @@
 						"kind",
 						"status",
 						"banner",
-						"savedFrom"
+						"savedFrom",
+						"topics",
+						"file",
+						"audience",
+						"makeCurrent",
+						"setAside"
 					]
 				},
 				"agent": {

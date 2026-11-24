@@ -3484,16 +3484,100 @@
 				},
 				"current": {
 					"lead": "Current.",
-					"detail": "Approved as the document to rely on."
+					"detail": "Approved as the document to rely on.",
+					"approved": "Approved on {{date}}, {{age}}.",
+					"confirmed": "Confirmed still current on {{date}}."
 				},
 				"superseded": {
 					"lead": "Superseded.",
 					"detail": "A newer document replaced this one."
-				}
+				},
+				"edited": {
+					"lead": "Edited after approval.",
+					"detail": "Awaiting the decider's approval again."
+				},
+				"reason": "Reason: {{reason}}",
+				"topic": "Topic: {{name}}",
+				"openCurrent": "Open the current document"
 			},
 			"savedFrom": {
 				"claude": "Saved from Claude",
 				"chatgpt": "Saved from ChatGPT"
+			},
+			"topics": {
+				"title": "Topics",
+				"new": "New topic",
+				"name": "Topic name",
+				"namePlaceholder": "For example: Launch plan",
+				"place": "Where it lives",
+				"create": "Create topic",
+				"created": "Topic created",
+				"hint": "You decide which document is current on this topic. Everyone who can open the place can read it.",
+				"current": "Current document",
+				"proposals": "Proposals",
+				"replaced": "Superseded",
+				"noCurrent": "No document is current on this topic yet.",
+				"noProposals": "No proposals are waiting for approval.",
+				"approved": "Approved by {{name}} on {{date}}, {{age}}",
+				"reason": "Reason: {{reason}}",
+				"decider": "{{name}} decides",
+				"backup": "Backup: {{name}}",
+				"noDecider": "No decider. The workspace owner decides.",
+				"notFound": "Topic not found",
+				"notFoundHint": "It may have been removed, or you may not have access to it."
+			},
+			"file": {
+				"action": "File on a topic",
+				"title": "File on a topic",
+				"hint": "The document moves to the topic's place and waits there as a proposal for the decider.",
+				"topic": "Topic",
+				"choose": "Choose a topic",
+				"noTopics": "There are no topics yet. Create one on the Documents page first.",
+				"submit": "File as a proposal",
+				"done": "Filed on {{topic}}"
+			},
+			"audience": {
+				"loading": "Checking who will be able to open it...",
+				"failed": "Could not check who will be able to open it.",
+				"count_one": "{{count}} person will be able to open it",
+				"count_other": "{{count}} people will be able to open it",
+				"gains": "Gain access: {{names}}",
+				"loses": "Lose access: {{names}}",
+				"same": "The same people as now."
+			},
+			"makeCurrent": {
+				"action": "Make current",
+				"review": "Review changes",
+				"title": "Make this the current document",
+				"titleEdit": "Approve the edit",
+				"hintStart": "It becomes the document people rely on for {{topic}}.",
+				"hintReplaces": "It replaces the current document for {{topic}}. The replaced document keeps this reason.",
+				"hintEdit": "The text as it is now becomes the approved text for {{topic}}.",
+				"reasonLabel": "Reason",
+				"reasonStart": "Starting point",
+				"reasonReplaces_one": "Replaces the current document: {{count}} sentence changed",
+				"reasonReplaces_other": "Replaces the current document: {{count}} sentences changed",
+				"reasonReplacesFormat": "Replaces the current document: only order, spacing or formatting changed",
+				"reasonEdit_one": "Approves the edit: {{count}} sentence changed",
+				"reasonEdit_other": "Approves the edit: {{count}} sentences changed",
+				"reasonEditFormat": "Approves the edit: only order, spacing or formatting changed",
+				"comparing": "Comparing the text...",
+				"noBase": "The earlier text is not available to compare. Write the reason yourself.",
+				"formatOnly": "No sentence was added or removed. Only order, spacing or formatting differs.",
+				"added": "Added",
+				"removed": "Removed",
+				"submit": "Make current",
+				"approve": "Approve",
+				"done": "This is now the current document",
+				"doneEdit": "Edit approved",
+				"stillCurrent": "Still current",
+				"confirmed": "Confirmed as still current"
+			},
+			"setAside": {
+				"action": "Set aside",
+				"title": "Set this document aside?",
+				"hint": "It goes back to being a proposal and its approval is removed. The topic has no current document until you make one current.",
+				"done": "Set aside. The topic has no current document."
 			}
 		},
 		"agent": {

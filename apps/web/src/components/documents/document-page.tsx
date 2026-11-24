@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { DocumentVersion } from "@/fetchers/document/documents";
 import { useRestoreDocumentVersion } from "@/hooks/mutations/document/use-document-mutations";
 import { useDocument } from "@/hooks/queries/document/use-documents";
+import { useTopic } from "@/hooks/queries/topic/use-topics";
 import { descriptionSaveQueue } from "@/lib/description-save-queue";
 import { toast } from "@/lib/toast";
 import { DocumentComments } from "./document-comments";
@@ -15,6 +16,7 @@ import { DocumentEditor } from "./document-editor";
 import { DocumentHeaderActions } from "./document-header-actions";
 import { DocumentHistory } from "./document-history";
 import { DocumentStatusBanner } from "./document-status-banner";
+import { DocumentTopicActions } from "./document-topic-actions";
 import { DOCUMENT_SAVE_OWNER } from "./document-save";
 import { DocumentVersionPreview } from "./document-version-preview";
 
@@ -30,6 +32,8 @@ export function DocumentPage({
 }) {
   const { t } = useTranslation();
   const { data: document, isLoading } = useDocument(workspaceId, documentId);
+  // Null for a reader who holds only a share: the topic is not theirs to open.
+  const { data: topic } = useTopic(workspaceId, document?.topicId ?? null);
   const restore = useRestoreDocumentVersion(workspaceId, documentId);
   const [panel, setPanel] = useState<Panel>(null);
   const [version, setVersion] = useState<DocumentVersion | null>(null);
@@ -73,7 +77,10 @@ export function DocumentPage({
     );
   }
 
-  const canEdit = document.role === "owner" || document.role === "edit";
+  // A replaced document stays as it was when it was replaced.
+  const canEdit =
+    (document.role === "owner" || document.role === "edit") &&
+    document.status !== "superseded";
 
   const onRestore = async () => {
     if (!version) return;
@@ -118,7 +125,17 @@ export function DocumentPage({
       >
         <div className="flex h-full min-h-0">
           <div className="flex min-w-0 flex-1 flex-col">
-            <DocumentStatusBanner document={document} />
+            <DocumentStatusBanner
+              document={document}
+              currentDocumentId={topic?.currentDocumentId}
+              actions={
+                <DocumentTopicActions
+                  document={document}
+                  topic={topic}
+                  canEdit={canEdit}
+                />
+              }
+            />
             <div className="min-h-0 flex-1 overflow-y-auto">
               {version ? (
                 <DocumentVersionPreview

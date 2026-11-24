@@ -23,16 +23,20 @@ const KINDS: DocumentKind[] = [
 ];
 
 type DocumentKindMenuProps = {
-  document: Pick<DocumentDetail, "workspaceId" | "id" | "kind" | "role">;
+  document: Pick<
+    DocumentDetail,
+    "workspaceId" | "id" | "kind" | "role" | "status"
+  >;
 };
 
 /** What the document is for. A person who can edit it says so here. */
 export function DocumentKindMenu({ document }: DocumentKindMenuProps) {
   const { t } = useTranslation();
-  const { workspaceId, id, kind, role } = document;
+  const { workspaceId, id, kind, role, status } = document;
   const update = useUpdateDocument(workspaceId, id);
   const label = t(`navigation:documents.kind.${kind}`);
-  if (role !== "owner" && role !== "edit") {
+  // A replaced document keeps the kind it had.
+  if ((role !== "owner" && role !== "edit") || status === "superseded") {
     return <span className="px-2 text-muted-foreground text-xs">{label}</span>;
   }
   return (

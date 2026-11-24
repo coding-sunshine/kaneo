@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   type DocumentListQuery,
+  type DocumentPlaceQuery,
   getDocument,
+  getDocumentAudience,
   getDocumentComments,
   getDocuments,
   getDocumentVersions,
@@ -49,6 +51,19 @@ export function useDocumentVersions(
     enabled: Boolean(workspaceId && id) && enabled,
     queryKey: [...documentKey(workspaceId, id), "versions"],
     queryFn: () => getDocumentVersions(workspaceId, id),
+  });
+}
+
+/** The audience after a move to `place`; asked only once a place is chosen. */
+export function useDocumentAudience(
+  workspaceId: string,
+  id: string,
+  place: DocumentPlaceQuery | null,
+) {
+  return useQuery({
+    enabled: Boolean(workspaceId && id && place),
+    queryKey: [...documentKey(workspaceId, id), "audience", place],
+    queryFn: () => getDocumentAudience(workspaceId, id, place ?? {}),
   });
 }
 

@@ -10,7 +10,10 @@ export type DocumentParent = {
   workProjectId?: string;
   taskId?: string;
 };
-export type DocumentListQuery = { filter?: DocumentFilter } & DocumentParent;
+export type DocumentListQuery = {
+  filter?: DocumentFilter;
+  topicId?: string;
+} & DocumentParent;
 export type DocumentAccess = "edit" | "comment" | "view";
 export type DocumentScope =
   | "private"
@@ -129,6 +132,25 @@ export async function setDocumentSubscribers(
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }
+
+/** A place a document could live in: the query the audience route takes. */
+export type DocumentPlaceQuery = { scope?: DocumentScope } & DocumentParent;
+
+/** Who can open the document now, and who could after a move to `place`. */
+export async function getDocumentAudience(
+  workspaceId: string,
+  id: string,
+  place: DocumentPlaceQuery = {},
+) {
+  const response = await one.audience.$get({
+    param: { workspaceId, id },
+    query: place,
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export type DocumentAudience = Awaited<ReturnType<typeof getDocumentAudience>>;
 
 export async function getDocumentVersions(workspaceId: string, id: string) {
   const response = await one.versions.$get({ param: { workspaceId, id } });

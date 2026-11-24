@@ -88,6 +88,7 @@ import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdWorkflowR
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentDocumentIdRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/document.$documentId'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsIndexRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/documents.index'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsTabRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/documents.$tab'
+import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdTopicTopicIdRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/topic.$topicId'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsIndexRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/views.index'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsViewIdRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/views.$viewId'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdWorkProjectsWorkProjectIdRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/work-projects.$workProjectId'
@@ -598,6 +599,15 @@ const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsTabRoute =
         LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
     } as any,
   )
+const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdTopicTopicIdRoute =
+  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdTopicTopicIdRouteImport.update(
+    {
+      id: '/topic/$topicId',
+      path: '/topic/$topicId',
+      getParentRoute: () =>
+        LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
+    } as any,
+  )
 const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsIndexRoute =
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsIndexRouteImport.update({
     id: '/views/',
@@ -826,6 +836,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/projects/$projectId/workflow': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdWorkflowRoute
   '/dashboard/workspace/$workspaceId/document/$documentId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentDocumentIdRoute
   '/dashboard/workspace/$workspaceId/documents/$tab': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsTabRoute
+  '/dashboard/workspace/$workspaceId/topic/$topicId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdTopicTopicIdRoute
   '/dashboard/workspace/$workspaceId/views/$viewId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsViewIdRoute
   '/dashboard/workspace/$workspaceId/work-projects/$workProjectId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdWorkProjectsWorkProjectIdRoute
   '/dashboard/workspace/$workspaceId/documents/': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsIndexRoute
@@ -918,6 +929,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings/projects/$projectId/workflow': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdWorkflowRoute
   '/dashboard/workspace/$workspaceId/document/$documentId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentDocumentIdRoute
   '/dashboard/workspace/$workspaceId/documents/$tab': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsTabRoute
+  '/dashboard/workspace/$workspaceId/topic/$topicId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdTopicTopicIdRoute
   '/dashboard/workspace/$workspaceId/views/$viewId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsViewIdRoute
   '/dashboard/workspace/$workspaceId/work-projects/$workProjectId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdWorkProjectsWorkProjectIdRoute
   '/dashboard/workspace/$workspaceId/documents': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsIndexRoute
@@ -1017,6 +1029,7 @@ export interface FileRoutesById {
   '/_layout/_authenticated/dashboard/settings/projects/$projectId/workflow': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdWorkflowRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/document/$documentId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentDocumentIdRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/documents/$tab': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsTabRoute
+  '/_layout/_authenticated/dashboard/workspace/$workspaceId/topic/$topicId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdTopicTopicIdRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/views/$viewId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsViewIdRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/work-projects/$workProjectId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdWorkProjectsWorkProjectIdRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/documents/': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsIndexRoute
@@ -1115,6 +1128,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/projects/$projectId/workflow'
     | '/dashboard/workspace/$workspaceId/document/$documentId'
     | '/dashboard/workspace/$workspaceId/documents/$tab'
+    | '/dashboard/workspace/$workspaceId/topic/$topicId'
     | '/dashboard/workspace/$workspaceId/views/$viewId'
     | '/dashboard/workspace/$workspaceId/work-projects/$workProjectId'
     | '/dashboard/workspace/$workspaceId/documents/'
@@ -1207,6 +1221,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/projects/$projectId/workflow'
     | '/dashboard/workspace/$workspaceId/document/$documentId'
     | '/dashboard/workspace/$workspaceId/documents/$tab'
+    | '/dashboard/workspace/$workspaceId/topic/$topicId'
     | '/dashboard/workspace/$workspaceId/views/$viewId'
     | '/dashboard/workspace/$workspaceId/work-projects/$workProjectId'
     | '/dashboard/workspace/$workspaceId/documents'
@@ -1305,6 +1320,7 @@ export interface FileRouteTypes {
     | '/_layout/_authenticated/dashboard/settings/projects/$projectId/workflow'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/document/$documentId'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/documents/$tab'
+    | '/_layout/_authenticated/dashboard/workspace/$workspaceId/topic/$topicId'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/views/$viewId'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/work-projects/$workProjectId'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/documents/'
@@ -1891,6 +1907,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsTabRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
     }
+    '/_layout/_authenticated/dashboard/workspace/$workspaceId/topic/$topicId': {
+      id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/topic/$topicId'
+      path: '/topic/$topicId'
+      fullPath: '/dashboard/workspace/$workspaceId/topic/$topicId'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdTopicTopicIdRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
+    }
     '/_layout/_authenticated/dashboard/workspace/$workspaceId/views/': {
       id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/views/'
       path: '/views'
@@ -2229,6 +2252,7 @@ interface LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteChildren {
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRoute
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentDocumentIdRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentDocumentIdRoute
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsTabRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsTabRoute
+  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdTopicTopicIdRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdTopicTopicIdRoute
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsViewIdRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsViewIdRoute
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsIndexRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsIndexRoute
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsIndexRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsIndexRoute
@@ -2277,6 +2301,8 @@ const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteChildren: LayoutAuthe
       LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentDocumentIdRoute,
     LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsTabRoute:
       LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsTabRoute,
+    LayoutAuthenticatedDashboardWorkspaceWorkspaceIdTopicTopicIdRoute:
+      LayoutAuthenticatedDashboardWorkspaceWorkspaceIdTopicTopicIdRoute,
     LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsViewIdRoute:
       LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsViewIdRoute,
     LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsIndexRoute:

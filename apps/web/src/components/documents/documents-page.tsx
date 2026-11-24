@@ -9,6 +9,7 @@ import { useDocuments } from "@/hooks/queries/document/use-documents";
 import { DocumentList } from "./document-list";
 import { DocumentsEmpty } from "./documents-empty";
 import { DocumentsTabs } from "./documents-tabs";
+import { TopicsStrip } from "./topics-strip";
 import { useNewDocument } from "./use-new-document";
 
 type DocumentsPageProps = { workspaceId: string; filter: DocumentFilter };
@@ -40,6 +41,7 @@ export function DocumentsPage({ workspaceId, filter }: DocumentsPageProps) {
         <div className="flex h-11 shrink-0 items-center border-border/50 border-b px-4">
           <DocumentsTabs workspaceId={workspaceId} value={filter} />
         </div>
+        <TopicsStrip workspaceId={workspaceId} />
         {isLoading ? (
           <div className="flex flex-col gap-2 p-4">
             <Skeleton className="h-8 w-full" />

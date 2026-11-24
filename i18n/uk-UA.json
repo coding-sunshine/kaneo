@@ -3585,7 +3585,9 @@
 				},
 				"current": {
 					"detail": "Approved as the document to rely on.",
-					"lead": "Current."
+					"lead": "Current.",
+					"approved": "Approved on {{date}}, {{age}}.",
+					"confirmed": "Confirmed still current on {{date}}."
 				},
 				"draft": {
 					"detail": "Nobody has approved it yet.",
@@ -3598,7 +3600,14 @@
 				"superseded": {
 					"detail": "A newer document replaced this one.",
 					"lead": "Superseded."
-				}
+				},
+				"edited": {
+					"detail": "Awaiting the decider's approval again.",
+					"lead": "Edited after approval."
+				},
+				"openCurrent": "Open the current document",
+				"reason": "Reason: {{reason}}",
+				"topic": "Topic: {{name}}"
 			},
 			"kind": {
 				"brainstorm": "Brainstorm",
@@ -3617,6 +3626,87 @@
 				"draft": "Draft",
 				"in_review": "In review",
 				"superseded": "Superseded"
+			},
+			"audience": {
+				"count_few": "{{count}} people will be able to open it",
+				"count_many": "{{count}} people will be able to open it",
+				"count_one": "{{count}} person will be able to open it",
+				"count_other": "{{count}} people will be able to open it",
+				"failed": "Could not check who will be able to open it.",
+				"gains": "Gain access: {{names}}",
+				"loading": "Checking who will be able to open it...",
+				"loses": "Lose access: {{names}}",
+				"same": "The same people as now."
+			},
+			"file": {
+				"action": "File on a topic",
+				"choose": "Choose a topic",
+				"done": "Filed on {{topic}}",
+				"hint": "The document moves to the topic's place and waits there as a proposal for the decider.",
+				"noTopics": "There are no topics yet. Create one on the Documents page first.",
+				"submit": "File as a proposal",
+				"title": "File on a topic",
+				"topic": "Topic"
+			},
+			"makeCurrent": {
+				"action": "Make current",
+				"added": "Added",
+				"approve": "Approve",
+				"comparing": "Comparing the text...",
+				"confirmed": "Confirmed as still current",
+				"done": "This is now the current document",
+				"doneEdit": "Edit approved",
+				"formatOnly": "No sentence was added or removed. Only order, spacing or formatting differs.",
+				"hintEdit": "The text as it is now becomes the approved text for {{topic}}.",
+				"hintReplaces": "It replaces the current document for {{topic}}. The replaced document keeps this reason.",
+				"hintStart": "It becomes the document people rely on for {{topic}}.",
+				"noBase": "The earlier text is not available to compare. Write the reason yourself.",
+				"reasonEdit_few": "Approves the edit: {{count}} sentences changed",
+				"reasonEdit_many": "Approves the edit: {{count}} sentences changed",
+				"reasonEdit_one": "Approves the edit: {{count}} sentence changed",
+				"reasonEdit_other": "Approves the edit: {{count}} sentences changed",
+				"reasonEditFormat": "Approves the edit: only order, spacing or formatting changed",
+				"reasonLabel": "Reason",
+				"reasonReplaces_few": "Replaces the current document: {{count}} sentences changed",
+				"reasonReplaces_many": "Replaces the current document: {{count}} sentences changed",
+				"reasonReplaces_one": "Replaces the current document: {{count}} sentence changed",
+				"reasonReplaces_other": "Replaces the current document: {{count}} sentences changed",
+				"reasonReplacesFormat": "Replaces the current document: only order, spacing or formatting changed",
+				"reasonStart": "Starting point",
+				"removed": "Removed",
+				"review": "Review changes",
+				"stillCurrent": "Still current",
+				"submit": "Make current",
+				"title": "Make this the current document",
+				"titleEdit": "Approve the edit"
+			},
+			"setAside": {
+				"action": "Set aside",
+				"done": "Set aside. The topic has no current document.",
+				"hint": "It goes back to being a proposal and its approval is removed. The topic has no current document until you make one current.",
+				"title": "Set this document aside?"
+			},
+			"topics": {
+				"approved": "Approved by {{name}} on {{date}}, {{age}}",
+				"backup": "Backup: {{name}}",
+				"create": "Create topic",
+				"created": "Topic created",
+				"current": "Current document",
+				"decider": "{{name}} decides",
+				"hint": "You decide which document is current on this topic. Everyone who can open the place can read it.",
+				"name": "Topic name",
+				"namePlaceholder": "For example: Launch plan",
+				"new": "New topic",
+				"noCurrent": "No document is current on this topic yet.",
+				"noDecider": "No decider. The workspace owner decides.",
+				"noProposals": "No proposals are waiting for approval.",
+				"notFound": "Topic not found",
+				"notFoundHint": "It may have been removed, or you may not have access to it.",
+				"place": "Where it lives",
+				"proposals": "Proposals",
+				"reason": "Reason: {{reason}}",
+				"replaced": "Superseded",
+				"title": "Topics"
 			}
 		},
 		"drafts": {
