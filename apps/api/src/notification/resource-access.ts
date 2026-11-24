@@ -69,6 +69,7 @@ export function notificationResourceAccess(
           creatorId: sql`notification_document.creator_id`,
           scope: sql`notification_document.scope`,
           projectId: sql`notification_document.project_id`,
+          workProjectId: sql`notification_document.work_project_id`,
           taskId: sql`notification_document.task_id`,
         })}
         AND ${documentRead}

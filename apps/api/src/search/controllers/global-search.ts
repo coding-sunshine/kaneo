@@ -562,6 +562,7 @@ async function globalSearch(params: SearchParams): Promise<{
             creatorId: documentTable.creatorId,
             scope: documentTable.scope,
             projectId: documentTable.projectId,
+            workProjectId: documentTable.workProjectId,
             taskId: documentTable.taskId,
           }),
           projectId ? eq(documentTable.projectId, projectId) : undefined,

@@ -8,6 +8,7 @@ import {
   workProjectTable,
 } from "../../database/schema";
 import { assertProjectAccess } from "../../project-access/assert-project-access";
+import { workProjectDocumentAccess } from "../visibility";
 
 type ParentInput = {
   scope?: DocumentScope;
@@ -56,7 +57,10 @@ export async function resolveParent(
   if (scope === "project") {
     if (!input.workProjectId) throw parentNotFound();
     const [project] = await db
-      .select({ id: workProjectTable.id })
+      .select({
+        id: workProjectTable.id,
+        open: workProjectDocumentAccess(userId, workProjectTable.id),
+      })
       .from(workProjectTable)
       .where(
         and(
@@ -65,6 +69,12 @@ export async function resolveParent(
         ),
       );
     if (!project) throw parentNotFound();
+    // Every member can see the project, so this is a refusal, not a 404.
+    if (!project.open) {
+      throw new HTTPException(403, {
+        message: "You don't have access to this project",
+      });
+    }
     return { ...none, workProjectId: project.id };
   }
 

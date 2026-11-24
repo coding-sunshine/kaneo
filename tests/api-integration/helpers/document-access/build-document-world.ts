@@ -24,6 +24,7 @@ export const SEARCH_WORD = "leakdoc";
 // One workspace, two teams, and one document in every place a document can
 // live. `limited` may only enter team Alpha; `open` may enter every team.
 // The owner writes every document, so nobody else gets in as the author.
+// Project "Launch" has no team; the other two projects belong to one team each.
 export async function buildDocumentWorld() {
   const { user: owner, workspace } = await createWorkspaceMember({
     role: "owner",
@@ -44,10 +45,18 @@ export async function buildDocumentWorld() {
   const open = await addWorkspaceMember(ws);
   const alphaTask = await createTaskFixture(alpha, "Alpha issue", owner.id);
   const betaTask = await createTaskFixture(beta, "Beta issue", owner.id);
-  const [workProject] = await db
+  const [workProject, alphaProject, betaProject] = await db
     .insert(schema.workProjectTable)
-    .values({ workspaceId: ws, name: "Launch" })
+    .values([
+      { workspaceId: ws, name: "Launch" },
+      { workspaceId: ws, name: "Alpha launch" },
+      { workspaceId: ws, name: "Beta launch" },
+    ])
     .returning();
+  await db.insert(schema.workProjectTeamTable).values([
+    { workProjectId: alphaProject.id, projectId: alpha.project.id },
+    { workProjectId: betaProject.id, projectId: beta.project.id },
+  ]);
 
   const { app } = createApp();
   const as = (user: User) => {
@@ -85,9 +94,17 @@ export async function buildDocumentWorld() {
     issueAlpha: await create("issueAlpha", { taskId: alphaTask.id }),
     issueBeta: await create("issueBeta", { taskId: betaTask.id }),
     project: await create("project", { workProjectId: workProject.id }),
+    projectAlpha: await create("projectAlpha", {
+      workProjectId: alphaProject.id,
+    }),
+    projectBeta: await create("projectBeta", { workProjectId: betaProject.id }),
     workspace: await create("workspace"),
     // Lives in a team `limited` cannot enter, and is shared with them by name.
     sharedInBeta: await create("sharedInBeta", { projectId: beta.project.id }),
+    // The same, inside a project whose only team `limited` cannot enter.
+    sharedInProjectBeta: await create("sharedInProjectBeta", {
+      workProjectId: betaProject.id,
+    }),
   };
   await as(owner)(
     `/document/workspace/${ws}/${docs.workspace}/location`,
@@ -95,6 +112,7 @@ export async function buildDocumentWorld() {
   );
   await share(docs.sharedByName, limited);
   await share(docs.sharedInBeta, limited);
+  await share(docs.sharedInProjectBeta, limited);
 
   return {
     ws,
@@ -106,6 +124,8 @@ export async function buildDocumentWorld() {
     alphaTask,
     betaTask,
     workProject,
+    alphaProject,
+    betaProject,
     docs,
     as,
   };

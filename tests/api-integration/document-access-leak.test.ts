@@ -22,8 +22,10 @@ const VISIBLE: Record<"limited" | "open", DocumentPlace[]> = {
     "teamAlpha",
     "issueAlpha",
     "project",
+    "projectAlpha",
     "workspace",
     "sharedInBeta",
+    "sharedInProjectBeta",
   ],
   open: [
     "teamAlpha",
@@ -31,8 +33,11 @@ const VISIBLE: Record<"limited" | "open", DocumentPlace[]> = {
     "issueAlpha",
     "issueBeta",
     "project",
+    "projectAlpha",
+    "projectBeta",
     "workspace",
     "sharedInBeta",
+    "sharedInProjectBeta",
   ],
 };
 
@@ -112,6 +117,7 @@ describe("API integration: document access leaks", () => {
       `?projectId=${world.beta.id}`,
       `?taskId=${world.betaTask.id}`,
       `?workProjectId=${world.workProject.id}`,
+      `?workProjectId=${world.betaProject.id}`,
     ];
     for (const query of queries) {
       const rows = await listed(world, world.limited, query);
@@ -204,7 +210,7 @@ describe("API integration: document access leaks", () => {
       .from(schema.documentShareTable)
       .where(eq(schema.documentShareTable.userId, limited.id));
     expect(shares.map((row) => row.documentId).sort()).toEqual(
-      ids(world, ["sharedByName", "sharedInBeta"]),
+      ids(world, ["sharedByName", "sharedInBeta", "sharedInProjectBeta"]),
     );
   });
 
@@ -294,6 +300,7 @@ describe("API integration: document access leaks", () => {
     );
     expect((await favorite(world.docs.teamAlpha)).status).toBe(200);
     expect((await favorite(world.docs.sharedInBeta)).status).toBe(200);
+    expect((await favorite(world.docs.sharedInProjectBeta)).status).toBe(200);
     const rows = (await (await world.as(limited)(favorites)).json()) as {
       type: string;
       targetId: string;
@@ -303,7 +310,7 @@ describe("API integration: document access leaks", () => {
         .filter((row) => row.type === "document")
         .map((row) => row.targetId)
         .sort(),
-    ).toEqual(ids(world, ["teamAlpha", "sharedInBeta"]));
+    ).toEqual(ids(world, ["teamAlpha", "sharedInBeta", "sharedInProjectBeta"]));
   });
 
   it("does not name a team the member cannot enter", async () => {
@@ -334,13 +341,17 @@ describe("API integration: document access leaks", () => {
       teamAlpha: "Alpha",
       issueAlpha: "alpha-1",
       project: "Launch",
+      projectAlpha: "Alpha launch",
       workspace: null,
       // Opened through the share; team Beta itself stays unnamed.
       sharedInBeta: null,
+      // Every member can list every project, so a project is always named.
+      sharedInProjectBeta: "Beta launch",
     });
     expect(await parentNames(world.open)).toMatchObject({
       teamBeta: "Beta",
       issueBeta: "beta-1",
+      projectBeta: "Beta launch",
       sharedInBeta: "Beta",
     });
 
@@ -376,9 +387,11 @@ describe("API integration: document access leaks", () => {
       teamAlpha: "edit",
       issueAlpha: "edit",
       project: "edit",
+      projectAlpha: "edit",
       workspace: "edit",
       // Team Beta gives its members edit; the share alone gives view.
       sharedInBeta: "view",
+      sharedInProjectBeta: "view",
     });
     expect(await roles("open")).toEqual({
       teamAlpha: "edit",
@@ -386,20 +399,29 @@ describe("API integration: document access leaks", () => {
       issueAlpha: "edit",
       issueBeta: "edit",
       project: "edit",
+      projectAlpha: "edit",
+      projectBeta: "edit",
       workspace: "edit",
       sharedInBeta: "edit",
+      sharedInProjectBeta: "edit",
     });
-    expect(
-      (
-        await world.as(world.limited)(
-          one(world, "sharedInBeta"),
-          json("PATCH", { title: "taken" }),
-        )
-      ).status,
-    ).toBe(403);
+    for (const place of ["sharedInBeta", "sharedInProjectBeta"] as const) {
+      const response = await world.as(world.limited)(
+        one(world, place),
+        json("PATCH", { title: "taken" }),
+      );
+      expect({ place, status: response.status }).toEqual({
+        place,
+        status: 403,
+      });
+    }
 
     // The share list of one document says nothing about any other document.
-    for (const place of ["sharedByName", "sharedInBeta"] as const) {
+    for (const place of [
+      "sharedByName",
+      "sharedInBeta",
+      "sharedInProjectBeta",
+    ] as const) {
       expect((await opened(world.limited, place)).shares).toMatchObject([
         { userId: world.limited.id, access: "view" },
       ]);

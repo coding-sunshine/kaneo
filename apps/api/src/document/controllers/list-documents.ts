@@ -7,20 +7,22 @@ import { documentParentAccess, documentVisibility } from "../visibility";
 
 // Team name, project name or issue key, for breadcrumbs and list rows. A
 // document shared by name can sit in a team the viewer cannot enter; that
-// team, and its issue keys, stay unnamed.
+// team, and its issue keys, stay unnamed. A project is always named: every
+// workspace member can list every project.
 export const documentParentName = (userId: string) =>
-  sql<
-    string | null
-  >`CASE WHEN ${documentParentAccess(userId, documentTable)} THEN
-    CASE ${documentTable.scope}
-      WHEN 'team' THEN (SELECT name FROM project WHERE id = ${documentTable.projectId})
-      WHEN 'project' THEN (SELECT name FROM work_project WHERE id = ${documentTable.workProjectId})
-      WHEN 'issue' THEN (
-        SELECT p.slug || '-' || t.number FROM task AS t
-        JOIN project AS p ON p.id = t.project_id
-        WHERE t.id = ${documentTable.taskId}
-      )
-    END
+  sql<string | null>`CASE
+    WHEN ${documentTable.scope} = 'project' THEN (
+      SELECT name FROM work_project WHERE id = ${documentTable.workProjectId}
+    )
+    WHEN NOT ${documentParentAccess(userId, documentTable)} THEN NULL
+    WHEN ${documentTable.scope} = 'team' THEN (
+      SELECT name FROM project WHERE id = ${documentTable.projectId}
+    )
+    WHEN ${documentTable.scope} = 'issue' THEN (
+      SELECT p.slug || '-' || t.number FROM task AS t
+      JOIN project AS p ON p.id = t.project_id
+      WHERE t.id = ${documentTable.taskId}
+    )
   END`;
 
 export const documentSummaryColumns = (userId: string) => ({

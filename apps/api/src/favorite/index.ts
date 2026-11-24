@@ -39,6 +39,7 @@ const openDocument = (userId: string, workspaceId: string) =>
         creatorId: sql`favorite_document.creator_id`,
         scope: sql`favorite_document.scope`,
         projectId: sql`favorite_document.project_id`,
+        workProjectId: sql`favorite_document.work_project_id`,
         taskId: sql`favorite_document.task_id`,
       })}
   )`;
