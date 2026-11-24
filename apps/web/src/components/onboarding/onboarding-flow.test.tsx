@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MotionGlobalConfig } from "motion/react";
 import {
   act,
   cleanup,
@@ -17,6 +18,10 @@ import {
   vi,
 } from "vite-plus/test";
 import { OnboardingFlow } from "./onboarding-flow";
+
+// Steps swap through AnimatePresence mode="wait"; a real 0.25s exit per step makes a
+// loaded machine miss findBy's 1s. The flow is under test here, not the animation.
+MotionGlobalConfig.skipAnimations = true;
 
 const m = vi.hoisted(() => ({
   navigate: vi.fn(),

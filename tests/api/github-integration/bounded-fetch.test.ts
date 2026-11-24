@@ -14,6 +14,9 @@ import {
 } from "../../../apps/api/src/utils/bounded-github-fetch";
 
 vi.mock("dotenv-mono", () => ({ config: () => {} }));
+// Warm the cold octokit/Sentry load outside the 5s test budget; the App test
+// below only re-evaluates the module after vi.resetModules().
+await import("../../../apps/api/src/plugins/github/utils/github-app");
 const request = vi.fn<typeof fetch>();
 beforeEach(() => {
   request.mockReset();
