@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { MatchModeMenu } from "./match-mode-menu";
@@ -19,6 +20,8 @@ type ActiveFiltersBarProps = {
     isError: boolean;
     retry: () => unknown;
   };
+  /** A chip of the caller's own, after the subject chips; it keeps the bar shown. */
+  extra?: ReactNode;
 };
 
 export function ActiveFiltersBar({
@@ -28,10 +31,11 @@ export function ActiveFiltersBar({
   matchAny = false,
   onMatchAnyChange,
   customFieldValues,
+  extra,
 }: ActiveFiltersBarProps) {
   const { t } = useTranslation();
   const active = subjects.filter((subject) => subject.selected.length > 0);
-  if (active.length === 0) return null;
+  if (active.length === 0 && !extra) return null;
 
   return (
     <section
@@ -45,6 +49,7 @@ export function ActiveFiltersBar({
         {active.map((subject) => (
           <ActiveFilterChip key={subject.id} subject={subject} />
         ))}
+        {extra}
         <AddFilterButton subjects={subjects} />
         {customFieldValues?.isLoading && (
           <p role="status" className="w-full text-sm text-muted-foreground">

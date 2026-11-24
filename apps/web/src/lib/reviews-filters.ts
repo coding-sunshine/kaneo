@@ -1,5 +1,6 @@
 import { subDays, subMonths, subWeeks, subYears } from "date-fns";
 import { parseDateQuery } from "@/components/common/date-picker/parse-date-query";
+import { isQuickToReview } from "@/lib/reviews-quick";
 import { reviewStatus } from "@/lib/reviews-status";
 import { type ReviewItem, sizeBucket } from "@/lib/reviews-view";
 
@@ -22,6 +23,7 @@ export const REVIEW_FILTER_IDS = [
   "checks",
   "hasConflicts",
   "size",
+  "quickToReview",
   "author",
   "reviewers",
   "teamReviewers",
@@ -44,6 +46,16 @@ export const REVIEW_FILTER_IDS = [
 export type ReviewFilterId = (typeof REVIEW_FILTER_IDS)[number];
 export type ReviewFilter = { values: string[]; negated: boolean };
 export type ReviewsFilters = Partial<Record<ReviewFilterId, ReviewFilter>>;
+/**
+ * Linear's Advanced filter: one group of conditions joined by a single operator, applied
+ * on top of the filter chips.
+ * ponytail: one condition per subject and no nested groups; make the conditions a list
+ * (and a group a condition) when someone needs the same subject twice.
+ */
+export type ReviewsAdvancedFilter = {
+  operator: "and" | "or";
+  filters: ReviewsFilters;
+};
 
 /** The signed-in GitHub login (what "Current user" means) and the clock for date presets. */
 export type FilterContext = { me: string | null; now: Date };
@@ -118,6 +130,7 @@ const matchers: Record<
   checks: (pr, values) => values.includes(pr.checks),
   hasConflicts: (pr) => pr.hasConflicts,
   size: (pr, values) => values.includes(sizeBucket(pr)),
+  quickToReview: (pr, _values, { me }) => isQuickToReview(pr, me),
   author: (pr, values, { me }) =>
     people(pr.author ? [pr.author.login] : [], values, me),
   reviewers: (pr, values, { me }) =>
@@ -165,15 +178,16 @@ export function filterByReviewFilters(
   items: ReviewItem[],
   filters: ReviewsFilters,
   ctx: FilterContext,
+  operator: ReviewsAdvancedFilter["operator"] = "and",
 ) {
   const active = (
     Object.entries(filters) as [ReviewFilterId, ReviewFilter][]
   ).filter(([, filter]) => filter.values.length > 0);
   if (active.length === 0) return items;
+  const matches = (pr: ReviewItem) => (entry: (typeof active)[number]) =>
+    matchers[entry[0]](pr, entry[1].values, ctx) !== entry[1].negated;
   return items.filter((pr) =>
-    active.every(
-      ([id, filter]) => matchers[id](pr, filter.values, ctx) !== filter.negated,
-    ),
+    operator === "or" ? active.some(matches(pr)) : active.every(matches(pr)),
   );
 }
 
@@ -192,6 +206,19 @@ export function sanitizeReviewsFilters(saved: unknown): ReviewsFilters {
     }
   }
   return kept;
+}
+
+/** A saved advanced filter keeps its operator and whichever conditions still fit. */
+export function sanitizeReviewsAdvanced(
+  saved: unknown,
+): ReviewsAdvancedFilter | null {
+  if (!saved || typeof saved !== "object") return null;
+  const { operator, filters } = saved as Record<string, unknown>;
+  if (!filters || typeof filters !== "object") return null;
+  return {
+    operator: operator === "and" ? "and" : "or",
+    filters: sanitizeReviewsFilters(filters),
+  };
 }
 
 export const activeFilterCount = (filters: ReviewsFilters) =>

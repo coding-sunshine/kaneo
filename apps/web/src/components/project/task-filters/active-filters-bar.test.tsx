@@ -45,6 +45,20 @@ it("renders nothing without active filters", () => {
   expect(container.firstChild).toBeNull();
 });
 
+it("stays shown for the caller's own chip alone", () => {
+  render(
+    <ActiveFiltersBar
+      subjects={[subject({})]}
+      onClear={vi.fn()}
+      extra={<span>Own chip</span>}
+    />,
+  );
+  expect(screen.getByText("Own chip")).toBeVisible();
+  expect(
+    screen.getByRole("button", { name: "common:actions.clearAll" }),
+  ).toBeVisible();
+});
+
 it("shows subject, operator and values, and clears them", () => {
   const onClearSubject = vi.fn();
   const onClearAll = vi.fn();

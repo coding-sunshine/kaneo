@@ -90,6 +90,9 @@ vi.mock("@/hooks/queries/search/use-global-search", () => ({
 }));
 
 const pullRef = { owner: "acme", repo: "web", number: "7" };
+/** Linear's "Copy as prompt" layout for `basePull`, which has a branch and no linked issue. */
+const PROMPT =
+  /^Checkout branch: `feat`\n\n.+ review: \[acme\/web#7\]\(.+\/reviews\/acme\/web\/7\)\nPull request: \[acme\/web#7\]\(https:\/\/github\.com\/acme\/web\/pull\/7\)$/;
 const basePull = {
   owner: "acme",
   repo: "web",
@@ -148,6 +151,7 @@ describe("PullRequestMenu", () => {
       .map((el) => el.textContent?.trim());
     expect(items).toEqual([
       "Open on GitHub",
+      "Work on pull request",
       "Favorite",
       "Snooze",
       "Copy",
@@ -174,6 +178,26 @@ describe("PullRequestMenu", () => {
     expect(await screen.findByText("Unfavorite")).toBeVisible();
   });
 
+  it("copies the prompt, with the linked issue, from Work on pull request", async () => {
+    renderMenu({
+      issue: {
+        workspaceId: "w2",
+        taskId: "t1",
+        title: "Fix login",
+        team: { id: "p1" },
+      },
+    });
+    await open("Work on pull request");
+    await open("Copy as prompt");
+    await waitFor(() =>
+      expect(mocks.writeText).toHaveBeenLastCalledWith(
+        expect.stringMatching(
+          /\/pull\/7\)\n\nConnected issue:\n- \[Fix login\]\(.*\/workspace\/w2\/project\/p1\/task\/t1\)$/,
+        ),
+      ),
+    );
+  });
+
   it("copies every form from the Copy submenu", async () => {
     renderMenu();
     const copy = async (path: string[], expected: string | RegExp) => {
@@ -198,7 +222,7 @@ describe("PullRequestMenu", () => {
     fireEvent.click(
       screen.getByRole("button", { name: "Pull request actions" }),
     );
-    await copy(["Copy", "Copy as prompt"], /Add thing[\s\S]*Body text/);
+    await copy(["Copy", "Copy as prompt"], PROMPT);
     fireEvent.click(
       screen.getByRole("button", { name: "Pull request actions" }),
     );

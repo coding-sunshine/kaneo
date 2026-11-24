@@ -1,5 +1,6 @@
 import { expect, it } from "vite-plus/test";
 import {
+  issueUrl,
   numberOnly,
   numberWithRepo,
   promptText,
@@ -14,7 +15,6 @@ const pull = {
   title: 'Fix <b> & "quotes"',
   url: "https://github.com/acme/web/pull/7",
 };
-const labels = { title: "T", url: "U", branch: "B" };
 
 it("escapes the title in the html link and keeps a markdown fallback", () => {
   expect(titleLink(pull)).toEqual({
@@ -34,9 +34,25 @@ it("builds the review url from the workspace", () => {
   );
 });
 
-it("includes the branch and body only when present", () => {
-  expect(promptText(pull, labels)).toBe("T\nU");
-  expect(promptText({ ...pull, headRef: "feat", body: " hi " }, labels)).toBe(
-    "T\nU\nB\n\nhi",
-  );
+it("builds the issue url from the issue's own workspace and project", () => {
+  expect(
+    issueUrl("http://x", {
+      workspaceId: "w2",
+      taskId: "t1",
+      title: "Fix it",
+      team: { id: "p1" },
+    }),
+  ).toBe("http://x/dashboard/workspace/w2/project/p1/task/t1");
+});
+
+it("lays the prompt out as Linear does, with the branch and issue only when present", () => {
+  const lines = { review: "R", pull: "P" };
+  expect(promptText(lines)).toBe("R\nP");
+  expect(
+    promptText({
+      ...lines,
+      branch: "B",
+      issue: { heading: "H", title: "Fix it", url: "http://x/t" },
+    }),
+  ).toBe("B\n\nR\nP\n\nH\n- [Fix it](http://x/t)");
 });

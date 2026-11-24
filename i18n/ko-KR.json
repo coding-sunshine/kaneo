@@ -4895,11 +4895,13 @@
 				"number": "Copy pull request number...",
 				"numberOnly": "Number only",
 				"numberWithRepo": "Number with repo name",
-				"promptBranch": "Branch: {{branch}}",
-				"promptTitle": "Pull request: {{title}}",
-				"promptUrl": "URL: {{url}}",
 				"reviewUrl": "Copy review URL",
-				"titleAsLink": "Copy title as link"
+				"titleAsLink": "Copy title as link",
+				"promptCheckout": "Checkout branch: `{{branch}}`",
+				"promptCopied": "Prompt copied to clipboard",
+				"promptIssue": "Connected issue:",
+				"promptPull": "Pull request: [{{id}}]({{url}})",
+				"promptReview": "{{appName}} review: [{{id}}]({{url}})"
 			},
 			"count_other": "{{count}} reviews",
 			"detail": {
@@ -5027,7 +5029,14 @@
 					"label": "Ordering",
 					"path": "Path"
 				},
-				"structural": "Structural highlighting"
+				"structural": "Structural highlighting",
+				"codeTheme": {
+					"catppuccin": "Catppuccin",
+					"github": "GitHub",
+					"label": "Code theme",
+					"one": "One",
+					"solarized": "Solarized"
+				}
 			},
 			"display": {
 				"badgeCount": "Badge count",
@@ -5103,9 +5112,21 @@
 					"status": "Status",
 					"team": "Team",
 					"teamReviewers": "GitHub team reviewers",
-					"updated": "Updated date"
+					"updated": "Updated date",
+					"quickToReview": "Quick to review"
 				},
-				"yes": "Yes"
+				"yes": "Yes",
+				"advanced": {
+					"addFilter": "Filter",
+					"and": "and",
+					"conditions_other": "{{count, number}} conditions",
+					"label": "Advanced filter",
+					"or": "or",
+					"remove": "Remove advanced filter",
+					"toggleOperator": "Toggle filter operator, currently {{operator}}"
+				},
+				"customDate": "Custom date or timeframe...",
+				"customDatePlaceholder": "Try: 10 days ago"
 			},
 			"focus": {
 				"done": "Done",
@@ -5160,7 +5181,12 @@
 				"squashDescription": "This squashes every commit into one and merges it into {{base}} on GitHub.",
 				"squashMerge": "Squash & merge",
 				"squashTitle": "Squash and merge \"{{title}}\"?",
-				"unfavorite": "Unfavorite"
+				"unfavorite": "Unfavorite",
+				"createIssue": "Create new issue",
+				"noMembers": "No members found.",
+				"originalAuthor": "Original author",
+				"owner": "Owner",
+				"workOn": "Work on pull request"
 			},
 			"property": {
 				"author": "Author",

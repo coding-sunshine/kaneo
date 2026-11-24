@@ -6,6 +6,7 @@ import {
   filterByReviewFilters,
   parseCustomDate,
   type ReviewsFilters,
+  sanitizeReviewsAdvanced,
   sanitizeReviewsFilters,
   setFilterNegated,
   toggleFilterValue,
@@ -227,6 +228,53 @@ describe("every subject", () => {
   });
   it("counts one value alone", () => {
     expect(countMatches(list, "approvedBy", "ada", ctx)).toBe(2);
+  });
+});
+
+describe("advanced filter", () => {
+  const filters: ReviewsFilters = {
+    hasConflicts: { values: ["true"], negated: false },
+    mergeStatus: { values: ["ready"], negated: false },
+  };
+
+  it("joins its conditions with or, or with and", () => {
+    expect(numbers(filterByReviewFilters(items, filters, ctx, "or"))).toEqual([
+      1, 2,
+    ]);
+    expect(numbers(filterByReviewFilters(items, filters, ctx, "and"))).toEqual(
+      [],
+    );
+  });
+
+  it("matches quick pull requests, and the rest when negated", () => {
+    const sized = [
+      pr(1, { status: "open", additions: 2, deletions: 1 }),
+      pr(2, { status: "open", additions: 400, deletions: 0 }),
+    ].map((item) => ({ ...(item as object), changesRequestedBy: [] }) as never);
+    const quick = (negated: boolean) =>
+      numbers(
+        filterByReviewFilters(
+          sized,
+          { quickToReview: { values: ["true"], negated } },
+          ctx,
+        ),
+      );
+    expect(quick(false)).toEqual([1]);
+    expect(quick(true)).toEqual([2]);
+  });
+
+  it("keeps a saved advanced filter and repairs a broken one", () => {
+    expect(sanitizeReviewsAdvanced(null)).toBeNull();
+    expect(sanitizeReviewsAdvanced("or")).toBeNull();
+    expect(sanitizeReviewsAdvanced([])).toBeNull();
+    expect(sanitizeReviewsAdvanced({ operator: "and" })).toBeNull();
+    expect(sanitizeReviewsAdvanced({ operator: "and", filters })).toEqual({
+      operator: "and",
+      filters,
+    });
+    expect(
+      sanitizeReviewsAdvanced({ operator: "xor", filters: { nope: 1 } }),
+    ).toEqual({ operator: "or", filters: {} });
   });
 });
 

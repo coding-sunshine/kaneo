@@ -21,6 +21,7 @@ import { PullRequestOwnerSubmenu } from "@/components/reviews/pull-request-owner
 import { PullRequestLabelsSubmenu } from "@/components/reviews/pull-request-labels-submenu";
 import { PullRequestReviewersSubmenu } from "@/components/reviews/pull-request-reviewers-submenu";
 import { PullRequestSnoozeSubmenu } from "@/components/reviews/pull-request-snooze-submenu";
+import { PullRequestWorkSubmenu } from "@/components/reviews/pull-request-work-submenu";
 import { useReadyForReview } from "@/components/reviews/use-ready-for-review";
 import { Button } from "@/components/ui/button";
 import {
@@ -75,6 +76,7 @@ export function PullRequestMenu({
             <ExternalLink />
             {t("workspace:reviews.detail.openOnGithub")}
           </MenuItem>
+          <PullRequestWorkSubmenu pull={pull} workspaceId={workspaceId} />
           <PullRequestFavoriteItem
             pullRef={pullRef}
             workspaceId={workspaceId}

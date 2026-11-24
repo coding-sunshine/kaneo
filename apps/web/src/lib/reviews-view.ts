@@ -6,7 +6,9 @@ import type {
 
 import { reviewStatus, REVIEW_STATUSES } from "@/lib/reviews-status";
 import {
+  type ReviewsAdvancedFilter,
   type ReviewsFilters,
+  sanitizeReviewsAdvanced,
   sanitizeReviewsFilters,
 } from "@/lib/reviews-filters";
 
@@ -63,6 +65,8 @@ export type ReviewsView = {
   /** Top-level group ids kept below the others. */
   pinned: string[];
   filters: ReviewsFilters;
+  /** Null until "Advanced filter" is picked; an empty one still shows its chip. */
+  advanced: ReviewsAdvancedFilter | null;
 };
 export type ReviewsViews = Record<ReviewsTab, ReviewsView>;
 
@@ -144,6 +148,7 @@ export const DEFAULT_REVIEWS_VIEWS: ReviewsViews = {
     collapsed: ["status:merged", "status:closed"],
     pinned: [],
     filters: {},
+    advanced: null,
   },
   toReview: {
     groupBy: "focus",
@@ -157,6 +162,7 @@ export const DEFAULT_REVIEWS_VIEWS: ReviewsViews = {
     collapsed: ["focus:done"],
     pinned: [],
     filters: {},
+    advanced: null,
   },
 };
 
@@ -202,6 +208,7 @@ export function sanitizeReviewsViews(saved: unknown): ReviewsViews {
       collapsed: strings(view.collapsed, base.collapsed),
       pinned: strings(view.pinned, base.pinned),
       filters: sanitizeReviewsFilters(view.filters),
+      advanced: sanitizeReviewsAdvanced(view.advanced),
     };
   };
   return { created: one("created"), toReview: one("toReview") };

@@ -1,9 +1,10 @@
 import { useParams } from "@tanstack/react-router";
-import { GitPullRequest, Search } from "lucide-react";
+import { GitPullRequest, ListFilterPlus, Search } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Layout from "@/components/common/layout";
 import PageTitle from "@/components/page-title";
+import { ReviewsAdvancedFilterChip } from "@/components/reviews/reviews-advanced-filter-chip";
 import { ReviewsConnectCard } from "@/components/reviews/reviews-connect-card";
 import { ReviewsDisplayOptions } from "@/components/reviews/reviews-display-options";
 import { ReviewsList } from "@/components/reviews/reviews-list";
@@ -48,6 +49,7 @@ import { useReviewsSnoozeStore } from "@/store/reviews-snooze";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 
 type DetailParams = { owner?: string; repo?: string; number?: string };
+const NO_FILTERS: ReviewsFilters = {};
 
 /** Linear's split: the list on the left, the opened pull request (children) beside it. */
 export function ReviewsPage({
@@ -72,6 +74,7 @@ export function ReviewsPage({
     return REVIEWS_TABS.find((entry) => entry === linked) ?? "toReview";
   });
   const [filterOpen, setFilterOpen] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [query, setQuery] = useState("");
   const status = useReviewsStatus();
   const connected = status.data?.state === "connected";
@@ -98,18 +101,42 @@ export function ReviewsPage({
     [data, tab, view],
   );
   const subjects = useReviewsFilterSubjects(items, filters, setFilters, ctx);
+  const advanced = view.advanced;
+  const advancedSubjects = useReviewsFilterSubjects(
+    items,
+    advanced?.filters ?? NO_FILTERS,
+    (next) =>
+      setView(tab, {
+        advanced: { operator: advanced?.operator ?? "or", filters: next },
+      }),
+    ctx,
+  );
+  const openAdvanced = () => {
+    // Linear starts a new advanced filter on "or" and reopens the one already there.
+    if (!advanced)
+      setView(tab, { advanced: { operator: "or", filters: NO_FILTERS } });
+    setAdvancedOpen(true);
+  };
   const snoozes = useReviewsSnoozeStore((state) => state.entries);
   const groups = useMemo(() => {
     if (!data) return [];
     const { active, snoozed } = splitSnoozed(
       sortPullRequests(
-        filterPullRequests(filterByReviewFilters(items, filters, ctx), query),
+        filterPullRequests(
+          filterByReviewFilters(
+            filterByReviewFilters(items, filters, ctx),
+            advanced?.filters ?? NO_FILTERS,
+            ctx,
+            advanced?.operator,
+          ),
+          query,
+        ),
         view,
       ),
       snoozes,
     );
     return buildGroups(active, view, view.showSnoozed ? snoozed : []);
-  }, [data, items, filters, ctx, view, query, snoozes]);
+  }, [data, items, filters, advanced, ctx, view, query, snoozes]);
   const toReviewCount = useMemo(
     () => (data ? splitSnoozed(data.toReview, snoozes).active.length : 0),
     [data, snoozes],
@@ -148,7 +175,20 @@ export function ReviewsPage({
               <>
                 <FilterMenu
                   subjects={subjects}
-                  activeCount={activeFilterCount(filters)}
+                  activeCount={
+                    activeFilterCount(filters) +
+                    (advanced && activeFilterCount(advanced.filters) > 0
+                      ? 1
+                      : 0)
+                  }
+                  actions={[
+                    {
+                      value: "advanced",
+                      label: t("workspace:reviews.filters.advanced.label"),
+                      icon: <ListFilterPlus />,
+                      toggle: openAdvanced,
+                    },
+                  ]}
                 />
                 <Button
                   variant="ghost"
@@ -202,7 +242,27 @@ export function ReviewsPage({
           {connected && (
             <ActiveFiltersBar
               subjects={subjects}
-              onClear={() => setFilters({})}
+              onClear={() => {
+                setAdvancedOpen(false);
+                setView(tab, { filters: {}, advanced: null });
+              }}
+              extra={
+                advanced && (
+                  <ReviewsAdvancedFilterChip
+                    operator={advanced.operator}
+                    subjects={advancedSubjects}
+                    open={advancedOpen}
+                    onOpenChange={setAdvancedOpen}
+                    onOperatorChange={(operator) =>
+                      setView(tab, { advanced: { ...advanced, operator } })
+                    }
+                    onRemove={() => {
+                      setAdvancedOpen(false);
+                      setView(tab, { advanced: null });
+                    }}
+                  />
+                )
+              }
             />
           )}
           {connected && filterOpen && (

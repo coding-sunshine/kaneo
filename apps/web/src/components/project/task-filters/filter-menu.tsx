@@ -15,15 +15,21 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/cn";
 import { useShortcut } from "@/lib/shortcuts/use-shortcut";
+import type { FilterEntry } from "./filter-entries";
 import { FilterRootPanel } from "./filter-root-panel";
 import type { FilterSubject } from "./filter-subject";
 
 type FilterMenuProps = {
   subjects: FilterSubject[];
   activeCount: number;
+  actions?: FilterEntry[];
 };
 
-export function FilterMenu({ subjects, activeCount }: FilterMenuProps) {
+export function FilterMenu({
+  subjects,
+  activeCount,
+  actions,
+}: FilterMenuProps) {
   const { t } = useTranslation();
   const label = t("common:actions.filter");
   const [open, setOpen] = useState(false);
@@ -61,7 +67,11 @@ export function FilterMenu({ subjects, activeCount }: FilterMenuProps) {
         </TooltipContent>
       </Tooltip>
       <PopoverContent align="end" className="w-60">
-        <FilterRootPanel subjects={subjects} onApplied={() => setOpen(false)} />
+        <FilterRootPanel
+          subjects={subjects}
+          actions={actions}
+          onApplied={() => setOpen(false)}
+        />
       </PopoverContent>
     </Popover>
   );

@@ -5137,6 +5137,16 @@
 				"contentPlaceholder": "Filter by content…",
 				"customDate": "Custom date or timeframe...",
 				"customDatePlaceholder": "Try: 10 days ago",
+				"advanced": {
+					"label": "Advanced filter",
+					"conditions_one": "{{count, number}} condition",
+					"conditions_other": "{{count, number}} conditions",
+					"remove": "Remove advanced filter",
+					"and": "and",
+					"or": "or",
+					"toggleOperator": "Toggle filter operator, currently {{operator}}",
+					"addFilter": "Filter"
+				},
 				"count_one": "{{count, number}} review",
 				"count_other": "{{count, number}} reviews",
 				"subject": {
@@ -5145,6 +5155,7 @@
 					"checks": "Checks",
 					"hasConflicts": "Has conflicts",
 					"size": "Size",
+					"quickToReview": "Quick to review",
 					"author": "Author",
 					"reviewers": "Reviewers",
 					"teamReviewers": "GitHub team reviewers",
@@ -5251,9 +5262,11 @@
 				"githubUrl": "Copy GitHub URL",
 				"copied": "Copied to clipboard",
 				"copyFailed": "Could not copy to the clipboard",
-				"promptTitle": "Pull request: {{title}}",
-				"promptUrl": "URL: {{url}}",
-				"promptBranch": "Branch: {{branch}}"
+				"promptCopied": "Prompt copied to clipboard",
+				"promptCheckout": "Checkout branch: `{{branch}}`",
+				"promptReview": "{{appName}} review: [{{id}}]({{url}})",
+				"promptPull": "Pull request: [{{id}}]({{url}})",
+				"promptIssue": "Connected issue:"
 			},
 			"snooze": {
 				"label": "Snooze",
@@ -5278,6 +5291,7 @@
 				"tipReview": "Snoozed until a new review"
 			},
 			"prActions": {
+				"workOn": "Work on pull request",
 				"favorite": "Favorite",
 				"unfavorite": "Unfavorite",
 				"linkIssue": "Link issue",

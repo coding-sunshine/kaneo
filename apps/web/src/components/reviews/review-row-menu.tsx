@@ -13,6 +13,7 @@ import { PullRequestOwnerSubmenu } from "@/components/reviews/pull-request-owner
 import { PullRequestLabelsSubmenu } from "@/components/reviews/pull-request-labels-submenu";
 import { PullRequestReviewersSubmenu } from "@/components/reviews/pull-request-reviewers-submenu";
 import { PullRequestSnoozeSubmenu } from "@/components/reviews/pull-request-snooze-submenu";
+import { PullRequestWorkSubmenu } from "@/components/reviews/pull-request-work-submenu";
 import { ContextMenuContent } from "@/components/ui/context-menu";
 import { MenuItem, MenuSeparator } from "@/components/ui/menu";
 import type { ReviewPullRequest } from "@/fetchers/github-reviews/github-reviews";
@@ -40,6 +41,7 @@ export function ReviewRowMenu({
         <ExternalLink />
         {t("workspace:reviews.detail.openOnGithub")}
       </MenuItem>
+      <PullRequestWorkSubmenu pull={pr} workspaceId={workspaceId} />
       <PullRequestFavoriteItem pullRef={pullRef} workspaceId={workspaceId} />
       <PullRequestSnoozeSubmenu pull={pr} />
       <MenuSeparator />

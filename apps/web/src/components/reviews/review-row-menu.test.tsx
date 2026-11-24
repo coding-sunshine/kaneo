@@ -142,6 +142,7 @@ describe("ReviewRowMenu", () => {
     await screen.findByText("Open on GitHub");
     expect(itemNames()).toEqual([
       "Open on GitHub",
+      "Work on pull request",
       "Favorite",
       "Snooze",
       "Copy",
@@ -277,6 +278,7 @@ describe("ReviewRowMenu", () => {
       await screen.findByText("Checks");
       expect(itemNames()).toEqual([
         "Open on GitHub",
+        "Work on pull request",
         "Favorite",
         "Snooze",
         "Copy",

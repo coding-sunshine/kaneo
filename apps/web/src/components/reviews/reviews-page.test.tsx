@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import {
   afterEach,
   beforeEach,
@@ -326,6 +332,52 @@ describe("ReviewsPage", () => {
     fireEvent.click(await screen.findByText("Blocked"));
     expect(screen.getByText("Blocked one")).toBeInTheDocument();
     expect(screen.queryByText("Ready one")).not.toBeInTheDocument();
+  });
+
+  it("starts an advanced filter on or from the Filter menu", async () => {
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    fireEvent.click(screen.getByRole("button", { name: "Filter" }));
+    fireEvent.click(await screen.findByText("Advanced filter"));
+    expect(
+      useUserPreferencesStore.getState().reviewsView.toReview.advanced,
+    ).toEqual({ operator: "or", filters: {} });
+    expect(
+      await screen.findByRole("button", { name: "Remove advanced filter" }),
+    ).toBeInTheDocument();
+  });
+
+  it("joins the advanced conditions with their operator", () => {
+    state.list.toReview = [
+      pr(1, "Ready one", "open", { mergeState: "ready" }),
+      pr(2, "Blocked one", "open", { mergeState: "blocked" }),
+      pr(3, "Conflicted one", "open", { hasConflicts: true }),
+    ];
+    const advanced = (operator: "and" | "or") =>
+      useUserPreferencesStore.setState({
+        reviewsView: {
+          ...DEFAULT_REVIEWS_VIEWS,
+          toReview: {
+            ...DEFAULT_REVIEWS_VIEWS.toReview,
+            advanced: {
+              operator,
+              filters: {
+                mergeStatus: { values: ["blocked"], negated: false },
+                hasConflicts: { values: ["true"], negated: false },
+              },
+            },
+          },
+        },
+      });
+    advanced("or");
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    expect(screen.getByText("2 conditions")).toBeInTheDocument();
+    expect(screen.getByText("Blocked one")).toBeInTheDocument();
+    expect(screen.getByText("Conflicted one")).toBeInTheDocument();
+    expect(screen.queryByText("Ready one")).not.toBeInTheDocument();
+
+    act(() => advanced("and"));
+    expect(screen.queryByText("Blocked one")).not.toBeInTheDocument();
+    expect(screen.queryByText("Conflicted one")).not.toBeInTheDocument();
   });
 
   it("shows a second line with status details and repo#num when those properties are on", () => {

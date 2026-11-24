@@ -11,6 +11,7 @@ import {
   UserCheck,
   UserRound,
   Users,
+  Zap,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { FilterSubject } from "@/components/project/task-filters/filter-subject";
@@ -126,6 +127,11 @@ export function useReviewsFilterSubjects(
       icon: <Ruler />,
       section: "state",
       options: fixed(SIZE_BUCKETS, "size"),
+    },
+    quickToReview: {
+      icon: <Zap />,
+      section: "state",
+      options: [{ value: "true", label: t("workspace:reviews.filters.yes") }],
     },
     author: {
       icon: <UserRound />,

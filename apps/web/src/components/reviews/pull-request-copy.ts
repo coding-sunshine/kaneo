@@ -1,3 +1,5 @@
+import { getTaskPath } from "@/lib/task-link";
+
 export type CopyablePull = {
   owner: string;
   repo: string;
@@ -6,7 +8,13 @@ export type CopyablePull = {
   url: string;
   /** Missing where the list does not carry it; the branch item is then left out. */
   headRef?: string;
-  body?: string;
+  /** The linked task; "Copy as prompt" names it. */
+  issue?: {
+    workspaceId: string;
+    taskId: string;
+    title: string;
+    team: { id: string };
+  } | null;
 };
 
 const escapeHtml = (text: string) =>
@@ -22,17 +30,24 @@ export const titleLink = ({ title, url }: CopyablePull) => ({
   text: `[${title}](${url})`,
 });
 
-// ponytail: Linear's exact "Copy as prompt" layout is unknown; this is
-// title, URL, branch and body when present. Match Linear once it is seen.
-export function promptText(
-  pull: CopyablePull,
-  labels: { title: string; url: string; branch: string },
-) {
+/**
+ * Linear's "Copy as prompt" layout: the branch to check out, the review and pull request
+ * links, then the connected issue.
+ * ponytail: Linear also lists failing checks and unresolved comments; add them when the
+ * caller carries a pull request's check runs and review threads.
+ */
+export function promptText(lines: {
+  branch?: string;
+  review: string;
+  pull: string;
+  issue?: { heading: string; title: string; url: string } | null;
+}) {
+  const { issue } = lines;
   return [
-    labels.title,
-    labels.url,
-    pull.headRef ? labels.branch : "",
-    pull.body?.trim() ? `\n${pull.body.trim()}` : "",
+    lines.branch ? `${lines.branch}\n` : "",
+    lines.review,
+    lines.pull,
+    issue ? `\n${issue.heading}\n- [${issue.title}](${issue.url})` : "",
   ]
     .filter(Boolean)
     .join("\n");
@@ -43,6 +58,18 @@ export function promptText(
 export const numberOnly = (pull: CopyablePull) => `#${pull.number}`;
 export const numberWithRepo = (pull: CopyablePull) =>
   `${pull.owner}/${pull.repo}#${pull.number}`;
+
+/** Uses the task's own workspace: a linked task can live outside the one Reviews is open in. */
+export const issueUrl = (
+  origin: string,
+  issue: NonNullable<CopyablePull["issue"]>,
+) =>
+  origin +
+  getTaskPath({
+    workspaceId: issue.workspaceId,
+    projectId: issue.team.id,
+    taskId: issue.taskId,
+  });
 
 export const reviewUrl = (
   origin: string,

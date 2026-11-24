@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Popover, PopoverContent } from "@/components/ui/popover";
-import { type FilterEntry, rootFilterEntries } from "./filter-entries";
+import { type FilterEntry, matches, rootFilterEntries } from "./filter-entries";
 import { FilterListbox } from "./filter-listbox";
 import type { FilterSubject } from "./filter-subject";
 import { FilterSubjectPanel } from "./filter-subject-panel";
@@ -11,9 +11,12 @@ const HOVER_DELAY_MS = 120;
 export function FilterRootPanel({
   subjects,
   onApplied,
+  actions = [],
 }: {
   subjects: FilterSubject[];
   onApplied?: () => void;
+  /** Entries listed above the subjects that act at once, like Linear's "Advanced filter". */
+  actions?: FilterEntry[];
 }) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
@@ -41,15 +44,26 @@ export function FilterRootPanel({
     inputRef.current?.focus();
   };
 
+  const shownActions = actions
+    .filter((action) => matches(action.label, query))
+    .map((action) => ({
+      ...action,
+      toggle: () => {
+        action.toggle?.();
+        onApplied?.();
+      },
+    }));
+
   return (
     <div className="-mx-1 -my-0.5">
       <FilterListbox
         placeholder={t("tasks:filterMenu.addFilter")}
-        groups={rootFilterEntries(
-          subjects,
-          query,
-          t("tasks:common.customFields"),
-        )}
+        groups={[
+          ...(shownActions.length > 0
+            ? [{ value: "actions", items: shownActions }]
+            : []),
+          ...rootFilterEntries(subjects, query, t("tasks:common.customFields")),
+        ]}
         query={query}
         onQueryChange={(next) => {
           setQuery(next);
