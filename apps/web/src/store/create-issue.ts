@@ -3,7 +3,9 @@ import type { TaskDraft } from "@/fetchers/task-draft/task-drafts";
 
 /** What "New issue from comment" hands to the create modal. */
 export type CreateIssueDraft = {
-  projectId: string;
+  /** Omitted when the source has no project; the modal falls back to its own pick. */
+  projectId?: string;
+  title?: string;
   description: string;
   workProjectId?: string | null;
   workProjectMilestoneId?: string | null;
@@ -11,6 +13,11 @@ export type CreateIssueDraft = {
   link?: { taskId: string; type: "related" | "parent" };
   /** The comment the issue is made from; it then lists the issue. */
   sourceCommentId?: string;
+  /** The pull request the issue is made from; it is linked to the new issue. */
+  pullRequest?: {
+    url: string;
+    status: "draft" | "open" | "merged" | "closed";
+  };
 };
 
 // Lets any "New issue" button open the global create modal owned by the command palette.

@@ -15,6 +15,7 @@ import {
   type PullRequestAction,
 } from "@/components/reviews/pull-request-action-dialog";
 import { PullRequestCopySubmenu } from "@/components/reviews/pull-request-copy-submenu";
+import { PullRequestCreateIssueItem } from "@/components/reviews/pull-request-create-issue-item";
 import { PullRequestFavoriteItem } from "@/components/reviews/pull-request-favorite-item";
 import { PullRequestLabelsSubmenu } from "@/components/reviews/pull-request-labels-submenu";
 import { PullRequestReviewersSubmenu } from "@/components/reviews/pull-request-reviewers-submenu";
@@ -89,6 +90,7 @@ export function PullRequestMenu({
                   {t("workspace:reviews.prActions.linkIssue")}
                 </MenuItem>
               )}
+              <PullRequestCreateIssueItem pull={pull} />
               <PullRequestLabelsSubmenu
                 pullRef={pullRef}
                 labels={pull.labels}

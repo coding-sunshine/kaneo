@@ -15,6 +15,7 @@ import {
 } from "vite-plus/test";
 import "@/lib/i18n";
 import { ShortcutTestWrapper } from "@/lib/shortcuts/shortcut-test-wrapper";
+import { useCreateIssueStore } from "@/store/create-issue";
 import { useReviewsSnoozeStore } from "@/store/reviews-snooze";
 import { PullRequestMenu } from "./pull-request-menu";
 
@@ -134,6 +135,7 @@ describe("PullRequestMenu", () => {
       "Snooze",
       "Copy",
       "Link issue",
+      "Create new issue",
       "Labels",
       "Select reviewers",
       "Convert to draft",
@@ -250,6 +252,16 @@ describe("PullRequestMenu", () => {
       ["grace"],
       expect.anything(),
     );
+  });
+
+  it("opens the create-issue modal seeded from the pull request", async () => {
+    renderMenu();
+    await open("Create new issue");
+    expect(useCreateIssueStore.getState().open).toBe(true);
+    expect(useCreateIssueStore.getState().draft).toMatchObject({
+      title: "Add thing",
+      pullRequest: { url: basePull.url, status: "open" },
+    });
   });
 
   it("links a searched issue from the dialog", async () => {

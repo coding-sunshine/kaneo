@@ -69,6 +69,7 @@ import { useDeleteTaskDraft } from "@/hooks/mutations/task-draft/use-delete-task
 import { useSaveTaskDraft } from "@/hooks/mutations/task-draft/use-save-task-draft";
 import { getColumnIcon } from "@/lib/column";
 import { getStatusDisplayLabel } from "@/lib/i18n/domain";
+import createExternalLink from "@/fetchers/external-link/create-external-link";
 import useCreateLabel from "@/hooks/mutations/label/use-create-label";
 import useCreateTask from "@/hooks/mutations/task/use-create-task";
 import useCreateTaskRelation from "@/hooks/mutations/task-relation/use-create-task-relation";
@@ -258,7 +259,7 @@ function CreateTaskModalContent({
   const canCreateTaskCapability = canCreateTasks();
   const canCreateLabelCapability = canCreateLabels();
 
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(prefill?.title ?? "");
   const titleRef = useAutoGrowTextarea(title);
   const [description, setDescription] = useState(prefill?.description ?? "");
   const [priority, setPriority] = useState<Priority>("no-priority");
@@ -734,6 +735,25 @@ function CreateTaskModalContent({
         } catch (error) {
           console.error("Failed to link issue:", error);
           toast.error(t("tasks:relations.linkError"));
+        }
+      }
+
+      if (prefill?.pullRequest) {
+        const { url, status: prStatus } = prefill.pullRequest;
+        try {
+          await createExternalLink({
+            taskId: savedTask.id,
+            url,
+            resourceType: "pull_request",
+            metadata: {
+              state:
+                prStatus === "open" || prStatus === "draft" ? "open" : "closed",
+              merged: prStatus === "merged",
+              draft: prStatus === "draft",
+            },
+          });
+        } catch (error) {
+          console.error("Failed to link pull request:", error);
         }
       }
 

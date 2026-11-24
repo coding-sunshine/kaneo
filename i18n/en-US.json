@@ -5281,6 +5281,7 @@
 				"linkIssue": "Link issue",
 				"labels": "Labels",
 				"noLabels": "This repository has no labels.",
+				"createIssue": "Create new issue",
 				"selectReviewers": "Select reviewers",
 				"convertToDraft": "Convert to draft",
 				"squashMerge": "Squash & merge",
