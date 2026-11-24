@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { documentTable } from "../../database/schema";
 import { getDocument } from "./get-document";
@@ -9,7 +10,13 @@ export async function deleteDocument(
   id: string,
   userId: string,
 ) {
-  await loadDocument(workspaceId, id, userId, { need: "edit" });
+  const doc = await loadDocument(workspaceId, id, userId, { need: "edit" });
+  if (doc.status === "current") {
+    throw new HTTPException(409, {
+      message:
+        "This is the current document on its topic. Make another one current first.",
+    });
+  }
   await db
     .update(documentTable)
     .set({ deletedAt: new Date() })

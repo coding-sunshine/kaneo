@@ -6,6 +6,7 @@ import {
   documentVersionTable,
   userTable,
 } from "../../database/schema";
+import { assertNotSuperseded } from "./assert-not-superseded";
 import { getDocument } from "./get-document";
 import { loadDocument } from "./load-document";
 import { recordVersion } from "./record-version";
@@ -38,7 +39,9 @@ export async function restoreVersion(
   userId: string,
   versionId: string,
 ) {
-  await loadDocument(workspaceId, id, userId, { need: "edit" });
+  assertNotSuperseded(
+    await loadDocument(workspaceId, id, userId, { need: "edit" }),
+  );
   const [version] = await db
     .select({
       title: documentVersionTable.title,

@@ -27,7 +27,7 @@ type Place = {
 // The workspace members who could open a document that lives in `place`: the
 // rule `loadDocument` applies to one person, asked of every member at once.
 // An instance administrator who has not joined the workspace is left out.
-async function audienceOf(workspaceId: string, place: Place) {
+export async function audienceOf(workspaceId: string, place: Place) {
   const [people, stored] = await Promise.all([
     db
       .select({

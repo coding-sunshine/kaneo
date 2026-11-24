@@ -103,6 +103,7 @@ import { descriptionPageQuery, listTasksQuery } from "./task/schema";
 import taskRelation from "./task-relation";
 import telegramIntegration from "./telegram-integration";
 import timeEntry from "./time-entry";
+import topic from "./topic";
 import user from "./user";
 import getAvatar from "./user/controllers/get-avatar";
 import { apiKeyRejection } from "./utils/api-key-rejection";
@@ -847,6 +848,7 @@ export function createApp() {
   const agentApi = api.route("/agent", agent);
   const loopApi = api.route("/loop", loop);
   const documentApi = api.route("/document", document);
+  const topicApi = api.route("/topic", topic);
   const favoriteApi = api.route("/favorite", favorite);
   const notificationApi = api.route("/notification", notification);
   const notificationPreferencesApi = api.route(
@@ -1039,6 +1041,7 @@ export function createApp() {
     agentApi,
     loopApi,
     documentApi,
+    topicApi,
     favoriteApi,
     notificationApi,
     notificationPreferencesApi,
@@ -1190,6 +1193,7 @@ const {
   agentApi,
   loopApi,
   documentApi,
+  topicApi,
   favoriteApi,
   mattermostIntegrationApi,
   notificationApi,
@@ -1245,6 +1249,7 @@ export type AppType =
   | typeof agentApi
   | typeof loopApi
   | typeof documentApi
+  | typeof topicApi
   | typeof favoriteApi
   | typeof notificationApi
   | typeof notificationPreferencesApi

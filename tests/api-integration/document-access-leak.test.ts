@@ -430,4 +430,135 @@ describe("API integration: document access leaks", () => {
     }
     expect((await opened(world.limited, "teamAlpha")).shares).toEqual([]);
   });
+
+  it("keeps a topic, and what is filed on it, behind the place it lives in", async () => {
+    const world = await buildDocumentWorld();
+    const { owner, limited, open, ws, docs } = world;
+    const base = `/topic/workspace/${ws}`;
+    const create = async (name: string, place: Record<string, string> = {}) =>
+      (
+        (await (
+          await world.as(owner)(
+            "/topic",
+            json("POST", { workspaceId: ws, name, ...place }),
+          )
+        ).json()) as { id: string }
+      ).id;
+    const everyone = await create("Everyone");
+    const alpha = await create("Alpha", { projectId: world.alpha.id });
+    const beta = await create("Beta", { projectId: world.beta.id });
+    const projectBeta = await create("Project Beta", {
+      workProjectId: world.betaProject.id,
+    });
+    const names = async (user: Member) =>
+      ((await (await world.as(user)(base)).json()) as { name: string }[]).map(
+        (topic) => topic.name,
+      );
+    expect(await names(open)).toEqual([
+      "Alpha",
+      "Beta",
+      "Everyone",
+      "Project Beta",
+    ]);
+    expect(await names(limited)).toEqual(["Alpha", "Everyone"]);
+
+    // The Beta topic has a current document and a replaced one. The current
+    // one is shared with `limited` by name.
+    const decide = (id: string, suffix: string, body?: unknown) =>
+      world.as(owner)(
+        `${base}/${beta}/document/${id}${suffix}`,
+        json(suffix ? "POST" : "PUT", body),
+      );
+    for (const id of [docs.teamBeta, docs.sharedInBeta]) {
+      expect((await decide(id, "")).status).toBe(200);
+      expect((await decide(id, "/current", { reason: "Agreed." })).status).toBe(
+        200,
+      );
+    }
+
+    // Every topic route answers a hidden topic like an unknown one, whichever
+    // document is named, and a hidden document like an unknown one.
+    const routes: [string, ReturnType<typeof json> | undefined][] = [
+      ["", undefined],
+      ["", json("PATCH", { name: "taken" })],
+      ["/document/DOC", json("PUT")],
+      ["/document/DOC/current", json("POST", { reason: "Mine now." })],
+      ["/document/DOC/confirm", json("POST")],
+      ["/document/DOC/set-aside", json("POST")],
+    ];
+    const answer = async (
+      topicId: string,
+      documentId: string,
+      [suffix, init]: (typeof routes)[number],
+    ) => {
+      const response = await world.as(limited)(
+        `${base}/${topicId}${suffix.replace("DOC", documentId)}`,
+        init,
+      );
+      return {
+        route: `${init?.method ?? "GET"} ${suffix}`,
+        status: response.status,
+        body: await response.json(),
+      };
+    };
+    for (const route of routes) {
+      const unknownTopic = await answer("no-such-topic", docs.teamAlpha, route);
+      expect(unknownTopic.status).toBe(404);
+      for (const hiddenTopic of [beta, projectBeta]) {
+        for (const documentId of [
+          docs.teamAlpha,
+          docs.sharedInBeta,
+          docs.teamBeta,
+          "no-such-document",
+        ]) {
+          expect(await answer(hiddenTopic, documentId, route)).toEqual(
+            unknownTopic,
+          );
+        }
+      }
+      if (!route[0].includes("DOC")) continue;
+      const unknownDocument = await answer(alpha, "no-such-document", route);
+      expect(unknownDocument.status).toBe(404);
+      for (const hiddenDocument of [docs.teamBeta, docs.private]) {
+        expect(await answer(alpha, hiddenDocument, route)).toEqual(
+          unknownDocument,
+        );
+      }
+    }
+    expect(await names(open)).toContain("Beta");
+
+    // A share opens the document, not the topic it is filed on.
+    const seen = async (user: Member) =>
+      (await (await world.as(user)(one(world, "sharedInBeta"))).json()) as {
+        status: string;
+        topicId: string | null;
+        topicName: string | null;
+        supersedesDocumentId: string | null;
+      };
+    expect(await seen(open)).toMatchObject({
+      status: "current",
+      topicId: beta,
+      topicName: "Beta",
+      supersedesDocumentId: docs.teamBeta,
+    });
+    expect(await seen(limited)).toMatchObject({
+      status: "current",
+      topicId: null,
+      topicName: null,
+      supersedesDocumentId: null,
+    });
+    const filed = async (user: Member, topicId: string) =>
+      (await listed(world, user, `?topicId=${topicId}`)).map((row) => row.id);
+    expect((await filed(open, beta)).sort()).toEqual(
+      ids(world, ["teamBeta", "sharedInBeta"]),
+    );
+    expect(await filed(limited, beta)).toEqual([]);
+    expect(await filed(limited, "no-such-topic")).toEqual([]);
+    expect(await filed(limited, everyone)).toEqual([]);
+    const row = (await listed(world, limited)).find(
+      (found) => found.id === docs.sharedInBeta,
+    ) as { topicId?: string | null } | undefined;
+    expect(row).toBeDefined();
+    expect(row?.topicId).toBeNull();
+  });
 });

@@ -2523,6 +2523,120 @@ export type DocumentStatus = (typeof DOCUMENT_STATUSES)[number];
 export const DOCUMENT_SOURCE_CLIENTS = ["claude", "chatgpt", "web"] as const;
 export type DocumentSourceClient = (typeof DOCUMENT_SOURCE_CLIENTS)[number];
 
+// A topic is one question the team keeps one current answer to, such as
+// "Launch plan". It lives in a place, like a document, and whoever can open
+// the place can open the topic.
+export const TOPIC_SCOPES = ["workspace", "team", "project"] as const;
+export type TopicScope = (typeof TOPIC_SCOPES)[number];
+
+export const topicTable = pgTable(
+  "topic",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    scope: text("scope").$type<TopicScope>().notNull().default("workspace"),
+    // Team (Kaneo project) for scope "team".
+    projectId: text("project_id").references(() => projectTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    workProjectId: text("work_project_id").references(
+      () => workProjectTable.id,
+      { onDelete: "cascade", onUpdate: "cascade" },
+    ),
+    // Who makes a document current on this topic, and who stands in for them.
+    deciderId: text("decider_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    backupDeciderId: text("backup_decider_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    creatorId: text("creator_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("topic_workspace_idx").on(table.workspaceId),
+    check(
+      "topic_scope_parent",
+      sql`CASE ${table.scope}
+        WHEN 'team' THEN ${table.projectId} IS NOT NULL AND ${table.workProjectId} IS NULL
+        WHEN 'project' THEN ${table.workProjectId} IS NOT NULL AND ${table.projectId} IS NULL
+        WHEN 'workspace' THEN num_nonnulls(${table.projectId}, ${table.workProjectId}) = 0
+        ELSE false END`,
+    ),
+  ],
+);
+
+// People who follow a topic. Nothing reads this table yet.
+export const topicSubscriberTable = pgTable(
+  "topic_subscriber",
+  {
+    topicId: text("topic_id")
+      .notNull()
+      .references(() => topicTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.topicId, table.userId] }),
+    index("topic_subscriber_user_idx").on(table.userId),
+  ],
+);
+
+// The topics an issue is about. Nothing reads this table yet.
+export const taskTopicTable = pgTable(
+  "task_topic",
+  {
+    taskId: text("task_id")
+      .notNull()
+      .references(() => taskTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    topicId: text("topic_id")
+      .notNull()
+      .references(() => topicTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.taskId, table.topicId] }),
+    index("task_topic_topic_idx").on(table.topicId),
+  ],
+);
+
 export const documentTable = pgTable(
   "document",
   {
@@ -2565,6 +2679,35 @@ export const documentTable = pgTable(
     contentHash: text("content_hash"),
     // The assistant a document was saved from, when it was not typed here.
     sourceClient: text("source_client").$type<DocumentSourceClient>(),
+    // The topic the document is filed on. A filed document lives in the
+    // topic's place.
+    topicId: text("topic_id").references(() => topicTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    filedAt: timestamp("filed_at", { mode: "date" }),
+    // Why the document has the status it has: the reason given on approval.
+    statusReason: text("status_reason"),
+    // The approval that made the document current: who, when, and the text.
+    // `approvedHash` is the `contentHash` of that moment, and the version row
+    // keeps the text itself.
+    approvedBy: text("approved_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    approvedAt: timestamp("approved_at", { mode: "date" }),
+    approvedHash: text("approved_hash"),
+    approvedVersionId: text("approved_version_id").references(
+      (): AnyPgColumn => documentVersionTable.id,
+      { onDelete: "set null", onUpdate: "cascade" },
+    ),
+    // The document that was current on the topic before this one.
+    supersedesDocumentId: text("supersedes_document_id").references(
+      (): AnyPgColumn => documentTable.id,
+      { onDelete: "set null", onUpdate: "cascade" },
+    ),
+    // The last time a decider said the document is still current.
+    confirmedAt: timestamp("confirmed_at", { mode: "date" }),
     creatorId: text("creator_id").references(() => userTable.id, {
       onDelete: "set null",
       onUpdate: "cascade",
@@ -2593,6 +2736,11 @@ export const documentTable = pgTable(
     index("document_work_project_idx").on(table.workProjectId),
     index("document_task_idx").on(table.taskId),
     index("document_creator_idx").on(table.creatorId),
+    index("document_topic_idx").on(table.topicId),
+    // One current document per topic, whatever the code does.
+    uniqueIndex("one_current")
+      .on(table.topicId)
+      .where(sql`${table.status} = 'current' AND ${table.deletedAt} IS NULL`),
     uniqueIndex("document_external_unique").on(
       table.workspaceId,
       table.externalSource,

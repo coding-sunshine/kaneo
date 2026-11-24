@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import db from "../../database";
 import { documentVersionTable } from "../../database/schema";
 
@@ -6,18 +6,30 @@ import { documentVersionTable } from "../../database/schema";
 // autosave does not write a version per keystroke batch.
 const FOLD_MS = 10 * 60 * 1000;
 
+// Returns the id of the history row that now holds the snapshot.
 export async function recordVersion(
   documentId: string,
   authorId: string,
   snapshot: { title: string; content: string },
-  options: { fold?: boolean } = {},
+  options: {
+    fold?: boolean;
+    database?: Pick<typeof db, "select" | "insert" | "update">;
+  } = {},
 ) {
+  const database = options.database ?? db;
   const now = new Date();
-  const [latest] = await db
+  const [latest] = await database
     .select({
       id: documentVersionTable.id,
       authorId: documentVersionTable.authorId,
       updatedAt: documentVersionTable.updatedAt,
+      // The text an approval pinned. A later edit never overwrites it. The
+      // column is spelled out: Drizzle drops the table from a column in a
+      // one-table selection, and a bare "id" would be the document's.
+      approved: sql<boolean>`EXISTS (
+        SELECT 1 FROM document AS approved_document
+        WHERE approved_document.approved_version_id = document_version.id
+      )`,
     })
     .from(documentVersionTable)
     .where(eq(documentVersionTable.documentId, documentId))
@@ -27,21 +39,27 @@ export async function recordVersion(
   if (
     options.fold !== false &&
     latest &&
+    !latest.approved &&
     latest.authorId === authorId &&
     now.getTime() - latest.updatedAt.getTime() < FOLD_MS
   ) {
-    await db
+    await database
       .update(documentVersionTable)
       .set({ ...snapshot, updatedAt: now })
       .where(eq(documentVersionTable.id, latest.id));
-    return;
+    return latest.id;
   }
 
-  await db.insert(documentVersionTable).values({
-    documentId,
-    authorId,
-    ...snapshot,
-    createdAt: now,
-    updatedAt: now,
-  });
+  const [written] = await database
+    .insert(documentVersionTable)
+    .values({
+      documentId,
+      authorId,
+      ...snapshot,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .returning({ id: documentVersionTable.id });
+  if (!written) throw new Error("Version insert returned no row");
+  return written.id;
 }

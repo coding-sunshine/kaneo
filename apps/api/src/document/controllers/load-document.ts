@@ -5,6 +5,7 @@ import {
   type DocumentAccess,
   documentShareTable,
   documentTable,
+  topicTable,
 } from "../../database/schema";
 import { documentParentAccess } from "../visibility";
 
@@ -23,12 +24,25 @@ function roleFor(
   userId: string,
   shareAccess: DocumentAccess | null,
   parentAccess: boolean,
+  decides: boolean,
 ): DocumentRole | null {
   if (doc.creatorId === userId) return "owner";
   const roles = [shareAccess, parentAccess ? doc.generalAccess : null].filter(
     (role): role is DocumentAccess => role !== null,
   );
-  return roles.sort((a, b) => RANK[b] - RANK[a])[0] ?? null;
+  const role = roles.sort((a, b) => RANK[b] - RANK[a])[0] ?? null;
+  // A topic's decider may edit its current document, whatever the document
+  // grants everyone else. Only while they can still open the topic's place.
+  if (
+    role &&
+    decides &&
+    parentAccess &&
+    doc.status === "current" &&
+    RANK[role] < RANK.edit
+  ) {
+    return "edit";
+  }
+  return role;
 }
 
 // Loads a document the user can see, or 404s so hidden ids look missing.
@@ -43,8 +57,11 @@ export async function loadDocument(
       doc: documentTable,
       shareAccess: documentShareTable.access,
       parentAccess: documentParentAccess(userId, documentTable),
+      deciderId: topicTable.deciderId,
+      backupDeciderId: topicTable.backupDeciderId,
     })
     .from(documentTable)
+    .leftJoin(topicTable, eq(topicTable.id, documentTable.topicId))
     .leftJoin(
       documentShareTable,
       and(
@@ -62,7 +79,14 @@ export async function loadDocument(
       ),
     );
   const role =
-    row && roleFor(row.doc, userId, row.shareAccess, Boolean(row.parentAccess));
+    row &&
+    roleFor(
+      row.doc,
+      userId,
+      row.shareAccess,
+      Boolean(row.parentAccess),
+      row.deciderId === userId || row.backupDeciderId === userId,
+    );
   if (!row || !role) {
     throw new HTTPException(404, { message: "Document not found" });
   }

@@ -8,6 +8,8 @@ import { getDocument } from "./get-document";
 import { loadDocument } from "./load-document";
 import { resolveParent } from "./resolve-parent";
 
+const OFF_TOPIC = { topicId: null, filedAt: null, status: "draft" } as const;
+
 export async function moveDocument(
   workspaceId: string,
   id: string,
@@ -20,10 +22,20 @@ export async function moveDocument(
       message: "Only the creator can make a document private",
     });
   }
+  // A filed document lives where its topic lives. The current one and the
+  // ones it replaced stay there; a proposal that moves away leaves the topic.
+  if (doc.status === "current" || doc.status === "superseded") {
+    throw new HTTPException(409, {
+      message: `A ${doc.status} document stays in its topic's place`,
+    });
+  }
   const parent = await resolveParent(workspaceId, userId, body);
 
   await db.transaction(async (tx) => {
-    await tx.update(documentTable).set(parent).where(eq(documentTable.id, id));
+    await tx
+      .update(documentTable)
+      .set({ ...parent, ...OFF_TOPIC })
+      .where(eq(documentTable.id, id));
     // Back in My documents means private again: drop everyone invited.
     if (parent.scope === "private") {
       await tx

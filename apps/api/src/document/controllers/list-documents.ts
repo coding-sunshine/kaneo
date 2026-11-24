@@ -3,7 +3,11 @@ import type { z } from "zod";
 import db from "../../database";
 import { documentTable, userTable } from "../../database/schema";
 import type { listDocumentsQuery } from "../schema";
-import { documentParentAccess, documentVisibility } from "../visibility";
+import {
+  documentParentAccess,
+  documentVisibility,
+  topicAccess,
+} from "../visibility";
 
 // Team name, project name or issue key, for breadcrumbs and list rows. A
 // document shared by name can sit in a team the viewer cannot enter; that
@@ -39,6 +43,12 @@ export const documentSummaryColumns = (userId: string) => ({
   kind: documentTable.kind,
   status: documentTable.status,
   sourceClient: documentTable.sourceClient,
+  // Null for a topic the viewer cannot open.
+  topicId: sql<string | null>`CASE
+    WHEN ${topicAccess(userId, documentTable.topicId)} THEN ${documentTable.topicId}
+  END`,
+  filedAt: documentTable.filedAt,
+  approvedAt: documentTable.approvedAt,
   creatorId: documentTable.creatorId,
   creatorName: userTable.name,
   creatorImage: userTable.image,
@@ -66,6 +76,12 @@ function filterCondition(
     return and(
       eq(documentTable.scope, "issue"),
       eq(documentTable.taskId, query.taskId),
+    );
+  }
+  if (query.topicId) {
+    return and(
+      eq(documentTable.topicId, query.topicId),
+      topicAccess(userId, documentTable.topicId),
     );
   }
   const sharedWithMe = sql`EXISTS (

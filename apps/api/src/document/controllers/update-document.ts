@@ -4,6 +4,7 @@ import db from "../../database";
 import { documentTable } from "../../database/schema";
 import type { updateDocumentBody } from "../schema";
 import { getDocument } from "./get-document";
+import { assertNotSuperseded } from "./assert-not-superseded";
 import { loadDocument } from "./load-document";
 import { notifyBodyMentions } from "./notify";
 import { recordVersion } from "./record-version";
@@ -15,6 +16,7 @@ export async function updateDocument(
   body: z.infer<typeof updateDocumentBody>,
 ) {
   const doc = await loadDocument(workspaceId, id, userId, { need: "edit" });
+  assertNotSuperseded(doc);
   const title = body.title ?? doc.title;
   const content = body.content ?? doc.content;
   const textChanged = title !== doc.title || content !== doc.content;

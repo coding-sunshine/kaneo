@@ -32,6 +32,9 @@ export const listDocumentsQuery = z.object({
   projectId: z.string().optional().openapi({ description: "Team documents" }),
   workProjectId: z.string().optional(),
   taskId: z.string().optional(),
+  topicId: z.string().optional().openapi({
+    description: "Documents filed on a topic you can open.",
+  }),
 });
 
 const parent = {
@@ -127,6 +130,12 @@ const documentFields = {
   sourceClient: z.enum(DOCUMENT_SOURCE_CLIENTS).nullable().openapi({
     description: "The assistant the document was saved from, if any.",
   }),
+  topicId: z.string().nullable().openapi({
+    description:
+      "The topic the document is filed on. Null when you cannot open the topic.",
+  }),
+  filedAt: nullableResponseTimestamp,
+  approvedAt: nullableResponseTimestamp,
   ...person,
   createdAt: responseTimestamp,
   updatedAt: responseTimestamp,
@@ -144,6 +153,24 @@ export const documentSchema = z
     contentHash: z.string().openapi({
       description: "SHA-256 of the content in UTF-8, as hex.",
     }),
+    topicName: z.string().nullable(),
+    supersedesDocumentId: z.string().nullable().openapi({
+      description:
+        "The document that was current on the topic before this one.",
+    }),
+    statusReason: z.string().nullable().openapi({
+      description: "The reason given when the document was made current.",
+    }),
+    approvedById: z.string().nullable(),
+    approvedByName: z.string().nullable(),
+    approvedHash: z.string().nullable().openapi({
+      description:
+        "The contentHash that was approved. It differs once the text is edited.",
+    }),
+    approvedVersionId: z.string().nullable().openapi({
+      description: "The history entry that keeps the approved text.",
+    }),
+    confirmedAt: nullableResponseTimestamp,
     generalAccess: access,
     updatedById: z.string().nullable(),
     updatedByName: z.string().nullable(),

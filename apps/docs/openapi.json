@@ -3596,6 +3596,27 @@
             ],
             "description": "The assistant the document was saved from, if any."
           },
+          "topicId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The topic the document is filed on. Null when you cannot open the topic."
+          },
+          "filedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "approvedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
           "creatorId": {
             "type": [
               "string",
@@ -3637,6 +3658,9 @@
           "kind",
           "status",
           "sourceClient",
+          "topicId",
+          "filedAt",
+          "approvedAt",
           "creatorId",
           "creatorName",
           "creatorImage",
@@ -3735,6 +3759,27 @@
             ],
             "description": "The assistant the document was saved from, if any."
           },
+          "topicId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The topic the document is filed on. Null when you cannot open the topic."
+          },
+          "filedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "approvedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
           "creatorId": {
             "type": [
               "string",
@@ -3767,6 +3812,59 @@
           "contentHash": {
             "type": "string",
             "description": "SHA-256 of the content in UTF-8, as hex."
+          },
+          "topicName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "supersedesDocumentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The document that was current on the topic before this one."
+          },
+          "statusReason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The reason given when the document was made current."
+          },
+          "approvedById": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "approvedByName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "approvedHash": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The contentHash that was approved. It differs once the text is edited."
+          },
+          "approvedVersionId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The history entry that keeps the approved text."
+          },
+          "confirmedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           },
           "generalAccess": {
             "type": "string",
@@ -3852,6 +3950,9 @@
           "kind",
           "status",
           "sourceClient",
+          "topicId",
+          "filedAt",
+          "approvedAt",
           "creatorId",
           "creatorName",
           "creatorImage",
@@ -3859,6 +3960,14 @@
           "updatedAt",
           "content",
           "contentHash",
+          "topicName",
+          "supersedesDocumentId",
+          "statusReason",
+          "approvedById",
+          "approvedByName",
+          "approvedHash",
+          "approvedVersionId",
+          "confirmedAt",
           "generalAccess",
           "updatedById",
           "updatedByName",
@@ -4049,6 +4158,120 @@
           "quotedText",
           "resolvedAt",
           "resolvedById",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "Topic": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "workspace",
+              "team",
+              "project"
+            ]
+          },
+          "projectId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "workProjectId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "parentName": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Team or project name. Null for a workspace topic."
+          },
+          "deciderId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "deciderName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "deciderImage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "backupDeciderId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "backupDeciderName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "backupDeciderImage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "currentDocumentId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "canDecide": {
+            "type": "boolean",
+            "description": "Whether you can make a document current here: the decider, the backup decider or a workspace owner."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "workspaceId",
+          "name",
+          "scope",
+          "projectId",
+          "workProjectId",
+          "parentName",
+          "deciderId",
+          "deciderName",
+          "deciderImage",
+          "backupDeciderId",
+          "backupDeciderName",
+          "backupDeciderImage",
+          "currentDocumentId",
+          "canDecide",
           "createdAt",
           "updatedAt"
         ]
@@ -26005,6 +26228,16 @@
             "required": false,
             "name": "taskId",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Documents filed on a topic you can open."
+            },
+            "required": false,
+            "description": "Documents filed on a topic you can open.",
+            "name": "topicId",
+            "in": "query"
           }
         ],
         "responses": {
@@ -27622,6 +27855,736 @@
           },
           "404": {
             "description": "Comment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}": {
+      "get": {
+        "operationId": "listTopics",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "List topics",
+        "description": "List the topics you can open. A topic is open to whoever can open the place it lives in.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Topics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Topic"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic": {
+      "post": {
+        "operationId": "createTopic",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "Create topic",
+        "description": "Create a topic in the workspace, a team or a project. You decide on it until you name someone else.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "scope": {
+                    "type": "string",
+                    "enum": [
+                      "workspace",
+                      "team",
+                      "project"
+                    ],
+                    "description": "Where the topic lives. Defaults to the team or project given, else the workspace."
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Team"
+                  },
+                  "workProjectId": {
+                    "type": "string"
+                  },
+                  "deciderId": {
+                    "type": "string",
+                    "description": "Defaults to the person creating the topic."
+                  },
+                  "backupDeciderId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "A second person who can approve when the decider is away."
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Topic created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Topic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown place, or a decider who cannot open the topic",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/{id}": {
+      "get": {
+        "operationId": "getTopic",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "Get topic",
+        "description": "Get a topic, its deciders and its current document.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Topic",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Topic"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateTopic",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "Update topic",
+        "description": "Rename a topic or name its decider and backup decider. For the decider and workspace owners.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "deciderId": {
+                    "type": "string"
+                  },
+                  "backupDeciderId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "A second person who can approve when the decider is away."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Topic updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Topic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A decider who cannot open the topic",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/{id}/document/{documentId}": {
+      "put": {
+        "operationId": "fileDocumentOnTopic",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "File document on topic",
+        "description": "Propose a document on a topic. It moves to the topic's place and waits for approval.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "documentId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document filed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The document is current or superseded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/{id}/document/{documentId}/current": {
+      "post": {
+        "operationId": "makeDocumentCurrent",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "Make document current",
+        "description": "Approve a document as the one to rely on for its topic. The document that was current becomes superseded. For the decider, the backup decider and workspace owners.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "documentId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "description": "Why this document is the one to rely on."
+                  }
+                },
+                "required": [
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Document made current",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The document is a draft or superseded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/{id}/document/{documentId}/confirm": {
+      "post": {
+        "operationId": "confirmCurrentDocument",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "Confirm current document",
+        "description": "Say that the current document is still current.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "documentId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document confirmed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The document is not current",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/{id}/document/{documentId}/set-aside": {
+      "post": {
+        "operationId": "setCurrentDocumentAside",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "Set current document aside",
+        "description": "Turn the current document back into a proposal. The topic has no current document until one is approved.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "documentId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document set aside",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The document is not current",
             "content": {
               "application/json": {
                 "schema": {

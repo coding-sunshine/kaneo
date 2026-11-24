@@ -715,6 +715,13 @@
       "when": 1795550190714,
       "tag": "0101_document_kind_status_hash",
       "breakpoints": true
+    },
+    {
+      "idx": 102,
+      "version": "7",
+      "when": 1795551313349,
+      "tag": "0102_topics_current_document",
+      "breakpoints": true
     }
   ]
 }

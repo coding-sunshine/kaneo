@@ -1,11 +1,13 @@
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import db from "../../database";
 import {
   documentShareTable,
   documentSubscriberTable,
   documentTable,
+  topicTable,
   userTable,
 } from "../../database/schema";
+import { topicAccess } from "../visibility";
 import { documentParentName } from "./list-documents";
 import { loadDocument } from "./load-document";
 
@@ -31,12 +33,25 @@ export async function getDocument(
       .select({ userId: documentSubscriberTable.userId })
       .from(documentSubscriberTable)
       .where(eq(documentSubscriberTable.documentId, id)),
+    // A document shared by name can sit on a topic the viewer cannot open.
+    // That topic stays unnamed, like a team they cannot enter.
     db
-      .select({ name: documentParentName(userId) })
+      .select({
+        name: documentParentName(userId),
+        topicName: topicTable.name,
+      })
       .from(documentTable)
+      .leftJoin(
+        topicTable,
+        and(
+          eq(topicTable.id, documentTable.topicId),
+          topicAccess(userId, topicTable.id),
+        ),
+      )
       .where(eq(documentTable.id, id)),
   ]);
-  const personIds = [doc.creatorId, doc.updatedById].filter(
+  const topicName = parent?.topicName ?? null;
+  const personIds = [doc.creatorId, doc.updatedById, doc.approvedBy].filter(
     (value): value is string => value !== null,
   );
   const people = personIds.length
@@ -67,6 +82,18 @@ export async function getDocument(
     kind: doc.kind,
     status: doc.status,
     sourceClient: doc.sourceClient,
+    topicId: topicName === null ? null : doc.topicId,
+    topicName,
+    // It was current on the same topic, so it is named to the same people.
+    supersedesDocumentId: topicName === null ? null : doc.supersedesDocumentId,
+    filedAt: doc.filedAt,
+    statusReason: doc.statusReason,
+    approvedById: doc.approvedBy,
+    approvedByName: person(doc.approvedBy)?.name ?? null,
+    approvedAt: doc.approvedAt,
+    approvedHash: doc.approvedHash,
+    approvedVersionId: doc.approvedVersionId,
+    confirmedAt: doc.confirmedAt,
     // The database writes it on every insert, so it is only null in the type.
     contentHash: doc.contentHash ?? "",
     generalAccess: doc.generalAccess,

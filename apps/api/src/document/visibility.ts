@@ -35,7 +35,10 @@ export function workProjectDocumentAccess(
 // Callers check workspace membership.
 export function documentParentAccess(
   userId: string | SQLWrapper,
-  doc: DocumentColumns,
+  doc: Pick<
+    DocumentColumns,
+    "scope" | "projectId" | "workProjectId" | "taskId"
+  >,
 ) {
   return sql<boolean>`(
     ${doc.scope} = 'workspace'
@@ -62,5 +65,19 @@ export function documentVisibility(
         AND visible_share.user_id = ${userId}
     )
     OR ${documentParentAccess(userId, doc)}
+  )`;
+}
+
+// A topic lives in a place, and is open to whoever can open that place.
+export function topicAccess(userId: string | SQLWrapper, topicId: SQLWrapper) {
+  return sql<boolean>`EXISTS (
+    SELECT 1 FROM topic AS visible_topic
+    WHERE visible_topic.id = ${topicId}
+      AND ${documentParentAccess(userId, {
+        scope: sql`visible_topic.scope`,
+        projectId: sql`visible_topic.project_id`,
+        workProjectId: sql`visible_topic.work_project_id`,
+        taskId: sql`NULL::text`,
+      })}
   )`;
 }
