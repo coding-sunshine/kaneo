@@ -24,7 +24,7 @@ vi.mock("../../../../apps/api/src/database", () => ({
     }),
     insert: () => ({ values: mocks.values }),
     update: () => ({ set: () => ({ where: vi.fn() }) }),
-    delete: () => ({ where: vi.fn() }),
+    delete: () => ({ where: () => ({ returning: async () => [] }) }),
     query: {
       projectTable: { findFirst: async () => ({ workspaceId: "workspace-1" }) },
       integrationTable: {
