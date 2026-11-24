@@ -27367,7 +27367,7 @@
           "Favorites"
         ],
         "summary": "List favorites",
-        "description": "The signed-in user's favorite teams, views, documents and pull requests, oldest first. A pull request's targetId is owner/repo#number.",
+        "description": "The signed-in user's favorite teams, views, documents and pull requests, oldest first. A document the user can no longer open is left out. A pull request's targetId is owner/repo#number.",
         "parameters": [
           {
             "schema": {
@@ -27446,7 +27446,7 @@
           "Favorites"
         ],
         "summary": "Add favorite",
-        "description": "Favorite a team, view, document or pull request. Repeating the call is a no-op.",
+        "description": "Favorite a team, view, document or pull request. Repeating the call is a no-op. A document the user cannot open is refused like one that does not exist.",
         "parameters": [
           {
             "schema": {
@@ -27528,6 +27528,16 @@
           },
           "403": {
             "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
             "content": {
               "application/json": {
                 "schema": {

@@ -3,20 +3,27 @@ import type { z } from "zod";
 import db from "../../database";
 import { documentTable, userTable } from "../../database/schema";
 import type { listDocumentsQuery } from "../schema";
-import { documentVisibility } from "../visibility";
+import { documentParentAccess, documentVisibility } from "../visibility";
 
-// Team name, project name or issue key, for breadcrumbs and list rows.
-export const documentParentName = sql<string | null>`CASE ${documentTable.scope}
-  WHEN 'team' THEN (SELECT name FROM project WHERE id = ${documentTable.projectId})
-  WHEN 'project' THEN (SELECT name FROM work_project WHERE id = ${documentTable.workProjectId})
-  WHEN 'issue' THEN (
-    SELECT p.slug || '-' || t.number FROM task AS t
-    JOIN project AS p ON p.id = t.project_id
-    WHERE t.id = ${documentTable.taskId}
-  )
-END`;
+// Team name, project name or issue key, for breadcrumbs and list rows. A
+// document shared by name can sit in a team the viewer cannot enter; that
+// team, and its issue keys, stay unnamed.
+export const documentParentName = (userId: string) =>
+  sql<
+    string | null
+  >`CASE WHEN ${documentParentAccess(userId, documentTable)} THEN
+    CASE ${documentTable.scope}
+      WHEN 'team' THEN (SELECT name FROM project WHERE id = ${documentTable.projectId})
+      WHEN 'project' THEN (SELECT name FROM work_project WHERE id = ${documentTable.workProjectId})
+      WHEN 'issue' THEN (
+        SELECT p.slug || '-' || t.number FROM task AS t
+        JOIN project AS p ON p.id = t.project_id
+        WHERE t.id = ${documentTable.taskId}
+      )
+    END
+  END`;
 
-export const documentSummaryColumns = {
+export const documentSummaryColumns = (userId: string) => ({
   id: documentTable.id,
   workspaceId: documentTable.workspaceId,
   title: documentTable.title,
@@ -26,13 +33,13 @@ export const documentSummaryColumns = {
   projectId: documentTable.projectId,
   workProjectId: documentTable.workProjectId,
   taskId: documentTable.taskId,
-  parentName: documentParentName,
+  parentName: documentParentName(userId),
   creatorId: documentTable.creatorId,
   creatorName: userTable.name,
   creatorImage: userTable.image,
   createdAt: documentTable.createdAt,
   updatedAt: documentTable.updatedAt,
-};
+});
 
 function filterCondition(
   userId: string,
@@ -91,7 +98,7 @@ export function listDocuments(
   query: z.infer<typeof listDocumentsQuery>,
 ) {
   return db
-    .select(documentSummaryColumns)
+    .select(documentSummaryColumns(userId))
     .from(documentTable)
     .leftJoin(userTable, eq(userTable.id, documentTable.creatorId))
     .where(

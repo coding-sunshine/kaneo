@@ -32,7 +32,7 @@ export async function getDocument(
       .from(documentSubscriberTable)
       .where(eq(documentSubscriberTable.documentId, id)),
     db
-      .select({ name: documentParentName })
+      .select({ name: documentParentName(userId) })
       .from(documentTable)
       .where(eq(documentTable.id, id)),
   ]);

@@ -542,7 +542,15 @@ async function globalSearch(params: SearchParams): Promise<{
         workspaceTable,
         eq(documentTable.workspaceId, workspaceTable.id),
       )
-      .leftJoin(projectTable, eq(documentTable.projectId, projectTable.id))
+      // A document shared by name can sit in a team the searcher cannot
+      // enter; that team stays unnamed.
+      .leftJoin(
+        projectTable,
+        and(
+          eq(documentTable.projectId, projectTable.id),
+          projectAccessCondition(resolvedUserId, projectTable.id),
+        ),
+      )
       .where(
         and(
           workspaceId

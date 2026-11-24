@@ -20,7 +20,9 @@ export function DocumentParentLink({
   const workspaceId = document.workspaceId;
   const name = document.parentName ?? "";
 
-  if (document.scope === "team" && document.projectId) {
+  // A document shared by name can sit in a team the reader cannot enter. The
+  // API leaves that team unnamed, so there is no team crumb to show.
+  if (document.scope === "team" && document.projectId && document.parentName) {
     return (
       <Link
         to="/dashboard/workspace/$workspaceId/project/$projectId/board"
