@@ -1,6 +1,6 @@
 {
 	"common": {
-		"appName": "Kaneo",
+		"appName": "Organyz Work",
 		"actions": {
 			"cancel": "İptal",
 			"close": "Kapat",
@@ -190,7 +190,7 @@
 				"use_a_permanent_email_address_disposable_addresses_cannot_create_accounts_": "Kalıcı bir e-posta adresi kullanın. Geçici adreslerle hesap oluşturulamaz."
 			},
 			"instanceStatusError": "Sunucuya ulaşılamadı. Lütfen birazdan tekrar deneyin.",
-			"heading": "Kaneo'ya giriş yapın",
+			"heading": "Organyz Work'ya giriş yapın",
 			"submitPassword": "Giriş yap",
 			"invitation": {
 				"title": "{{inviterName}} sizi {{workspaceName}} çalışma alanına davet etti",
@@ -198,7 +198,7 @@
 				"description": "Davetin gönderildiği e-posta adresiyle giriş yapın. Hemen ardından çalışma alanına katılacaksınız."
 			},
 			"footer": {
-				"newHere": "Kaneo'da yeni misiniz?",
+				"newHere": "Organyz Work'da yeni misiniz?",
 				"createAccount": "Hesap oluştur",
 				"inviteOnly": "Burada hesaplar yalnızca davetle oluşturulur. Bir yöneticiden davet isteyin.",
 				"providerSignUp": "Yeni misiniz? Hesap oluşturmak için yukarıdaki sağlayıcılardan biriyle giriş yapın.",
@@ -258,7 +258,7 @@
 			"toggleMessage": "Zaten hesabınız var mı?",
 			"toggleLink": "Giriş yap",
 			"instanceStatusError": "Sunucuya ulaşılamadı. Lütfen birazdan tekrar deneyin.",
-			"instanceAdminTitle": "Kaneo örneğinizi kurun",
+			"instanceAdminTitle": "Organyz Work örneğinizi kurun",
 			"instanceAdminSubtitle": "Bu hesap, tam erişime sahip örnek yöneticisi olur.",
 			"heading": "Hesabınızı oluşturun",
 			"submitPassword": "Hesap oluştur",
@@ -312,7 +312,7 @@
 				"acceptFailed": "Davet kabul edilemedi",
 				"acceptSuccess": "Davet kabul edildi! Aramıza hoş geldiniz."
 			},
-			"description": "{{inviterName}} sizi Kaneo'daki bu çalışma alanına davet etti.",
+			"description": "{{inviterName}} sizi Organyz Work'daki bu çalışma alanına davet etti.",
 			"invitedBy": "Davet eden",
 			"sentTo": "Gönderildiği adres",
 			"signedInAs": "Giriş yapılan hesap",
@@ -320,7 +320,7 @@
 			"notNow": "Şimdi değil",
 			"join": "Çalışma alanına katıl",
 			"switchAccount": "Hesap değiştir",
-			"goToKaneo": "Kaneo'ya git",
+			"goToKaneo": "Organyz Work'ya git",
 			"mismatch": {
 				"title": "Farklı bir e-postayla giriş yaptınız",
 				"description": "Bu davet {{invitedEmail}} adresine gönderildi. {{email}} hesabıyla giriş yaptınız."
@@ -339,7 +339,7 @@
 			}
 		},
 		"onboarding": {
-			"pageTitle": "Kaneo'ya Hoş Geldiniz",
+			"pageTitle": "Organyz Work'ya Hoş Geldiniz",
 			"workspaceName": "Çalışma alanı adı",
 			"workspaceNamePlaceholder": "örn. Acme Inc, Ekibim",
 			"toast": {
@@ -387,7 +387,7 @@
 				},
 				"invite": {
 					"title": "Ekibinizi davet edin",
-					"description": "Kaneo herkes dahil olduğunda en iyi şekilde çalışır. İnsanları e-postayla davet etmek için kenar çubuğunda **Üyeler** bölümünü açın."
+					"description": "Organyz Work herkes dahil olduğunda en iyi şekilde çalışır. İnsanları e-postayla davet etmek için kenar çubuğunda **Üyeler** bölümünü açın."
 				},
 				"integrations": {
 					"title": "GitHub, GitLab veya Gitea bağlayın",
@@ -511,7 +511,7 @@
 		"device": {
 			"connect": {
 				"title": "Cihaz bağlayın",
-				"description": "Kaneo hesabınıza bağlamak için terminalinizde veya uygulamanızda gösterilen kodu girin.",
+				"description": "Organyz Work hesabınıza bağlamak için terminalinizde veya uygulamanızda gösterilen kodu girin.",
 				"label": "Cihaz kodu",
 				"submit": "Devam et",
 				"noCode": "Henüz kodunuz yok mu? Önce uygulamanızdan giriş yapmaya başlayın.",
@@ -545,7 +545,7 @@
 				"description": "Onaylamak için hemen buraya geri döneceksiniz.",
 				"submit": "Giriş yap"
 			},
-			"openApp": "Open Kaneo"
+			"openApp": "Open Organyz Work"
 		},
 		"mcp": {
 			"authorize": {
@@ -618,7 +618,7 @@
 		"notificationsPage": {
 			"pageTitle": "Bildirimler",
 			"title": "Bildirimler",
-			"subtitle": "Kaneo'nun sizi neler hakkında bilgilendirdiği ve size nereden ulaştığı.",
+			"subtitle": "Organyz Work'nun sizi neler hakkında bilgilendirdiği ve size nereden ulaştığı.",
 			"statusConnected": "Bağlı",
 			"statusPaused": "Duraklatıldı",
 			"emailTitle": "E-posta",
@@ -651,7 +651,7 @@
 			"webhookUrlPlaceholder": "https://example.com/webhooks/kaneo",
 			"webhookSecretPlaceholder": "İsteğe bağlı paylaşılan gizli anahtar",
 			"webhookSecretHintConfigured": "Bir imzalama gizli anahtarı zaten yapılandırılmış ({{masked}}). Değiştirmek için yeni bir tane girin.",
-			"webhookSecretHintOptional": "Bir gizli anahtar ayarlandığında Kaneo istek gövdesini imzalar.",
+			"webhookSecretHintOptional": "Bir gizli anahtar ayarlandığında Organyz Work istek gövdesini imzalar.",
 			"connectWebhook": "Webhook bağla",
 			"allProjects": "Tüm projeler",
 			"noProjectsInWorkspace": "Bu çalışma alanında henüz proje yok.",
@@ -689,7 +689,7 @@
 			"saveEventPreferences": "Bildirim türlerini kaydet",
 			"channelNotConnected": "Bağlı değil",
 			"channelOff": "Kapalı",
-			"channelsDescription": "Bildirimler her zaman Kaneo'da görünür. Başka bir yerde de almak için bir kanal bağlayın.",
+			"channelsDescription": "Bildirimler her zaman Organyz Work'da görünür. Başka bir yerde de almak için bir kanal bağlayın.",
 			"channelsTitle": "Kanallar",
 			"configure": "Yapılandır",
 			"configureChannel": "{{channel}} yapılandır",
@@ -705,7 +705,7 @@
 			"eventStatusChangesHint": "Taleplerinizden biri başka bir sütuna taşındığında.",
 			"eventTaskAssignmentsHint": "Biri size bir talep atadığında.",
 			"loadFailed": "Bildirim ayarları yüklenemedi.",
-			"onlyInKaneo": "Yalnızca Kaneo'da",
+			"onlyInKaneo": "Yalnızca Organyz Work'da",
 			"optional": "İsteğe bağlı",
 			"projectCount_one": "{{count}} proje",
 			"projectCount_other": "{{count}} proje",
@@ -731,7 +731,7 @@
 			"statusSending": "Gönderiliyor",
 			"stopping": "Durduruluyor...",
 			"stopSending": "Göndermeyi durdur",
-			"stopSendingDescription": "Bu çalışma alanındaki bildirimler yalnızca Kaneo'da görünecek.",
+			"stopSendingDescription": "Bu çalışma alanındaki bildirimler yalnızca Organyz Work'da görünecek.",
 			"stopSendingTitle": "{{workspaceName}} için gönderim durdurulsun mu?",
 			"workspacesDescription": "Kanallarınızı hangi çalışma alanlarının ve projelerin kullanabileceğini seçin.",
 			"workspacesTitle": "Çalışma alanları",
@@ -749,7 +749,7 @@
 		},
 		"preferencesPage": {
 			"title": "Tercihler",
-			"subtitle": "Kaneo'nun sizin için nasıl göründüğü ve çalıştığı.",
+			"subtitle": "Organyz Work'nun sizin için nasıl göründüğü ve çalıştığı.",
 			"appearanceTitle": "Genel",
 			"theme": "Tema",
 			"selectTheme": "Tema seçin",
@@ -798,7 +798,7 @@
 		"developerPage": {
 			"pageTitle": "API anahtarları",
 			"title": "API anahtarları",
-			"subtitle": "Betikler, CLI ve MCP istemcileri Kaneo'yu sizin adınıza kullanabilir.",
+			"subtitle": "Betikler, CLI ve MCP istemcileri Organyz Work'yu sizin adınıza kullanabilir.",
 			"unnamedKey": "Adsız",
 			"emptyDescription": "CLI, bir MCP istemcisi veya kendi betikleriniz için bir anahtar oluşturun.",
 			"emptyTitle": "Henüz API anahtarı yok",
@@ -1062,11 +1062,11 @@
 				"removeError": "GitHub entegrasyonu kaldırılamadı",
 				"issuesImported": "Sorunlar başarıyla içe aktarıldı",
 				"importError": "Sorunlar içe aktarılamadı",
-				"commentOnEnabled": "Kaneo yeni sorunlara talep bağlantısıyla yorum yapacak",
+				"commentOnEnabled": "Organyz Work yeni sorunlara talep bağlantısıyla yorum yapacak",
 				"commentOnDisabled": "Yeni sorunlardaki talep bağlantısı yorumları kapatıldı",
 				"settingsUpdateError": "GitHub entegrasyonu güncellenemedi"
 			},
-			"commentTaskLinkTitle": "Yeni sorunlara Kaneo bağlantısıyla yorum yap",
+			"commentTaskLinkTitle": "Yeni sorunlara Organyz Work bağlantısıyla yorum yap",
 			"commentTaskLinkHint": "Böylece GitHub kullanıcıları doğrudan talebe gidebilir.",
 			"updatePermissions": "İzinleri güncelle",
 			"installGithubApp": "GitHub Uygulamasını Kur",
@@ -1083,9 +1083,9 @@
 			"linkAccountTitle": "GitHub hesabınızı bağlayın",
 			"linked": "Bağlandı",
 			"linkGithub": "GitHub'ı bağla",
-			"verifyMissingPermissions": "Kaneo GitHub uygulamasında eksik izinler var: {{list}}.",
-			"verifyNotInstalled": "Kaneo GitHub uygulaması bu depoya kurulu değil.",
-			"verifyReady": "Kaneo GitHub uygulaması gereken izinlerle kurulu.",
+			"verifyMissingPermissions": "Organyz Work GitHub uygulamasında eksik izinler var: {{list}}.",
+			"verifyNotInstalled": "Organyz Work GitHub uygulaması bu depoya kurulu değil.",
+			"verifyReady": "Organyz Work GitHub uygulaması gereken izinlerle kurulu.",
 			"workflowHint": "Pull request'ler açıldığında veya birleştirildiğinde talepleri taşımak için",
 			"workflowLink": "İş akışı"
 		},
@@ -1103,13 +1103,13 @@
 				"removeError": "Gitea entegrasyonu kaldırılamadı",
 				"issuesImported": "Sorunlar başarıyla içe aktarıldı",
 				"importError": "Sorunlar içe aktarılamadı",
-				"commentOnEnabled": "Kaneo yeni sorunlara talep bağlantısıyla yorum yapacak",
+				"commentOnEnabled": "Organyz Work yeni sorunlara talep bağlantısıyla yorum yapacak",
 				"commentOnDisabled": "Yeni sorunlardaki talep bağlantısı yorumları kapatıldı",
 				"settingsUpdateError": "Gitea entegrasyonu güncellenemedi"
 			},
-			"commentTaskLinkTitle": "Yeni sorunlara Kaneo bağlantısıyla yorum yap",
+			"commentTaskLinkTitle": "Yeni sorunlara Organyz Work bağlantısıyla yorum yap",
 			"commentTaskLinkHint": "Böylece Gitea kullanıcıları doğrudan talebe gidebilir.",
-			"webhookHint": "Değişikliklerin Kaneo'ya yansıması için bu webhook'u depo ayarlarına ekleyin.",
+			"webhookHint": "Değişikliklerin Organyz Work'ya yansıması için bu webhook'u depo ayarlarına ekleyin.",
 			"baseUrlLabel": "Gitea URL'si",
 			"tokenLabel": "Kişisel erişim belirteci",
 			"tokenPlaceholder": "Belirteci yapıştır",
@@ -1174,10 +1174,10 @@
 			},
 			"webhookLabel": "Uç nokta URL'si",
 			"webhookPlaceholder": "https://example.com/webhooks/kaneo",
-			"webhookHint": "Kaneo, etkinleştirilen her olay için JSON yükü ile POST istekleri gönderir.",
+			"webhookHint": "Organyz Work, etkinleştirilen her olay için JSON yükü ile POST istekleri gönderir.",
 			"secretLabel": "İmzalama gizli anahtarı",
 			"secretPlaceholder": "Paylaşılan gizli anahtar",
-			"secretHint": "Kaneo her isteği bununla imzalar ve özeti X-Kaneo-Signature başlığında gönderir.",
+			"secretHint": "Organyz Work her isteği bununla imzalar ve özeti X-Kaneo-Signature başlığında gönderir.",
 			"secretHintConfigured": "Mevcut gizli anahtar: {{secret}}. Değiştirmek için yenisini yapıştırın.",
 			"eventsTitle": "Şu durumlarda gönder",
 			"events": {
@@ -1197,7 +1197,7 @@
 			"connect": "Webhook bağla",
 			"reminderLeadTimeLabel": "Talebin bitiş tarihinden kaç saat önce",
 			"activeTitle": "Olaylar gönderiliyor",
-			"disconnectDescription": "Kaneo olay göndermeyi durdurur ve kayıtlı uç noktayı ve gizli anahtarı kaldırır.",
+			"disconnectDescription": "Organyz Work olay göndermeyi durdurur ve kayıtlı uç noktayı ve gizli anahtarı kaldırır.",
 			"disconnectTitle": "Webhook bağlantısı kesilsin mi?",
 			"reminderLeadTimeAfter": "saat önce gönder",
 			"reminderLeadTimeBefore": "Hatırlatmaları talebin bitiş tarihinden"
@@ -1233,7 +1233,7 @@
 		},
 		"repositoryBrowser": {
 			"title": "Bir depo seçin",
-			"description": "Kaneo GitHub uygulamasının görebildiği depolar.",
+			"description": "Organyz Work GitHub uygulamasının görebildiği depolar.",
 			"searchPlaceholder": "Depo ara",
 			"loadError": "Depolar yüklenemedi.",
 			"tryAgain": "Tekrar dene",
@@ -1721,7 +1721,7 @@
 				"active": "Active",
 				"deactivated": "Deactivated"
 			},
-			"subtitle": "Bu Kaneo örneğinde hesabı olan herkes.",
+			"subtitle": "Bu Organyz Work örneğinde hesabı olan herkes.",
 			"title": "Kullanıcılar",
 			"toast": {
 				"actionError": "Failed to update user status",
@@ -1818,7 +1818,7 @@
 			"sectionTitle": "Oturum açma",
 			"submit": "Parolayı değiştir",
 			"submitting": "Değiştiriliyor...",
-			"subtitle": "Kaneo'da nasıl oturum açtığınız.",
+			"subtitle": "Organyz Work'da nasıl oturum açtığınız.",
 			"title": "Security",
 			"updateError": "Failed to update password.",
 			"updateSuccess": "Password updated.",
@@ -1864,14 +1864,14 @@
 			"browseModalHint": "Belirtecinizin üyesi olduğu projeler.",
 			"browseNeedsCredentials": "Göz atmak için GitLab URL'sini ve bir belirteç girin.",
 			"commentTaskLinkHint": "Böylece GitLab kullanıcıları doğrudan talebe gidebilir.",
-			"commentTaskLinkTitle": "Comment a Kaneo link on issues opened in GitLab",
+			"commentTaskLinkTitle": "Comment a Organyz Work link on issues opened in GitLab",
 			"importSectionHint": "Açık sorunları ve merge request'leri talep olarak içe aktarın.",
 			"openInGitlab": "Open {{project}} in GitLab",
 			"projectPathLabel": "Project path",
 			"searchProjects": "Proje ara",
 			"toast": {
 				"commentOnDisabled": "Task link comments on issues opened in GitLab are turned off",
-				"commentOnEnabled": "Kaneo will comment with a task link on issues opened in GitLab",
+				"commentOnEnabled": "Organyz Work will comment with a task link on issues opened in GitLab",
 				"importError": "Failed to import issues",
 				"issuesImported": "Issues imported successfully",
 				"removed": "GitLab integration removed",
@@ -1893,7 +1893,7 @@
 				"baseUrlRequired": "GitLab base URL is required",
 				"pathInvalid": "Enter the full path, e.g. group/project"
 			},
-			"webhookHint": "Değişikliklerin Kaneo'ya yansıması için bu webhook'u proje ayarlarına ekleyin.",
+			"webhookHint": "Değişikliklerin Organyz Work'ya yansıması için bu webhook'u proje ayarlarına ekleyin.",
 			"loadProjectsError": "Projeler yüklenemedi.",
 			"importPermissionHint": "Importing requires permission to create and update tasks.",
 			"browseEmpty": "Bu belirteç hiçbir projenin üyesi değil.",
@@ -2052,8 +2052,8 @@
 			"filtered": "Only matching labels",
 			"impact": "{{matching}} of {{total}} tasks match. {{create}} tasks will be exported, {{pause}} links will pause, and {{review}} links need review to resume.",
 			"impactTitle": "What will change",
-			"incoming": "Repository → Kaneo",
-			"incomingHint": "Choose which issues can be imported or create tasks. Use exact repository label names. Existing links follow the Kaneo task rule.",
+			"incoming": "Repository → Organyz Work",
+			"incomingHint": "Choose which issues can be imported or create tasks. Use exact repository label names. Existing links follow the Organyz Work task rule.",
 			"loadError": "Sync rules could not be loaded.",
 			"loading": "Loading sync rules…",
 			"matchLabels": "Label matching",
@@ -2063,8 +2063,8 @@
 			"noDescription": "No description",
 			"noLabels": "Create workspace labels before configuring a task filter.",
 			"open": "Open",
-			"outgoing": "Kaneo → repository",
-			"outgoingHint": "Choose which Kaneo tasks can sync. Losing a matching label pauses both directions for an existing task.",
+			"outgoing": "Organyz Work → repository",
+			"outgoingHint": "Choose which Organyz Work tasks can sync. Losing a matching label pauses both directions for an existing task.",
 			"paused": "Sync paused",
 			"pausedHint": "Records and links are preserved. Tasks that match again need review before syncing resumes.",
 			"preserveHint": "Pausing keeps both records and their link. Resuming requires a comparison; historical comments are never replayed.",
@@ -2086,7 +2086,7 @@
 			"sharedHint": "These rules apply to everyone using this project. Hiding advanced settings does not disable them.",
 			"title": "Neler senkronize edilir",
 			"unavailableLabel": "Unavailable label",
-			"useKaneo": "Keep Kaneo values",
+			"useKaneo": "Keep Organyz Work values",
 			"useRepository": "Keep repository values",
 			"exportPending": "Export matching tasks",
 			"inactiveHint": "This integration is paused. No tasks will be exported until it is reactivated.",
@@ -2099,10 +2099,10 @@
 			"issuesLabelled": "Şu etiketlere sahip sorunlar",
 			"joinAnd": "ve",
 			"joinOr": "veya",
-			"kaneoToProvider": "Kaneo → {{provider}}",
+			"kaneoToProvider": "Organyz Work → {{provider}}",
 			"pausedSummary_one": "{{count}} talep, artık senkronizasyon kurallarıyla eşleşmediği için senkronize edilmiyor.",
 			"pausedSummary_other": "{{count}} talep, artık senkronizasyon kurallarıyla eşleşmediği için senkronize edilmiyor.",
-			"providerToKaneo": "{{provider}} → Kaneo",
+			"providerToKaneo": "{{provider}} → Organyz Work",
 			"reviewPaused": "İncele",
 			"tasksLabelled": "Şu etiketlere sahip talepler"
 		},
@@ -2188,7 +2188,7 @@
 			"searchCount_other": "{{count}} matching workspaces",
 			"searchLabel": "Search workspaces",
 			"searchPlaceholder": "Ad veya slug ile ara",
-			"subtitle": "Üyesi olmadıklarınız dahil, bu Kaneo örneğindeki tüm çalışma alanları.",
+			"subtitle": "Üyesi olmadıklarınız dahil, bu Organyz Work örneğindeki tüm çalışma alanları.",
 			"title": "Çalışma alanları",
 			"toast": {
 				"added": "Member added",
@@ -2223,7 +2223,7 @@
 				"cancel": "Cancel",
 				"continue": "Continue",
 				"hideSecret": "Hide {{field}}",
-				"sectionDescription": "Kaneo only reads from {{source}}. The key is used for this import and never stored.",
+				"sectionDescription": "Organyz Work only reads from {{source}}. The key is used for this import and never stored.",
 				"sectionTitle": "Connect",
 				"showSecret": "Show {{field}}",
 				"title": "Import from {{source}}",
@@ -2383,7 +2383,7 @@
 				"import": "Import",
 				"label": "Import steps"
 			},
-			"subtitle": "Bring your projects from another tool into {{workspace}}. Kaneo only reads from the source.",
+			"subtitle": "Bring your projects from another tool into {{workspace}}. Organyz Work only reads from the source.",
 			"title": "Import",
 			"toast": {
 				"failed": "Import from {{source}} failed",
@@ -2396,7 +2396,7 @@
 				"apiKeyPlaceholder": "Paste API key",
 				"authorizeButton": "Authorize on Trello",
 				"authorizeDescription": "Opens Trello in a new tab. Read only, expires after a day.",
-				"authorizeLabel": "Authorize Kaneo",
+				"authorizeLabel": "Authorize Organyz Work",
 				"authorizeNeedsKey": "Enter the API key first. Read only, expires after a day.",
 				"tokenDescription": "Click Allow on Trello, then paste the token it shows you.",
 				"tokenLabel": "Token",
@@ -2484,7 +2484,7 @@
 			"channelLabel": "Kanal",
 			"channelPlaceholder": "#team-updates",
 			"disconnect": "Bağlantıyı kes",
-			"disconnectDescription": "Kaneo, {{provider}} üzerinde paylaşımı durdurur ve kayıtlı ayarları kaldırır.",
+			"disconnectDescription": "Organyz Work, {{provider}} üzerinde paylaşımı durdurur ve kayıtlı ayarları kaldırır.",
 			"disconnecting": "Bağlantı kesiliyor…",
 			"disconnectTitle": "{{provider}} bağlantısı kesilsin mi?",
 			"events": {
@@ -3335,7 +3335,7 @@
 			"history": "Chat history",
 			"historyEmpty": "No chats yet",
 			"newChat": "New chat",
-			"placeholder": "Ask Kaneo...",
+			"placeholder": "Ask Organyz Work...",
 			"send": "Send message",
 			"thinking": "Working on it...",
 			"toolInput": "Input",
@@ -3492,7 +3492,7 @@
 			"actions": "Allowed changes",
 			"all": "All",
 			"allProjects": "All projects",
-			"askPlaceholder": "Ask Kaneo to build the loop for you",
+			"askPlaceholder": "Ask Organyz Work to build the loop for you",
 			"backToRuns": "All runs",
 			"category": {
 				"engineering": "Engineering",
@@ -4773,13 +4773,13 @@
 		},
 		"email": {
 			"subject": "{{inviterName}}, sizi {{instanceName}}'da {{workspaceName}} çalışma alanına davet etti",
-			"preview": "Kaneo'da {{workspaceName}} çalışma alanına davet edildiniz",
+			"preview": "Organyz Work'da {{workspaceName}} çalışma alanına davet edildiniz",
 			"title": "{{workspaceName}} çalışma alanına katılın",
-			"subtitle": "{{inviterName}} ({{inviterEmail}}) sizi Kaneo'da birlikte çalışmaya davet etti.",
+			"subtitle": "{{inviterName}} ({{inviterEmail}}) sizi Organyz Work'da birlikte çalışmaya davet etti.",
 			"cta": "Daveti kabul et",
 			"sameEmail": "Daveti, bu mesajı alan e-posta adresiyle kabul edebilirsiniz.",
 			"ignore": "Bu davet beklenmedikse bu e-postayı güvenle yok sayabilirsiniz.",
-			"footer": "Kaneo çalışma alanı daveti",
+			"footer": "Organyz Work çalışma alanı daveti",
 			"details": {
 				"title": "Davet ayrıntıları",
 				"sentTo": "Gönderilen adres",
@@ -4973,7 +4973,7 @@
 			},
 			"connect": {
 				"action": "Connect your GitHub account",
-				"description": "Your GitHub account needs to be connected before you can review pull requests in Kaneo",
+				"description": "Your GitHub account needs to be connected before you can review pull requests in Organyz Work",
 				"title": "Connect GitHub to start reviewing"
 			},
 			"copyMenu": {
@@ -5044,7 +5044,7 @@
 				"noMatchingFiles": "No files match this filter.",
 				"noPatch": "No preview for this file. Open it on GitHub.",
 				"noReviewers": "No one to add.",
-				"notFound": "This pull request could not be loaded. It may not exist, or the Kaneo GitHub App may not be installed on its repository.",
+				"notFound": "This pull request could not be loaded. It may not exist, or the Organyz Work GitHub App may not be installed on its repository.",
 				"openOnGithub": "Open on GitHub",
 				"options": {
 					"hideReviewed": "Hide reviewed",
@@ -5137,7 +5137,7 @@
 				"subGrouping": "Sub-grouping"
 			},
 			"empty": {
-				"description": "Pull requests you created or are asked to review show up here. If you expect to see some, check that the Kaneo GitHub App is installed on those repositories.",
+				"description": "Pull requests you created or are asked to review show up here. If you expect to see some, check that the Organyz Work GitHub App is installed on those repositories.",
 				"title": "No pull requests"
 			},
 			"filterPlaceholder": "Filter",
@@ -5233,7 +5233,7 @@
 				"team": "No team"
 			},
 			"notConfigured": {
-				"description": "An administrator needs to add the Kaneo GitHub App credentials before pull requests can be reviewed here.",
+				"description": "An administrator needs to add the Organyz Work GitHub App credentials before pull requests can be reviewed here.",
 				"title": "GitHub reviews are not set up"
 			},
 			"pageTitle": "Reviews",
@@ -5271,7 +5271,7 @@
 			},
 			"reconnect": {
 				"action": "Reconnect your GitHub account",
-				"description": "Your GitHub account needs to be connected again before you can review pull requests in Kaneo",
+				"description": "Your GitHub account needs to be connected again before you can review pull requests in Organyz Work",
 				"title": "Reconnect GitHub to keep reviewing"
 			},
 			"reviewStatus": {

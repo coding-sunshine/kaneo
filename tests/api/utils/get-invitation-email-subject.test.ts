@@ -14,7 +14,7 @@ describe("getInvitationEmailSubject", () => {
     );
 
     expect(subject).toBe(
-      "Alice vous invite à rejoindre Équipe produit sur Kaneo",
+      "Alice vous invite à rejoindre Équipe produit sur Organyz Work",
     );
   });
 
@@ -30,7 +30,7 @@ describe("getInvitationEmailSubject", () => {
     );
 
     expect(subject).toBe(
-      "Alice hat dich eingeladen, Produkt auf Kaneo beizutreten",
+      "Alice hat dich eingeladen, Produkt auf Organyz Work beizutreten",
     );
   });
 
@@ -46,7 +46,7 @@ describe("getInvitationEmailSubject", () => {
     );
 
     expect(subject).toBe(
-      "Alice convidou você para participar de Equipe produto no Kaneo",
+      "Alice convidou você para participar de Equipe produto no Organyz Work",
     );
   });
 
@@ -62,13 +62,13 @@ describe("getInvitationEmailSubject", () => {
     );
 
     expect(subject).toBe(
-      "Alice さんが Kaneo の「プロダクト」にあなたを招待しました",
+      "Alice さんが Organyz Work の「プロダクト」にあなたを招待しました",
     );
   });
 
   it("uses Traditional Chinese copy for zh-TW", () => {
     expect(getInvitationEmailSubject("zh-TW", "Alice", "產品團隊")).toBe(
-      "Alice 邀請你加入 Kaneo 上的 產品團隊",
+      "Alice 邀請你加入 Organyz Work 上的 產品團隊",
     );
   });
 
@@ -83,6 +83,6 @@ describe("getInvitationEmailSubject", () => {
       workspaceName,
     );
 
-    expect(subject).toBe("Alice invited you to join Producto on Kaneo");
+    expect(subject).toBe("Alice invited you to join Producto on Organyz Work");
   });
 });

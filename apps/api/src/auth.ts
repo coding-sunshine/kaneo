@@ -246,7 +246,10 @@ async function shouldDeliverSignInEmail(email: string) {
   return true;
 }
 
-function getAuthEmailCopy(locale?: string | null, instanceName = "Kaneo") {
+function getAuthEmailCopy(
+  locale?: string | null,
+  instanceName = "Organyz Work",
+) {
   const localeKey = getLocaleKey(locale);
 
   if (localeKey === "de") {
@@ -758,7 +761,7 @@ export const auth = betterAuth({
     passkey({
       // Derived from the same client URL as trustedOrigins, never from the request.
       rpID: clientHostname,
-      rpName: "Kaneo",
+      rpName: "Organyz Work",
       origin: clientUrl,
     }),
     deviceAuthorization({
