@@ -14,8 +14,6 @@ import {
   getPullRequest,
   getPullRequestCommits,
   getPullRequestFileContent,
-  getPullRequestChecks,
-  getPullRequestConversation,
   getPullRequestFiles,
   getReviewerCandidates,
   markPullRequestReady,
@@ -28,6 +26,11 @@ import {
   type ReviewEvent,
   submitPullRequestReview,
 } from "@/fetchers/github-reviews/github-reviews";
+import {
+  checksQuery,
+  conversationQuery,
+  pullKey,
+} from "@/hooks/queries/github-reviews/pull-request-queries";
 
 export function useReviewsStatus(enabled = true) {
   return useQuery({
@@ -57,15 +60,6 @@ export function useDisconnectReviews() {
       queryClient.invalidateQueries({ queryKey: ["github-reviews"] }),
   });
 }
-
-const pullKey = (ref: PullRef, part: string) => [
-  "github-reviews",
-  "pull",
-  ref.owner,
-  ref.repo,
-  ref.number,
-  part,
-];
 
 export const usePullRequest = (ref: PullRef, workspaceId: string) =>
   useQuery({
@@ -107,15 +101,9 @@ export const useFileContent = (
     staleTime: Number.POSITIVE_INFINITY,
   });
 export const usePullRequestChecks = (ref: PullRef) =>
-  useQuery({
-    queryKey: pullKey(ref, "checks"),
-    queryFn: () => getPullRequestChecks(ref),
-  });
+  useQuery(checksQuery(ref));
 export const usePullRequestConversation = (ref: PullRef) =>
-  useQuery({
-    queryKey: pullKey(ref, "conversation"),
-    queryFn: () => getPullRequestConversation(ref),
-  });
+  useQuery(conversationQuery(ref));
 
 export const useReviewerCandidates = (ref: PullRef, enabled: boolean) =>
   useQuery({

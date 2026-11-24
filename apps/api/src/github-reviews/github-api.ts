@@ -126,7 +126,15 @@ export type GithubSearchPull = {
   additions: number;
   deletions: number;
   reviewDecision: "APPROVED" | "CHANGES_REQUESTED" | "REVIEW_REQUIRED" | null;
-  comments: { totalCount: number };
+  comments: { totalCount: number; nodes?: { body: string }[] };
+  body?: string;
+  headRefOid?: string;
+  /** Every submitted or pending review, newest 20; the viewer's own pending one shows too. */
+  reviews?: { nodes: { state: string; author: { login: string } | null }[] };
+  files?: {
+    totalCount: number;
+    nodes: { path: string; additions: number; deletions: number }[];
+  };
   author: { login: string; avatarUrl: string; databaseId?: number } | null;
   repository: { name: string; owner: { login: string } };
   commits: {
@@ -158,14 +166,23 @@ export type GithubSearchPull = {
 // 50 results with each PR's check rollup took ~10s for a busy author and hit
 // GitHub's GraphQL timeout (502); 25 returns in ~2.5s.
 // ponytail: newest 25 per group, paginate with a cursor if people need older PRs.
-const SEARCH_QUERY = `query($q: String!) {
+// Per-file stats add about 2s to a 25-result search, so only open searches ask for the
+// detail fields: risk, reviewedBy and generated lines only matter on open pull requests.
+const searchQuery = (details: boolean) => `query($q: String!) {
   search(query: $q, type: ISSUE, first: 25) {
     nodes {
       ... on PullRequest {
         number title url state isDraft createdAt updatedAt closedAt
         additions deletions
         reviewDecision
-        comments { totalCount }
+        ${
+          details
+            ? `body headRefOid
+        comments(last: 10) { totalCount nodes { body } }
+        reviews(last: 20) { nodes { state author { login } } }
+        files(first: 50) { totalCount nodes { path additions deletions } }`
+            : "comments { totalCount }"
+        }
         author { login avatarUrl ... on User { databaseId } }
         repository { name owner { login } }
         commits(last: 1) { nodes { commit { statusCheckRollup { state } } } }
@@ -189,7 +206,7 @@ const SEARCH_QUERY = `query($q: String!) {
   }
 }`;
 
-const postSearch = (token: string, query: string) =>
+const postSearch = (token: string, query: string, details: boolean) =>
   fetch(`${API}/graphql`, {
     method: "POST",
     headers: {
@@ -197,17 +214,21 @@ const postSearch = (token: string, query: string) =>
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      query: SEARCH_QUERY,
+      query: searchQuery(details),
       variables: { q: `${query} sort:updated-desc` },
     }),
   });
 
-export async function searchPullRequests(token: string, query: string) {
-  let response = await postSearch(token, query);
+export async function searchPullRequests(
+  token: string,
+  query: string,
+  details = false,
+) {
+  let response = await postSearch(token, query, details);
   // Broad searches (closed PRs included) sometimes hit GitHub's GraphQL
   // timeout and come back 502; a second try usually lands.
   if (response.status === 502 || response.status === 504) {
-    response = await postSearch(token, query);
+    response = await postSearch(token, query, details);
   }
   const body = (await response.json().catch(() => ({}))) as {
     data?: { search: { nodes: Partial<GithubSearchPull>[] } };
@@ -470,6 +491,57 @@ export const listReviewComments = (
     token,
     `${pullPath(owner, repo, number)}/comments?per_page=100`,
   );
+
+// REST review comments carry no resolved state; only GraphQL threads do. Maps each
+// comment's REST id, as a string, to its thread's flag (newest 100 threads, 100 comments each).
+export async function listReviewThreadResolution(
+  token: string,
+  owner: string,
+  repo: string,
+  number: string,
+) {
+  const response = await fetch(`${API}/graphql`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      query: `query($owner: String!, $repo: String!, $number: Int!) {
+        repository(owner: $owner, name: $repo) {
+          pullRequest(number: $number) {
+            reviewThreads(last: 100) {
+              nodes { isResolved comments(first: 100) { nodes { fullDatabaseId } } }
+            }
+          }
+        }
+      }`,
+      variables: { owner, repo, number: Number(number) },
+    }),
+  });
+  const body = (await response.json().catch(() => ({}))) as {
+    data?: {
+      repository?: {
+        pullRequest?: {
+          reviewThreads: {
+            nodes: {
+              isResolved: boolean;
+              comments: { nodes: { fullDatabaseId: string }[] };
+            }[];
+          };
+        };
+      };
+    };
+  };
+  const resolved = new Map<string, boolean>();
+  for (const thread of body.data?.repository?.pullRequest?.reviewThreads
+    .nodes ?? []) {
+    for (const comment of thread.comments.nodes) {
+      resolved.set(comment.fullDatabaseId, thread.isResolved);
+    }
+  }
+  return resolved;
+}
 
 export const addIssueComment = (
   token: string,

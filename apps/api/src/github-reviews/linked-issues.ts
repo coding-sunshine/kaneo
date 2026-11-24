@@ -19,6 +19,8 @@ export type LinkedIssue = {
   priority: string;
   team: { id: string; name: string };
   project: { id: string; name: string } | null;
+  slaDueAt: string | null;
+  completedAt: string | null;
 };
 
 /** Kaneo tasks linked to the given pull request urls, limited to workspaces the user belongs to. */
@@ -38,6 +40,8 @@ export async function findLinkedIssues(userId: string, urls: string[]) {
       teamName: projectTable.name,
       projectId: workProjectTable.id,
       projectName: workProjectTable.name,
+      slaDueAt: taskTable.slaDueAt,
+      completedAt: taskTable.completedAt,
     })
     .from(externalLinkTable)
     .innerJoin(taskTable, eq(taskTable.id, externalLinkTable.taskId))
@@ -73,6 +77,8 @@ export async function findLinkedIssues(userId: string, urls: string[]) {
       project: row.projectId
         ? { id: row.projectId, name: row.projectName ?? "" }
         : null,
+      slaDueAt: row.slaDueAt?.toISOString() ?? null,
+      completedAt: row.completedAt?.toISOString() ?? null,
     });
   }
   return issues;

@@ -31,23 +31,30 @@ export const titleLink = ({ title, url }: CopyablePull) => ({
 });
 
 /**
- * Linear's "Copy as prompt" layout: the branch to check out, the review and pull request
- * links, then the connected issue.
- * ponytail: Linear also lists failing checks and unresolved comments; add them when the
- * caller carries a pull request's check runs and review threads.
+ * "Copy as prompt" layout: the branch to check out, the review and pull request links, the
+ * connected issue, then the failing checks and unresolved comments when there are any.
+ * Linear's section headings and line formats were not observed; these are our own.
  */
 export function promptText(lines: {
   branch?: string;
   review: string;
   pull: string;
   issue?: { heading: string; title: string; url: string } | null;
+  failingChecks?: { heading: string; items: string[] };
+  unresolvedComments?: { heading: string; items: string[] };
 }) {
   const { issue } = lines;
+  const list = (section?: { heading: string; items: string[] }) =>
+    section?.items.length
+      ? `\n${section.heading}\n${section.items.join("\n")}`
+      : "";
   return [
     lines.branch ? `${lines.branch}\n` : "",
     lines.review,
     lines.pull,
     issue ? `\n${issue.heading}\n- [${issue.title}](${issue.url})` : "",
+    list(lines.failingChecks),
+    list(lines.unresolvedComments),
   ]
     .filter(Boolean)
     .join("\n");

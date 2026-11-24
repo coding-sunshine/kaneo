@@ -57,7 +57,9 @@ it("counts its conditions and flips the operator that joins them", () => {
     ],
     true,
   );
-  expect(screen.getByRole("button", { name: "2 conditions" })).toBeVisible();
+  expect(
+    screen.getByRole("button", { name: "Advanced filter: 2 conditions" }),
+  ).toBeVisible();
   expect(screen.getByText("Size")).toBeInTheDocument();
   expect(screen.getByText("Checks")).toBeInTheDocument();
   expect(screen.queryByText("Team")).not.toBeInTheDocument();

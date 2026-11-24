@@ -432,6 +432,32 @@ describe("ReviewsPage", () => {
     ]);
   });
 
+  it("drops a negated condition when its last value is unchecked", async () => {
+    state.list.toReview = [
+      pr(1, "Blocked one", "open", { mergeState: "blocked" }),
+    ];
+    useUserPreferencesStore.setState({
+      reviewsView: {
+        ...DEFAULT_REVIEWS_VIEWS,
+        toReview: {
+          ...DEFAULT_REVIEWS_VIEWS.toReview,
+          filters: { mergeStatus: { values: ["blocked"], negated: true } },
+        },
+      },
+    });
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    fireEvent.click(screen.getByRole("button", { name: "Filter" }));
+    fireEvent.click(
+      (await screen.findAllByText("Merge status")).at(-1) as HTMLElement,
+    );
+    fireEvent.click(
+      (await screen.findAllByText("Blocked")).at(-1) as HTMLElement,
+    );
+    expect(
+      useUserPreferencesStore.getState().reviewsView.toReview.filters,
+    ).toEqual({});
+  });
+
   it("keeps each tab's filters", async () => {
     state.list.toReview = [
       pr(1, "Ready one", "open", { mergeState: "ready" }),

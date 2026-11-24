@@ -49,6 +49,9 @@ const linkedIssue = z.object({
   team: z.object({ id: z.string(), name: z.string() }),
   /** Linear's project is a Kaneo work project. */
   project: z.object({ id: z.string(), name: z.string() }).nullable(),
+  /** ISO dates of the task's SLA, for the row's SLA chip. */
+  slaDueAt: z.string().nullable().optional(),
+  completedAt: z.string().nullable().optional(),
 });
 
 const reviewOwnerFields = {
@@ -84,6 +87,13 @@ export const reviewListItemSchema = pullRequestSummarySchema.extend({
   baseRef: z.string(),
   /** Review requested through a team only, not from you directly. */
   teamRequested: z.boolean(),
+  /** Linear risk level from a `linear:extension` comment, 1 Low to 4 Very high. */
+  riskLevel: z.number().int().min(1).max(4).nullable().optional(),
+  /** Logins with a submitted (not pending) review, comment-only included. */
+  reviewedBy: z.array(z.string()).optional(),
+  /** Lines inside generated files; absent when the file list was cut off. */
+  generatedAdditions: z.number().optional(),
+  generatedDeletions: z.number().optional(),
   issue: linkedIssue.nullable(),
   ...reviewOwnerFields,
 });
@@ -169,6 +179,8 @@ export const conversationSchema = z.array(
     path: z.string().nullable(),
     line: z.number().nullable(),
     side: z.enum(["LEFT", "RIGHT"]).nullable(),
+    // Inline review comments only, when GitHub reported the thread's state.
+    resolved: z.boolean().optional(),
     createdAt: z.string(),
   }),
 );

@@ -1,5 +1,6 @@
 import {
   listIssueComments,
+  listReviewThreadResolution,
   listReviewComments,
   listReviews,
 } from "../github-api";
@@ -12,12 +13,18 @@ export async function listPullRequestConversation(
   repo: string,
   number: string,
 ) {
-  const [comments, reviews, inline] = await withGithubToken(userId, (token) =>
-    Promise.all([
-      listIssueComments(token, owner, repo, number),
-      listReviews(token, owner, repo, number),
-      listReviewComments(token, owner, repo, number),
-    ]),
+  const [comments, reviews, inline, resolution] = await withGithubToken(
+    userId,
+    (token) =>
+      Promise.all([
+        listIssueComments(token, owner, repo, number),
+        listReviews(token, owner, repo, number),
+        listReviewComments(token, owner, repo, number),
+        // Optional: without it every inline comment simply has no resolved flag.
+        listReviewThreadResolution(token, owner, repo, number).catch(
+          () => new Map<string, boolean>(),
+        ),
+      ]),
   );
   return [
     ...comments.map((comment) => ({
@@ -40,6 +47,7 @@ export async function listPullRequestConversation(
       path: comment.path,
       line: comment.line ?? comment.original_line,
       side: comment.side,
+      resolved: resolution.get(String(comment.id)),
       createdAt: comment.created_at,
     })),
     // A review with no body and state COMMENTED only carries inline comments.

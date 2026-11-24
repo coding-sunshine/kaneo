@@ -82,6 +82,12 @@ export const SHORTCUTS = {
   toggleTeamFavorite: { keys: ["alt+f"], category: "views", scope: "view" },
   copyTeamUrl: { keys: ["mod+shift+,"], category: "views", scope: "view" },
   toggleInsights: { keys: ["mod+shift+i"], category: "views", scope: "view" },
+  workOnPullRequest: { keys: ["w o"], category: "views", scope: "view" },
+  copyPullRequestPrompt: {
+    keys: ["mod+alt+p"],
+    category: "views",
+    scope: "view",
+  },
 
   replyToComment: { keys: ["r"], category: "tasks", scope: "task" },
   changeStatus: { keys: ["s"], category: "tasks", scope: "task" },

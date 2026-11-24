@@ -48,7 +48,10 @@ export type ReviewsProperty =
   | "statusDetails"
   | "reviewers"
   | "githubTeam"
-  | "labels";
+  | "labels"
+  | "quickToReview"
+  | "risk"
+  | "sla";
 
 export type ReviewsView = {
   groupBy: ReviewsGroupBy;
@@ -112,6 +115,9 @@ export const REVIEWS_PROPERTIES: ReviewsProperty[] = [
   "reviewers",
   "githubTeam",
   "labels",
+  "quickToReview",
+  "risk",
+  "sla",
 ];
 export const CLOSED_WINDOWS: ClosedWindow[] = [
   "none",

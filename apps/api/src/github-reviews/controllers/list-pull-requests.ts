@@ -1,7 +1,9 @@
 import { type GithubSearchPull, searchPullRequests } from "../github-api";
 import type { closedWindows } from "../schema";
+import { generatedLines } from "../generated-lines";
 import { findLinkedIssues } from "../linked-issues";
 import { findReviewOwners } from "../review-owners";
+import { parseRiskLevel } from "../risk-score";
 import { toMergeState, toReviewFields } from "../review-fields";
 import { withGithubToken } from "../with-github-token";
 
@@ -30,7 +32,17 @@ function toChecks(state: string | undefined) {
   return "none" as const;
 }
 
-function toSummary(pull: GithubSearchPull) {
+function toGenerated(pull: GithubSearchPull) {
+  const lines = generatedLines(pull.files);
+  return lines
+    ? {
+        generatedAdditions: lines.additions,
+        generatedDeletions: lines.deletions,
+      }
+    : {};
+}
+
+export function toSummary(pull: GithubSearchPull) {
   return {
     owner: pull.repository.owner.login,
     repo: pull.repository.name,
@@ -60,6 +72,24 @@ function toSummary(pull: GithubSearchPull) {
     deletions: pull.deletions,
     labels: pull.labels?.nodes ?? [],
     ...toReviewFields(pull),
+    // ponytail: PR body plus the last 10 comments only; review bodies and older comments are not read.
+    riskLevel: parseRiskLevel(
+      [pull.body ?? "", ...(pull.comments.nodes ?? []).map((c) => c.body)],
+      pull.headRefOid ?? "",
+    ),
+    reviewedBy: [
+      ...new Set(
+        (pull.reviews?.nodes ?? []).flatMap((review) =>
+          // GitHub records the author's own thread reply as a COMMENTED review.
+          review.author &&
+          review.state !== "PENDING" &&
+          review.author.login !== pull.author?.login
+            ? [review.author.login]
+            : [],
+        ),
+      ),
+    ],
+    ...toGenerated(pull),
     hasConflicts: pull.mergeable === "CONFLICTING",
     mergeState: toMergeState(pull),
     headRef: pull.headRefName,
@@ -73,9 +103,11 @@ export function listPullRequests(
   workspaceId?: string,
 ) {
   const search = (token: string, query: string) =>
-    searchPullRequests(token, `is:pr ${query} archived:false`).then((items) =>
-      items.map(toSummary),
-    );
+    searchPullRequests(
+      token,
+      `is:pr ${query} archived:false`,
+      query.includes("is:open"),
+    ).then((items) => items.map(toSummary));
   const since = closedSince(closed);
   // GitHub's `closed:` qualifier misses some closed PRs, so search by update
   // date (closing always updates) and keep the ones closed in the window.

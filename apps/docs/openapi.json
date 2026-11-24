@@ -30005,6 +30005,18 @@
                             "id",
                             "name"
                           ]
+                        },
+                        "slaDueAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "completedAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
                         }
                       },
                       "required": [
@@ -30892,6 +30904,9 @@
                           "RIGHT",
                           null
                         ]
+                      },
+                      "resolved": {
+                        "type": "boolean"
                       },
                       "createdAt": {
                         "type": "string"
@@ -32426,6 +32441,26 @@
                           "teamRequested": {
                             "type": "boolean"
                           },
+                          "riskLevel": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
+                            "minimum": 1,
+                            "maximum": 4
+                          },
+                          "reviewedBy": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "generatedAdditions": {
+                            "type": "number"
+                          },
+                          "generatedDeletions": {
+                            "type": "number"
+                          },
                           "issue": {
                             "type": [
                               "object",
@@ -32481,6 +32516,18 @@
                                 "required": [
                                   "id",
                                   "name"
+                                ]
+                              },
+                              "slaDueAt": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "completedAt": {
+                                "type": [
+                                  "string",
+                                  "null"
                                 ]
                               }
                             },
@@ -32726,6 +32773,26 @@
                           "teamRequested": {
                             "type": "boolean"
                           },
+                          "riskLevel": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
+                            "minimum": 1,
+                            "maximum": 4
+                          },
+                          "reviewedBy": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "generatedAdditions": {
+                            "type": "number"
+                          },
+                          "generatedDeletions": {
+                            "type": "number"
+                          },
                           "issue": {
                             "type": [
                               "object",
@@ -32781,6 +32848,18 @@
                                 "required": [
                                   "id",
                                   "name"
+                                ]
+                              },
+                              "slaDueAt": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "completedAt": {
+                                "type": [
+                                  "string",
+                                  "null"
                                 ]
                               }
                             },
@@ -33026,6 +33105,26 @@
                           "teamRequested": {
                             "type": "boolean"
                           },
+                          "riskLevel": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
+                            "minimum": 1,
+                            "maximum": 4
+                          },
+                          "reviewedBy": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "generatedAdditions": {
+                            "type": "number"
+                          },
+                          "generatedDeletions": {
+                            "type": "number"
+                          },
                           "issue": {
                             "type": [
                               "object",
@@ -33081,6 +33180,18 @@
                                 "required": [
                                   "id",
                                   "name"
+                                ]
+                              },
+                              "slaDueAt": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "completedAt": {
+                                "type": [
+                                  "string",
+                                  "null"
                                 ]
                               }
                             },

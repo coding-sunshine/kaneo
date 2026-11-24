@@ -31,3 +31,19 @@ it("is never quick for a draft, a closed pull request or one the viewer reviewed
   expect(isQuickToReview(pr({ approvedBy: ["ada"] }), "me")).toBe(true);
   expect(isQuickToReview(pr({ approvedBy: ["ada"] }), null)).toBe(true);
 });
+
+it("counts a comment-only review as reviewed", () => {
+  expect(isQuickToReview(pr({ reviewedBy: ["me"] }), "me")).toBe(false);
+  expect(isQuickToReview(pr({ reviewedBy: ["ada"] }), "me")).toBe(true);
+});
+
+it("leaves generated lines out of the size", () => {
+  const big = { additions: 500, deletions: 120 };
+  expect(isQuickToReview(pr(big), "me")).toBe(false);
+  expect(
+    isQuickToReview(
+      pr({ ...big, generatedAdditions: 480, generatedDeletions: 100 }),
+      "me",
+    ),
+  ).toBe(true);
+});

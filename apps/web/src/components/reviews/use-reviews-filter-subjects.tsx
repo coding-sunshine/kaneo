@@ -277,7 +277,11 @@ export function useReviewsFilterSubjects(
             content: { values: [value], negated: false },
           }),
       }),
-      onToggle: (value) => onChange(toggleFilterValue(filters, id, value)),
+      onToggle: (value) => {
+        const next = toggleFilterValue(filters, id, value);
+        // Dropping the last value drops the condition, so "is not" cannot outlive it.
+        onChange(next[id]?.values.length ? next : clearFilter(next, id));
+      },
       onNegate: (negated) => onChange(setFilterNegated(filters, id, negated)),
       onClear: () => onChange(clearFilter(filters, id)),
       emptyLabel: empty,

@@ -15,6 +15,7 @@ import {
 } from "vite-plus/test";
 import "@/lib/i18n";
 import { ShortcutTestWrapper } from "@/lib/shortcuts/shortcut-test-wrapper";
+import queryClient from "@/query-client";
 import { useCreateIssueStore } from "@/store/create-issue";
 import { useReviewsSnoozeStore } from "@/store/reviews-snooze";
 import { PullRequestMenu } from "./pull-request-menu";
@@ -31,6 +32,8 @@ const mocks = vi.hoisted(() => ({
   close: vi.fn(),
   markReady: vi.fn(),
   writeText: vi.fn().mockResolvedValue(undefined),
+  getChecks: vi.fn(),
+  getConversation: vi.fn(),
 }));
 
 vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => {
@@ -59,6 +62,11 @@ vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => {
     useMarkPullRequestReady: mutation(mocks.markReady),
   };
 });
+vi.mock("@/fetchers/github-reviews/github-reviews", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  getPullRequestChecks: mocks.getChecks,
+  getPullRequestConversation: mocks.getConversation,
+}));
 vi.mock(
   "@/hooks/queries/workspace-users/use-get-active-workspace-users",
   () => ({
@@ -134,6 +142,9 @@ beforeEach(() => {
     if (typeof m === "function" && "mockClear" in m) m.mockClear();
   });
   mocks.isFavorite = false;
+  queryClient.clear();
+  mocks.getChecks.mockResolvedValue({ checks: [] });
+  mocks.getConversation.mockResolvedValue([]);
   Object.defineProperty(navigator, "clipboard", {
     value: { writeText: mocks.writeText },
     configurable: true,
@@ -151,7 +162,8 @@ describe("PullRequestMenu", () => {
       .map((el) => el.textContent?.trim());
     expect(items).toEqual([
       "Open on GitHub",
-      "Work on pull request",
+      // The second text is the W then O shortcut hint.
+      "Work on pull requestWthenO",
       "Favorite",
       "Snooze",
       "Copy",
@@ -164,6 +176,95 @@ describe("PullRequestMenu", () => {
       "Squash & merge",
       "Close pull request",
     ]);
+  });
+
+  it("opens the Work on pull request submenu with W then O", async () => {
+    renderMenu();
+    fireEvent.keyDown(document.body, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+    fireEvent.keyDown(document.body, { key: "w" });
+    fireEvent.keyDown(document.body, { key: "o" });
+    expect(await screen.findByText("Copy as prompt")).toBeVisible();
+  });
+
+  it("copies the prompt with Cmd+Alt+P, without opening the menu", async () => {
+    renderMenu();
+    fireEvent.keyDown(document.body, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+    fireEvent.keyDown(document.body, {
+      key: "p",
+      code: "KeyP",
+      ctrlKey: true, // "mod" is Ctrl off macOS, which is what jsdom reports
+      altKey: true,
+    });
+    await waitFor(() =>
+      expect(mocks.writeText).toHaveBeenLastCalledWith(
+        expect.stringMatching(PROMPT),
+      ),
+    );
+    expect(screen.queryByRole("menu")).toBeNull();
+  });
+
+  it("still copies the prompt when one optional fetch fails", async () => {
+    mocks.getChecks.mockRejectedValue(new Error("Failed to fetch"));
+    mocks.getConversation.mockResolvedValue([
+      {
+        kind: "review_comment",
+        resolved: false,
+        path: "a.ts",
+        line: 3,
+        body: "fix this",
+        author: { login: "bo" },
+      },
+    ]);
+    renderMenu();
+    await open("Work on pull request");
+    await open("Copy as prompt");
+    await waitFor(() =>
+      expect(mocks.writeText).toHaveBeenLastCalledWith(
+        expect.stringContaining("- a.ts:3 @bo fix this"),
+      ),
+    );
+    expect(mocks.writeText.mock.lastCall?.[0]).not.toContain("Failing checks");
+  });
+
+  it("adds failing checks and unresolved comments to the prompt", async () => {
+    mocks.getChecks.mockResolvedValue({
+      checks: [
+        { name: "CI / Build", state: "failure", url: "http://ci/1" },
+        { name: "CI / Lint", state: "success", url: "" },
+      ],
+    });
+    mocks.getConversation.mockResolvedValue([
+      {
+        kind: "review_comment",
+        resolved: false,
+        path: "a.ts",
+        line: 3,
+        body: "fix this",
+        author: { login: "bo" },
+      },
+      {
+        kind: "review_comment",
+        resolved: true,
+        path: "b.ts",
+        line: 1,
+        body: "done",
+        author: { login: "bo" },
+      },
+    ]);
+    renderMenu();
+    await open("Work on pull request");
+    await open("Copy as prompt");
+    await waitFor(() =>
+      expect(mocks.writeText).toHaveBeenLastCalledWith(
+        expect.stringContaining("- [CI / Build](http://ci/1)"),
+      ),
+    );
+    const text = mocks.writeText.mock.lastCall?.[0] as string;
+    expect(text).toContain("- a.ts:3 @bo fix this");
+    expect(text).not.toContain("CI / Lint");
+    expect(text).not.toContain("b.ts");
   });
 
   it("toggles the favorite", async () => {

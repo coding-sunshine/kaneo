@@ -38,6 +38,12 @@ export function ReviewsAdvancedFilterChip({
     operator === "and"
       ? t("workspace:reviews.filters.advanced.and")
       : t("workspace:reviews.filters.advanced.or");
+  const triggerText =
+    conditions.length > 0
+      ? t("workspace:reviews.filters.advanced.conditions", {
+          count: conditions.length,
+        })
+      : t("workspace:reviews.filters.advanced.label");
   const operatorToggle = (
     <button
       type="button"
@@ -58,15 +64,18 @@ export function ReviewsAdvancedFilterChip({
           render={
             <button
               type="button"
+              aria-label={
+                conditions.length > 0
+                  ? t("workspace:reviews.filters.advanced.triggerLabel", {
+                      conditions: triggerText,
+                    })
+                  : undefined
+              }
               className="px-2 outline-none hover:bg-accent focus-visible:bg-accent data-popup-open:bg-accent"
             />
           }
         >
-          {conditions.length > 0
-            ? t("workspace:reviews.filters.advanced.conditions", {
-                count: conditions.length,
-              })
-            : t("workspace:reviews.filters.advanced.label")}
+          {triggerText}
         </PopoverTrigger>
         <button
           type="button"

@@ -22,6 +22,7 @@ import { PullRequestLabelsSubmenu } from "@/components/reviews/pull-request-labe
 import { PullRequestReviewersSubmenu } from "@/components/reviews/pull-request-reviewers-submenu";
 import { PullRequestSnoozeSubmenu } from "@/components/reviews/pull-request-snooze-submenu";
 import { PullRequestWorkSubmenu } from "@/components/reviews/pull-request-work-submenu";
+import { usePullRequestWorkShortcuts } from "@/components/reviews/use-pull-request-work-shortcuts";
 import { useReadyForReview } from "@/components/reviews/use-ready-for-review";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,11 +51,23 @@ export function PullRequestMenu({
   const { markReady, pending } = useReadyForReview(pullRef);
   const [action, setAction] = useState<PullRequestAction | null>(null);
   const [linkOpen, setLinkOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [workOpen, setWorkOpen] = useState(false);
+  usePullRequestWorkShortcuts(pull, workspaceId, () => {
+    setMenuOpen(true);
+    setWorkOpen(true);
+  });
   const live = pull.status === "open" || pull.status === "draft";
 
   return (
     <>
-      <Menu>
+      <Menu
+        open={menuOpen}
+        onOpenChange={(next) => {
+          setMenuOpen(next);
+          if (!next) setWorkOpen(false);
+        }}
+      >
         <MenuTrigger
           render={
             <Button
@@ -76,7 +89,13 @@ export function PullRequestMenu({
             <ExternalLink />
             {t("workspace:reviews.detail.openOnGithub")}
           </MenuItem>
-          <PullRequestWorkSubmenu pull={pull} workspaceId={workspaceId} />
+          <PullRequestWorkSubmenu
+            pull={pull}
+            workspaceId={workspaceId}
+            shortcuts
+            open={workOpen}
+            onOpenChange={setWorkOpen}
+          />
           <PullRequestFavoriteItem
             pullRef={pullRef}
             workspaceId={workspaceId}

@@ -56,3 +56,21 @@ it("lays the prompt out as Linear does, with the branch and issue only when pres
     }),
   ).toBe("B\n\nR\nP\n\nH\n- [Fix it](http://x/t)");
 });
+
+it("adds the failing checks and unresolved comments after the issue, skipping empty sections", () => {
+  const lines = { review: "R", pull: "P" };
+  expect(
+    promptText({
+      ...lines,
+      failingChecks: { heading: "Failing checks:", items: ["- A", "- B"] },
+      unresolvedComments: { heading: "Unresolved comments:", items: ["- c"] },
+    }),
+  ).toBe("R\nP\n\nFailing checks:\n- A\n- B\n\nUnresolved comments:\n- c");
+  expect(
+    promptText({
+      ...lines,
+      failingChecks: { heading: "Failing checks:", items: [] },
+      unresolvedComments: { heading: "Unresolved comments:", items: ["- c"] },
+    }),
+  ).toBe("R\nP\n\nUnresolved comments:\n- c");
+});

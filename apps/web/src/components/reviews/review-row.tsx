@@ -4,7 +4,10 @@ import { useTranslation } from "react-i18next";
 import { ReviewRowLabels } from "@/components/reviews/review-row-labels";
 import type { PullRequestAction } from "@/components/reviews/pull-request-action-dialog";
 import { ReviewRowMenu } from "@/components/reviews/review-row-menu";
+import { ReviewRowQuick } from "@/components/reviews/review-row-quick";
 import { ReviewRowReviewers } from "@/components/reviews/review-row-reviewers";
+import { ReviewRowRisk } from "@/components/reviews/review-row-risk";
+import { ReviewRowSla } from "@/components/reviews/review-row-sla";
 import { PullRequestStatusIcon } from "@/components/task/task-pull-requests/pull-request-status-icon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
@@ -100,6 +103,9 @@ export function ReviewRow({
         <span className="min-w-0 flex-1 truncate text-foreground">
           {pr.title}
         </span>
+        {show("quickToReview") && <ReviewRowQuick pr={pr} />}
+        {show("risk") && <ReviewRowRisk level={pr.riskLevel} />}
+        {show("sla") && <ReviewRowSla issue={pr.issue} />}
         {show("labels") && <ReviewRowLabels labels={pr.labels} />}
         {show("githubTeam") && pr.teamReviewers.length > 0 && (
           <span
