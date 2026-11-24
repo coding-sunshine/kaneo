@@ -22,7 +22,7 @@ export function CycleChip({
 }: Props) {
   const { data } = useGetCycles(cycleId ? projectId : "");
   const cycle = cycleId ? data?.find((c) => c.id === cycleId) : undefined;
-  if (!cycle) return null;
+  if (!cycle || !workspaceId) return null;
 
   return (
     <Link
