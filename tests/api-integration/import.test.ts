@@ -10,6 +10,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { waitForActiveImports } from "../../apps/api/src/import/active-imports";
 import { writeImportRelations } from "../../apps/api/src/import/writer/write-import-relations";
 import { createApp } from "../../apps/api/src/index";
+import { brand } from "../../packages/brand/src/index";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
 import { readErrorBody } from "./helpers/error-body";
@@ -670,7 +671,7 @@ describe("API integration: import from other tools", () => {
         expect.objectContaining({
           status: "failed",
           projectId: null,
-          error: "Kaneo could not save this project.",
+          error: `${brand.name} could not save this project.`,
         }),
       ]);
       expect(writeImportRelations).toHaveBeenCalled();
