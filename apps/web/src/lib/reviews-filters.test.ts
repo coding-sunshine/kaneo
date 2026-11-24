@@ -4,6 +4,7 @@ import {
   clearFilter,
   countMatches,
   filterByReviewFilters,
+  parseCustomDate,
   type ReviewsFilters,
   sanitizeReviewsFilters,
   setFilterNegated,
@@ -226,5 +227,45 @@ describe("every subject", () => {
   });
   it("counts one value alone", () => {
     expect(countMatches(list, "approvedBy", "ada", ctx)).toBe(2);
+  });
+});
+
+describe("custom dates", () => {
+  const now = new Date("2026-03-10T12:00:00Z");
+  it("parses past timeframes and dates, rejects the rest", () => {
+    expect(parseCustomDate("10 days ago", now)).toEqual(
+      new Date("2026-02-28T12:00:00Z"),
+    );
+    expect(parseCustomDate("2 weeks ago", now)).toEqual(
+      new Date("2026-02-24T12:00:00Z"),
+    );
+    expect(parseCustomDate("1 year ago", now)).toEqual(
+      new Date("2025-03-10T12:00:00Z"),
+    );
+    expect(parseCustomDate("yesterday", now)).toEqual(
+      new Date("2026-03-09T12:00:00Z"),
+    );
+    expect(parseCustomDate("2026-03-01", now)).toEqual(new Date(2026, 2, 1));
+    expect(parseCustomDate("in 3 days", now)).toBeNull();
+    expect(parseCustomDate("1w", now)).toBeNull();
+    expect(parseCustomDate("nonsense", now)).toBeNull();
+  });
+
+  it("filters opened by a custom value and ignores an invalid one", () => {
+    const prs = [
+      pr(1, { createdAt: "2026-03-09T00:00:00Z" }),
+      pr(2, { createdAt: "2026-02-01T00:00:00Z" }),
+    ];
+    const run = (value: string) =>
+      numbers(
+        filterByReviewFilters(
+          prs,
+          { opened: { values: [value], negated: false } },
+          ctx,
+        ),
+      );
+    expect(run("10 days ago")).toEqual([1]);
+    expect(run("2026-01-01")).toEqual([1, 2]);
+    expect(run("garbage")).toEqual([]);
   });
 });

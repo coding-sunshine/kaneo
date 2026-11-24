@@ -1,4 +1,5 @@
-import { subDays, subMonths, subYears } from "date-fns";
+import { subDays, subMonths, subWeeks, subYears } from "date-fns";
+import { parseDateQuery } from "@/components/common/date-picker/parse-date-query";
 import { reviewStatus } from "@/lib/reviews-status";
 import { type ReviewItem, sizeBucket } from "@/lib/reviews-view";
 
@@ -48,7 +49,25 @@ export type ReviewsFilters = Partial<Record<ReviewFilterId, ReviewFilter>>;
 export type FilterContext = { me: string | null; now: Date };
 export const ME = "@me";
 
-const cutoff = (preset: string, now: Date) => {
+const SUBTRACT = { d: subDays, w: subWeeks, m: subMonths, y: subYears };
+
+/**
+ * Past date from free text: "10 days ago", "yesterday", "2026-03-01", "march 3 2026".
+ * ponytail: dates the parser would roll into the future ("march 3") are rejected; add a year.
+ */
+export function parseCustomDate(text: string, now: Date): Date | null {
+  const value = text.trim().toLowerCase();
+  const ago = value.match(
+    /^(\d{1,4}) ?(d|w|m|y)(?:ays?|eeks?|onths?|ears?)? ago$/,
+  );
+  if (ago)
+    return SUBTRACT[ago[2] as keyof typeof SUBTRACT](now, Number(ago[1]));
+  if (value === "yesterday") return subDays(now, 1);
+  const date = parseDateQuery(value, now, 1);
+  return date && date <= now ? date : null;
+}
+
+const cutoff = (preset: string, now: Date): Date | null => {
   switch (preset) {
     case "1d":
       return subDays(now, 1);
@@ -62,14 +81,20 @@ const cutoff = (preset: string, now: Date) => {
       return subMonths(now, 3);
     case "6m":
       return subMonths(now, 6);
-    default:
+    case "1y":
       return subYears(now, 1);
+    default:
+      return parseCustomDate(preset, now);
   }
 };
 
 /** A preset means "within the last N", as the counts in Linear's menu grow with the window. */
 const within = (iso: string | null, values: string[], now: Date) =>
-  !!iso && values.some((v) => new Date(iso) >= cutoff(v, now));
+  !!iso &&
+  values.some((v) => {
+    const from = cutoff(v, now);
+    return !!from && new Date(iso) >= from;
+  });
 
 const people = (logins: string[], values: string[], me: string | null) =>
   logins.some((login) =>

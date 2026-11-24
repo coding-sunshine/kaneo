@@ -6,10 +6,12 @@ export function FilterTextInput({
   placeholder,
   initial = "",
   onApply,
+  isValid = () => true,
 }: {
   placeholder: string;
   initial?: string;
   onApply: (value: string) => void;
+  isValid?: (value: string) => boolean;
 }) {
   const [value, setValue] = useState(initial);
   return (
@@ -20,9 +22,11 @@ export function FilterTextInput({
         value={value}
         placeholder={placeholder}
         aria-label={placeholder}
+        aria-invalid={!!value.trim() && !isValid(value)}
         onChange={(event) => setValue(event.target.value)}
         onKeyDown={(event) => {
-          if (event.key === "Enter" && value.trim()) onApply(value.trim());
+          if (event.key === "Enter" && value.trim() && isValid(value))
+            onApply(value.trim());
         }}
       />
     </div>

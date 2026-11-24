@@ -32,6 +32,13 @@ export type FilterSubject = {
   /** A free-text subject (Reviews' Content): the panel shows an input instead of options. */
   textPlaceholder?: string;
   onTextApply?: (value: string) => void;
+  /** Adds a "Custom ..." row that opens a free-text input; `isValid` gates Enter. */
+  custom?: {
+    label: string;
+    placeholder: string;
+    isValid: (text: string) => boolean;
+    onApply: (text: string) => void;
+  };
   /** Root menu section; a new section starts a separator. */
   section?: string;
   /** Overrides the "N tasks" meta shown beside an option's count. */

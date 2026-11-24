@@ -20,6 +20,7 @@ export function FilterSubjectPanel({
 }: FilterSubjectPanelProps) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
+  const [customOpen, setCustomOpen] = useState(false);
 
   if (subject.onTextApply) {
     return (
@@ -28,6 +29,20 @@ export function FilterSubjectPanel({
         initial={subject.selected[0]}
         onApply={(value) => {
           subject.onTextApply?.(value);
+          onApplied?.();
+        }}
+      />
+    );
+  }
+
+  if (subject.custom && customOpen) {
+    const { custom } = subject;
+    return (
+      <FilterTextInput
+        placeholder={custom.placeholder}
+        isValid={custom.isValid}
+        onApply={(value) => {
+          custom.onApply(value);
           onApplied?.();
         }}
       />
@@ -65,6 +80,15 @@ export function FilterSubjectPanel({
           }
         }}
       />
+      {subject.custom && (
+        <button
+          type="button"
+          className="w-full border-t px-3 py-2 text-left text-sm hover:bg-accent"
+          onClick={() => setCustomOpen(true)}
+        >
+          {subject.custom.label}
+        </button>
+      )}
       {subject.onDateApply && (
         <DateFilterEditor
           key={subject.selected.find((value) => parseDateCondition(value))}

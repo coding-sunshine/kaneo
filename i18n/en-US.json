@@ -5135,6 +5135,8 @@
 				"noPeople": "No matching people",
 				"noLabels": "No matching labels",
 				"contentPlaceholder": "Filter by content…",
+				"customDate": "Custom date or timeframe...",
+				"customDatePlaceholder": "Try: 10 days ago",
 				"count_one": "{{count, number}} review",
 				"count_other": "{{count, number}} reviews",
 				"subject": {
@@ -5213,8 +5215,6 @@
 					"asc": "Ascending",
 					"desc": "Descending"
 				},
-				"expand": "Show diff",
-				"collapse": "Hide diff",
 				"codeTheme": {
 					"label": "Code theme",
 					"github": "GitHub",
@@ -5222,6 +5222,8 @@
 					"catppuccin": "Catppuccin",
 					"one": "One"
 				},
+				"expand": "Show diff",
+				"collapse": "Hide diff",
 				"category": {
 					"implementation": "Implementation",
 					"test": "Tests",
@@ -5279,9 +5281,9 @@
 				"favorite": "Favorite",
 				"unfavorite": "Unfavorite",
 				"linkIssue": "Link issue",
+				"createIssue": "Create new issue",
 				"labels": "Labels",
 				"noLabels": "This repository has no labels.",
-				"createIssue": "Create new issue",
 				"selectReviewers": "Select reviewers",
 				"convertToDraft": "Convert to draft",
 				"squashMerge": "Squash & merge",

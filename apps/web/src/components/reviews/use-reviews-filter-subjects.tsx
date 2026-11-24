@@ -26,6 +26,7 @@ import {
   type FilterContext,
   ME,
   MERGE_STATUSES,
+  parseCustomDate,
   REVIEW_FILTER_IDS,
   type ReviewFilterId,
   type ReviewsFilters,
@@ -44,6 +45,13 @@ type Option = {
   label: string;
   icon?: FilterSubject["options"][number]["icon"];
 };
+
+const DATE_FILTER_IDS: ReviewFilterId[] = [
+  "opened",
+  "updated",
+  "merged",
+  "closed",
+];
 
 const unique = (values: string[]) =>
   [...new Set(values)].sort((a, b) => a.localeCompare(b));
@@ -76,6 +84,13 @@ export function useReviewsFilterSubjects(
       value,
       label: t(`workspace:reviews.${key}.${value}`),
     }));
+  const customDate = (id: ReviewFilterId) => ({
+    label: t("workspace:reviews.filters.customDate"),
+    placeholder: t("workspace:reviews.filters.customDatePlaceholder"),
+    isValid: (text: string) => !!parseCustomDate(text, ctx.now),
+    onApply: (text: string) =>
+      onChange({ ...filters, [id]: { values: [text], negated: false } }),
+  });
   const issues = items.flatMap((pr) => (pr.issue ? [pr.issue] : []));
 
   const definitions: Record<
@@ -247,6 +262,7 @@ export function useReviewsFilterSubjects(
       selected,
       negated: filters[id]?.negated ?? false,
       formatCount: (count) => t("workspace:reviews.filters.count", { count }),
+      ...(DATE_FILTER_IDS.includes(id) && { custom: customDate(id) }),
       ...(id === "content" && {
         textPlaceholder: t("workspace:reviews.filters.contentPlaceholder"),
         onTextApply: (value: string) =>
