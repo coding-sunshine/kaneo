@@ -1,5 +1,9 @@
 import { ArrowDownUp, SlidersHorizontal } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import {
+  CODE_THEMES,
+  type CodeTheme,
+} from "@/components/reviews/code-highlight";
 import type { DiffLayout } from "@/components/reviews/patch-diff";
 import { SegmentedOptions } from "@/components/reviews/segmented-options";
 import { Button } from "@/components/ui/button";
@@ -23,6 +27,7 @@ export type DiffOptions = {
   desc: boolean;
   minimizeGenerated: boolean;
   minimizeTests: boolean;
+  codeTheme: CodeTheme;
 };
 
 export const DEFAULT_DIFF_OPTIONS: DiffOptions = {
@@ -37,6 +42,7 @@ export const DEFAULT_DIFF_OPTIONS: DiffOptions = {
   desc: false,
   minimizeGenerated: true,
   minimizeTests: true,
+  codeTheme: "github",
 };
 
 const toggles = [
@@ -135,6 +141,15 @@ export function DiffOptionsMenu({
             }
           />
           {toggles.slice(3).map(toggle)}
+          <SegmentedOptions
+            title={t("workspace:reviews.diffOptions2.codeTheme.label")}
+            values={CODE_THEMES}
+            value={options.codeTheme}
+            text={(value) =>
+              t(`workspace:reviews.diffOptions2.codeTheme.${value}`)
+            }
+            onChange={(codeTheme) => onChange({ codeTheme })}
+          />
         </div>
       </PopoverContent>
     </Popover>

@@ -9,6 +9,8 @@ import {
 } from "vite-plus/test";
 import "@/lib/i18n";
 import { ShortcutTestWrapper } from "@/lib/shortcuts/shortcut-test-wrapper";
+import { DEFAULT_DIFF_OPTIONS } from "@/components/reviews/diff-options-menu";
+import { useReviewsDiffOptionsStore } from "@/store/reviews-diff-options";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 import { PullRequestPage } from "./pull-request-page";
 
@@ -197,6 +199,7 @@ beforeEach(() => {
   mocks.link.mockClear();
   mocks.unlink.mockClear();
   useUserPreferencesStore.setState({ reviewsExpanded: false });
+  useReviewsDiffOptionsStore.setState({ options: DEFAULT_DIFF_OPTIONS });
 });
 afterEach(cleanup);
 
@@ -373,6 +376,18 @@ describe("PullRequestPage", () => {
     expect(
       screen.getAllByRole("heading", { name: "Implementation" }).length,
     ).toBeGreaterThan(0);
+  });
+
+  it("keeps the Diff options across visits", () => {
+    renderPage();
+    fireEvent.click(screen.getByRole("tab", { name: "Diff" }));
+    fireEvent.click(screen.getByRole("button", { name: "Diff options" }));
+    fireEvent.click(screen.getByRole("button", { name: "Solarized" }));
+    fireEvent.click(screen.getByRole("button", { name: "Tree" }));
+    expect(
+      JSON.parse(localStorage.getItem("reviews-diff-options") ?? "{}").state
+        .options,
+    ).toMatchObject({ codeTheme: "solarized", fileList: "tree" });
   });
 
   it("opens an unchanged-lines separator and shows a trailing one", () => {

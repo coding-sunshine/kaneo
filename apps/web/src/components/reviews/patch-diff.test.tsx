@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import "@/lib/i18n";
 import { PatchDiff } from "./patch-diff";
@@ -24,6 +24,25 @@ const comment = (over: Record<string, unknown>) => ({
 });
 
 describe("PatchDiff", () => {
+  it("colours code by the file language and keeps the line text", async () => {
+    const { container } = render(
+      <PatchDiff
+        patch={"@@ -1 +1 @@\n-let a = 1;\n+const a = 2;"}
+        layout="unified"
+        structural
+        filename="a.ts"
+      />,
+    );
+    await waitFor(() =>
+      expect(
+        container.querySelector("[data-kind=add] span[style*=color]"),
+      ).not.toBeNull(),
+    );
+    expect(container.querySelector("[data-kind=add]")?.textContent).toContain(
+      "const a = 2;",
+    );
+  }, 30_000);
+
   it("renders code as text, never as markup", () => {
     const { container } = render(
       <PatchDiff patch={"@@ -1 +1 @@\n+<img src=x onerror=alert(1)>"} />,

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { splitFileText } from "@/components/reviews/diff-parser";
 import { FileActionsMenu } from "@/components/reviews/file-actions-menu";
 import { FileIcon } from "@/components/reviews/file-icon";
+import type { CodeTheme } from "@/components/reviews/code-highlight";
 import { type DiffLayout, PatchDiff } from "@/components/reviews/patch-diff";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -21,6 +22,7 @@ export function FileDiff({
   layout,
   wrap,
   structural,
+  codeTheme,
   minimized,
   showCounts,
   prefetch,
@@ -35,6 +37,7 @@ export function FileDiff({
   layout: DiffLayout;
   wrap: boolean;
   structural: boolean;
+  codeTheme: CodeTheme;
   /** A generated or test file: folded to its header until opened. */
   minimized: string | null;
   showCounts: boolean;
@@ -120,6 +123,8 @@ export function FileDiff({
               layout={layout}
               wrap={wrap}
               structural={structural}
+              filename={file.filename}
+              codeTheme={codeTheme}
               comments={comments}
               fileLines={fileLines}
               onExpand={() => setWanted(true)}

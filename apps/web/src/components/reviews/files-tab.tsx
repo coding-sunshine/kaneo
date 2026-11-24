@@ -4,10 +4,7 @@ import { useTranslation } from "react-i18next";
 import { arrangeFiles } from "@/components/reviews/arrange-files";
 import { CategoryHeading } from "@/components/reviews/category-heading";
 import { CommitsPicker } from "@/components/reviews/commits-picker";
-import {
-  DEFAULT_DIFF_OPTIONS,
-  DiffOptionsMenu,
-} from "@/components/reviews/diff-options-menu";
+import { DiffOptionsMenu } from "@/components/reviews/diff-options-menu";
 import { DiffTooLargeBanner } from "@/components/reviews/diff-too-large-banner";
 import { FileDiff } from "@/components/reviews/file-diff";
 import { FileList } from "@/components/reviews/file-list";
@@ -25,6 +22,7 @@ import {
 } from "@/hooks/queries/github-reviews/use-github-reviews";
 import type { CommitRange } from "@/lib/commit-range";
 import { useShortcut } from "@/lib/shortcuts/use-shortcut";
+import { useReviewsDiffOptionsStore } from "@/store/reviews-diff-options";
 
 // GitHub lists at most this many commits of a pull request.
 const COMMITS_CAP = 250;
@@ -61,7 +59,7 @@ export function FilesTab({
   const compared = useComparedFiles(pullRef, scope);
   const files = scope ? compared : allFiles;
   const conversation = usePullRequestConversation(pullRef);
-  const [options, setOptions] = useState(DEFAULT_DIFF_OPTIONS);
+  const { options, set: setOptions } = useReviewsDiffOptionsStore();
   const [query, setQuery] = useState("");
   const [measure, width] = useElementWidth();
   const narrow = width !== null && width < SPLIT_MIN_WIDTH;
@@ -71,10 +69,7 @@ export function FilesTab({
     scope?.head ?? pull.data?.headSha,
   );
   useShortcut("toggleLayout", () =>
-    setOptions((value) => ({
-      ...value,
-      layout: value.layout === "split" ? "unified" : "split",
-    })),
+    setOptions({ layout: options.layout === "split" ? "unified" : "split" }),
   );
 
   if (files.isLoading) return <Skeleton className="m-4 h-40" />;
@@ -146,10 +141,7 @@ export function FilesTab({
           />
         )}
         <span className="flex-1" />
-        <DiffOptionsMenu
-          options={options}
-          onChange={(patch) => setOptions((value) => ({ ...value, ...patch }))}
-        />
+        <DiffOptionsMenu options={options} onChange={setOptions} />
       </div>
       {commits.data && commits.data.length >= COMMITS_CAP && pull.data && (
         <DiffTooLargeBanner url={pull.data.url} shown={commits.data.length} />
@@ -207,6 +199,7 @@ export function FilesTab({
                   layout={layout}
                   wrap={options.wrap}
                   structural={options.structural}
+                  codeTheme={options.codeTheme}
                   minimized={minimizedFor(file.filename)}
                   showCounts={options.showCounts}
                   prefetch={files.data.length <= PREFETCH_LIMIT}

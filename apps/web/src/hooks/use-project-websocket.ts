@@ -142,6 +142,19 @@ export function useProjectWebSocket(projectId: string) {
         });
       }
 
+      // History rows written by a webhook, an import or another user's edit
+      // (labels, parent, duplicate) arrive as these two events; nothing else
+      // refreshes an open issue's history feed.
+      if (
+        (message.type === "TASK_UPDATED" ||
+          message.type === "TASK_LABEL_UPDATED") &&
+        message.taskId
+      ) {
+        queryClient.invalidateQueries({
+          queryKey: ["activities", message.taskId],
+        });
+      }
+
       if (
         (message.type === "TASK_UPDATED" || message.type === "TASK_MOVED") &&
         message.taskId

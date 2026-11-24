@@ -5215,6 +5215,13 @@
 				},
 				"expand": "Show diff",
 				"collapse": "Hide diff",
+				"codeTheme": {
+					"label": "Code theme",
+					"github": "GitHub",
+					"solarized": "Solarized",
+					"catppuccin": "Catppuccin",
+					"one": "One"
+				},
 				"category": {
 					"implementation": "Implementation",
 					"test": "Tests",

@@ -235,6 +235,27 @@ describe("useProjectWebSocket relation invalidation", () => {
     expect(invalidatedKeys()).not.toContain(projectRelationsKey);
   });
 
+  // Webhook and import label rows, duplicate rows and orphaned-parent rows
+  // all reach the client as one of these two events.
+  it.each(["TASK_UPDATED", "TASK_LABEL_UPDATED"])(
+    "refreshes the task's history feed on %s",
+    (type) => {
+      receive({ type, projectId: "project-1", taskId: "task-1" });
+
+      expect(invalidatedKeys()).toContain(
+        JSON.stringify(["activities", "task-1"]),
+      );
+    },
+  );
+
+  it("leaves history feeds alone on a task creation", () => {
+    receive({ type: "TASK_CREATED", projectId: "project-1", taskId: "task-1" });
+
+    expect(invalidatedKeys()).not.toContain(
+      JSON.stringify(["activities", "task-1"]),
+    );
+  });
+
   it("ignores a malformed message", () => {
     expect(() => socket.onmessage?.({ data: "{not json" })).not.toThrow();
   });
