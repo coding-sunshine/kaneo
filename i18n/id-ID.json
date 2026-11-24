@@ -93,7 +93,9 @@
 				"keyHint": "Digunakan untuk ID tiket (contoh, {{example}}-123)",
 				"createButton": "Buat Proyek",
 				"successToast": "Proyek berhasil dibuat",
-				"errorToast": "Gagal membuat proyek"
+				"errorToast": "Gagal membuat proyek",
+				"copyNone": "None",
+				"copySettingsFrom": "Copy settings from"
 			},
 			"createWorkspace": {
 				"breadcrumbKaneo": "KANEO",
@@ -153,7 +155,10 @@
 					"orchid": "Ungu Anggrek",
 					"sky": "Biru Langit"
 				},
-				"statusLoadError": "Project statuses couldn’t be loaded."
+				"statusLoadError": "Project statuses couldn’t be loaded.",
+				"saveDraftButton": "Save as draft",
+				"saveDraftFailed": "Could not save the draft",
+				"template": "Template"
 			}
 		},
 		"editor": {
@@ -207,7 +212,9 @@
 				"opening": "Membuka {{provider}}…",
 				"stuck": "Tidak ada yang terjadi?",
 				"continue": "Lanjutkan ke {{provider}}"
-			}
+			},
+			"passkey": "Sign in with a passkey",
+			"passkeyError": "Passkey sign-in failed"
 		},
 		"providers": {
 			"google": "Google",
@@ -719,7 +726,18 @@
 			"stopSendingDescription": "Notifikasi dari ruang kerja ini hanya akan muncul di Kaneo.",
 			"stopSendingTitle": "Berhenti mengirim dari {{workspaceName}}?",
 			"workspacesDescription": "Pilih ruang kerja dan proyek mana yang dapat menggunakan kanal Anda.",
-			"workspacesTitle": "Ruang kerja"
+			"workspacesTitle": "Ruang kerja",
+			"scheduleDays": "Days",
+			"scheduleDescription": "Email, ntfy and Gotify are held back outside these hours. Your inbox always updates.",
+			"scheduleEnabled": "Only deliver during set hours",
+			"scheduleEnabledHint": "Notifications outside the window are not sent to those channels.",
+			"scheduleEnd": "End time",
+			"scheduleHours": "Hours",
+			"scheduleHoursInvalid": "End time must be after start time.",
+			"scheduleSave": "Save schedule",
+			"scheduleStart": "Start time",
+			"scheduleTimezone": "Timezone",
+			"scheduleTitle": "Delivery schedule"
 		},
 		"preferencesPage": {
 			"title": "Preferensi",
@@ -761,7 +779,9 @@
 			"projectBackgroundsDescription": "Tampilkan gambar yang diatur proyek di belakang papannya.",
 			"advancedTitle": "Lanjutan",
 			"createdDates": "Created",
-			"status": "Status"
+			"status": "Status",
+			"codeReviews": "Enable code reviews",
+			"codeReviewsDescription": "Show Reviews in the sidebar and enable the G then R shortcut."
 		},
 		"managedProfile": {
 			"note": "Dikelola oleh organisasi Anda.",
@@ -918,7 +938,27 @@
 			"moveDialogTitle": "Pindahkan ke ruang kerja lain?",
 			"moveTargetLabel": "Ruang kerja",
 			"moving": "Memindahkan...",
-			"tasksTitle": "Tugas"
+			"tasksTitle": "Tugas",
+			"estimates": {
+				"allowZero": "Allow zero estimates",
+				"allowZeroHint": "Let issues be estimated at 0.",
+				"countUnestimated": "Count unestimated issues",
+				"countUnestimatedHint": "Treat issues with no estimate as 1 point in Insights. On by default.",
+				"extended": "Extended estimates",
+				"extendedHint": "Add larger sizes to the scale.",
+				"saveFailed": "Could not save the estimate settings",
+				"subtitle": "How issues in this team are sized.",
+				"title": "Estimates",
+				"type": "Issue estimation",
+				"typeHint": "How issues in this team are sized.",
+				"types": {
+					"exponential": "Exponential (1, 2, 4, 8, 16 Points)",
+					"fibonacci": "Fibonacci (1, 2, 3, 5, 8 Points)",
+					"linear": "Linear (1, 2, 3, 4, 5 Points)",
+					"none": "Not in use",
+					"tshirt": "T-Shirt (XS, S, M, L, XL)"
+				}
+			}
 		},
 		"projectIntegrations": {
 			"pageTitle": "Integrasi",
@@ -1254,7 +1294,9 @@
 			"titleOptional": "Title (optional)",
 			"url": "URL",
 			"remove": "Remove {{title}}",
-			"removeError": "Failed to remove the resource link."
+			"removeError": "Failed to remove the resource link.",
+			"addDocument": "Add document",
+			"addLink": "Add link…"
 		},
 		"workspaceRoles": {
 			"pageTitle": "Peran",
@@ -1498,7 +1540,10 @@
 			"rowActions": "Tindakan untuk {{name}}",
 			"sectionDescription": "Mengganti nama atau warna label akan memperbarui semua tugas yang menggunakannya.",
 			"sectionTitle": "Label ruang kerja",
-			"subtitleWithWorkspace": "Label digunakan bersama oleh semua proyek di {{workspaceName}}."
+			"subtitleWithWorkspace": "Label digunakan bersama oleh semua proyek di {{workspaceName}}.",
+			"groupLabel": "Group",
+			"inGroup": "In group {{name}}",
+			"noGroup": "No group"
 		},
 		"mattermostIntegration": {
 			"connect": "Connect Mattermost",
@@ -1785,6 +1830,23 @@
 				"revokeOthersConfirmTitle": "Sign out all other sessions?",
 				"title": "Active sessions",
 				"toastRevokedOthers": "Other sessions signed out."
+			},
+			"passkeys": {
+				"add": "Add passkey",
+				"addedOn": "Added {{date}}",
+				"delete": "Delete",
+				"deleteConfirmDescription": "You won't be able to sign in with it any more.",
+				"deleteConfirmTitle": "Delete this passkey?",
+				"deleteLabel": "Delete passkey {{name}}",
+				"description": "Sign in with your fingerprint, face or device lock instead of a password.",
+				"empty": "No passkeys yet.",
+				"loadError": "Couldn't load your passkeys.",
+				"title": "Passkeys",
+				"toastAdded": "Passkey added.",
+				"toastAddError": "Couldn't add the passkey.",
+				"toastDeleted": "Passkey deleted.",
+				"toastDeleteError": "Couldn't delete the passkey.",
+				"unnamed": "Passkey"
 			}
 		},
 		"gitlabIntegration": {
@@ -2790,6 +2852,145 @@
 			"title": "Webhooks",
 			"url": "URL",
 			"save": "Save"
+		},
+		"issueTemplates": {
+			"actionsAria": "Actions for template {{name}}",
+			"assigneeLabel": "Assignee",
+			"create": "Create template",
+			"createSuccess": "Template created.",
+			"deleteConfirm": "Delete template",
+			"deleteDescription": "Issues already created from it are not changed.",
+			"deleteError": "Couldn't delete the template.",
+			"deleteSuccess": "Template deleted.",
+			"deleteTitle": "Delete \"{{name}}\"?",
+			"descriptionLabel": "Issue description",
+			"descriptionPlaceholder": "Default description",
+			"dialogDescription": "These values fill the create issue dialog when someone picks the template.",
+			"edit": "Edit",
+			"editTitle": "Edit template",
+			"emptyDescription": "Templates prefill the title, description, status, priority, assignee and labels of a new issue.",
+			"emptyTitle": "No templates yet",
+			"labelsLabel": "Labels",
+			"listDescription": "Pick a template in the create issue dialog to start from its defaults.",
+			"listTitle": "Issue templates",
+			"nameLabel": "Template name",
+			"namePlaceholder": "Bug report",
+			"newTemplate": "New template",
+			"newTitle": "New template",
+			"noAssignee": "Unassigned",
+			"noStatus": "No default",
+			"priorityLabel": "Priority",
+			"save": "Save",
+			"saveError": "Couldn't save the template.",
+			"statusLabel": "Status",
+			"subtitle": "Prefill new issues in {{project}}.",
+			"title": "Templates",
+			"titleLabel": "Issue title",
+			"titlePlaceholder": "Default title",
+			"updateSuccess": "Template updated."
+		},
+		"projectCycles": {
+			"autoAddCompleted": "Auto-add completed issues",
+			"autoAddCompletedDescription": "Add issues to the current cycle when they are completed.",
+			"autoAddStarted": "Auto-add started issues",
+			"autoAddStartedDescription": "Add issues to the current cycle when work starts.",
+			"autoRollover": "Roll over unfinished issues",
+			"autoRolloverDescription": "Move unfinished issues to the next cycle when a cycle ends.",
+			"cooldown": "Cooldown",
+			"duration": "Cycle duration",
+			"enable": "Enable cycles",
+			"enableDescription": "Plan work in recurring cycles.",
+			"saveFailed": "Could not save cycle settings",
+			"startDay": "Cycles start on",
+			"subtitle": "Time-boxed periods of work for this team.",
+			"title": "Cycles",
+			"upcoming": "Upcoming cycles",
+			"upcomingDescription": "How many future cycles to keep created.",
+			"weeks_other": "{{count}} weeks"
+		},
+		"projectLabels": {
+			"deleteConfirmDescription": "The label is removed from every project that uses it. This can't be undone.",
+			"dialogDescription": "Projects in this workspace can use it.",
+			"emptyDescription": "Add labels to group and filter projects.",
+			"emptyTitle": "No project labels yet",
+			"sectionDescription": "Attach labels to a project from its page. Names are unique in the workspace.",
+			"sectionTitle": "Project labels",
+			"subtitle": "Project labels sort and filter projects across all teams.",
+			"title": "Project labels"
+		},
+		"projectSla": {
+			"enable": "Enable SLAs",
+			"enableDescription": "Apply a deadline when an issue's priority is set to urgent or high.",
+			"high": "When priority is High",
+			"hours_other": "{{count}} hours",
+			"otherDescription": "Medium, Low and No priority remove the SLA.",
+			"saveFailed": "Could not save SLA settings",
+			"subtitle": "Deadlines for urgent and high priority issues on this team.",
+			"title": "SLAs",
+			"urgent": "When priority is Urgent",
+			"weeks_other": "{{count}} weeks"
+		},
+		"projectTriage": {
+			"assign": "Auto-assign",
+			"mode": "When an issue enters triage",
+			"modeDescription": "Notify everyone listed, or assign the issue to them in turn.",
+			"notify": "Notify",
+			"saveFailed": "Could not save triage responsibility",
+			"subtitle": "Who handles issues that arrive in this team's triage.",
+			"title": "Triage"
+		},
+		"teams": {
+			"columns": {
+				"created": "Created",
+				"description": "Description",
+				"identifier": "Identifier",
+				"issues": "Issues",
+				"members": "Members",
+				"name": "Name",
+				"visibility": "Visibility"
+			},
+			"create": "Create team",
+			"empty": "No teams yet",
+			"exportCsv": "Export CSV",
+			"filterPlaceholder": "Filter by name...",
+			"menuDelete": "Delete",
+			"menuSettings": "Settings",
+			"openMenu": "Open menu",
+			"status": {
+				"active": "Active",
+				"archived": "Archived"
+			},
+			"statusLabel": "Status",
+			"title": "Teams",
+			"visibilityPublic": "Public",
+			"visibilityWorkspace": "Workspace"
+		},
+		"workspaceWebhooks": {
+			"actions": "Actions for {{label}}",
+			"add": "Add webhook",
+			"allTeams": "All teams",
+			"deleteTitle": "Delete webhook?",
+			"disabled": "Disabled",
+			"edit": "Edit webhook",
+			"empty": "No webhooks",
+			"enabled": "Enabled",
+			"label": "Name",
+			"loadError": "Webhooks could not be loaded.",
+			"resources": "Events",
+			"save": "Save",
+			"saveError": "The webhook could not be saved.",
+			"teams": "Teams",
+			"teamsHint": "Leave empty to receive events from every team.",
+			"title": "Webhooks",
+			"toggle": "Enable {{label}}",
+			"types": {
+				"comment": "Comments",
+				"cycle": "Cycles",
+				"label": "Labels",
+				"project": "Teams and projects",
+				"task": "Issues"
+			},
+			"url": "URL"
 		}
 	},
 	"navigation": {
@@ -2812,7 +3013,16 @@
 				"navigate": "Navigasi",
 				"open": "Buka",
 				"close": "Tutup"
-			}
+			},
+			"go": {
+				"inbox": "Go to inbox",
+				"members": "Go to members",
+				"my-issues": "Go to my issues",
+				"projects": "Go to projects",
+				"settings": "Go to settings"
+			},
+			"issues": "Issues",
+			"navigation": "Navigation"
 		},
 		"sidebar": {
 			"projects": "Proyek",
@@ -2826,7 +3036,29 @@
 			"myTasks": "My tasks",
 			"active": "Active",
 			"backlog": "Backlog",
-			"issues": "Issues"
+			"issues": "Issues",
+			"agent": "Agent",
+			"allIssues": "All issues",
+			"browseTeams": "Browse teams",
+			"currentCycle": "Current",
+			"cycles": "Cycles",
+			"documents": "Documents",
+			"drafts": "Drafts",
+			"exploring": "Exploring",
+			"favorites": "Favorites",
+			"loops": "Loops",
+			"newIssue": "New issue",
+			"pulse": "Pulse",
+			"reviews": "Reviews",
+			"teamHome": "Home",
+			"teamProjects": "Projects",
+			"teams": "Teams",
+			"triage": "Triage",
+			"upcomingCycle": "Upcoming",
+			"views": "Views",
+			"workProjects": "Projects",
+			"workspace": "Workspace",
+			"yourTeams": "Your teams"
 		},
 		"projectList": {
 			"viewProject": "Lihat Proyek",
@@ -2834,7 +3066,25 @@
 			"projectSettings": "Pengaturan proyek",
 			"linkCopied": "Tautan proyek disalin ke papan klip",
 			"addProject": "Tambah proyek",
-			"switcherLabel": "Ganti proyek atau tampilan"
+			"switcherLabel": "Ganti proyek atau tampilan",
+			"addFavorite": "Add to favorites",
+			"archive": "Archive",
+			"configureSlack": "Configure Slack notifications…",
+			"copyUrl": "Copy URL",
+			"favorite": "Favorite",
+			"joinTeam": "Join team",
+			"leaveConfirmDescription": "{{name}} leaves your sidebar and its subscriptions stop. You can still open its issues and join again at any time.",
+			"leaveConfirmTitle": "Leave {{name}}?",
+			"leaveTeam": "Leave team",
+			"moreMenu": "Team menu",
+			"openArchive": "Open archive",
+			"removeFavorite": "Remove from favorites",
+			"subscribe": "Subscribe",
+			"subscribeIssueAdded": "An issue is added to the team",
+			"subscribeIssueClosed": "An issue is marked completed or canceled",
+			"subscribeIssueTriage": "An issue is added to the triage queue",
+			"teamSettings": "Team settings",
+			"unfavorite": "Remove from favorites"
 		},
 		"search": {
 			"inputPlaceholder": "Cari tugas, proyek, komentar...",
@@ -2845,7 +3095,8 @@
 				"workspace": "Ruang kerja",
 				"comment": "Komentar",
 				"activity": "Aktivitas",
-				"fallback": "Hasil"
+				"fallback": "Hasil",
+				"document": "Documents"
 			}
 		},
 		"settingsLayout": {
@@ -2980,7 +3231,18 @@
 				"editorNumberedList": "Daftar bernomor",
 				"editorCodeBlock": "Blok kode",
 				"editorUndo": "Urungkan",
-				"editorRedo": "Ulangi"
+				"editorRedo": "Ulangi",
+				"changeCycle": "Change cycle",
+				"copyTeamUrl": "Copy team URL",
+				"documentsMine": "View My documents",
+				"documentsRecent": "View Recent documents",
+				"documentsShared": "View Shared with me",
+				"goToReviews": "Go to reviews",
+				"openAgent": "Open agent",
+				"replyToComment": "Reply to comment",
+				"setEstimate": "Set estimate",
+				"toggleInsights": "Toggle insights",
+				"toggleTeamFavorite": "Favorite team"
 			},
 			"title": "Pintasan Keyboard",
 			"searchPlaceholder": "Cari berdasarkan aksi atau tombol",
@@ -2989,6 +3251,331 @@
 			"then": "lalu",
 			"or": "atau",
 			"thenEllipsis": "lalu…"
+		},
+		"agent": {
+			"deleteChat": "Delete chat",
+			"examples": {
+				"loop": {
+					"description": "Learn what loops can do and create your first one",
+					"prompt": "Explain what loops can do, then suggest a first loop for this workspace.",
+					"title": "Create automated loop"
+				},
+				"project": {
+					"description": "Turn an idea into a well-scoped project",
+					"prompt": "Help me turn an idea into a well-scoped project. Ask me what I want to build, then create the project and its first issues.",
+					"title": "Create a new project"
+				},
+				"research": {
+					"description": "Research a topic across the issue backlog",
+					"prompt": "Research a topic across our issue backlog. Ask me which topic, then search the issues and summarize what you find.",
+					"title": "Research a topic"
+				}
+			},
+			"examplesTitle": "Get started with some examples",
+			"followUp": "Reply...",
+			"group": {
+				"older": "Older",
+				"today": "Today",
+				"week": "Previous 7 days",
+				"yesterday": "Yesterday"
+			},
+			"history": "Chat history",
+			"historyEmpty": "No chats yet",
+			"newChat": "New chat",
+			"placeholder": "Ask Kaneo...",
+			"send": "Send message",
+			"thinking": "Working on it...",
+			"toolInput": "Input",
+			"toolPending": "No result",
+			"toolResult": "Result"
+		},
+		"customizeSidebar": {
+			"always": "Always show",
+			"badge": "Badge",
+			"badged": "Show when badged",
+			"badgeDefault": "Default ({{style}})",
+			"badgeFilter": "Filter...",
+			"copyFailed": "Couldn't copy the link",
+			"copyLink": "Copy link",
+			"count": "Count",
+			"countAll": "Priority & Other",
+			"countPriority": "Priority only",
+			"defaultBadgeStyle": "Default badge style",
+			"dot": "Dot",
+			"includeInCount": "Include in count",
+			"linkCopied": "Link copied to clipboard",
+			"markAllRead": "Mark all as read",
+			"never": "Don't show",
+			"none": "None",
+			"open": "Customize sidebar…",
+			"personal": "Personal",
+			"reorder": "Reorder {{name}}",
+			"title": "Customize sidebar",
+			"visibility": "Visibility",
+			"workspace": "Workspace"
+		},
+		"documents": {
+			"bodyPlaceholder": "Write something, or press / for commands…",
+			"closeComments": "Close comments",
+			"comments": {
+				"cancel": "Cancel",
+				"delete": "Delete comment",
+				"edit": "Edit",
+				"empty": "No comments yet",
+				"hideResolved": "Hide resolved",
+				"options": "Comment options",
+				"placeholder": "Leave a comment…",
+				"reopen": "Reopen thread",
+				"reply": "Reply…",
+				"resolve": "Resolve thread",
+				"resolved": "Resolved",
+				"save": "Save",
+				"send": "Send",
+				"showResolved": "Show resolved",
+				"title": "Comments"
+			},
+			"copyLink": "Copy link",
+			"copyUrl": "Copy document URL",
+			"delete": "Delete",
+			"deleted": "Document deleted",
+			"empty": {
+				"mine": "Draft on your own or write for your team. Documents you own appear here, private or in a team.",
+				"recent": "Pick up where you left off. Documents you work on and documents shared with you appear here.",
+				"shared": "Work on documents with others. Documents people share with you appear here, including private ones and ones from teams you're not in."
+			},
+			"favorite": "Favorite",
+			"hideHistory": "Hide document history",
+			"history": {
+				"close": "Close history",
+				"current": "Current",
+				"empty": "No earlier versions",
+				"restore": "Restore this version",
+				"restored": "Version restored",
+				"title": "Document history",
+				"viewing": "Version from {{time}} by {{name}}"
+			},
+			"linkCopied": "Document URL copied to clipboard",
+			"metadata": "Document metadata; Updated {{time}}; Owned by {{owner}}",
+			"moved": "Document moved",
+			"moveTo": "Move to",
+			"newDocument": "New document",
+			"notFound": "Document not found",
+			"notFoundHint": "It may have been deleted, or you don't have access to it.",
+			"options": "Document options",
+			"pageTitle": "Documents",
+			"rename": "Rename…",
+			"restored": "Document restored",
+			"retry": "Retry",
+			"saveFailed": "Couldn't save changes",
+			"saving": "Saving…",
+			"scopes": {
+				"private": "My documents",
+				"projects": "Projects",
+				"teams": "Teams",
+				"workspace": "Workspace"
+			},
+			"share": {
+				"access": {
+					"comment": "Can comment",
+					"edit": "Can edit",
+					"view": "Can view"
+				},
+				"addPeople": "Add people…",
+				"everyoneIn": "Everyone in {{name}}",
+				"generalAccess": "General access",
+				"noPeople": "No people found",
+				"owner": "Owner",
+				"peopleWithAccess": "People with access",
+				"private": "Private",
+				"privateHint": "Only people invited can open this document",
+				"remove": "Remove access",
+				"title": "Share"
+			},
+			"shareMenu": "Share…",
+			"showComments": "Show comments",
+			"showHistory": "Show document history",
+			"subscribe": "Subscribe",
+			"subscribed": "You'll be notified about changes",
+			"subscribers": "Change document subscribers",
+			"tabHints": {
+				"mine": "Documents you own, private or in a team",
+				"recent": "Documents you work on and documents shared with you",
+				"shared": "Documents shared with you directly, including personal documents and documents from private teams you're not in"
+			},
+			"tabs": {
+				"mine": "My documents",
+				"recent": "Recent",
+				"shared": "Shared with me"
+			},
+			"title": "Documents",
+			"titlePlaceholder": "Document title",
+			"undo": "Undo",
+			"unfavorite": "Unfavorite",
+			"unsubscribe": "Unsubscribe",
+			"unsubscribed": "You won't be notified about changes",
+			"untitled": "Untitled",
+			"updated": "Updated {{time}}",
+			"viewOnly": "View only",
+			"viewTab": "View {{name}}"
+		},
+		"drafts": {
+			"delete": "Delete draft",
+			"empty": "No drafts",
+			"emptyHint": "Close the new issue dialog and choose Save as draft to keep one here.",
+			"title": "Drafts",
+			"untitled": "Untitled draft"
+		},
+		"header": {
+			"filter": "Filter"
+		},
+		"loops": {
+			"action": {
+				"create_task": "Create issue",
+				"create_task_comment": "Comment",
+				"update_task": "Edit issue",
+				"update_task_assignee": "Assign",
+				"update_task_status": "Change status"
+			},
+			"actions": "Allowed changes",
+			"all": "All",
+			"allProjects": "All projects",
+			"askPlaceholder": "Ask Kaneo to build the loop for you",
+			"backToRuns": "All runs",
+			"category": {
+				"engineering": "Engineering",
+				"featured": "Featured",
+				"reporting": "Reporting",
+				"security": "Security",
+				"support": "Support",
+				"triage": "Triage"
+			},
+			"createSubtitle": "Automate manual work for your team and keep your process moving",
+			"createTitle": "Create a new loop",
+			"delete": "Delete",
+			"deleted": "Loop deleted",
+			"disable": "Disable",
+			"edit": "Edit",
+			"editTitle": "Edit loop",
+			"enable": "Enable",
+			"event": {
+				"comment_created": "Comment added",
+				"task_created": "Issue created",
+				"task_status_changed": "Status changed"
+			},
+			"frequency": {
+				"daily": "Daily",
+				"hourly": "Hourly",
+				"monthly": "Monthly",
+				"weekly": "Weekly",
+				"yearly": "Yearly"
+			},
+			"history": "Run history",
+			"instructions": "Instructions",
+			"instructionsPlaceholder": "What should the agent do on each run?",
+			"myLoops": "My loops",
+			"name": "Name",
+			"namePlaceholder": "Loop name",
+			"newTitle": "New loop",
+			"nextRun": "Next run {{date}}",
+			"noRuns": "This loop has not run yet",
+			"noTemplates": "No templates in this category yet",
+			"paused": "Paused",
+			"permissionNote": "Each run uses your permissions at the time it runs, limited to the changes above.",
+			"project": "Project",
+			"ran": "Loop run finished",
+			"runNow": "Run now",
+			"save": "Save loop",
+			"saved": "Loop saved",
+			"startFresh": "Start fresh",
+			"status": {
+				"failed": "Failed",
+				"running": "Running",
+				"succeeded": "Succeeded"
+			},
+			"templates": {
+				"autofix": {
+					"action": "Comment with fix plan",
+					"description": "Investigates new bug reports and drafts a clear fix plan when it finds one.",
+					"instructions": "Look at the issue named in the trigger. If it looks like a bug report, investigate the likely cause. When you find a clear fix, add a comment describing the fix plan. Otherwise do nothing.",
+					"title": "Autofix bugs"
+				},
+				"priority": {
+					"action": "Raise priority",
+					"description": "Raises issue priority when duplicate reports or customer requests reach a chosen threshold.",
+					"instructions": "Find open issues that have three or more duplicate reports or related requests. Raise their priority one level and add a comment explaining why.",
+					"title": "Update issue priority based on demand"
+				},
+				"qa": {
+					"action": "Reply in comment",
+					"description": "Answers product questions the team asks in issue comments.",
+					"instructions": "Read the comment on the issue named in the trigger. If it asks a question about the product, search the workspace for the answer and reply with a comment. Otherwise do nothing.",
+					"title": "Q&A assistant"
+				},
+				"requests": {
+					"action": "Share report",
+					"description": "Groups recent feature requests into a weekly report with themes and customer impact.",
+					"instructions": "Collect feature request issues from the last 7 days, group them by theme, and note how many requests each theme has. Post the report as a document.",
+					"title": "Feature request report"
+				},
+				"triage": {
+					"action": "Assign owner",
+					"description": "Reviews incoming issues, adds context, and routes each one to the right owner.",
+					"instructions": "Review the issue named in the trigger. Add a short comment with any missing context, set a sensible priority, and assign the person who owns the related area.",
+					"title": "Triage agent"
+				},
+				"wrap": {
+					"action": "Share highlights",
+					"description": "Summarizes the week's accomplishments for a person or team and shares the highlights.",
+					"instructions": "Summarize the issues completed in the last 7 days, grouped by project. Highlight the biggest wins and anything blocked, and post the summary as a document.",
+					"title": "Weekly wrap"
+				}
+			},
+			"title": "Loops",
+			"trigger": "Trigger",
+			"trigger_event": "Event",
+			"trigger_manual": "Run now",
+			"trigger_schedule": "Scheduled"
+		},
+		"teamHome": {
+			"descriptionPlaceholder": "Add a description...",
+			"goTo": "Go to",
+			"members": "Members",
+			"pageTitle": "Home",
+			"resources": "Team resources",
+			"resourcesEmpty": "Add documents and links. Organize by creating sections.",
+			"tabOverview": "Overview"
+		},
+		"views": {
+			"copyUrl": "Copy URL",
+			"delete": "Delete view",
+			"deleted": "View deleted",
+			"empty": "No saved views yet",
+			"emptyHint": "Apply filters on a team's issues, then choose Save as view.",
+			"everyone": "Workspace",
+			"issueCount_other": "{{count}} issues",
+			"issues": "Issues",
+			"linkCopied": "View link copied",
+			"name": "Name",
+			"namePlaceholder": "View name",
+			"newView": "New view",
+			"noMatches": "No issues match this view",
+			"notFound": "View not found",
+			"owner": "Owner",
+			"ownerLabel": "Owner",
+			"pageTitle": "Views",
+			"rename": "Rename view",
+			"save": "Save view",
+			"saveAsView": "Save as view",
+			"saved": "View saved",
+			"saveTitle": "Save view",
+			"scope": "Visibility",
+			"scopePersonal": "Personal",
+			"scopeTeam": "Team",
+			"scopeWorkspace": "Workspace",
+			"snapshotNote": "Uses the filters and layout currently applied to this team's issues.",
+			"title": "Views",
+			"toggleDetails": "Toggle details panel",
+			"visibility": "Visibility"
 		}
 	},
 	"notifications": {
@@ -3035,6 +3622,26 @@
 			"task_overdue": {
 				"title": "Tugas terlambat",
 				"content": "{{taskTitle}} telah melewati tenggatnya"
+			},
+			"sla_breach": {
+				"content": "{{taskTitle}} has breached its SLA",
+				"title": "SLA breached"
+			},
+			"sla_warning": {
+				"content": "{{taskTitle}} is about to breach its SLA",
+				"title": "SLA at risk"
+			},
+			"team_issue_added": {
+				"content": "\"{{taskTitle}}\" was added to {{teamName}}",
+				"title": "New issue in {{teamName}}"
+			},
+			"team_issue_closed": {
+				"content": "\"{{taskTitle}}\" was moved to {{newStatus}} in {{teamName}}",
+				"title": "Moved to {{newStatus}} in {{teamName}}"
+			},
+			"team_issue_triage": {
+				"content": "\"{{taskTitle}}\" is waiting in {{teamName}} triage",
+				"title": "Added to {{teamName}} triage"
 			}
 		},
 		"reminderLeadTime": {
@@ -3062,7 +3669,10 @@
 			"loadError": "Notifications couldn't be loaded.",
 			"taskLoadError": "This task couldn’t be loaded.",
 			"actionError": "Kotak masuk tidak dapat diperbarui. Coba lagi.",
-			"readCleared": "Notifikasi yang sudah dibaca dihapus"
+			"readCleared": "Notifikasi yang sudah dibaca dihapus",
+			"documentUnavailable": "This document is no longer available.",
+			"openDocument": "Open document",
+			"unreadCount_other": "{{count}} unread notifications"
 		}
 	},
 	"activity": {
@@ -3175,9 +3785,80 @@
 			},
 			"importedFrom": "Imported from {{source}}",
 			"importedBy": "Imported by {{name}}",
-			"commentedOnForge": "berkomentar di {{forge}}"
+			"commentedOnForge": "berkomentar di {{forge}}",
+			"actions": "Comment actions",
+			"collapse": "Collapse",
+			"collapseThread": "Collapse thread",
+			"copyLink": "Copy link to comment",
+			"copyMarkdown": "Copy content as Markdown",
+			"createdIssue": "<name>{{name}}</name> created issue",
+			"createdIssues_other": "<name>{{name}}</name> created {{count}} issues",
+			"createdSubIssue": "<name>{{name}}</name> created sub-issue",
+			"createdSubIssues_other": "<name>{{name}}</name> created {{count}} sub-issues",
+			"deleteRepliesNote": "All replies to the comment will be deleted as well",
+			"deleteTitle": "Delete this comment?",
+			"deleteUndoNote": "You cannot undo this action.",
+			"editMenu": "Edit…",
+			"failedToResolve": "Failed to update thread",
+			"failedToSubscribe": "Failed to update thread subscription",
+			"foldedReplies_other": "{{count}} comments from {{names}}",
+			"leaveReply": "Leave a reply...",
+			"linkCopied": "Link copied",
+			"markdownCopied": "Copied as Markdown",
+			"newIssueFromComment": "New issue from comment…",
+			"newSubIssueFromComment": "New sub-issue from comment…",
+			"otherAuthors": "{{count}} others",
+			"resolution": "Resolution",
+			"resolveThread": "Resolve thread",
+			"resolveThreadWithComment": "Resolve thread with comment",
+			"submitAndResolveShortcut": "to submit comment and resolve the thread",
+			"subscribedToThread": "Subscribed to notifications for comment thread",
+			"subscribeToThread": "Subscribe to thread",
+			"unresolveThread": "Unresolve thread",
+			"unsubscribedFromThread": "Unsubscribed from notifications for comment thread",
+			"unsubscribeFromThread": "Unsubscribe from thread"
 		},
-		"movedFromOtherProject": "moved task from another project to \"{{to}}\""
+		"movedFromOtherProject": "moved task from another project to \"{{to}}\"",
+		"addedLabel": "added label {{names}}",
+		"addedToProject": "added to project {{to}}",
+		"changedDuplicate": "changed the original issue from {{from}} to {{to}}",
+		"changedParent": "changed parent issue from {{from}} to {{to}}",
+		"changedProject": "moved from project {{from}} to {{to}}",
+		"cycleAdded": "added to {{to}}",
+		"cycleChanged": "moved from {{from}} to {{to}}",
+		"cycleRemoved": "removed from {{from}}",
+		"markedDuplicate": "marked this as a duplicate of {{to}}",
+		"reactions": {
+			"add": "Add reaction",
+			"addEmoji": "Add emoji",
+			"emojiFailed": "Failed to add emoji",
+			"emojiHelp": "Upload an image to use as a reaction. PNG, JPEG, GIF or WebP, up to 500 KB.",
+			"emojiImage": "Emoji image",
+			"emojiImageRequired": "Choose an image.",
+			"emojiName": "Emoji name",
+			"emojiNameInvalid": "Use only lowercase letters, numbers, underscores and hyphens.",
+			"emojiSave": "Add emoji",
+			"frequentlyUsed": "Frequently used",
+			"groups": {
+				"activities": "Activities",
+				"animals_nature": "Animals & Nature",
+				"custom": "Custom",
+				"flags": "Flags",
+				"food_drink": "Food & Drink",
+				"objects": "Objects",
+				"smileys_people": "Smileys & People",
+				"symbols": "Symbols",
+				"travel_places": "Travel & Places"
+			},
+			"noResults": "No emoji found",
+			"reactedBy": "{{names}} reacted with {{emoji}}",
+			"search": "Search emoji..."
+		},
+		"removedDuplicate": "unmarked this as a duplicate of {{from}}",
+		"removedFromProject": "removed from project {{from}}",
+		"removedLabel": "removed label {{names}}",
+		"removedParent": "removed parent issue {{from}}",
+		"setParent": "set parent issue {{to}}"
 	},
 	"tasks": {
 		"dateFilter": {
@@ -3254,7 +3935,8 @@
 					"loading": "Mengunggah file...",
 					"failed": "Gagal mengunggah file",
 					"imageSuccess": "Gambar diunggah",
-					"fileSuccess": "File dilampirkan"
+					"fileSuccess": "File dilampirkan",
+					"progress": "Uploading file... {{percent}}%"
 				},
 				"slash": {
 					"groups": {
@@ -3343,6 +4025,21 @@
 				"saving": "Saving…",
 				"saveFailed": "Changes could not be saved",
 				"retrySave": "Retry"
+			},
+			"archived": {
+				"autoArchive": "Auto-archive closed issues after (months, 0 = never)",
+				"badge": "Archived",
+				"banner": "This issue was archived on {{date}}. It stays hidden from lists until restored.",
+				"empty": "No archived issues",
+				"restore": "Restore",
+				"restoreFailed": "Failed to restore the issue",
+				"title": "Archive"
+			},
+			"attachments": {
+				"add": "Attach files",
+				"delete": "Delete attachment",
+				"deleteFailed": "Failed to delete attachment",
+				"title": "Attachments"
 			}
 		},
 		"entity": {
@@ -3366,7 +4063,9 @@
 				"related": "terkait dengan"
 			},
 			"blockedBy": "Diblokir oleh",
-			"parentPlaceholder": "Atur tugas induk…"
+			"parentPlaceholder": "Atur tugas induk…",
+			"duplicatedBy": "Duplicated by",
+			"duplicateOf": "Duplicate of"
 		},
 		"subtasks": {
 			"title": "Subtugas",
@@ -3395,7 +4094,17 @@
 			"startDate": "Tanggal mulai",
 			"noDate": "Tanpa tanggal",
 			"dates": "Tanggal",
-			"project": "Proyek"
+			"project": "Proyek",
+			"addCycle": "Add to cycle",
+			"addEstimate": "Set estimate",
+			"addMilestone": "Add to milestone",
+			"addWorkProject": "Add to project",
+			"canceledAt": "Canceled",
+			"cycle": "Cycle",
+			"estimate": "Estimate",
+			"milestone": "Milestone",
+			"team": "Team",
+			"workProject": "Project"
 		},
 		"move": {
 			"title": "Pindahkan tugas",
@@ -3474,6 +4183,29 @@
 					"weeks_other": "minggu",
 					"years_other": "tahun"
 				}
+			},
+			"cycle": {
+				"current": "Current",
+				"none": "No cycle",
+				"placeholder": "Move to cycle…",
+				"previous": "Previous",
+				"upcoming": "Upcoming",
+				"updateError": "Could not update the cycle"
+			},
+			"estimate": {
+				"none": "No estimate",
+				"placeholder": "Set estimate…",
+				"updateError": "Could not update the estimate"
+			},
+			"milestone": {
+				"none": "No milestone",
+				"placeholder": "Set milestone...",
+				"updateError": "Could not update the milestone"
+			},
+			"workProject": {
+				"none": "No project",
+				"placeholder": "Set project...",
+				"updateError": "Could not update the project"
 			}
 		},
 		"backlog": {
@@ -3506,7 +4238,8 @@
 				"priority": "Prioritas",
 				"dueDate": "Tenggat",
 				"title": "Judul",
-				"number": "Nomor tugas"
+				"number": "Nomor tugas",
+				"updatedAt": "Updated"
 			}
 		},
 		"boardFilters": {
@@ -3517,7 +4250,11 @@
 				"assignee": "Penanggung jawab",
 				"dueDate": "Tenggat",
 				"labels": "Label",
-				"project": "Project"
+				"project": "Project",
+				"cycle": "Cycle",
+				"estimate": "Estimate",
+				"noEstimate": "No estimate",
+				"workProject": "Project"
 			},
 			"operators": {
 				"isAnyOf": "adalah salah satu dari",
@@ -3608,7 +4345,25 @@
 		},
 		"contextMenu": {
 			"copyLink": "Salin tautan",
-			"copyLinkSuccess": "Tautan tugas disalin!"
+			"copyLinkSuccess": "Tautan tugas disalin!",
+			"addLink": "Add link…",
+			"copy": "Copy",
+			"copyBranch": "Copy git branch name",
+			"copyId": "Copy ID",
+			"copyMarkdown": "Copy as Markdown",
+			"copyTitle": "Copy title",
+			"createRelated": "Create related",
+			"makeCopy": "Make a copy…",
+			"markAs": "Mark as",
+			"markAsDuplicate": "Duplicate…",
+			"moreProperties": "More properties",
+			"move": "Move",
+			"openInNewTab": "Open in new tab",
+			"remindMe": "Remind me",
+			"remove": "Remove",
+			"removeParent": "Parent",
+			"removeProject": "Project",
+			"rename": "Rename…"
 		},
 		"actions": {
 			"duplicate": "Duplikat",
@@ -3735,10 +4490,46 @@
 			"groupBy": {
 				"assignee": "Assignee",
 				"priority": "Priority",
-				"status": "Status"
+				"status": "Status",
+				"cycle": "Cycle",
+				"label": "Label",
+				"none": "No grouping",
+				"project": "Project",
+				"status-type": "Status type"
 			},
 			"grouping": "Grouping",
-			"noAssignee": "No assignee"
+			"noAssignee": "No assignee",
+			"allIssues": "All issues",
+			"columnOptions": "Column options",
+			"completed": {
+				"all": "All",
+				"month": "Past month",
+				"none": "None",
+				"week": "Past week"
+			},
+			"completedIssues": "Completed issues",
+			"hiddenColumns": "Hidden columns",
+			"hideColumn": "Hide column",
+			"issuesHidden_other": "{{count}} issues hidden by display options",
+			"noCycle": "No cycle",
+			"noLabel": "No label",
+			"noProject": "No project",
+			"orderCompletedByRecency": "Order completed by recency",
+			"selectAllInColumn": "Select all in column",
+			"showColumn": "Show",
+			"showEmptyColumns": "Show empty columns",
+			"showOptions": "Show options",
+			"showSubIssues": "Show sub-issues",
+			"showTriageIssues": "Show triage issues",
+			"statusType": {
+				"backlog": "Backlog",
+				"canceled": "Canceled",
+				"completed": "Completed",
+				"started": "Started",
+				"triage": "Triage",
+				"unstarted": "Unstarted"
+			},
+			"subGrouping": "Sub-grouping"
 		},
 		"filterBar": {
 			"label": "Filter aktif",
@@ -3746,7 +4537,10 @@
 			"noMatches": "Tidak ada tugas yang cocok dengan pencarian atau filter Anda.",
 			"customFieldsLoading": "Loading custom-field values. Results are shown without custom-field filters.",
 			"customFieldsRefreshError": "Custom-field values could not be refreshed. Results may be out of date.",
-			"customFieldsUnavailable": "Custom-field values could not be loaded. Results are shown without custom-field filters."
+			"customFieldsUnavailable": "Custom-field values could not be loaded. Results are shown without custom-field filters.",
+			"matchAll": "all filters",
+			"matchAny": "any filter",
+			"matchLabel": "Match"
 		},
 		"filterMenu": {
 			"addFilter": "Tambah filter…",
@@ -3794,6 +4588,84 @@
 			"durationSeconds": "{{seconds, number}} dtk",
 			"durationMinutes": "{{minutes, number}} mnt",
 			"durationHoursMinutes": "{{hours, number}} j {{minutes, number}} mnt"
+		},
+		"createModal": {
+			"cycle": "Cycle",
+			"milestone": "Milestone",
+			"project": "Project"
+		},
+		"insights": {
+			"ageBreakdown": "Issue age, share of issues at or under",
+			"burnUp": "Burn-up",
+			"burnUpSeries": {
+				"completed": "Completed",
+				"created": "Created",
+				"started": "Started"
+			},
+			"chartLabel": "{{measure}} by {{slice}}",
+			"days_other": "{{count}} days",
+			"empty": "No issues in this view",
+			"hours_other": "{{count}} hours",
+			"interval": "Interval",
+			"intervals": {
+				"month": "Month",
+				"week": "Week"
+			},
+			"issues": "Issues",
+			"measure": "Measure",
+			"measures": {
+				"age": "Issue age",
+				"count": "Issue count",
+				"cycleTime": "Cycle time",
+				"effort": "Effort",
+				"leadTime": "Lead time",
+				"triageTime": "Triage time"
+			},
+			"median": "Median",
+			"noSegment": "No segment",
+			"percentile": "{{percent}}% of issues take {{duration}} or less. Select to zoom.",
+			"segment": "Segment",
+			"share": "Share",
+			"showArchived": "Show archived issues",
+			"slice": "Slice",
+			"title": "Insights",
+			"toggle": "Toggle insights"
+		},
+		"sla": {
+			"achieved": "Achieved",
+			"breached": "Breached",
+			"failed": "Failed",
+			"high": "High risk",
+			"label": "SLA",
+			"low": "Low risk",
+			"medium": "Medium risk",
+			"title": "SLA {{status}} - due {{date}}"
+		},
+		"subscription": {
+			"subscribe": "Subscribe",
+			"unsubscribe": "Unsubscribe"
+		},
+		"triage": {
+			"accept": "Accept",
+			"accepted": "Moved to Backlog",
+			"create": "Create triage issue",
+			"decline": "Decline",
+			"declined": "Declined",
+			"duplicate": "Mark as duplicate",
+			"duplicated": "Marked as duplicate of {{key}}",
+			"duplicateOf": "Duplicate of...",
+			"empty": "Nothing to triage",
+			"emptyDescription": "New issues from the team show up here for review.",
+			"searchIssues": "Search issues...",
+			"snooze": "Snooze",
+			"snoozed": "Snoozed until {{date}}",
+			"snoozeFor": {
+				"day": "Tomorrow",
+				"threeDays": "In 3 days",
+				"week": "In a week"
+			},
+			"title": "Triage",
+			"toTriage_other": "{{count}} issues to triage"
 		}
 	},
 	"invitations": {
@@ -3933,7 +4805,12 @@
 				"status": "Status"
 			},
 			"pageTitle": "My tasks",
-			"truncated": "Showing the first {{shown}} of {{total}} tasks."
+			"truncated": "Showing the first {{shown}} of {{total}} tasks.",
+			"tabs": {
+				"assigned": "Assigned",
+				"created": "Created",
+				"subscribed": "Subscribed"
+			}
 		},
 		"myWork": {
 			"due": {
@@ -3952,6 +4829,549 @@
 			"manage": "Manage workspaces",
 			"otherWorkspaces": "Go to workspaces",
 			"title": "Workspace archived"
+		},
+		"cycles": {
+			"assignees": "Assignees",
+			"completed": "Completed",
+			"completedCount": "{{count}} completed",
+			"details": "Cycle details",
+			"empty": "No cycles yet",
+			"emptyDescription": "Turn on cycles in the team settings to plan work in time-boxed sprints.",
+			"notFound": "Cycle not found",
+			"notFoundDescription": "This cycle does not exist or has not started being planned yet.",
+			"pageTitle": "Cycles",
+			"percentCapacity": "{{percent}}% of capacity",
+			"percentOf": "{{percent}}% of {{count}}",
+			"percentSuccess": "{{percent}}% success",
+			"progress": "Progress",
+			"scope": "Scope",
+			"scopeCount": "{{count}} scope",
+			"started": "Started",
+			"state": {
+				"completed": "Completed",
+				"current": "Current",
+				"planned": "Planned",
+				"upcoming": "Upcoming"
+			}
+		},
+		"reviews": {
+			"badgeCount": {
+				"readyToMerge": "Ready to merge",
+				"requested": "Requested from you",
+				"team": "Requested of your GitHub team"
+			},
+			"checks": {
+				"failure": "Checks failing",
+				"none": "No checks",
+				"pending": "Checks running",
+				"success": "Checks passing"
+			},
+			"checksPopover": {
+				"failed_other": "{{count, number}} failed checks",
+				"noMatch": "No matching checks",
+				"pending_other": "{{count, number}} pending checks",
+				"placeholder": "Open pull request checks...",
+				"successful_other": "{{count, number}} successful checks"
+			},
+			"closed": {
+				"all": "All",
+				"day": "Past day",
+				"month": "Past month",
+				"none": "None",
+				"week": "Past week"
+			},
+			"connect": {
+				"action": "Connect your GitHub account",
+				"description": "Your GitHub account needs to be connected before you can review pull requests in Kaneo",
+				"title": "Connect GitHub to start reviewing"
+			},
+			"copyMenu": {
+				"asPrompt": "Copy as prompt",
+				"branch": "Copy branch name",
+				"copied": "Copied to clipboard",
+				"copyFailed": "Could not copy to the clipboard",
+				"githubUrl": "Copy GitHub URL",
+				"label": "Copy",
+				"number": "Copy pull request number...",
+				"numberOnly": "Number only",
+				"numberWithRepo": "Number with repo name",
+				"promptBranch": "Branch: {{branch}}",
+				"promptTitle": "Pull request: {{title}}",
+				"promptUrl": "URL: {{url}}",
+				"reviewUrl": "Copy review URL",
+				"titleAsLink": "Copy title as link"
+			},
+			"count_other": "{{count}} reviews",
+			"detail": {
+				"addComment": "Comment",
+				"addReviewers": "Add reviewers",
+				"allCommits": "All commits",
+				"approve": "Approve",
+				"checksFailed": "{{count}} failed",
+				"checksPassed": "{{count}} passed",
+				"checksRunning": "{{count}} running",
+				"collapse": "Collapse",
+				"comment": "Comment",
+				"commentPlaceholder": "Leave a comment",
+				"commitCount_other": "{{count, number}} commits",
+				"conversation": "Conversation",
+				"copyPath": "Copy path",
+				"details": "Details",
+				"expand": "Expand",
+				"fileActions": "File actions",
+				"fileList": "Changed files",
+				"filterFiles": "Filter files...",
+				"layout": {
+					"split": "Split",
+					"unified": "Unified"
+				},
+				"linkIssue": "Link issue",
+				"linkIssueLabel": "Link issue to pull request",
+				"menu": {
+					"branchCopied": "Branch name copied",
+					"copyBranch": "Copy branch name",
+					"copyFailed": "Could not copy to the clipboard",
+					"copyGithubUrl": "Copy GitHub URL",
+					"copyReviewUrl": "Copy review URL",
+					"githubUrlCopied": "GitHub URL copied",
+					"label": "Pull request actions",
+					"markReady": "Mark ready for review",
+					"reviewUrlCopied": "Review URL copied"
+				},
+				"merge": "Merge",
+				"merged": "Pull request merged",
+				"mergeDescription": "This merges the pull request into {{base}} on GitHub.",
+				"mergeTitle": "Merge \"{{title}}\"?",
+				"noChecks": "No checks have run for this pull request.",
+				"noConversation": "No comments yet.",
+				"noDescription": "No description provided.",
+				"noFiles": "No files changed.",
+				"noIssue": "No issue",
+				"noIssuesFound": "No issues found.",
+				"noMatchingFiles": "No files match this filter.",
+				"noPatch": "No preview for this file. Open it on GitHub.",
+				"noReviewers": "No one to add.",
+				"notFound": "This pull request could not be loaded. It may not exist, or the Kaneo GitHub App may not be installed on its repository.",
+				"openOnGithub": "Open on GitHub",
+				"options": {
+					"hideReviewed": "Hide reviewed",
+					"showCounts": "Show changed lines per file",
+					"title": "Diff options",
+					"wrap": "Wrap lines"
+				},
+				"pathCopied": "Path copied",
+				"properties": {
+					"checks": "Checks",
+					"issues": "Issues",
+					"labels": "Labels",
+					"reviewers": "Reviewers",
+					"status": "Status"
+				},
+				"ready": "Ready for review",
+				"readyDone": "Marked ready for review",
+				"requestChanges": "Request changes",
+				"review": "Review",
+				"reviewed": "Reviewed",
+				"reviewPlaceholder": "Leave a review comment",
+				"reviewTitle": "Finish your review",
+				"searchIssues": "Search issues...",
+				"selectReviewers": "Select reviewers...",
+				"specificCommits": "Specific commits",
+				"submitReview": "Submit review",
+				"submitted": "Review submitted",
+				"tabs": {
+					"checks": "Checks",
+					"commits": "Commits",
+					"diff": "Diff",
+					"files": "Files",
+					"overview": "Overview"
+				},
+				"tooLarge": "This review is too large to show in full",
+				"tooLargeBody_other": "Very large pull requests exceed what GitHub’s API can return in full. Only the first {{count, number}} commits are shown.",
+				"unchangedLines_other": "{{count, number}} unchanged lines",
+				"unlinkIssue": "Unlink issue"
+			},
+			"diffOptions2": {
+				"category": {
+					"agentGuidance": "Agent guidance",
+					"assets": "Assets",
+					"documentation": "Documentation",
+					"generated": "Generated",
+					"implementation": "Implementation",
+					"localization": "Localization",
+					"test": "Tests"
+				},
+				"collapse": "Hide diff",
+				"counts": {
+					"generatedOnly": "Generated only",
+					"generatedOnlyLabel": "Generated only. Show total line counts",
+					"total": "Total changed lines: {{total}}"
+				},
+				"expand": "Show diff",
+				"fileList": {
+					"flat": "Flat",
+					"label": "File list",
+					"tree": "Tree"
+				},
+				"grouping": {
+					"label": "Grouping",
+					"none": "No grouping",
+					"type": "File type"
+				},
+				"minimizeGenerated": "Minimize generated",
+				"minimizeTests": "Minimize tests",
+				"ordering": {
+					"asc": "Ascending",
+					"changes": "Changed lines",
+					"desc": "Descending",
+					"label": "Ordering",
+					"path": "Path"
+				},
+				"structural": "Structural highlighting"
+			},
+			"display": {
+				"badgeCount": "Badge count",
+				"badgeCountSelected_other": "{{count, number}} selected",
+				"closed": "Closed reviews",
+				"grouping": "Grouping",
+				"ordering": "Ordering",
+				"properties": "Display properties",
+				"showDrafts": "Show drafts",
+				"showSnoozed": "Show snoozed reviews",
+				"subGrouping": "Sub-grouping"
+			},
+			"empty": {
+				"description": "Pull requests you created or are asked to review show up here. If you expect to see some, check that the Kaneo GitHub App is installed on those repositories.",
+				"title": "No pull requests"
+			},
+			"filterPlaceholder": "Filter",
+			"filters": {
+				"approvals": {
+					"exactly1": "Exactly 1 approval",
+					"min1": "At least 1 approval",
+					"min2": "At least 2 approvals",
+					"min3": "At least 3 approvals",
+					"none": "No approvals"
+				},
+				"checks": {
+					"canceled": "Canceled",
+					"failure": "Failed",
+					"none": "No checks",
+					"pending": "Running",
+					"success": "Passed"
+				},
+				"contentPlaceholder": "Filter by content…",
+				"count_other": "{{count, number}} reviews",
+				"date": {
+					"1d": "1 day ago",
+					"1m": "1 month ago",
+					"1w": "1 week ago",
+					"1y": "1 year ago",
+					"3d": "3 days ago",
+					"3m": "3 months ago",
+					"6m": "6 months ago"
+				},
+				"me": "Current user",
+				"merge": {
+					"behind": "Behind base branch",
+					"blocked": "Blocked",
+					"queued": "Merging or queued",
+					"ready": "Ready to merge"
+				},
+				"noLabels": "No matching labels",
+				"noPeople": "No matching people",
+				"subject": {
+					"approvals": "Approvals",
+					"approvedBy": "Approved by",
+					"author": "Author",
+					"changesRequestedBy": "Changes requested by",
+					"checks": "Checks",
+					"closed": "Closed date",
+					"content": "Content",
+					"hasConflicts": "Has conflicts",
+					"labels": "GitHub labels",
+					"merged": "Merged date",
+					"mergeStatus": "Merge status",
+					"missingIssue": "Missing issue",
+					"opened": "Opened date",
+					"priority": "Issue priority",
+					"project": "Project",
+					"repoName": "Repository name",
+					"repoOwner": "Repository owner",
+					"reviewers": "Reviewers",
+					"size": "Size",
+					"status": "Status",
+					"team": "Team",
+					"teamReviewers": "GitHub team reviewers",
+					"updated": "Updated date"
+				},
+				"yes": "Yes"
+			},
+			"focus": {
+				"done": "Done",
+				"needsReview": "Needs your review"
+			},
+			"groupBy": {
+				"author": "Author",
+				"focus": "Focus",
+				"none": "No grouping",
+				"priority": "Priority",
+				"project": "Project",
+				"repository": "Repository",
+				"size": "Size",
+				"status": "Status",
+				"team": "Team"
+			},
+			"groupMenu": {
+				"collapse": "Collapse",
+				"collapseAll": "Collapse all",
+				"expand": "Expand",
+				"expandAll": "Expand all"
+			},
+			"loadError": "Could not load your pull requests.",
+			"none": {
+				"author": "No author",
+				"project": "No project",
+				"repository": "No repository",
+				"team": "No team"
+			},
+			"notConfigured": {
+				"description": "An administrator needs to add the Kaneo GitHub App credentials before pull requests can be reviewed here.",
+				"title": "GitHub reviews are not set up"
+			},
+			"pageTitle": "Reviews",
+			"pinGroup": "Pin to bottom",
+			"prActions": {
+				"checks": "Checks",
+				"closed": "Pull request closed",
+				"closeDescription": "This closes the pull request on GitHub without merging it.",
+				"closePullRequest": "Close pull request",
+				"closeTitle": "Close \"{{title}}\"?",
+				"convertDescription": "Reviewers are told it is no longer ready, and it cannot be merged until it is marked ready again.",
+				"converted": "Converted to draft",
+				"convertTitle": "Convert \"{{title}}\" to draft?",
+				"convertToDraft": "Convert to draft",
+				"favorite": "Favorite",
+				"githubChip": "{{name}}, pull request actions",
+				"labels": "Labels",
+				"linkIssue": "Link issue",
+				"noLabels": "This repository has no labels.",
+				"selectReviewers": "Select reviewers",
+				"squashDescription": "This squashes every commit into one and merges it into {{base}} on GitHub.",
+				"squashMerge": "Squash & merge",
+				"squashTitle": "Squash and merge \"{{title}}\"?",
+				"unfavorite": "Unfavorite"
+			},
+			"property": {
+				"author": "Author",
+				"date": "Opened / Merged / Closed",
+				"githubTeam": "GitHub team",
+				"id": "ID",
+				"labels": "Labels",
+				"repository": "Repository",
+				"reviewers": "Reviewers",
+				"statusDetails": "Status details"
+			},
+			"reconnect": {
+				"action": "Reconnect your GitHub account",
+				"description": "Your GitHub account needs to be connected again before you can review pull requests in Kaneo",
+				"title": "Reconnect GitHub to keep reviewing"
+			},
+			"reviewStatus": {
+				"approved": "Approved",
+				"changes_requested": "Changes requested",
+				"no_decision": "No review decision",
+				"review_required": "Review required"
+			},
+			"searchPlaceholder": "Search",
+			"size": {
+				"over": "Over 5,000 lines",
+				"u10": "Up to 10 lines",
+				"u1000": "From 250 to 1,000 lines",
+				"u250": "From 50 to 250 lines",
+				"u50": "From 10 to 50 lines",
+				"u5000": "From 1,000 to 5,000 lines"
+			},
+			"snooze": {
+				"change": "Change snooze",
+				"custom": "Custom...",
+				"customLabel": "Snooze until",
+				"customSet": "Snooze",
+				"group": "Snoozed",
+				"hour": "An hour from now",
+				"hours3": "In 3 hours",
+				"label": "Snooze",
+				"month": "A month from now (9:00 AM)",
+				"placeholder": "Try: 4 pm, 2 days, in 5 weeks...",
+				"snoozed": "Snoozed until {{date}}",
+				"snoozedMode": "Snoozed",
+				"tipComment": "Snoozed until a new comment",
+				"tipReview": "Snoozed until a new review",
+				"tomorrow": "Tomorrow (9:00 AM)",
+				"unsnooze": "Unsnooze",
+				"unsnoozed": "Unsnoozed",
+				"untilComment": "Until new comment",
+				"untilReview": "Until new review",
+				"week": "Next week (Mon 9:00 AM)"
+			},
+			"sortBy": {
+				"author": "Author",
+				"closestToMerge": "Closest to merge",
+				"date": "Opened / Merged / Closed",
+				"issuePriority": "Issue priority",
+				"name": "Name",
+				"size": "Size",
+				"status": "Status",
+				"updated": "Updated"
+			},
+			"status": {
+				"approved": "Approved",
+				"closed": "Closed",
+				"draft": "Draft",
+				"inReview": "In review",
+				"merged": "Merged",
+				"open": "Open"
+			},
+			"statusDetails": {
+				"draft": "Draft",
+				"noReviewers": "No reviewers assigned",
+				"waitingForYou": "Waiting for your review"
+			},
+			"tabMenu": {
+				"copyLink": "Copy link",
+				"linkCopied": "Link copied",
+				"moveLeft": "Move left",
+				"moveRight": "Move right"
+			},
+			"tabs": {
+				"created": "Created",
+				"toReview": "To review"
+			},
+			"unpinGroup": "Unpin from bottom"
+		},
+		"workProject": {
+			"allProjects": "All projects",
+			"columns": {
+				"health": "Health",
+				"issues": "Issues",
+				"lead": "Lead",
+				"name": "Name",
+				"priority": "Priority",
+				"status": "Status",
+				"targetDate": "Target date"
+			},
+			"comments": {
+				"cancel": "Cancel",
+				"delete": "Delete comment",
+				"deleteConfirm": "Delete this comment?",
+				"edit": "Edit comment",
+				"empty": "No comments yet.",
+				"error": "Could not save the comment",
+				"placeholder": "Leave a comment...",
+				"post": "Comment",
+				"save": "Save",
+				"title": "Comments"
+			},
+			"create": {
+				"cancel": "Cancel",
+				"created": "Project created",
+				"description": "Write a description, a project brief, or collect ideas...",
+				"error": "Could not create the project",
+				"name": "Project name",
+				"submit": "Create project",
+				"summary": "Add a short summary...",
+				"title": "New project"
+			},
+			"detail": {
+				"addDocument": "Add document",
+				"delete": "Delete project",
+				"deleteConfirmDescription": "Issues stay in their teams but lose this project and its milestones.",
+				"deleteConfirmTitle": "Delete this project?",
+				"deleted": "Project deleted",
+				"descriptionPlaceholder": "Write a description, a project brief, or collect ideas...",
+				"progress": "{{done}} of {{total}} issues done",
+				"properties": "Properties",
+				"resources": "Resources",
+				"summaryPlaceholder": "Add a short summary...",
+				"titleLabel": "Project name",
+				"updateError": "Could not save the project"
+			},
+			"empty": "No projects yet",
+			"emptyDescription": "Projects group issues across teams toward a shared goal.",
+			"fields": {
+				"health": "Health",
+				"lead": "Lead",
+				"members": "Members",
+				"membersCount_other": "{{count}} members",
+				"none": "None",
+				"priority": "Priority",
+				"search": "Search...",
+				"startDate": "Start date",
+				"status": "Status",
+				"targetDate": "Target date",
+				"teams": "Teams",
+				"teamsCount_other": "{{count}} teams"
+			},
+			"health": {
+				"atRisk": "At risk",
+				"offTrack": "Off track",
+				"onTrack": "On track"
+			},
+			"issues": {
+				"empty": "No issues in this project",
+				"emptyDescription": "Add an issue to this project from its detail panel or the new issue dialog."
+			},
+			"labels": {
+				"add": "Labels",
+				"all": "All labels",
+				"error": "Could not update the project labels",
+				"filter": "Filter by label",
+				"title": "Labels"
+			},
+			"loadError": "Could not load projects.",
+			"milestones": {
+				"add": "Add milestone",
+				"cancel": "Cancel",
+				"delete": "Delete milestone",
+				"edit": "Edit milestone",
+				"empty": "No milestones yet",
+				"error": "Could not save the milestone",
+				"name": "Milestone name",
+				"noDate": "No target date",
+				"save": "Save",
+				"title": "Milestones"
+			},
+			"newProject": "New project",
+			"noDate": "No date",
+			"noLead": "No lead",
+			"notFound": "Project not found.",
+			"noUpdates": "No updates",
+			"pageTitle": "Projects",
+			"status": {
+				"backlog": "Backlog",
+				"canceled": "Canceled",
+				"completed": "Completed",
+				"paused": "Paused",
+				"planned": "Planned",
+				"started": "In progress"
+			},
+			"tabs": {
+				"issues": "Issues",
+				"overview": "Overview"
+			},
+			"updates": {
+				"cancel": "Cancel",
+				"delete": "Delete update",
+				"deleteConfirm": "Delete this update?",
+				"edit": "Edit update",
+				"empty": "No updates yet.",
+				"placeholder": "Write a project update...",
+				"post": "Post update",
+				"postError": "Could not post the update",
+				"pulseEmpty": "No project updates yet.",
+				"save": "Save",
+				"title": "Project updates"
+			}
 		}
 	},
 	"team": {
