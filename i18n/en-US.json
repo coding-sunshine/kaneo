@@ -3454,6 +3454,46 @@
 				"close": "Close history",
 				"viewing": "Version from {{time}} by {{name}}",
 				"current": "Current"
+			},
+			"kind": {
+				"label": "Kind:",
+				"unsorted": "Unsorted",
+				"decision": "Decision",
+				"proposal": "Proposal",
+				"brainstorm": "Brainstorm",
+				"reference": "Reference"
+			},
+			"status": {
+				"draft": "Draft",
+				"in_review": "In review",
+				"current": "Current",
+				"superseded": "Superseded"
+			},
+			"banner": {
+				"draft": {
+					"lead": "Draft.",
+					"detail": "Nobody has approved it yet."
+				},
+				"brainstorm": {
+					"lead": "Brainstorm.",
+					"detail": "Options, not yet a decision."
+				},
+				"in_review": {
+					"lead": "Proposal.",
+					"detail": "Awaiting approval."
+				},
+				"current": {
+					"lead": "Current.",
+					"detail": "Approved as the document to rely on."
+				},
+				"superseded": {
+					"lead": "Superseded.",
+					"detail": "A newer document replaced this one."
+				}
+			},
+			"savedFrom": {
+				"claude": "Saved from Claude",
+				"chatgpt": "Saved from ChatGPT"
 			}
 		},
 		"agent": {

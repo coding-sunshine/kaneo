@@ -3471,7 +3471,47 @@
 			"untitled": "Untitled",
 			"updated": "Updated {{time}}",
 			"viewOnly": "View only",
-			"viewTab": "View {{name}}"
+			"viewTab": "View {{name}}",
+			"banner": {
+				"brainstorm": {
+					"detail": "Options, not yet a decision.",
+					"lead": "Brainstorm."
+				},
+				"current": {
+					"detail": "Approved as the document to rely on.",
+					"lead": "Current."
+				},
+				"draft": {
+					"detail": "Nobody has approved it yet.",
+					"lead": "Draft."
+				},
+				"in_review": {
+					"detail": "Awaiting approval.",
+					"lead": "Proposal."
+				},
+				"superseded": {
+					"detail": "A newer document replaced this one.",
+					"lead": "Superseded."
+				}
+			},
+			"kind": {
+				"brainstorm": "Brainstorm",
+				"decision": "Decision",
+				"label": "Kind:",
+				"proposal": "Proposal",
+				"reference": "Reference",
+				"unsorted": "Unsorted"
+			},
+			"savedFrom": {
+				"chatgpt": "Saved from ChatGPT",
+				"claude": "Saved from Claude"
+			},
+			"status": {
+				"current": "Current",
+				"draft": "Draft",
+				"in_review": "In review",
+				"superseded": "Superseded"
+			}
 		},
 		"drafts": {
 			"delete": "Delete draft",

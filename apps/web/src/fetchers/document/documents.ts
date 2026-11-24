@@ -59,6 +59,7 @@ export async function updateDocument(
     icon?: string | null;
     color?: string | null;
     generalAccess?: DocumentAccess;
+    kind?: DocumentDetail["kind"];
   },
 ) {
   const response = await one.$patch({ param: { workspaceId, id }, json });

@@ -14,6 +14,7 @@ import { DocumentCrumbs } from "./document-crumbs";
 import { DocumentEditor } from "./document-editor";
 import { DocumentHeaderActions } from "./document-header-actions";
 import { DocumentHistory } from "./document-history";
+import { DocumentStatusBanner } from "./document-status-banner";
 import { DOCUMENT_SAVE_OWNER } from "./document-save";
 import { DocumentVersionPreview } from "./document-version-preview";
 
@@ -116,22 +117,25 @@ export function DocumentPage({
         }
       >
         <div className="flex h-full min-h-0">
-          <div className="min-w-0 flex-1 overflow-y-auto">
-            {version ? (
-              <DocumentVersionPreview
-                version={version}
-                canRestore={canEdit}
-                restoring={restore.isPending}
-                onRestore={onRestore}
-              />
-            ) : (
-              <DocumentEditor
-                key={`${document.id}:${loadCount}`}
-                document={document}
-                readOnly={!canEdit}
-                titleRef={titleRef}
-              />
-            )}
+          <div className="flex min-w-0 flex-1 flex-col">
+            <DocumentStatusBanner document={document} />
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              {version ? (
+                <DocumentVersionPreview
+                  version={version}
+                  canRestore={canEdit}
+                  restoring={restore.isPending}
+                  onRestore={onRestore}
+                />
+              ) : (
+                <DocumentEditor
+                  key={`${document.id}:${loadCount}`}
+                  document={document}
+                  readOnly={!canEdit}
+                  titleRef={titleRef}
+                />
+              )}
+            </div>
           </div>
           {panel === "comments" && (
             <DocumentComments

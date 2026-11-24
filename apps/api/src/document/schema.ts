@@ -1,5 +1,11 @@
 import { brand } from "@kaneo/brand";
-import { DOCUMENT_ACCESS, DOCUMENT_SCOPES } from "../database/schema";
+import {
+  DOCUMENT_ACCESS,
+  DOCUMENT_KINDS,
+  DOCUMENT_SCOPES,
+  DOCUMENT_SOURCE_CLIENTS,
+  DOCUMENT_STATUSES,
+} from "../database/schema";
 import { nullableResponseTimestamp, responseTimestamp, z } from "../openapi";
 
 const access = z.enum(DOCUMENT_ACCESS);
@@ -57,6 +63,9 @@ export const updateDocumentBody = z.object({
   generalAccess: access.optional().openapi({
     description: "What everyone who can see the parent may do.",
   }),
+  kind: z.enum(DOCUMENT_KINDS).optional().openapi({
+    description: "What the document is for. The status is not set by editing.",
+  }),
 });
 
 export const moveDocumentBody = z.object({
@@ -113,6 +122,11 @@ const documentFields = {
   parentName: z.string().nullable().openapi({
     description: "Team name, project name or issue key of the parent.",
   }),
+  kind: z.enum(DOCUMENT_KINDS),
+  status: z.enum(DOCUMENT_STATUSES),
+  sourceClient: z.enum(DOCUMENT_SOURCE_CLIENTS).nullable().openapi({
+    description: "The assistant the document was saved from, if any.",
+  }),
   ...person,
   createdAt: responseTimestamp,
   updatedAt: responseTimestamp,
@@ -127,6 +141,9 @@ export const documentSchema = z
   .object({
     ...documentFields,
     content: z.string(),
+    contentHash: z.string().openapi({
+      description: "SHA-256 of the content in UTF-8, as hex.",
+    }),
     generalAccess: access,
     updatedById: z.string().nullable(),
     updatedByName: z.string().nullable(),

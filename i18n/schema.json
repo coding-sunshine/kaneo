@@ -14107,6 +14107,148 @@
 								"viewing",
 								"current"
 							]
+						},
+						"kind": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"unsorted": {
+									"type": "string"
+								},
+								"decision": {
+									"type": "string"
+								},
+								"proposal": {
+									"type": "string"
+								},
+								"brainstorm": {
+									"type": "string"
+								},
+								"reference": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"label",
+								"unsorted",
+								"decision",
+								"proposal",
+								"brainstorm",
+								"reference"
+							]
+						},
+						"status": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"draft": {
+									"type": "string"
+								},
+								"in_review": {
+									"type": "string"
+								},
+								"current": {
+									"type": "string"
+								},
+								"superseded": {
+									"type": "string"
+								}
+							},
+							"required": ["draft", "in_review", "current", "superseded"]
+						},
+						"banner": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"draft": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"lead": {
+											"type": "string"
+										},
+										"detail": {
+											"type": "string"
+										}
+									},
+									"required": ["lead", "detail"]
+								},
+								"brainstorm": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"lead": {
+											"type": "string"
+										},
+										"detail": {
+											"type": "string"
+										}
+									},
+									"required": ["lead", "detail"]
+								},
+								"in_review": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"lead": {
+											"type": "string"
+										},
+										"detail": {
+											"type": "string"
+										}
+									},
+									"required": ["lead", "detail"]
+								},
+								"current": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"lead": {
+											"type": "string"
+										},
+										"detail": {
+											"type": "string"
+										}
+									},
+									"required": ["lead", "detail"]
+								},
+								"superseded": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"lead": {
+											"type": "string"
+										},
+										"detail": {
+											"type": "string"
+										}
+									},
+									"required": ["lead", "detail"]
+								}
+							},
+							"required": [
+								"draft",
+								"brainstorm",
+								"in_review",
+								"current",
+								"superseded"
+							]
+						},
+						"savedFrom": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"claude": {
+									"type": "string"
+								},
+								"chatgpt": {
+									"type": "string"
+								}
+							},
+							"required": ["claude", "chatgpt"]
 						}
 					},
 					"required": [
@@ -14154,7 +14296,11 @@
 						"moved",
 						"share",
 						"comments",
-						"history"
+						"history",
+						"kind",
+						"status",
+						"banner",
+						"savedFrom"
 					]
 				},
 				"agent": {

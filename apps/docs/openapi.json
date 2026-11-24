@@ -3564,6 +3564,38 @@
             ],
             "description": "Team name, project name or issue key of the parent."
           },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "unsorted",
+              "decision",
+              "proposal",
+              "brainstorm",
+              "reference"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "in_review",
+              "current",
+              "superseded"
+            ]
+          },
+          "sourceClient": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "claude",
+              "chatgpt",
+              "web",
+              null
+            ],
+            "description": "The assistant the document was saved from, if any."
+          },
           "creatorId": {
             "type": [
               "string",
@@ -3602,6 +3634,9 @@
           "workProjectId",
           "taskId",
           "parentName",
+          "kind",
+          "status",
+          "sourceClient",
           "creatorId",
           "creatorName",
           "creatorImage",
@@ -3668,6 +3703,38 @@
             ],
             "description": "Team name, project name or issue key of the parent."
           },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "unsorted",
+              "decision",
+              "proposal",
+              "brainstorm",
+              "reference"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "in_review",
+              "current",
+              "superseded"
+            ]
+          },
+          "sourceClient": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "claude",
+              "chatgpt",
+              "web",
+              null
+            ],
+            "description": "The assistant the document was saved from, if any."
+          },
           "creatorId": {
             "type": [
               "string",
@@ -3696,6 +3763,10 @@
           },
           "content": {
             "type": "string"
+          },
+          "contentHash": {
+            "type": "string",
+            "description": "SHA-256 of the content in UTF-8, as hex."
           },
           "generalAccess": {
             "type": "string",
@@ -3778,12 +3849,16 @@
           "workProjectId",
           "taskId",
           "parentName",
+          "kind",
+          "status",
+          "sourceClient",
           "creatorId",
           "creatorName",
           "creatorImage",
           "createdAt",
           "updatedAt",
           "content",
+          "contentHash",
           "generalAccess",
           "updatedById",
           "updatedByName",
@@ -26220,6 +26295,17 @@
                       "view"
                     ],
                     "description": "What everyone who can see the parent may do."
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "unsorted",
+                      "decision",
+                      "proposal",
+                      "brainstorm",
+                      "reference"
+                    ],
+                    "description": "What the document is for. The status is not set by editing."
                   }
                 }
               }

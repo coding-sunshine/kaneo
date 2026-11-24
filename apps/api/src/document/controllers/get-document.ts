@@ -64,6 +64,11 @@ export async function getDocument(
     workProjectId: doc.workProjectId,
     taskId: doc.taskId,
     parentName: parent?.name ?? null,
+    kind: doc.kind,
+    status: doc.status,
+    sourceClient: doc.sourceClient,
+    // The database writes it on every insert, so it is only null in the type.
+    contentHash: doc.contentHash ?? "",
     generalAccess: doc.generalAccess,
     creatorId: doc.creatorId,
     creatorName: person(doc.creatorId)?.name ?? null,

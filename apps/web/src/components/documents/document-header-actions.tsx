@@ -6,6 +6,7 @@ import type { DocumentDetail } from "@/fetchers/document/documents";
 import { useSetDocumentSubscribers } from "@/hooks/mutations/document/use-document-mutations";
 import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
+import { DocumentKindMenu } from "./document-kind-menu";
 import { DocumentSharePopover } from "./document-share-popover";
 import { useCopyDocumentLink } from "./use-copy-document-link";
 
@@ -17,7 +18,7 @@ type DocumentHeaderActionsProps = {
   onShareOpenChange: (open: boolean) => void;
 };
 
-/** Share, comments, copy link and subscribe, top right as in Linear. */
+/** Kind, then share, comments, copy link and subscribe as in Linear. */
 export function DocumentHeaderActions({
   document,
   commentsOpen,
@@ -50,6 +51,7 @@ export function DocumentHeaderActions({
 
   return (
     <div className="flex items-center gap-0.5">
+      <DocumentKindMenu document={document} />
       <DocumentSharePopover
         document={document}
         open={shareOpen}

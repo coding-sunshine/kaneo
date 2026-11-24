@@ -2505,6 +2505,23 @@ export const DOCUMENT_SCOPES = [
 export type DocumentScope = (typeof DOCUMENT_SCOPES)[number];
 export const DOCUMENT_ACCESS = ["edit", "comment", "view"] as const;
 export type DocumentAccess = (typeof DOCUMENT_ACCESS)[number];
+export const DOCUMENT_KINDS = [
+  "unsorted",
+  "decision",
+  "proposal",
+  "brainstorm",
+  "reference",
+] as const;
+export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
+export const DOCUMENT_STATUSES = [
+  "draft",
+  "in_review",
+  "current",
+  "superseded",
+] as const;
+export type DocumentStatus = (typeof DOCUMENT_STATUSES)[number];
+export const DOCUMENT_SOURCE_CLIENTS = ["claude", "chatgpt", "web"] as const;
+export type DocumentSourceClient = (typeof DOCUMENT_SOURCE_CLIENTS)[number];
 
 export const documentTable = pgTable(
   "document",
@@ -2541,6 +2558,13 @@ export const documentTable = pgTable(
       .$type<DocumentAccess>()
       .notNull()
       .default("edit"),
+    kind: text("kind").$type<DocumentKind>().notNull().default("unsorted"),
+    status: text("status").$type<DocumentStatus>().notNull().default("draft"),
+    // SHA-256 of `content` in UTF-8, as hex. The `document_content_hash`
+    // trigger writes it, so that imports that insert rows by SQL get it too.
+    contentHash: text("content_hash"),
+    // The assistant a document was saved from, when it was not typed here.
+    sourceClient: text("source_client").$type<DocumentSourceClient>(),
     creatorId: text("creator_id").references(() => userTable.id, {
       onDelete: "set null",
       onUpdate: "cascade",
@@ -2583,6 +2607,11 @@ export const documentTable = pgTable(
         WHEN 'private' THEN num_nonnulls(${table.projectId}, ${table.workProjectId}, ${table.taskId}) = 0
         WHEN 'workspace' THEN num_nonnulls(${table.projectId}, ${table.workProjectId}, ${table.taskId}) = 0
         ELSE false END`,
+    ),
+    // A document only its author can open is not the team's current answer.
+    check(
+      "document_current_not_private",
+      sql`NOT (${table.status} = 'current' AND ${table.scope} = 'private')`,
     ),
   ],
 );

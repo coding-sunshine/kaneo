@@ -27,6 +27,7 @@ export async function updateDocument(
       ...(body.icon !== undefined && { icon: body.icon }),
       ...(body.color !== undefined && { color: body.color }),
       ...(body.generalAccess && { generalAccess: body.generalAccess }),
+      ...(body.kind && { kind: body.kind }),
       // "Edited" in the header tracks text, not settings.
       ...(textChanged && { updatedAt: new Date(), updatedById: userId }),
     })
