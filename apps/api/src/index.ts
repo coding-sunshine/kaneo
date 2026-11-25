@@ -561,7 +561,7 @@ export function createApp() {
           surface: schema.assetTable.surface,
           createdBy: schema.assetTable.createdBy,
           workspaceId: schema.assetTable.workspaceId,
-          projectId: schema.assetTable.projectId,
+          projectId: schema.projectTable.id,
           isPublic: schema.projectTable.isPublic,
           workspaceArchived: sql<boolean>`${schema.workspaceTable.archivedAt} is not null`,
         })

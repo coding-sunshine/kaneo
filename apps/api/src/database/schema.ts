@@ -1602,12 +1602,11 @@ export const assetTable = pgTable(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
-    projectId: text("project_id")
-      .notNull()
-      .references(() => projectTable.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
+    // The team of an issue's file. Null on a document's file.
+    projectId: text("project_id").references(() => projectTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
     taskId: text("task_id").references(() => taskTable.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
@@ -1616,6 +1615,14 @@ export const assetTable = pgTable(
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
+    // The document a file was uploaded into. Such a file has no team, issue
+    // or comment: who may read it is who may open the document, wherever the
+    // document moves. Its row goes by cascade with the document, and the
+    // `asset_storage_cleanup` trigger queues the stored object.
+    documentId: text("document_id").references(
+      (): AnyPgColumn => documentTable.id,
+      { onDelete: "cascade", onUpdate: "cascade" },
+    ),
     objectKey: text("object_key").notNull().unique(),
     filename: text("filename").notNull(),
     mimeType: text("mime_type").notNull(),
@@ -1636,11 +1643,20 @@ export const assetTable = pgTable(
     index("asset_taskId_idx").on(table.taskId),
     index("asset_activityId_idx").on(table.activityId),
     index("asset_createdBy_idx").on(table.createdBy),
+    index("asset_documentId_idx").on(table.documentId),
     index("asset_draft_expiry_idx")
       .on(table.createdAt, table.id)
       .where(
         sql`${table.taskId} is null and ${table.surface} in ('draft', 'draft-pending')`,
       ),
+    check(
+      "asset_one_owner",
+      sql`(${table.projectId} IS NOT NULL) <> (${table.documentId} IS NOT NULL)`,
+    ),
+    check(
+      "asset_document_file_unattached",
+      sql`${table.documentId} IS NULL OR num_nonnulls(${table.taskId}, ${table.activityId}) = 0`,
+    ),
   ],
 );
 
@@ -2774,6 +2790,38 @@ export const documentTable = pgTable(
       sql`NOT (${table.status} = 'current' AND ${table.scope} = 'private')`,
     ),
   ],
+);
+
+// Where a document's file came from. One row per file.
+export const documentFileTable = pgTable(
+  "document_file",
+  {
+    assetId: text("asset_id")
+      .primaryKey()
+      .references(() => assetTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documentTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    // The name the file had on the uploader's side, before it was made safe
+    // for storage.
+    originalName: text("original_name").notNull(),
+    sourceClient: text("source_client").$type<DocumentSourceClient>(),
+    sourceUserId: text("source_user_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    sourceUrl: text("source_url"),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [index("document_file_document_idx").on(table.documentId)],
 );
 
 // People invited directly through Share.
