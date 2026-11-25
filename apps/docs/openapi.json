@@ -4557,6 +4557,31 @@
           "gains"
         ]
       },
+      "DocumentFile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "description": "Where the file is read back from. It opens for whoever can open the document."
+          },
+          "kind": {
+            "type": "string",
+            "description": "image for a picture, attachment for any other file."
+          },
+          "mimeType": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "kind",
+          "mimeType"
+        ]
+      },
       "DocumentVersion": {
         "type": "object",
         "properties": {
@@ -29128,6 +29153,289 @@
           },
           "429": {
             "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/upload": {
+      "put": {
+        "operationId": "createDocumentFileUpload",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Start a file upload",
+        "description": "Get a presigned URL for adding a file to a document. Anyone who can edit the document can add one. The stored type comes from the file name's extension: PDF, Office and OpenDocument files, plain text, Markdown, CSV and images are accepted. Send the bytes to the URL with the returned headers, then call the finalize route.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filename": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "description": "The file's name. Its extension decides the stored type; a type sent by the caller is never used."
+                  },
+                  "size": {
+                    "type": "number",
+                    "description": "Size of the file in bytes."
+                  }
+                },
+                "required": [
+                  "filename",
+                  "size"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The presigned upload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskImageUpload"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The file is empty or too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A superseded document cannot be changed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The file's name does not end in a type a document can hold",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "503": {
+            "description": "File uploads are not configured on this instance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/upload/finalize": {
+      "post": {
+        "operationId": "finalizeDocumentFileUpload",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Finalize a file upload",
+        "description": "Record an uploaded file as part of a document and return the URL to reference it by. The file opens for whoever can open the document, and for nobody else.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filename": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "description": "The file's name. Its extension decides the stored type; a type sent by the caller is never used."
+                  },
+                  "size": {
+                    "type": "number",
+                    "description": "Size of the file in bytes."
+                  },
+                  "key": {
+                    "type": "string",
+                    "description": "The key returned when the URL was issued."
+                  }
+                },
+                "required": [
+                  "filename",
+                  "size",
+                  "key"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The stored file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentFile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The key does not belong to this document, or the stored object does not match the name and size",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A superseded document cannot be changed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The file's name does not end in a type a document can hold",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "503": {
+            "description": "The stored object could not be checked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }

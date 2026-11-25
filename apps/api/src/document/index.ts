@@ -5,6 +5,8 @@ import {
   errorResponse,
   jsonResponse,
 } from "../openapi";
+import { imageUploadSchema } from "../task/response";
+import { normalizeApiServerUrl } from "../utils/openapi-spec";
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import {
@@ -36,6 +38,10 @@ import { markDocumentsSeen } from "./controllers/mark-documents-seen";
 import { decideLineage } from "./controllers/lineage";
 import { snoozeDocument } from "./controllers/snooze-document";
 import { updateDocument } from "./controllers/update-document";
+import {
+  createDocumentFileUpload,
+  finalizeDocumentFileUpload,
+} from "./controllers/upload-document-file";
 import { saveDraft } from "./controllers/save-draft";
 import { settleDocument } from "./controllers/settle-document";
 import { listVersions, restoreVersion } from "./controllers/versions";
@@ -48,6 +54,9 @@ import {
   documentAudienceSchema,
   documentTaskAudienceSchema,
   documentCommentSchema,
+  documentFileSchema,
+  documentFileUploadBody,
+  finalizeDocumentFileUploadBody,
   documentListSchema,
   documentParam,
   documentSchema,
@@ -497,6 +506,58 @@ const subscribersRoute = createRoute({
   },
 });
 
+const superseded = errorResponse("A superseded document cannot be changed");
+const fileRefused = errorResponse(
+  "The file's name does not end in a type a document can hold",
+);
+
+const createFileUploadRoute = createRoute({
+  method: "put",
+  operationId: "createDocumentFileUpload",
+  path: `${one}/upload`,
+  tags,
+  summary: "Start a file upload",
+  description:
+    "Get a presigned URL for adding a file to a document. Anyone who can edit the document can add one. The stored type comes from the file name's extension: PDF, Office and OpenDocument files, plain text, Markdown, CSV and images are accepted. Send the bytes to the URL with the returned headers, then call the finalize route.",
+  middleware: [...write] as const,
+  request: { params: documentParam, body: body(documentFileUploadBody) },
+  responses: {
+    200: jsonResponse("The presigned upload", imageUploadSchema),
+    400: errorResponse("The file is empty or too large"),
+    403: noAccess,
+    404: notFound,
+    409: superseded,
+    415: fileRefused,
+    503: errorResponse("File uploads are not configured on this instance"),
+  },
+});
+
+const finalizeFileUploadRoute = createRoute({
+  method: "post",
+  operationId: "finalizeDocumentFileUpload",
+  path: `${one}/upload/finalize`,
+  tags,
+  summary: "Finalize a file upload",
+  description:
+    "Record an uploaded file as part of a document and return the URL to reference it by. The file opens for whoever can open the document, and for nobody else.",
+  middleware: [...write] as const,
+  request: {
+    params: documentParam,
+    body: body(finalizeDocumentFileUploadBody),
+  },
+  responses: {
+    200: jsonResponse("The stored file", documentFileSchema),
+    400: errorResponse(
+      "The key does not belong to this document, or the stored object does not match the name and size",
+    ),
+    403: noAccess,
+    404: notFound,
+    409: superseded,
+    415: fileRefused,
+    503: errorResponse("The stored object could not be checked"),
+  },
+});
+
 const versionsRoute = createRoute({
   method: "get",
   operationId: "listDocumentVersions",
@@ -761,6 +822,31 @@ const document = apiRouter()
       await setSubscribers(workspaceId, id, c.get("userId"), userIds),
       200,
     );
+  })
+  .openapi(createFileUploadRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(
+      await createDocumentFileUpload(
+        workspaceId,
+        id,
+        c.get("userId"),
+        c.req.valid("json"),
+      ),
+      200,
+    );
+  })
+  .openapi(finalizeFileUploadRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    const file = await finalizeDocumentFileUpload(
+      workspaceId,
+      id,
+      c.get("userId"),
+      c.req.valid("json"),
+    );
+    const apiBaseUrl = normalizeApiServerUrl(
+      process.env.KANEO_API_URL || new URL(c.req.url).origin,
+    );
+    return c.json({ ...file, url: `${apiBaseUrl}/asset/${file.id}` }, 200);
   })
   .openapi(versionsRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");

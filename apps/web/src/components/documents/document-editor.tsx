@@ -15,6 +15,8 @@ import {
 import { descriptionSaveQueue } from "@/lib/description-save-queue";
 import { formatRelativeTime } from "@/lib/format";
 import { getInitials } from "@/lib/get-initials";
+import { HttpError } from "@/lib/http-error";
+import { uploadDocumentFile } from "@/lib/upload-document-file";
 import { ChecklistIssuesButton } from "./checklist-issues-button";
 import type { ChecklistLine } from "./checklist-issues";
 import { ChecklistToIssuesDialog } from "./checklist-to-issues-dialog";
@@ -87,6 +89,17 @@ export function DocumentEditor({
     );
   };
 
+  const uploadAsset = async (file: File) => {
+    try {
+      return await uploadDocumentFile({ workspaceId, documentId: id, file });
+    } catch (error) {
+      if (error instanceof HttpError && error.status === 415) {
+        throw new Error(t("navigation:documents.upload.typeNotAllowed"));
+      }
+      throw error;
+    }
+  };
+
   const editorName = document.updatedByName ?? document.creatorName;
   const editorImage =
     !document.updatedById || document.updatedById === document.creatorId
@@ -155,6 +168,7 @@ export function DocumentEditor({
             readOnly ? undefined : (value) => schedule("content", value)
           }
           readOnly={readOnly}
+          uploadAsset={readOnly ? undefined : uploadAsset}
           showBubbleMenu={!readOnly}
           bubbleMenuExtra={(editor) => (
             <ChecklistIssuesButton

@@ -15,10 +15,17 @@ import {
   vi,
 } from "vite-plus/test";
 import type { DocumentDetail } from "@/fetchers/document/documents";
+import { HttpError } from "@/lib/http-error";
 import { descriptionSaveQueue } from "@/lib/description-save-queue";
 import { DocumentEditor } from "./document-editor";
 
-const mocks = vi.hoisted(() => ({ updateDocument: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  updateDocument: vi.fn(),
+  uploadDocumentFile: vi.fn(),
+  editorProps: {
+    current: {} as { uploadAsset?: (file: File) => Promise<unknown> },
+  },
+}));
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -27,6 +34,9 @@ vi.mock("react-i18next", () => ({
 vi.mock("@/fetchers/document/documents", () => ({
   updateDocument: mocks.updateDocument,
 }));
+vi.mock("@/lib/upload-document-file", () => ({
+  uploadDocumentFile: mocks.uploadDocumentFile,
+}));
 // The real editor is covered by its own tests; this stub keeps the save logic
 // in view: it renders the hydrated value once and reports typing.
 vi.mock("@/components/activity/comment-editor", () => ({
@@ -34,18 +44,23 @@ vi.mock("@/components/activity/comment-editor", () => ({
     value,
     onChange,
     readOnly,
+    uploadAsset,
   }: {
     value: string;
     onChange?: (value: string) => void;
     readOnly?: boolean;
-  }) => (
-    <textarea
-      aria-label="body"
-      defaultValue={value}
-      readOnly={readOnly}
-      onChange={(event) => onChange?.(event.target.value)}
-    />
-  ),
+    uploadAsset?: (file: File) => Promise<unknown>;
+  }) => {
+    mocks.editorProps.current = { uploadAsset };
+    return (
+      <textarea
+        aria-label="body"
+        defaultValue={value}
+        readOnly={readOnly}
+        onChange={(event) => onChange?.(event.target.value)}
+      />
+    );
+  },
 }));
 
 const base: DocumentDetail = {
@@ -177,5 +192,53 @@ describe("DocumentEditor autosave", () => {
     await settle();
     expect(mocks.updateDocument).not.toHaveBeenCalled();
     expect(screen.getByText("navigation:documents.viewOnly")).toBeTruthy();
+  });
+});
+
+describe("DocumentEditor file upload", () => {
+  const file = new File(["a"], "a.pdf");
+  afterEach(cleanup);
+  beforeEach(() => {
+    mocks.uploadDocumentFile.mockReset();
+  });
+
+  it("offers uploads only when editable", () => {
+    renderEditor(base);
+    expect(mocks.editorProps.current.uploadAsset).toBeTypeOf("function");
+    cleanup();
+    renderEditor(base, true);
+    expect(mocks.editorProps.current.uploadAsset).toBeUndefined();
+  });
+
+  it("uploads into this document", async () => {
+    mocks.uploadDocumentFile.mockResolvedValue({ url: "u" });
+    renderEditor(base);
+    await mocks.editorProps.current.uploadAsset?.(file);
+    expect(mocks.uploadDocumentFile).toHaveBeenCalledWith({
+      workspaceId: "ws-1",
+      documentId: "doc-1",
+      file,
+    });
+  });
+
+  it("explains a refused file type", async () => {
+    mocks.uploadDocumentFile.mockImplementation(async () => {
+      throw new HttpError(415, "raw");
+    });
+    renderEditor(base);
+    await expect(mocks.editorProps.current.uploadAsset?.(file)).rejects.toThrow(
+      "navigation:documents.upload.typeNotAllowed",
+    );
+  });
+
+  it("passes other errors through unchanged", async () => {
+    const error = new HttpError(500, "boom");
+    mocks.uploadDocumentFile.mockImplementation(async () => {
+      throw error;
+    });
+    renderEditor(base);
+    await expect(mocks.editorProps.current.uploadAsset?.(file)).rejects.toBe(
+      error,
+    );
   });
 });

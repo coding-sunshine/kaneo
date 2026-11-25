@@ -3865,6 +3865,9 @@
 				"failed": "Could not check who can open it.",
 				"loading": "Checking who can open it...",
 				"title": "Who can open this"
+			},
+			"upload": {
+				"typeNotAllowed": "This file type can't be added to a document. Use a PDF, an Office or OpenDocument file, text, Markdown, CSV or an image."
 			}
 		},
 		"drafts": {

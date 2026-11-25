@@ -437,6 +437,34 @@ export const ownerlessDocumentListSchema = z.array(
     .openapi("OwnerlessDocument"),
 );
 
+export const documentFileUploadBody = z.object({
+  filename: z.string().min(1).max(255).openapi({
+    description:
+      "The file's name. Its extension decides the stored type; a type sent by the caller is never used.",
+  }),
+  size: z.number().openapi({ description: "Size of the file in bytes." }),
+});
+
+export const finalizeDocumentFileUploadBody = documentFileUploadBody.extend({
+  key: z
+    .string()
+    .openapi({ description: "The key returned when the URL was issued." }),
+});
+
+export const documentFileSchema = z
+  .object({
+    id: z.string(),
+    url: z.string().openapi({
+      description:
+        "Where the file is read back from. It opens for whoever can open the document.",
+    }),
+    kind: z.string().openapi({
+      description: "image for a picture, attachment for any other file.",
+    }),
+    mimeType: z.string(),
+  })
+  .openapi("DocumentFile");
+
 export const savedDraftSchema = z
   .object({
     id: z.string(),

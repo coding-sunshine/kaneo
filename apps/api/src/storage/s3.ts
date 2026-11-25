@@ -277,21 +277,34 @@ export function buildObjectKeyPrefix(
   ].join("/");
 }
 
-export function buildObjectKey(context: TaskImageUploadContext) {
-  const extension = getFileExtension(context.filename);
-  const objectKeyPrefix = buildObjectKeyPrefix(context);
+function buildObjectFileName(filename: string) {
+  const extension = getFileExtension(filename);
   const timestamp = Date.now();
   const randomId = createId();
 
   const baseName = sanitizePathSegment(
-    context.filename.replace(/\.[^/.]+$/, "") || "image",
+    filename.replace(/\.[^/.]+$/, "") || "image",
   ).slice(0, 64);
 
-  const fileName = extension
+  return extension
     ? `${baseName}-${timestamp}-${randomId}.${extension}`
     : `${baseName}-${timestamp}-${randomId}`;
+}
 
-  return `${objectKeyPrefix}/${fileName}`;
+export function buildObjectKey(context: TaskImageUploadContext) {
+  return `${buildObjectKeyPrefix(context)}/${buildObjectFileName(context.filename)}`;
+}
+
+type DocumentFileContext = { workspaceId: string; documentId: string };
+
+/** No team or issue in the key: a document moves between them. */
+function buildDocumentFileObjectKeyPrefix(context: DocumentFileContext) {
+  return [
+    "workspace",
+    sanitizePathSegment(context.workspaceId),
+    "document",
+    sanitizePathSegment(context.documentId),
+  ].join("/");
 }
 
 export function buildProjectBackgroundObjectKey(
@@ -382,9 +395,29 @@ export async function createTaskImageUploadUrl(
   context: TaskImageUploadContext & { size: number },
 ): Promise<TaskImageUploadUrl> {
   validateTaskAssetUploadInput(context.contentType, context.size);
+  return presignUpload(buildObjectKey(context), context);
+}
+
+export async function createDocumentFileUploadUrl(
+  context: DocumentFileContext & {
+    filename: string;
+    contentType: string;
+    size: number;
+  },
+): Promise<TaskImageUploadUrl> {
+  validateTaskAssetUploadInput(context.contentType, context.size);
+  return presignUpload(
+    `${buildDocumentFileObjectKeyPrefix(context)}/${buildObjectFileName(context.filename)}`,
+    context,
+  );
+}
+
+async function presignUpload(
+  rawKey: string,
+  context: { contentType: string; size: number },
+): Promise<TaskImageUploadUrl> {
   const config = getStorageConfig();
   const client = getClient(config);
-  const rawKey = buildObjectKey(context);
   const key = applyKeyPrefix(config.keyPrefix, rawKey);
 
   const command = new PutObjectCommand({
@@ -579,8 +612,16 @@ export function assertTaskImageKeyMatchesContext(
   key: string,
   context: Omit<TaskImageUploadContext, "filename" | "contentType">,
 ) {
+  return isObjectDirectlyUnder(key, buildObjectKeyPrefix(context));
+}
+
+/** True for a key issued for a file of this document, and for no other key. */
+export function isDocumentFileKey(key: string, context: DocumentFileContext) {
+  return isObjectDirectlyUnder(key, buildDocumentFileObjectKeyPrefix(context));
+}
+
+function isObjectDirectlyUnder(key: string, objectPrefix: string) {
   const config = getStorageConfig();
-  const objectPrefix = buildObjectKeyPrefix(context);
   const fullPrefix = `${applyKeyPrefix(config.keyPrefix, objectPrefix)}/`;
 
   if (!key.startsWith(fullPrefix)) {

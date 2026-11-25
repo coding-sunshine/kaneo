@@ -14121,6 +14121,16 @@
 						"retry": {
 							"type": "string"
 						},
+						"upload": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"typeNotAllowed": {
+									"type": "string"
+								}
+							},
+							"required": ["typeNotAllowed"]
+						},
 						"scopes": {
 							"type": "object",
 							"additionalProperties": false,
@@ -15254,6 +15264,7 @@
 						"saving",
 						"saveFailed",
 						"retry",
+						"upload",
 						"scopes",
 						"moved",
 						"share",

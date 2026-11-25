@@ -348,3 +348,26 @@ export async function markDocumentsSeen(workspaceId: string, until: string) {
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }
+
+export async function createDocumentFileUpload(
+  workspaceId: string,
+  id: string,
+  json: { filename: string; size: number },
+) {
+  const response = await one.upload.$put({ param: { workspaceId, id }, json });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function finalizeDocumentFileUpload(
+  workspaceId: string,
+  id: string,
+  json: { key: string; filename: string; size: number },
+) {
+  const response = await one.upload.finalize.$post({
+    param: { workspaceId, id },
+    json,
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
