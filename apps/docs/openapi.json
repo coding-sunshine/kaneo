@@ -13567,6 +13567,14 @@
                 "properties": {
                   "approved": {
                     "type": "boolean"
+                  },
+                  "access": {
+                    "type": "string",
+                    "enum": [
+                      "full",
+                      "documents"
+                    ],
+                    "description": "What the client may change. `documents` limits it to documents and topics; it still reads everything the person can. Defaults to `full`."
                   }
                 },
                 "required": [
@@ -13608,7 +13616,7 @@
             }
           },
           "403": {
-            "description": "Untrusted request origin",
+            "description": "Untrusted request origin, or the session is itself limited to documents",
             "content": {
               "application/json": {
                 "schema": {

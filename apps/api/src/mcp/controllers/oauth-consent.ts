@@ -2,6 +2,7 @@ import { HTTPException } from "hono/http-exception";
 import { publishEvent } from "../../events";
 import type { z } from "../../openapi";
 import { getUserSession } from "../../utils/get-user-session";
+import { DOCUMENTS_SCOPE } from "../scope";
 import {
   consumeAuthorizationRequest,
   createAuthCode,
@@ -116,6 +117,8 @@ export async function decideMcpAuthorizationRequest(params: {
 
   const session = await getUserSession(params.headers);
   if (!session?.user?.id) throwOAuthError(401, "unauthorized");
+  // A token limited to documents must not approve a wider one for itself.
+  if (session.session.mcpScope) throwOAuthError(403, "insufficient_scope");
 
   const request = await getAuthorizationRequest(params.requestId);
   if (!request) throwOAuthError(404, "invalid_or_expired_request");
@@ -138,6 +141,9 @@ export async function decideMcpAuthorizationRequest(params: {
       sessionId: session.session.id,
       codeChallenge: request.codeChallenge,
       redirectUri: request.redirectUri,
+      ...(params.decision.access === "documents"
+        ? { scope: DOCUMENTS_SCOPE }
+        : {}),
     },
     params.requestId,
   );

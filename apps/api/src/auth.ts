@@ -781,6 +781,8 @@ export const auth = betterAuth({
         input: false,
         returned: false,
       },
+      // Returned, so every place that resolves a session sees the limit.
+      mcpScope: { type: "string", required: false, input: false },
     },
     cookieCache: {
       // Consult the session store on every request so password recovery

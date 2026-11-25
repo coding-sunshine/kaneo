@@ -182,7 +182,9 @@ const decideAuthorizationRequestRoute = createRoute({
     ),
     400: jsonError("Invalid request or OAuth client"),
     401: jsonError("Authentication required"),
-    403: jsonError("Untrusted request origin"),
+    403: jsonError(
+      "Untrusted request origin, or the session is itself limited to documents",
+    ),
     404: jsonError("Unknown or expired authorization request"),
   },
 });
@@ -274,6 +276,7 @@ mcp.post("/mcp/token", async (c) => {
     access_token: result.accessToken,
     token_type: "bearer",
     expires_in: result.expiresIn,
+    ...(result.scope ? { scope: result.scope } : {}),
   });
 });
 

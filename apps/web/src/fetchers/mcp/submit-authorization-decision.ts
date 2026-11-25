@@ -1,8 +1,10 @@
+import type { McpAccess } from "@/components/auth/mcp-access";
 import { getApiUrl } from "@/fetchers/get-api-url";
 
 export async function submitMcpAuthorizationDecision(
   requestId: string,
   approved: boolean,
+  access?: McpAccess,
 ): Promise<string> {
   const response = await fetch(
     getApiUrl(`/mcp/authorize/request/${encodeURIComponent(requestId)}`),
@@ -10,7 +12,7 @@ export async function submitMcpAuthorizationDecision(
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ approved }),
+      body: JSON.stringify(access ? { approved, access } : { approved }),
     },
   );
   if (!response.ok) {

@@ -86,6 +86,9 @@ export const sessionTable = pgTable(
     activeTeamId: text("active_team_id"),
     impersonatedBy: text("impersonated_by"),
     oidcSid: text("oidc_sid"),
+    // Set on an assistant token the person limited to documents. Null means
+    // the session may do everything its person may.
+    mcpScope: text("mcp_scope"),
   },
   (table) => [
     index("session_userId_idx").on(table.userId),

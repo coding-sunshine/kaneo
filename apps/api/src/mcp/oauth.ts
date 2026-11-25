@@ -19,6 +19,7 @@ type AuthCode = {
   sessionId: string;
   codeChallenge: string;
   redirectUri: string;
+  scope?: string;
 };
 
 export type AuthorizationRequest = {
@@ -113,7 +114,11 @@ export async function exchangeCode(
   clientId: string,
   codeVerifier: string,
   redirectUri: string,
-): Promise<{ accessToken: string; expiresIn: number } | null> {
+): Promise<{
+  accessToken: string;
+  expiresIn: number;
+  scope?: string;
+} | null> {
   const stored = await consumeState<AuthCode>("code", code);
   if (!stored) return null;
 
@@ -157,7 +162,8 @@ export async function exchangeCode(
       expiresAt: new Date(Date.now() + expiresIn * 1000),
       createdAt: new Date(),
       updatedAt: new Date(),
+      mcpScope: stored.scope ?? null,
     });
-    return { accessToken: sessionToken, expiresIn };
+    return { accessToken: sessionToken, expiresIn, scope: stored.scope };
   });
 }

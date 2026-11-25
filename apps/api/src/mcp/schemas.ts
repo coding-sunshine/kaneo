@@ -67,6 +67,10 @@ export const authorizationRequestParamSchema = z.object({
 
 export const authorizationDecisionSchema = z.object({
   approved: z.boolean(),
+  access: z.enum(["full", "documents"]).optional().openapi({
+    description:
+      "What the client may change. `documents` limits it to documents and topics; it still reads everything the person can. Defaults to `full`.",
+  }),
 });
 
 export const oauthErrorSchema = z

@@ -108,7 +108,10 @@ import user from "./user";
 import getAvatar from "./user/controllers/get-avatar";
 import { apiKeyRejection } from "./utils/api-key-rejection";
 import { applyApiKeyHeaders } from "./utils/apply-api-key-headers";
-import { authenticateApiRequest } from "./utils/authenticate-api-request";
+import {
+  authenticateApiRequest,
+  isRefusedForScopedSession,
+} from "./utils/authenticate-api-request";
 import { requireIntegrationProviderEnabled } from "./instance-settings/require-integration-provider-enabled";
 import {
   authorizeAssetAccess,
@@ -483,6 +486,16 @@ export function createApp() {
     const { id } = c.req.param();
     const result = await getInvitationDetails(id);
     return c.json(result);
+  });
+
+  // Before every /auth handler below, the device page included.
+  api.use("/auth/*", async (c, next) => {
+    if (await isRefusedForScopedSession(c)) {
+      throw new HTTPException(403, {
+        message: "This connection can only change documents and topics",
+      });
+    }
+    return next();
   });
 
   api.use("/auth/*", async (c, next) => {

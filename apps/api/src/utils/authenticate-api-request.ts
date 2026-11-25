@@ -3,6 +3,7 @@ import { APIError } from "better-auth/api";
 import type { Context } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { resolveInternalUser } from "../agent/internal-auth";
+import { scopedSessionAllows } from "../mcp/scope";
 import { apiKeyRejection } from "./api-key-rejection";
 import { getUserSession } from "./get-user-session";
 import { type ApiKeyRateLimit, rateLimitHeaders } from "./rate-limit-headers";
@@ -62,6 +63,20 @@ function parseBearerToken(authHeader: string | undefined): {
     token: match[1] ?? null,
     malformed: false,
   };
+}
+
+// Keyed on the session row, not on how it arrived: the same token is a
+// bearer token or, signed, a cookie. Any value at all limits the session, so
+// a scope this build does not know is never read as full access.
+function assertSessionScope(
+  c: Context,
+  session: { mcpScope?: string | null } | null | undefined,
+) {
+  if (session?.mcpScope && !scopedSessionAllows(c.req.method, c.req.path)) {
+    throw new HTTPException(403, {
+      message: "This connection can only change documents and topics",
+    });
+  }
 }
 
 function setRateLimitHeaders(c: Context, rateLimit: ApiKeyRateLimit | null) {
@@ -128,6 +143,7 @@ export async function authenticateApiRequest(c: Context): Promise<void> {
     }
     const sessionResult = await getSessionFromBearerOnlyHeaders(c);
     if (sessionResult?.user && sessionResult.session) {
+      assertSessionScope(c, sessionResult.session);
       c.set("user", sessionResult.user);
       c.set("session", sessionResult.session);
       c.set("userId", sessionResult.user.id);
@@ -147,8 +163,27 @@ export async function authenticateApiRequest(c: Context): Promise<void> {
   if (!sessionResult?.user) {
     throw new HTTPException(401, { message: "Unauthorized" });
   }
+  assertSessionScope(c, sessionResult.session);
 
   attachUserToScope(sessionResult.user.id);
+}
+
+/**
+ * For the /auth routes, which the provider answers itself. True when either
+ * credential on the request, read on its own, is a session limited to
+ * documents and the request is not one such a session may send.
+ */
+export async function isRefusedForScopedSession(c: Context): Promise<boolean> {
+  if (scopedSessionAllows(c.req.method, c.req.path)) return false;
+  const raw = c.req.raw.headers;
+  for (const drop of ["cookie", "authorization"]) {
+    const kept = drop === "cookie" ? "authorization" : "cookie";
+    if (!raw.get(kept)) continue;
+    const headers = new Headers(raw);
+    headers.delete(drop);
+    if ((await getSession(headers))?.session.mcpScope) return true;
+  }
+  return false;
 }
 
 export async function resolveAssetBearerOrCookie(c: Context): Promise<{

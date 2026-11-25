@@ -3,11 +3,14 @@ import {
   useNavigate,
   useSearch,
 } from "@tanstack/react-router";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod/v4";
 import { AuthDetails } from "@/components/auth/auth-details";
 import { AuthFormSkeleton } from "@/components/auth/auth-form-skeleton";
 import { AuthPage } from "@/components/auth/auth-page";
+import type { McpAccess } from "@/components/auth/mcp-access";
+import { McpAccessChoice } from "@/components/auth/mcp-access-choice";
 import { useSettledSession } from "@/components/auth/use-settled-session";
 import PageTitle from "@/components/page-title";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +34,7 @@ function McpAuthorizePage() {
   const requestId = search.request_id ?? "";
   const request = useMcpAuthorizationRequest(requestId);
   const decision = useMcpAuthorizationDecision();
+  const [access, setAccess] = useState<McpAccess>("full");
   const { session, isLoading: isSessionPending } = useSettledSession();
   const pageTitle = <PageTitle title={t("auth:mcp.authorize.title")} />;
 
@@ -86,7 +90,7 @@ function McpAuthorizePage() {
 
   const submitDecision = (approved: boolean) => {
     decision.mutate(
-      { requestId, approved },
+      approved ? { requestId, approved, access } : { requestId, approved },
       { onSuccess: (redirect) => window.location.assign(redirect) },
     );
   };
@@ -124,15 +128,12 @@ function McpAuthorizePage() {
                 label: t("auth:mcp.authorize.signedInAs"),
                 value: session.user.email,
               },
-              {
-                label: t("auth:mcp.authorize.access"),
-                value: (
-                  <span className="block whitespace-normal">
-                    {t("auth:mcp.authorize.accessValue")}
-                  </span>
-                ),
-              },
             ]}
+          />
+          <McpAccessChoice
+            value={access}
+            onChange={setAccess}
+            disabled={decision.isPending}
           />
           <div className="grid grid-cols-2 gap-2">
             <Button

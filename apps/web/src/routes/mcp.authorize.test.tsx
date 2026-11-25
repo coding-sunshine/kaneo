@@ -58,7 +58,10 @@ afterEach(cleanup);
 it("shows who is asking, where it returns, which account it gets and what it may do", () => {
   render(<Page />);
   expect(
-    screen.getByText("auth:mcp.authorize.accessValue"),
+    screen.getByText("auth:mcp.authorize.accessFullDescription"),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText("auth:mcp.authorize.accessDocumentsDescription"),
   ).toBeInTheDocument();
   expect(screen.getByText("Claude Desktop")).toBeInTheDocument();
   expect(
@@ -71,13 +74,27 @@ it("shows who is asking, where it returns, which account it gets and what it may
 });
 
 it.each([
-  ["auth:mcp.authorize.allow", true],
-  ["auth:mcp.authorize.deny", false],
-])("submits %s as approved=%s", (label, approved) => {
+  ["auth:mcp.authorize.allow", { approved: true, access: "full" }],
+  ["auth:mcp.authorize.deny", { approved: false }],
+])("submits %s as %j", (label, decision) => {
   render(<Page />);
   fireEvent.click(screen.getByRole("button", { name: label }));
   expect(m.mutate).toHaveBeenCalledWith(
-    { requestId: "request-1", approved },
+    { requestId: "request-1", ...decision },
+    expect.any(Object),
+  );
+});
+
+it("allows with documents only when the person picks it", () => {
+  render(<Page />);
+  fireEvent.click(
+    screen.getByRole("radio", { name: /mcp\.authorize\.accessDocuments/ }),
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "auth:mcp.authorize.allow" }),
+  );
+  expect(m.mutate).toHaveBeenCalledWith(
+    { requestId: "request-1", approved: true, access: "documents" },
     expect.any(Object),
   );
 });

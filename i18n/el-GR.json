@@ -559,7 +559,10 @@
 				"deny": "Απόρριψη",
 				"allow": "Παραχώρηση πρόσβασης",
 				"access": "Access",
-				"accessValue": "Full access. It can read and change everything you can, including issues and documents."
+				"accessDocuments": "Documents only",
+				"accessDocumentsDescription": "It can read everything you can, issues included. It can change only documents and topics.",
+				"accessFull": "Full access",
+				"accessFullDescription": "It can read and change everything you can, including issues and documents."
 			},
 			"expired": {
 				"title": "Αυτό το αίτημα έχει λήξει",

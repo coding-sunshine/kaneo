@@ -2201,7 +2201,16 @@
 								"access": {
 									"type": "string"
 								},
-								"accessValue": {
+								"accessFull": {
+									"type": "string"
+								},
+								"accessFullDescription": {
+									"type": "string"
+								},
+								"accessDocuments": {
+									"type": "string"
+								},
+								"accessDocumentsDescription": {
 									"type": "string"
 								},
 								"deny": {
@@ -2220,7 +2229,10 @@
 								"redirect",
 								"signedInAs",
 								"access",
-								"accessValue",
+								"accessFull",
+								"accessFullDescription",
+								"accessDocuments",
+								"accessDocumentsDescription",
 								"deny",
 								"allow"
 							]
