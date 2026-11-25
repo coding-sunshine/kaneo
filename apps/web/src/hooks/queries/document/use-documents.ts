@@ -7,6 +7,7 @@ import {
   getDocumentComments,
   getDocuments,
   getDocumentVersions,
+  getOwnerlessDocuments,
 } from "@/fetchers/document/documents";
 
 /** Every document query in a workspace shares this prefix. */
@@ -77,5 +78,19 @@ export function useDocumentComments(workspaceId: string, id: string) {
     enabled: Boolean(workspaceId && id),
     queryKey: documentCommentsKey(workspaceId, id),
     queryFn: () => getDocumentComments(workspaceId, id),
+  });
+}
+
+export const ownerlessDocumentsKey = (workspaceId: string) => [
+  ...documentsKey(workspaceId),
+  "ownerless",
+];
+
+/** Private documents whose author left. Ask only for a workspace owner. */
+export function useOwnerlessDocuments(workspaceId: string) {
+  return useQuery({
+    enabled: Boolean(workspaceId),
+    queryKey: ownerlessDocumentsKey(workspaceId),
+    queryFn: () => getOwnerlessDocuments(workspaceId),
   });
 }

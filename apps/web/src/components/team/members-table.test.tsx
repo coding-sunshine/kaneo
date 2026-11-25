@@ -4,6 +4,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import {
   afterEach,
@@ -47,9 +48,27 @@ vi.mock("@/hooks/mutations/workspace-user/use-cancel-invitation", () => ({
   default: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
+const calls: string[] = [];
+const removeMember = vi.fn(async (_input: unknown) => {
+  calls.push("remove");
+});
+const handOverDocuments = vi.fn(async (..._args: string[]) => {
+  calls.push("handOver");
+});
+
 vi.mock("@/hooks/mutations/workspace-user/use-delete-workspace-user", () => ({
-  default: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  default: () => ({
+    mutateAsync: (input: unknown) => removeMember(input),
+    isPending: false,
+  }),
 }));
+
+vi.mock("@/fetchers/document/documents", () => ({
+  handOverDocuments: (...args: string[]) => handOverDocuments(...args),
+}));
+
+// It asks the API, which these tests do not reach.
+vi.mock("./ownerless-documents", () => ({ default: () => null }));
 
 vi.mock(
   "@/hooks/mutations/workspace-user/use-update-workspace-user-role",
@@ -127,6 +146,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  calls.length = 0;
 });
 
 const pendingInvitation = {
@@ -330,5 +350,87 @@ describe("MembersTable project access", () => {
       await screen.findByText("team:projectAccess.selectAtLeastOne"),
     ).toBeVisible();
     expect(updateProjectAccess).not.toHaveBeenCalled();
+  });
+});
+
+describe("MembersTable removal and the member's private documents", () => {
+  const openRemoval = async (owner: boolean) => {
+    render(
+      <MembersTable
+        workspaceId="workspace-1"
+        invitations={[]}
+        users={[
+          makeMember(
+            "current-user",
+            owner ? "owner" : "admin",
+            "Casey Current",
+          ),
+          makeMember("leaver", "member", "Lee Leaver"),
+          makeMember("keeper", "member", "Kim Keeper"),
+        ]}
+      />,
+    );
+    const [first] = screen.getAllByRole("button", {
+      name: "team:membersTable.ariaRemoveMember",
+    });
+    fireEvent.click(first);
+    fireEvent.click(
+      await screen.findByRole("menuitem", {
+        name: "team:membersTable.removeMember",
+      }),
+    );
+    return screen.findByRole("alertdialog");
+  };
+  const confirm = (dialog: HTMLElement) =>
+    fireEvent.click(
+      within(dialog).getByRole("button", {
+        name: "team:membersTable.removeMember",
+      }),
+    );
+
+  it("removes the member first, then gives their documents to the colleague the owner picked", async () => {
+    const dialog = await openRemoval(true);
+    fireEvent.click(
+      within(dialog).getByRole("combobox", {
+        name: "team:membersTable.handOverLabel",
+      }),
+    );
+    const options = await screen.findAllByRole("option");
+    // Nobody is offered their own documents on the way out.
+    expect(options.map((option) => option.textContent)).toEqual([
+      "team:membersTable.handOverNoOne",
+      "Casey Current",
+      "Kim Keeper",
+    ]);
+    // The select picks on the pointer sequence, not on a bare click.
+    fireEvent.pointerDown(options[2]);
+    fireEvent.mouseDown(options[2]);
+    fireEvent.pointerUp(options[2]);
+    fireEvent.mouseUp(options[2]);
+    fireEvent.click(options[2]);
+    confirm(dialog);
+
+    await waitFor(() =>
+      expect(handOverDocuments).toHaveBeenCalledWith(
+        "workspace-1",
+        "leaver",
+        "keeper",
+      ),
+    );
+    expect(calls).toEqual(["remove", "handOver"]);
+  });
+
+  it("hands nothing over when the owner picks no one", async () => {
+    confirm(await openRemoval(true));
+    await waitFor(() => expect(removeMember).toHaveBeenCalled());
+    expect(handOverDocuments).not.toHaveBeenCalled();
+  });
+
+  it("does not offer the choice to somebody who is not an owner", async () => {
+    const dialog = await openRemoval(false);
+    expect(within(dialog).queryByRole("combobox")).toBeNull();
+    confirm(dialog);
+    await waitFor(() => expect(removeMember).toHaveBeenCalled());
+    expect(handOverDocuments).not.toHaveBeenCalled();
   });
 });

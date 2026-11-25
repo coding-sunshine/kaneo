@@ -274,6 +274,28 @@ export const documentAudienceSchema = z
 
 export const idSchema = z.object({ id: z.string() });
 
+export const handOverBody = z.object({
+  fromUserId: z.string().openapi({
+    description: "The person who left the workspace.",
+  }),
+  toUserId: z.string().openapi({
+    description:
+      "The member who becomes the author of their private documents.",
+  }),
+});
+export const handedOverSchema = z
+  .object({ moved: z.number().int() })
+  .openapi("DocumentsHandedOver");
+export const ownerlessDocumentListSchema = z.array(
+  z
+    .object({
+      id: z.string(),
+      title: z.string(),
+      updatedAt: responseTimestamp,
+    })
+    .openapi("OwnerlessDocument"),
+);
+
 export const savedDraftSchema = z
   .object({
     id: z.string(),

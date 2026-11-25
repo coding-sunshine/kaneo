@@ -12,9 +12,11 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { handOverDocuments } from "@/fetchers/document/documents";
 import useCancelInvitation from "@/hooks/mutations/workspace-user/use-cancel-invitation";
 import useDeleteWorkspaceUser from "@/hooks/mutations/workspace-user/use-delete-workspace-user";
 import useUpdateWorkspaceUserRole from "@/hooks/mutations/workspace-user/use-update-workspace-user-role";
+import { ownerlessDocumentsKey } from "@/hooks/queries/document/use-documents";
 import useWorkspaceRoles from "@/hooks/queries/workspace/use-workspace-roles";
 import useGetMyProjectAccess from "@/hooks/queries/workspace-users/use-get-my-project-access";
 import useGetWorkspaceProjectAccess from "@/hooks/queries/workspace-users/use-get-workspace-project-access";
@@ -24,6 +26,7 @@ import { cn } from "@/lib/cn";
 import { formatDateMedium } from "@/lib/format";
 import { getInitials } from "@/lib/get-initials";
 import { toast } from "@/lib/toast";
+import queryClient from "@/query-client";
 import type {
   WorkspaceUser,
   WorkspaceUserInvitation,
@@ -58,6 +61,7 @@ import {
   TableRow,
 } from "../ui/table";
 import MemberProjectAccessDialog from "./member-project-access-dialog";
+import OwnerlessDocuments from "./ownerless-documents";
 import {
   ALL_PROJECTS_ACCESS,
   type ProjectAccessValue,
@@ -108,6 +112,9 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
   const [memberToDelete, setMemberToDelete] = useState<WorkspaceUser | null>(
     null,
   );
+  // The member who becomes the author of the removed member's private
+  // documents. Empty leaves them for an owner to take over later.
+  const [handOverTo, setHandOverTo] = useState("");
   const [invitationToCancel, setInvitationToCancel] =
     useState<WorkspaceUserInvitation | null>(null);
   const [accessTarget, setAccessTarget] = useState<{
@@ -118,6 +125,12 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
   const [isAccessDialogOpen, setIsAccessDialogOpen] = useState(false);
 
   const { user: currentUser } = useAuth();
+  // Only an owner may hand over or take over private documents.
+  const isOwner = users.some(
+    (member) =>
+      member.userId === currentUser?.id &&
+      member.role.split(",").includes("owner"),
+  );
   const { mutateAsync: deleteWorkspaceUser, isPending: isDeleting } =
     useDeleteWorkspaceUser();
   const { mutateAsync: cancelInvitation, isPending: isCancelling } =
@@ -191,6 +204,23 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
       });
       toast.success(t("team:membersTable.removeSuccess"), {
         icon: UserMinusIcon,
+      });
+      // After the removal: the documents of a current member never move.
+      if (handOverTo) {
+        await handOverDocuments(
+          workspaceId,
+          memberToDelete.userId,
+          handOverTo,
+        ).catch(() =>
+          toast.error(
+            t("team:membersTable.handOverError", {
+              name: memberToDelete.user.name || memberToDelete.user.email,
+            }),
+          ),
+        );
+      }
+      queryClient.invalidateQueries({
+        queryKey: ownerlessDocumentsKey(workspaceId),
       });
     } catch (error) {
       toast.error(
@@ -399,7 +429,12 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
                         <EllipsisIcon className="size-4" />
                       </MenuTrigger>
                       <MenuPopup align="end">
-                        <MenuItem onClick={() => setMemberToDelete(member)}>
+                        <MenuItem
+                          onClick={() => {
+                            setHandOverTo("");
+                            setMemberToDelete(member);
+                          }}
+                        >
                           <TrashIcon className="size-4" />
                           {t("team:membersTable.removeMember")}
                         </MenuItem>
@@ -513,6 +548,8 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
         </TableBody>
       </Table>
 
+      {isOwner ? <OwnerlessDocuments workspaceId={workspaceId} /> : null}
+
       <MemberProjectAccessDialog
         workspaceId={workspaceId}
         open={isAccessDialogOpen}
@@ -537,6 +574,43 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
               })}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {isOwner ? (
+            <div className="grid gap-1.5 px-6">
+              <span id="hand-over-label" className="text-sm font-medium">
+                {t("team:membersTable.handOverLabel")}
+              </span>
+              <Select
+                value={handOverTo}
+                onValueChange={(value) =>
+                  setHandOverTo(typeof value === "string" ? value : "")
+                }
+              >
+                <SelectTrigger size="sm" aria-labelledby="hand-over-label">
+                  <SelectValue>
+                    {users.find((member) => member.userId === handOverTo)?.user
+                      .name || t("team:membersTable.handOverNoOne")}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">
+                    {t("team:membersTable.handOverNoOne")}
+                  </SelectItem>
+                  {users
+                    .filter(
+                      (member) => member.userId !== memberToDelete?.userId,
+                    )
+                    .map((member) => (
+                      <SelectItem key={member.userId} value={member.userId}>
+                        {member.user.name || member.user.email}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {t("team:membersTable.handOverHint")}
+              </p>
+            </div>
+          ) : null}
           <AlertDialogFooter>
             <AlertDialogClose
               render={

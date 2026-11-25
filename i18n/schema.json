@@ -23633,6 +23633,33 @@
 						"removeDialogDescription": {
 							"type": "string"
 						},
+						"handOverLabel": {
+							"type": "string"
+						},
+						"handOverNoOne": {
+							"type": "string"
+						},
+						"handOverHint": {
+							"type": "string"
+						},
+						"handOverError": {
+							"type": "string"
+						},
+						"ownerlessTitle": {
+							"type": "string"
+						},
+						"ownerlessDescription": {
+							"type": "string"
+						},
+						"takeOver": {
+							"type": "string"
+						},
+						"takeOverSuccess": {
+							"type": "string"
+						},
+						"takeOverError": {
+							"type": "string"
+						},
 						"cancelDialogTitle": {
 							"type": "string"
 						},
@@ -23674,6 +23701,15 @@
 						"ariaRemoveMember",
 						"removeDialogTitle",
 						"removeDialogDescription",
+						"handOverLabel",
+						"handOverNoOne",
+						"handOverHint",
+						"handOverError",
+						"ownerlessTitle",
+						"ownerlessDescription",
+						"takeOver",
+						"takeOverSuccess",
+						"takeOverError",
 						"cancelDialogTitle",
 						"cancelDialogDescription",
 						"removeMember",

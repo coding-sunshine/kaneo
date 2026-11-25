@@ -17,6 +17,11 @@ import { createDocument } from "./controllers/create-document";
 import { deleteDocument, restoreDocument } from "./controllers/delete-document";
 import { documentAudience } from "./controllers/document-audience";
 import { getDocument } from "./controllers/get-document";
+import {
+  handOverDocuments,
+  listOwnerlessDocuments,
+  takeOverDocument,
+} from "./controllers/hand-over-documents";
 import { listDocuments } from "./controllers/list-documents";
 import { moveDocument } from "./controllers/move-document";
 import { setSubscribers } from "./controllers/set-subscribers";
@@ -39,9 +44,12 @@ import {
   documentUserParam,
   documentVersionListSchema,
   documentVersionParam,
+  handedOverSchema,
+  handOverBody,
   idSchema,
   listDocumentsQuery,
   moveDocumentBody,
+  ownerlessDocumentListSchema,
   saveDraftBody,
   savedDraftSchema,
   settleDocumentBody,
@@ -147,6 +155,60 @@ const settleRoute = createRoute({
     409: errorResponse(
       "The document is not a draft, or the topic has nothing to replace",
     ),
+  },
+});
+
+const ownersOnly = errorResponse(
+  "Only a workspace owner can hand over private documents",
+);
+
+const handOverRoute = createRoute({
+  method: "post",
+  operationId: "handOverDocuments",
+  path: "/workspace/{workspaceId}/hand-over",
+  tags,
+  summary: "Hand over a former member's private documents",
+  description:
+    "Make a member the author of the private documents of somebody who left the workspace. Workspace owners only. The private documents of a current member never move: the answer is then 0.",
+  middleware: [...write] as const,
+  request: { params: workspaceIdParam, body: body(handOverBody) },
+  responses: {
+    200: jsonResponse("How many documents moved", handedOverSchema),
+    403: ownersOnly,
+    404: errorResponse("The receiving member was not found"),
+  },
+});
+
+const ownerlessRoute = createRoute({
+  method: "get",
+  operationId: "listOwnerlessDocuments",
+  path: "/workspace/{workspaceId}/ownerless",
+  tags,
+  summary: "List private documents with no author",
+  description:
+    "Title and date of the private documents whose author deleted their account or left the workspace. Workspace owners only.",
+  middleware: [...read] as const,
+  request: { params: workspaceIdParam },
+  responses: {
+    200: jsonResponse("Documents with no author", ownerlessDocumentListSchema),
+    403: ownersOnly,
+  },
+});
+
+const takeOverRoute = createRoute({
+  method: "post",
+  operationId: "takeOverDocument",
+  path: `${one}/take-over`,
+  tags,
+  summary: "Take over a private document with no author",
+  description:
+    "Become the author of a private document whose author deleted their account or left the workspace. Workspace owners only.",
+  middleware: [...write] as const,
+  request: { params: documentParam },
+  responses: {
+    200: jsonResponse("Document taken over", idSchema),
+    403: ownersOnly,
+    404: notFound,
   },
 });
 
@@ -422,6 +484,33 @@ const document = apiRouter()
     const userId = c.get("userId");
     return c.json(
       await settleDocument(workspaceId, id, userId, c.req.valid("json")),
+      200,
+    );
+  })
+  // Before the routes that read the last segment as a document id.
+  .openapi(handOverRoute, async (c) =>
+    c.json(
+      await handOverDocuments(
+        c.req.valid("param").workspaceId,
+        c.get("userId"),
+        c.req.valid("json"),
+      ),
+      200,
+    ),
+  )
+  .openapi(ownerlessRoute, async (c) =>
+    c.json(
+      await listOwnerlessDocuments(
+        c.req.valid("param").workspaceId,
+        c.get("userId"),
+      ),
+      200,
+    ),
+  )
+  .openapi(takeOverRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(
+      await takeOverDocument(workspaceId, c.get("userId"), id),
       200,
     );
   })

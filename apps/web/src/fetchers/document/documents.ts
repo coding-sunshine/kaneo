@@ -226,3 +226,30 @@ export async function deleteDocumentComment(
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }
+
+/** Make a member the author of the private documents of somebody who left. */
+export async function handOverDocuments(
+  workspaceId: string,
+  fromUserId: string,
+  toUserId: string,
+) {
+  const response = await api["hand-over"].$post({
+    param: { workspaceId },
+    json: { fromUserId, toUserId },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+/** Private documents whose author left. Workspace owners only. */
+export async function getOwnerlessDocuments(workspaceId: string) {
+  const response = await api.ownerless.$get({ param: { workspaceId } });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function takeOverDocument(workspaceId: string, id: string) {
+  const response = await one["take-over"].$post({ param: { workspaceId, id } });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}

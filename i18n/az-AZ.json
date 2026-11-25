@@ -5694,7 +5694,16 @@
 			"cancelInviteSuccess": "Dəvət uğurla ləğv edildi",
 			"cancelInviteError": "Dəvəti ləğv etmək alınmadı",
 			"roleUpdateSuccess": "Rol yeniləndi",
-			"roleUpdateError": "Rolu yeniləmək alınmadı"
+			"roleUpdateError": "Rolu yeniləmək alınmadı",
+			"handOverError": "{{name}} was removed, but their private documents were not handed over. Take them over from the list under the members.",
+			"handOverHint": "Only they can open their private documents. Pick a member to become the author, or take the documents over later from the list under this table.",
+			"handOverLabel": "Give their private documents to",
+			"handOverNoOne": "No one",
+			"ownerlessDescription": "The author left the workspace or deleted their account. Nobody can open these until an owner takes them over.",
+			"ownerlessTitle": "Private documents with no author",
+			"takeOver": "Take over",
+			"takeOverError": "Could not take over the document",
+			"takeOverSuccess": "You are now the author of this document"
 		},
 		"projectAccess": {
 			"allProjects": "All projects",
