@@ -835,7 +835,7 @@ describe("private teams: work projects", () => {
     // The outsider saw only Beta, so saving that list leaves Alpha attached.
     const saved = await world.as(admin)(
       `/work-project/${shared.id}`,
-      json("PUT", { teamIds: [world.beta.id], summary: "Re-saved" }),
+      json("PUT", { teamIds: [world.beta.id] }),
     );
     expect(saved.status).toBe(200);
     expect(await view(world.owner, shared.id)).toMatchObject({

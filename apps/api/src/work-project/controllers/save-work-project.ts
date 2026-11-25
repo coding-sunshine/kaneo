@@ -105,9 +105,11 @@ export async function saveWorkProject(
             message: "A project with this name already exists",
           });
       }
+      // A save of the teams or the members alone names no column, and an
+      // update with nothing to set throws.
       await tx
         .update(workProjectTable)
-        .set(values)
+        .set({ ...values, updatedAt: new Date() })
         .where(eq(workProjectTable.id, projectId));
     } else {
       const [created] = await tx

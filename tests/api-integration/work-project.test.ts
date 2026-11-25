@@ -124,6 +124,40 @@ describe("API integration: work projects", () => {
     expect(await db.select().from(schema.workProjectTable)).toHaveLength(0);
   });
 
+  // The web sends the teams alone, or the members alone, when a person
+  // changes them.
+  it("saves a change to the teams or the members alone", async () => {
+    const { app, member, project } = await setup();
+    const { project: otherTeam } = await createProjectFixture({
+      workspaceId: member.workspace.id,
+      name: "Other team",
+    });
+    const created = await (
+      await app.request(
+        "/api/work-project",
+        json("POST", {
+          workspaceId: member.workspace.id,
+          name: "Roadmap",
+          teamIds: [project.id],
+        }),
+      )
+    ).json();
+
+    const teams = await app.request(
+      `/api/work-project/${created.id}`,
+      json("PUT", { teamIds: [otherTeam.id] }),
+    );
+    expect(teams.status).toBe(200);
+    expect((await teams.json()).teamIds).toEqual([otherTeam.id]);
+
+    const members = await app.request(
+      `/api/work-project/${created.id}`,
+      json("PUT", { memberIds: [member.user.id] }),
+    );
+    expect(members.status).toBe(200);
+    expect((await members.json()).memberIds).toEqual([member.user.id]);
+  });
+
   it("validates names, statuses, duplicates and foreign users or teams", async () => {
     const { app, member } = await setup();
     const other = await createWorkspaceMember({ userName: "Stranger" });
