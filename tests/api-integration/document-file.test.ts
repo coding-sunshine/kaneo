@@ -288,6 +288,7 @@ describe("API integration: save a document from chat", () => {
         name: "Launch plan",
         parentName: "Alpha",
         currentDocument: null,
+        slots: [],
       },
     ]);
 
@@ -353,6 +354,7 @@ describe("API integration: save a document from chat", () => {
       topicId: topic,
       replacesDocumentId: null,
       discarded: false,
+      statements: [],
     });
     expect(await stored(proposal)).toMatchObject({
       status: "in_review",

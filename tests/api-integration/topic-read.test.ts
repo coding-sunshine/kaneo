@@ -164,6 +164,8 @@ describe("API integration: reading a topic before writing", () => {
           deciderName: owner.name,
           tasks: [],
           unreviewed: 2,
+          slots: [],
+          answers: [],
           current: {
             id: v2,
             title: "Launch plan v2",
