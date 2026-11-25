@@ -57,8 +57,10 @@ export async function documentUsage(workspaceId: string, userId: string) {
       ),
   ]);
   for (const document of documents) {
-    const week = weeks[Math.floor((now - document.createdAt.getTime()) / WEEK)];
-    // A clock ahead of this one can date a document after `now`.
+    // The database clock can run ahead of this one and date a document after
+    // `now`. That document was added this week.
+    const age = Math.max(0, now - document.createdAt.getTime());
+    const week = weeks[Math.floor(age / WEEK)];
     if (!week) continue;
     week.added += 1;
     if (document.filedAt) week.filed += 1;

@@ -161,6 +161,18 @@ describe("API integration: the usage numbers of documents", () => {
     ).toBe(7 * DAY);
   });
 
+  it("counts a document dated ahead of this clock in the current week", async () => {
+    const world = await buildDocumentWorld();
+    const { owner } = world;
+    const before = await read(world);
+    // The database clock can run ahead of the API's by a few milliseconds.
+    const ahead = await write(world, owner, "Added a moment from now");
+    await addedAt(ahead, -1 / 24);
+
+    const after = await read(world);
+    expect(after.weeks[0].added).toBe(before.weeks[0].added + 1);
+  });
+
   it("leaves out a document in the trash", async () => {
     const world = await buildDocumentWorld();
     const { owner, ws } = world;
