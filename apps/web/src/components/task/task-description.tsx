@@ -60,6 +60,7 @@ import {
 } from "@/components/ui/menu";
 import { useUpdateTaskDescription } from "@/hooks/mutations/task/use-update-task-description";
 import useGetTask from "@/hooks/queries/task/use-get-task";
+import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { cn } from "@/lib/cn";
 import { descriptionSaveQueue } from "@/lib/description-save-queue";
@@ -74,6 +75,7 @@ import { isInCodeBlockLanguagePicker } from "@/lib/is-in-codeblock-language-pick
 import { pasteMarkdown } from "@/lib/paste-markdown";
 import { toast } from "@/lib/toast";
 import { uploadTaskImage } from "@/lib/upload-task-image";
+import { LinkedDocumentAccessWarning } from "./linked-document-access-warning";
 import { ResizableImage } from "./extensions/resizable-image";
 import { SHIKI_CODEBLOCK_REFRESH_META } from "./extensions/shiki-code-block";
 import "tippy.js/dist/tippy.css";
@@ -186,6 +188,7 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
   const { t } = useTranslation();
   const { data: task, isPlaceholderData } = useGetTask(taskId);
   const taskLoaded = Boolean(task) && !isPlaceholderData;
+  const { data: workspace } = useActiveWorkspace();
   const { mutateAsync: updateTaskDescription } = useUpdateTaskDescription();
   const { canUpdateTasks } = useWorkspacePermission();
   const ownerId = useContext(AuthContext).user?.id ?? "";
@@ -1774,6 +1777,12 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
         onMouseMove={handleEditorMouseMove}
         onMouseLeave={handleEditorMouseLeave}
       />
+      {workspace && (
+        <LinkedDocumentAccessWarning
+          workspaceId={workspace.id}
+          taskId={taskId}
+        />
+      )}
       {canEdit && (
         <button
           type="button"

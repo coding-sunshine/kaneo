@@ -7,7 +7,7 @@ import {
   documentTable,
   topicTable,
 } from "../../database/schema";
-import { documentParentAccess } from "../visibility";
+import { documentParentAccess, documentTaskAccess } from "../visibility";
 
 export type DocumentRole = "owner" | DocumentAccess;
 const RANK: Record<DocumentRole, number> = {
@@ -24,12 +24,16 @@ function roleFor(
   userId: string,
   shareAccess: DocumentAccess | null,
   parentAccess: boolean,
+  taskAccess: boolean,
   decides: boolean,
 ): DocumentRole | null {
   if (doc.creatorId === userId) return "owner";
-  const roles = [shareAccess, parentAccess ? doc.generalAccess : null].filter(
-    (role): role is DocumentAccess => role !== null,
-  );
+  // An issue the document is shared with lets its people view, no more.
+  const roles = [
+    shareAccess,
+    parentAccess ? doc.generalAccess : null,
+    taskAccess ? ("view" as const) : null,
+  ].filter((role): role is DocumentAccess => role !== null);
   const role = roles.sort((a, b) => RANK[b] - RANK[a])[0] ?? null;
   // A topic's decider may edit its current document, whatever the document
   // grants everyone else. Only while they can still open the topic's place.
@@ -57,6 +61,7 @@ export async function loadDocument(
       doc: documentTable,
       shareAccess: documentShareTable.access,
       parentAccess: documentParentAccess(userId, documentTable),
+      taskAccess: documentTaskAccess(userId, documentTable.id),
       deciderId: topicTable.deciderId,
       backupDeciderId: topicTable.backupDeciderId,
     })
@@ -85,6 +90,7 @@ export async function loadDocument(
       userId,
       row.shareAccess,
       Boolean(row.parentAccess),
+      Boolean(row.taskAccess),
       row.deciderId === userId || row.backupDeciderId === userId,
     );
   if (!row || !role) {

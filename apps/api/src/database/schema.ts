@@ -2850,11 +2850,13 @@ export const TASK_DOCUMENT_SOURCES = [
   "description",
   "comment",
   "document",
+  "share",
 ] as const;
 export type TaskDocumentSource = (typeof TASK_DOCUMENT_SOURCES)[number];
 
 // A link between an issue and a document, found in the text of one of them.
 // One row per place the link was found, so each place is kept right alone.
+// A "share" row is made by sharing the document with the issue, not by text.
 export const taskDocumentTable = pgTable(
   "task_document",
   {

@@ -1,8 +1,12 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
 import db from "../../database";
-import { documentShareTable, documentTable } from "../../database/schema";
+import {
+  documentShareTable,
+  documentTable,
+  taskDocumentTable,
+} from "../../database/schema";
 import type { moveDocumentBody } from "../schema";
 import { getDocument } from "./get-document";
 import { loadDocument } from "./load-document";
@@ -46,6 +50,14 @@ export async function moveDocument(
       await tx
         .delete(documentShareTable)
         .where(eq(documentShareTable.documentId, id));
+      await tx
+        .delete(taskDocumentTable)
+        .where(
+          and(
+            eq(taskDocumentTable.documentId, id),
+            eq(taskDocumentTable.source, "share"),
+          ),
+        );
     }
   });
   if (body.scope === "private" || doc.role === "owner") {

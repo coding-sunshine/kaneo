@@ -26,6 +26,11 @@ import { listDocuments } from "./controllers/list-documents";
 import { moveDocument } from "./controllers/move-document";
 import { setSubscribers } from "./controllers/set-subscribers";
 import { shareDocument, unshareDocument } from "./controllers/share-document";
+import {
+  shareWithTask,
+  taskAudience,
+  unshareFromTask,
+} from "./controllers/share-with-task";
 import { markDocumentsSeen } from "./controllers/mark-documents-seen";
 import { decideLineage } from "./controllers/lineage";
 import { snoozeDocument } from "./controllers/snooze-document";
@@ -40,11 +45,13 @@ import {
   documentCommentListSchema,
   documentCommentParam,
   documentAudienceSchema,
+  documentTaskAudienceSchema,
   documentCommentSchema,
   documentListSchema,
   documentParam,
   documentSchema,
   documentSnoozeSchema,
+  documentTaskParam,
   documentUserParam,
   documentVersionListSchema,
   documentVersionParam,
@@ -386,6 +393,57 @@ const unshareRoute = createRoute({
   },
 });
 
+const taskAudienceRoute = createRoute({
+  method: "get",
+  operationId: "getDocumentTaskAudience",
+  path: `${one}/task/{taskId}/audience`,
+  tags,
+  summary: "Who on an issue cannot open a document",
+  description:
+    "How many people can open the issue, and how many of them cannot open the document. A link in the issue's text gives nobody access.",
+  middleware: [...read] as const,
+  request: { params: documentTaskParam },
+  responses: {
+    200: jsonResponse("Issue audience", documentTaskAudienceSchema),
+    403: noAccess,
+    404: errorResponse("Document or issue not found"),
+  },
+});
+
+const shareTaskRoute = createRoute({
+  method: "put",
+  operationId: "shareDocumentWithTask",
+  path: `${one}/task/{taskId}/share`,
+  tags,
+  summary: "Share document with an issue",
+  description:
+    "Everyone who can open the issue can view the document from then on. Needs edit rights on the document and an issue you can open.",
+  middleware: [...write] as const,
+  request: { params: documentTaskParam },
+  responses: {
+    200: jsonResponse("Document shared", documentSchema),
+    403: noAccess,
+    404: errorResponse("Document or issue not found"),
+  },
+});
+
+const unshareTaskRoute = createRoute({
+  method: "delete",
+  operationId: "unshareDocumentFromTask",
+  path: `${one}/task/{taskId}/share`,
+  tags,
+  summary: "Stop sharing with an issue",
+  description:
+    "The issue no longer lets anyone into the document. Needs edit rights on the document.",
+  middleware: [...write] as const,
+  request: { params: documentTaskParam },
+  responses: {
+    200: jsonResponse("Sharing stopped", documentSchema),
+    403: noAccess,
+    404: notFound,
+  },
+});
+
 const audienceRoute = createRoute({
   method: "get",
   operationId: "getDocumentAudience",
@@ -633,6 +691,27 @@ const document = apiRouter()
         c.get("userId"),
         c.req.valid("query"),
       ),
+      200,
+    );
+  })
+  .openapi(taskAudienceRoute, async (c) => {
+    const { workspaceId, id, taskId } = c.req.valid("param");
+    return c.json(
+      await taskAudience(workspaceId, id, c.get("userId"), taskId),
+      200,
+    );
+  })
+  .openapi(shareTaskRoute, async (c) => {
+    const { workspaceId, id, taskId } = c.req.valid("param");
+    return c.json(
+      await shareWithTask(workspaceId, id, c.get("userId"), taskId),
+      200,
+    );
+  })
+  .openapi(unshareTaskRoute, async (c) => {
+    const { workspaceId, id, taskId } = c.req.valid("param");
+    return c.json(
+      await unshareFromTask(workspaceId, id, c.get("userId"), taskId),
       200,
     );
   })

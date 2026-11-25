@@ -5,6 +5,7 @@ import {
   getDocument,
   getDocumentAudience,
   getDocumentComments,
+  getDocumentTaskAudience,
   getDocuments,
   getDocumentVersions,
   getNewDocuments,
@@ -80,6 +81,19 @@ export function useDocumentAudience(
     enabled: Boolean(workspaceId && id && place),
     queryKey: [...documentKey(workspaceId, id), "audience", place],
     queryFn: () => getDocumentAudience(workspaceId, id, place ?? {}),
+  });
+}
+
+/** How many people on an issue cannot open a document linked in its text. */
+export function useDocumentTaskAudience(
+  workspaceId: string,
+  id: string,
+  taskId: string,
+) {
+  return useQuery({
+    enabled: Boolean(workspaceId && id && taskId),
+    queryKey: [...documentsKey(workspaceId), "task-audience", id, taskId],
+    queryFn: () => getDocumentTaskAudience(workspaceId, id, taskId),
   });
 }
 

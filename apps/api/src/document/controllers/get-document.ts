@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, ne } from "drizzle-orm";
 import db from "../../database";
 import {
   documentShareTable,
@@ -15,6 +15,7 @@ import { topicAccess } from "../visibility";
 import { readLineage } from "./lineage";
 import { documentParentName } from "./list-documents";
 import { loadDocument } from "./load-document";
+import { sharedTasksOf } from "./share-with-task";
 
 export async function getDocument(
   workspaceId: string,
@@ -22,7 +23,7 @@ export async function getDocument(
   userId: string,
 ) {
   const doc = await loadDocument(workspaceId, id, userId);
-  const [shares, subscribers, [parent], revisionOf, citedBy] =
+  const [shares, subscribers, [parent], revisionOf, citedBy, sharedTasks] =
     await Promise.all([
       db
         .select({
@@ -72,11 +73,19 @@ export async function getDocument(
         .where(
           and(
             eq(taskDocumentTable.documentId, id),
+            // Sharing with an issue is not a link in a text.
+            ne(taskDocumentTable.source, "share"),
             eq(projectTable.workspaceId, workspaceId),
             projectAccessCondition(userId, projectTable.id),
           ),
         )
         .orderBy(asc(projectTable.slug), asc(taskTable.number)),
+      sharedTasksOf(
+        workspaceId,
+        id,
+        userId,
+        doc.role === "owner" || doc.role === "edit",
+      ),
     ]);
   const topicName = parent?.topicName ?? null;
   const personIds = [doc.creatorId, doc.updatedById, doc.approvedBy].filter(
@@ -135,6 +144,7 @@ export async function getDocument(
     role: doc.role,
     revisionOf,
     citedBy,
+    sharedTasks,
     shares,
     subscriberIds: subscribers.map((row) => row.userId),
   };

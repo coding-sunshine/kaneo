@@ -1,4 +1,4 @@
-import { Building2, Link2, Lock, UserPlus } from "lucide-react";
+import { Building2, Link2, Lock, UserPlus, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Menu, MenuItem, MenuPopup, MenuTrigger } from "@/components/ui/menu";
@@ -6,6 +6,7 @@ import { Popover, PopoverPopup, PopoverTrigger } from "@/components/ui/popover";
 import type { DocumentDetail } from "@/fetchers/document/documents";
 import {
   useShareDocument,
+  useUnshareDocumentFromTask,
   useUpdateDocument,
 } from "@/hooks/mutations/document/use-document-mutations";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
@@ -35,6 +36,7 @@ export function DocumentSharePopover({
   const { data: users } = useGetActiveWorkspaceUsers(workspaceId);
   const share = useShareDocument(workspaceId, id);
   const update = useUpdateDocument(workspaceId, id);
+  const unshare = useUnshareDocumentFromTask(workspaceId);
   const copyLink = useCopyDocumentLink(workspaceId, id);
   const canManage = document.role === "owner" || document.role === "edit";
 
@@ -126,6 +128,61 @@ export function DocumentSharePopover({
             </li>
           ))}
         </ul>
+        {document.sharedTasks.length > 0 && (
+          <>
+            <p className={section}>
+              {t("navigation:documents.share.sharedTasks")}
+            </p>
+            <p className="px-3 text-muted-foreground text-xs">
+              {t("navigation:documents.share.sharedTasksHint")}
+            </p>
+            <ul className="px-1">
+              {document.sharedTasks.map((task) => {
+                const label =
+                  task.title === null
+                    ? t("navigation:documents.share.hiddenTask")
+                    : `${
+                        task.number === null || !task.projectSlug
+                          ? ""
+                          : `${task.projectSlug.toUpperCase()}-${task.number} `
+                      }${task.title}`;
+                return (
+                  <li
+                    key={task.id}
+                    className="flex h-9 items-center justify-between gap-2 px-2 text-[13px]"
+                  >
+                    <span className="truncate">{label}</span>
+                    {canManage && (
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={t(
+                          "navigation:documents.share.stopSharingWith",
+                          { issue: label },
+                        )}
+                        onClick={() =>
+                          unshare.mutate(
+                            { id, taskId: task.id },
+                            {
+                              onError: () =>
+                                toast.error(
+                                  t(
+                                    "navigation:documents.share.unshareFromTaskFailed",
+                                  ),
+                                ),
+                            },
+                          )
+                        }
+                      >
+                        <X aria-hidden />
+                      </Button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
         <p className={section}>
           {t("navigation:documents.share.generalAccess")}
         </p>

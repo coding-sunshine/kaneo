@@ -52,6 +52,27 @@ export function documentParentAccess(
   )`;
 }
 
+// A document shared with an issue is open to everyone who can open the issue.
+// A link in the issue's text alone lets in nobody.
+export function documentTaskAccess(
+  userId: string | SQLWrapper,
+  documentId: SQLWrapper,
+) {
+  return sql<boolean>`EXISTS (
+    SELECT 1 FROM task_document AS visible_grant
+    JOIN task AS visible_grant_task
+      ON visible_grant_task.id = visible_grant.task_id
+    JOIN project AS visible_grant_team
+      ON visible_grant_team.id = visible_grant_task.project_id
+    JOIN document AS visible_grant_document
+      ON visible_grant_document.id = visible_grant.document_id
+    WHERE visible_grant.document_id = ${documentId}
+      AND visible_grant.grants_access
+      AND visible_grant_team.workspace_id = visible_grant_document.workspace_id
+      AND ${projectAccessCondition(userId, sql`visible_grant_task.project_id`)}
+  )`;
+}
+
 // The one visibility rule for documents: lists, reads and notifications.
 export function documentVisibility(
   userId: string | SQLWrapper,
@@ -65,6 +86,7 @@ export function documentVisibility(
         AND visible_share.user_id = ${userId}
     )
     OR ${documentParentAccess(userId, doc)}
+    OR ${documentTaskAccess(userId, doc.id)}
   )`;
 }
 

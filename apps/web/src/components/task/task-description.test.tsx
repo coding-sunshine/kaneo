@@ -47,6 +47,12 @@ vi.mock("./extensions/task-item-with-checkbox", () => ({
   TaskItemWithCheckbox: TaskItem,
 }));
 
+vi.mock("./linked-document-access-warning", () => ({
+  LinkedDocumentAccessWarning: () => null,
+}));
+vi.mock("@/hooks/queries/workspace/use-active-workspace", () => ({
+  default: () => ({ data: { id: "w1" } }),
+}));
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: mocks.t }),
   initReactI18next: { type: "3rdParty", init: () => {} },

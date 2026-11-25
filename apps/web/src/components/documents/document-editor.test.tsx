@@ -86,6 +86,7 @@ const base: DocumentDetail = {
   role: "owner",
   revisionOf: null,
   citedBy: [],
+  sharedTasks: [],
   shares: [],
   subscriberIds: [],
 };

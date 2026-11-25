@@ -14060,6 +14060,48 @@
 								"remove": {
 									"type": "string"
 								},
+								"taskAudience_one": {
+									"type": "string"
+								},
+								"taskAudience_zero": {
+									"type": "string"
+								},
+								"taskAudience_two": {
+									"type": "string"
+								},
+								"taskAudience_few": {
+									"type": "string"
+								},
+								"taskAudience_many": {
+									"type": "string"
+								},
+								"taskAudience_other": {
+									"type": "string"
+								},
+								"shareWithTask": {
+									"type": "string"
+								},
+								"leaveAsItIs": {
+									"type": "string"
+								},
+								"sharedTasks": {
+									"type": "string"
+								},
+								"sharedTasksHint": {
+									"type": "string"
+								},
+								"hiddenTask": {
+									"type": "string"
+								},
+								"stopSharingWith": {
+									"type": "string"
+								},
+								"shareWithTaskFailed": {
+									"type": "string"
+								},
+								"unshareFromTaskFailed": {
+									"type": "string"
+								},
 								"access": {
 									"type": "object",
 									"additionalProperties": false,
@@ -14088,6 +14130,14 @@
 								"addPeople",
 								"noPeople",
 								"remove",
+								"shareWithTask",
+								"leaveAsItIs",
+								"sharedTasks",
+								"sharedTasksHint",
+								"hiddenTask",
+								"stopSharingWith",
+								"shareWithTaskFailed",
+								"unshareFromTaskFailed",
 								"access"
 							]
 						},

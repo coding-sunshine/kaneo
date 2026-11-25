@@ -12,7 +12,9 @@ import {
   restoreDocumentVersion,
   setDocumentSubscribers,
   shareDocument,
+  shareDocumentWithTask,
   snoozeDocument,
+  unshareDocumentFromTask,
   updateDocument,
   updateDocumentComment,
 } from "@/fetchers/document/documents";
@@ -77,6 +79,26 @@ export function useShareDocument(workspaceId: string, id: string) {
     // Removing a share answers with an id only, so refetch either way.
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: documentKey(workspaceId, id) }),
+  });
+}
+
+export function useShareDocumentWithTask(workspaceId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, taskId }: { id: string; taskId: string }) =>
+      shareDocumentWithTask(workspaceId, id, taskId),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: documentsKey(workspaceId) }),
+  });
+}
+
+export function useUnshareDocumentFromTask(workspaceId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, taskId }: { id: string; taskId: string }) =>
+      unshareDocumentFromTask(workspaceId, id, taskId),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: documentsKey(workspaceId) }),
   });
 }
 

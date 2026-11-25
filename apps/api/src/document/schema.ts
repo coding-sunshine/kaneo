@@ -18,6 +18,7 @@ export const documentParam = z.object({
   id: z.string(),
 });
 export const documentUserParam = documentParam.extend({ userId: z.string() });
+export const documentTaskParam = documentParam.extend({ taskId: z.string() });
 export const documentVersionParam = documentParam.extend({
   versionId: z.string(),
 });
@@ -294,6 +295,20 @@ export const documentSchema = z
         description:
           "Issues linked with the document, in the text of either. Only issues you can open.",
       }),
+    sharedTasks: z
+      .array(
+        z.object({
+          id: z.string(),
+          title: z.string().nullable(),
+          number: z.number().nullable(),
+          projectId: z.string().nullable(),
+          projectSlug: z.string().nullable(),
+        }),
+      )
+      .openapi({
+        description:
+          "Issues the document is shared with: everyone who can open one can view the document. With edit rights you get every issue, without its name when you cannot open it. Otherwise only issues you can open.",
+      }),
     shares: z.array(
       z.object({
         userId: z.string(),
@@ -353,6 +368,17 @@ export const documentAudienceSchema = z
     }),
   })
   .openapi("DocumentAudience");
+
+export const documentTaskAudienceSchema = z
+  .object({
+    total: z.number().openapi({
+      description: "Workspace members who can open the issue.",
+    }),
+    missing: z.number().openapi({
+      description: "How many of them cannot open the document.",
+    }),
+  })
+  .openapi("DocumentTaskAudience");
 
 export const idSchema = z.object({ id: z.string() });
 

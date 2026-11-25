@@ -122,6 +122,42 @@ export async function shareDocument(
   return response.json();
 }
 
+export async function getDocumentTaskAudience(
+  workspaceId: string,
+  id: string,
+  taskId: string,
+) {
+  const response = await one.task[":taskId"].audience.$get({
+    param: { workspaceId, id, taskId },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function shareDocumentWithTask(
+  workspaceId: string,
+  id: string,
+  taskId: string,
+) {
+  const response = await one.task[":taskId"].share.$put({
+    param: { workspaceId, id, taskId },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function unshareDocumentFromTask(
+  workspaceId: string,
+  id: string,
+  taskId: string,
+) {
+  const response = await one.task[":taskId"].share.$delete({
+    param: { workspaceId, id, taskId },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
 export async function setDocumentSubscribers(
   workspaceId: string,
   id: string,
