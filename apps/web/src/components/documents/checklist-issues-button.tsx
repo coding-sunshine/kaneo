@@ -18,7 +18,7 @@ export function ChecklistIssuesButton({ editor, onOpen }: Props) {
       type="button"
       variant="ghost"
       size="xs"
-      className="kaneo-comment-editor-bubble-btn"
+      className="kaneo-comment-editor-bubble-btn w-auto gap-1 px-1.5"
       title={t("navigation:documents.checklist.createHint")}
       onClick={() => onOpen(editor, checklistLines(editor))}
     >

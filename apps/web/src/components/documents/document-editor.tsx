@@ -18,6 +18,7 @@ import { getInitials } from "@/lib/get-initials";
 import { ChecklistIssuesButton } from "./checklist-issues-button";
 import type { ChecklistLine } from "./checklist-issues";
 import { ChecklistToIssuesDialog } from "./checklist-to-issues-dialog";
+import { DocumentKindMenu } from "./document-kind-menu";
 import {
   DOCUMENT_SAVE_OWNER,
   documentSaveKey,
@@ -125,6 +126,9 @@ export function DocumentEditor({
           {t("navigation:documents.updated", {
             time: formatRelativeTime(document.updatedAt),
           })}
+        </span>
+        <span className="sm:hidden">
+          <DocumentKindMenu document={document} />
         </span>
         {readOnly && (
           <span className="ml-1 rounded border border-border px-1 text-[11px]">

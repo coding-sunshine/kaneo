@@ -51,7 +51,10 @@ export function DocumentHeaderActions({
 
   return (
     <div className="flex items-center gap-0.5">
-      <DocumentKindMenu document={document} />
+      {/* A phone has no room for it here; the editor shows it under the title. */}
+      <span className="hidden sm:contents">
+        <DocumentKindMenu document={document} />
+      </span>
       <DocumentSharePopover
         document={document}
         open={shareOpen}

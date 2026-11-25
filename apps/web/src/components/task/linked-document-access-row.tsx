@@ -36,7 +36,7 @@ export function LinkedDocumentAccessRow({
   return (
     <div
       role="status"
-      className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md bg-warning/8 px-3 py-1.5 text-warning-foreground text-xs dark:bg-warning/16"
+      className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md bg-warning/8 py-1.5 pr-12 pl-3 text-warning-foreground text-xs dark:bg-warning/16"
     >
       <span>
         {t("navigation:documents.share.taskAudience", {
