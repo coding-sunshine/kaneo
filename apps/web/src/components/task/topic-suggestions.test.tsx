@@ -38,6 +38,8 @@ const show = (title: string, picked: Topic | null = null) => {
   return (t: string, p: Topic | null) => view.rerender(ui(t, p));
 };
 const settle = () => new Promise((done) => setTimeout(done, 450));
+// The list shows after the typing pause and the answer, however slow the run.
+const shown = () => screen.findByRole("list", {}, { timeout: 3000 });
 
 describe("TopicSuggestions", () => {
   afterEach(() => {
@@ -56,7 +58,7 @@ describe("TopicSuggestions", () => {
     const found = topic({});
     mocks.getTopics.mockResolvedValue([found]);
     show("Launch plan");
-    await settle();
+    await shown();
     expect(mocks.getTopics).toHaveBeenCalledWith("ws", "Launch plan");
     expect(
       screen.getByText("navigation:documents.taskTopic.matches"),
@@ -73,7 +75,7 @@ describe("TopicSuggestions", () => {
   it("says when the current document cannot be opened", async () => {
     mocks.getTopics.mockResolvedValue([topic({ currentDocumentTitle: null })]);
     show("Launch plan");
-    await settle();
+    await shown();
     expect(
       screen.getByText("navigation:documents.taskTopic.cannotOpen"),
     ).toBeTruthy();
@@ -84,7 +86,7 @@ describe("TopicSuggestions", () => {
       ["a", "b", "c", "d"].map((id) => topic({ id, name: `Topic ${id}` })),
     );
     show("Topic");
-    await settle();
+    await shown();
     expect(screen.getAllByRole("button")).toHaveLength(3);
   });
 
@@ -92,7 +94,7 @@ describe("TopicSuggestions", () => {
     const found = topic({});
     mocks.getTopics.mockResolvedValue([found]);
     const again = show("Launch plan");
-    await settle();
+    await shown();
     expect(screen.getByRole("list")).toBeTruthy();
     again("Launch plan", found);
     expect(screen.queryByRole("list")).toBeNull();
