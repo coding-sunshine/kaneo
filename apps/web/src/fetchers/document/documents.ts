@@ -286,6 +286,16 @@ export async function getOwnerlessDocuments(workspaceId: string) {
   return response.json();
 }
 
+/**
+ * Counts for the whole workspace, also of documents the reader cannot open.
+ * Workspace owners only.
+ */
+export async function getDocumentUsage(workspaceId: string) {
+  const response = await api.usage.$get({ param: { workspaceId } });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
 export async function takeOverDocument(workspaceId: string, id: string) {
   const response = await one["take-over"].$post({ param: { workspaceId, id } });
   if (!response.ok) throw await HttpError.fromResponse(response);

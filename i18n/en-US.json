@@ -3637,6 +3637,20 @@
 				"addFailed": "Could not add the topic",
 				"removeFailed": "Could not remove the topic"
 			},
+			"usage": {
+				"open": "Usage",
+				"title": "Document usage",
+				"description": "Numbers for the whole workspace, including documents you cannot open. Each row counts the documents added in those seven days, and how many of them were filed on a topic or saved from chat. Documents in the trash are not counted.",
+				"topics_one": "{{count}} topic has a current document.",
+				"topics_other": "{{count}} topics have a current document.",
+				"week": "Week",
+				"thisWeek": "Last 7 days",
+				"range": "{{from}} to {{to}}",
+				"added": "Added",
+				"filed": "Filed on a topic",
+				"chatSaves": "Saved from chat",
+				"failed": "Could not load the usage numbers. Try again."
+			},
 			"checklist": {
 				"create": "Create issues",
 				"createHint": "Create issues from this checklist",

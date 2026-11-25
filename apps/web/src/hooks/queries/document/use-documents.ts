@@ -9,6 +9,7 @@ import {
   getDocuments,
   getDocumentVersions,
   getNewDocuments,
+  getDocumentUsage,
   getOwnerlessDocuments,
 } from "@/fetchers/document/documents";
 
@@ -121,5 +122,14 @@ export function useOwnerlessDocuments(workspaceId: string) {
     enabled: Boolean(workspaceId),
     queryKey: ownerlessDocumentsKey(workspaceId),
     queryFn: () => getOwnerlessDocuments(workspaceId),
+  });
+}
+
+/** For a workspace owner only: the route refuses everybody else. */
+export function useDocumentUsage(workspaceId: string) {
+  return useQuery({
+    enabled: Boolean(workspaceId),
+    queryKey: [...documentsKey(workspaceId), "usage"],
+    queryFn: () => getDocumentUsage(workspaceId),
   });
 }

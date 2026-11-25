@@ -12,7 +12,7 @@ import { loadDocument } from "./load-document";
 import { recordVersion } from "./record-version";
 
 // What an assistant's tools save under: one draft per person and key.
-const SOURCE = "mcp";
+export const CHAT_SOURCE = "mcp";
 
 // The topics the author can open that the title seems to be about.
 async function matchingTopics(
@@ -69,7 +69,7 @@ export async function saveDraft(
         content: markdown,
         fingerprint: prints,
         scope: "private",
-        externalSource: SOURCE,
+        externalSource: CHAT_SOURCE,
         externalId,
         sourceClient: body.sourceClient ?? null,
         creatorId: userId,
@@ -114,7 +114,7 @@ export async function saveDraft(
       .where(
         and(
           eq(documentTable.workspaceId, workspaceId),
-          eq(documentTable.externalSource, SOURCE),
+          eq(documentTable.externalSource, CHAT_SOURCE),
           eq(documentTable.externalId, externalId),
         ),
       );

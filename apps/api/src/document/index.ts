@@ -16,6 +16,7 @@ import {
 import { createDocument } from "./controllers/create-document";
 import { deleteDocument, restoreDocument } from "./controllers/delete-document";
 import { documentAudience } from "./controllers/document-audience";
+import { documentUsage } from "./controllers/document-usage";
 import { getDocument } from "./controllers/get-document";
 import {
   handOverDocuments,
@@ -52,6 +53,7 @@ import {
   documentSchema,
   documentSnoozeSchema,
   documentTaskParam,
+  documentUsageSchema,
   documentUserParam,
   documentVersionListSchema,
   documentVersionParam,
@@ -223,6 +225,22 @@ const ownerlessRoute = createRoute({
   responses: {
     200: jsonResponse("Documents with no author", ownerlessDocumentListSchema),
     403: ownersOnly,
+  },
+});
+
+const usageRoute = createRoute({
+  method: "get",
+  operationId: "getDocumentUsage",
+  path: "/workspace/{workspaceId}/usage",
+  tags,
+  summary: "Count documents added, filed and saved from chat",
+  description:
+    "For each of the last four weeks: documents added, how many of them were filed on a topic and how many an assistant saved. Also the number of topics with a current document. Numbers only, with no title, topic or person. They count documents the caller cannot open, so they go to workspace owners only.",
+  middleware: [...read] as const,
+  request: { params: workspaceIdParam },
+  responses: {
+    200: jsonResponse("Usage numbers", documentUsageSchema),
+    403: errorResponse("Only a workspace owner can see document usage"),
   },
 });
 
@@ -630,6 +648,12 @@ const document = apiRouter()
         c.req.valid("param").workspaceId,
         c.get("userId"),
       ),
+      200,
+    ),
+  )
+  .openapi(usageRoute, async (c) =>
+    c.json(
+      await documentUsage(c.req.valid("param").workspaceId, c.get("userId")),
       200,
     ),
   )

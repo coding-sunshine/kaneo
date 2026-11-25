@@ -394,6 +394,35 @@ export const handOverBody = z.object({
 export const handedOverSchema = z
   .object({ moved: z.number().int() })
   .openapi("DocumentsHandedOver");
+export const documentUsageSchema = z
+  .object({
+    topicsWithCurrent: z.number().int().openapi({
+      description: "Topics that have a current document.",
+    }),
+    weeks: z
+      .array(
+        z.object({
+          from: responseTimestamp,
+          to: responseTimestamp,
+          added: z.number().int().openapi({
+            description:
+              "Documents added in the week that are not in the trash.",
+          }),
+          filed: z.number().int().openapi({
+            description:
+              "How many of the added documents were filed on a topic.",
+          }),
+          chatSaves: z.number().int().openapi({
+            description: "How many of the added documents an assistant saved.",
+          }),
+        }),
+      )
+      .openapi({
+        description:
+          "The last four weeks, newest first. A week is seven days back from the time of the call.",
+      }),
+  })
+  .openapi("DocumentUsage");
 export const ownerlessDocumentListSchema = z.array(
   z
     .object({

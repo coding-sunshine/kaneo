@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { DocumentFilter } from "@/fetchers/document/documents";
 import { useDocuments } from "@/hooks/queries/document/use-documents";
 import { DocumentList } from "./document-list";
+import { DocumentUsageButton } from "./document-usage-button";
 import { DocumentsEmpty } from "./documents-empty";
 import { DocumentsTabs } from "./documents-tabs";
 import { InboxList } from "./inbox-list";
@@ -28,16 +29,19 @@ export function DocumentsPage({ workspaceId, filter }: DocumentsPageProps) {
       <WorkspaceLayout
         title={t("navigation:documents.title")}
         headerActions={
-          <Button
-            variant="ghost"
-            size="xs"
-            onClick={() => create()}
-            disabled={isPending}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <Plus aria-hidden />
-            {t("navigation:documents.newDocument")}
-          </Button>
+          <>
+            <DocumentUsageButton workspaceId={workspaceId} />
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => create()}
+              disabled={isPending}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <Plus aria-hidden />
+              {t("navigation:documents.newDocument")}
+            </Button>
+          </>
         }
       >
         <div className="flex h-11 shrink-0 items-center border-border/50 border-b px-4">

@@ -3803,6 +3803,22 @@
 				"submit_other": "Create {{count}} issues",
 				"team": "Team",
 				"title": "Create issues from checklist"
+			},
+			"usage": {
+				"added": "Added",
+				"chatSaves": "Saved from chat",
+				"description": "Numbers for the whole workspace, including documents you cannot open. Each row counts the documents added in those seven days, and how many of them were filed on a topic or saved from chat. Documents in the trash are not counted.",
+				"failed": "Could not load the usage numbers. Try again.",
+				"filed": "Filed on a topic",
+				"open": "Usage",
+				"range": "{{from}} to {{to}}",
+				"thisWeek": "Last 7 days",
+				"title": "Document usage",
+				"topics_few": "{{count}} topics have a current document.",
+				"topics_many": "{{count}} topics have a current document.",
+				"topics_one": "{{count}} topic has a current document.",
+				"topics_other": "{{count}} topics have a current document.",
+				"week": "Week"
 			}
 		},
 		"drafts": {

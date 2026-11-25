@@ -14846,6 +14846,72 @@
 								"removeFailed"
 							]
 						},
+						"usage": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"open": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"topics_one": {
+									"type": "string"
+								},
+								"topics_zero": {
+									"type": "string"
+								},
+								"topics_two": {
+									"type": "string"
+								},
+								"topics_few": {
+									"type": "string"
+								},
+								"topics_many": {
+									"type": "string"
+								},
+								"topics_other": {
+									"type": "string"
+								},
+								"week": {
+									"type": "string"
+								},
+								"thisWeek": {
+									"type": "string"
+								},
+								"range": {
+									"type": "string"
+								},
+								"added": {
+									"type": "string"
+								},
+								"filed": {
+									"type": "string"
+								},
+								"chatSaves": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"open",
+								"title",
+								"description",
+								"week",
+								"thisWeek",
+								"range",
+								"added",
+								"filed",
+								"chatSaves",
+								"failed"
+							]
+						},
 						"checklist": {
 							"type": "object",
 							"additionalProperties": false,
@@ -15016,6 +15082,7 @@
 						"makeCurrent",
 						"setAside",
 						"taskTopic",
+						"usage",
 						"checklist"
 					]
 				},

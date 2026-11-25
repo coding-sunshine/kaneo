@@ -4380,6 +4380,55 @@
           "updatedAt"
         ]
       },
+      "DocumentUsage": {
+        "type": "object",
+        "properties": {
+          "topicsWithCurrent": {
+            "type": "integer",
+            "description": "Topics that have a current document."
+          },
+          "weeks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "from": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "to": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "added": {
+                  "type": "integer",
+                  "description": "Documents added in the week that are not in the trash."
+                },
+                "filed": {
+                  "type": "integer",
+                  "description": "How many of the added documents were filed on a topic."
+                },
+                "chatSaves": {
+                  "type": "integer",
+                  "description": "How many of the added documents an assistant saved."
+                }
+              },
+              "required": [
+                "from",
+                "to",
+                "added",
+                "filed",
+                "chatSaves"
+              ]
+            },
+            "description": "The last four weeks, newest first. A week is seven days back from the time of the call."
+          }
+        },
+        "required": [
+          "topicsWithCurrent",
+          "weeks"
+        ]
+      },
       "DocumentSnooze": {
         "type": "object",
         "properties": {
@@ -27543,6 +27592,61 @@
           },
           "403": {
             "description": "Only a workspace owner can hand over private documents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/usage": {
+      "get": {
+        "operationId": "getDocumentUsage",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Count documents added, filed and saved from chat",
+        "description": "For each of the last four weeks: documents added, how many of them were filed on a topic and how many an assistant saved. Also the number of topics with a current document. Numbers only, with no title, topic or person. They count documents the caller cannot open, so they go to workspace owners only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usage numbers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentUsage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only a workspace owner can see document usage",
             "content": {
               "application/json": {
                 "schema": {
