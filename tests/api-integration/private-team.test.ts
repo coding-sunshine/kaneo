@@ -758,6 +758,93 @@ describe("private teams: loops", () => {
   });
 });
 
+describe("private teams: loops listed and opened", () => {
+  const post = (user: User, projectId?: string) =>
+    world.as(user)(
+      "/loop",
+      json("POST", {
+        workspaceId: world.ws,
+        name: "Watch",
+        instructions: "Say hello",
+        trigger: "task_created",
+        projectId,
+      }),
+    );
+  const listed = async (user: User) =>
+    (
+      (await (
+        await world.as(user)(`/loop/workspace/${world.ws}?scope=all`)
+      ).json()) as { id: string }[]
+    ).map((row) => row.id);
+
+  it("keeps a private team's loops from people who cannot open it", async () => {
+    await setPrivate(world.owner, world.alpha);
+    const made = await post(world.owner, world.alpha.id);
+    expect(made.status).toBe(200);
+    const { id } = (await made.json()) as { id: string };
+    const open = await post(world.owner);
+    expect(open.status).toBe(200);
+    const { id: openId } = (await open.json()) as { id: string };
+    const url = `/loop/workspace/${world.ws}/${id}`;
+
+    expect(await listed(world.open)).not.toContain(id);
+    expect(await listed(world.open)).toContain(openId);
+    expect((await world.as(world.open)(url)).status).toBe(404);
+    expect((await world.as(world.open)(`${url}/runs`)).status).toBe(404);
+    const unknown = await post(world.open, "no-such-team");
+    const hidden = await post(world.open, world.alpha.id);
+    expect(unknown.status).toBe(400);
+    expect(hidden.status).toBe(unknown.status);
+    expect(await hidden.text()).toBe(await unknown.text());
+
+    expect(await listed(world.owner)).toContain(id);
+    expect((await world.as(world.owner)(url)).status).toBe(200);
+  });
+});
+
+describe("private teams: workspace webhooks on delete", () => {
+  beforeEach(() => {
+    vi.stubEnv("NOTIFICATION_SECRET_ENCRYPTION_KEY", "webhook-test-key");
+    vi.stubEnv("KANEO_ALLOW_PRIVATE_WEBHOOK_DESTINATIONS", "true");
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("sends no webhook when a private team is deleted", async () => {
+    const created = await world.as(world.owner)(
+      "/workspace-webhook",
+      json("POST", {
+        workspaceId: world.ws,
+        label: "hook",
+        url: "http://127.0.0.1:9/hook",
+        resourceTypes: ["project"],
+      }),
+    );
+    expect(created.status).toBe(200);
+    const deliveries = async () =>
+      JSON.stringify(
+        await db.select().from(schema.workspaceWebhookDeliveryTable),
+      );
+    const remove = async (team: Team) => {
+      const response = await world.as(world.owner)(
+        `/project/${team.id}`,
+        json("DELETE"),
+      );
+      expect(response.status).toBe(200);
+      await settleEvents();
+    };
+
+    await remove(world.beta);
+    expect(await deliveries()).toContain(world.beta.id);
+    await setPrivate(world.owner, world.alpha);
+    await remove(world.alpha);
+    const after = await deliveries();
+    expect(after).not.toContain(world.alpha.id);
+    expect(after).not.toContain(world.alpha.name);
+  });
+});
+
 describe("private teams: work projects", () => {
   // One work project on both teams, with an issue in each.
   const seedShared = async () => {

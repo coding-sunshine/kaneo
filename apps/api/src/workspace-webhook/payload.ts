@@ -76,9 +76,17 @@ export async function resolveCommentEvent(
 
 export async function resolveProjectEvent(
   action: WorkspaceWebhookAction,
-  e: { projectId?: string; workspaceId?: string; name?: string },
+  e: {
+    projectId?: string;
+    workspaceId?: string;
+    name?: string;
+    isPrivate?: boolean;
+  },
 ): Promise<ResolvedWebhookEvent | null> {
   if (!e.projectId) return null;
+  // A deleted team has no row left for the dispatcher to read, so the event
+  // says whether it was private. A private team sends nothing to a webhook.
+  if (e.isPrivate) return null;
   const workspaceId = e.workspaceId ?? (await workspaceOfProject(e.projectId));
   if (!workspaceId) return null;
   let data: Record<string, unknown> | null = null;

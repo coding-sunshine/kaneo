@@ -223,7 +223,7 @@ const routes = loop
   )
   .openapi(getRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");
-    return c.json(await getLoop(workspaceId, id), 200);
+    return c.json(await getLoop(workspaceId, id, c.get("userId")), 200);
   })
   .openapi(createRouteDef, async (c) =>
     c.json(await createLoop(c.get("userId"), c.req.valid("json")), 200),
@@ -249,11 +249,11 @@ const routes = loop
   })
   .openapi(listRunsRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");
-    return c.json(await listRuns(workspaceId, id), 200);
+    return c.json(await listRuns(workspaceId, id, c.get("userId")), 200);
   })
   .openapi(getRunRoute, async (c) => {
     const { workspaceId, id, runId } = c.req.valid("param");
-    return c.json(await getRun(workspaceId, id, runId), 200);
+    return c.json(await getRun(workspaceId, id, runId, c.get("userId")), 200);
   });
 
 export default routes;

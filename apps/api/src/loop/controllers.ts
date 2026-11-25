@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, or, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
 import type { WRITE_TOOLS } from "../agent/tools";
@@ -9,6 +9,7 @@ import {
   projectTable,
   userTable,
 } from "../database/schema";
+import { projectAccessCondition } from "../project-access/project-access-condition";
 import { nextRunAfter } from "./schedule";
 import type { createLoopBody, updateLoopBody } from "./schema";
 
@@ -39,6 +40,14 @@ const selectLoop = () =>
     .from(loopTable)
     .leftJoin(userTable, eq(userTable.id, loopTable.creatorId));
 
+// A loop names its team and says what is done there, so only people who can
+// open that team see it. Its creator always does.
+const visibleTo = (userId: string) =>
+  or(
+    eq(loopTable.creatorId, userId),
+    projectAccessCondition(userId, loopTable.projectId),
+  );
+
 export const listLoops = (
   workspaceId: string,
   userId: string,
@@ -46,18 +55,20 @@ export const listLoops = (
 ) =>
   selectLoop()
     .where(
-      scope === "mine"
-        ? and(
-            eq(loopTable.workspaceId, workspaceId),
-            eq(loopTable.creatorId, userId),
-          )
-        : eq(loopTable.workspaceId, workspaceId),
+      and(
+        eq(loopTable.workspaceId, workspaceId),
+        scope === "mine" ? eq(loopTable.creatorId, userId) : visibleTo(userId),
+      ),
     )
     .orderBy(asc(loopTable.name));
 
-export async function getLoop(workspaceId: string, id: string) {
+export async function getLoop(workspaceId: string, id: string, userId: string) {
   const [loop] = await selectLoop().where(
-    and(eq(loopTable.id, id), eq(loopTable.workspaceId, workspaceId)),
+    and(
+      eq(loopTable.id, id),
+      eq(loopTable.workspaceId, workspaceId),
+      visibleTo(userId),
+    ),
   );
   if (!loop) throw new HTTPException(404, { message: "Loop not found" });
   return loop;
@@ -70,7 +81,7 @@ export async function getOwnLoop(
   id: string,
   userId: string,
 ) {
-  const loop = await getLoop(workspaceId, id);
+  const loop = await getLoop(workspaceId, id, userId);
   if (loop.creatorId !== userId)
     throw new HTTPException(403, {
       message: "Only the creator can change this loop",
@@ -78,9 +89,11 @@ export async function getOwnLoop(
   return loop;
 }
 
+// A team the person cannot open answers like one that does not exist.
 async function assertProjectInWorkspace(
   workspaceId: string,
   projectId: string | null | undefined,
+  userId: string,
 ) {
   if (!projectId) return;
   const [project] = await db
@@ -90,6 +103,7 @@ async function assertProjectInWorkspace(
       and(
         eq(projectTable.id, projectId),
         eq(projectTable.workspaceId, workspaceId),
+        projectAccessCondition(userId, projectTable.id),
       ),
     );
   if (!project) throw new HTTPException(400, { message: "Unknown project" });
@@ -99,7 +113,7 @@ export async function createLoop(
   creatorId: string,
   body: z.infer<typeof createLoopBody>,
 ) {
-  await assertProjectInWorkspace(body.workspaceId, body.projectId);
+  await assertProjectInWorkspace(body.workspaceId, body.projectId, creatorId);
   const scheduled = body.trigger === "schedule" && body.frequency;
   const [created] = await db
     .insert(loopTable)
@@ -110,7 +124,7 @@ export async function createLoop(
       nextRunAt: scheduled ? nextRunAfter(scheduled, new Date()) : null,
     })
     .returning({ id: loopTable.id });
-  return getLoop(body.workspaceId, created?.id ?? "");
+  return getLoop(body.workspaceId, created?.id ?? "", creatorId);
 }
 
 export async function updateLoop(
@@ -120,7 +134,7 @@ export async function updateLoop(
   body: z.infer<typeof updateLoopBody>,
 ) {
   const loop = await getOwnLoop(workspaceId, id, userId);
-  await assertProjectInWorkspace(workspaceId, body.projectId);
+  await assertProjectInWorkspace(workspaceId, body.projectId, userId);
   const trigger = body.trigger ?? loop.trigger;
   const frequency =
     trigger === "schedule" ? (body.frequency ?? loop.frequency) : null;
@@ -144,7 +158,7 @@ export async function updateLoop(
         frequency && { nextRunAt: nextRunAfter(frequency, new Date()) }),
     })
     .where(eq(loopTable.id, id));
-  return getLoop(workspaceId, id);
+  return getLoop(workspaceId, id, userId);
 }
 
 export async function deleteLoop(
@@ -157,8 +171,12 @@ export async function deleteLoop(
   return { id };
 }
 
-export async function listRuns(workspaceId: string, id: string) {
-  await getLoop(workspaceId, id);
+export async function listRuns(
+  workspaceId: string,
+  id: string,
+  userId: string,
+) {
+  await getLoop(workspaceId, id, userId);
   return db
     .select({
       id: loopRunTable.id,
@@ -174,8 +192,13 @@ export async function listRuns(workspaceId: string, id: string) {
     .limit(50);
 }
 
-export async function getRun(workspaceId: string, id: string, runId: string) {
-  await getLoop(workspaceId, id);
+export async function getRun(
+  workspaceId: string,
+  id: string,
+  runId: string,
+  userId: string,
+) {
+  await getLoop(workspaceId, id, userId);
   const [run] = await db
     .select()
     .from(loopRunTable)

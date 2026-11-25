@@ -49,6 +49,7 @@ async function deleteProject(id: string, workspaceId: string) {
     projectId: id,
     workspaceId,
     name: existingProject.name,
+    isPrivate: deletedProject.isPrivate,
   });
   await publishEvent("subtask-parents.refresh", {
     projects: parents.filter((parent) => parent.projectId !== id),
