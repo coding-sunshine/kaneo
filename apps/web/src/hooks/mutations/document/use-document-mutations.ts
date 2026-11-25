@@ -4,6 +4,7 @@ import {
   createDocumentComment,
   type DocumentAccess,
   type DocumentDetail,
+  decideDocumentLineage,
   deleteDocument,
   deleteDocumentComment,
   moveDocument,
@@ -76,6 +77,16 @@ export function useShareDocument(workspaceId: string, id: string) {
     // Removing a share answers with an id only, so refetch either way.
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: documentKey(workspaceId, id) }),
+  });
+}
+
+export function useDecideDocumentLineage(workspaceId: string, id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (status: Parameters<typeof decideDocumentLineage>[2]) =>
+      decideDocumentLineage(workspaceId, id, status),
+    onSuccess: (document) =>
+      queryClient.setQueryData(documentKey(workspaceId, id), document),
   });
 }
 

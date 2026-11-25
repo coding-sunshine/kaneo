@@ -2680,6 +2680,11 @@ export const documentTable = pgTable(
     // SHA-256 of `content` in UTF-8, as hex. The `document_content_hash`
     // trigger writes it, so that imports that insert rows by SQL get it too.
     contentHash: text("content_hash"),
+    // Hashed runs of five words of the text (see `document/fingerprint.ts`),
+    // to find the document a new text is a revision of. Written by the API.
+    // Null on a row whose text was written by SQL since: a database trigger
+    // clears it, and the next comparison fills it in.
+    fingerprint: integer("fingerprint").array(),
     // The assistant a document was saved from, when it was not typed here.
     sourceClient: text("source_client").$type<DocumentSourceClient>(),
     // The topic the document is filed on. A filed document lives in the
@@ -2796,6 +2801,49 @@ export const documentShareTable = pgTable(
     primaryKey({ columns: [table.documentId, table.userId] }),
     index("document_share_user_idx").on(table.userId),
   ],
+);
+
+export const DOCUMENT_LINEAGE_STATUSES = [
+  "proposed",
+  "confirmed",
+  "dismissed",
+] as const;
+export type DocumentLineageStatus = (typeof DOCUMENT_LINEAGE_STATUSES)[number];
+
+// "Looks like a revision of": the older document a text resembles. The API
+// proposes it and a person confirms or dismisses it. It is a hint beside the
+// document and never changes a status.
+export const documentLineageTable = pgTable(
+  "document_lineage",
+  {
+    documentId: text("document_id")
+      .primaryKey()
+      .references(() => documentTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    sourceDocumentId: text("source_document_id")
+      .notNull()
+      .references(() => documentTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    // The share of five-word runs the two texts had in common, in percent.
+    overlap: integer("overlap").notNull(),
+    status: text("status")
+      .$type<DocumentLineageStatus>()
+      .notNull()
+      .default("proposed"),
+    decidedBy: text("decided_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    decidedAt: timestamp("decided_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [index("document_lineage_source_idx").on(table.sourceDocumentId)],
 );
 
 export const documentSubscriberTable = pgTable(

@@ -15,6 +15,7 @@ import { DocumentCrumbs } from "./document-crumbs";
 import { DocumentEditor } from "./document-editor";
 import { DocumentHeaderActions } from "./document-header-actions";
 import { DocumentHistory } from "./document-history";
+import { DocumentRevisionHint } from "./document-revision-hint";
 import { DocumentStatusBanner } from "./document-status-banner";
 import { DocumentTopicActions } from "./document-topic-actions";
 import { DOCUMENT_SAVE_OWNER } from "./document-save";
@@ -136,6 +137,7 @@ export function DocumentPage({
                 />
               }
             />
+            <DocumentRevisionHint document={document} canEdit={canEdit} />
             <div className="min-h-0 flex-1 overflow-y-auto">
               {version ? (
                 <DocumentVersionPreview

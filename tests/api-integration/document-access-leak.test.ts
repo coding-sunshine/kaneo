@@ -168,6 +168,8 @@ describe("API integration: document access leaks", () => {
         ["", json("PATCH", { title: "taken" })],
         ["", json("DELETE")],
         ["/location", json("PUT", { scope: "private" })],
+        ["/snooze", json("POST", { until: null })],
+        ["/lineage", json("PUT", { status: "confirmed" })],
         ["/restore", json("POST")],
         ["/settle", json("POST", { choice: "discard" })],
         [`/share/${limited.id}`, json("PUT", { access: "edit" })],

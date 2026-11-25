@@ -2,9 +2,11 @@ import { eq } from "drizzle-orm";
 import type { z } from "zod";
 import db from "../../database";
 import { documentTable } from "../../database/schema";
+import { fingerprint } from "../fingerprint";
 import type { updateDocumentBody } from "../schema";
 import { getDocument } from "./get-document";
 import { assertNotSuperseded } from "./assert-not-superseded";
+import { proposeLineage } from "./lineage";
 import { loadDocument } from "./load-document";
 import { notifyBodyMentions } from "./notify";
 import { recordVersion } from "./record-version";
@@ -20,12 +22,14 @@ export async function updateDocument(
   const title = body.title ?? doc.title;
   const content = body.content ?? doc.content;
   const textChanged = title !== doc.title || content !== doc.content;
+  const prints = content === doc.content ? null : fingerprint(content);
 
   await db
     .update(documentTable)
     .set({
       title,
       content,
+      ...(prints && { fingerprint: prints }),
       ...(body.icon !== undefined && { icon: body.icon }),
       ...(body.color !== undefined && { color: body.color }),
       ...(body.generalAccess && { generalAccess: body.generalAccess }),
@@ -38,5 +42,6 @@ export async function updateDocument(
     await recordVersion(id, userId, { title, content });
     await notifyBodyMentions({ ...doc, title }, userId, doc.content, content);
   }
+  if (prints) await proposeLineage(doc, prints, userId);
   return getDocument(workspaceId, id, userId);
 }

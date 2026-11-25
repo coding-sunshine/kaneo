@@ -3523,6 +3523,14 @@
 				"claude": "Saved from Claude",
 				"chatgpt": "Saved from ChatGPT"
 			},
+			"lineage": {
+				"proposed": "Looks like a revision of",
+				"confirmed": "Revision of",
+				"overlap": "{{percent}}% of the text is the same",
+				"confirm": "Yes, a revision",
+				"dismiss": "No",
+				"undo": "Not a revision"
+			},
 			"topics": {
 				"title": "Topics",
 				"new": "New topic",

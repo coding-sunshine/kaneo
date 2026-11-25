@@ -1013,7 +1013,7 @@ export function registerTools(
     "file_document",
     {
       description:
-        "Save a text from this conversation as a document. Call get_current first, so you know what is already approved on its topic. Send the whole text as Markdown, unchanged. It is saved as a private draft that only its author can open. Nothing is filed or replaced yet. The result lists the topics whose name matches the title, each with its current document. When needsDecision is true, show the author those topics and ask what the draft is: a replacement for a current document, a proposal, a brainstorm, or something to discard. Then call settle_document with their answer. Until then the draft stays private. The Markdown can be at most 900,000 bytes as JSON.",
+        "Save a text from this conversation as a document. Call get_current first, so you know what is already approved on its topic. Send the whole text as Markdown, unchanged. It is saved as a private draft that only its author can open. Nothing is filed or replaced yet. The result lists the topics whose name matches the title, each with its current document. When revisionOf is set, the text looks like a revision of that older document: tell the author its title. When needsDecision is true, show the author those topics and ask what the draft is: a replacement for a current document, a proposal, a brainstorm, or something to discard. Then call settle_document with their answer. Until then the draft stays private. The Markdown can be at most 900,000 bytes as JSON.",
       inputSchema: z.object({
         workspaceId: nonEmptyString.describe("Workspace ID"),
         title: nonEmptyString,

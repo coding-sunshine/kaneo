@@ -2,6 +2,7 @@ import { brand } from "@kaneo/brand";
 import {
   DOCUMENT_ACCESS,
   DOCUMENT_KINDS,
+  DOCUMENT_LINEAGE_STATUSES,
   DOCUMENT_SCOPES,
   DOCUMENT_SOURCE_CLIENTS,
   DOCUMENT_STATUSES,
@@ -212,6 +213,32 @@ export const documentSnoozeSchema = z
   .openapi("DocumentSnooze");
 export const documentListSchema = z.array(documentSummarySchema);
 
+// Never the fingerprint itself, and never a document the reader cannot open.
+const revisionOf = z
+  .object({
+    id: z.string(),
+    title: z.string(),
+    overlap: z.number().int().openapi({
+      description:
+        "How much of the two texts is the same, in percent of all five-word runs.",
+    }),
+    status: z.enum(DOCUMENT_LINEAGE_STATUSES).openapi({
+      description:
+        "proposed until a person confirms or dismisses the link. It is a hint and changes no status.",
+    }),
+  })
+  .nullable()
+  .openapi({
+    description:
+      "The older document this text looks like a revision of. Null when there is none the reader can open.",
+  });
+
+export const decideLineageBody = z.object({
+  status: z.enum(["confirmed", "dismissed"]).openapi({
+    description: "Whether the document is a revision of the one proposed.",
+  }),
+});
+
 export const documentSchema = z
   .object({
     ...documentFields,
@@ -241,6 +268,7 @@ export const documentSchema = z
     updatedById: z.string().nullable(),
     updatedByName: z.string().nullable(),
     role,
+    revisionOf,
     shares: z.array(
       z.object({
         userId: z.string(),
@@ -361,6 +389,7 @@ export const savedDraftSchema = z
         description:
           "Topics the author can open whose name matches the title, each with its current document.",
       }),
+    revisionOf,
   })
   .openapi("SavedDraft");
 

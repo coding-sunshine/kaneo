@@ -3729,7 +3729,15 @@
 				"snoozeUntil": "Snooze until",
 				"unsnooze": "Unsnooze"
 			},
-			"newSinceVisit": "New since your last visit"
+			"newSinceVisit": "New since your last visit",
+			"lineage": {
+				"confirm": "Yes, a revision",
+				"confirmed": "Revision of",
+				"dismiss": "No",
+				"overlap": "{{percent}}% of the text is the same",
+				"proposed": "Looks like a revision of",
+				"undo": "Not a revision"
+			}
 		},
 		"drafts": {
 			"delete": "Delete draft",

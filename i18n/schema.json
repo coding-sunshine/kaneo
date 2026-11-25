@@ -14351,6 +14351,38 @@
 							},
 							"required": ["claude", "chatgpt"]
 						},
+						"lineage": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"proposed": {
+									"type": "string"
+								},
+								"confirmed": {
+									"type": "string"
+								},
+								"overlap": {
+									"type": "string"
+								},
+								"confirm": {
+									"type": "string"
+								},
+								"dismiss": {
+									"type": "string"
+								},
+								"undo": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"proposed",
+								"confirmed",
+								"overlap",
+								"confirm",
+								"dismiss",
+								"undo"
+							]
+						},
 						"topics": {
 							"type": "object",
 							"additionalProperties": false,
@@ -14735,6 +14767,7 @@
 						"status",
 						"banner",
 						"savedFrom",
+						"lineage",
 						"topics",
 						"file",
 						"audience",

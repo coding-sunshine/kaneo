@@ -27,6 +27,7 @@ import { moveDocument } from "./controllers/move-document";
 import { setSubscribers } from "./controllers/set-subscribers";
 import { shareDocument, unshareDocument } from "./controllers/share-document";
 import { markDocumentsSeen } from "./controllers/mark-documents-seen";
+import { decideLineage } from "./controllers/lineage";
 import { snoozeDocument } from "./controllers/snooze-document";
 import { updateDocument } from "./controllers/update-document";
 import { saveDraft } from "./controllers/save-draft";
@@ -60,6 +61,7 @@ import {
   settleDocumentBody,
   settledDocumentSchema,
   shareBody,
+  decideLineageBody,
   snoozeDocumentBody,
   subscribersBody,
   subscribersSchema,
@@ -299,6 +301,23 @@ const snoozeRoute = createRoute({
     200: jsonResponse("Document snoozed", documentSnoozeSchema),
     403: noAccess,
     404: notFound,
+  },
+});
+
+const lineageRoute = createRoute({
+  method: "put",
+  operationId: "decideDocumentLineage",
+  path: `${one}/lineage`,
+  tags,
+  summary: "Confirm or dismiss a proposed revision link",
+  description:
+    "Say whether the document is a revision of the older document it resembles. Either answer can be changed later. The link is a hint: no status changes. Needs edit access.",
+  middleware: [...write] as const,
+  request: { params: documentParam, body: body(decideLineageBody) },
+  responses: {
+    200: jsonResponse("Link decided", documentSchema),
+    403: noAccess,
+    404: errorResponse("Document not found, or it has no link to decide"),
   },
 });
 
@@ -590,6 +609,12 @@ const document = apiRouter()
       await snoozeDocument(workspaceId, id, c.get("userId"), until),
       200,
     );
+  })
+  .openapi(lineageRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    const userId = c.get("userId");
+    await decideLineage(workspaceId, id, userId, c.req.valid("json").status);
+    return c.json(await getDocument(workspaceId, id, userId), 200);
   })
   .openapi(deleteRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");

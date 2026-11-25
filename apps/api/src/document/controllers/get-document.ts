@@ -8,6 +8,7 @@ import {
   userTable,
 } from "../../database/schema";
 import { topicAccess } from "../visibility";
+import { readLineage } from "./lineage";
 import { documentParentName } from "./list-documents";
 import { loadDocument } from "./load-document";
 
@@ -17,7 +18,7 @@ export async function getDocument(
   userId: string,
 ) {
   const doc = await loadDocument(workspaceId, id, userId);
-  const [shares, subscribers, [parent]] = await Promise.all([
+  const [shares, subscribers, [parent], revisionOf] = await Promise.all([
     db
       .select({
         userId: documentShareTable.userId,
@@ -49,6 +50,7 @@ export async function getDocument(
         ),
       )
       .where(eq(documentTable.id, id)),
+    readLineage(workspaceId, id, userId),
   ]);
   const topicName = parent?.topicName ?? null;
   const personIds = [doc.creatorId, doc.updatedById, doc.approvedBy].filter(
@@ -105,6 +107,7 @@ export async function getDocument(
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
     role: doc.role,
+    revisionOf,
     shares,
     subscriberIds: subscribers.map((row) => row.userId),
   };

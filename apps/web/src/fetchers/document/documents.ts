@@ -268,6 +268,20 @@ export async function snoozeDocument(
   return response.json();
 }
 
+/** Say whether a document is a revision of the older one it resembles. */
+export async function decideDocumentLineage(
+  workspaceId: string,
+  id: string,
+  status: "confirmed" | "dismissed",
+) {
+  const response = await one.lineage.$put({
+    param: { workspaceId, id },
+    json: { status },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
 /** Proposals and new current documents on followed topics since the last visit. */
 export async function getNewDocuments(workspaceId: string) {
   const response = await api.$get({

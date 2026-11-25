@@ -84,6 +84,7 @@ const base: DocumentDetail = {
   updatedById: "u-1",
   updatedByName: "Ada",
   role: "owner",
+  revisionOf: null,
   shares: [],
   subscriberIds: [],
 };

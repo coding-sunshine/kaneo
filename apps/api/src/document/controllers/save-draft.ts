@@ -4,7 +4,9 @@ import type { z } from "zod";
 import db from "../../database";
 import { documentSubscriberTable, documentTable } from "../../database/schema";
 import { findTopics } from "../../topic/controllers/find-topics";
+import { fingerprint } from "../fingerprint";
 import type { saveDraftBody } from "../schema";
+import { proposeLineage, readLineage } from "./lineage";
 import { loadDocument } from "./load-document";
 import { recordVersion } from "./record-version";
 
@@ -54,6 +56,7 @@ export async function saveDraft(
 ) {
   const { workspaceId, title, markdown } = body;
   const externalId = `${userId}:${body.idempotencyKey}`;
+  const prints = fingerprint(markdown);
   // One transaction: a repeated call that arrives while this one runs waits
   // on the unique index, then finds the finished draft.
   const created = await db.transaction(async (tx) => {
@@ -63,6 +66,7 @@ export async function saveDraft(
         workspaceId,
         title,
         content: markdown,
+        fingerprint: prints,
         scope: "private",
         externalSource: SOURCE,
         externalId,
@@ -77,7 +81,11 @@ export async function saveDraft(
           documentTable.externalId,
         ],
       })
-      .returning({ id: documentTable.id });
+      .returning({
+        id: documentTable.id,
+        workspaceId: documentTable.workspaceId,
+        createdAt: documentTable.createdAt,
+      });
     if (!row) return null;
     // Like any new document: its author follows it and its history starts.
     await tx
@@ -91,6 +99,8 @@ export async function saveDraft(
     );
     return row;
   });
+
+  if (created) await proposeLineage(created, prints, userId);
 
   let id = created?.id;
   if (!id) {
@@ -126,5 +136,6 @@ export async function saveDraft(
     created: Boolean(created),
     needsDecision: doc.status === "draft" && doc.kind === "unsorted",
     topics: await matchingTopics(workspaceId, userId, doc.title),
+    revisionOf: await readLineage(workspaceId, id, userId),
   };
 }

@@ -3904,6 +3904,40 @@
               "view"
             ]
           },
+          "revisionOf": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "overlap": {
+                "type": "integer",
+                "description": "How much of the two texts is the same, in percent of all five-word runs."
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "proposed",
+                  "confirmed",
+                  "dismissed"
+                ],
+                "description": "proposed until a person confirms or dismisses the link. It is a hint and changes no status."
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "overlap",
+              "status"
+            ],
+            "description": "The older document this text looks like a revision of. Null when there is none the reader can open."
+          },
           "shares": {
             "type": "array",
             "items": {
@@ -3981,6 +4015,7 @@
           "updatedById",
           "updatedByName",
           "role",
+          "revisionOf",
           "shares",
           "subscriberIds"
         ]
@@ -4087,6 +4122,40 @@
               ]
             },
             "description": "Topics the author can open whose name matches the title, each with its current document."
+          },
+          "revisionOf": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "overlap": {
+                "type": "integer",
+                "description": "How much of the two texts is the same, in percent of all five-word runs."
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "proposed",
+                  "confirmed",
+                  "dismissed"
+                ],
+                "description": "proposed until a person confirms or dismisses the link. It is a hint and changes no status."
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "overlap",
+              "status"
+            ],
+            "description": "The older document this text looks like a revision of. Null when there is none the reader can open."
           }
         },
         "required": [
@@ -4098,7 +4167,8 @@
           "scope",
           "created",
           "needsDecision",
-          "topics"
+          "topics",
+          "revisionOf"
         ]
       },
       "SettledDocument": {
@@ -27879,6 +27949,102 @@
           },
           "404": {
             "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/lineage": {
+      "put": {
+        "operationId": "decideDocumentLineage",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Confirm or dismiss a proposed revision link",
+        "description": "Say whether the document is a revision of the older document it resembles. Either answer can be changed later. The link is a hint: no status changes. Needs edit access.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "confirmed",
+                      "dismissed"
+                    ],
+                    "description": "Whether the document is a revision of the one proposed."
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Link decided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found, or it has no link to decide",
             "content": {
               "application/json": {
                 "schema": {

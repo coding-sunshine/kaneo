@@ -6,8 +6,10 @@ import {
   documentVersionTable,
   userTable,
 } from "../../database/schema";
+import { fingerprint } from "../fingerprint";
 import { assertNotSuperseded } from "./assert-not-superseded";
 import { getDocument } from "./get-document";
+import { proposeLineage } from "./lineage";
 import { loadDocument } from "./load-document";
 import { recordVersion } from "./record-version";
 
@@ -39,9 +41,8 @@ export async function restoreVersion(
   userId: string,
   versionId: string,
 ) {
-  assertNotSuperseded(
-    await loadDocument(workspaceId, id, userId, { need: "edit" }),
-  );
+  const doc = await loadDocument(workspaceId, id, userId, { need: "edit" });
+  assertNotSuperseded(doc);
   const [version] = await db
     .select({
       title: documentVersionTable.title,
@@ -57,11 +58,18 @@ export async function restoreVersion(
   if (!version) {
     throw new HTTPException(404, { message: "Version not found" });
   }
+  const prints = fingerprint(version.content);
   await db
     .update(documentTable)
-    .set({ ...version, updatedAt: new Date(), updatedById: userId })
+    .set({
+      ...version,
+      fingerprint: prints,
+      updatedAt: new Date(),
+      updatedById: userId,
+    })
     .where(eq(documentTable.id, id));
   // A restore is its own history entry, never folded into the last edit.
   await recordVersion(id, userId, version, { fold: false });
+  await proposeLineage(doc, prints, userId);
   return getDocument(workspaceId, id, userId);
 }
