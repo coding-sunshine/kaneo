@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { and, eq, inArray } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
@@ -163,6 +164,36 @@ describe("API integration: document access leaks", () => {
     expect(documents.totalCount).toBe(VISIBLE.limited.length);
     const everything = await searched(world, world.limited, "all");
     expect(everything.documentIds).toEqual(ids(world, VISIBLE.limited));
+  });
+
+  it("answers the file of a hidden document like an unknown file", async () => {
+    const world = await buildDocumentWorld();
+    const request = world.as(world.limited);
+    const unknown = await request("/asset/no-such-file");
+    const unknownBody = await unknown.json();
+
+    for (const place of hiddenFrom(world, "limited")) {
+      const [file] = await db
+        .insert(schema.assetTable)
+        .values({
+          workspaceId: world.ws,
+          documentId: world.docs[place],
+          objectKey: randomUUID(),
+          filename: "notes.pdf",
+          mimeType: "application/pdf",
+          size: 3,
+          kind: "attachment",
+          surface: "document",
+          createdBy: world.owner.id,
+        })
+        .returning();
+      const fetched = await request(`/asset/${file?.id}`);
+      expect({ place, status: fetched.status }).toEqual({
+        place,
+        status: unknown.status,
+      });
+      expect(await fetched.json()).toEqual(unknownBody);
+    }
   });
 
   it("answers a hidden document like an unknown id on every route under it", async () => {

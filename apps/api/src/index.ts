@@ -561,18 +561,20 @@ export function createApp() {
           surface: schema.assetTable.surface,
           createdBy: schema.assetTable.createdBy,
           workspaceId: schema.assetTable.workspaceId,
-          projectId: schema.projectTable.id,
+          projectId: schema.assetTable.projectId,
+          documentId: schema.assetTable.documentId,
           isPublic: schema.projectTable.isPublic,
           workspaceArchived: sql<boolean>`${schema.workspaceTable.archivedAt} is not null`,
         })
         .from(schema.assetTable)
         .innerJoin(
+          schema.workspaceTable,
+          eq(schema.assetTable.workspaceId, schema.workspaceTable.id),
+        )
+        // A document's file has no team.
+        .leftJoin(
           schema.projectTable,
           eq(schema.assetTable.projectId, schema.projectTable.id),
-        )
-        .innerJoin(
-          schema.workspaceTable,
-          eq(schema.projectTable.workspaceId, schema.workspaceTable.id),
         )
         .where(eq(schema.assetTable.id, id))
         .limit(1);
