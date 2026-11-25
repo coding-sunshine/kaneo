@@ -771,6 +771,13 @@
       "when": 1795614300126,
       "tag": "0109_session_mcp_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 110,
+      "version": "7",
+      "when": 1795618206825,
+      "tag": "0110_ai_usage",
+      "breakpoints": true
     }
   ]
 }

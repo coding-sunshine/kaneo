@@ -5,6 +5,7 @@ import {
   boolean,
   check,
   customType,
+  doublePrecision,
   foreignKey,
   index,
   integer,
@@ -3185,4 +3186,24 @@ export const loopRunTable = pgTable(
     finishedAt: timestamp("finished_at", { mode: "date" }),
   },
   (table) => [index("loop_run_loop_idx").on(table.loopId, table.startedAt)],
+);
+
+// One row for each model call a job made to read documents. The daily cap of
+// extraction is the sum of a day's rows.
+export const aiUsageTable = pgTable(
+  "ai_usage",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    purpose: text("purpose").notNull(),
+    model: text("model").notNull(),
+    promptTokens: integer("prompt_tokens").notNull(),
+    completionTokens: integer("completion_tokens").notNull(),
+    cost: doublePrecision("cost"),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [index("ai_usage_created_at_idx").on(table.createdAt)],
 );
