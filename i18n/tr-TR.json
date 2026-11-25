@@ -557,7 +557,9 @@
 				"redirect": "Geri yönlendirileceğiniz adres",
 				"signedInAs": "Giriş yapılan hesap",
 				"deny": "Reddet",
-				"allow": "Erişime izin ver"
+				"allow": "Erişime izin ver",
+				"access": "Access",
+				"accessValue": "Full access. It can read and change everything you can, including issues and documents."
 			},
 			"expired": {
 				"title": "Bu isteğin süresi doldu",

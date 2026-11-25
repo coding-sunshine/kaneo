@@ -557,7 +557,9 @@
 				"redirect": "Qayıdış ünvanı",
 				"signedInAs": "Daxil olduğunuz hesab",
 				"deny": "Rədd et",
-				"allow": "Girişə icazə ver"
+				"allow": "Girişə icazə ver",
+				"access": "Access",
+				"accessValue": "Full access. It can read and change everything you can, including issues and documents."
 			},
 			"expired": {
 				"title": "Bu sorğunun müddəti bitib",

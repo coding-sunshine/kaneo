@@ -124,6 +124,14 @@ function McpAuthorizePage() {
                 label: t("auth:mcp.authorize.signedInAs"),
                 value: session.user.email,
               },
+              {
+                label: t("auth:mcp.authorize.access"),
+                value: (
+                  <span className="block whitespace-normal">
+                    {t("auth:mcp.authorize.accessValue")}
+                  </span>
+                ),
+              },
             ]}
           />
           <div className="grid grid-cols-2 gap-2">

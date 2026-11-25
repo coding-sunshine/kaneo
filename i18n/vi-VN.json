@@ -552,7 +552,9 @@
 				"redirect": "Chuyển bạn về",
 				"signedInAs": "Đăng nhập với tư cách",
 				"deny": "Từ chối",
-				"allow": "Cho phép truy cập"
+				"allow": "Cho phép truy cập",
+				"access": "Access",
+				"accessValue": "Full access. It can read and change everything you can, including issues and documents."
 			},
 			"expired": {
 				"title": "Yêu cầu này đã hết hạn",

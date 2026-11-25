@@ -552,7 +552,9 @@
 				"redirect": "戻り先",
 				"signedInAs": "サインイン中のアカウント",
 				"deny": "拒否",
-				"allow": "アクセスを許可"
+				"allow": "アクセスを許可",
+				"access": "Access",
+				"accessValue": "Full access. It can read and change everything you can, including issues and documents."
 			},
 			"expired": {
 				"title": "このリクエストは有効期限が切れています",

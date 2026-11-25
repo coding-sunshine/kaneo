@@ -552,7 +552,9 @@
 				"redirect": "돌아갈 주소",
 				"signedInAs": "로그인 계정",
 				"deny": "거부",
-				"allow": "액세스 허용"
+				"allow": "액세스 허용",
+				"access": "Access",
+				"accessValue": "Full access. It can read and change everything you can, including issues and documents."
 			},
 			"expired": {
 				"title": "요청이 만료되었습니다",

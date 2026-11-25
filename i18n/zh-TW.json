@@ -552,7 +552,9 @@
 				"redirect": "完成後返回",
 				"signedInAs": "目前登入帳號",
 				"deny": "拒絕",
-				"allow": "允許存取"
+				"allow": "允許存取",
+				"access": "Access",
+				"accessValue": "Full access. It can read and change everything you can, including issues and documents."
 			},
 			"expired": {
 				"title": "此要求已過期",

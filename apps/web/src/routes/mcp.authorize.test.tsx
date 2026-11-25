@@ -55,8 +55,11 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-it("shows who is asking, where it returns, and which account it gets", () => {
+it("shows who is asking, where it returns, which account it gets and what it may do", () => {
   render(<Page />);
+  expect(
+    screen.getByText("auth:mcp.authorize.accessValue"),
+  ).toBeInTheDocument();
   expect(screen.getByText("Claude Desktop")).toBeInTheDocument();
   expect(
     screen.getByText("auth:mcp.authorize.selfReported"),

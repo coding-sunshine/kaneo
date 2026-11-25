@@ -2198,6 +2198,12 @@
 								"signedInAs": {
 									"type": "string"
 								},
+								"access": {
+									"type": "string"
+								},
+								"accessValue": {
+									"type": "string"
+								},
 								"deny": {
 									"type": "string"
 								},
@@ -2213,6 +2219,8 @@
 								"selfReported",
 								"redirect",
 								"signedInAs",
+								"access",
+								"accessValue",
 								"deny",
 								"allow"
 							]

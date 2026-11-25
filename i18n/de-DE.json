@@ -557,7 +557,9 @@
 				"redirect": "Leitet dich zurück zu",
 				"signedInAs": "Angemeldet als",
 				"deny": "Ablehnen",
-				"allow": "Zugriff erlauben"
+				"allow": "Zugriff erlauben",
+				"access": "Access",
+				"accessValue": "Full access. It can read and change everything you can, including issues and documents."
 			},
 			"expired": {
 				"title": "Diese Anfrage ist abgelaufen",

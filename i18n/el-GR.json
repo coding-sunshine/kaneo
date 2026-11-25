@@ -557,7 +557,9 @@
 				"redirect": "Σας επιστρέφει στο",
 				"signedInAs": "Σύνδεση ως",
 				"deny": "Απόρριψη",
-				"allow": "Παραχώρηση πρόσβασης"
+				"allow": "Παραχώρηση πρόσβασης",
+				"access": "Access",
+				"accessValue": "Full access. It can read and change everything you can, including issues and documents."
 			},
 			"expired": {
 				"title": "Αυτό το αίτημα έχει λήξει",

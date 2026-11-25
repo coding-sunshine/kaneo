@@ -567,7 +567,9 @@
 				"redirect": "Поверне вас на",
 				"signedInAs": "Ви увійшли як",
 				"deny": "Відхилити",
-				"allow": "Дозволити доступ"
+				"allow": "Дозволити доступ",
+				"access": "Access",
+				"accessValue": "Full access. It can read and change everything you can, including issues and documents."
 			},
 			"expired": {
 				"title": "Термін дії запиту минув",

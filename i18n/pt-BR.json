@@ -562,7 +562,9 @@
 				"redirect": "Redireciona você para",
 				"signedInAs": "Conectado como",
 				"deny": "Negar",
-				"allow": "Permitir acesso"
+				"allow": "Permitir acesso",
+				"access": "Access",
+				"accessValue": "Full access. It can read and change everything you can, including issues and documents."
 			},
 			"expired": {
 				"title": "Esta solicitação expirou",

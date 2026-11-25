@@ -557,7 +557,9 @@
 				"redirect": "Stuurt je terug naar",
 				"signedInAs": "Ingelogd als",
 				"deny": "Weigeren",
-				"allow": "Toegang toestaan"
+				"allow": "Toegang toestaan",
+				"access": "Access",
+				"accessValue": "Full access. It can read and change everything you can, including issues and documents."
 			},
 			"expired": {
 				"title": "Dit verzoek is verlopen",

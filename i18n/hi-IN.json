@@ -557,7 +557,9 @@
 				"redirect": "वापस भेजने का पता",
 				"signedInAs": "साइन इन किया गया खाता",
 				"deny": "अस्वीकार करें",
-				"allow": "एक्सेस दें"
+				"allow": "एक्सेस दें",
+				"access": "Access",
+				"accessValue": "Full access. It can read and change everything you can, including issues and documents."
 			},
 			"expired": {
 				"title": "इस अनुरोध की समय-सीमा समाप्त हो गई है",

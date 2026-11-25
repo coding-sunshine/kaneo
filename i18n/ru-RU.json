@@ -567,7 +567,9 @@
 				"redirect": "Вернёт вас на",
 				"signedInAs": "Вы вошли как",
 				"deny": "Отклонить",
-				"allow": "Разрешить доступ"
+				"allow": "Разрешить доступ",
+				"access": "Access",
+				"accessValue": "Full access. It can read and change everything you can, including issues and documents."
 			},
 			"expired": {
 				"title": "Срок действия запроса истёк",

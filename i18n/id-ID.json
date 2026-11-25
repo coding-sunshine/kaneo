@@ -552,7 +552,9 @@
 				"redirect": "Mengarahkan Anda kembali ke",
 				"signedInAs": "Masuk sebagai",
 				"deny": "Tolak",
-				"allow": "Izinkan akses"
+				"allow": "Izinkan akses",
+				"access": "Access",
+				"accessValue": "Full access. It can read and change everything you can, including issues and documents."
 			},
 			"expired": {
 				"title": "Permintaan ini sudah kedaluwarsa",

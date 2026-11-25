@@ -556,6 +556,8 @@
 				"selfReported": "Self-reported",
 				"redirect": "Sends you back to",
 				"signedInAs": "Signed in as",
+				"access": "Access",
+				"accessValue": "Full access. It can read and change everything you can, including issues and documents.",
 				"deny": "Deny",
 				"allow": "Allow access"
 			},

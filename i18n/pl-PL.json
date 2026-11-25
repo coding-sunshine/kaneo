@@ -567,7 +567,9 @@
 				"redirect": "Przekieruje Cię do",
 				"signedInAs": "Zalogowano jako",
 				"deny": "Odrzuć",
-				"allow": "Zezwól na dostęp"
+				"allow": "Zezwól na dostęp",
+				"access": "Access",
+				"accessValue": "Full access. It can read and change everything you can, including issues and documents."
 			},
 			"expired": {
 				"title": "Ta prośba wygasła",

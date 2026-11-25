@@ -557,7 +557,9 @@
 				"redirect": "Те враќа на",
 				"signedInAs": "Најавена сметка",
 				"deny": "Одбиј",
-				"allow": "Дозволи пристап"
+				"allow": "Дозволи пристап",
+				"access": "Access",
+				"accessValue": "Full access. It can read and change everything you can, including issues and documents."
 			},
 			"expired": {
 				"title": "Ова барање истече",
