@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import type { Editor } from "@tiptap/core";
 import { useRef, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import CommentEditor from "@/components/activity/comment-editor";
@@ -14,11 +15,15 @@ import {
 import { descriptionSaveQueue } from "@/lib/description-save-queue";
 import { formatRelativeTime } from "@/lib/format";
 import { getInitials } from "@/lib/get-initials";
+import { ChecklistIssuesButton } from "./checklist-issues-button";
+import type { ChecklistLine } from "./checklist-issues";
+import { ChecklistToIssuesDialog } from "./checklist-to-issues-dialog";
 import {
   DOCUMENT_SAVE_OWNER,
   documentSaveKey,
   latestDocumentValue,
 } from "./document-save";
+import { useScrollToIssueLine } from "./use-scroll-to-issue-line";
 
 type DocumentEditorProps = {
   document: DocumentDetail;
@@ -50,6 +55,11 @@ export function DocumentEditor({
   const [title, setTitle] = useState(initial.title);
   const last = useRef(initial);
   const bodyRef = useRef<HTMLDivElement>(null);
+  useScrollToIssueLine(bodyRef);
+  const [checklist, setChecklist] = useState<{
+    editor: Editor;
+    lines: ChecklistLine[];
+  } | null>(null);
   const ownerId = DOCUMENT_SAVE_OWNER;
   const failed = useSyncExternalStore(descriptionSaveQueue.subscribe, () =>
     [titleKey, contentKey].find(
@@ -142,11 +152,24 @@ export function DocumentEditor({
           }
           readOnly={readOnly}
           showBubbleMenu={!readOnly}
+          bubbleMenuExtra={(editor) => (
+            <ChecklistIssuesButton
+              editor={editor}
+              onOpen={(from, lines) => setChecklist({ editor: from, lines })}
+            />
+          )}
           placeholder={t("navigation:documents.bodyPlaceholder")}
           slashMenuPosition="fixed"
           className={bodyClass}
         />
       </div>
+      {checklist && (
+        <ChecklistToIssuesDialog
+          document={document}
+          {...checklist}
+          onClose={() => setChecklist(null)}
+        />
+      )}
     </div>
   );
 }

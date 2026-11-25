@@ -6,12 +6,15 @@ import {
   ReactNodeViewRenderer,
 } from "@tiptap/react";
 import { useTranslation } from "react-i18next";
+import { issueIdInLine } from "@/components/documents/checklist-issues";
 import { Checkbox } from "@/components/ui/checkbox";
+import { TaskItemIssueStatus } from "./task-item-issue-status";
 
 function TaskItemNodeView({ editor, node, updateAttributes }: NodeViewProps) {
   const { t } = useTranslation();
   const checked = Boolean(node.attrs.checked);
   const isEditable = editor.isEditable;
+  const issueId = issueIdInLine(node);
 
   return (
     <NodeViewWrapper
@@ -35,6 +38,7 @@ function TaskItemNodeView({ editor, node, updateAttributes }: NodeViewProps) {
         />
       </div>
       <NodeViewContent as="div" />
+      {issueId && <TaskItemIssueStatus taskId={issueId} />}
     </NodeViewWrapper>
   );
 }

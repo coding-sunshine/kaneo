@@ -89,6 +89,8 @@ type CommentEditorProps = {
   ) => Promise<Awaited<ReturnType<typeof uploadTaskImage>>>;
   showQuickAttachButton?: boolean;
   onAttachActionChange?: (attach: (() => void) | null) => void;
+  /** Extra buttons at the end of the selection bubble menu. */
+  bubbleMenuExtra?: (editor: Editor) => React.ReactNode;
 };
 
 type SlashMenuState = {
@@ -166,6 +168,7 @@ export default function CommentEditor({
   uploadAsset,
   showQuickAttachButton = true,
   onAttachActionChange,
+  bubbleMenuExtra,
 }: CommentEditorProps) {
   const { t } = useTranslation();
   const resolvedPlaceholder =
@@ -1622,6 +1625,7 @@ export default function CommentEditor({
               >
                 <Paperclip className="size-3.5" />
               </Button>
+              {bubbleMenuExtra?.(editor)}
             </>
           )}
         </BubbleMenu>

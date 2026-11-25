@@ -3777,6 +3777,32 @@
 				"picked": "Topic: {{name}}",
 				"remove": "Remove topic {{name}}",
 				"removeFailed": "Could not remove the topic"
+			},
+			"checklist": {
+				"audience_few": "{{count}} people can open issues in {{team}} but cannot open this document. They will see the issues, and a link to a document they cannot open.",
+				"audience_many": "{{count}} people can open issues in {{team}} but cannot open this document. They will see the issues, and a link to a document they cannot open.",
+				"audience_one": "{{count}} person can open issues in {{team}} but cannot open this document. They will see the issue, and a link to a document they cannot open.",
+				"audience_other": "{{count}} people can open issues in {{team}} but cannot open this document. They will see the issues, and a link to a document they cannot open.",
+				"audienceFailed": "Could not check who can open issues in this team. Try again.",
+				"chooseTeam": "Choose a team",
+				"create": "Create issues",
+				"createHint": "Create issues from this checklist",
+				"description": "One issue per line. Each issue links back to this document, and the line shows the issue's status.",
+				"done_few": "Created {{count}} issues",
+				"done_many": "Created {{count}} issues",
+				"done_one": "Created {{count}} issue",
+				"done_other": "Created {{count}} issues",
+				"failed": "Could not create the issues",
+				"lines": "Lines",
+				"none": "This checklist has no open lines without an issue.",
+				"partial": "Created {{done}} of {{total}} issues. Create the rest again from the checklist.",
+				"status": "Issue status: {{status}}",
+				"submit_few": "Create {{count}} issues",
+				"submit_many": "Create {{count}} issues",
+				"submit_one": "Create {{count}} issue",
+				"submit_other": "Create {{count}} issues",
+				"team": "Team",
+				"title": "Create issues from checklist"
 			}
 		},
 		"drafts": {

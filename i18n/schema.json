@@ -14845,6 +14845,116 @@
 								"addFailed",
 								"removeFailed"
 							]
+						},
+						"checklist": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"create": {
+									"type": "string"
+								},
+								"createHint": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"lines": {
+									"type": "string"
+								},
+								"team": {
+									"type": "string"
+								},
+								"chooseTeam": {
+									"type": "string"
+								},
+								"none": {
+									"type": "string"
+								},
+								"audience_one": {
+									"type": "string"
+								},
+								"audience_zero": {
+									"type": "string"
+								},
+								"audience_two": {
+									"type": "string"
+								},
+								"audience_few": {
+									"type": "string"
+								},
+								"audience_many": {
+									"type": "string"
+								},
+								"audience_other": {
+									"type": "string"
+								},
+								"audienceFailed": {
+									"type": "string"
+								},
+								"submit_one": {
+									"type": "string"
+								},
+								"submit_zero": {
+									"type": "string"
+								},
+								"submit_two": {
+									"type": "string"
+								},
+								"submit_few": {
+									"type": "string"
+								},
+								"submit_many": {
+									"type": "string"
+								},
+								"submit_other": {
+									"type": "string"
+								},
+								"done_one": {
+									"type": "string"
+								},
+								"done_zero": {
+									"type": "string"
+								},
+								"done_two": {
+									"type": "string"
+								},
+								"done_few": {
+									"type": "string"
+								},
+								"done_many": {
+									"type": "string"
+								},
+								"done_other": {
+									"type": "string"
+								},
+								"partial": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								},
+								"status": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"create",
+								"createHint",
+								"title",
+								"description",
+								"lines",
+								"team",
+								"chooseTeam",
+								"none",
+								"audienceFailed",
+								"partial",
+								"failed",
+								"status"
+							]
 						}
 					},
 					"required": [
@@ -14905,7 +15015,8 @@
 						"audience",
 						"makeCurrent",
 						"setAside",
-						"taskTopic"
+						"taskTopic",
+						"checklist"
 					]
 				},
 				"agent": {

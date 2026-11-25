@@ -12,16 +12,23 @@ vi.mock("@tanstack/react-router", () => ({
   Link: ({
     children,
     params,
+    hash,
   }: {
     children: ReactNode;
     params: { documentId: string };
-  }) => <a href={`/document/${params.documentId}`}>{children}</a>,
+    hash?: string;
+  }) => (
+    <a href={`/document/${params.documentId}${hash ? `#${hash}` : ""}`}>
+      {children}
+    </a>
+  ),
 }));
 
-const show = (document: Partial<DocumentSummary>) =>
+const show = (document: Partial<DocumentSummary>, taskId?: string) =>
   render(
     <DocumentResourceRow
       workspaceId="ws"
+      taskId={taskId}
       document={
         {
           id: "doc-1",
@@ -46,6 +53,13 @@ describe("DocumentResourceRow", () => {
     expect(links[0]?.textContent).toContain("Launch plan");
     expect(links[0]?.textContent).toContain(
       "navigation:documents.status.current",
+    );
+  });
+
+  it("opens the document at the line of the issue", () => {
+    show({}, "t1");
+    expect(screen.getAllByRole("link")[0]?.getAttribute("href")).toBe(
+      "/document/doc-1#issue-t1",
     );
   });
 

@@ -5,20 +5,26 @@ import { sectionRowClass } from "@/components/task/sections/section-row-class";
 import type { DocumentSummary } from "@/fetchers/document/documents";
 import { formatRelativeTime } from "@/lib/format";
 
-type Props = { workspaceId: string; document: DocumentSummary };
+type Props = {
+  workspaceId: string;
+  document: DocumentSummary;
+  /** The issue this row is shown on: the link opens the document at its line. */
+  taskId?: string;
+};
 
 /**
  * A document attached to an issue or linked in its text, listed under its
  * Resources like Linear. It says how far the document can be relied on, and a
  * replaced one points to the document that replaced it.
  */
-export function DocumentResourceRow({ workspaceId, document }: Props) {
+export function DocumentResourceRow({ workspaceId, document, taskId }: Props) {
   const { t } = useTranslation();
   return (
     <div className="flex min-w-0 items-center gap-1">
       <Link
         to="/dashboard/workspace/$workspaceId/document/$documentId"
         params={{ workspaceId, documentId: document.id }}
+        hash={taskId ? `issue-${taskId}` : undefined}
         className={`${sectionRowClass} flex-1 outline-none focus-visible:bg-accent`}
       >
         <FileText

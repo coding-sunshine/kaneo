@@ -13,23 +13,7 @@ import {
 } from "@/components/ui/preview-card";
 import getProject from "@/fetchers/project/get-project";
 import getTask from "@/fetchers/task/get-task";
-
-function parseTaskRouteFromUrl(url: string) {
-  try {
-    const parsed = new URL(url);
-    const match = parsed.pathname.match(
-      /\/dashboard\/workspace\/([^/]+)\/project\/([^/]+)\/task\/([^/]+)(?:\/|$)/i,
-    );
-    if (!match) return null;
-    return {
-      workspaceId: match[1],
-      projectId: match[2],
-      taskId: match[3],
-    };
-  } catch {
-    return null;
-  }
-}
+import { parseTaskRouteFromUrl } from "./parse-task-route";
 
 function KaneoIssueLinkView({ node }: NodeViewProps) {
   const { t } = useTranslation();

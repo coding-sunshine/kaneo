@@ -287,6 +287,7 @@ export function ExternalLinksAccordion({
                     key={document.id}
                     workspaceId={workspaceId}
                     document={document}
+                    taskId={taskId}
                   />
                 ))}
                 {linksWithoutRedundantBranches.map((link) => {

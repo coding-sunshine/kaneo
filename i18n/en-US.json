@@ -3636,6 +3636,26 @@
 				"noMore": "No more topics to add",
 				"addFailed": "Could not add the topic",
 				"removeFailed": "Could not remove the topic"
+			},
+			"checklist": {
+				"create": "Create issues",
+				"createHint": "Create issues from this checklist",
+				"title": "Create issues from checklist",
+				"description": "One issue per line. Each issue links back to this document, and the line shows the issue's status.",
+				"lines": "Lines",
+				"team": "Team",
+				"chooseTeam": "Choose a team",
+				"none": "This checklist has no open lines without an issue.",
+				"audience_one": "{{count}} person can open issues in {{team}} but cannot open this document. They will see the issue, and a link to a document they cannot open.",
+				"audience_other": "{{count}} people can open issues in {{team}} but cannot open this document. They will see the issues, and a link to a document they cannot open.",
+				"audienceFailed": "Could not check who can open issues in this team. Try again.",
+				"submit_one": "Create {{count}} issue",
+				"submit_other": "Create {{count}} issues",
+				"done_one": "Created {{count}} issue",
+				"done_other": "Created {{count}} issues",
+				"partial": "Created {{done}} of {{total}} issues. Create the rest again from the checklist.",
+				"failed": "Could not create the issues",
+				"status": "Issue status: {{status}}"
 			}
 		},
 		"agent": {
