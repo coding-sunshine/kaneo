@@ -3,7 +3,11 @@ import { and, asc, eq, inArray } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
 import db from "../../database";
-import { topicSlotTable } from "../../database/schema";
+import {
+  statementDependencyTable,
+  statementTable,
+  topicSlotTable,
+} from "../../database/schema";
 import type { createSlotBody } from "../schema";
 import { assertTopicOwner } from "./assert-topic-owner";
 import { getTopic } from "./get-topic";
@@ -112,7 +116,8 @@ export async function createSlot(
   return shown(slot);
 }
 
-// Removing a slot removes its statements with it.
+// Removing a slot removes its statements with it. Work that relies on one of
+// them would lose its link without a flag, so those links have to go first.
 export async function deleteSlot(
   workspaceId: string,
   topicId: string,
@@ -121,6 +126,25 @@ export async function deleteSlot(
 ) {
   const topic = await getTopic(workspaceId, topicId, userId);
   await assertTopicOwner(workspaceId, topic, userId);
+  // ponytail: a link made in the same instant still goes with the slot. Lock
+  // the slot's statements here if that ever happens.
+  const [reliedOn] = await db
+    .select({ id: statementDependencyTable.id })
+    .from(statementDependencyTable)
+    .innerJoin(
+      statementTable,
+      eq(statementTable.id, statementDependencyTable.statementId),
+    )
+    .innerJoin(topicSlotTable, eq(topicSlotTable.id, statementTable.slotId))
+    .where(
+      and(eq(topicSlotTable.id, slotId), eq(topicSlotTable.topicId, topic.id)),
+    )
+    .limit(1);
+  if (reliedOn) {
+    throw new HTTPException(409, {
+      message: "Work relies on a value in this slot. Remove those links first",
+    });
+  }
   const [slot] = await db
     .delete(topicSlotTable)
     .where(

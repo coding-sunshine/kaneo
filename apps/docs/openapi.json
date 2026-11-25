@@ -33197,7 +33197,7 @@
           "Topics"
         ],
         "summary": "Remove a slot from a topic",
-        "description": "Removes the slot and every statement written for it. For the decider and workspace owners.",
+        "description": "Removes the slot and every statement written for it. Refused while an issue or a document relies on one of those statements. For the decider and workspace owners.",
         "parameters": [
           {
             "schema": {
@@ -33265,6 +33265,16 @@
           },
           "404": {
             "description": "Topic or slot not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Work relies on a value in this slot",
             "content": {
               "application/json": {
                 "schema": {

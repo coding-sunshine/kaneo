@@ -425,4 +425,29 @@ describe("API integration: ripple flags", () => {
     expect(items[0].document?.id).toBe(priceDoc);
     expect(items[0].dependsOn.slot).toBe("price");
   });
+
+  it("refuses to delete a slot while work relies on one of its values", async () => {
+    const s = await setup();
+    const { world, r, topicId, docId, cost } = s;
+    const made = await r.depend(docId, cost.id, {
+      taskId: world.alphaTask.id,
+    });
+    await expectStatus(made, 200);
+    const link = (await made.json()) as Dependency;
+    const drop = () =>
+      world.as(world.owner)(
+        `/topic/workspace/${world.ws}/${topicId}/slots/${cost.slotId}`,
+        json("DELETE"),
+      );
+
+    // The statements go with the slot, and the links would go with them.
+    await expectStatus(await drop(), 409);
+    const again = await r.depend(docId, cost.id, {
+      taskId: world.alphaTask.id,
+    });
+    expect(((await again.json()) as Dependency).id).toBe(link.id);
+
+    await expectStatus(await r.remove(docId, cost.id, link.id), 200);
+    await expectStatus(await drop(), 200);
+  });
 });

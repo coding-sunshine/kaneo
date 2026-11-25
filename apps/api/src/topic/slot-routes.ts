@@ -71,12 +71,13 @@ export const deleteSlotRoute = createRoute({
   tags,
   summary: "Remove a slot from a topic",
   description:
-    "Removes the slot and every statement written for it. For the decider and workspace owners.",
+    "Removes the slot and every statement written for it. Refused while an issue or a document relies on one of those statements. For the decider and workspace owners.",
   middleware: [...write] as const,
   request: { params: topicSlotParam },
   responses: {
     200: jsonResponse("Slot removed", z.object({ id: z.string() })),
     403: notOwner,
     404: notFound,
+    409: errorResponse("Work relies on a value in this slot"),
   },
 });
