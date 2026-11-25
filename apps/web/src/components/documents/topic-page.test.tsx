@@ -88,7 +88,7 @@ const current = {
   approvedAt: APPROVED_AT,
   approvedByName: "Decider Person",
   statusReason: "Starting point",
-} as DocumentDetail;
+} as unknown as DocumentDetail;
 
 const show = () => {
   const client = new QueryClient({

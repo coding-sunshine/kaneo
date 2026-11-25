@@ -25,10 +25,13 @@ export const documentCommentParam = documentParam.extend({
 });
 
 export const listDocumentsQuery = z.object({
-  filter: z.enum(["recent", "mine", "shared"]).optional().openapi({
-    description:
-      "recent: documents you own, edited or were shared. mine: documents you own. shared: documents shared with you directly.",
-  }),
+  filter: z
+    .enum(["recent", "mine", "shared", "unfiled", "inbox"])
+    .optional()
+    .openapi({
+      description:
+        "recent: documents you own, edited or were shared. mine: documents you own. shared: documents shared with you directly. unfiled: private drafts with no topic. inbox: documents in a shared place with no topic.",
+    }),
   projectId: z.string().optional().openapi({ description: "Team documents" }),
   workProjectId: z.string().optional(),
   taskId: z.string().optional(),
@@ -178,9 +181,24 @@ const documentFields = {
   updatedAt: responseTimestamp,
 };
 
+const snoozedUntil = nullableResponseTimestamp.openapi({
+  description:
+    "The Inbox hides the document until this time. Null when it is not set aside.",
+});
+
 export const documentSummarySchema = z
-  .object(documentFields)
+  .object({ ...documentFields, snoozedUntil })
   .openapi("DocumentSummary");
+
+export const snoozeDocumentBody = z.object({
+  until: z.string().datetime().nullable().openapi({
+    description: "Set the document aside until this time. Null brings it back.",
+  }),
+});
+
+export const documentSnoozeSchema = z
+  .object({ id: z.string(), snoozedUntil })
+  .openapi("DocumentSnooze");
 export const documentListSchema = z.array(documentSummarySchema);
 
 export const documentSchema = z

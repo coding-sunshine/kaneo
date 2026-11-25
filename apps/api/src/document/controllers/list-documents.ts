@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, ne, or, sql } from "drizzle-orm";
 import type { z } from "zod";
 import db from "../../database";
 import { documentTable, userTable } from "../../database/schema";
@@ -48,6 +48,11 @@ export const documentSummaryColumns = (userId: string) => ({
     WHEN ${topicAccess(userId, documentTable.topicId)} THEN ${documentTable.topicId}
   END`,
   filedAt: documentTable.filedAt,
+  // Null once the date has passed: the item is back in the Inbox.
+  snoozedUntil: sql<Date | null>`CASE
+    WHEN ${gt(documentTable.inboxSnoozedUntil, new Date())}
+      THEN ${documentTable.inboxSnoozedUntil}
+  END`.mapWith(documentTable.inboxSnoozedUntil),
   approvedAt: documentTable.approvedAt,
   creatorId: documentTable.creatorId,
   creatorName: userTable.name,
@@ -91,6 +96,18 @@ function filterCondition(
   )`;
   if (query.filter === "mine") {
     return eq(documentTable.creatorId, userId);
+  }
+  // No topic yet. A private draft waits with the people who can open it; a
+  // document in a shared place waits in the Inbox. A private document never
+  // has a topic: filing gives it the topic's place.
+  if (query.filter === "unfiled") {
+    return eq(documentTable.scope, "private");
+  }
+  if (query.filter === "inbox") {
+    return and(
+      isNull(documentTable.topicId),
+      ne(documentTable.scope, "private"),
+    );
   }
   if (query.filter === "shared") {
     return and(

@@ -3296,6 +3296,8 @@
 				"documentsRecent": "View Recent documents",
 				"documentsMine": "View My documents",
 				"documentsShared": "View Shared with me",
+				"documentsUnfiled": "View Not yet filed",
+				"documentsInbox": "View the document Inbox",
 				"openAgent": "Open agent"
 			},
 			"title": "Keyboard Shortcuts",
@@ -3360,18 +3362,34 @@
 			"tabs": {
 				"recent": "Recent",
 				"mine": "My documents",
-				"shared": "Shared with me"
+				"shared": "Shared with me",
+				"unfiled": "Not yet filed",
+				"inbox": "Inbox"
 			},
 			"tabHints": {
 				"recent": "Documents you work on and documents shared with you",
 				"mine": "Documents you own, private or in a team",
-				"shared": "Documents shared with you directly, including personal documents and documents from private teams you're not in"
+				"shared": "Documents shared with you directly, including personal documents and documents from private teams you're not in",
+				"unfiled": "Private drafts that are not on a topic yet",
+				"inbox": "Shared documents that are not on a topic yet"
 			},
 			"viewTab": "View {{name}}",
 			"empty": {
 				"recent": "Pick up where you left off. Documents you work on and documents shared with you appear here.",
 				"mine": "Draft on your own or write for your team. Documents you own appear here, private or in a team.",
-				"shared": "Work on documents with others. Documents people share with you appear here, including private ones and ones from teams you're not in."
+				"shared": "Work on documents with others. Documents people share with you appear here, including private ones and ones from teams you're not in.",
+				"unfiled": "Private drafts stay here until you file them on a topic. Only you and the people you share a draft with can see it.",
+				"inbox": "Nothing is waiting. A document in a team, a project, an issue or the workspace appears here until someone files it on a topic."
+			},
+			"inbox": {
+				"oldest": "The oldest document here was written {{time}}",
+				"nothingWaiting": "Nothing is waiting. Snoozed documents come back on their date.",
+				"snooze": "Snooze",
+				"snoozeUntil": "Snooze until",
+				"confirm": "Snooze",
+				"snoozed": "Snoozed",
+				"snoozedUntil": "Until {{date}}",
+				"unsnooze": "Unsnooze"
 			},
 			"updated": "Updated {{time}}",
 			"metadata": "Document metadata; Updated {{time}}; Owned by {{owner}}",

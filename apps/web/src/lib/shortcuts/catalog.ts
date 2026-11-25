@@ -171,6 +171,8 @@ export const SHORTCUTS = {
   documentsRecent: { keys: ["1"], category: "views", scope: "view" },
   documentsMine: { keys: ["2"], category: "views", scope: "view" },
   documentsShared: { keys: ["3"], category: "views", scope: "view" },
+  documentsUnfiled: { keys: ["4"], category: "views", scope: "view" },
+  documentsInbox: { keys: ["5"], category: "views", scope: "view" },
 
   addFilter: { keys: ["f"], category: "filters", scope: "view" },
   clearAllFilters: {

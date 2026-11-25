@@ -26,6 +26,7 @@ import { listDocuments } from "./controllers/list-documents";
 import { moveDocument } from "./controllers/move-document";
 import { setSubscribers } from "./controllers/set-subscribers";
 import { shareDocument, unshareDocument } from "./controllers/share-document";
+import { snoozeDocument } from "./controllers/snooze-document";
 import { updateDocument } from "./controllers/update-document";
 import { saveDraft } from "./controllers/save-draft";
 import { settleDocument } from "./controllers/settle-document";
@@ -41,6 +42,7 @@ import {
   documentListSchema,
   documentParam,
   documentSchema,
+  documentSnoozeSchema,
   documentUserParam,
   documentVersionListSchema,
   documentVersionParam,
@@ -55,6 +57,7 @@ import {
   settleDocumentBody,
   settledDocumentSchema,
   shareBody,
+  snoozeDocumentBody,
   subscribersBody,
   subscribersSchema,
   updateCommentBody,
@@ -258,6 +261,23 @@ const moveRoute = createRoute({
   responses: {
     200: jsonResponse("Document moved", documentSchema.nullable()),
     400: errorResponse("Document parent not found"),
+    403: noAccess,
+    404: notFound,
+  },
+});
+
+const snoozeRoute = createRoute({
+  method: "post",
+  operationId: "snoozeDocument",
+  path: `${one}/snooze`,
+  tags,
+  summary: "Snooze document",
+  description:
+    "Set a document aside in the Inbox until a time, for everybody who sees it there. Needs edit access.",
+  middleware: [...write] as const,
+  request: { params: documentParam, body: body(snoozeDocumentBody) },
+  responses: {
+    200: jsonResponse("Document snoozed", documentSnoozeSchema),
     403: noAccess,
     404: notFound,
   },
@@ -531,6 +551,14 @@ const document = apiRouter()
     const userId = c.get("userId");
     return c.json(
       await moveDocument(workspaceId, id, userId, c.req.valid("json")),
+      200,
+    );
+  })
+  .openapi(snoozeRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    const { until } = c.req.valid("json");
+    return c.json(
+      await snoozeDocument(workspaceId, id, c.get("userId"), until),
       200,
     );
   })

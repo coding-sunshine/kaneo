@@ -11,6 +11,7 @@ import {
   restoreDocumentVersion,
   setDocumentSubscribers,
   shareDocument,
+  snoozeDocument,
   updateDocument,
   updateDocumentComment,
 } from "@/fetchers/document/documents";
@@ -165,4 +166,16 @@ export function useDeleteDocumentComment(workspaceId: string, id: string) {
   return useCommentMutation(workspaceId, id, (commentId: string) =>
     deleteDocumentComment(workspaceId, id, commentId),
   );
+}
+
+export function useSnoozeDocument(workspaceId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, until }: { id: string; until: string | null }) =>
+      snoozeDocument(workspaceId, id, until),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: [...documentsKey(workspaceId), "list"],
+      }),
+  });
 }

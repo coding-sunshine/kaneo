@@ -13404,6 +13404,12 @@
 								"documentsShared": {
 									"type": "string"
 								},
+								"documentsUnfiled": {
+									"type": "string"
+								},
+								"documentsInbox": {
+									"type": "string"
+								},
 								"openAgent": {
 									"type": "string"
 								}
@@ -13515,6 +13521,8 @@
 								"documentsRecent",
 								"documentsMine",
 								"documentsShared",
+								"documentsUnfiled",
+								"documentsInbox",
 								"openAgent"
 							]
 						},
@@ -13782,9 +13790,15 @@
 								},
 								"shared": {
 									"type": "string"
+								},
+								"unfiled": {
+									"type": "string"
+								},
+								"inbox": {
+									"type": "string"
 								}
 							},
-							"required": ["recent", "mine", "shared"]
+							"required": ["recent", "mine", "shared", "unfiled", "inbox"]
 						},
 						"tabHints": {
 							"type": "object",
@@ -13798,9 +13812,15 @@
 								},
 								"shared": {
 									"type": "string"
+								},
+								"unfiled": {
+									"type": "string"
+								},
+								"inbox": {
+									"type": "string"
 								}
 							},
-							"required": ["recent", "mine", "shared"]
+							"required": ["recent", "mine", "shared", "unfiled", "inbox"]
 						},
 						"viewTab": {
 							"type": "string"
@@ -13817,9 +13837,55 @@
 								},
 								"shared": {
 									"type": "string"
+								},
+								"unfiled": {
+									"type": "string"
+								},
+								"inbox": {
+									"type": "string"
 								}
 							},
-							"required": ["recent", "mine", "shared"]
+							"required": ["recent", "mine", "shared", "unfiled", "inbox"]
+						},
+						"inbox": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"oldest": {
+									"type": "string"
+								},
+								"nothingWaiting": {
+									"type": "string"
+								},
+								"snooze": {
+									"type": "string"
+								},
+								"snoozeUntil": {
+									"type": "string"
+								},
+								"confirm": {
+									"type": "string"
+								},
+								"snoozed": {
+									"type": "string"
+								},
+								"snoozedUntil": {
+									"type": "string"
+								},
+								"unsnooze": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"oldest",
+								"nothingWaiting",
+								"snooze",
+								"snoozeUntil",
+								"confirm",
+								"snoozed",
+								"snoozedUntil",
+								"unsnooze"
+							]
 						},
 						"updated": {
 							"type": "string"
@@ -14611,6 +14677,7 @@
 						"tabHints",
 						"viewTab",
 						"empty",
+						"inbox",
 						"updated",
 						"metadata",
 						"titlePlaceholder",

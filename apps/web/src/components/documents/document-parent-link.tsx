@@ -12,7 +12,15 @@ const crumb =
 export function DocumentParentLink({
   document,
 }: {
-  document: DocumentSummary;
+  document: Pick<
+    DocumentSummary,
+    | "workspaceId"
+    | "scope"
+    | "projectId"
+    | "workProjectId"
+    | "taskId"
+    | "parentName"
+  >;
 }) {
   const { t } = useTranslation();
   const { data: workspace } = useActiveWorkspace();

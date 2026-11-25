@@ -1,0 +1,1 @@
+ALTER TABLE "document" ADD COLUMN "inbox_snoozed_until" timestamp;

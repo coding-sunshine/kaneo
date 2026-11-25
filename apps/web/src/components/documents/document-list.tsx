@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { FileText } from "lucide-react";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -17,19 +18,28 @@ const STATUS_TONE = {
 type DocumentListProps = {
   workspaceId: string;
   documents: DocumentSummary[];
+  /** Controls at the end of a row, outside the link that opens it. */
+  action?: (document: DocumentSummary) => ReactNode;
 };
 
 /** One row per document: title, status, where it lives, owner, last update. */
-export function DocumentList({ workspaceId, documents }: DocumentListProps) {
+export function DocumentList({
+  workspaceId,
+  documents,
+  action,
+}: DocumentListProps) {
   const { t } = useTranslation();
   return (
     <ul className="flex flex-col">
       {documents.map((document) => (
-        <li key={document.id}>
+        <li
+          key={document.id}
+          className="flex items-center border-border/60 border-b"
+        >
           <Link
             to="/dashboard/workspace/$workspaceId/document/$documentId"
             params={{ workspaceId, documentId: document.id }}
-            className="flex h-11 items-center gap-3 border-border/60 border-b px-4 text-[13px] outline-none hover:bg-accent/50 focus-visible:bg-accent/50"
+            className="flex h-11 min-w-0 flex-1 items-center gap-3 px-4 text-[13px] outline-none hover:bg-accent/50 focus-visible:bg-accent/50"
           >
             <FileText
               aria-hidden
@@ -66,6 +76,11 @@ export function DocumentList({ workspaceId, documents }: DocumentListProps) {
               {formatRelativeTime(document.updatedAt)}
             </time>
           </Link>
+          {action && (
+            <div className="flex shrink-0 items-center gap-2 pe-3 text-[13px]">
+              {action(document)}
+            </div>
+          )}
         </li>
       ))}
     </ul>

@@ -9,6 +9,7 @@ import { useDocuments } from "@/hooks/queries/document/use-documents";
 import { DocumentList } from "./document-list";
 import { DocumentsEmpty } from "./documents-empty";
 import { DocumentsTabs } from "./documents-tabs";
+import { InboxList } from "./inbox-list";
 import { TopicsStrip } from "./topics-strip";
 import { useNewDocument } from "./use-new-document";
 
@@ -47,14 +48,16 @@ export function DocumentsPage({ workspaceId, filter }: DocumentsPageProps) {
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-8 w-full" />
           </div>
-        ) : documents?.length ? (
-          <DocumentList workspaceId={workspaceId} documents={documents} />
-        ) : (
+        ) : !documents?.length ? (
           <DocumentsEmpty
             filter={filter}
             onCreate={() => create()}
             creating={isPending}
           />
+        ) : filter === "inbox" ? (
+          <InboxList workspaceId={workspaceId} documents={documents} />
+        ) : (
+          <DocumentList workspaceId={workspaceId} documents={documents} />
         )}
       </WorkspaceLayout>
     </>

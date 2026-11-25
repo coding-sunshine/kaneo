@@ -9,7 +9,10 @@ type DocumentsEmptyProps = {
   creating: boolean;
 };
 
-/** Linear's per-tab empty state; Shared with me has nothing to create. */
+/**
+ * Linear's per-tab empty state. Shared with me and the Inbox have nothing to
+ * create: a new document is a private draft.
+ */
 export function DocumentsEmpty({
   filter,
   onCreate,
@@ -26,7 +29,7 @@ export function DocumentsEmpty({
         <p className="mt-2 text-[13px] text-muted-foreground leading-[18px]">
           {t(`navigation:documents.empty.${filter}`)}
         </p>
-        {filter !== "shared" && (
+        {filter !== "shared" && filter !== "inbox" && (
           <Button
             size="xs"
             className="mt-6 rounded-full"

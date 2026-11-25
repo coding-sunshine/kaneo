@@ -3642,6 +3642,14 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "snoozedUntil": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "The Inbox hides the document until this time. Null when it is not set aside."
           }
         },
         "required": [
@@ -3665,7 +3673,8 @@
           "creatorName",
           "creatorImage",
           "createdAt",
-          "updatedAt"
+          "updatedAt",
+          "snoozedUntil"
         ]
       },
       "Document": {
@@ -4197,6 +4206,26 @@
           "id",
           "title",
           "updatedAt"
+        ]
+      },
+      "DocumentSnooze": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "snoozedUntil": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "The Inbox hides the document until this time. Null when it is not set aside."
+          }
+        },
+        "required": [
+          "id",
+          "snoozedUntil"
         ]
       },
       "DocumentAudience": {
@@ -26605,12 +26634,14 @@
               "enum": [
                 "recent",
                 "mine",
-                "shared"
+                "shared",
+                "unfiled",
+                "inbox"
               ],
-              "description": "recent: documents you own, edited or were shared. mine: documents you own. shared: documents shared with you directly."
+              "description": "recent: documents you own, edited or were shared. mine: documents you own. shared: documents shared with you directly. unfiled: private drafts with no topic. inbox: documents in a shared place with no topic."
             },
             "required": false,
-            "description": "recent: documents you own, edited or were shared. mine: documents you own. shared: documents shared with you directly.",
+            "description": "recent: documents you own, edited or were shared. mine: documents you own. shared: documents shared with you directly. unfiled: private drafts with no topic. inbox: documents in a shared place with no topic.",
             "name": "filter",
             "in": "query"
           },
@@ -27630,6 +27661,102 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/snooze": {
+      "post": {
+        "operationId": "snoozeDocument",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Snooze document",
+        "description": "Set a document aside in the Inbox until a time, for everybody who sees it there. Needs edit access.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "until": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time",
+                    "description": "Set the document aside until this time. Null brings it back."
+                  }
+                },
+                "required": [
+                  "until"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Document snoozed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentSnooze"
                 }
               }
             }

@@ -3244,7 +3244,9 @@
 				"toggleInsights": "Toggle insights",
 				"toggleTeamFavorite": "Favorite team",
 				"copyPullRequestPrompt": "Copy pull request as prompt",
-				"workOnPullRequest": "Work on pull request"
+				"workOnPullRequest": "Work on pull request",
+				"documentsInbox": "View the document Inbox",
+				"documentsUnfiled": "View Not yet filed"
 			},
 			"title": "キーボードショートカット",
 			"searchPlaceholder": "操作またはキーで検索",
@@ -3343,7 +3345,9 @@
 			"empty": {
 				"mine": "Draft on your own or write for your team. Documents you own appear here, private or in a team.",
 				"recent": "Pick up where you left off. Documents you work on and documents shared with you appear here.",
-				"shared": "Work on documents with others. Documents people share with you appear here, including private ones and ones from teams you're not in."
+				"shared": "Work on documents with others. Documents people share with you appear here, including private ones and ones from teams you're not in.",
+				"inbox": "Nothing is waiting. A document in a team, a project, an issue or the workspace appears here until someone files it on a topic.",
+				"unfiled": "Private drafts stay here until you file them on a topic. Only you and the people you share a draft with can see it."
 			},
 			"favorite": "Favorite",
 			"hideHistory": "Hide document history",
@@ -3402,12 +3406,16 @@
 			"tabHints": {
 				"mine": "Documents you own, private or in a team",
 				"recent": "Documents you work on and documents shared with you",
-				"shared": "Documents shared with you directly, including personal documents and documents from private teams you're not in"
+				"shared": "Documents shared with you directly, including personal documents and documents from private teams you're not in",
+				"inbox": "Shared documents that are not on a topic yet",
+				"unfiled": "Private drafts that are not on a topic yet"
 			},
 			"tabs": {
 				"mine": "My documents",
 				"recent": "Recent",
-				"shared": "Shared with me"
+				"shared": "Shared with me",
+				"inbox": "Inbox",
+				"unfiled": "Not yet filed"
 			},
 			"title": "Documents",
 			"titlePlaceholder": "Document title",
@@ -3539,6 +3547,16 @@
 				"reason": "Reason: {{reason}}",
 				"replaced": "Superseded",
 				"title": "Topics"
+			},
+			"inbox": {
+				"confirm": "Snooze",
+				"nothingWaiting": "Nothing is waiting. Snoozed documents come back on their date.",
+				"oldest": "The oldest document here was written {{time}}",
+				"snooze": "Snooze",
+				"snoozed": "Snoozed",
+				"snoozedUntil": "Until {{date}}",
+				"snoozeUntil": "Snooze until",
+				"unsnooze": "Unsnooze"
 			}
 		},
 		"drafts": {

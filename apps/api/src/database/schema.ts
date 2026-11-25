@@ -2686,6 +2686,9 @@ export const documentTable = pgTable(
       onUpdate: "cascade",
     }),
     filedAt: timestamp("filed_at", { mode: "date" }),
+    // Set aside in the Inbox until this time. One date for everybody who sees
+    // the item: one person triages the Inbox.
+    inboxSnoozedUntil: timestamp("inbox_snoozed_until", { mode: "date" }),
     // Why the document has the status it has: the reason given on approval.
     statusReason: text("status_reason"),
     // The approval that made the document current: who, when, and the text.

@@ -4,7 +4,7 @@ import { HttpError } from "@/lib/http-error";
 const api = client.document.workspace[":workspaceId"];
 const one = api[":id"];
 
-export type DocumentFilter = "recent" | "mine" | "shared";
+export type DocumentFilter = "recent" | "mine" | "shared" | "unfiled" | "inbox";
 export type DocumentParent = {
   projectId?: string;
   workProjectId?: string;
@@ -250,6 +250,20 @@ export async function getOwnerlessDocuments(workspaceId: string) {
 
 export async function takeOverDocument(workspaceId: string, id: string) {
   const response = await one["take-over"].$post({ param: { workspaceId, id } });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+/** Set a document aside in the Inbox until a time; null brings it back. */
+export async function snoozeDocument(
+  workspaceId: string,
+  id: string,
+  until: string | null,
+) {
+  const response = await one.snooze.$post({
+    param: { workspaceId, id },
+    json: { until },
+  });
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }

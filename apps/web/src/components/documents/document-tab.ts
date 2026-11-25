@@ -1,11 +1,16 @@
 import type { DocumentFilter } from "@/fetchers/document/documents";
 import type { ShortcutId } from "@/lib/shortcuts/catalog";
 
-/** Linear's Documents tabs, in order, with the URL segment each one owns. */
+/**
+ * The Documents tabs, in order, with the URL segment each one owns. The first
+ * three are Linear's; the last two hold what no topic holds yet.
+ */
 export const DOCUMENT_TABS = [
   { filter: "recent", slug: null, shortcut: "documentsRecent" },
   { filter: "mine", slug: "my-documents", shortcut: "documentsMine" },
   { filter: "shared", slug: "shared-with-me", shortcut: "documentsShared" },
+  { filter: "unfiled", slug: "not-yet-filed", shortcut: "documentsUnfiled" },
+  { filter: "inbox", slug: "inbox", shortcut: "documentsInbox" },
 ] as const satisfies readonly {
   filter: DocumentFilter;
   slug: string | null;
