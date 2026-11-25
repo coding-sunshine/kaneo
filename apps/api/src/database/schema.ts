@@ -3407,6 +3407,58 @@ export const statementJudgementTable = pgTable(
   ],
 );
 
+// Work that relies on a statement: an issue or a document. When the topic
+// stops stating that value, the work is flagged until someone clears the
+// flag. `causeStatementId` is the statement whose change raised the flag: this
+// one, or one further up a chain of documents that depend on each other.
+export const statementDependencyTable = pgTable(
+  "statement_dependency",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    statementId: text("statement_id")
+      .notNull()
+      .references(() => statementTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    taskId: text("task_id").references(() => taskTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    documentId: text("document_id").references(() => documentTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    needsReviewAt: timestamp("needs_review_at", { mode: "date" }),
+    causeStatementId: text("cause_statement_id").references(
+      () => statementTable.id,
+      { onDelete: "set null", onUpdate: "cascade" },
+    ),
+    createdBy: text("created_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("statement_dependency_task_uidx")
+      .on(table.statementId, table.taskId)
+      .where(sql`${table.taskId} IS NOT NULL`),
+    uniqueIndex("statement_dependency_document_uidx")
+      .on(table.statementId, table.documentId)
+      .where(sql`${table.documentId} IS NOT NULL`),
+    index("statement_dependency_document_idx").on(table.documentId),
+    check(
+      "statement_dependency_one_work",
+      sql`(${table.taskId} IS NULL) <> (${table.documentId} IS NULL)`,
+    ),
+  ],
+);
+
 // One row for each text the model was asked about, so that a text is read
 // once. An answer nobody could read is kept too: asking again would cost the
 // same and read the same.

@@ -5,6 +5,7 @@ import db, { schema } from "../../apps/api/src/database";
 import {
   favoriteTable,
   statementTable,
+  topicTable,
 } from "../../apps/api/src/database/schema";
 import { resetTestDatabase } from "./helpers/database";
 import {
@@ -14,6 +15,7 @@ import {
   json,
   SEARCH_WORD,
 } from "./helpers/document-access/build-document-world";
+import { filing, type Said, type Statement } from "./helpers/statement-filing";
 
 type Member = DocumentWorld["owner"];
 type Row = { id: string; parentName: string | null };
@@ -82,6 +84,128 @@ async function searched(world: DocumentWorld, user: Member, type: string) {
       .filter((result) => result.type === "document")
       .map((result) => result.id)
       .sort(),
+  };
+}
+
+type Flag = { id: string };
+
+const RIPPLE_DATE: Said = {
+  slot: "launch_date",
+  value: "2027-03-05",
+  quote: "5 March 2027",
+};
+const rippleCodename: Said = {
+  slot: "codename",
+  value: "Falcon",
+  quote: "Falcon",
+};
+const ripplePrice = (amount: number): Said => ({
+  slot: "price",
+  value: String(amount),
+  quote: `${amount} USD`,
+});
+const rippleText = (saids: Said[]) =>
+  saids.map((s) => `<p>We state ${s.quote}.</p>`).join("");
+
+// A topic whose current "Launch plan" states a price of 40, plus the calls
+// that link work to it, list the flags and clear one.
+async function rippleSetup() {
+  const world = await buildDocumentWorld();
+  const { ws, owner } = world;
+  const api = filing(world);
+  const ok = async (response: Response) =>
+    expect(response.status, await response.clone().text()).toBe(200);
+  const confirmAll = async (docId: string, saids: Said[]) => {
+    const made: Statement[] = [];
+    for (const said of saids) {
+      const statement = await api.add(docId, said);
+      await ok(await api.decide(docId, statement.id, "confirm"));
+      made.push(statement);
+    }
+    return made;
+  };
+  const topicId = await api.topic();
+  for (const [name, type] of [
+    ["Launch date", "date"],
+    ["Price", "number"],
+    ["Codename", "term"],
+  ]) {
+    await api.addSlot(topicId, { name, type });
+  }
+  const docId = await api.filed(
+    topicId,
+    "Launch plan",
+    rippleText([RIPPLE_DATE, ripplePrice(40), rippleCodename]),
+  );
+  const [, cost] = await confirmAll(docId, [RIPPLE_DATE, ripplePrice(40)]);
+  await ok(await api.approve(topicId, docId));
+
+  const replace = async () => {
+    const saids = [RIPPLE_DATE, ripplePrice(45)];
+    const id = await api.filed(topicId, "Launch plan v2", rippleText(saids));
+    await confirmAll(id, saids);
+    for (const conflict of (await api.receipt(id)).conflicts) {
+      await ok(
+        await api.settleConflict(id, conflict.id, {
+          decision: "replace",
+          reason: "Changed.",
+        }),
+      );
+    }
+    await ok(await api.approve(topicId, id));
+  };
+  const depend = (
+    on: string,
+    statementId: string,
+    body: Record<string, unknown>,
+    user: Member = owner,
+  ) =>
+    world.as(user)(
+      `/document/workspace/${ws}/${on}/statements/${statementId}/dependents`,
+      json("PUT", body),
+    );
+  const remove = (
+    on: string,
+    statementId: string,
+    dependencyId: string,
+    user: Member = owner,
+  ) =>
+    world.as(user)(
+      `/document/workspace/${ws}/${on}/statements/${statementId}/dependents/${dependencyId}`,
+      json("DELETE"),
+    );
+  const flags = async (user: Member = owner) => {
+    const response = await world.as(user)(
+      `/topic/workspace/${ws}/needs-review`,
+    );
+    expect(response.status).toBe(200);
+    return (await response.json()) as { items: Flag[] };
+  };
+  const clear = (id: string, user: Member = owner) =>
+    world.as(user)(
+      `/topic/workspace/${ws}/needs-review/${id}/clear`,
+      json("POST"),
+    );
+  // Moves the document into team Beta, which `limited` cannot enter.
+  const hide = (id: string) =>
+    db
+      .update(schema.documentTable)
+      .set({ projectId: world.beta.id })
+      .where(eq(schema.documentTable.id, id));
+  return {
+    world,
+    api,
+    topicId,
+    docId,
+    cost,
+    confirmAll,
+    ok,
+    replace,
+    depend,
+    remove,
+    flags,
+    clear,
+    hide,
   };
 }
 
@@ -260,6 +384,8 @@ describe("API integration: document access leaks", () => {
           "/conflicts/no-such-conflict/decide",
           json("POST", { decision: "keep", reason: "No." }),
         ],
+        ["/statements/x/dependents", json("PUT", { taskId: "x" })],
+        ["/statements/x/dependents/y", json("DELETE")],
       ];
       for (const [suffix, init] of routes) {
         const response = await world.as(limited)(`${path}${suffix}`, init);
@@ -986,5 +1112,173 @@ describe("API integration: document access leaks", () => {
     expect((await db.select().from(schema.documentTable)).length).toBe(
       documents,
     );
+  });
+
+  it("shows a flag only to someone who can open the replaced document", async () => {
+    const s = await rippleSetup();
+    const { world, docId, cost } = s;
+    const { owner, limited } = world;
+    await s.ok(await s.depend(docId, cost.id, { taskId: world.alphaTask.id }));
+    await s.replace();
+
+    const seen = (await s.flags(limited)).items;
+    expect(seen).toHaveLength(1);
+    await s.hide(docId);
+
+    expect(await s.flags(limited)).toEqual({ items: [] });
+    expect((await s.clear(seen[0].id, limited)).status).toBe(404);
+    expect((await s.flags(owner)).items).toHaveLength(1);
+  });
+
+  it("hides a flag on an issue the member cannot open", async () => {
+    const s = await rippleSetup();
+    const { world, docId, cost } = s;
+    const { owner, limited } = world;
+    await s.ok(await s.depend(docId, cost.id, { taskId: world.betaTask.id }));
+    await s.replace();
+
+    const [flag] = (await s.flags(owner)).items;
+    expect((await s.flags(owner)).items).toHaveLength(1);
+    expect(await s.flags(limited)).toEqual({ items: [] });
+    expect((await s.clear(flag.id, limited)).status).toBe(404);
+    expect((await s.flags(owner)).items).toHaveLength(1);
+  });
+
+  it("hides a flag on a document the member cannot open", async () => {
+    const s = await rippleSetup();
+    const { world, api, docId, cost } = s;
+    const { owner, limited } = world;
+    const memo = await api.write("Pricing memo", "<p>Memo.</p>");
+    await s.hide(memo);
+    const opened = await world.as(limited)(
+      `/document/workspace/${world.ws}/${memo}`,
+    );
+    expect(opened.status).toBe(404);
+    await s.ok(await s.depend(docId, cost.id, { documentId: memo }));
+    await s.replace();
+
+    const [flag] = (await s.flags(owner)).items;
+    expect((await s.flags(owner)).items).toHaveLength(1);
+    expect(await s.flags(limited)).toEqual({ items: [] });
+    expect((await s.clear(flag.id, limited)).status).toBe(404);
+    expect((await s.flags(owner)).items).toHaveLength(1);
+  });
+
+  it("hides a flag that came down a chain when the cause's document is hidden", async () => {
+    const s = await rippleSetup();
+    const { world, api, docId, cost } = s;
+    const { owner, limited } = world;
+    const other = await api.topic("Pricing");
+    await api.addSlot(other, { name: "Codename", type: "term" });
+    const d = await api.filed(
+      other,
+      "Pricing memo",
+      rippleText([rippleCodename]),
+    );
+    const [t] = await s.confirmAll(d, [rippleCodename]);
+    await s.ok(await api.approve(other, d));
+    await s.ok(await s.depend(docId, cost.id, { documentId: d }));
+    await s.ok(await s.depend(d, t.id, { taskId: world.alphaTask.id }));
+    await s.replace();
+
+    const seen = (await s.flags(limited)).items;
+    expect(seen).toHaveLength(2);
+    await s.hide(docId);
+
+    expect(await s.flags(limited)).toEqual({ items: [] });
+    for (const flag of seen) {
+      expect((await s.clear(flag.id, limited)).status).toBe(404);
+    }
+    expect((await s.flags(owner)).items).toHaveLength(2);
+  });
+
+  it("refuses a link to work or a statement the member cannot open", async () => {
+    const s = await rippleSetup();
+    const { world, docId, cost } = s;
+    const { limited } = world;
+
+    expect(
+      (await s.depend(docId, cost.id, { taskId: world.betaTask.id }, limited))
+        .status,
+    ).toBe(404);
+    expect(
+      (
+        await s.depend(
+          docId,
+          cost.id,
+          { documentId: world.docs.teamBeta },
+          limited,
+        )
+      ).status,
+    ).toBe(404);
+    expect(
+      (await s.depend(docId, cost.id, { taskId: world.alphaTask.id }, limited))
+        .status,
+    ).toBe(200);
+
+    const made = (await (
+      await s.depend(docId, cost.id, { taskId: world.betaTask.id })
+    ).json()) as { id: string };
+    const hidden = await s.remove(docId, cost.id, made.id, limited);
+    const unknown = await s.remove(docId, cost.id, "no-such-id", limited);
+    expect(unknown.status).toBe(404);
+    expect(hidden.status).toBe(404);
+    expect(await hidden.text()).toBe(await unknown.text());
+
+    await s.hide(docId);
+    expect(
+      (await s.depend(docId, cost.id, { taskId: world.alphaTask.id }, limited))
+        .status,
+    ).toBe(404);
+  });
+
+  it("hides a flag when one end of its chain is hidden: the document relied on, its topic, or the topic of the cause", async () => {
+    const s = await rippleSetup();
+    const { world, api, topicId, docId, cost } = s;
+    const { limited } = world;
+    const other = await api.topic("Pricing");
+    await api.addSlot(other, { name: "Codename", type: "term" });
+    const d = await api.filed(
+      other,
+      "Pricing memo",
+      rippleText([rippleCodename]),
+    );
+    const [t] = await s.confirmAll(d, [rippleCodename]);
+    await s.ok(await api.approve(other, d));
+    await s.ok(await s.depend(docId, cost.id, { documentId: d }));
+    await s.ok(await s.depend(d, t.id, { taskId: world.alphaTask.id }));
+    await s.replace();
+    // Two flags: the memo relies on the old price, the issue relies on the
+    // memo. A filed document always lives where its topic does, so each end
+    // is hidden by hand, one at a time, and put back.
+    const place = (
+      table: typeof schema.documentTable | typeof topicTable,
+      id: string,
+    ) => ({
+      to: (project: { id: string }) =>
+        db.update(table).set({ projectId: project.id }).where(eq(table.id, id)),
+    });
+    const works = async () =>
+      ((await s.flags(limited)).items as { task: unknown }[]).map((flag) =>
+        flag.task ? "issue" : "memo",
+      );
+    expect((await works()).sort()).toEqual(["issue", "memo"]);
+
+    // The memo: it is the flagged work of one flag and the document the
+    // other relies on.
+    await place(schema.documentTable, d).to(world.beta);
+    expect(await works()).toEqual([]);
+    await place(schema.documentTable, d).to(world.alpha);
+    expect(await works()).toHaveLength(2);
+
+    // The memo's topic: only the issue relies on a statement of it.
+    await place(topicTable, other).to(world.beta);
+    expect(await works()).toEqual(["memo"]);
+    await place(topicTable, other).to(world.alpha);
+    expect(await works()).toHaveLength(2);
+
+    // The topic of the cause: both flags start there.
+    await place(topicTable, topicId).to(world.beta);
+    expect(await works()).toEqual([]);
   });
 });

@@ -48,6 +48,8 @@ import {
   deleteSlotRoute,
   listSlotsRoute,
 } from "./slot-routes";
+import { clearFlag, listNeedsReview } from "./controllers/needs-review";
+import { clearNeedsReviewRoute, needsReviewRoute } from "./needs-review-routes";
 
 const body = <T extends ZodType>(schema: T) => ({
   required: true as const,
@@ -383,8 +385,21 @@ const topic = apiRouter()
   .openapi(createTopicRoute, async (c) =>
     c.json(await createTopic(c.get("userId"), c.req.valid("json")), 200),
   )
-  // Before the route for one topic: its `{id}` would take these two words
+  // Before the route for one topic: its `{id}` would take these words
   // for a topic's id and answer 404.
+  .openapi(needsReviewRoute, async (c) =>
+    c.json(
+      await listNeedsReview(c.req.valid("param").workspaceId, c.get("userId")),
+      200,
+    ),
+  )
+  .openapi(clearNeedsReviewRoute, async (c) => {
+    const { workspaceId, dependencyId } = c.req.valid("param");
+    return c.json(
+      await clearFlag(workspaceId, dependencyId, c.get("userId")),
+      200,
+    );
+  })
   .openapi(readCurrentRoute, async (c) =>
     c.json(
       await getCurrent(

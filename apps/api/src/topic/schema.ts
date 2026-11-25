@@ -289,3 +289,42 @@ export const topicUnreviewedSchema = z
     ),
   })
   .openapi("TopicUnreviewed");
+
+export const reviewFlagParam = workspaceIdParam.extend({
+  dependencyId: z.string(),
+});
+
+const reliedStatement = z.object({
+  statementId: z.string(),
+  slot: z.string(),
+  slotName: z.string(),
+  value: z.string(),
+  quote: z.string(),
+  documentId: z.string(),
+  documentTitle: z.string(),
+});
+const flaggedWork = z.object({ id: z.string(), title: z.string() }).nullable();
+
+export const needsReviewSchema = z
+  .object({
+    items: z.array(
+      z.object({
+        id: z.string(),
+        flaggedAt: responseTimestamp,
+        task: flaggedWork,
+        document: flaggedWork,
+        dependsOn: reliedStatement.openapi({
+          description: "The statement the work relies on.",
+        }),
+        cause: reliedStatement.openapi({
+          description:
+            "The statement whose change raised the flag. Another one than dependsOn when the flag came down a chain of documents.",
+        }),
+      }),
+    ),
+  })
+  .openapi("TopicNeedsReview");
+
+export const clearedReviewFlagSchema = z
+  .object({ id: z.string(), needsReview: z.boolean() })
+  .openapi("ClearedReviewFlag");

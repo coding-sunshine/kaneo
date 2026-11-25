@@ -1,7 +1,7 @@
 import { and, eq, isNull, ne } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
-import { documentTable, topicTable } from "../../database/schema";
+import { documentTable } from "../../database/schema";
 import { getDocument } from "../../document/controllers/get-document";
 import { loadDocument } from "../../document/controllers/load-document";
 import {
@@ -9,6 +9,7 @@ import {
   notifyTopicFollowers,
 } from "../../document/controllers/notify";
 import { recordVersion } from "../../document/controllers/record-version";
+import { changingTopic } from "./flag-dependents";
 import { getTopic } from "./get-topic";
 import { receiptOf } from "./receipt";
 
@@ -51,14 +52,7 @@ export async function makeCurrent(
   seenHash?: string,
 ) {
   await loadForDecision(workspaceId, id, documentId, userId);
-  const proposal = await db.transaction(async (tx) => {
-    // One approval at a time on a topic. The `one_current` index is the
-    // backstop.
-    await tx
-      .select({ id: topicTable.id })
-      .from(topicTable)
-      .where(eq(topicTable.id, id))
-      .for("no key update");
+  const proposal = await changingTopic(id, async (tx) => {
     // The hash and the kept text come from one locked row, so an edit that
     // lands meanwhile cannot make them disagree.
     const [doc] = await tx
@@ -180,18 +174,20 @@ export async function setAside(
 ) {
   const doc = await loadForDecision(workspaceId, id, documentId, userId);
   if (doc.status !== "current") throw notCurrent();
-  await db
-    .update(documentTable)
-    .set({
-      status: "in_review",
-      statusReason: null,
-      approvedBy: null,
-      approvedAt: null,
-      approvedHash: null,
-      approvedVersionId: null,
-      supersedesDocumentId: null,
-      confirmedAt: null,
-    })
-    .where(eq(documentTable.id, documentId));
+  await changingTopic(id, (tx) =>
+    tx
+      .update(documentTable)
+      .set({
+        status: "in_review",
+        statusReason: null,
+        approvedBy: null,
+        approvedAt: null,
+        approvedHash: null,
+        approvedVersionId: null,
+        supersedesDocumentId: null,
+        confirmedAt: null,
+      })
+      .where(eq(documentTable.id, documentId)),
+  );
   return getDocument(workspaceId, documentId, userId);
 }

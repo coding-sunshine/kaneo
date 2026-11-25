@@ -30,6 +30,9 @@ export const documentStatementParam = documentParam.extend({
 export const documentConflictParam = documentParam.extend({
   conflictId: z.string(),
 });
+export const documentDependencyParam = documentStatementParam.extend({
+  dependencyId: z.string(),
+});
 export const documentVersionParam = documentParam.extend({
   versionId: z.string(),
 });
@@ -134,6 +137,32 @@ export const statementBody = z.object({
 export const rejectStatementBody = z.object({
   reason: z.string().trim().min(1).max(500),
 });
+
+export const dependencyBody = z
+  .object({
+    taskId: z.string().min(1).optional().openapi({
+      description: "The issue that relies on the value.",
+    }),
+    documentId: z.string().min(1).optional().openapi({
+      description: "The document that relies on the value.",
+    }),
+  })
+  .refine((work) => Boolean(work.taskId) !== Boolean(work.documentId), {
+    message: "Send exactly one of taskId and documentId",
+  });
+
+export const dependencySchema = z
+  .object({
+    id: z.string(),
+    statementId: z.string(),
+    taskId: z.string().nullable(),
+    documentId: z.string().nullable(),
+    needsReview: z.boolean().openapi({
+      description:
+        "True from the moment the topic stops stating the value, until someone clears the flag.",
+    }),
+  })
+  .openapi("StatementDependency");
 
 export const decideConflictBody = z.object({
   decision: z.enum(["replace", "keep", "tolerate"]).openapi({

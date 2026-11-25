@@ -13,6 +13,7 @@ import { loadDocument } from "../../document/controllers/load-document";
 import { topicAccess } from "../../document/visibility";
 import { collapse, documentText, quoteStart } from "../statement-text";
 import { normalizeValue } from "../statement-value";
+import { changingTopic } from "./flag-dependents";
 import { getTopic } from "./get-topic";
 import { type Slot, slotsOf } from "./slots";
 
@@ -265,18 +266,13 @@ export async function addStatement(
   });
 }
 
-// Loads a statement of the document for someone who may decide on it. On a
-// current document that is the people who decide on its topic: what they
-// confirm there is the topic's answer.
-async function forDecision(
-  workspaceId: string,
-  documentId: string,
+// A statement of the document, on the topic the document is filed on now.
+// Missing for someone who cannot open that topic.
+export async function statementOf(
+  doc: Loaded,
   statementId: string,
   userId: string,
 ) {
-  const doc = await loadDocument(workspaceId, documentId, userId, {
-    need: "edit",
-  });
   const topicId = await openTopic(doc, userId);
   const [found] = topicId
     ? await db
@@ -291,12 +287,27 @@ async function forDecision(
           ),
         )
     : [];
-  if (!found) throw notFound();
-  const { statement } = found;
+  if (!found || !topicId) throw notFound();
+  return { statement: found.statement, topicId };
+}
+
+// Loads a statement of the document for someone who may decide on it. On a
+// current document that is the people who decide on its topic: what they
+// confirm there is the topic's answer.
+async function forDecision(
+  workspaceId: string,
+  documentId: string,
+  statementId: string,
+  userId: string,
+) {
+  const doc = await loadDocument(workspaceId, documentId, userId, {
+    need: "edit",
+  });
+  const found = await statementOf(doc, statementId, userId);
   if (doc.status === "current" && doc.topicId) {
     await assertDecides(workspaceId, doc, userId);
   }
-  return { doc, statement };
+  return { doc, ...found };
 }
 
 async function assertDecides(workspaceId: string, doc: Loaded, userId: string) {
@@ -315,7 +326,7 @@ export async function confirmStatement(
   statementId: string,
   userId: string,
 ) {
-  const { doc, statement } = await forDecision(
+  const { doc, statement, topicId } = await forDecision(
     workspaceId,
     documentId,
     statementId,
@@ -336,10 +347,13 @@ export async function confirmStatement(
     });
   }
   if (statement.status === "proposed") {
-    await db
-      .update(statementTable)
-      .set({ status: "confirmed", decidedBy: userId, decidedAt: new Date() })
-      .where(eq(statementTable.id, statement.id));
+    // On the current document this changes what the topic states.
+    await changingTopic(topicId, (tx) =>
+      tx
+        .update(statementTable)
+        .set({ status: "confirmed", decidedBy: userId, decidedAt: new Date() })
+        .where(eq(statementTable.id, statement.id)),
+    );
   }
   return one(statement.id);
 }
@@ -351,20 +365,22 @@ export async function rejectStatement(
   userId: string,
   reason: string,
 ) {
-  const { statement } = await forDecision(
+  const { statement, topicId } = await forDecision(
     workspaceId,
     documentId,
     statementId,
     userId,
   );
-  await db
-    .update(statementTable)
-    .set({
-      status: "rejected",
-      statusReason: reason,
-      decidedBy: userId,
-      decidedAt: new Date(),
-    })
-    .where(eq(statementTable.id, statement.id));
+  await changingTopic(topicId, (tx) =>
+    tx
+      .update(statementTable)
+      .set({
+        status: "rejected",
+        statusReason: reason,
+        decidedBy: userId,
+        decidedAt: new Date(),
+      })
+      .where(eq(statementTable.id, statement.id)),
+  );
   return one(statement.id);
 }

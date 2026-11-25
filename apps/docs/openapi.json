@@ -4530,6 +4530,40 @@
           "decidedByName"
         ]
       },
+      "StatementDependency": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "statementId": {
+            "type": "string"
+          },
+          "taskId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "documentId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "needsReview": {
+            "type": "boolean",
+            "description": "True from the moment the topic stops stating the value, until someone clears the flag."
+          }
+        },
+        "required": [
+          "id",
+          "statementId",
+          "taskId",
+          "documentId",
+          "needsReview"
+        ]
+      },
       "DocumentReceipt": {
         "type": "object",
         "properties": {
@@ -5497,6 +5531,160 @@
           "following",
           "createdAt",
           "updatedAt"
+        ]
+      },
+      "TopicNeedsReview": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "flaggedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "task": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title"
+                  ]
+                },
+                "document": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title"
+                  ]
+                },
+                "dependsOn": {
+                  "type": "object",
+                  "properties": {
+                    "statementId": {
+                      "type": "string"
+                    },
+                    "slot": {
+                      "type": "string"
+                    },
+                    "slotName": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    },
+                    "quote": {
+                      "type": "string"
+                    },
+                    "documentId": {
+                      "type": "string"
+                    },
+                    "documentTitle": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statementId",
+                    "slot",
+                    "slotName",
+                    "value",
+                    "quote",
+                    "documentId",
+                    "documentTitle"
+                  ],
+                  "description": "The statement the work relies on."
+                },
+                "cause": {
+                  "type": "object",
+                  "properties": {
+                    "statementId": {
+                      "type": "string"
+                    },
+                    "slot": {
+                      "type": "string"
+                    },
+                    "slotName": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    },
+                    "quote": {
+                      "type": "string"
+                    },
+                    "documentId": {
+                      "type": "string"
+                    },
+                    "documentTitle": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statementId",
+                    "slot",
+                    "slotName",
+                    "value",
+                    "quote",
+                    "documentId",
+                    "documentTitle"
+                  ],
+                  "description": "The statement whose change raised the flag. Another one than dependsOn when the flag came down a chain of documents."
+                }
+              },
+              "required": [
+                "id",
+                "flaggedAt",
+                "task",
+                "document",
+                "dependsOn",
+                "cause"
+              ]
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "ClearedReviewFlag": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "needsReview": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "needsReview"
         ]
       },
       "TopicCurrent": {
@@ -28886,6 +29074,196 @@
         }
       }
     },
+    "/document/workspace/{workspaceId}/{id}/statements/{statementId}/dependents": {
+      "put": {
+        "operationId": "addStatementDependent",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Say that work relies on a statement",
+        "description": "Links an issue or a document to a value its topic states now. When the topic stops stating that value, the work is flagged for review. Send exactly one of taskId and documentId. Sending the same link again keeps the one there is.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "statementId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "taskId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "The issue that relies on the value."
+                  },
+                  "documentId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "The document that relies on the value."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The dependency",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatementDependency"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document, statement, issue or dependency not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The topic does not state this value now",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/statements/{statementId}/dependents/{dependencyId}": {
+      "delete": {
+        "operationId": "removeStatementDependent",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Remove a dependency on a statement",
+        "description": "The work no longer relies on the value, so a later change does not flag it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "statementId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "dependencyId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document, statement, issue or dependency not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/document/workspace/{workspaceId}/{id}/receipt": {
       "get": {
         "operationId": "getDocumentReceipt",
@@ -32157,6 +32535,114 @@
           },
           "403": {
             "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/needs-review": {
+      "get": {
+        "operationId": "listNeedsReview",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "List work that needs review",
+        "description": "Issues and documents that rely on a value a topic no longer states. Each names the statement it relies on and the statement whose change raised the flag. Lists only what the caller can open: the work and both documents.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Flagged work",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicNeedsReview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/needs-review/{dependencyId}/clear": {
+      "post": {
+        "operationId": "clearNeedsReview",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "Clear a review flag",
+        "description": "Someone looked at the work. The dependency stays, and the next change flags it again.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "dependencyId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cleared",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClearedReviewFlag"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No flag under this id",
             "content": {
               "application/json": {
                 "schema": {

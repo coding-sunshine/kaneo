@@ -109,6 +109,11 @@ import {
   rejectStatementRoute,
 } from "./statement-routes";
 import { decideConflictRoute, receiptRoute } from "./receipt-routes";
+import { addDependentRoute, removeDependentRoute } from "./dependency-routes";
+import {
+  addDependency,
+  removeDependency,
+} from "../topic/controllers/dependencies";
 import { decideConflict } from "../topic/controllers/decide-conflict";
 import { getReceipt } from "../topic/controllers/receipt";
 
@@ -805,6 +810,32 @@ const document = apiRouter()
         statementId,
         c.get("userId"),
         reason,
+      ),
+      200,
+    );
+  })
+  .openapi(addDependentRoute, async (c) => {
+    const { workspaceId, id, statementId } = c.req.valid("param");
+    return c.json(
+      await addDependency(
+        workspaceId,
+        id,
+        statementId,
+        c.get("userId"),
+        c.req.valid("json"),
+      ),
+      200,
+    );
+  })
+  .openapi(removeDependentRoute, async (c) => {
+    const { workspaceId, id, statementId, dependencyId } = c.req.valid("param");
+    return c.json(
+      await removeDependency(
+        workspaceId,
+        id,
+        statementId,
+        dependencyId,
+        c.get("userId"),
       ),
       200,
     );

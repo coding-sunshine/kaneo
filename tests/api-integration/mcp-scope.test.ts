@@ -360,6 +360,29 @@ describe("MCP token scope", () => {
     expect(settled.status).toBe(404);
   });
 
+  it("lets a documents token reach the ripple flag routes", async () => {
+    const w = await world();
+    const calls: [string, string, unknown?][] = [
+      [
+        "PUT",
+        `/document/workspace/${w.ws}/d/statements/s/dependents`,
+        { taskId: "x" },
+      ],
+      ["DELETE", `/document/workspace/${w.ws}/d/statements/s/dependents/x`],
+      ["GET", `/topic/workspace/${w.ws}/needs-review`],
+      ["POST", `/topic/workspace/${w.ws}/needs-review/x/clear`],
+    ];
+    for (const [method, path, body] of calls) {
+      // The answer is about the document or the flag, not the connection.
+      const { status } = await send(w, w.docs, method, path, body);
+      expect({ method, path, refused: status === 403 }).toEqual({
+        method,
+        path,
+        refused: false,
+      });
+    }
+  });
+
   it.each(refused)("refuses a documents token on: %s", async (_name, build) => {
     const w = await world();
     const [method, path, body] = build(w);
