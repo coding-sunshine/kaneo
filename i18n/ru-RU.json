@@ -3819,6 +3819,18 @@
 				"topics_one": "{{count}} topic has a current document.",
 				"topics_other": "{{count}} topics have a current document.",
 				"week": "Week"
+			},
+			"decision": {
+				"action": "Record a decision",
+				"done": "Decision recorded",
+				"hintAdd": "The decision is added to the current document of {{topic}} as a dated line. You approve the change in the next step.",
+				"hintStart": "This note becomes the current document of {{topic}}.",
+				"reasonLabel": "Reason",
+				"reasonPlaceholder": "Why this was decided",
+				"submit": "Record",
+				"textLabel": "Decision",
+				"textPlaceholder": "One or two sentences",
+				"title": "Record a decision"
 			}
 		},
 		"drafts": {

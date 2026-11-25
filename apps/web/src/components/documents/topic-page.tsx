@@ -12,6 +12,7 @@ import { useTopic } from "@/hooks/queries/topic/use-topics";
 import { getInitials } from "@/lib/get-initials";
 import { DocumentList } from "./document-list";
 import { TopicCurrentDocument } from "./topic-current-document";
+import { RecordDecisionButton } from "./record-decision-button";
 import { TopicFollowButton } from "./topic-follow-button";
 import { TopicIssues } from "./topic-issues";
 import { TopicSection } from "./topic-section";
@@ -77,7 +78,10 @@ export function TopicPage({ workspaceId, topicId }: TopicPageProps) {
           <header className="flex flex-col gap-3 px-4">
             <div className="flex items-start justify-between gap-4">
               <h1 className="font-semibold text-2xl leading-8">{topic.name}</h1>
-              <TopicFollowButton topic={topic} />
+              <div className="flex shrink-0 items-center gap-2">
+                <RecordDecisionButton topic={topic} />
+                <TopicFollowButton topic={topic} />
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-muted-foreground text-xs">
               <span>

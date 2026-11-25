@@ -14846,6 +14846,54 @@
 								"removeFailed"
 							]
 						},
+						"decision": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"action": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"hintStart": {
+									"type": "string"
+								},
+								"hintAdd": {
+									"type": "string"
+								},
+								"textLabel": {
+									"type": "string"
+								},
+								"textPlaceholder": {
+									"type": "string"
+								},
+								"reasonLabel": {
+									"type": "string"
+								},
+								"reasonPlaceholder": {
+									"type": "string"
+								},
+								"submit": {
+									"type": "string"
+								},
+								"done": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"action",
+								"title",
+								"hintStart",
+								"hintAdd",
+								"textLabel",
+								"textPlaceholder",
+								"reasonLabel",
+								"reasonPlaceholder",
+								"submit",
+								"done"
+							]
+						},
 						"usage": {
 							"type": "object",
 							"additionalProperties": false,
@@ -15082,6 +15130,7 @@
 						"makeCurrent",
 						"setAside",
 						"taskTopic",
+						"decision",
 						"usage",
 						"checklist"
 					]

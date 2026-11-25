@@ -41,6 +41,7 @@ const REASON = "navigation:documents.makeCurrent";
 const show = (
   document: { status: "in_review" | "current"; content: string },
   currentDocumentId: string | null,
+  initialReason?: string,
 ) => {
   const onClose = vi.fn();
   render(
@@ -57,6 +58,7 @@ const show = (
           ...document,
         }}
         topic={{ id: "topic-1", name: "Launch plan", currentDocumentId }}
+        initialReason={initialReason}
         onClose={onClose}
       />
     </QueryClientProvider>,
@@ -135,6 +137,11 @@ describe("MakeCurrentDialog", () => {
     expect(
       screen.getByRole("button", { name: `${REASON}.approve` }),
     ).toBeTruthy();
+  });
+
+  it("starts the reason from the one it is given", () => {
+    show({ status: "in_review", content: AFTER }, null, "Agreed on Monday");
+    expect(reason().value).toBe("Agreed on Monday");
   });
 
   it("never says that nothing changed", async () => {

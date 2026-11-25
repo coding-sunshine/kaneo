@@ -47,6 +47,38 @@ export const makeCurrentBody = z.object({
   }),
 });
 
+const DAY = 24 * 60 * 60 * 1000;
+// A real calendar day, and one a person somewhere can call today: their day
+// is at most one away from the day in UTC.
+const nearToday = (day: string) => {
+  const at = Date.parse(`${day}T00:00:00Z`);
+  return (
+    !Number.isNaN(at) &&
+    new Date(at).toISOString().slice(0, 10) === day &&
+    Math.abs(at - Date.parse(new Date().toISOString().slice(0, 10))) <= DAY
+  );
+};
+
+export const recordDecisionBody = z.object({
+  text: z.string().trim().min(1).max(1000).openapi({
+    description:
+      "The decision, in one or two sentences. It is written as one line.",
+  }),
+  reason: z.string().trim().min(1).max(2000).openapi({
+    description:
+      "Why it was decided. Kept as the reason when the note becomes the topic's current document. When the topic already has one, give it again on approving the new line.",
+  }),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .refine(nearToday, "The date must be today, give or take a day")
+    .optional()
+    .openapi({
+      description:
+        "The day of the decision where the person is, as YYYY-MM-DD. Defaults to today in UTC.",
+    }),
+});
+
 export const topicSchema = z
   .object({
     id: z.string(),

@@ -8,6 +8,22 @@ import { notifyTopicFollowers } from "../../document/controllers/notify";
 import { grantTaskAccess } from "../../document/controllers/share-with-task";
 import { getTopic } from "./get-topic";
 
+type Topic = Awaited<ReturnType<typeof getTopic>>;
+
+// What a document gets when it is put on a topic: the topic's place, so
+// everyone who can open the topic can read it, and its turn to be reviewed.
+export const filedOn = (
+  topic: Pick<Topic, "id" | "scope" | "projectId" | "workProjectId">,
+) => ({
+  scope: topic.scope,
+  projectId: topic.projectId,
+  workProjectId: topic.workProjectId,
+  taskId: null,
+  topicId: topic.id,
+  status: "in_review" as const,
+  filedAt: new Date(),
+});
+
 // Files a document on a topic as a proposal. It moves to the topic's place,
 // so everyone who can open the topic can read what is proposed. With
 // `replace`, it also records that its author means it to replace the current
@@ -43,13 +59,7 @@ export async function fileDocument(
     await tx
       .update(documentTable)
       .set({
-        scope: topic.scope,
-        projectId: topic.projectId,
-        workProjectId: topic.workProjectId,
-        taskId: null,
-        topicId: topic.id,
-        status: "in_review",
-        filedAt: new Date(),
+        ...filedOn(topic),
         supersedesDocumentId: replace ? topic.currentDocumentId : null,
       })
       .where(eq(documentTable.id, documentId));

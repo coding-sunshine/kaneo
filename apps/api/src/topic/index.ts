@@ -15,6 +15,7 @@ import { followTopic, unfollowTopic } from "./controllers/follow-topic";
 import { findTopics } from "./controllers/find-topics";
 import { getTopic, listTopics } from "./controllers/get-topic";
 import { getCurrent, listUnreviewed } from "./controllers/read-topic";
+import { recordDecision } from "./controllers/record-decision";
 import {
   linkTaskTopic,
   listTaskTopics,
@@ -25,6 +26,7 @@ import { updateTopic } from "./controllers/update-topic";
 import {
   createTopicBody,
   makeCurrentBody,
+  recordDecisionBody,
   taskTopicsParam,
   topicDocumentParam,
   topicCurrentSchema,
@@ -199,6 +201,23 @@ const currentRoute = createRoute({
     403: noAccess,
     404: notFound,
     409: errorResponse("The document is a draft or superseded"),
+  },
+});
+
+const decisionRoute = createRoute({
+  method: "post",
+  operationId: "recordDecision",
+  path: `${one}/decision`,
+  tags,
+  summary: "Record a decision",
+  description:
+    "Write down a decision on a topic. With no current document, the decision is saved as a document of kind decision and made current. Otherwise it is added to the current document as a dated line under a Decisions heading, and the document reads as edited after approval until the line is approved. For the decider, the backup decider and workspace owners.",
+  middleware: [...write] as const,
+  request: { params: topicParam, body: body(recordDecisionBody) },
+  responses: {
+    200: jsonResponse("The document that holds the decision", documentSchema),
+    403: noAccess,
+    404: notFound,
   },
 });
 
@@ -432,6 +451,18 @@ const topic = apiRouter()
         documentId,
         c.get("userId"),
         c.req.valid("json").reason,
+      ),
+      200,
+    );
+  })
+  .openapi(decisionRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(
+      await recordDecision(
+        workspaceId,
+        id,
+        c.get("userId"),
+        c.req.valid("json"),
       ),
       200,
     );

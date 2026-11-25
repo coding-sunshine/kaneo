@@ -5,6 +5,7 @@ import {
   fileDocumentOnTopic,
   linkTaskTopic,
   makeDocumentCurrent,
+  recordTopicDecision,
   setCurrentDocumentAside,
   setTopicFollowed,
   type TopicDocument,
@@ -39,9 +40,9 @@ export function useFollowTopic(workspaceId: string) {
  * current document, the document it replaced and every list. All of them are
  * read again.
  */
-function useTopicDocumentMutation<TInput>(
+function useTopicDocumentMutation<TInput, TResult = unknown>(
   workspaceId: string,
-  mutationFn: (input: TInput) => Promise<unknown>,
+  mutationFn: (input: TInput) => Promise<TResult>,
 ) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -60,6 +61,21 @@ export function useMakeDocumentCurrent(workspaceId: string) {
     workspaceId,
     ({ reason, ...param }: TopicDocument & { reason: string }) =>
       makeDocumentCurrent(param, reason),
+  );
+}
+
+export function useRecordTopicDecision(workspaceId: string) {
+  return useTopicDocumentMutation(
+    workspaceId,
+    ({
+      id,
+      ...json
+    }: {
+      id: string;
+      text: string;
+      reason: string;
+      date: string;
+    }) => recordTopicDecision({ workspaceId, id }, json),
   );
 }
 

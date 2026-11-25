@@ -23,14 +23,15 @@ async function loadForDecision(
   if (doc.topicId !== topic.id) {
     throw new HTTPException(404, { message: "Document not found" });
   }
-  if (!topic.canDecide) {
-    throw new HTTPException(403, {
-      message:
-        "Only the topic's decider, its backup or a workspace owner can do that",
-    });
-  }
+  if (!topic.canDecide) throw notDecider();
   return doc;
 }
+
+export const notDecider = () =>
+  new HTTPException(403, {
+    message:
+      "Only the topic's decider, its backup or a workspace owner can do that",
+  });
 
 const notCurrent = () =>
   new HTTPException(409, {

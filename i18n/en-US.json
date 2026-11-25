@@ -3637,6 +3637,18 @@
 				"addFailed": "Could not add the topic",
 				"removeFailed": "Could not remove the topic"
 			},
+			"decision": {
+				"action": "Record a decision",
+				"title": "Record a decision",
+				"hintStart": "This note becomes the current document of {{topic}}.",
+				"hintAdd": "The decision is added to the current document of {{topic}} as a dated line. You approve the change in the next step.",
+				"textLabel": "Decision",
+				"textPlaceholder": "One or two sentences",
+				"reasonLabel": "Reason",
+				"reasonPlaceholder": "Why this was decided",
+				"submit": "Record",
+				"done": "Decision recorded"
+			},
 			"usage": {
 				"open": "Usage",
 				"title": "Document usage",

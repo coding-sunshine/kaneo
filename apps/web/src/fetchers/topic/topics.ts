@@ -66,6 +66,15 @@ export async function makeDocumentCurrent(
   return response.json();
 }
 
+export async function recordTopicDecision(
+  param: { workspaceId: string; id: string },
+  json: { text: string; reason: string; date: string },
+) {
+  const response = await api[":id"].decision.$post({ param, json });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
 export async function confirmCurrentDocument(param: TopicDocument) {
   const response = await filed.confirm.$post({ param });
   if (!response.ok) throw await HttpError.fromResponse(response);

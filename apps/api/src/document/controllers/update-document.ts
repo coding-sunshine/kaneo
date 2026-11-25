@@ -19,6 +19,17 @@ export async function updateDocument(
   body: z.infer<typeof updateDocumentBody>,
 ) {
   const doc = await loadDocument(workspaceId, id, userId, { need: "edit" });
+  return writeDocument(doc, userId, body);
+}
+
+// The write itself, for a caller that has settled by a rule of its own that
+// the user may make it. The user must still be able to open the document.
+export async function writeDocument(
+  doc: Awaited<ReturnType<typeof loadDocument>>,
+  userId: string,
+  body: z.infer<typeof updateDocumentBody>,
+) {
+  const { workspaceId, id } = doc;
   assertNotSuperseded(doc);
   const title = body.title ?? doc.title;
   const content = body.content ?? doc.content;

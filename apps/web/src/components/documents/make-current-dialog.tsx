@@ -28,6 +28,8 @@ type MakeCurrentDialogProps = {
     "workspaceId" | "id" | "status" | "content" | "approvedVersionId"
   >;
   topic: Pick<Topic, "id" | "name" | "currentDocumentId">;
+  /** The reason to start from, instead of the suggested one. */
+  initialReason?: string;
   onClose: () => void;
 };
 
@@ -41,6 +43,7 @@ type MakeCurrentDialogProps = {
 export function MakeCurrentDialog({
   document,
   topic,
+  initialReason,
   onClose,
 }: MakeCurrentDialogProps) {
   const { t } = useTranslation();
@@ -53,7 +56,7 @@ export function MakeCurrentDialog({
   );
   const versions = useDocumentVersions(workspaceId, id, approvesEdit);
   const makeCurrent = useMakeDocumentCurrent(workspaceId);
-  const [typed, setTyped] = useState<string | null>(null);
+  const [typed, setTyped] = useState<string | null>(initialReason ?? null);
 
   const comparing = approvesEdit ? versions.isLoading : replaced.isLoading;
   const before = approvesEdit
