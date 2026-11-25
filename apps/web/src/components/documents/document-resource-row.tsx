@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { sectionRowClass } from "@/components/task/sections/section-row-class";
 import type { DocumentSummary } from "@/fetchers/document/documents";
 import { formatRelativeTime } from "@/lib/format";
+import { DocumentAccessLabel } from "./document-access-label";
 
 type Props = {
   workspaceId: string;
@@ -34,6 +35,11 @@ export function DocumentResourceRow({ workspaceId, document, taskId }: Props) {
         <span className="min-w-0 flex-1 truncate text-[13px] text-foreground/85 group-hover:text-foreground">
           {document.title || t("navigation:documents.untitled")}
         </span>
+        <DocumentAccessLabel
+          scope={document.scope}
+          parentName={document.parentName}
+          className="max-w-32 shrink-0 text-xs"
+        />
         <span className="shrink-0 text-muted-foreground text-xs">
           {t(`navigation:documents.status.${document.status}`)}
         </span>

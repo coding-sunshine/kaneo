@@ -33,6 +33,7 @@ const doc = (
     id,
     title: id,
     status,
+    scope: "team",
     parentName: "Growth",
     creatorName: "Ada",
     creatorImage: null,

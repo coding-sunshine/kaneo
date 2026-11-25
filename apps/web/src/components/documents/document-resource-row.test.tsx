@@ -36,6 +36,8 @@ const show = (document: Partial<DocumentSummary>, taskId?: string) =>
           status: "current",
           updatedAt: "2026-11-20T00:00:00Z",
           currentDocumentId: null,
+          scope: "team",
+          parentName: "Alpha",
           ...document,
         } as DocumentSummary
       }
@@ -54,6 +56,19 @@ describe("DocumentResourceRow", () => {
     expect(links[0]?.textContent).toContain(
       "navigation:documents.status.current",
     );
+  });
+
+  it("names the place that decides who can open it", () => {
+    show({});
+    expect(screen.getByText("Alpha")).toBeTruthy();
+    expect(
+      screen.getByTitle("navigation:documents.accessLabel.hint.team"),
+    ).toBeTruthy();
+    cleanup();
+    show({ scope: "private", parentName: null });
+    expect(
+      screen.getByText("navigation:documents.accessLabel.private"),
+    ).toBeTruthy();
   });
 
   it("opens the document at the line of the issue", () => {

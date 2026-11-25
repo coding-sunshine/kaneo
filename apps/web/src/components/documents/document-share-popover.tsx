@@ -14,6 +14,7 @@ import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-
 import { toast } from "@/lib/toast";
 import { DocumentAccessMenu } from "./document-access-menu";
 import { DocumentPerson } from "./document-person";
+import { DocumentWhoCanOpen } from "./document-who-can-open";
 import { useCopyDocumentLink } from "./use-copy-document-link";
 
 type DocumentSharePopoverProps = {
@@ -48,6 +49,7 @@ export function DocumentSharePopover({
     (member) => !taken.has(member.userId),
   );
   const onError = (error: Error) => toast.error(error.message);
+  const updated = () => toast.success(t("navigation:documents.share.updated"));
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
@@ -57,6 +59,7 @@ export function DocumentSharePopover({
         {t("navigation:documents.share.title")}
       </PopoverTrigger>
       <PopoverPopup align="end" className="w-80 p-0">
+        <DocumentWhoCanOpen workspaceId={workspaceId} id={id} />
         <div className="flex items-center justify-between pe-2">
           <p className={section}>
             {t("navigation:documents.share.peopleWithAccess")}
@@ -82,7 +85,15 @@ export function DocumentSharePopover({
                     onClick={() =>
                       share.mutate(
                         { userId: member.userId, access: "edit" },
-                        { onError },
+                        {
+                          onError,
+                          onSuccess: () =>
+                            toast.success(
+                              t("navigation:documents.share.added", {
+                                name: member.user.name,
+                              }),
+                            ),
+                        },
                       )
                     }
                   >
@@ -116,12 +127,15 @@ export function DocumentSharePopover({
                 value={person.access}
                 readOnly={!canManage}
                 onChange={(access) =>
-                  share.mutate({ userId: person.userId, access }, { onError })
+                  share.mutate(
+                    { userId: person.userId, access },
+                    { onError, onSuccess: updated },
+                  )
                 }
                 onRemove={() =>
                   share.mutate(
                     { userId: person.userId, access: null },
-                    { onError },
+                    { onError, onSuccess: updated },
                   )
                 }
               />
@@ -164,6 +178,10 @@ export function DocumentSharePopover({
                           unshare.mutate(
                             { id, taskId: task.id },
                             {
+                              onSuccess: () =>
+                                toast.success(
+                                  t("navigation:documents.share.taskUnshared"),
+                                ),
                               onError: () =>
                                 toast.error(
                                   t(
@@ -217,7 +235,10 @@ export function DocumentSharePopover({
                 value={document.generalAccess}
                 readOnly={!canManage}
                 onChange={(generalAccess) =>
-                  update.mutate({ generalAccess }, { onError })
+                  update.mutate(
+                    { generalAccess },
+                    { onError, onSuccess: updated },
+                  )
                 }
               />
             </>

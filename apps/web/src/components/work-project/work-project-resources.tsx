@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { FileText, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { DocumentAccessLabel } from "@/components/documents/document-access-label";
 import { useNewDocument } from "@/components/documents/use-new-document";
 import { useDocuments } from "@/hooks/queries/document/use-documents";
 
@@ -37,6 +38,10 @@ export function WorkProjectResources({
           <span className="truncate">
             {document.title || t("navigation:documents.untitled")}
           </span>
+          <DocumentAccessLabel
+            scope={document.scope}
+            className="shrink-0 text-xs"
+          />
         </Link>
       ))}
       {editable && (

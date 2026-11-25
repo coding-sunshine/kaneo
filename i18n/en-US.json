@@ -3379,7 +3379,34 @@
 				"mine": "Draft on your own or write for your team. Documents you own appear here, private or in a team.",
 				"shared": "Work on documents with others. Documents people share with you appear here, including private ones and ones from teams you're not in.",
 				"unfiled": "Private drafts stay here until you file them on a topic. Only you and the people you share a draft with can see it.",
-				"inbox": "Nothing is waiting. A document in a team, a project, an issue or the workspace appears here until someone files it on a topic."
+				"inbox": "Nothing is waiting. A document in a team, a project, an issue or the workspace appears here until someone files it on a topic.",
+				"openTab": "Open {{tab}}"
+			},
+			"accessLabel": {
+				"private": "Private",
+				"workspace": "Workspace",
+				"team": "Team",
+				"project": "Project",
+				"issue": "Issue",
+				"hint": {
+					"private": "Only the owner and people it is shared with, by name or through an issue, can open it.",
+					"workspace": "Everyone in the workspace can open it.",
+					"team": "Everyone who can open the team can open it.",
+					"project": "Everyone who can open the project can open it.",
+					"issue": "Everyone who can open the issue can open it."
+				}
+			},
+			"whoCanOpen": {
+				"title": "Who can open this",
+				"count_one": "{{count}} person",
+				"count_other": "{{count}} people",
+				"loading": "Checking who can open it...",
+				"failed": "Could not check who can open it."
+			},
+			"move": {
+				"title": "Move to {{place}}?",
+				"description": "Check who will be able to open “{{title}}” after the move.",
+				"confirm": "Move"
 			},
 			"newSinceVisit": "New since your last visit",
 			"inbox": {
@@ -3454,6 +3481,11 @@
 				"stopSharingWith": "Stop sharing with {{issue}}",
 				"shareWithTaskFailed": "Could not share the document with this issue",
 				"unshareFromTaskFailed": "Could not stop sharing with this issue",
+				"added": "Added {{name}}",
+				"updated": "Access updated",
+				"taskGains": "Sharing gives view access to {{names}}.",
+				"taskShared": "Shared with this issue",
+				"taskUnshared": "Stopped sharing with this issue",
 				"access": {
 					"edit": "Can edit",
 					"comment": "Can comment",

@@ -30,7 +30,7 @@ vi.mock("react-i18next", () => ({
   }),
   initReactI18next: { type: "3rdParty", init: () => {} },
 }));
-vi.mock("@/lib/toast", () => ({ toast: { error: vi.fn() } }));
+vi.mock("@/lib/toast", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 vi.mock("@/fetchers/document/documents", () => ({
   getDocuments: mocks.list,
   getDocument: mocks.one,
@@ -65,7 +65,7 @@ beforeEach(() => {
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   mocks.list.mockResolvedValue([doc("d1")]);
   mocks.one.mockResolvedValue({ role: "edit" });
-  mocks.audience.mockResolvedValue({ total: 3, missing: 2 });
+  mocks.audience.mockResolvedValue({ total: 3, missing: 2, gains: [] });
   mocks.share.mockResolvedValue({});
 });
 afterEach(() => {

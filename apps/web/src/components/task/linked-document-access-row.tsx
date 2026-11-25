@@ -44,6 +44,10 @@ export function LinkedDocumentAccessRow({
           missing: audience.missing,
           title,
         })}
+        {audience.gains.length > 0 &&
+          ` ${t("navigation:documents.share.taskGains", {
+            names: audience.gains.map((person) => person.name).join(", "),
+          })}`}
       </span>
       {canShare && (
         <Button
@@ -54,6 +58,8 @@ export function LinkedDocumentAccessRow({
             share.mutate(
               { id: documentId, taskId },
               {
+                onSuccess: () =>
+                  toast.success(t("navigation:documents.share.taskShared")),
                 onError: () =>
                   toast.error(
                     t("navigation:documents.share.shareWithTaskFailed"),

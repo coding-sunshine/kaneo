@@ -3506,7 +3506,8 @@
 				"recent": "Pick up where you left off. Documents you work on and documents shared with you appear here.",
 				"shared": "Work on documents with others. Documents people share with you appear here, including private ones and ones from teams you're not in.",
 				"inbox": "Nothing is waiting. A document in a team, a project, an issue or the workspace appears here until someone files it on a topic.",
-				"unfiled": "Private drafts stay here until you file them on a topic. Only you and the people you share a draft with can see it."
+				"unfiled": "Private drafts stay here until you file them on a topic. Only you and the people you share a draft with can see it.",
+				"openTab": "Open {{tab}}"
 			},
 			"favorite": "Favorite",
 			"hideHistory": "Hide document history",
@@ -3566,7 +3567,12 @@
 				"taskAudience_many": "{{missing}} of the {{count}} people who can open this issue cannot open “{{title}}”.",
 				"taskAudience_one": "The only person who can open this issue cannot open “{{title}}”.",
 				"taskAudience_other": "{{missing}} of the {{count}} people who can open this issue cannot open “{{title}}”.",
-				"unshareFromTaskFailed": "Could not stop sharing with this issue"
+				"unshareFromTaskFailed": "Could not stop sharing with this issue",
+				"added": "Added {{name}}",
+				"taskGains": "Sharing gives view access to {{names}}.",
+				"taskShared": "Shared with this issue",
+				"taskUnshared": "Stopped sharing with this issue",
+				"updated": "Access updated"
 			},
 			"shareMenu": "Share…",
 			"showComments": "Show comments",
@@ -3823,6 +3829,34 @@
 				"textLabel": "Decision",
 				"textPlaceholder": "One or two sentences",
 				"title": "Record a decision"
+			},
+			"accessLabel": {
+				"hint": {
+					"issue": "Everyone who can open the issue can open it.",
+					"private": "Only the owner and people it is shared with, by name or through an issue, can open it.",
+					"project": "Everyone who can open the project can open it.",
+					"team": "Everyone who can open the team can open it.",
+					"workspace": "Everyone in the workspace can open it."
+				},
+				"issue": "Issue",
+				"private": "Private",
+				"project": "Project",
+				"team": "Team",
+				"workspace": "Workspace"
+			},
+			"move": {
+				"confirm": "Move",
+				"description": "Check who will be able to open “{{title}}” after the move.",
+				"title": "Move to {{place}}?"
+			},
+			"whoCanOpen": {
+				"count_few": "{{count}} people",
+				"count_many": "{{count}} people",
+				"count_one": "{{count}} person",
+				"count_other": "{{count}} people",
+				"failed": "Could not check who can open it.",
+				"loading": "Checking who can open it...",
+				"title": "Who can open this"
 			}
 		},
 		"drafts": {

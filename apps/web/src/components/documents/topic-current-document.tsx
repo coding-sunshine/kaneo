@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import type { DocumentDetail } from "@/fetchers/document/documents";
 import { formatDateMedium, formatRelativeTime } from "@/lib/format";
+import { DocumentAccessLabel } from "./document-access-label";
 import { editedAfterApproval } from "./document-approval";
 
 type TopicCurrentDocumentProps = { document: DocumentDetail };
@@ -23,6 +24,11 @@ export function TopicCurrentDocument({ document }: TopicCurrentDocumentProps) {
         >
           {document.title || t("navigation:documents.untitled")}
         </Link>
+        <DocumentAccessLabel
+          scope={document.scope}
+          parentName={document.parentName}
+          className="max-w-40 shrink-0 text-xs"
+        />
         {editedAfterApproval(document) && (
           <Badge variant="warning" size="sm" className="shrink-0">
             {t("navigation:documents.banner.edited.lead")}

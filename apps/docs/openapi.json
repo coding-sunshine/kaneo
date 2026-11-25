@@ -4523,11 +4523,38 @@
           "missing": {
             "type": "number",
             "description": "How many of them cannot open the document."
+          },
+          "gains": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "userId",
+                "name",
+                "image"
+              ]
+            },
+            "description": "The people who cannot open the document. Sharing it with the issue lets them view it."
           }
         },
         "required": [
           "total",
-          "missing"
+          "missing",
+          "gains"
         ]
       },
       "DocumentVersion": {

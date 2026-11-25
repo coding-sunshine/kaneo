@@ -2,6 +2,7 @@ import { ChevronRight, FileText } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { FavoriteStar } from "@/components/common/favorite-star";
 import type { DocumentDetail } from "@/fetchers/document/documents";
+import { DocumentAccessLabel } from "./document-access-label";
 import { DocumentOptionsMenu } from "./document-options-menu";
 import { DocumentParentLink } from "./document-parent-link";
 
@@ -40,6 +41,7 @@ export function DocumentCrumbs({
         <span className="truncate">
           {document.title || t("navigation:documents.untitled")}
         </span>
+        <DocumentAccessLabel scope={document.scope} className="text-xs" />
       </span>
       <FavoriteStar
         workspaceId={document.workspaceId}

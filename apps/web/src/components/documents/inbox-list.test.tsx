@@ -38,6 +38,7 @@ const doc = (id: string, daysOld: number, snoozedUntil: string | null = null) =>
     id,
     title: id,
     status: "draft",
+    scope: "team",
     parentName: "Growth",
     creatorName: "Ada",
     creatorImage: null,

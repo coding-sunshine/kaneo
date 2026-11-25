@@ -13843,9 +13843,126 @@
 								},
 								"inbox": {
 									"type": "string"
+								},
+								"openTab": {
+									"type": "string"
 								}
 							},
-							"required": ["recent", "mine", "shared", "unfiled", "inbox"]
+							"required": [
+								"recent",
+								"mine",
+								"shared",
+								"unfiled",
+								"inbox",
+								"openTab"
+							]
+						},
+						"accessLabel": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"private": {
+									"type": "string"
+								},
+								"workspace": {
+									"type": "string"
+								},
+								"team": {
+									"type": "string"
+								},
+								"project": {
+									"type": "string"
+								},
+								"issue": {
+									"type": "string"
+								},
+								"hint": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"private": {
+											"type": "string"
+										},
+										"workspace": {
+											"type": "string"
+										},
+										"team": {
+											"type": "string"
+										},
+										"project": {
+											"type": "string"
+										},
+										"issue": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"private",
+										"workspace",
+										"team",
+										"project",
+										"issue"
+									]
+								}
+							},
+							"required": [
+								"private",
+								"workspace",
+								"team",
+								"project",
+								"issue",
+								"hint"
+							]
+						},
+						"whoCanOpen": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"count_one": {
+									"type": "string"
+								},
+								"count_zero": {
+									"type": "string"
+								},
+								"count_two": {
+									"type": "string"
+								},
+								"count_few": {
+									"type": "string"
+								},
+								"count_many": {
+									"type": "string"
+								},
+								"count_other": {
+									"type": "string"
+								},
+								"loading": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "loading", "failed"]
+						},
+						"move": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"confirm": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "description", "confirm"]
 						},
 						"newSinceVisit": {
 							"type": "string"
@@ -14102,6 +14219,21 @@
 								"unshareFromTaskFailed": {
 									"type": "string"
 								},
+								"added": {
+									"type": "string"
+								},
+								"updated": {
+									"type": "string"
+								},
+								"taskGains": {
+									"type": "string"
+								},
+								"taskShared": {
+									"type": "string"
+								},
+								"taskUnshared": {
+									"type": "string"
+								},
 								"access": {
 									"type": "object",
 									"additionalProperties": false,
@@ -14138,6 +14270,11 @@
 								"stopSharingWith",
 								"shareWithTaskFailed",
 								"unshareFromTaskFailed",
+								"added",
+								"updated",
+								"taskGains",
+								"taskShared",
+								"taskUnshared",
 								"access"
 							]
 						},
@@ -15080,6 +15217,9 @@
 						"tabHints",
 						"viewTab",
 						"empty",
+						"accessLabel",
+						"whoCanOpen",
+						"move",
 						"newSinceVisit",
 						"inbox",
 						"updated",

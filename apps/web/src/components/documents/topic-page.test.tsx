@@ -87,6 +87,7 @@ const row = (id: string, status: DocumentSummary["status"]) =>
     title: `Title of ${id}`,
     status,
     kind: "unsorted",
+    scope: "team",
     parentName: "Growth",
     creatorName: "Author Person",
     creatorImage: null,
@@ -149,6 +150,8 @@ describe("TopicPage", () => {
         await now.findByRole("link", { name: /Title of doc-current/ })
       ).getAttribute("href"),
     ).toBe("/doc-current");
+    // The current document names the place that decides who can open it.
+    expect(now.getByText("Growth")).toBeTruthy();
     const approval = now.getByText(/topics\.approved /).textContent ?? "";
     expect(approval).toContain("Decider Person");
     expect(approval).toContain(formatDateMedium(APPROVED_AT));

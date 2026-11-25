@@ -3,7 +3,13 @@ import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import type { DocumentDetail } from "@/fetchers/document/documents";
 import { DocumentSharePopover } from "./document-share-popover";
 
-const mocks = vi.hoisted(() => ({ unshare: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  unshare: vi.fn(),
+  share: vi.fn(),
+  update: vi.fn(),
+  success: vi.fn(),
+  members: [] as unknown[],
+}));
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -12,20 +18,25 @@ vi.mock("react-i18next", () => ({
   }),
   initReactI18next: { type: "3rdParty", init: () => {} },
 }));
-vi.mock("@/lib/toast", () => ({ toast: { error: vi.fn() } }));
+vi.mock("@/lib/toast", () => ({
+  toast: { error: vi.fn(), success: mocks.success },
+}));
 vi.mock("@/hooks/queries/workspace/use-active-workspace", () => ({
   default: () => ({ data: { name: "Acme" } }),
 }));
 vi.mock(
   "@/hooks/queries/workspace-users/use-get-active-workspace-users",
   () => ({
-    useGetActiveWorkspaceUsers: () => ({ data: { members: [] } }),
+    useGetActiveWorkspaceUsers: () => ({ data: { members: mocks.members } }),
   }),
 );
 vi.mock("@/hooks/mutations/document/use-document-mutations", () => ({
-  useShareDocument: () => ({ mutate: vi.fn() }),
-  useUpdateDocument: () => ({ mutate: vi.fn() }),
+  useShareDocument: () => ({ mutate: mocks.share }),
+  useUpdateDocument: () => ({ mutate: mocks.update }),
   useUnshareDocumentFromTask: () => ({ mutate: mocks.unshare }),
+}));
+vi.mock("./document-who-can-open", () => ({
+  DocumentWhoCanOpen: () => <p>who can open: 2 people, Ana Lima, Ben Ode</p>,
 }));
 vi.mock("./use-copy-document-link", () => ({
   useCopyDocumentLink: () => vi.fn(),
@@ -88,5 +99,44 @@ describe("DocumentSharePopover shared issues", () => {
     show("view");
     expect(screen.getByText("ENG-7 Fix it")).toBeTruthy();
     expect(screen.queryAllByLabelText(/stopSharingWith/)).toHaveLength(0);
+  });
+});
+
+describe("DocumentSharePopover messages", () => {
+  it("puts who can open it before people with access", () => {
+    show("view");
+    const who = screen.getByText(/who can open: 2 people, Ana Lima, Ben Ode/);
+    const people = screen.getByText(
+      "navigation:documents.share.peopleWithAccess",
+    );
+    expect(
+      who.compareDocumentPosition(people) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("says when general access changed", () => {
+    mocks.update.mockImplementation((_vars, options) => options.onSuccess());
+    show("owner");
+    fireEvent.click(screen.getByText("navigation:documents.share.access.view"));
+    fireEvent.click(
+      screen.getByText("navigation:documents.share.access.comment"),
+    );
+    expect(mocks.success).toHaveBeenCalledWith(
+      "navigation:documents.share.updated",
+    );
+  });
+
+  it("says who was added", () => {
+    mocks.members = [{ userId: "u9", user: { name: "Cy Park", image: null } }];
+    mocks.share.mockImplementation((_vars, options) => options.onSuccess());
+    show("owner");
+    fireEvent.click(
+      screen.getByLabelText("navigation:documents.share.addPeople"),
+    );
+    fireEvent.click(screen.getByText("Cy Park"));
+    expect(mocks.success).toHaveBeenCalledWith(
+      'navigation:documents.share.added {"name":"Cy Park"}',
+    );
+    mocks.members = [];
   });
 });

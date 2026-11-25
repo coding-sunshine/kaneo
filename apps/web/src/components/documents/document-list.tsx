@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import type { DocumentSummary } from "@/fetchers/document/documents";
 import { formatRelativeTime } from "@/lib/format";
 import { getInitials } from "@/lib/get-initials";
+import { DocumentAccessLabel } from "./document-access-label";
 
 const STATUS_TONE = {
   draft: "outline",
@@ -55,13 +56,13 @@ export function DocumentList({
             >
               {t(`navigation:documents.status.${document.status}`)}
             </Badge>
-            {document.parentName && (
-              <span className="hidden max-w-48 truncate text-muted-foreground sm:block">
-                {document.parentName}
-              </span>
-            )}
+            <DocumentAccessLabel
+              scope={document.scope}
+              parentName={document.parentName}
+              className="max-w-24 shrink-0 sm:max-w-48"
+            />
             <Avatar
-              className="size-5 shrink-0"
+              className="hidden size-5 shrink-0 sm:block"
               title={document.creatorName ?? ""}
             >
               <AvatarImage src={document.creatorImage ?? ""} alt="" />

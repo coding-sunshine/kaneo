@@ -377,6 +377,10 @@ export const documentTaskAudienceSchema = z
     missing: z.number().openapi({
       description: "How many of them cannot open the document.",
     }),
+    gains: z.array(audiencePerson).openapi({
+      description:
+        "The people who cannot open the document. Sharing it with the issue lets them view it.",
+    }),
   })
   .openapi("DocumentTaskAudience");
 

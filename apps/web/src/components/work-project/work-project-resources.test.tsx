@@ -38,9 +38,15 @@ function renderResources(editable: boolean) {
 
 describe("work project resources", () => {
   it("shows the project's documents and adds one to the project", async () => {
-    getDocuments.mockResolvedValue([{ id: "doc-1", title: "Brief" }]);
+    getDocuments.mockResolvedValue([
+      { id: "doc-1", title: "Brief", scope: "project" },
+    ]);
     renderResources(true);
-    expect(await screen.findByRole("link", { name: "Brief" })).toBeTruthy();
+    const link = await screen.findByRole("link", { name: /Brief/ });
+    // Each chip says which place decides who can open the document.
+    expect(link.textContent).toContain(
+      "navigation:documents.accessLabel.project",
+    );
     expect(getDocuments).toHaveBeenCalledWith("ws-1", {
       workProjectId: "wp-1",
     });

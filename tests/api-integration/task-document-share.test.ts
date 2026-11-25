@@ -104,11 +104,20 @@ const expectedAudience = async (
   id: string,
 ) => {
   const people = peopleOf(world, task);
-  let missing = 0;
+  const gains: string[] = [];
   for (const person of people) {
-    if ((await open(world, person, id)).status !== 200) missing += 1;
+    if ((await open(world, person, id)).status !== 200) gains.push(person.id);
   }
-  return { total: people.length, missing };
+  return { total: people.length, missing: gains.length, gains: gains.sort() };
+};
+// The answer, with the people who would gain access as their ids.
+const reported = async (response: Response) => {
+  const body = (await response.json()) as {
+    total: number;
+    missing: number;
+    gains: { userId: string }[];
+  };
+  return { ...body, gains: body.gains.map((person) => person.userId).sort() };
 };
 
 describe("API integration: sharing a document with the people of an issue", () => {
@@ -129,8 +138,20 @@ describe("API integration: sharing a document with the people of an issue", () =
     const response = await audience(world, owner, docs.private, alphaTask.id);
     expect(response.status).toBe(200);
     const counted = await expectedAudience(world, alphaTask, docs.private);
-    expect(counted).toEqual({ total: 3, missing: 2 });
-    expect(await response.json()).toEqual(counted);
+    expect(counted).toEqual({
+      total: 3,
+      missing: 2,
+      gains: [member.id, limited.id].sort(),
+    });
+    // Each person who would gain access comes with a name and a picture only.
+    const body = (await response.clone().json()) as {
+      gains: Record<string, unknown>[];
+    };
+    for (const person of body.gains) {
+      expect(Object.keys(person).sort()).toEqual(["image", "name", "userId"]);
+      expect(person.name).toEqual(expect.any(String));
+    }
+    expect(await reported(response)).toEqual(counted);
   });
 
   it("lets everyone who can open the issue view the document once it is shared", async () => {
@@ -160,7 +181,11 @@ describe("API integration: sharing a document with the people of an issue", () =
     expect(edited.status).toBe(403);
 
     const response = await audience(world, owner, docs.private, alphaTask.id);
-    expect(await response.json()).toEqual({ total: 3, missing: 0 });
+    expect(await reported(response)).toEqual({
+      total: 3,
+      missing: 0,
+      gains: [],
+    });
   });
 
   it("keeps people who cannot open the issue out of the shared document", async () => {
@@ -176,7 +201,11 @@ describe("API integration: sharing a document with the people of an issue", () =
     expect(await listedIds(world, limited)).not.toContain(docs.private);
 
     const response = await audience(world, owner, docs.private, betaTask.id);
-    expect(await response.json()).toEqual({ total: 2, missing: 0 });
+    expect(await reported(response)).toEqual({
+      total: 2,
+      missing: 0,
+      gains: [],
+    });
   });
 
   it("keeps the grant when the description is saved without the link", async () => {

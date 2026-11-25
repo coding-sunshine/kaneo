@@ -59,10 +59,16 @@ export function useUpdateDocument(workspaceId: string, id: string) {
 
 export function useMoveDocument(workspaceId: string, id: string) {
   const store = useStoreDocument(workspaceId);
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (json: Parameters<typeof moveDocument>[2]) =>
       moveDocument(workspaceId, id, json),
-    onSuccess: store,
+    onSuccess: (document) => {
+      store(document);
+      queryClient.invalidateQueries({
+        queryKey: [...documentKey(workspaceId, id), "audience"],
+      });
+    },
   });
 }
 

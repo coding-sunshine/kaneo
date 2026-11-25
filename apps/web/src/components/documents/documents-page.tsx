@@ -56,6 +56,7 @@ export function DocumentsPage({ workspaceId, filter }: DocumentsPageProps) {
           </div>
         ) : !documents?.length ? (
           <DocumentsEmpty
+            workspaceId={workspaceId}
             filter={filter}
             onCreate={() => create()}
             creating={isPending}

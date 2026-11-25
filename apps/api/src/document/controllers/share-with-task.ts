@@ -53,7 +53,7 @@ export const grantTaskAccess = (
     })
     .onConflictDoNothing();
 
-/** How many of the people who can open an issue cannot open a document. */
+/** Who of the people who can open an issue cannot open a document. */
 export async function taskAudience(
   workspaceId: string,
   id: string,
@@ -75,10 +75,9 @@ export async function taskAudience(
     }),
   ]);
   const open = new Set(current.map((person) => person.userId));
-  return {
-    total: ofTask.length,
-    missing: ofTask.filter((person) => !open.has(person.userId)).length,
-  };
+  // Named for the asker, who can open the issue and so may know who else can.
+  const gains = ofTask.filter((person) => !open.has(person.userId));
+  return { total: ofTask.length, missing: gains.length, gains };
 }
 
 export async function shareWithTask(
