@@ -193,7 +193,7 @@ export async function carryStatements(
 // statements, and a slot's name is never shown. A statement written while the
 // document was on another topic stays with that topic's slot: it is not
 // shown, confirmed or rejected from here.
-async function openTopic(doc: Loaded, userId: string) {
+export async function openTopic(doc: Loaded, userId: string) {
   if (!doc.topicId) return null;
   const [topic] = await db
     .select({ id: topicTable.id })

@@ -27,6 +27,9 @@ export const documentTaskParam = documentParam.extend({ taskId: z.string() });
 export const documentStatementParam = documentParam.extend({
   statementId: z.string(),
 });
+export const documentConflictParam = documentParam.extend({
+  conflictId: z.string(),
+});
 export const documentVersionParam = documentParam.extend({
   versionId: z.string(),
 });
@@ -130,6 +133,17 @@ export const statementBody = z.object({
 
 export const rejectStatementBody = z.object({
   reason: z.string().trim().min(1).max(500),
+});
+
+export const decideConflictBody = z.object({
+  decision: z.enum(["replace", "keep", "tolerate"]).openapi({
+    description:
+      "replace: the document's value stands, and its statement is confirmed. keep: the current value stands, and the document's statement is rejected with the reason. tolerate: the two may differ until tolerateUntil.",
+  }),
+  reason: z.string().trim().min(1).max(500),
+  tolerateUntil: z.string().datetime().optional().openapi({
+    description: "Needed for tolerate. A time that has not come yet.",
+  }),
 });
 
 export const settleDocumentBody = z.object({
@@ -643,3 +657,73 @@ export const statementSchema = z
   })
   .openapi("Statement");
 export const statementListSchema = z.array(statementSchema);
+
+const statedSchema = z.object({
+  statementId: z.string(),
+  slotId: z.string(),
+  slot: z.string().openapi({ description: "The slot's key." }),
+  slotName: z.string(),
+  type: z.enum(SLOT_TYPES),
+  value: z.string(),
+  quote: z.string(),
+  confirmed: z.boolean().openapi({
+    description:
+      "A person confirmed this statement for the document's present text.",
+  }),
+});
+const comparedSchema = statedSchema.extend({
+  current: z
+    .object({
+      statementId: z.string(),
+      documentId: z.string(),
+      documentTitle: z.string(),
+      value: z.string(),
+      quote: z.string(),
+    })
+    .openapi({
+      description: "What the topic's current document states for the slot.",
+    }),
+});
+export const conflictSchema = comparedSchema
+  .extend({
+    id: z.string().openapi({
+      description:
+        "Names the slot, the two documents and the two values. When a value changes, it is another conflict with another id.",
+    }),
+    status: z.enum(["open", "tolerated", "resolved"]).openapi({
+      description:
+        "open: the document cannot be made current. tolerated: the two may differ until tolerateUntil. resolved: the decider said the document's value stands.",
+    }),
+    reason: z.string().nullable(),
+    tolerateUntil: nullableResponseTimestamp,
+  })
+  .openapi("StatementConflict");
+export const receiptSchema = z
+  .object({
+    repeats: z.array(comparedSchema).openapi({
+      description: "Says the same as the topic's current document.",
+    }),
+    new: z.array(statedSchema).openapi({
+      description: "The topic's current document states nothing for the slot.",
+    }),
+    conflicts: z.array(conflictSchema).openapi({
+      description:
+        "Says something else than the topic's current document, each with both quotes.",
+    }),
+    unjudged: z.array(comparedSchema).openapi({
+      description:
+        "Worded differently from the current document, in a slot that holds free text. Nobody has judged whether the two disagree.",
+    }),
+    notChecked: z
+      .array(
+        z.object({
+          slot: z.string(),
+          slotName: z.string(),
+          type: z.enum(SLOT_TYPES),
+        }),
+      )
+      .openapi({
+        description: "Slots of the topic the document has no statement for.",
+      }),
+  })
+  .openapi("DocumentReceipt");

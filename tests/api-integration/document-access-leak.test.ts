@@ -255,6 +255,11 @@ describe("API integration: document access leaks", () => {
           "/statements/no-such-statement/reject",
           json("POST", { reason: "No." }),
         ],
+        ["/receipt", undefined],
+        [
+          "/conflicts/no-such-conflict/decide",
+          json("POST", { decision: "keep", reason: "No." }),
+        ],
       ];
       for (const [suffix, init] of routes) {
         const response = await world.as(limited)(`${path}${suffix}`, init);
@@ -710,6 +715,24 @@ describe("API integration: document access leaks", () => {
       expect(shared.status).toBe(200);
     }
     expect(await call(limited, statements)).toEqual({ status: 200, body: [] });
+    // The comparison with the topic names its slots, so it is empty too.
+    expect(
+      (await call(open, `${one(world, "sharedInBeta")}/receipt`)).body,
+    ).toMatchObject({
+      new: [{ slot: "codename" }],
+    });
+    expect(
+      await call(limited, `${one(world, "sharedInBeta")}/receipt`),
+    ).toEqual({
+      status: 200,
+      body: {
+        repeats: [],
+        new: [],
+        conflicts: [],
+        unjudged: [],
+        notChecked: [],
+      },
+    });
     const refused = await call(limited, unfiled, json("POST", said));
     expect(refused.status).toBe(409);
     expect(await call(limited, statements, json("POST", said))).toEqual(
@@ -741,6 +764,129 @@ describe("API integration: document access leaks", () => {
     expect(await call(open, statements)).toMatchObject({
       body: [{ id: statement.id, status: "proposed" }],
     });
+  });
+
+  it("does not show what a hidden current document states through a comparison", async () => {
+    const world = await buildDocumentWorld();
+    const { owner, limited, open, ws, docs } = world;
+    const topics = `/topic/workspace/${ws}`;
+    const doc = (id: string) => `/document/workspace/${ws}/${id}`;
+    const call = async (
+      user: Member,
+      path: string,
+      init?: ReturnType<typeof json>,
+    ) => {
+      const response = await world.as(user)(path, init);
+      return { status: response.status, body: await response.json() };
+    };
+    const done = async (path: string, init: ReturnType<typeof json>) => {
+      const { status, body } = await call(owner, path, init);
+      expect({ path, status }).toEqual({ path, status: 200 });
+      return body;
+    };
+
+    // `limited` decides on a topic in team Alpha. Its current document will
+    // end up in team Beta, which `limited` cannot enter.
+    const { id: topicId } = await done(
+      "/topic",
+      json("POST", {
+        workspaceId: ws,
+        name: "Price",
+        projectId: world.alpha.id,
+        deciderId: limited.id,
+      }),
+    );
+    await done(
+      `${topics}/${topicId}/slots`,
+      json("POST", { name: "Price", type: "number" }),
+    );
+    const state = async (id: string, amount: number) => {
+      await done(
+        doc(id),
+        json("PATCH", {
+          content: `<p>The price is ${amount} USD per seat.</p>`,
+        }),
+      );
+      await done(`${topics}/${topicId}/document/${id}`, json("PUT"));
+      return (await done(
+        `${doc(id)}/statements`,
+        json("POST", {
+          slot: "price",
+          value: String(amount),
+          quote: `${amount} USD`,
+        }),
+      )) as { id: string };
+    };
+    const receipt = `${doc(docs.teamAlpha)}/receipt`;
+    const approve = (user: Member) =>
+      call(
+        user,
+        `${topics}/${topicId}/document/${docs.teamAlpha}/current`,
+        json("POST", { reason: "Agreed." }),
+      );
+    const settle = (user: Member, id: string) =>
+      call(
+        user,
+        `${doc(docs.teamAlpha)}/conflicts/${id}/decide`,
+        json("POST", { decision: "keep", reason: "Still 40." }),
+      );
+
+    await state(docs.teamAlpha, 45);
+    const alone = await call(limited, receipt);
+    expect(alone.body).toMatchObject({
+      new: [{ slot: "price", value: "45" }],
+      conflicts: [],
+    });
+
+    const hidden = await state(docs.teamBeta, 40);
+    await done(
+      `${doc(docs.teamBeta)}/statements/${hidden.id}/confirm`,
+      json("POST"),
+    );
+    await done(
+      `${topics}/${topicId}/document/${docs.teamBeta}/current`,
+      json("POST", { reason: "Agreed." }),
+    );
+
+    // Filing moves a document into its topic's place, so no route leaves a
+    // current document where someone who can open the topic cannot open it.
+    // The row is moved by hand: the rule has to hold the day a route does.
+    await db
+      .update(schema.documentTable)
+      .set({ projectId: world.beta.id })
+      .where(eq(schema.documentTable.id, docs.teamBeta));
+    expect((await world.as(limited)(doc(docs.teamBeta))).status).toBe(404);
+
+    // Someone who can open both documents sees the conflict and both quotes.
+    const seen = await call(open, receipt);
+    expect(seen.body).toMatchObject({
+      new: [],
+      conflicts: [
+        {
+          slot: "price",
+          value: "45",
+          quote: "45 USD",
+          status: "open",
+          current: { documentId: docs.teamBeta, value: "40", quote: "40 USD" },
+        },
+      ],
+    });
+    const conflictId = (seen.body as { conflicts: { id: string }[] })
+      .conflicts[0].id;
+    expect((await settle(open, conflictId)).status).toBe(403);
+
+    // To `limited` the topic still states no price: the same answer as before
+    // the hidden document became current, and no conflict to decide on.
+    expect(await call(limited, receipt)).toEqual(alone);
+    const unknown = await settle(limited, "no-such-conflict");
+    expect(unknown.status).toBe(404);
+    expect(await settle(limited, conflictId)).toEqual(unknown);
+    expect(await call(open, receipt)).toEqual(seen);
+
+    // An approval is held back only by a conflict the approver can see. A
+    // refusal would tell `limited` that a hidden document says otherwise.
+    expect((await approve(owner)).status).toBe(409);
+    expect((await approve(limited)).status).toBe(200);
   });
 
   it("hides an issue's file in a team the member cannot open", async () => {

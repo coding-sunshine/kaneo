@@ -108,6 +108,9 @@ import {
   listStatementsRoute,
   rejectStatementRoute,
 } from "./statement-routes";
+import { decideConflictRoute, receiptRoute } from "./receipt-routes";
+import { decideConflict } from "../topic/controllers/decide-conflict";
+import { getReceipt } from "../topic/controllers/receipt";
 
 const body = <T extends ZodType>(schema: T) => ({
   required: true as const,
@@ -807,6 +810,24 @@ const document = apiRouter()
     );
   })
   // Before the routes that read the last segment as a document id.
+  .openapi(receiptRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(await getReceipt(workspaceId, id, c.get("userId")), 200);
+  })
+  .openapi(decideConflictRoute, async (c) => {
+    const { workspaceId, id, conflictId } = c.req.valid("param");
+    const userId = c.get("userId");
+    return c.json(
+      await decideConflict(
+        workspaceId,
+        id,
+        conflictId,
+        userId,
+        c.req.valid("json"),
+      ),
+      200,
+    );
+  })
   .openapi(handOverRoute, async (c) =>
     c.json(
       await handOverDocuments(

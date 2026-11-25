@@ -340,6 +340,7 @@ describe("MCP token scope", () => {
         { slot: "code", value: "x", quote: "x" },
       ],
       ["GET", `/document/workspace/${w.ws}/${docId}/statements`],
+      ["GET", `/document/workspace/${w.ws}/${docId}/receipt`],
     ];
     for (const [method, path, body] of steps) {
       expect({
@@ -347,6 +348,16 @@ describe("MCP token scope", () => {
         status: (await send(w, w.docs, method, path, body)).status,
       }).toEqual({ path, status: 200 });
     }
+    // Settling a conflict is let through too: the answer is about the
+    // conflict, not about the connection.
+    const settled = await send(
+      w,
+      w.docs,
+      "POST",
+      `/document/workspace/${w.ws}/${docId}/conflicts/no-such-conflict/decide`,
+      { decision: "keep", reason: "No." },
+    );
+    expect(settled.status).toBe(404);
   });
 
   it.each(refused)("refuses a documents token on: %s", async (_name, build) => {

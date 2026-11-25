@@ -28,6 +28,8 @@ it.each([
   ["DELETE", "/api/topic/workspace/w1/t1/slots/s1"],
   ["GET", "/api/document/workspace/w1/d1/statements"],
   ["POST", "/api/document/workspace/w1/d1/statements"],
+  ["GET", "/api/document/workspace/w1/d1/receipt"],
+  ["POST", "/api/document/workspace/w1/d1/conflicts/c1/decide"],
   ["GET", "/api/auth/get-session"],
   ["GET", "/api/auth/organization/list"],
   ["POST", "/api/auth/sign-out"],

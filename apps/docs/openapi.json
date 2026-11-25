@@ -4530,6 +4530,386 @@
           "decidedByName"
         ]
       },
+      "DocumentReceipt": {
+        "type": "object",
+        "properties": {
+          "repeats": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "statementId": {
+                  "type": "string"
+                },
+                "slotId": {
+                  "type": "string"
+                },
+                "slot": {
+                  "type": "string",
+                  "description": "The slot's key."
+                },
+                "slotName": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "date",
+                    "number",
+                    "money",
+                    "person",
+                    "enum",
+                    "bool",
+                    "term"
+                  ]
+                },
+                "value": {
+                  "type": "string"
+                },
+                "quote": {
+                  "type": "string"
+                },
+                "confirmed": {
+                  "type": "boolean",
+                  "description": "A person confirmed this statement for the document's present text."
+                },
+                "current": {
+                  "type": "object",
+                  "properties": {
+                    "statementId": {
+                      "type": "string"
+                    },
+                    "documentId": {
+                      "type": "string"
+                    },
+                    "documentTitle": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    },
+                    "quote": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statementId",
+                    "documentId",
+                    "documentTitle",
+                    "value",
+                    "quote"
+                  ],
+                  "description": "What the topic's current document states for the slot."
+                }
+              },
+              "required": [
+                "statementId",
+                "slotId",
+                "slot",
+                "slotName",
+                "type",
+                "value",
+                "quote",
+                "confirmed",
+                "current"
+              ]
+            },
+            "description": "Says the same as the topic's current document."
+          },
+          "new": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "statementId": {
+                  "type": "string"
+                },
+                "slotId": {
+                  "type": "string"
+                },
+                "slot": {
+                  "type": "string",
+                  "description": "The slot's key."
+                },
+                "slotName": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "date",
+                    "number",
+                    "money",
+                    "person",
+                    "enum",
+                    "bool",
+                    "term"
+                  ]
+                },
+                "value": {
+                  "type": "string"
+                },
+                "quote": {
+                  "type": "string"
+                },
+                "confirmed": {
+                  "type": "boolean",
+                  "description": "A person confirmed this statement for the document's present text."
+                }
+              },
+              "required": [
+                "statementId",
+                "slotId",
+                "slot",
+                "slotName",
+                "type",
+                "value",
+                "quote",
+                "confirmed"
+              ]
+            },
+            "description": "The topic's current document states nothing for the slot."
+          },
+          "conflicts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StatementConflict"
+            },
+            "description": "Says something else than the topic's current document, each with both quotes."
+          },
+          "unjudged": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "statementId": {
+                  "type": "string"
+                },
+                "slotId": {
+                  "type": "string"
+                },
+                "slot": {
+                  "type": "string",
+                  "description": "The slot's key."
+                },
+                "slotName": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "date",
+                    "number",
+                    "money",
+                    "person",
+                    "enum",
+                    "bool",
+                    "term"
+                  ]
+                },
+                "value": {
+                  "type": "string"
+                },
+                "quote": {
+                  "type": "string"
+                },
+                "confirmed": {
+                  "type": "boolean",
+                  "description": "A person confirmed this statement for the document's present text."
+                },
+                "current": {
+                  "type": "object",
+                  "properties": {
+                    "statementId": {
+                      "type": "string"
+                    },
+                    "documentId": {
+                      "type": "string"
+                    },
+                    "documentTitle": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    },
+                    "quote": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statementId",
+                    "documentId",
+                    "documentTitle",
+                    "value",
+                    "quote"
+                  ],
+                  "description": "What the topic's current document states for the slot."
+                }
+              },
+              "required": [
+                "statementId",
+                "slotId",
+                "slot",
+                "slotName",
+                "type",
+                "value",
+                "quote",
+                "confirmed",
+                "current"
+              ]
+            },
+            "description": "Worded differently from the current document, in a slot that holds free text. Nobody has judged whether the two disagree."
+          },
+          "notChecked": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "slot": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "date",
+                    "number",
+                    "money",
+                    "person",
+                    "enum",
+                    "bool",
+                    "term"
+                  ]
+                }
+              },
+              "required": [
+                "slot",
+                "slotName",
+                "type"
+              ]
+            },
+            "description": "Slots of the topic the document has no statement for."
+          }
+        },
+        "required": [
+          "repeats",
+          "new",
+          "conflicts",
+          "unjudged",
+          "notChecked"
+        ]
+      },
+      "StatementConflict": {
+        "type": "object",
+        "properties": {
+          "statementId": {
+            "type": "string"
+          },
+          "slotId": {
+            "type": "string"
+          },
+          "slot": {
+            "type": "string",
+            "description": "The slot's key."
+          },
+          "slotName": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "date",
+              "number",
+              "money",
+              "person",
+              "enum",
+              "bool",
+              "term"
+            ]
+          },
+          "value": {
+            "type": "string"
+          },
+          "quote": {
+            "type": "string"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "description": "A person confirmed this statement for the document's present text."
+          },
+          "current": {
+            "type": "object",
+            "properties": {
+              "statementId": {
+                "type": "string"
+              },
+              "documentId": {
+                "type": "string"
+              },
+              "documentTitle": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              },
+              "quote": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "statementId",
+              "documentId",
+              "documentTitle",
+              "value",
+              "quote"
+            ],
+            "description": "What the topic's current document states for the slot."
+          },
+          "id": {
+            "type": "string",
+            "description": "Names the slot, the two documents and the two values. When a value changes, it is another conflict with another id."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "tolerated",
+              "resolved"
+            ],
+            "description": "open: the document cannot be made current. tolerated: the two may differ until tolerateUntil. resolved: the decider said the document's value stands."
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tolerateUntil": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "statementId",
+          "slotId",
+          "slot",
+          "slotName",
+          "type",
+          "value",
+          "quote",
+          "confirmed",
+          "current",
+          "id",
+          "status",
+          "reason",
+          "tolerateUntil"
+        ]
+      },
       "DocumentsHandedOver": {
         "type": "object",
         "properties": {
@@ -28396,6 +28776,195 @@
           },
           "404": {
             "description": "Document or statement not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/receipt": {
+      "get": {
+        "operationId": "getDocumentReceipt",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Compare a document with its topic",
+        "description": "Sorts what the document states for its topic's slots against what the topic's current document states: what it repeats, what is new, where it says something else, and which slots it leaves out. Only a current document the caller can open is compared. To someone who cannot open the topic, every list is empty.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The document compared with its topic",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentReceipt"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/conflicts/{conflictId}/decide": {
+      "post": {
+        "operationId": "decideDocumentConflict",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Settle a conflict with the current document",
+        "description": "The topic's decider says which value stands, or lets the two differ until a date. A document cannot be made current while one of its conflicts is open.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "conflictId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "decision": {
+                    "type": "string",
+                    "enum": [
+                      "replace",
+                      "keep",
+                      "tolerate"
+                    ],
+                    "description": "replace: the document's value stands, and its statement is confirmed. keep: the current value stands, and the document's statement is rejected with the reason. tolerate: the two may differ until tolerateUntil."
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "tolerateUntil": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Needed for tolerate. A time that has not come yet."
+                  }
+                },
+                "required": [
+                  "decision",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The conflict as it stands now",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatementConflict"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Tolerating needs a date that lies ahead",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only the topic's decider settles a conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document or conflict not found",
             "content": {
               "application/json": {
                 "schema": {

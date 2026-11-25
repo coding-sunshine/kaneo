@@ -3334,6 +3334,57 @@ export const statementTable = pgTable(
   ],
 );
 
+export const CONFLICT_DECISIONS = ["replace", "tolerate"] as const;
+export type ConflictDecision = (typeof CONFLICT_DECISIONS)[number];
+
+// A conflict is found by comparing what a document states with what its
+// topic's current document states. It is not stored: it is there for as long
+// as the two values differ. This holds only what a decider said about one:
+// the document's value stands (`replace`), or the two may differ until a date
+// (`tolerate`). No row means the conflict is open. `pairHash` names the slot,
+// the two documents and the two values, so a changed value is a new conflict.
+export const statementConflictTable = pgTable(
+  "statement_conflict",
+  {
+    pairHash: text("pair_hash").primaryKey(),
+    slotId: text("slot_id")
+      .notNull()
+      .references(() => topicSlotTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documentTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    againstDocumentId: text("against_document_id")
+      .notNull()
+      .references(() => documentTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    decision: text("decision").$type<ConflictDecision>().notNull(),
+    reason: text("reason").notNull(),
+    tolerateUntil: timestamp("tolerate_until", { mode: "date" }),
+    decidedBy: text("decided_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    decidedAt: timestamp("decided_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("statement_conflict_document_idx").on(table.documentId),
+    check(
+      "statement_conflict_tolerate_has_date",
+      sql`${table.decision} <> 'tolerate' OR ${table.tolerateUntil} IS NOT NULL`,
+    ),
+  ],
+);
+
 // One row for each text the model was asked about, so that a text is read
 // once. An answer nobody could read is kept too: asking again would cost the
 // same and read the same.

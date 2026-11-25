@@ -10,6 +10,7 @@ import {
 } from "../../document/controllers/notify";
 import { recordVersion } from "../../document/controllers/record-version";
 import { getTopic } from "./get-topic";
+import { receiptOf } from "./receipt";
 
 // A document on a topic, for the people who decide on that topic.
 async function loadForDecision(
@@ -86,6 +87,21 @@ export async function makeCurrent(
       throw new HTTPException(409, {
         message:
           "This document changed after you opened it. Read it again, then approve it.",
+      });
+    }
+    // Counted as the approver sees them: a conflict with a document this
+    // person cannot open would tell them what it says. Read only, before the
+    // first write.
+    const { conflicts } = await receiptOf(
+      tx,
+      { id: documentId, contentHash: doc.contentHash },
+      id,
+      userId,
+    );
+    if (conflicts.some((conflict) => conflict.status === "open")) {
+      throw new HTTPException(409, {
+        message:
+          "This document states something else than the current one. Settle each conflict first.",
       });
     }
     const [replaced] = await tx
