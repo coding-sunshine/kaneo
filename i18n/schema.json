@@ -13410,6 +13410,9 @@
 								"documentsInbox": {
 									"type": "string"
 								},
+								"documentsIssueFiles": {
+									"type": "string"
+								},
 								"openAgent": {
 									"type": "string"
 								}
@@ -13523,6 +13526,7 @@
 								"documentsShared",
 								"documentsUnfiled",
 								"documentsInbox",
+								"documentsIssueFiles",
 								"openAgent"
 							]
 						},
@@ -13796,9 +13800,19 @@
 								},
 								"inbox": {
 									"type": "string"
+								},
+								"issueFiles": {
+									"type": "string"
 								}
 							},
-							"required": ["recent", "mine", "shared", "unfiled", "inbox"]
+							"required": [
+								"recent",
+								"mine",
+								"shared",
+								"unfiled",
+								"inbox",
+								"issueFiles"
+							]
 						},
 						"tabHints": {
 							"type": "object",
@@ -13818,12 +13832,78 @@
 								},
 								"inbox": {
 									"type": "string"
+								},
+								"issueFiles": {
+									"type": "string"
 								}
 							},
-							"required": ["recent", "mine", "shared", "unfiled", "inbox"]
+							"required": [
+								"recent",
+								"mine",
+								"shared",
+								"unfiled",
+								"inbox",
+								"issueFiles"
+							]
 						},
 						"viewTab": {
 							"type": "string"
+						},
+						"issueFiles": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"badge": {
+									"type": "string"
+								},
+								"propose": {
+									"type": "string"
+								},
+								"proposed": {
+									"type": "string"
+								},
+								"noTopic": {
+									"type": "string"
+								},
+								"emptyTitle": {
+									"type": "string"
+								},
+								"emptyText": {
+									"type": "string"
+								},
+								"dialog": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"title": {
+											"type": "string"
+										},
+										"hint": {
+											"type": "string"
+										},
+										"submit": {
+											"type": "string"
+										},
+										"done": {
+											"type": "string"
+										}
+									},
+									"required": ["title", "hint", "submit", "done"]
+								}
+							},
+							"required": [
+								"title",
+								"badge",
+								"propose",
+								"proposed",
+								"noTopic",
+								"emptyTitle",
+								"emptyText",
+								"dialog"
+							]
 						},
 						"empty": {
 							"type": "object",
@@ -15226,6 +15306,7 @@
 						"tabs",
 						"tabHints",
 						"viewTab",
+						"issueFiles",
 						"empty",
 						"accessLabel",
 						"whoCanOpen",

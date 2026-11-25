@@ -36,6 +36,9 @@ vi.mock("@/fetchers/topic/topics", () => ({
   getTopic: mocks.getTopic,
   getTopicTasks: mocks.getTopicTasks,
 }));
+vi.mock("@/fetchers/document/issue-files", () => ({
+  getIssueFiles: vi.fn().mockResolvedValue([]),
+}));
 vi.mock("@/fetchers/document/documents", () => ({
   getDocument: mocks.getDocument,
   getDocuments: mocks.getDocuments,

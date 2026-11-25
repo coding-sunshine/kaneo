@@ -11,7 +11,7 @@ import {
   validateTaskAssetUploadInput,
   verifyTaskAssetUpload,
 } from "../../storage/s3";
-import { documentFileContentType } from "../file-types";
+import { documentFileContentType, fileTypeRefused } from "../file-types";
 import type {
   documentFileUploadBody,
   finalizeDocumentFileUploadBody,
@@ -33,9 +33,7 @@ async function uploadTarget(
   assertNotSuperseded(doc);
   const contentType = documentFileContentType(filename);
   if (!contentType) {
-    throw new HTTPException(415, {
-      message: "This kind of file cannot be added to a document.",
-    });
+    throw new HTTPException(415, { message: fileTypeRefused });
   }
   try {
     validateTaskAssetUploadInput(contentType, size);

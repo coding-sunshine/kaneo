@@ -5,11 +5,11 @@ import { assetTable } from "../../database/schema";
 import { queueStorageCleanup } from "../../storage/cleanup-queue";
 
 /** Files shown in a task's attachments area: every non-image file, plus anything uploaded there directly. */
-const isAttachment = or(
+export const isAttachment = or(
   eq(assetTable.kind, "attachment"),
   eq(assetTable.surface, "attachment"),
 );
-const notDraft = not(sql`${assetTable.surface} like 'draft%'`);
+export const notDraft = not(sql`${assetTable.surface} like 'draft%'`);
 
 export async function listTaskAttachments(taskId: string) {
   return db

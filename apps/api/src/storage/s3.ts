@@ -709,6 +709,43 @@ export async function copyTaskAssetObject({
   return key;
 }
 
+/**
+ * Copies a stored object into a document's own files. The copy is stored as
+ * `contentType`, whatever the source was stored as: the asset route serves the
+ * stored type first.
+ */
+export async function copyToDocumentFile({
+  sourceKey,
+  filename,
+  contentType,
+  ...context
+}: DocumentFileContext & {
+  sourceKey: string;
+  filename: string;
+  contentType: string;
+}): Promise<string> {
+  const config = getStorageConfig();
+  const client = getClient(config);
+  const key = applyKeyPrefix(
+    config.keyPrefix,
+    `${buildDocumentFileObjectKeyPrefix(context)}/${buildObjectFileName(filename)}`,
+  );
+
+  await client.send(
+    new CopyObjectCommand({
+      Bucket: config.bucket,
+      CopySource: [config.bucket, ...sourceKey.split("/")]
+        .map(encodeURIComponent)
+        .join("/"),
+      Key: key,
+      ContentType: contentType,
+      MetadataDirective: "REPLACE",
+    }),
+  );
+
+  return key;
+}
+
 export async function deleteS3Object(key: string): Promise<void> {
   const config = getStorageConfig();
   const client = getClient(config);

@@ -14,6 +14,7 @@ import { DocumentList } from "./document-list";
 import { TopicCurrentDocument } from "./topic-current-document";
 import { RecordDecisionButton } from "./record-decision-button";
 import { TopicFollowButton } from "./topic-follow-button";
+import { TopicIssueFiles } from "./topic-issue-files";
 import { TopicIssues } from "./topic-issues";
 import { TopicSection } from "./topic-section";
 
@@ -138,6 +139,7 @@ export function TopicPage({ workspaceId, topicId }: TopicPageProps) {
             )}
           </TopicSection>
           <TopicIssues workspaceId={workspaceId} topicId={topicId} />
+          <TopicIssueFiles workspaceId={workspaceId} topicId={topicId} />
           {replaced.length > 0 && (
             <TopicSection
               id="topic-replaced"

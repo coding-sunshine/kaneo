@@ -652,4 +652,59 @@ describe("API integration: document access leaks", () => {
     expect(row).toBeDefined();
     expect(row?.topicId).toBeNull();
   });
+
+  it("hides an issue's file in a team the member cannot open", async () => {
+    const world = await buildDocumentWorld();
+    const { limited, open, betaTask, beta } = world;
+    const [file] = await db
+      .insert(schema.assetTable)
+      .values({
+        workspaceId: world.ws,
+        projectId: beta.id,
+        taskId: betaTask.id,
+        objectKey: randomUUID(),
+        filename: "notes.pdf",
+        mimeType: "application/pdf",
+        size: 3,
+        kind: "attachment",
+        surface: "attachment",
+        createdBy: world.owner.id,
+      })
+      .returning();
+    const topic = await world.as(world.owner)(
+      "/topic",
+      json("POST", { workspaceId: world.ws, name: "Everyone" }),
+    );
+    const { id: topicId } = (await topic.json()) as { id: string };
+    await world.as(world.owner)(
+      `/topic/workspace/${world.ws}/${topicId}/task/${betaTask.id}`,
+      json("PUT"),
+    );
+    const base = `/document/workspace/${world.ws}/issue-files`;
+    const call = async (user: Member, id: string, route: string) => {
+      const response = await world.as(user)(
+        route === "audience"
+          ? `${base}/${id}/audience?topicId=${topicId}`
+          : `${base}/${id}/propose`,
+        route === "audience" ? undefined : json("POST", { topicId }),
+      );
+      return { status: response.status, body: await response.text() };
+    };
+
+    const documents = (await db.select().from(schema.documentTable)).length;
+    const listedFor = async (user: Member) =>
+      ((await (await world.as(user)(base)).json()) as { id: string }[]).map(
+        (row) => row.id,
+      );
+    expect(await listedFor(limited)).not.toContain(file?.id);
+    expect(await listedFor(open)).toContain(file?.id);
+    for (const route of ["audience", "propose"]) {
+      const invented = await call(limited, "no-such-asset", route);
+      expect(invented.status).toBe(404);
+      expect(await call(limited, file?.id ?? "", route)).toEqual(invented);
+    }
+    expect((await db.select().from(schema.documentTable)).length).toBe(
+      documents,
+    );
+  });
 });

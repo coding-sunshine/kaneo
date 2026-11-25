@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { documentFilterFromSlug } from "@/components/documents/document-tab";
+import { documentTabFromSlug } from "@/components/documents/document-tab";
 import { DocumentsPage } from "@/components/documents/documents-page";
 
 export const Route = createFileRoute(
@@ -13,7 +13,7 @@ function RouteComponent() {
   return (
     <DocumentsPage
       workspaceId={workspaceId}
-      filter={documentFilterFromSlug(tab)}
+      filter={documentTabFromSlug(tab)}
     />
   );
 }

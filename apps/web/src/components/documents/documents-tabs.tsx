@@ -7,17 +7,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { DocumentFilter } from "@/fetchers/document/documents";
 import { cn } from "@/lib/cn";
 import { useShortcut } from "@/lib/shortcuts/use-shortcut";
-import { DOCUMENT_TABS } from "./document-tab";
+import { DOCUMENT_TABS, type DocumentTabKey } from "./document-tab";
 
 type DocumentsTabsProps = {
   workspaceId: string;
-  value: DocumentFilter;
+  value: DocumentTabKey;
 };
 
-/** One pill per Documents tab; 1 to 5 switch them. */
+/** One pill per Documents tab; 1 to 6 switch them. */
 export function DocumentsTabs({ workspaceId, value }: DocumentsTabsProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -37,6 +36,7 @@ export function DocumentsTabs({ workspaceId, value }: DocumentsTabsProps) {
   useShortcut("documentsShared", () => open(DOCUMENT_TABS[2].slug));
   useShortcut("documentsUnfiled", () => open(DOCUMENT_TABS[3].slug));
   useShortcut("documentsInbox", () => open(DOCUMENT_TABS[4].slug));
+  useShortcut("documentsIssueFiles", () => open(DOCUMENT_TABS[5].slug));
 
   return (
     <div role="tablist" className="inline-flex items-center gap-1.5">

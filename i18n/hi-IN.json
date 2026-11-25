@@ -3298,7 +3298,8 @@
 				"copyPullRequestPrompt": "Copy pull request as prompt",
 				"workOnPullRequest": "Work on pull request",
 				"documentsInbox": "View the document Inbox",
-				"documentsUnfiled": "View Not yet filed"
+				"documentsUnfiled": "View Not yet filed",
+				"documentsIssueFiles": "View Issue files"
 			},
 			"title": "कीबोर्ड शॉर्टकट",
 			"searchPlaceholder": "क्रिया या कुंजी से खोजें",
@@ -3477,14 +3478,16 @@
 				"recent": "Documents you work on and documents shared with you",
 				"shared": "Documents shared with you directly, including personal documents and documents from private teams you're not in",
 				"inbox": "Shared documents that are not on a topic yet",
-				"unfiled": "Private drafts that are not on a topic yet"
+				"unfiled": "Private drafts that are not on a topic yet",
+				"issueFiles": "Files attached to issues. Reference material until proposed on a topic."
 			},
 			"tabs": {
 				"mine": "My documents",
 				"recent": "Recent",
 				"shared": "Shared with me",
 				"inbox": "Inbox",
-				"unfiled": "Not yet filed"
+				"unfiled": "Not yet filed",
+				"issueFiles": "Issue files"
 			},
 			"title": "Documents",
 			"titlePlaceholder": "Document title",
@@ -3734,6 +3737,21 @@
 			},
 			"upload": {
 				"typeNotAllowed": "This file type can't be added to a document. Use a PDF, an Office or OpenDocument file, text, Markdown, CSV or an image."
+			},
+			"issueFiles": {
+				"badge": "Issue file",
+				"dialog": {
+					"done": "Proposed on {{topic}}",
+					"hint": "{{file}} becomes a document proposed on {{topic}}. The issue keeps its file.",
+					"submit": "Propose",
+					"title": "Propose for this topic"
+				},
+				"emptyText": "Files attached to issues you can open show up here. They are reference material until someone proposes one on a topic.",
+				"emptyTitle": "No issue files",
+				"noTopic": "No topic yet",
+				"propose": "Propose for this topic",
+				"proposed": "Proposed",
+				"title": "Issue files"
 			}
 		},
 		"drafts": {

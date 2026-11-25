@@ -1,9 +1,13 @@
 import type { DocumentFilter } from "@/fetchers/document/documents";
 import type { ShortcutId } from "@/lib/shortcuts/catalog";
 
+/** A tab is a document filter, or the issue-file list, which the documents API does not know. */
+export type DocumentTabKey = DocumentFilter | "issueFiles";
+
 /**
  * The Documents tabs, in order, with the URL segment each one owns. The first
- * three are Linear's; the last two hold what no topic holds yet.
+ * three are Linear's; the next two hold what no topic holds yet; the last one
+ * lists files on issues.
  */
 export const DOCUMENT_TABS = [
   { filter: "recent", slug: null, shortcut: "documentsRecent" },
@@ -11,13 +15,18 @@ export const DOCUMENT_TABS = [
   { filter: "shared", slug: "shared-with-me", shortcut: "documentsShared" },
   { filter: "unfiled", slug: "not-yet-filed", shortcut: "documentsUnfiled" },
   { filter: "inbox", slug: "inbox", shortcut: "documentsInbox" },
+  {
+    filter: "issueFiles",
+    slug: "issue-files",
+    shortcut: "documentsIssueFiles",
+  },
 ] as const satisfies readonly {
-  filter: DocumentFilter;
+  filter: DocumentTabKey;
   slug: string | null;
   shortcut: ShortcutId;
 }[];
 
-/** The filter a URL segment names; anything unknown falls back to Recent. */
-export function documentFilterFromSlug(slug?: string): DocumentFilter {
+/** The tab a URL segment names; anything unknown falls back to Recent. */
+export function documentTabFromSlug(slug?: string): DocumentTabKey {
   return DOCUMENT_TABS.find((tab) => tab.slug === slug)?.filter ?? "recent";
 }

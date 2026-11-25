@@ -173,6 +173,7 @@ export const SHORTCUTS = {
   documentsShared: { keys: ["3"], category: "views", scope: "view" },
   documentsUnfiled: { keys: ["4"], category: "views", scope: "view" },
   documentsInbox: { keys: ["5"], category: "views", scope: "view" },
+  documentsIssueFiles: { keys: ["6"], category: "views", scope: "view" },
 
   addFilter: { keys: ["f"], category: "filters", scope: "view" },
   clearAllFilters: {

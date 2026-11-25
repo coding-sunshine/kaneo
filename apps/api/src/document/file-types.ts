@@ -32,6 +32,9 @@ const types = new Map([
   ["heif", "image/heif"],
 ]);
 
+export const fileTypeRefused =
+  "This kind of file cannot be added to a document.";
+
 /**
  * The type a document's file is stored and served as. It comes from the name
  * alone, never from the sender, so a page cannot be stored as a picture.

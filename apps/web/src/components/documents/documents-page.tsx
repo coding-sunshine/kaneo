@@ -4,23 +4,31 @@ import WorkspaceLayout from "@/components/common/workspace-layout";
 import PageTitle from "@/components/page-title";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { DocumentFilter } from "@/fetchers/document/documents";
 import { useDocuments } from "@/hooks/queries/document/use-documents";
+import { useIssueFiles } from "@/hooks/queries/document/use-issue-files";
+import type { DocumentTabKey } from "./document-tab";
 import { DocumentList } from "./document-list";
 import { DocumentUsageButton } from "./document-usage-button";
 import { DocumentsEmpty } from "./documents-empty";
 import { DocumentsTabs } from "./documents-tabs";
+import { IssueFileList } from "./issue-file-list";
+import { IssueFilesEmpty } from "./issue-files-empty";
 import { InboxList } from "./inbox-list";
 import { NewDocuments } from "./new-documents";
 import { TopicsStrip } from "./topics-strip";
 import { useNewDocument } from "./use-new-document";
 
-type DocumentsPageProps = { workspaceId: string; filter: DocumentFilter };
+type DocumentsPageProps = { workspaceId: string; filter: DocumentTabKey };
 
 /** Linear's workspace Documents page. */
 export function DocumentsPage({ workspaceId, filter }: DocumentsPageProps) {
   const { t } = useTranslation();
-  const { data: documents, isLoading } = useDocuments(workspaceId, { filter });
+  // The issue-file tab is not a documents filter: the documents API rejects it.
+  const onFiles = filter === "issueFiles";
+  const docs = useDocuments(workspaceId, onFiles ? {} : { filter }, !onFiles);
+  const files = useIssueFiles(workspaceId, undefined, onFiles);
+  const documents = docs.data;
+  const isLoading = onFiles ? files.isLoading : docs.isLoading;
   const { create, isPending } = useNewDocument(workspaceId);
 
   return (
@@ -54,6 +62,12 @@ export function DocumentsPage({ workspaceId, filter }: DocumentsPageProps) {
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-8 w-full" />
           </div>
+        ) : filter === "issueFiles" ? (
+          files.data?.length ? (
+            <IssueFileList workspaceId={workspaceId} files={files.data} />
+          ) : (
+            <IssueFilesEmpty />
+          )
         ) : !documents?.length ? (
           <DocumentsEmpty
             workspaceId={workspaceId}

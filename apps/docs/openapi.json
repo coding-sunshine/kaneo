@@ -4380,6 +4380,162 @@
           "updatedAt"
         ]
       },
+      "IssueFile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "url": {
+            "type": "string",
+            "description": "Where the file is read from. It opens for whoever can open the issue."
+          },
+          "task": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "number": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "projectId": {
+                "type": "string"
+              },
+              "projectSlug": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "number",
+              "projectId",
+              "projectSlug"
+            ]
+          },
+          "topics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "proposedDocumentId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The document made from this file on the topic, when you can open one."
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "proposedDocumentId"
+              ]
+            },
+            "description": "The topics the issue is on that you can open."
+          }
+        },
+        "required": [
+          "id",
+          "filename",
+          "mimeType",
+          "size",
+          "createdAt",
+          "url",
+          "task",
+          "topics"
+        ]
+      },
+      "DocumentAudience": {
+        "type": "object",
+        "properties": {
+          "current": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "userId",
+                "name",
+                "image"
+              ]
+            },
+            "description": "Workspace members who can open the document now."
+          },
+          "proposed": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "userId",
+                "name",
+                "image"
+              ]
+            },
+            "description": "Members who could open it in the place asked about. Null when no place was asked about."
+          }
+        },
+        "required": [
+          "current",
+          "proposed"
+        ]
+      },
       "DocumentUsage": {
         "type": "object",
         "properties": {
@@ -4447,70 +4603,6 @@
         "required": [
           "id",
           "snoozedUntil"
-        ]
-      },
-      "DocumentAudience": {
-        "type": "object",
-        "properties": {
-          "current": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "userId": {
-                  "type": "string"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "image": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                }
-              },
-              "required": [
-                "userId",
-                "name",
-                "image"
-              ]
-            },
-            "description": "Workspace members who can open the document now."
-          },
-          "proposed": {
-            "type": [
-              "array",
-              "null"
-            ],
-            "items": {
-              "type": "object",
-              "properties": {
-                "userId": {
-                  "type": "string"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "image": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                }
-              },
-              "required": [
-                "userId",
-                "name",
-                "image"
-              ]
-            },
-            "description": "Members who could open it in the place asked about. Null when no place was asked about."
-          }
-        },
-        "required": [
-          "current",
-          "proposed"
         ]
       },
       "DocumentTaskAudience": {
@@ -27654,6 +27746,301 @@
           },
           "429": {
             "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/issue-files": {
+      "get": {
+        "operationId": "listIssueFiles",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "List issue files",
+        "description": "The files attached to issues you can open, newest first, each with its issue and that issue's topics. They are reference material: none is a document or a proposal until someone proposes it. Pictures pasted into a description are left out.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Only the files of issues on this topic."
+            },
+            "required": false,
+            "description": "Only the files of issues on this topic.",
+            "name": "topicId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Issue files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IssueFile"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/issue-files/{assetId}/audience": {
+      "get": {
+        "operationId": "getIssueFileAudience",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "See who an issue file would open to",
+        "description": "Who can open the file now, on its issue, and who could open the document it becomes when proposed on the topic.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "assetId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "A topic the file's issue is on."
+            },
+            "required": true,
+            "description": "A topic the file's issue is on.",
+            "name": "topicId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audience",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentAudience"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such file on an issue you can open, or no such topic of that issue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/issue-files/{assetId}/propose": {
+      "post": {
+        "operationId": "proposeIssueFile",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Propose an issue file on a topic",
+        "description": "Make a document from an issue's file and file it as a proposal on a topic of that issue. The document holds its own copy of the file and opens for everyone who can open the topic. The issue keeps its file.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "assetId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "topicId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "A topic the file's issue is on."
+                  }
+                },
+                "required": [
+                  "topicId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The proposal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The file is too large for a document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such file on an issue you can open, or no such topic of that issue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The file is already proposed on this topic",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The file's name does not end in a type a document can hold",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "503": {
+            "description": "The file could not be copied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }

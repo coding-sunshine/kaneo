@@ -451,6 +451,57 @@ export const finalizeDocumentFileUploadBody = documentFileUploadBody.extend({
     .openapi({ description: "The key returned when the URL was issued." }),
 });
 
+export const issueFileParam = z.object({
+  workspaceId: z.string(),
+  assetId: z.string(),
+});
+export const issueFilesQuery = z.object({
+  topicId: z.string().optional().openapi({
+    description: "Only the files of issues on this topic.",
+  }),
+});
+export const issueFileTopic = z.object({
+  topicId: z.string().min(1).openapi({
+    description: "A topic the file's issue is on.",
+  }),
+});
+export const issueFileListSchema = z.array(
+  z
+    .object({
+      id: z.string(),
+      filename: z.string(),
+      mimeType: z.string(),
+      size: z.number(),
+      createdAt: responseTimestamp,
+      url: z.string().openapi({
+        description:
+          "Where the file is read from. It opens for whoever can open the issue.",
+      }),
+      task: z.object({
+        id: z.string(),
+        title: z.string(),
+        number: z.number().nullable(),
+        projectId: z.string(),
+        projectSlug: z.string(),
+      }),
+      topics: z
+        .array(
+          z.object({
+            id: z.string(),
+            name: z.string(),
+            proposedDocumentId: z.string().nullable().openapi({
+              description:
+                "The document made from this file on the topic, when you can open one.",
+            }),
+          }),
+        )
+        .openapi({
+          description: "The topics the issue is on that you can open.",
+        }),
+    })
+    .openapi("IssueFile"),
+);
+
 export const documentFileSchema = z
   .object({
     id: z.string(),

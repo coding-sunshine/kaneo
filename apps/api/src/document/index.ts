@@ -20,6 +20,7 @@ import { deleteDocument, restoreDocument } from "./controllers/delete-document";
 import { documentAudience } from "./controllers/document-audience";
 import { documentUsage } from "./controllers/document-usage";
 import { getDocument } from "./controllers/get-document";
+import { listIssueFiles } from "./controllers/issue-files";
 import {
   handOverDocuments,
   listOwnerlessDocuments,
@@ -27,6 +28,10 @@ import {
 } from "./controllers/hand-over-documents";
 import { listDocuments } from "./controllers/list-documents";
 import { moveDocument } from "./controllers/move-document";
+import {
+  issueFileAudience,
+  proposeIssueFile,
+} from "./controllers/propose-issue-file";
 import { setSubscribers } from "./controllers/set-subscribers";
 import { shareDocument, unshareDocument } from "./controllers/share-document";
 import {
@@ -69,6 +74,10 @@ import {
   handedOverSchema,
   handOverBody,
   idSchema,
+  issueFileListSchema,
+  issueFileParam,
+  issueFilesQuery,
+  issueFileTopic,
   listDocumentsQuery,
   moveDocumentBody,
   documentsSeenSchema,
@@ -106,6 +115,11 @@ const write = [
   requireWorkspacePermission({ task: ["update"] }),
 ] as const;
 const one = "/workspace/{workspaceId}/{id}";
+// Where a stored file is read back from.
+const apiBaseUrl = (requestUrl: string) =>
+  normalizeApiServerUrl(
+    process.env.KANEO_API_URL || new URL(requestUrl).origin,
+  );
 
 const listRoute = createRoute({
   method: "get",
@@ -234,6 +248,71 @@ const ownerlessRoute = createRoute({
   responses: {
     200: jsonResponse("Documents with no author", ownerlessDocumentListSchema),
     403: ownersOnly,
+  },
+});
+
+const issueFiles = "/workspace/{workspaceId}/issue-files";
+const fileNotFound = errorResponse(
+  "No such file on an issue you can open, or no such topic of that issue",
+);
+
+const issueFilesRoute = createRoute({
+  method: "get",
+  operationId: "listIssueFiles",
+  path: issueFiles,
+  tags,
+  summary: "List issue files",
+  description:
+    "The files attached to issues you can open, newest first, each with its issue and that issue's topics. They are reference material: none is a document or a proposal until someone proposes it. Pictures pasted into a description are left out.",
+  middleware: [...read] as const,
+  request: { params: workspaceIdParam, query: issueFilesQuery },
+  responses: {
+    200: jsonResponse("Issue files", issueFileListSchema),
+    403: noAccess,
+    404: errorResponse("Topic not found"),
+  },
+});
+
+const issueFileAudienceRoute = createRoute({
+  method: "get",
+  operationId: "getIssueFileAudience",
+  path: `${issueFiles}/{assetId}/audience`,
+  tags,
+  summary: "See who an issue file would open to",
+  description:
+    "Who can open the file now, on its issue, and who could open the document it becomes when proposed on the topic.",
+  middleware: [...read] as const,
+  request: { params: issueFileParam, query: issueFileTopic },
+  responses: {
+    200: jsonResponse("Audience", documentAudienceSchema),
+    403: noAccess,
+    404: fileNotFound,
+  },
+});
+
+const proposeIssueFileRoute = createRoute({
+  method: "post",
+  operationId: "proposeIssueFile",
+  path: `${issueFiles}/{assetId}/propose`,
+  tags,
+  summary: "Propose an issue file on a topic",
+  description:
+    "Make a document from an issue's file and file it as a proposal on a topic of that issue. The document holds its own copy of the file and opens for everyone who can open the topic. The issue keeps its file.",
+  middleware: [
+    workspaceAccess.fromParam(),
+    requireWorkspacePermission({ task: ["create", "update"] }),
+  ] as const,
+  request: { params: issueFileParam, body: body(issueFileTopic) },
+  responses: {
+    200: jsonResponse("The proposal", documentSchema),
+    400: errorResponse("The file is too large for a document"),
+    403: noAccess,
+    404: fileNotFound,
+    409: errorResponse("The file is already proposed on this topic"),
+    415: errorResponse(
+      "The file's name does not end in a type a document can hold",
+    ),
+    503: errorResponse("The file could not be copied"),
   },
 });
 
@@ -712,6 +791,42 @@ const document = apiRouter()
       200,
     ),
   )
+  .openapi(issueFilesRoute, async (c) =>
+    c.json(
+      await listIssueFiles(
+        c.req.valid("param").workspaceId,
+        c.get("userId"),
+        c.req.valid("query").topicId,
+        apiBaseUrl(c.req.url),
+      ),
+      200,
+    ),
+  )
+  .openapi(issueFileAudienceRoute, async (c) => {
+    const { workspaceId, assetId } = c.req.valid("param");
+    return c.json(
+      await issueFileAudience(
+        workspaceId,
+        assetId,
+        c.get("userId"),
+        c.req.valid("query").topicId,
+      ),
+      200,
+    );
+  })
+  .openapi(proposeIssueFileRoute, async (c) => {
+    const { workspaceId, assetId } = c.req.valid("param");
+    return c.json(
+      await proposeIssueFile(
+        workspaceId,
+        assetId,
+        c.get("userId"),
+        c.req.valid("json").topicId,
+        apiBaseUrl(c.req.url),
+      ),
+      200,
+    );
+  })
   .openapi(usageRoute, async (c) =>
     c.json(
       await documentUsage(c.req.valid("param").workspaceId, c.get("userId")),
@@ -843,10 +958,10 @@ const document = apiRouter()
       c.get("userId"),
       c.req.valid("json"),
     );
-    const apiBaseUrl = normalizeApiServerUrl(
-      process.env.KANEO_API_URL || new URL(c.req.url).origin,
+    return c.json(
+      { ...file, url: `${apiBaseUrl(c.req.url)}/asset/${file.id}` },
+      200,
     );
-    return c.json({ ...file, url: `${apiBaseUrl}/asset/${file.id}` }, 200);
   })
   .openapi(versionsRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");

@@ -3298,6 +3298,7 @@
 				"documentsShared": "View Shared with me",
 				"documentsUnfiled": "View Not yet filed",
 				"documentsInbox": "View the document Inbox",
+				"documentsIssueFiles": "View Issue files",
 				"openAgent": "Open agent"
 			},
 			"title": "Keyboard Shortcuts",
@@ -3364,16 +3365,33 @@
 				"mine": "My documents",
 				"shared": "Shared with me",
 				"unfiled": "Not yet filed",
-				"inbox": "Inbox"
+				"inbox": "Inbox",
+				"issueFiles": "Issue files"
 			},
 			"tabHints": {
 				"recent": "Documents you work on and documents shared with you",
 				"mine": "Documents you own, private or in a team",
 				"shared": "Documents shared with you directly, including personal documents and documents from private teams you're not in",
 				"unfiled": "Private drafts that are not on a topic yet",
-				"inbox": "Shared documents that are not on a topic yet"
+				"inbox": "Shared documents that are not on a topic yet",
+				"issueFiles": "Files attached to issues. Reference material until proposed on a topic."
 			},
 			"viewTab": "View {{name}}",
+			"issueFiles": {
+				"title": "Issue files",
+				"badge": "Issue file",
+				"propose": "Propose for this topic",
+				"proposed": "Proposed",
+				"noTopic": "No topic yet",
+				"emptyTitle": "No issue files",
+				"emptyText": "Files attached to issues you can open show up here. They are reference material until someone proposes one on a topic.",
+				"dialog": {
+					"title": "Propose for this topic",
+					"hint": "{{file}} becomes a document proposed on {{topic}}. The issue keeps its file.",
+					"submit": "Propose",
+					"done": "Proposed on {{topic}}"
+				}
+			},
 			"empty": {
 				"recent": "Pick up where you left off. Documents you work on and documents shared with you appear here.",
 				"mine": "Draft on your own or write for your team. Documents you own appear here, private or in a team.",
