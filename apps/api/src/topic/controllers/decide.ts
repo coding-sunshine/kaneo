@@ -4,7 +4,10 @@ import db from "../../database";
 import { documentTable, topicTable } from "../../database/schema";
 import { getDocument } from "../../document/controllers/get-document";
 import { loadDocument } from "../../document/controllers/load-document";
-import { notifyTopicFollowers } from "../../document/controllers/notify";
+import {
+  notifyReplacedDocument,
+  notifyTopicFollowers,
+} from "../../document/controllers/notify";
 import { recordVersion } from "../../document/controllers/record-version";
 import { getTopic } from "./get-topic";
 
@@ -108,17 +111,20 @@ export async function makeCurrent(
         supersedesDocumentId: replaced?.id ?? null,
       })
       .where(eq(documentTable.id, documentId));
-    return doc.status === "in_review" ? doc : undefined;
+    return doc.status === "in_review"
+      ? { title: doc.title, replacedId: replaced?.id }
+      : undefined;
   });
   // The topic has a new current document. Approving the same one again
   // after an edit is not that.
   if (proposal) {
-    await notifyTopicFollowers(
-      { id: documentId, workspaceId, title: proposal.title },
-      id,
-      userId,
-      "document_current",
-    );
+    const made = { id: documentId, workspaceId, title: proposal.title };
+    // Open work that links to the replaced document. Its assignee is told
+    // that, and not a second time as a follower of the topic.
+    const told = proposal.replacedId
+      ? await notifyReplacedDocument(made, proposal.replacedId, id, userId)
+      : [];
+    await notifyTopicFollowers(made, id, userId, "document_current", told);
   }
   return getDocument(workspaceId, documentId, userId);
 }

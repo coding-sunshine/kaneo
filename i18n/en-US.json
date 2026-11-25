@@ -3849,6 +3849,11 @@
 				"title": "{{topicName}} has a new current document",
 				"content": "{{documentTitle}}, approved by {{actorName}}"
 			},
+			"document_replaced": {
+				"title_one": "A document linked in {{issueKey}} was replaced",
+				"title_other": "A document linked in {{issueKey}} and {{more}} more of your issues was replaced",
+				"content": "{{documentTitle}} is now current for {{topicName}}"
+			},
 			"task_mention": {
 				"title": "{{mentionerName}} mentioned you",
 				"content": "{{mentionerName}} mentioned you in: {{taskTitle}}"

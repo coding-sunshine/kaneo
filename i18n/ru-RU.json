@@ -4009,6 +4009,13 @@
 			"document_proposed": {
 				"content": "{{documentTitle}}",
 				"title": "{{actorName}} proposed a document for {{topicName}}"
+			},
+			"document_replaced": {
+				"content": "{{documentTitle}} is now current for {{topicName}}",
+				"title_few": "A document linked in {{issueKey}} and {{more}} more of your issues was replaced",
+				"title_many": "A document linked in {{issueKey}} and {{more}} more of your issues was replaced",
+				"title_one": "A document linked in {{issueKey}} was replaced",
+				"title_other": "A document linked in {{issueKey}} and {{more}} more of your issues was replaced"
 			}
 		},
 		"reminderLeadTime": {

@@ -15729,6 +15729,34 @@
 							},
 							"required": ["title", "content"]
 						},
+						"document_replaced": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title_one": {
+									"type": "string"
+								},
+								"title_zero": {
+									"type": "string"
+								},
+								"title_two": {
+									"type": "string"
+								},
+								"title_few": {
+									"type": "string"
+								},
+								"title_many": {
+									"type": "string"
+								},
+								"title_other": {
+									"type": "string"
+								},
+								"content": {
+									"type": "string"
+								}
+							},
+							"required": ["content"]
+						},
 						"task_mention": {
 							"type": "object",
 							"additionalProperties": false,
@@ -15872,6 +15900,7 @@
 						"document_comment",
 						"document_proposed",
 						"document_current",
+						"document_replaced",
 						"task_mention",
 						"task_comment",
 						"due_date_reminder",

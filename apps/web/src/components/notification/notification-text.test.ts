@@ -109,6 +109,38 @@ describe("notification display content", () => {
     }
   });
 
+  it("names the first issue and counts the rest when a linked document was replaced", () => {
+    const say = (key: string, options?: Record<string, unknown>) =>
+      `${key} ${JSON.stringify(options)}`;
+    const values = {
+      actorName: "Mina",
+      documentTitle: "Pricing, second version",
+      topicName: "Launch plan",
+      projectSlug: "ENG",
+      taskNumber: 12,
+    };
+    const one = notification("document_replaced", { ...values, taskCount: 1 });
+    const three = notification("document_replaced", {
+      ...values,
+      taskCount: 3,
+    });
+
+    expect(getNotificationTitle(one, say)).toBe(
+      `notifications:events.document_replaced.title ${JSON.stringify({
+        ...values,
+        taskCount: 1,
+        issueKey: "ENG-12",
+        count: 1,
+        more: 0,
+        defaultValue: "document_replaced",
+      })}`,
+    );
+    expect(getNotificationTitle(three, say)).toContain('"count":3,"more":2');
+    expect(getNotificationContent(three, say)).toContain(
+      "notifications:events.document_replaced.content ",
+    );
+  });
+
   it("names the team and the closing status for team subscriptions", () => {
     const item = notification("team_issue_closed", {
       taskTitle: "Launch website",

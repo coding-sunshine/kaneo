@@ -116,6 +116,18 @@ export function getNotificationTitle(
           ...documentValues(eventData, t),
           defaultValue: notification.title ?? notification.type,
         });
+      case "document_replaced": {
+        // One notification covers every open issue of the person that links
+        // to the replaced document. It names the first and counts the rest.
+        const count = Number(eventData.taskCount) || 1;
+        return t("notifications:events.document_replaced.title", {
+          ...documentValues(eventData, t),
+          issueKey: `${eventData.projectSlug}-${eventData.taskNumber}`,
+          count,
+          more: count - 1,
+          defaultValue: notification.title ?? notification.type,
+        });
+      }
       default:
         break;
     }
@@ -202,6 +214,7 @@ export function getNotificationContent(
       case "document_comment":
       case "document_proposed":
       case "document_current":
+      case "document_replaced":
         return t(`notifications:events.${notification.type}.content`, {
           ...documentValues(eventData, t),
           defaultValue: notification.content ?? "",
