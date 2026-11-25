@@ -3385,6 +3385,28 @@ export const statementConflictTable = pgTable(
   ],
 );
 
+// What the model said about two wordings of one fact: whether both can hold.
+// Keyed by the texts it was shown, the prompt and the model, so that the same
+// question is asked once. `contradicts` is null when the answer could not be
+// read.
+export const statementJudgementTable = pgTable(
+  "statement_judgement",
+  {
+    textsHash: text("texts_hash").notNull(),
+    promptVersion: integer("prompt_version").notNull(),
+    model: text("model").notNull(),
+    contradicts: boolean("contradicts"),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.textsHash, table.promptVersion, table.model],
+    }),
+  ],
+);
+
 // One row for each text the model was asked about, so that a text is read
 // once. An answer nobody could read is kept too: asking again would cost the
 // same and read the same.

@@ -41,6 +41,7 @@ const TITLES = {
   document_current: (actor: string) => `${actor} made a document current`,
   document_replaced: (actor: string) =>
     `${actor} replaced a document your issue links to`,
+  document_question: () => "A document may contradict what is approved",
 };
 
 function send(
@@ -144,6 +145,20 @@ export async function notifyTopicFollowers(
     { topicId, topicName: first.topicName },
   );
 }
+
+// `doc` and the current document of its topic may disagree on one fact. The
+// model found it, so there is no actor.
+export const notifyConflictQuestion = (
+  doc: NotifiedDocument,
+  topic: { id: string; name: string },
+  deciderId: string,
+  slotName: string,
+) =>
+  send(doc, [deciderId], "document_question", null, {
+    topicId: topic.id,
+    topicName: topic.name,
+    slotName,
+  });
 
 // A document was replaced by `doc`. The assignee of each open issue that
 // links to the replaced one hears of it once, with one of their issues named.

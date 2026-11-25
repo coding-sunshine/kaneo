@@ -12,6 +12,7 @@ import { checkProjectWebhookReminders } from "./project-webhook-reminders";
 import { reconcileWorkspaceSeats } from "./seat-reconciliation";
 import { runDueLoops } from "./loops";
 import { extractFiledDocuments } from "./statement-extraction";
+import { askConflictQuestions } from "./conflict-questions";
 import { checkTrialReminders } from "./trial-reminders";
 
 const jobs: Cron[] = [];
@@ -131,6 +132,13 @@ export function initializeScheduler(): void {
       "*/5 * * * *",
       { protect: true },
       withCheckIn("statement-extraction", extractFiledDocuments),
+    ),
+  );
+  jobs.push(
+    new Cron(
+      "*/5 * * * *",
+      { protect: true },
+      withCheckIn("conflict-questions", askConflictQuestions),
     ),
   );
   console.log(

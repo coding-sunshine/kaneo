@@ -9,6 +9,7 @@ import {
 } from "../../database/schema";
 import { loadDocument } from "../../document/controllers/load-document";
 import { currentStatements, type Reader } from "./current-statements";
+import { judgementsOf, textsHash } from "./judgement";
 import { openTopic } from "./statements";
 
 type Text = { id: string; contentHash: string | null };
@@ -103,6 +104,22 @@ export async function receiptOf(
     ).map((decision) => [decision.pairHash, decision]),
   );
 
+  // Free text: whether two wordings disagree is a judgement, not a
+  // comparison. Only pairs this viewer sees are looked up.
+  const judged = await judgementsOf(
+    database,
+    slots.flatMap((slot) => {
+      const statement = stated.get(slot.id);
+      const against = current.get(slot.id);
+      return slot.type === "term" &&
+        statement &&
+        against &&
+        statement.normalized !== against.normalized
+        ? [textsHash({ ...statement, slotName: slot.name, current: against })]
+        : [];
+    }),
+  );
+
   const receipt = {
     repeats: [] as Compared[],
     new: [] as Stated[],
@@ -147,11 +164,13 @@ export async function receiptOf(
         quote: against.quote,
       },
     };
-    if (against.normalized === statement.normalized) {
+    // What the model said about two wordings. Until it said something, the
+    // pair holds nothing back.
+    const contradicts =
+      slot.type === "term" ? judged.get(textsHash(compared)) : true;
+    if (against.normalized === statement.normalized || contradicts === false) {
       receipt.repeats.push(compared);
-    } else if (slot.type === "term") {
-      // Free text: whether two wordings disagree is a judgement, not a
-      // comparison.
+    } else if (!contradicts) {
       receipt.unjudged.push(compared);
     } else {
       const id = pairHash(
