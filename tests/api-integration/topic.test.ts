@@ -447,6 +447,41 @@ describe("API integration: topics and the current document", () => {
     expect(await version(approved.approvedVersionId)).toBe(approved.content);
   });
 
+  // An edit can land between opening the approval and pressing the button.
+  it("refuses an approval of text the approver did not read", async () => {
+    const world = await buildDocumentWorld();
+    const { owner, docs } = world;
+    const api = topics(world);
+    const topic = await api.alpha();
+    await api.file(owner, topic.id, docs.teamAlpha);
+    const read = await api.document(owner, docs.teamAlpha);
+    await api.edit(owner, docs.teamAlpha, { content: "<p>Changed</p>" });
+
+    expect(
+      await statusOf(
+        api.current(owner, topic.id, docs.teamAlpha, {
+          reason: REASON,
+          contentHash: read.contentHash,
+        }),
+      ),
+    ).toBe(409);
+    const untouched = await api.document(owner, docs.teamAlpha);
+    expect(untouched).toMatchObject({
+      status: "in_review",
+      approvedHash: null,
+    });
+    expect(untouched.contentHash).not.toBe(read.contentHash);
+
+    const approved = await api.current(owner, topic.id, docs.teamAlpha, {
+      reason: REASON,
+      contentHash: untouched.contentHash,
+    });
+    expect(approved.status).toBe(200);
+    expect(((await approved.json()) as Doc).approvedHash).toBe(
+      untouched.contentHash,
+    );
+  });
+
   it("confirms the current document, and sets it aside", async () => {
     const world = await buildDocumentWorld();
     const { owner, limited, open, docs } = world;

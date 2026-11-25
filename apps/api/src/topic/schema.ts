@@ -45,6 +45,10 @@ export const makeCurrentBody = z.object({
   reason: z.string().trim().min(1).max(2000).openapi({
     description: "Why this document is the one to rely on.",
   }),
+  contentHash: z.string().max(200).optional().openapi({
+    description:
+      "The contentHash of the text you read. The approval is refused when the document has changed since.",
+  }),
 });
 
 const DAY = 24 * 60 * 60 * 1000;

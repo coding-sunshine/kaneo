@@ -38,7 +38,7 @@ export function useFollowTopic(workspaceId: string) {
 /**
  * Filing and deciding change more than the document in hand: the topic's
  * current document, the document it replaced and every list. All of them are
- * read again.
+ * read again, also after a refusal: that mostly means this page's copy is old.
  */
 function useTopicDocumentMutation<TInput, TResult = unknown>(
   workspaceId: string,
@@ -47,7 +47,7 @@ function useTopicDocumentMutation<TInput, TResult = unknown>(
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn,
-    onSuccess: () =>
+    onSettled: () =>
       queryClient.invalidateQueries({ queryKey: documentsKey(workspaceId) }),
   });
 }
@@ -59,8 +59,12 @@ export function useFileDocumentOnTopic(workspaceId: string) {
 export function useMakeDocumentCurrent(workspaceId: string) {
   return useTopicDocumentMutation(
     workspaceId,
-    ({ reason, ...param }: TopicDocument & { reason: string }) =>
-      makeDocumentCurrent(param, reason),
+    ({
+      reason,
+      contentHash,
+      ...param
+    }: TopicDocument & { reason: string; contentHash?: string }) =>
+      makeDocumentCurrent(param, reason, contentHash),
   );
 }
 

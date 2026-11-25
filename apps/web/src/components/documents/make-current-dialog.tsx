@@ -25,7 +25,12 @@ import { ChangedSentences } from "./changed-sentences-list";
 type MakeCurrentDialogProps = {
   document: Pick<
     DocumentDetail,
-    "workspaceId" | "id" | "status" | "content" | "approvedVersionId"
+    | "workspaceId"
+    | "id"
+    | "status"
+    | "content"
+    | "contentHash"
+    | "approvedVersionId"
   >;
   topic: Pick<Topic, "id" | "name" | "currentDocumentId">;
   /** The reason to start from, instead of the suggested one. */
@@ -82,7 +87,13 @@ export function MakeCurrentDialog({
 
   const submit = () =>
     makeCurrent.mutate(
-      { workspaceId, id: topic.id, documentId: id, reason: reason.trim() },
+      {
+        workspaceId,
+        id: topic.id,
+        documentId: id,
+        reason: reason.trim(),
+        contentHash: document.contentHash,
+      },
       {
         onSuccess: () => {
           toast.success(

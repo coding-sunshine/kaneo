@@ -46,6 +46,8 @@ export async function makeCurrent(
   documentId: string,
   userId: string,
   reason: string,
+  /** The hash of the text the approver read, when the caller sends one. */
+  seenHash?: string,
 ) {
   await loadForDecision(workspaceId, id, documentId, userId);
   const proposal = await db.transaction(async (tx) => {
@@ -77,6 +79,13 @@ export async function makeCurrent(
     if (!doc || (doc.status !== "in_review" && doc.status !== "current")) {
       throw new HTTPException(409, {
         message: "Only a proposal or the current document can be made current",
+      });
+    }
+    // An approval covers the text that was read, not whatever is there now.
+    if (seenHash !== undefined && doc.contentHash !== seenHash) {
+      throw new HTTPException(409, {
+        message:
+          "This document changed after you opened it. Read it again, then approve it.",
       });
     }
     const [replaced] = await tx

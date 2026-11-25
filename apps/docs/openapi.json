@@ -31685,6 +31685,11 @@
                     "minLength": 1,
                     "maxLength": 2000,
                     "description": "Why this document is the one to rely on."
+                  },
+                  "contentHash": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "description": "The contentHash of the text you read. The approval is refused when the document has changed since."
                   }
                 },
                 "required": [

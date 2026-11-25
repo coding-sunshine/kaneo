@@ -55,6 +55,7 @@ const show = (
           workspaceId: "ws-1",
           id: "doc-1",
           approvedVersionId: "version-approved",
+          contentHash: "hash-read",
           ...document,
         }}
         topic={{ id: "topic-1", name: "Launch plan", currentDocumentId }}
@@ -91,6 +92,8 @@ describe("MakeCurrentDialog", () => {
     expect(mocks.makeDocumentCurrent).toHaveBeenCalledWith(
       { workspaceId: "ws-1", id: "topic-1", documentId: "doc-1" },
       `${REASON}.reasonStart`,
+      // The text on screen, so an approval of older text is refused.
+      "hash-read",
     );
   });
 
@@ -117,6 +120,7 @@ describe("MakeCurrentDialog", () => {
       expect(mocks.makeDocumentCurrent).toHaveBeenCalledWith(
         { workspaceId: "ws-1", id: "topic-1", documentId: "doc-1" },
         "Launch moved.",
+        "hash-read",
       ),
     );
   });

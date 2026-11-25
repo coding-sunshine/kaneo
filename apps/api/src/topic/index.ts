@@ -451,6 +451,7 @@ const topic = apiRouter()
         documentId,
         c.get("userId"),
         c.req.valid("json").reason,
+        c.req.valid("json").contentHash,
       ),
       200,
     );

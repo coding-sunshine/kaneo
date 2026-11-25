@@ -60,8 +60,13 @@ export async function fileDocumentOnTopic(param: TopicDocument) {
 export async function makeDocumentCurrent(
   param: TopicDocument,
   reason: string,
+  /** The hash of the text on screen, so an approval of older text is refused. */
+  contentHash?: string,
 ) {
-  const response = await filed.current.$post({ param, json: { reason } });
+  const response = await filed.current.$post({
+    param,
+    json: { reason, contentHash },
+  });
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }
