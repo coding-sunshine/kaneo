@@ -4198,6 +4198,50 @@
                     "null"
                   ]
                 },
+                "slots": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "description": "What a statement names the slot by."
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "date",
+                          "number",
+                          "money",
+                          "person",
+                          "enum",
+                          "bool",
+                          "term"
+                        ]
+                      },
+                      "options": {
+                        "type": [
+                          "array",
+                          "null"
+                        ],
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "The values an enum slot may take."
+                      }
+                    },
+                    "required": [
+                      "key",
+                      "name",
+                      "type",
+                      "options"
+                    ]
+                  },
+                  "description": "The facts this topic keeps, such as a date or a price. A statement gives one slot's value as a document states it."
+                },
                 "currentDocument": {
                   "type": [
                     "object",
@@ -4229,6 +4273,7 @@
                 "id",
                 "name",
                 "parentName",
+                "slots",
                 "currentDocument"
               ]
             },
@@ -4344,6 +4389,36 @@
           },
           "discarded": {
             "type": "boolean"
+          },
+          "statements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "slot": {
+                  "type": "string"
+                },
+                "result": {
+                  "type": "string",
+                  "enum": [
+                    "added",
+                    "unknown_slot",
+                    "quote_not_found",
+                    "invalid_value",
+                    "exists"
+                  ],
+                  "description": "added: stored as a proposal. unknown_slot: the topic has no slot with that key. quote_not_found: the quote is not in the document. invalid_value: the value does not fit the slot. exists: the slot already has a statement from this document."
+                },
+                "id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slot",
+                "result"
+              ]
+            },
+            "description": "What happened to each statement sent, in the order sent. A refused statement does not undo the filing."
           }
         },
         "required": [
@@ -4355,7 +4430,104 @@
           "scope",
           "topicId",
           "replacesDocumentId",
-          "discarded"
+          "discarded",
+          "statements"
+        ]
+      },
+      "Statement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slotId": {
+            "type": "string"
+          },
+          "slot": {
+            "type": "string",
+            "description": "The slot's key."
+          },
+          "slotName": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "date",
+              "number",
+              "money",
+              "person",
+              "enum",
+              "bool",
+              "term"
+            ]
+          },
+          "value": {
+            "type": "string"
+          },
+          "quote": {
+            "type": "string"
+          },
+          "quoteStart": {
+            "type": "integer",
+            "description": "Where the quote starts in the document's text, with tags removed and whitespace collapsed."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "proposed",
+              "confirmed",
+              "rejected"
+            ],
+            "description": "proposed until a person confirms or rejects it. A confirmation is for the text it was given on: after an edit the statement is proposed again."
+          },
+          "statusReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "person",
+              "assistant",
+              "model"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decidedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "decidedByName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "slotId",
+          "slot",
+          "slotName",
+          "type",
+          "value",
+          "quote",
+          "quoteStart",
+          "status",
+          "statusReason",
+          "source",
+          "createdAt",
+          "decidedAt",
+          "decidedByName"
         ]
       },
       "DocumentsHandedOver": {
@@ -4985,6 +5157,50 @@
                   "type": "number",
                   "description": "How many documents wait for a decision on this topic. None of them is approved."
                 },
+                "slots": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "description": "What a statement names the slot by."
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "date",
+                          "number",
+                          "money",
+                          "person",
+                          "enum",
+                          "bool",
+                          "term"
+                        ]
+                      },
+                      "options": {
+                        "type": [
+                          "array",
+                          "null"
+                        ],
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "The values an enum slot may take."
+                      }
+                    },
+                    "required": [
+                      "key",
+                      "name",
+                      "type",
+                      "options"
+                    ]
+                  },
+                  "description": "The facts this topic keeps, such as a date or a price. A statement gives one slot's value as a document states it."
+                },
                 "current": {
                   "type": [
                     "object",
@@ -5045,6 +5261,7 @@
                 "deciderName",
                 "tasks",
                 "unreviewed",
+                "slots",
                 "current"
               ]
             }
@@ -5191,6 +5408,50 @@
         },
         "required": [
           "topics"
+        ]
+      },
+      "TopicSlot": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string",
+            "description": "What a statement names the slot by."
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "date",
+              "number",
+              "money",
+              "person",
+              "enum",
+              "bool",
+              "term"
+            ]
+          },
+          "options": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "description": "The values an enum slot may take."
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "name",
+          "type",
+          "options"
         ]
       },
       "Notification": {
@@ -27656,6 +27917,39 @@
                   "topicId": {
                     "type": "string",
                     "description": "The topic to file it on. Needed for replace and proposal."
+                  },
+                  "statements": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "slot": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40,
+                          "description": "The key of a slot of the topic the document is filed on."
+                        },
+                        "value": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200,
+                          "description": "The fact in a few words, such as a date or an amount."
+                        },
+                        "quote": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 400,
+                          "description": "The passage of the document that states the value, copied as it is written. A quote that is not in the document is refused."
+                        }
+                      },
+                      "required": [
+                        "slot",
+                        "value",
+                        "quote"
+                      ]
+                    },
+                    "maxItems": 20,
+                    "description": "For replace and proposal: what the document states for the topic's slots. Each is stored as a proposal that a person confirms."
                   }
                 },
                 "required": [
@@ -27718,6 +28012,390 @@
           },
           "409": {
             "description": "The document is not a draft, or the topic has nothing to replace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/statements": {
+      "get": {
+        "operationId": "listDocumentStatements",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "List a document's statements",
+        "description": "What the document states for the slots of its topic, each with the passage that says so. Only statements written for the document's present text are listed.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statements",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Statement"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document or statement not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "post": {
+        "operationId": "addDocumentStatement",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Add a statement to a document",
+        "description": "Record what the document states for one slot of its topic. The quote must be in the document. The statement is a proposal until a person confirms it. Sending a slot again replaces its unconfirmed statement.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "slot": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40,
+                    "description": "The key of a slot of the topic the document is filed on."
+                  },
+                  "value": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "description": "The fact in a few words, such as a date or an amount."
+                  },
+                  "quote": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 400,
+                    "description": "The passage of the document that states the value, copied as it is written. A quote that is not in the document is refused."
+                  }
+                },
+                "required": [
+                  "slot",
+                  "value",
+                  "quote"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Statement added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Statement"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The topic has no such slot, the quote is not in the document, or the value does not fit the slot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Needs edit access to the document. On a current document, only the topic's decider.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document or statement not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The document is not filed on a topic, or the slot has a confirmed statement",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/statements/{statementId}/confirm": {
+      "post": {
+        "operationId": "confirmDocumentStatement",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Confirm a statement",
+        "description": "A person agrees that the document states this. The confirmation is for the text as it is now: after an edit the statement is a proposal again.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "statementId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statement confirmed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Statement"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Needs edit access to the document. On a current document, only the topic's decider.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document or statement not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The document changed after the statement was written, or the statement was rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/statements/{statementId}/reject": {
+      "post": {
+        "operationId": "rejectDocumentStatement",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Reject a statement",
+        "description": "A person says the document does not state this, with the reason. The slot can then take a new statement.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "statementId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Statement rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Statement"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Needs edit access to the document. On a current document, only the topic's decider.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document or statement not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -31129,6 +31807,301 @@
           },
           "404": {
             "description": "Topic or document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/{id}/slots": {
+      "get": {
+        "operationId": "listTopicSlots",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "List a topic's slots",
+        "description": "The facts a topic keeps, such as a launch date or a price. Documents filed on the topic state values for them.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Slots",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TopicSlot"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or slot not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createTopicSlot",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "Add a slot to a topic",
+        "description": "Name a fact the topic keeps and how its values are compared. For the decider and workspace owners.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "date",
+                      "number",
+                      "money",
+                      "person",
+                      "enum",
+                      "bool",
+                      "term"
+                    ],
+                    "description": "How values are compared: date, number, money, person, enum (one of `options`), bool, or term (free text)."
+                  },
+                  "key": {
+                    "type": "string",
+                    "maxLength": 40,
+                    "description": "Lower-case letters, digits and underscores, starting with a letter. Defaults to the name in that form."
+                  },
+                  "options": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "maxItems": 30,
+                    "description": "For an enum slot: the values it may take, two or more."
+                  }
+                },
+                "required": [
+                  "name",
+                  "type"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Slot added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicSlot"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A key in the wrong form, or an enum without options",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only the topic's decider or a workspace owner can change its slots",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or slot not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The topic already has a slot with that key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/{id}/slots/{slotId}": {
+      "delete": {
+        "operationId": "deleteTopicSlot",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "Remove a slot from a topic",
+        "description": "Removes the slot and every statement written for it. For the decider and workspace owners.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "slotId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Slot removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only the topic's decider or a workspace owner can change its slots",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or slot not found",
             "content": {
               "application/json": {
                 "schema": {

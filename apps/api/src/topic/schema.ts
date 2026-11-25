@@ -1,4 +1,4 @@
-import { DOCUMENT_KINDS, TOPIC_SCOPES } from "../database/schema";
+import { DOCUMENT_KINDS, SLOT_TYPES, TOPIC_SCOPES } from "../database/schema";
 import { responseTimestamp, z } from "../openapi";
 
 export const workspaceIdParam = z.object({ workspaceId: z.string() });
@@ -10,6 +10,7 @@ export const topicDocumentParam = topicParam.extend({
   documentId: z.string(),
 });
 export const topicTaskParam = topicParam.extend({ taskId: z.string() });
+export const topicSlotParam = topicParam.extend({ slotId: z.string() });
 export const taskTopicsParam = z.object({
   workspaceId: z.string(),
   taskId: z.string(),
@@ -150,6 +151,43 @@ export const topicReadQuery = z.object({
     description: "A topic's id, its name, or a sentence that names it.",
   }),
 });
+const slotHead = {
+  key: z.string().openapi({
+    description: "What a statement names the slot by.",
+  }),
+  name: z.string(),
+  type: z.enum(SLOT_TYPES),
+  options: z.array(z.string()).nullable().openapi({
+    description: "The values an enum slot may take.",
+  }),
+};
+export const slotHeadsSchema = z.array(z.object(slotHead)).openapi({
+  description:
+    "The facts this topic keeps, such as a date or a price. A statement gives one slot's value as a document states it.",
+});
+export const slotSchema = z
+  .object({ id: z.string(), ...slotHead })
+  .openapi("TopicSlot");
+export const slotListSchema = z.array(slotSchema);
+export const createSlotBody = z.object({
+  name: z.string().trim().min(1).max(80),
+  type: z.enum(SLOT_TYPES).openapi({
+    description:
+      "How values are compared: date, number, money, person, enum (one of `options`), bool, or term (free text).",
+  }),
+  key: z.string().trim().max(40).optional().openapi({
+    description:
+      "Lower-case letters, digits and underscores, starting with a letter. Defaults to the name in that form.",
+  }),
+  options: z
+    .array(z.string().trim().min(1).max(80))
+    .max(30)
+    .optional()
+    .openapi({
+      description: "For an enum slot: the values it may take, two or more.",
+    }),
+});
+
 const topicHead = {
   id: z.string(),
   name: z.string(),
@@ -168,6 +206,7 @@ export const topicCurrentSchema = z
           description:
             "How many documents wait for a decision on this topic. None of them is approved.",
         }),
+        slots: slotHeadsSchema,
         current: z
           .object({
             id: z.string(),

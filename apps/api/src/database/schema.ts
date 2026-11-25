@@ -3207,3 +3207,165 @@ export const aiUsageTable = pgTable(
   },
   (table) => [index("ai_usage_created_at_idx").on(table.createdAt)],
 );
+
+export const SLOT_TYPES = [
+  "date",
+  "number",
+  "money",
+  "person",
+  "enum",
+  "bool",
+  "term",
+] as const;
+export type SlotType = (typeof SLOT_TYPES)[number];
+
+// A fact a topic keeps track of, such as its launch date. People choose a
+// topic's slots.
+export const topicSlotTable = pgTable(
+  "topic_slot",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    topicId: text("topic_id")
+      .notNull()
+      .references(() => topicTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    // What a statement names the slot by. Unique on its topic.
+    key: text("key").notNull(),
+    name: text("name").notNull(),
+    type: text("type").$type<SlotType>().notNull(),
+    // The values of an `enum` slot.
+    options: text("options").array(),
+    createdBy: text("created_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("topic_slot_topic_key_uidx").on(table.topicId, table.key),
+  ],
+);
+
+export const STATEMENT_STATUSES = [
+  "proposed",
+  "confirmed",
+  "rejected",
+] as const;
+export type StatementStatus = (typeof STATEMENT_STATUSES)[number];
+export const STATEMENT_SOURCES = ["person", "assistant", "model"] as const;
+export type StatementSource = (typeof STATEMENT_SOURCES)[number];
+/** What happened to a statement that was sent for a document. */
+export const STATEMENT_RESULTS = [
+  "added",
+  "unknown_slot",
+  "quote_not_found",
+  "invalid_value",
+  "exists",
+] as const;
+export type StatementResult = (typeof STATEMENT_RESULTS)[number];
+
+// The value one document states for one slot, with the passage that says so.
+// The status is only what a person did. Whether a statement is the topic's
+// current one is never stored: it is the confirmed statement of the topic's
+// current document, written for the text that was approved.
+export const statementTable = pgTable(
+  "statement",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    slotId: text("slot_id")
+      .notNull()
+      .references(() => topicSlotTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documentTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    value: text("value").notNull(),
+    // The value in the form two statements are compared in.
+    normalized: text("normalized").notNull(),
+    // Copied from the document's text, and where it starts there.
+    quote: text("quote").notNull(),
+    quoteStart: integer("quote_start").notNull(),
+    // The document's `contentHash` the quote was checked against. A statement
+    // for another text of the document says nothing about this one.
+    contentHash: text("content_hash").notNull(),
+    status: text("status")
+      .$type<StatementStatus>()
+      .notNull()
+      .default("proposed"),
+    statusReason: text("status_reason"),
+    source: text("source").$type<StatementSource>().notNull(),
+    decidedBy: text("decided_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    decidedAt: timestamp("decided_at", { mode: "date" }),
+    createdBy: text("created_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("statement_document_idx").on(table.documentId),
+    // One statement a slot for each text of a document. Rejected ones stay
+    // as a record beside it.
+    uniqueIndex("statement_slot_document_hash_uidx")
+      .on(table.slotId, table.documentId, table.contentHash)
+      .where(sql`${table.status} <> 'rejected'`),
+    check(
+      "statement_rejected_has_reason",
+      sql`${table.status} <> 'rejected' OR ${table.statusReason} IS NOT NULL`,
+    ),
+  ],
+);
+
+// One row for each text the model was asked about, so that a text is read
+// once. An answer nobody could read is kept too: asking again would cost the
+// same and read the same.
+export const documentExtractionTable = pgTable(
+  "document_extraction",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documentTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    contentHash: text("content_hash").notNull(),
+    // The slots that were asked about, so that a new slot is asked about too.
+    slotsHash: text("slots_hash").notNull(),
+    promptVersion: integer("prompt_version").notNull(),
+    model: text("model").notNull(),
+    readable: boolean("readable").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("document_extraction_uidx").on(
+      table.documentId,
+      table.contentHash,
+      table.slotsHash,
+      table.promptVersion,
+      table.model,
+    ),
+  ],
+);

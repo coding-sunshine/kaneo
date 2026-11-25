@@ -16,6 +16,7 @@ import { findTopics } from "./controllers/find-topics";
 import { getTopic, listTopics } from "./controllers/get-topic";
 import { getCurrent, listUnreviewed } from "./controllers/read-topic";
 import { recordDecision } from "./controllers/record-decision";
+import { createSlot, deleteSlot, listSlots } from "./controllers/slots";
 import {
   linkTaskTopic,
   listTaskTopics,
@@ -41,6 +42,11 @@ import {
   updateTopicBody,
   workspaceIdParam,
 } from "./schema";
+import {
+  createSlotRoute,
+  deleteSlotRoute,
+  listSlotsRoute,
+} from "./slot-routes";
 
 const body = <T extends ZodType>(schema: T) => ({
   required: true as const,
@@ -406,6 +412,24 @@ const topic = apiRouter()
     const { workspaceId, id } = c.req.valid("param");
     return c.json(
       await updateTopic(workspaceId, id, c.get("userId"), c.req.valid("json")),
+      200,
+    );
+  })
+  .openapi(listSlotsRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(await listSlots(workspaceId, id, c.get("userId")), 200);
+  })
+  .openapi(createSlotRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(
+      await createSlot(workspaceId, id, c.get("userId"), c.req.valid("json")),
+      200,
+    );
+  })
+  .openapi(deleteSlotRoute, async (c) => {
+    const { workspaceId, id, slotId } = c.req.valid("param");
+    return c.json(
+      await deleteSlot(workspaceId, id, slotId, c.get("userId")),
       200,
     );
   })

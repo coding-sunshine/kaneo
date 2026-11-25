@@ -2,7 +2,10 @@ import { randomUUID } from "node:crypto";
 import { and, eq, inArray } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
-import { favoriteTable } from "../../apps/api/src/database/schema";
+import {
+  favoriteTable,
+  statementTable,
+} from "../../apps/api/src/database/schema";
 import { resetTestDatabase } from "./helpers/database";
 import {
   buildDocumentWorld,
@@ -245,6 +248,13 @@ describe("API integration: document access leaks", () => {
         ["/comments", json("POST", { content: "<p>hello</p>" })],
         [`/comments/${comment.id}`, json("PATCH", { content: "<p>x</p>" })],
         [`/comments/${comment.id}`, json("DELETE")],
+        ["/statements", undefined],
+        ["/statements", json("POST", { slot: "s", value: "v", quote: place })],
+        ["/statements/no-such-statement/confirm", json("POST")],
+        [
+          "/statements/no-such-statement/reject",
+          json("POST", { reason: "No." }),
+        ],
       ];
       for (const [suffix, init] of routes) {
         const response = await world.as(limited)(`${path}${suffix}`, init);
@@ -544,11 +554,35 @@ describe("API integration: document access leaks", () => {
       );
     }
 
+    // The Beta topic keeps one fact, and its current document states it.
+    const slotsOf = async (user: Member, topicId: string) =>
+      (await world.as(user)(`${base}/${topicId}/slots`)).json();
+    const slot = (await (
+      await world.as(owner)(
+        `${base}/${beta}/slots`,
+        json("POST", { name: "Codename", type: "term" }),
+      )
+    ).json()) as { id: string; key: string };
+    expect(slot.key).toBe("codename");
+    const said = {
+      slot: "codename",
+      value: "sharedInBeta",
+      quote: "sharedInBeta",
+    };
+    const statements = `${one(world, "sharedInBeta")}/statements`;
+    const statement = (await (
+      await world.as(owner)(statements, json("POST", said))
+    ).json()) as { id: string };
+    expect(statement.id).toBeTruthy();
+
     // Every topic route answers a hidden topic like an unknown one, whichever
     // document is named, and a hidden document like an unknown one.
     const routes: [string, ReturnType<typeof json> | undefined][] = [
       ["", undefined],
       ["", json("PATCH", { name: "taken" })],
+      ["/slots", undefined],
+      ["/slots", json("POST", { name: "Taken", type: "date" })],
+      [`/slots/${slot.id}`, json("DELETE")],
       ["/document/DOC", json("PUT")],
       ["/document/DOC/current", json("POST", { reason: "Mine now." })],
       ["/document/DOC/confirm", json("POST")],
@@ -594,6 +628,7 @@ describe("API integration: document access leaks", () => {
       }
     }
     expect(await names(open)).toContain("Beta");
+    expect(await slotsOf(open, beta)).toMatchObject([{ key: "codename" }]);
 
     // The two read routes find a topic by its name or its id. A hidden topic
     // answers like a name nobody used, whoever shared its current document.
@@ -651,6 +686,61 @@ describe("API integration: document access leaks", () => {
     ) as { topicId?: string | null } | undefined;
     expect(row).toBeDefined();
     expect(row?.topicId).toBeNull();
+
+    // A statement names a slot of the topic. To someone the document is
+    // shared with who cannot open the topic, the document has no statements,
+    // like one that is on no topic, even when they may edit it.
+    const call = async (
+      user: Member,
+      path: string,
+      init?: ReturnType<typeof json>,
+    ) => {
+      const response = await world.as(user)(path, init);
+      return { status: response.status, body: await response.json() };
+    };
+    const unfiled = `${one(world, "sharedByName")}/statements`;
+    expect((await call(open, statements)).body).toMatchObject([
+      { id: statement.id, slot: "codename", slotName: "Codename" },
+    ]);
+    for (const id of [docs.sharedInBeta, docs.sharedByName]) {
+      const shared = await world.as(owner)(
+        `/document/workspace/${ws}/${id}/share/${limited.id}`,
+        json("PUT", { access: "edit" }),
+      );
+      expect(shared.status).toBe(200);
+    }
+    expect(await call(limited, statements)).toEqual({ status: 200, body: [] });
+    const refused = await call(limited, unfiled, json("POST", said));
+    expect(refused.status).toBe(409);
+    expect(await call(limited, statements, json("POST", said))).toEqual(
+      refused,
+    );
+    for (const [verb, body] of [
+      ["confirm", undefined],
+      ["reject", { reason: "No." }],
+    ] as const) {
+      const unknown = await call(
+        limited,
+        `${statements}/no-such-statement/${verb}`,
+        json("POST", body),
+      );
+      expect(unknown.status).toBe(404);
+      expect(
+        await call(
+          limited,
+          `${statements}/${statement.id}/${verb}`,
+          json("POST", body),
+        ),
+      ).toEqual(unknown);
+    }
+    const [kept] = await db
+      .select({ status: statementTable.status })
+      .from(statementTable)
+      .where(eq(statementTable.id, statement.id));
+    expect(kept?.status).toBe("proposed");
+    expect(await call(open, statements)).toMatchObject({
+      body: [{ id: statement.id, status: "proposed" }],
+    });
   });
 
   it("hides an issue's file in a team the member cannot open", async () => {

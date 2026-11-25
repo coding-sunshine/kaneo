@@ -4,6 +4,7 @@ import { documentTable, userTable } from "../../database/schema";
 import { listDocuments } from "../../document/controllers/list-documents";
 import { documentVisibility } from "../../document/visibility";
 import { findTopics } from "./find-topics";
+import { slotHeads, slotsOf } from "./slots";
 import { tasksOfTopics } from "./topic-tasks";
 
 type Found = Awaited<ReturnType<typeof findTopics>>[number];
@@ -48,6 +49,7 @@ export async function getCurrent(
     userId,
     topics.map((topic) => topic.id),
   );
+  const slots = await slotsOf(topics.map((topic) => topic.id));
   const currentIds = topics.flatMap((topic) => topic.currentDocumentId ?? []);
   const current =
     currentIds.length === 0
@@ -82,6 +84,7 @@ export async function getCurrent(
           ...head(topic),
           tasks: tasks.filter((task) => task.topicId === topic.id),
           unreviewed: (await waiting(workspaceId, userId, topic.id)).length,
+          slots: slotHeads(slots.get(topic.id)),
           // The text stays last: an answer cut for length keeps the rest.
           current: doc
             ? {

@@ -1,12 +1,12 @@
 import { eq } from "drizzle-orm";
-import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
 import db from "../../database";
 import { topicTable } from "../../database/schema";
 import type { updateTopicBody } from "../schema";
 import { assertDeciders } from "./assert-deciders";
+import { assertTopicOwner } from "./assert-topic-owner";
 import { addFollowers } from "./follow-topic";
-import { getTopic, isWorkspaceOwner } from "./get-topic";
+import { getTopic } from "./get-topic";
 
 export async function updateTopic(
   workspaceId: string,
@@ -15,15 +15,7 @@ export async function updateTopic(
   body: z.infer<typeof updateTopicBody>,
 ) {
   const topic = await getTopic(workspaceId, id, userId);
-  // The backup decider approves in the decider's absence and nothing more.
-  if (
-    topic.deciderId !== userId &&
-    !(await isWorkspaceOwner(workspaceId, userId))
-  ) {
-    throw new HTTPException(403, {
-      message: "Only the topic's decider or a workspace owner can change it",
-    });
-  }
+  await assertTopicOwner(workspaceId, topic, userId);
   const deciderId = body.deciderId ?? topic.deciderId;
   const backupDeciderId =
     body.backupDeciderId === undefined

@@ -6,8 +6,13 @@ import {
   DOCUMENT_SCOPES,
   DOCUMENT_SOURCE_CLIENTS,
   DOCUMENT_STATUSES,
+  SLOT_TYPES,
+  STATEMENT_RESULTS,
+  STATEMENT_SOURCES,
+  STATEMENT_STATUSES,
 } from "../database/schema";
 import { nullableResponseTimestamp, responseTimestamp, z } from "../openapi";
+import { slotHeadsSchema } from "../topic/schema";
 
 const access = z.enum(DOCUMENT_ACCESS);
 const role = z.enum(["owner", ...DOCUMENT_ACCESS]);
@@ -19,6 +24,9 @@ export const documentParam = z.object({
 });
 export const documentUserParam = documentParam.extend({ userId: z.string() });
 export const documentTaskParam = documentParam.extend({ taskId: z.string() });
+export const documentStatementParam = documentParam.extend({
+  statementId: z.string(),
+});
 export const documentVersionParam = documentParam.extend({
   versionId: z.string(),
 });
@@ -107,6 +115,23 @@ export const DOCUMENT_SETTLE_CHOICES = [
   "discard",
 ] as const;
 
+export const statementBody = z.object({
+  slot: z.string().trim().min(1).max(40).openapi({
+    description: "The key of a slot of the topic the document is filed on.",
+  }),
+  value: z.string().trim().min(1).max(200).openapi({
+    description: "The fact in a few words, such as a date or an amount.",
+  }),
+  quote: z.string().trim().min(1).max(400).openapi({
+    description:
+      "The passage of the document that states the value, copied as it is written. A quote that is not in the document is refused.",
+  }),
+});
+
+export const rejectStatementBody = z.object({
+  reason: z.string().trim().min(1).max(500),
+});
+
 export const settleDocumentBody = z.object({
   choice: z.enum(DOCUMENT_SETTLE_CHOICES).openapi({
     description:
@@ -114,6 +139,10 @@ export const settleDocumentBody = z.object({
   }),
   topicId: z.string().optional().openapi({
     description: "The topic to file it on. Needed for replace and proposal.",
+  }),
+  statements: z.array(statementBody).max(20).optional().openapi({
+    description:
+      "For replace and proposal: what the document states for the topic's slots. Each is stored as a proposal that a person confirms.",
   }),
 });
 
@@ -539,6 +568,7 @@ export const savedDraftSchema = z
           id: z.string(),
           name: z.string(),
           parentName: z.string().nullable(),
+          slots: slotHeadsSchema,
           currentDocument: z
             .object({
               id: z.string(),
@@ -570,5 +600,46 @@ export const settledDocumentSchema = z
         "The current document the author means this one to replace. It stays current until the topic's decider approves this one.",
     }),
     discarded: z.boolean(),
+    statements: z
+      .array(
+        z.object({
+          slot: z.string(),
+          result: z.enum(STATEMENT_RESULTS).openapi({
+            description:
+              "added: stored as a proposal. unknown_slot: the topic has no slot with that key. quote_not_found: the quote is not in the document. invalid_value: the value does not fit the slot. exists: the slot already has a statement from this document.",
+          }),
+          id: z.string().optional(),
+        }),
+      )
+      .openapi({
+        description:
+          "What happened to each statement sent, in the order sent. A refused statement does not undo the filing.",
+      }),
   })
   .openapi("SettledDocument");
+
+export const statementSchema = z
+  .object({
+    id: z.string(),
+    slotId: z.string(),
+    slot: z.string().openapi({ description: "The slot's key." }),
+    slotName: z.string(),
+    type: z.enum(SLOT_TYPES),
+    value: z.string(),
+    quote: z.string(),
+    quoteStart: z.number().int().openapi({
+      description:
+        "Where the quote starts in the document's text, with tags removed and whitespace collapsed.",
+    }),
+    status: z.enum(STATEMENT_STATUSES).openapi({
+      description:
+        "proposed until a person confirms or rejects it. A confirmation is for the text it was given on: after an edit the statement is proposed again.",
+    }),
+    statusReason: z.string().nullable(),
+    source: z.enum(STATEMENT_SOURCES),
+    createdAt: responseTimestamp,
+    decidedAt: nullableResponseTimestamp,
+    decidedByName: z.string().nullable(),
+  })
+  .openapi("Statement");
+export const statementListSchema = z.array(statementSchema);

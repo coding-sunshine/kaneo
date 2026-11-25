@@ -4,6 +4,7 @@ import db from "../../database";
 import { documentTable } from "../../database/schema";
 import { fingerprint } from "../fingerprint";
 import { syncDocumentTaskLinks } from "../../task-document/sync-links";
+import { carryStatements } from "../../topic/controllers/statements";
 import type { updateDocumentBody } from "../schema";
 import { getDocument } from "./get-document";
 import { assertNotSuperseded } from "./assert-not-superseded";
@@ -36,7 +37,7 @@ export async function writeDocument(
   const textChanged = title !== doc.title || content !== doc.content;
   const prints = content === doc.content ? null : fingerprint(content);
 
-  await db
+  const [written] = await db
     .update(documentTable)
     .set({
       title,
@@ -49,7 +50,9 @@ export async function writeDocument(
       // "Edited" in the header tracks text, not settings.
       ...(textChanged && { updatedAt: new Date(), updatedById: userId }),
     })
-    .where(eq(documentTable.id, id));
+    .where(eq(documentTable.id, id))
+    // The hash of the new text, which a database trigger writes.
+    .returning({ contentHash: documentTable.contentHash });
   if (textChanged) {
     await recordVersion(id, userId, { title, content });
     await notifyBodyMentions({ ...doc, title }, userId, doc.content, content);
@@ -57,6 +60,12 @@ export async function writeDocument(
   if (prints) {
     await proposeLineage(doc, prints, userId);
     await syncDocumentTaskLinks(db, doc, userId, content);
+    await carryStatements(
+      id,
+      doc.contentHash,
+      written?.contentHash ?? null,
+      content,
+    );
   }
   return getDocument(workspaceId, id, userId);
 }

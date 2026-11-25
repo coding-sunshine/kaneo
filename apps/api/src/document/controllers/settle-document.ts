@@ -2,6 +2,11 @@ import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
 import type { documentTable } from "../../database/schema";
 import { fileDocument } from "../../topic/controllers/file-document";
+import { slotsOf } from "../../topic/controllers/slots";
+import {
+  proposeStatements,
+  type SentStatement,
+} from "../../topic/controllers/statements";
 import type { settleDocumentBody } from "../schema";
 import { deleteDocument } from "./delete-document";
 import { loadDocument } from "./load-document";
@@ -19,7 +24,7 @@ export async function settleDocument(
   workspaceId: string,
   id: string,
   userId: string,
-  { choice, topicId }: z.infer<typeof settleDocumentBody>,
+  { choice, topicId, statements = [] }: z.infer<typeof settleDocumentBody>,
 ) {
   const draft = await loadDocument(workspaceId, id, userId, { need: "owner" });
   if (draft.status !== "draft") {
@@ -27,7 +32,11 @@ export async function settleDocument(
       message: "This document is already filed on a topic",
     });
   }
-  const receipt = (doc: Settled, discarded = false) => ({
+  const receipt = (
+    doc: Settled,
+    discarded = false,
+    stated: Awaited<ReturnType<typeof proposeStatements>> = [],
+  ) => ({
     id,
     choice,
     title: doc.title,
@@ -37,6 +46,7 @@ export async function settleDocument(
     topicId: doc.topicId,
     replacesDocumentId: doc.supersedesDocumentId,
     discarded,
+    statements: stated,
   });
 
   if (choice === "discard") {
@@ -55,7 +65,29 @@ export async function settleDocument(
       message: "Name the topic to file the document on",
     });
   }
-  return receipt(
-    await fileDocument(workspaceId, topicId, id, userId, choice === "replace"),
+  const filedDocument = await fileDocument(
+    workspaceId,
+    topicId,
+    id,
+    userId,
+    choice === "replace",
   );
+  return receipt(
+    filedDocument,
+    false,
+    await stateFor(draft, filedDocument.topicId, statements, userId),
+  );
+}
+
+// The statements an assistant sends with the filing. Filing leaves the text
+// as it was, so the draft loaded above still holds it.
+async function stateFor(
+  draft: Awaited<ReturnType<typeof loadDocument>>,
+  topicId: string | null,
+  statements: SentStatement[],
+  userId: string,
+) {
+  if (!topicId || statements.length === 0) return [];
+  const slots = (await slotsOf([topicId])).get(topicId) ?? [];
+  return proposeStatements(draft, slots, statements, "assistant", userId);
 }

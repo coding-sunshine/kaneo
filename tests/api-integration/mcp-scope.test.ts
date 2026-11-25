@@ -322,6 +322,31 @@ describe("MCP token scope", () => {
       name: "Topic",
     });
     expect(topic.status).toBe(200);
+
+    // The slots of a topic and the statements of a document are part of both.
+    const { id: docId } = (await doc.json()) as { id: string };
+    const { id: topicId } = (await topic.json()) as { id: string };
+    const steps: [string, string, unknown?][] = [
+      [
+        "POST",
+        `/topic/workspace/${w.ws}/${topicId}/slots`,
+        { name: "Code", type: "term" },
+      ],
+      ["GET", `/topic/workspace/${w.ws}/${topicId}/slots`],
+      ["PUT", `/topic/workspace/${w.ws}/${topicId}/document/${docId}`],
+      [
+        "POST",
+        `/document/workspace/${w.ws}/${docId}/statements`,
+        { slot: "code", value: "x", quote: "x" },
+      ],
+      ["GET", `/document/workspace/${w.ws}/${docId}/statements`],
+    ];
+    for (const [method, path, body] of steps) {
+      expect({
+        path,
+        status: (await send(w, w.docs, method, path, body)).status,
+      }).toEqual({ path, status: 200 });
+    }
   });
 
   it.each(refused)("refuses a documents token on: %s", async (_name, build) => {

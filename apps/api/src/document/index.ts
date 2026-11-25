@@ -49,6 +49,12 @@ import {
 } from "./controllers/upload-document-file";
 import { saveDraft } from "./controllers/save-draft";
 import { settleDocument } from "./controllers/settle-document";
+import {
+  addStatement,
+  confirmStatement,
+  listStatements,
+  rejectStatement,
+} from "../topic/controllers/statements";
 import { listVersions, restoreVersion } from "./controllers/versions";
 import {
   audienceQuery,
@@ -96,6 +102,12 @@ import {
   updateDocumentBody,
   workspaceIdParam,
 } from "./schema";
+import {
+  addStatementRoute,
+  confirmStatementRoute,
+  listStatementsRoute,
+  rejectStatementRoute,
+} from "./statement-routes";
 
 const body = <T extends ZodType>(schema: T) => ({
   required: true as const,
@@ -758,6 +770,39 @@ const document = apiRouter()
     const userId = c.get("userId");
     return c.json(
       await settleDocument(workspaceId, id, userId, c.req.valid("json")),
+      200,
+    );
+  })
+  .openapi(listStatementsRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(await listStatements(workspaceId, id, c.get("userId")), 200);
+  })
+  .openapi(addStatementRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    const userId = c.get("userId");
+    return c.json(
+      await addStatement(workspaceId, id, userId, c.req.valid("json")),
+      200,
+    );
+  })
+  .openapi(confirmStatementRoute, async (c) => {
+    const { workspaceId, id, statementId } = c.req.valid("param");
+    return c.json(
+      await confirmStatement(workspaceId, id, statementId, c.get("userId")),
+      200,
+    );
+  })
+  .openapi(rejectStatementRoute, async (c) => {
+    const { workspaceId, id, statementId } = c.req.valid("param");
+    const { reason } = c.req.valid("json");
+    return c.json(
+      await rejectStatement(
+        workspaceId,
+        id,
+        statementId,
+        c.get("userId"),
+        reason,
+      ),
       200,
     );
   })

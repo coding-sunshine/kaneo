@@ -21,6 +21,9 @@ type Completion = {
   };
 };
 
+/** The model answered, and the answer is not the JSON that was asked for. */
+export class UnreadableAnswer extends Error {}
+
 function dailyTokenCap() {
   const cap = Number(process.env.EXTRACTION_DAILY_TOKEN_CAP || Number.NaN);
   return Number.isFinite(cap) && cap >= 0 ? cap : DEFAULT_DAILY_TOKEN_CAP;
@@ -94,6 +97,10 @@ export async function extractJson<T>(
     cost: completion.usage?.cost ?? null,
   });
   const content = completion.choices?.[0]?.message?.content;
-  if (!content) throw new Error("The extraction answer was empty");
-  return JSON.parse(content) as T;
+  if (!content) throw new UnreadableAnswer("The extraction answer was empty");
+  try {
+    return JSON.parse(content) as T;
+  } catch {
+    throw new UnreadableAnswer("The extraction answer was not JSON");
+  }
 }

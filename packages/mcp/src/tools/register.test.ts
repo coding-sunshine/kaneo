@@ -629,10 +629,41 @@ describe("registerTools", () => {
       },
     );
 
+    // What the text states for the topic's slots goes with the choice.
+    const statements = [
+      { slot: "go-live", value: "14 March", quote: "Go-live is 14 March." },
+    ];
+    await tools.get("settle_document")?.handler({
+      workspaceId: "ws-1",
+      documentId: "doc-1",
+      choice: "proposal",
+      topicId: "topic-1",
+      statements,
+    });
+    expect(client.json).toHaveBeenLastCalledWith(
+      "/api/document/workspace/ws-1/doc-1/settle",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          choice: "proposal",
+          topicId: "topic-1",
+          statements,
+        }),
+      },
+    );
+
     const schema = tools.get("settle_document")?.config.inputSchema;
     const settle = { workspaceId: "ws-1", documentId: "doc-1" };
     expect(() => schema?.parse({ ...settle, choice: "current" })).toThrow();
     expect(() => schema?.parse({ ...settle, choice: "discard" })).not.toThrow();
+    const said = { ...settle, choice: "proposal", topicId: "topic-1" };
+    expect(() => schema?.parse({ ...said, statements })).not.toThrow();
+    expect(() =>
+      schema?.parse({ ...said, statements: Array(21).fill(statements[0]) }),
+    ).toThrow();
+    expect(() =>
+      schema?.parse({ ...said, statements: [{ slot: "go-live", value: "x" }] }),
+    ).toThrow();
   });
 
   it("reads what is approved on a topic, and what waits, before writing", async () => {

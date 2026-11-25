@@ -4,6 +4,7 @@ import type { z } from "zod";
 import db from "../../database";
 import { documentSubscriberTable, documentTable } from "../../database/schema";
 import { findTopics } from "../../topic/controllers/find-topics";
+import { slotHeads, slotsOf } from "../../topic/controllers/slots";
 import { fingerprint } from "../fingerprint";
 import { syncDocumentTaskLinks } from "../../task-document/sync-links";
 import type { saveDraftBody } from "../schema";
@@ -39,10 +40,12 @@ async function matchingTopics(
               inArray(documentTable.id, currentIds),
             ),
           );
+  const slots = await slotsOf(topics.map((topic) => topic.id));
   return topics.map(({ id, name, parentName, currentDocumentId }) => ({
     id,
     name,
     parentName,
+    slots: slotHeads(slots.get(id)),
     currentDocument:
       current.find((doc) => doc.id === currentDocumentId) ?? null,
   }));

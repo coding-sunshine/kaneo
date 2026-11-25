@@ -1064,13 +1064,33 @@ export function registerTools(
         topicId: optionalNonEmptyString.describe(
           "A topic id from the file_document result. Needed for replace and proposal.",
         ),
+        statements: z
+          .array(
+            z.object({
+              slot: nonEmptyString.describe(
+                "A slot key of the topic, from the file_document or get_current result",
+              ),
+              value: nonEmptyString.describe("The fact, in a few words"),
+              quote: nonEmptyString.describe(
+                "The passage of the text that states it, copied character for character",
+              ),
+            }),
+          )
+          .max(20)
+          .optional()
+          .describe(
+            "With replace or proposal: what the text states for the topic's slots. Each one is saved as a proposal that a person confirms. The result says, per statement, whether it was added.",
+          ),
       }),
     },
-    async ({ workspaceId, documentId, choice, topicId }) =>
+    async ({ workspaceId, documentId, choice, topicId, statements }) =>
       run(() =>
         client.json(
           `/api/document/workspace/${encodeURIComponent(workspaceId)}/${encodeURIComponent(documentId)}/settle`,
-          { method: "POST", body: JSON.stringify({ choice, topicId }) },
+          {
+            method: "POST",
+            body: JSON.stringify({ choice, topicId, statements }),
+          },
         ),
       ),
   );
