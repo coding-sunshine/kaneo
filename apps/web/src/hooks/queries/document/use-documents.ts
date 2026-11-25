@@ -7,6 +7,7 @@ import {
   getDocumentComments,
   getDocuments,
   getDocumentVersions,
+  getNewDocuments,
   getOwnerlessDocuments,
 } from "@/fetchers/document/documents";
 
@@ -31,6 +32,20 @@ export function useDocuments(
     enabled: Boolean(workspaceId) && enabled,
     queryKey: documentListKey(workspaceId, query),
     queryFn: () => getDocuments(workspaceId, query),
+  });
+}
+
+/**
+ * What is new on followed topics since the last visit. The key sits outside
+ * the documents prefix and the answer never goes stale: showing the list
+ * marks it seen, and reading it again would empty it under the reader.
+ */
+export function useNewDocuments(workspaceId: string) {
+  return useQuery({
+    enabled: Boolean(workspaceId),
+    queryKey: ["documents-new", workspaceId],
+    queryFn: () => getNewDocuments(workspaceId),
+    staleTime: Number.POSITIVE_INFINITY,
   });
 }
 

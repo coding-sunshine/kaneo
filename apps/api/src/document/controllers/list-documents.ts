@@ -109,6 +109,33 @@ function filterCondition(
       ne(documentTable.scope, "private"),
     );
   }
+  // A proposal or a new current document on a topic the person follows, made
+  // by somebody else after they followed and after their last visit.
+  if (query.filter === "new") {
+    const at = sql`CASE ${documentTable.status}
+      WHEN 'current' THEN ${documentTable.approvedAt}
+      WHEN 'in_review' THEN ${documentTable.filedAt}
+    END`;
+    // ponytail: nothing records who filed a proposal, so its author stands
+    // in. Add a filed_by column if people file each other's drafts often.
+    const by = sql`CASE ${documentTable.status}
+      WHEN 'current' THEN ${documentTable.approvedBy}
+      ELSE ${documentTable.creatorId}
+    END`;
+    return sql`${by} IS DISTINCT FROM ${userId}
+      AND EXISTS (
+        SELECT 1 FROM topic_subscriber AS followed
+        WHERE followed.topic_id = ${documentTable.topicId}
+          AND followed.user_id = ${userId}
+          AND followed.created_at < ${at}
+      )
+      AND NOT EXISTS (
+        SELECT 1 FROM workspace_member AS visitor
+        WHERE visitor.workspace_id = ${documentTable.workspaceId}
+          AND visitor.user_id = ${userId}
+          AND visitor.documents_seen_at >= ${at}
+      )`;
+  }
   if (query.filter === "shared") {
     return and(
       or(isNull(documentTable.creatorId), ne(documentTable.creatorId, userId)),

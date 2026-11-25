@@ -116,6 +116,7 @@ describe("API integration: document access leaks", () => {
       "?filter=shared",
       "?filter=unfiled",
       "?filter=inbox",
+      "?filter=new",
       `?projectId=${world.beta.id}`,
       `?taskId=${world.betaTask.id}`,
       `?workProjectId=${world.workProject.id}`,

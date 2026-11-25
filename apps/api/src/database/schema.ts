@@ -411,6 +411,9 @@ export const workspaceUserTable = pgTable(
       }),
     role: text("role").default("member").notNull(),
     joinedAt: timestamp("joined_at", { mode: "date" }).notNull(),
+    // The newest change on a followed topic that the Documents page has shown
+    // this member. Anything later is "new since your last visit".
+    documentsSeenAt: timestamp("documents_seen_at", { mode: "date" }),
   },
   (table) => [
     index("workspace_member_workspaceId_idx").on(table.workspaceId),

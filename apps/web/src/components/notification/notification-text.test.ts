@@ -73,6 +73,42 @@ describe("notification display content", () => {
     );
   });
 
+  it("names the actor, the document and the topic for document events", () => {
+    const say = (key: string, options?: Record<string, unknown>) =>
+      `${key} ${JSON.stringify(options)}`;
+    const proposed = notification("document_proposed", {
+      actorName: "Mina",
+      documentTitle: "Pricing",
+      topicName: "Launch plan",
+    });
+    expect(getNotificationTitle(proposed, say)).toBe(
+      `notifications:events.document_proposed.title ${JSON.stringify({
+        actorName: "Mina",
+        documentTitle: "Pricing",
+        topicName: "Launch plan",
+        defaultValue: "document_proposed",
+      })}`,
+    );
+    for (const type of [
+      "document_mention",
+      "document_comment",
+      "document_current",
+    ]) {
+      // A deleted account and an empty title still read as a sentence.
+      const item = notification(type, { actorName: null, documentTitle: "" });
+      for (const [text, part] of [
+        [getNotificationTitle(item, say), "title"],
+        [getNotificationContent(item, say), "content"],
+      ]) {
+        expect(text).toContain(`notifications:events.${type}.${part} `);
+        expect(text).toContain('"actorName":"common:people.someone');
+        expect(text).toContain(
+          '"documentTitle":"navigation:documents.untitled',
+        );
+      }
+    }
+  });
+
   it("names the team and the closing status for team subscriptions", () => {
     const item = notification("team_issue_closed", {
       taskTitle: "Launch website",

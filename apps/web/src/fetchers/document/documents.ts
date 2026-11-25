@@ -267,3 +267,22 @@ export async function snoozeDocument(
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }
+
+/** Proposals and new current documents on followed topics since the last visit. */
+export async function getNewDocuments(workspaceId: string) {
+  const response = await api.$get({
+    param: { workspaceId },
+    query: { filter: "new" },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function markDocumentsSeen(workspaceId: string, until: string) {
+  const response = await api.seen.$post({
+    param: { workspaceId },
+    json: { until },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}

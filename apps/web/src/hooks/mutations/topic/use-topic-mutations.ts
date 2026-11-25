@@ -5,6 +5,7 @@ import {
   fileDocumentOnTopic,
   makeDocumentCurrent,
   setCurrentDocumentAside,
+  setTopicFollowed,
   type TopicDocument,
 } from "@/fetchers/topic/topics";
 import { documentsKey } from "@/hooks/queries/document/use-documents";
@@ -15,6 +16,16 @@ export function useCreateTopic(workspaceId: string) {
   return useMutation({
     mutationFn: (input: { name: string; projectId?: string }) =>
       createTopic({ workspaceId, ...input }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: topicsKey(workspaceId) }),
+  });
+}
+
+export function useFollowTopic(workspaceId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, follow }: { id: string; follow: boolean }) =>
+      setTopicFollowed(workspaceId, id, follow),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: topicsKey(workspaceId) }),
   });

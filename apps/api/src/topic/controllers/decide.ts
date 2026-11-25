@@ -4,6 +4,7 @@ import db from "../../database";
 import { documentTable, topicTable } from "../../database/schema";
 import { getDocument } from "../../document/controllers/get-document";
 import { loadDocument } from "../../document/controllers/load-document";
+import { notifyTopicFollowers } from "../../document/controllers/notify";
 import { recordVersion } from "../../document/controllers/record-version";
 import { getTopic } from "./get-topic";
 
@@ -43,7 +44,7 @@ export async function makeCurrent(
   reason: string,
 ) {
   await loadForDecision(workspaceId, id, documentId, userId);
-  await db.transaction(async (tx) => {
+  const proposal = await db.transaction(async (tx) => {
     // One approval at a time on a topic. The `one_current` index is the
     // backstop.
     await tx
@@ -107,7 +108,18 @@ export async function makeCurrent(
         supersedesDocumentId: replaced?.id ?? null,
       })
       .where(eq(documentTable.id, documentId));
+    return doc.status === "in_review" ? doc : undefined;
   });
+  // The topic has a new current document. Approving the same one again
+  // after an edit is not that.
+  if (proposal) {
+    await notifyTopicFollowers(
+      { id: documentId, workspaceId, title: proposal.title },
+      id,
+      userId,
+      "document_current",
+    );
+  }
   return getDocument(workspaceId, documentId, userId);
 }
 

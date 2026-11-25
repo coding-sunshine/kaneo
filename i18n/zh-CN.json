@@ -3546,7 +3546,10 @@
 				"proposals": "Proposals",
 				"reason": "Reason: {{reason}}",
 				"replaced": "Superseded",
-				"title": "Topics"
+				"title": "Topics",
+				"follow": "Follow",
+				"followHint": "Followers hear about each new proposal and each new current document on this topic.",
+				"unfollow": "Unfollow"
 			},
 			"inbox": {
 				"confirm": "Snooze",
@@ -3557,7 +3560,8 @@
 				"snoozedUntil": "Until {{date}}",
 				"snoozeUntil": "Snooze until",
 				"unsnooze": "Unsnooze"
-			}
+			},
+			"newSinceVisit": "New since your last visit"
 		},
 		"drafts": {
 			"delete": "Delete draft",
@@ -3788,6 +3792,22 @@
 			"team_issue_triage": {
 				"content": "\"{{taskTitle}}\" is waiting in {{teamName}} triage",
 				"title": "Added to {{teamName}} triage"
+			},
+			"document_comment": {
+				"content": "On {{documentTitle}}",
+				"title": "{{actorName}} commented"
+			},
+			"document_current": {
+				"content": "{{documentTitle}}, approved by {{actorName}}",
+				"title": "{{topicName}} has a new current document"
+			},
+			"document_mention": {
+				"content": "In {{documentTitle}}",
+				"title": "{{actorName}} mentioned you"
+			},
+			"document_proposed": {
+				"content": "{{documentTitle}}",
+				"title": "{{actorName}} proposed a document for {{topicName}}"
 			}
 		},
 		"inbox": {

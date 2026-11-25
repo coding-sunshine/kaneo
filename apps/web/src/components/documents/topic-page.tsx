@@ -12,6 +12,7 @@ import { useTopic } from "@/hooks/queries/topic/use-topics";
 import { getInitials } from "@/lib/get-initials";
 import { DocumentList } from "./document-list";
 import { TopicCurrentDocument } from "./topic-current-document";
+import { TopicFollowButton } from "./topic-follow-button";
 import { TopicSection } from "./topic-section";
 
 type TopicPageProps = { workspaceId: string; topicId: string };
@@ -73,7 +74,10 @@ export function TopicPage({ workspaceId, topicId }: TopicPageProps) {
       <WorkspaceLayout title={topic.name}>
         <div className="mx-auto flex w-full max-w-[55rem] flex-col gap-8 py-10">
           <header className="flex flex-col gap-3 px-4">
-            <h1 className="font-semibold text-2xl leading-8">{topic.name}</h1>
+            <div className="flex items-start justify-between gap-4">
+              <h1 className="font-semibold text-2xl leading-8">{topic.name}</h1>
+              <TopicFollowButton topic={topic} />
+            </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-muted-foreground text-xs">
               <span>
                 {topic.parentName ?? t("navigation:documents.scopes.workspace")}

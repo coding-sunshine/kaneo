@@ -13847,6 +13847,9 @@
 							},
 							"required": ["recent", "mine", "shared", "unfiled", "inbox"]
 						},
+						"newSinceVisit": {
+							"type": "string"
+						},
 						"inbox": {
 							"type": "object",
 							"additionalProperties": false,
@@ -14406,6 +14409,15 @@
 								"noDecider": {
 									"type": "string"
 								},
+								"follow": {
+									"type": "string"
+								},
+								"unfollow": {
+									"type": "string"
+								},
+								"followHint": {
+									"type": "string"
+								},
 								"notFound": {
 									"type": "string"
 								},
@@ -14432,6 +14444,9 @@
 								"decider",
 								"backup",
 								"noDecider",
+								"follow",
+								"unfollow",
+								"followHint",
 								"notFound",
 								"notFoundHint"
 							]
@@ -14677,6 +14692,7 @@
 						"tabHints",
 						"viewTab",
 						"empty",
+						"newSinceVisit",
 						"inbox",
 						"updated",
 						"metadata",
@@ -15560,6 +15576,58 @@
 							},
 							"required": ["title", "content"]
 						},
+						"document_mention": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"content": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "content"]
+						},
+						"document_comment": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"content": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "content"]
+						},
+						"document_proposed": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"content": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "content"]
+						},
+						"document_current": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"content": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "content"]
+						},
 						"task_mention": {
 							"type": "object",
 							"additionalProperties": false,
@@ -15699,6 +15767,10 @@
 						"workspace_created",
 						"task_status_changed",
 						"task_assignee_changed",
+						"document_mention",
+						"document_comment",
+						"document_proposed",
+						"document_current",
 						"task_mention",
 						"task_comment",
 						"due_date_reminder",

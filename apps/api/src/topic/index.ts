@@ -11,6 +11,7 @@ import { workspaceAccess } from "../utils/workspace-access-middleware";
 import { createTopic } from "./controllers/create-topic";
 import { confirmCurrent, makeCurrent, setAside } from "./controllers/decide";
 import { fileDocument } from "./controllers/file-document";
+import { followTopic, unfollowTopic } from "./controllers/follow-topic";
 import { getTopic, listTopics } from "./controllers/get-topic";
 import { getCurrent, listUnreviewed } from "./controllers/read-topic";
 import { updateTopic } from "./controllers/update-topic";
@@ -221,6 +222,39 @@ const setAsideRoute = createRoute({
   },
 });
 
+const followRoute = createRoute({
+  method: "put",
+  operationId: "followTopic",
+  path: `${one}/follow`,
+  tags,
+  summary: "Follow topic",
+  description:
+    "Follow a topic you can open. Followers are told about a new proposal and a new current document, and the Documents page lists both as new.",
+  middleware: [...read] as const,
+  request: { params: topicParam },
+  responses: {
+    200: jsonResponse("Topic followed", topicSchema),
+    403: noAccess,
+    404: notFound,
+  },
+});
+
+const unfollowRoute = createRoute({
+  method: "delete",
+  operationId: "unfollowTopic",
+  path: `${one}/follow`,
+  tags,
+  summary: "Unfollow topic",
+  description: "Stop following a topic.",
+  middleware: [...read] as const,
+  request: { params: topicParam },
+  responses: {
+    200: jsonResponse("Topic unfollowed", topicSchema),
+    403: noAccess,
+    404: notFound,
+  },
+});
+
 const topic = apiRouter()
   .openapi(listRoute, async (c) => {
     const { workspaceId } = c.req.valid("param");
@@ -261,6 +295,14 @@ const topic = apiRouter()
       await updateTopic(workspaceId, id, c.get("userId"), c.req.valid("json")),
       200,
     );
+  })
+  .openapi(followRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(await followTopic(workspaceId, id, c.get("userId")), 200);
+  })
+  .openapi(unfollowRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(await unfollowTopic(workspaceId, id, c.get("userId")), 200);
   })
   .openapi(fileRoute, async (c) => {
     const { workspaceId, id, documentId } = c.req.valid("param");

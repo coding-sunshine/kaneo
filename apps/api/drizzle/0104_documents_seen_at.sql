@@ -1,0 +1,1 @@
+ALTER TABLE "workspace_member" ADD COLUMN "documents_seen_at" timestamp;

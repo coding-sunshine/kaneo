@@ -4,6 +4,7 @@ import { type TopicScope, topicTable } from "../../database/schema";
 import { resolveParent } from "../../document/controllers/resolve-parent";
 import type { createTopicBody } from "../schema";
 import { assertDeciders } from "./assert-deciders";
+import { addFollowers } from "./follow-topic";
 import { getTopic } from "./get-topic";
 
 export async function createTopic(
@@ -38,5 +39,7 @@ export async function createTopic(
     })
     .returning({ id: topicTable.id });
   if (!created) throw new Error("Topic insert returned no row");
+  // The people who answer for a topic hear about it without asking to.
+  await addFollowers(created.id, [userId, deciderId, backupDeciderId]);
   return getTopic(body.workspaceId, created.id, userId);
 }

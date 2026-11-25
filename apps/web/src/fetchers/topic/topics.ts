@@ -28,6 +28,19 @@ export async function createTopic(json: {
   return response.json();
 }
 
+export async function setTopicFollowed(
+  workspaceId: string,
+  id: string,
+  follow: boolean,
+) {
+  const request = { param: { workspaceId, id } };
+  const response = follow
+    ? await api[":id"].follow.$put(request)
+    : await api[":id"].follow.$delete(request);
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
 /** A document under a topic: the ids every decision on it needs. */
 export type TopicDocument = {
   workspaceId: string;

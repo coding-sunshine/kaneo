@@ -26,6 +26,7 @@ import { listDocuments } from "./controllers/list-documents";
 import { moveDocument } from "./controllers/move-document";
 import { setSubscribers } from "./controllers/set-subscribers";
 import { shareDocument, unshareDocument } from "./controllers/share-document";
+import { markDocumentsSeen } from "./controllers/mark-documents-seen";
 import { snoozeDocument } from "./controllers/snooze-document";
 import { updateDocument } from "./controllers/update-document";
 import { saveDraft } from "./controllers/save-draft";
@@ -51,6 +52,8 @@ import {
   idSchema,
   listDocumentsQuery,
   moveDocumentBody,
+  documentsSeenSchema,
+  markDocumentsSeenBody,
   ownerlessDocumentListSchema,
   saveDraftBody,
   savedDraftSchema,
@@ -179,6 +182,22 @@ const handOverRoute = createRoute({
     200: jsonResponse("How many documents moved", handedOverSchema),
     403: ownersOnly,
     404: errorResponse("The receiving member was not found"),
+  },
+});
+
+const seenRoute = createRoute({
+  method: "post",
+  operationId: "markDocumentsSeen",
+  path: "/workspace/{workspaceId}/seen",
+  tags,
+  summary: "Mark new documents as seen",
+  description:
+    "Record that you have seen what is new on the topics you follow, up to a time. The time only moves forward.",
+  middleware: [...read] as const,
+  request: { params: workspaceIdParam, body: body(markDocumentsSeenBody) },
+  responses: {
+    200: jsonResponse("Your last visit", documentsSeenSchema),
+    403: noAccess,
   },
 });
 
@@ -514,6 +533,16 @@ const document = apiRouter()
         c.req.valid("param").workspaceId,
         c.get("userId"),
         c.req.valid("json"),
+      ),
+      200,
+    ),
+  )
+  .openapi(seenRoute, async (c) =>
+    c.json(
+      await markDocumentsSeen(
+        c.req.valid("param").workspaceId,
+        c.get("userId"),
+        c.req.valid("json").until,
       ),
       200,
     ),

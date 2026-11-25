@@ -5,6 +5,7 @@ import db from "../../database";
 import { topicTable } from "../../database/schema";
 import type { updateTopicBody } from "../schema";
 import { assertDeciders } from "./assert-deciders";
+import { addFollowers } from "./follow-topic";
 import { getTopic, isWorkspaceOwner } from "./get-topic";
 
 export async function updateTopic(
@@ -41,5 +42,7 @@ export async function updateTopic(
       updatedAt: new Date(),
     })
     .where(eq(topicTable.id, id));
+  // A newly named decider or backup follows the topic. They can unfollow.
+  await addFollowers(id, [body.deciderId, body.backupDeciderId]);
   return getTopic(workspaceId, id, userId);
 }

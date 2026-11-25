@@ -63,6 +63,11 @@ export async function listTopics(
             AND current_document.status = 'current'
             AND current_document.deleted_at IS NULL
         )`,
+        following: sql<boolean>`EXISTS (
+          SELECT 1 FROM topic_subscriber AS following
+          WHERE following.topic_id = ${topicTable.id}
+            AND following.user_id = ${userId}
+        )`,
         createdAt: topicTable.createdAt,
         updatedAt: topicTable.updatedAt,
       })

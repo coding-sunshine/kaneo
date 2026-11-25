@@ -4188,6 +4188,21 @@
           "moved"
         ]
       },
+      "DocumentsSeen": {
+        "type": "object",
+        "properties": {
+          "seenAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "seenAt"
+        ]
+      },
       "OwnerlessDocument": {
         "type": "object",
         "properties": {
@@ -4499,6 +4514,10 @@
             "type": "boolean",
             "description": "Whether you can make a document current here: the decider, the backup decider or a workspace owner."
           },
+          "following": {
+            "type": "boolean",
+            "description": "Whether you follow the topic: you are told about a new proposal and a new current document."
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -4524,6 +4543,7 @@
           "backupDeciderImage",
           "currentDocumentId",
           "canDecide",
+          "following",
           "createdAt",
           "updatedAt"
         ]
@@ -26636,12 +26656,13 @@
                 "mine",
                 "shared",
                 "unfiled",
-                "inbox"
+                "inbox",
+                "new"
               ],
-              "description": "recent: documents you own, edited or were shared. mine: documents you own. shared: documents shared with you directly. unfiled: private drafts with no topic. inbox: documents in a shared place with no topic."
+              "description": "recent: documents you own, edited or were shared. mine: documents you own. shared: documents shared with you directly. unfiled: private drafts with no topic. inbox: documents in a shared place with no topic. new: proposals and current documents on topics you follow, since your last visit."
             },
             "required": false,
-            "description": "recent: documents you own, edited or were shared. mine: documents you own. shared: documents shared with you directly. unfiled: private drafts with no topic. inbox: documents in a shared place with no topic.",
+            "description": "recent: documents you own, edited or were shared. mine: documents you own. shared: documents shared with you directly. unfiled: private drafts with no topic. inbox: documents in a shared place with no topic. new: proposals and current documents on topics you follow, since your last visit.",
             "name": "filter",
             "in": "query"
           },
@@ -27134,6 +27155,81 @@
           },
           "404": {
             "description": "The receiving member was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/seen": {
+      "post": {
+        "operationId": "markDocumentsSeen",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Mark new documents as seen",
+        "description": "Record that you have seen what is new on the topics you follow, up to a time. The time only moves forward.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "until": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "The time of the newest change the page showed. Later changes stay new."
+                  }
+                },
+                "required": [
+                  "until"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Your last visit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentsSeen"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
             "content": {
               "application/json": {
                 "schema": {
@@ -29297,6 +29393,150 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/{id}/follow": {
+      "put": {
+        "operationId": "followTopic",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "Follow topic",
+        "description": "Follow a topic you can open. Followers are told about a new proposal and a new current document, and the Documents page lists both as new.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Topic followed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Topic"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "unfollowTopic",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "Unfollow topic",
+        "description": "Stop following a topic.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Topic unfollowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Topic"
                 }
               }
             }

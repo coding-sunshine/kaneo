@@ -729,6 +729,13 @@
       "when": 1795570525317,
       "tag": "0103_document_inbox_snooze",
       "breakpoints": true
+    },
+    {
+      "idx": 104,
+      "version": "7",
+      "when": 1795572135199,
+      "tag": "0104_documents_seen_at",
+      "breakpoints": true
     }
   ]
 }

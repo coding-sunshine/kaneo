@@ -64,6 +64,10 @@ export const topicSchema = z
       description:
         "Whether you can make a document current here: the decider, the backup decider or a workspace owner.",
     }),
+    following: z.boolean().openapi({
+      description:
+        "Whether you follow the topic: you are told about a new proposal and a new current document.",
+    }),
     createdAt: responseTimestamp,
     updatedAt: responseTimestamp,
   })

@@ -29,6 +29,19 @@ function getReminderLeadTime(
   return t("notifications:reminderLeadTime.minutes", { count: minutes });
 }
 
+// The names a document notification carries, with a word for a missing one.
+function documentValues(
+  eventData: Record<string, unknown>,
+  t: (key: string, options?: Record<string, unknown>) => string,
+) {
+  return {
+    ...eventData,
+    actorName: eventData.actorName || t("common:people.someone"),
+    documentTitle:
+      eventData.documentTitle || t("navigation:documents.untitled"),
+  };
+}
+
 export function getNotificationTitle(
   notification: Notification,
   t: (key: string, options?: Record<string, unknown>) => string,
@@ -93,6 +106,14 @@ export function getNotificationTitle(
         return t(`notifications:events.${notification.type}.title`, {
           ...eventData,
           newStatus: getStatusLabel(String(eventData.newStatus ?? "")),
+          defaultValue: notification.title ?? notification.type,
+        });
+      case "document_mention":
+      case "document_comment":
+      case "document_proposed":
+      case "document_current":
+        return t(`notifications:events.${notification.type}.title`, {
+          ...documentValues(eventData, t),
           defaultValue: notification.title ?? notification.type,
         });
       default:
@@ -175,6 +196,14 @@ export function getNotificationContent(
         return t(`notifications:events.${notification.type}.content`, {
           ...eventData,
           newStatus: getStatusLabel(String(eventData.newStatus ?? "")),
+          defaultValue: notification.content ?? "",
+        });
+      case "document_mention":
+      case "document_comment":
+      case "document_proposed":
+      case "document_current":
+        return t(`notifications:events.${notification.type}.content`, {
+          ...documentValues(eventData, t),
           defaultValue: notification.content ?? "",
         });
       default:

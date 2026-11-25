@@ -26,11 +26,11 @@ export const documentCommentParam = documentParam.extend({
 
 export const listDocumentsQuery = z.object({
   filter: z
-    .enum(["recent", "mine", "shared", "unfiled", "inbox"])
+    .enum(["recent", "mine", "shared", "unfiled", "inbox", "new"])
     .optional()
     .openapi({
       description:
-        "recent: documents you own, edited or were shared. mine: documents you own. shared: documents shared with you directly. unfiled: private drafts with no topic. inbox: documents in a shared place with no topic.",
+        "recent: documents you own, edited or were shared. mine: documents you own. shared: documents shared with you directly. unfiled: private drafts with no topic. inbox: documents in a shared place with no topic. new: proposals and current documents on topics you follow, since your last visit.",
     }),
   projectId: z.string().optional().openapi({ description: "Team documents" }),
   workProjectId: z.string().optional(),
@@ -195,6 +195,17 @@ export const snoozeDocumentBody = z.object({
     description: "Set the document aside until this time. Null brings it back.",
   }),
 });
+
+export const markDocumentsSeenBody = z.object({
+  until: z.string().datetime().openapi({
+    description:
+      "The time of the newest change the page showed. Later changes stay new.",
+  }),
+});
+
+export const documentsSeenSchema = z
+  .object({ seenAt: nullableResponseTimestamp })
+  .openapi("DocumentsSeen");
 
 export const documentSnoozeSchema = z
   .object({ id: z.string(), snoozedUntil })

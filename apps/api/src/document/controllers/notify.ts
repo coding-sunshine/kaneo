@@ -1,6 +1,11 @@
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, ne } from "drizzle-orm";
 import db from "../../database";
-import { documentSubscriberTable, userTable } from "../../database/schema";
+import {
+  documentSubscriberTable,
+  topicSubscriberTable,
+  topicTable,
+  userTable,
+} from "../../database/schema";
 import createNotification from "../../notification/controllers/create-notification";
 import { commentPreview } from "../../utils/comment-preview";
 import { parseMentionIds } from "../../utils/parse-mentions";
@@ -24,17 +29,23 @@ async function userName(userId: string) {
   return user?.name ?? null;
 }
 
+// The stored title, for mail and for a client with no text of its own.
+const TITLES = {
+  document_mention: (actor: string) => `${actor} mentioned you`,
+  document_comment: (actor: string) => `${actor} commented`,
+  document_proposed: (actor: string) => `${actor} proposed a document`,
+  document_current: (actor: string) => `${actor} made a document current`,
+};
+
 function send(
   doc: NotifiedDocument,
   recipients: string[],
-  type: "document_comment" | "document_mention",
+  type: keyof typeof TITLES,
   actorName: string | null,
   commentPreview?: string,
+  topic?: { id: string; name: string },
 ) {
-  const title =
-    type === "document_mention"
-      ? `${actorName ?? "Someone"} mentioned you`
-      : `${actorName ?? "Someone"} commented`;
+  const title = TITLES[type](actorName ?? "Someone");
   // persistNotification drops anyone who cannot see the document.
   return Promise.all(
     recipients.map((userId) =>
@@ -48,6 +59,7 @@ function send(
           actorName,
           workspaceId: doc.workspaceId,
           ...(commentPreview && { commentPreview }),
+          ...(topic && { topicId: topic.id, topicName: topic.name }),
         },
         resourceId: doc.id,
         resourceType: "document",
@@ -92,4 +104,37 @@ export async function notifyComment(
   const preview = commentPreview(content);
   await send(doc, mentioned, "document_mention", actorName, preview);
   await send(doc, others, "document_comment", actorName, preview);
+}
+
+// A new proposal on a topic, or a new current document, for the people who
+// follow the topic. Not for whoever did it.
+export async function notifyTopicFollowers(
+  doc: NotifiedDocument,
+  topicId: string,
+  actorId: string,
+  type: "document_proposed" | "document_current",
+) {
+  const followers = await db
+    .select({
+      userId: topicSubscriberTable.userId,
+      topicName: topicTable.name,
+    })
+    .from(topicSubscriberTable)
+    .innerJoin(topicTable, eq(topicTable.id, topicSubscriberTable.topicId))
+    .where(
+      and(
+        eq(topicSubscriberTable.topicId, topicId),
+        ne(topicSubscriberTable.userId, actorId),
+      ),
+    );
+  const [first] = followers;
+  if (!first) return;
+  await send(
+    doc,
+    followers.map((row) => row.userId),
+    type,
+    await userName(actorId),
+    undefined,
+    { id: topicId, name: first.topicName },
+  );
 }

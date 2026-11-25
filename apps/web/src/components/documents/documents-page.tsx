@@ -10,6 +10,7 @@ import { DocumentList } from "./document-list";
 import { DocumentsEmpty } from "./documents-empty";
 import { DocumentsTabs } from "./documents-tabs";
 import { InboxList } from "./inbox-list";
+import { NewDocuments } from "./new-documents";
 import { TopicsStrip } from "./topics-strip";
 import { useNewDocument } from "./use-new-document";
 
@@ -43,6 +44,7 @@ export function DocumentsPage({ workspaceId, filter }: DocumentsPageProps) {
           <DocumentsTabs workspaceId={workspaceId} value={filter} />
         </div>
         <TopicsStrip workspaceId={workspaceId} />
+        <NewDocuments workspaceId={workspaceId} />
         {isLoading ? (
           <div className="flex flex-col gap-2 p-4">
             <Skeleton className="h-8 w-full" />

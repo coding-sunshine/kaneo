@@ -3381,6 +3381,7 @@
 				"unfiled": "Private drafts stay here until you file them on a topic. Only you and the people you share a draft with can see it.",
 				"inbox": "Nothing is waiting. A document in a team, a project, an issue or the workspace appears here until someone files it on a topic."
 			},
+			"newSinceVisit": "New since your last visit",
 			"inbox": {
 				"oldest": "The oldest document here was written {{time}}",
 				"nothingWaiting": "Nothing is waiting. Snoozed documents come back on their date.",
@@ -3541,6 +3542,9 @@
 				"decider": "{{name}} decides",
 				"backup": "Backup: {{name}}",
 				"noDecider": "No decider. The workspace owner decides.",
+				"follow": "Follow",
+				"unfollow": "Unfollow",
+				"followHint": "Followers hear about each new proposal and each new current document on this topic.",
 				"notFound": "Topic not found",
 				"notFoundHint": "It may have been removed, or you may not have access to it."
 			},
@@ -3808,6 +3812,22 @@
 			"task_assignee_changed": {
 				"title": "Issue assigned to you",
 				"content": "You have been assigned to issue: {{taskTitle}}"
+			},
+			"document_mention": {
+				"title": "{{actorName}} mentioned you",
+				"content": "In {{documentTitle}}"
+			},
+			"document_comment": {
+				"title": "{{actorName}} commented",
+				"content": "On {{documentTitle}}"
+			},
+			"document_proposed": {
+				"title": "{{actorName}} proposed a document for {{topicName}}",
+				"content": "{{documentTitle}}"
+			},
+			"document_current": {
+				"title": "{{topicName}} has a new current document",
+				"content": "{{documentTitle}}, approved by {{actorName}}"
 			},
 			"task_mention": {
 				"title": "{{mentionerName}} mentioned you",
