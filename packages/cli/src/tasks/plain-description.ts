@@ -86,7 +86,7 @@ export function inlineText(source: string): string {
         decodeEntities(attribute(tag, "issue-key") || attribute(tag, "url")),
       ),
     )
-    .replace(/<kaneo-embed\b[^>]*>/giu, (tag) =>
+    .replace(/<kaneo-(?:embed|document-link)\b[^>]*>/giu, (tag) =>
       keep(decodeEntities(attribute(tag, "url"))),
     )
     .replace(/<kaneo-attachment\b[^>]*>/giu, (tag) => {

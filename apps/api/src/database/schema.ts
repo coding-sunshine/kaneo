@@ -2846,6 +2846,48 @@ export const documentLineageTable = pgTable(
   (table) => [index("document_lineage_source_idx").on(table.sourceDocumentId)],
 );
 
+export const TASK_DOCUMENT_SOURCES = [
+  "description",
+  "comment",
+  "document",
+] as const;
+export type TaskDocumentSource = (typeof TASK_DOCUMENT_SOURCES)[number];
+
+// A link between an issue and a document, found in the text of one of them.
+// One row per place the link was found, so each place is kept right alone.
+export const taskDocumentTable = pgTable(
+  "task_document",
+  {
+    taskId: text("task_id")
+      .notNull()
+      .references(() => taskTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documentTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    source: text("source").$type<TaskDocumentSource>().notNull(),
+    // Who saved the text the link was first found in.
+    createdBy: text("created_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    // A link alone lets nobody into the document.
+    grantsAccess: boolean("grants_access").notNull().default(false),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.taskId, table.documentId, table.source] }),
+    index("task_document_document_idx").on(table.documentId),
+  ],
+);
+
 export const documentSubscriberTable = pgTable(
   "document_subscriber",
   {

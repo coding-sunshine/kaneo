@@ -87,7 +87,18 @@ export function ExternalLinksAccordion({
 
   const createExternalLink = useCreateExternalLink();
   const deleteExternalLink = useDeleteExternalLink();
-  const { data: documents = [] } = useDocuments(workspaceId, { taskId });
+  const { data: attached = [] } = useDocuments(workspaceId, { taskId });
+  const { data: linked = [] } = useDocuments(workspaceId, {
+    linkedTaskId: taskId,
+  });
+  // A document can be attached to the issue and linked in its text: one row.
+  const documents = useMemo(
+    () => [
+      ...attached,
+      ...linked.filter((link) => !attached.some((row) => row.id === link.id)),
+    ],
+    [attached, linked],
+  );
   const newDocument = useNewDocument(workspaceId);
 
   const linksWithoutRedundantBranches = useMemo(() => {

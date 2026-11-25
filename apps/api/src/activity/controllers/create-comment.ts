@@ -12,6 +12,8 @@ import { publishEvent } from "../../events";
 import createNotification from "../../notification/controllers/create-notification";
 import { commentPreview } from "../../utils/comment-preview";
 import { subscribeUsers } from "../../task/controllers/task-subscribers";
+import { mentionsDocument } from "../../task-document/find-links";
+import { syncTaskCommentLinks } from "../../task-document/sync-links";
 import { parseMentionIds } from "../../utils/parse-mentions";
 import {
   applyThreadOverrides,
@@ -107,6 +109,7 @@ async function createComment(
   }
 
   if (!external) await subscribeUsers(db, taskId, [userId]);
+  if (mentionsDocument(content)) await syncTaskCommentLinks(db, taskId, userId);
 
   const [user] = await db
     .select({ name: userTable.name })

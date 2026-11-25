@@ -5,6 +5,7 @@ import db from "../../database";
 import { documentSubscriberTable, documentTable } from "../../database/schema";
 import { findTopics } from "../../topic/controllers/find-topics";
 import { fingerprint } from "../fingerprint";
+import { syncDocumentTaskLinks } from "../../task-document/sync-links";
 import type { saveDraftBody } from "../schema";
 import { proposeLineage, readLineage } from "./lineage";
 import { loadDocument } from "./load-document";
@@ -100,7 +101,10 @@ export async function saveDraft(
     return row;
   });
 
-  if (created) await proposeLineage(created, prints, userId);
+  if (created) {
+    await proposeLineage(created, prints, userId);
+    await syncDocumentTaskLinks(db, created, userId, markdown);
+  }
 
   let id = created?.id;
   if (!id) {

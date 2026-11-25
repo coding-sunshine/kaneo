@@ -11,6 +11,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { AttachmentCard } from "./attachment-card";
 import { dedentOrderedMarkers } from "./dedent-ordered-markers";
 import { EmbedBlock } from "./embed-block";
+import { KaneoDocumentLink } from "./kaneo-document-link";
 import { KaneoImage } from "./kaneo-image";
 import { KaneoIssueLink } from "./kaneo-issue-link";
 import { SafeHardBreak } from "./safe-hard-break";
@@ -18,6 +19,7 @@ import { SafeHardBreak } from "./safe-hard-break";
 export type BaseExtensionNodes = {
   attachmentCard?: AnyExtension;
   kaneoIssueLink?: AnyExtension;
+  kaneoDocumentLink?: AnyExtension;
   image?: AnyExtension;
   taskItem?: AnyExtension;
   embedBlock?: AnyExtension;
@@ -72,6 +74,7 @@ export function createBaseExtensions({
     nodes.embedBlock ?? EmbedBlock,
     nodes.attachmentCard ?? AttachmentCard,
     nodes.kaneoIssueLink ?? KaneoIssueLink,
+    nodes.kaneoDocumentLink ?? KaneoDocumentLink,
     ...extra,
     TaskList,
     image.configure({

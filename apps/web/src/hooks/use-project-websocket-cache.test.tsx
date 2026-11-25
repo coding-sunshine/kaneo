@@ -204,6 +204,25 @@ describe("board realtime races", () => {
     });
   });
 
+  it.each(["TASK_UPDATED", "COMMENT_UPDATED"])(
+    "reads the documents linked with an issue again after %s",
+    (type) => {
+      renderHook(() => useProjectWebSocket("p"));
+      Socket.current.message(type, { taskId: "a" });
+      const call = mocks.client.invalidateQueries.mock.calls.find(
+        ([filter]) => filter?.queryKey?.[0] === "documents",
+      )?.[0];
+      const matches = (query: object) =>
+        call?.predicate({ queryKey: ["documents", "ws", "list", query] });
+      expect(matches({ linkedTaskId: "a" })).toBe(true);
+      expect(matches({ linkedTaskId: "b" })).toBe(false);
+      expect(matches({ taskId: "a" })).toBe(false);
+      expect(call?.predicate({ queryKey: ["documents", "ws", "doc-1"] })).toBe(
+        false,
+      );
+    },
+  );
+
   it("refreshes a project-wide task update with no task id", () => {
     renderHook(() => useProjectWebSocket("p"));
     Socket.current.message("TASK_UPDATED", { taskId: "" });

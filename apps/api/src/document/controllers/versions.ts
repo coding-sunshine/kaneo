@@ -7,6 +7,7 @@ import {
   userTable,
 } from "../../database/schema";
 import { fingerprint } from "../fingerprint";
+import { syncDocumentTaskLinks } from "../../task-document/sync-links";
 import { assertNotSuperseded } from "./assert-not-superseded";
 import { getDocument } from "./get-document";
 import { proposeLineage } from "./lineage";
@@ -71,5 +72,6 @@ export async function restoreVersion(
   // A restore is its own history entry, never folded into the last edit.
   await recordVersion(id, userId, version, { fold: false });
   await proposeLineage(doc, prints, userId);
+  await syncDocumentTaskLinks(db, doc, userId, version.content);
   return getDocument(workspaceId, id, userId);
 }

@@ -64,6 +64,7 @@ import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { cn } from "@/lib/cn";
 import { descriptionSaveQueue } from "@/lib/description-save-queue";
 import {
+  extractDocumentLinkFromUrl,
   extractIssueKeyFromUrl,
   extractTaskIdFromUrl,
   isYouTubeUrl,
@@ -499,6 +500,16 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
 
           const url = normalizeUrl(pastedText);
           if (!url) return false;
+
+          if (extractDocumentLinkFromUrl(url)) {
+            event.preventDefault();
+            view.dispatch(
+              view.state.tr.replaceSelectionWith(
+                view.state.schema.nodes.kaneoDocumentLink.create({ url }),
+              ),
+            );
+            return true;
+          }
 
           const issueKey = extractIssueKeyFromUrl(url);
           const taskIdFromUrl = extractTaskIdFromUrl(url);

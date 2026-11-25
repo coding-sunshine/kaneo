@@ -3,6 +3,7 @@ import type { z } from "zod";
 import db from "../../database";
 import { documentTable } from "../../database/schema";
 import { fingerprint } from "../fingerprint";
+import { syncDocumentTaskLinks } from "../../task-document/sync-links";
 import type { updateDocumentBody } from "../schema";
 import { getDocument } from "./get-document";
 import { assertNotSuperseded } from "./assert-not-superseded";
@@ -42,6 +43,9 @@ export async function updateDocument(
     await recordVersion(id, userId, { title, content });
     await notifyBodyMentions({ ...doc, title }, userId, doc.content, content);
   }
-  if (prints) await proposeLineage(doc, prints, userId);
+  if (prints) {
+    await proposeLineage(doc, prints, userId);
+    await syncDocumentTaskLinks(db, doc, userId, content);
+  }
   return getDocument(workspaceId, id, userId);
 }

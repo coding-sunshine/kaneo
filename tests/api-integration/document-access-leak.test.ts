@@ -109,6 +109,32 @@ describe("API integration: document access leaks", () => {
   it("keeps hidden documents out of every list filter, search and count", async () => {
     const world = await buildDocumentWorld();
     const hidden = ids(world, hiddenFrom(world, "limited"));
+    // Both issues link every document. A link opens nothing, and the links of
+    // an issue the member cannot open are not listed at all.
+    const links = Object.values(world.docs)
+      .map(
+        (id) =>
+          `<a href="https://tracker.example/dashboard/workspace/${world.ws}/document/${id}">x</a>`,
+      )
+      .join("");
+    for (const task of [world.alphaTask, world.betaTask]) {
+      const saved = await world.as(world.owner)(
+        `/task/description/${task.id}`,
+        json("PUT", { description: links }),
+      );
+      expect(saved.status).toBe(200);
+    }
+    const linkedToAlpha = await listed(
+      world,
+      world.limited,
+      `?linkedTaskId=${world.alphaTask.id}`,
+    );
+    expect(linkedToAlpha.map((row) => row.id).sort()).toEqual(
+      ids(world, VISIBLE.limited).sort(),
+    );
+    expect(
+      await listed(world, world.limited, `?linkedTaskId=${world.betaTask.id}`),
+    ).toEqual([]);
     const queries = [
       "",
       "?filter=recent",
@@ -119,6 +145,8 @@ describe("API integration: document access leaks", () => {
       "?filter=new",
       `?projectId=${world.beta.id}`,
       `?taskId=${world.betaTask.id}`,
+      `?linkedTaskId=${world.alphaTask.id}`,
+      `?linkedTaskId=${world.betaTask.id}`,
       `?workProjectId=${world.workProject.id}`,
       `?workProjectId=${world.betaProject.id}`,
     ];

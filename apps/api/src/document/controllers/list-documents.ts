@@ -2,6 +2,7 @@ import { and, desc, eq, gt, isNull, ne, or, sql } from "drizzle-orm";
 import type { z } from "zod";
 import db from "../../database";
 import { documentTable, userTable } from "../../database/schema";
+import { projectAccessCondition } from "../../project-access/project-access-condition";
 import type { listDocumentsQuery } from "../schema";
 import {
   documentParentAccess,
@@ -54,6 +55,28 @@ export const documentSummaryColumns = (userId: string) => ({
       THEN ${documentTable.inboxSnoozedUntil}
   END`.mapWith(documentTable.inboxSnoozedUntil),
   approvedAt: documentTable.approvedAt,
+  // Where a replaced document points: the current one of its topic. Null
+  // unless the viewer can open the topic and that document.
+  currentDocumentId: sql<string | null>`CASE
+    WHEN ${documentTable.status} = 'superseded'
+      AND ${topicAccess(userId, documentTable.topicId)}
+    THEN (
+      SELECT current_doc.id FROM document AS current_doc
+      WHERE current_doc.topic_id = ${documentTable.topicId}
+        AND current_doc.workspace_id = ${documentTable.workspaceId}
+        AND current_doc.status = 'current'
+        AND current_doc.deleted_at IS NULL
+        AND ${documentVisibility(userId, {
+          id: sql`current_doc.id`,
+          creatorId: sql`current_doc.creator_id`,
+          scope: sql`current_doc.scope`,
+          projectId: sql`current_doc.project_id`,
+          workProjectId: sql`current_doc.work_project_id`,
+          taskId: sql`current_doc.task_id`,
+        })}
+      LIMIT 1
+    )
+  END`,
   creatorId: documentTable.creatorId,
   creatorName: userTable.name,
   creatorImage: userTable.image,
@@ -65,6 +88,19 @@ function filterCondition(
   userId: string,
   query: z.infer<typeof listDocumentsQuery>,
 ) {
+  // Linked in the text of either side. The issue has to be one the person
+  // can open: for any other, and for one that does not exist, nothing matches.
+  if (query.linkedTaskId) {
+    return sql`EXISTS (
+      SELECT 1 FROM task_document AS link
+      JOIN task AS linked_task ON linked_task.id = link.task_id
+      JOIN project AS linked_project ON linked_project.id = linked_task.project_id
+      WHERE link.document_id = ${documentTable.id}
+        AND link.task_id = ${query.linkedTaskId}
+        AND linked_project.workspace_id = ${documentTable.workspaceId}
+        AND ${projectAccessCondition(userId, sql`linked_project.id`)}
+    )`;
+  }
   if (query.projectId) {
     return and(
       eq(documentTable.scope, "team"),

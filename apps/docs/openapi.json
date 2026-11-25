@@ -3650,6 +3650,13 @@
             ],
             "format": "date-time",
             "description": "The Inbox hides the document until this time. Null when it is not set aside."
+          },
+          "currentDocumentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "On a replaced document: the current document of its topic, if you can open it."
           }
         },
         "required": [
@@ -3674,7 +3681,8 @@
           "creatorImage",
           "createdAt",
           "updatedAt",
-          "snoozedUntil"
+          "snoozedUntil",
+          "currentDocumentId"
         ]
       },
       "Document": {
@@ -3938,6 +3946,40 @@
             ],
             "description": "The older document this text looks like a revision of. Null when there is none the reader can open."
           },
+          "citedBy": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "number": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "projectId": {
+                  "type": "string"
+                },
+                "projectSlug": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "number",
+                "projectId",
+                "projectSlug"
+              ]
+            },
+            "description": "Issues linked with the document, in the text of either. Only issues you can open."
+          },
           "shares": {
             "type": "array",
             "items": {
@@ -4016,6 +4058,7 @@
           "updatedByName",
           "role",
           "revisionOf",
+          "citedBy",
           "shares",
           "subscriberIds"
         ]
@@ -26760,6 +26803,16 @@
             },
             "required": false,
             "name": "taskId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Documents linked with an issue you can open, in the text of either. Empty for an issue you cannot open."
+            },
+            "required": false,
+            "description": "Documents linked with an issue you can open, in the text of either. Empty for an issue you cannot open.",
+            "name": "linkedTaskId",
             "in": "query"
           },
           {

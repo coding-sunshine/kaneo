@@ -4,6 +4,8 @@ import db from "../../database";
 import { activityTable, taskTable } from "../../database/schema";
 import { publishEvent } from "../../events";
 import { deleteOrphanedAssets } from "../../storage/cleanup-assets";
+import { mentionsDocument } from "../../task-document/find-links";
+import { syncTaskCommentLinks } from "../../task-document/sync-links";
 
 async function deleteComment(userId: string, id: string) {
   const [existing] = await db
@@ -44,6 +46,9 @@ async function deleteComment(userId: string, id: string) {
       message: "Comment not found or you are not the author",
     });
   }
+
+  if (mentionsDocument(existing.content))
+    await syncTaskCommentLinks(db, deletedComment.taskId, userId);
 
   const [task] = await db
     .select({ projectId: taskTable.projectId })

@@ -3625,7 +3625,9 @@
 				"overlap": "{{percent}}% of the text is the same",
 				"proposed": "Looks like a revision of",
 				"undo": "Not a revision"
-			}
+			},
+			"citedBy_one": "Cited by {{count}} issue:",
+			"citedBy_other": "Cited by {{count}} issues:"
 		},
 		"drafts": {
 			"delete": "Delete draft",

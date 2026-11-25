@@ -3418,6 +3418,8 @@
 			"unsubscribe": "Unsubscribe",
 			"subscribed": "You'll be notified about changes",
 			"unsubscribed": "You won't be notified about changes",
+			"citedBy_one": "Cited by {{count}} issue:",
+			"citedBy_other": "Cited by {{count}} issues:",
 			"notFound": "Document not found",
 			"notFoundHint": "It may have been deleted, or you don't have access to it.",
 			"viewOnly": "View only",

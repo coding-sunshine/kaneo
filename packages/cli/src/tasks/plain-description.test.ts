@@ -80,6 +80,11 @@ describe("inlineText", () => {
     expect(
       inlineText('<kaneo-embed url="https://youtu.be/x" mode="embed" />'),
     ).toBe("https://youtu.be/x");
+    expect(
+      inlineText(
+        'see <kaneo-document-link url="https://app/workspace/w/document/d1" />',
+      ),
+    ).toBe("see https://app/workspace/w/document/d1");
   });
 
   it("strips known html tags but keeps generic angle brackets", () => {

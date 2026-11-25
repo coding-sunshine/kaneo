@@ -3,6 +3,7 @@ import type { AnyExtension } from "@tiptap/core";
 import type { Highlighter } from "shiki";
 import { AttachmentCard } from "@/components/task/extensions/attachment-card";
 import { EmbedBlock } from "@/components/task/extensions/embed-block";
+import { KaneoDocumentLink } from "@/components/task/extensions/kaneo-document-link";
 import { KaneoIssueLink } from "@/components/task/extensions/kaneo-issue-link";
 import { MermaidBlock } from "@/components/task/extensions/mermaid-block";
 import { ShikiCodeBlock } from "@/components/task/extensions/shiki-code-block";
@@ -45,6 +46,7 @@ export function createEditorExtensions({
       embedBlock: EmbedBlock,
       attachmentCard: AttachmentCard,
       kaneoIssueLink: KaneoIssueLink,
+      kaneoDocumentLink: KaneoDocumentLink,
       image,
       taskItem: TaskItemWithCheckbox,
     },

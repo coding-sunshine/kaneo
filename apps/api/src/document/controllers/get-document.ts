@@ -1,12 +1,16 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import db from "../../database";
 import {
   documentShareTable,
   documentSubscriberTable,
   documentTable,
+  projectTable,
+  taskDocumentTable,
+  taskTable,
   topicTable,
   userTable,
 } from "../../database/schema";
+import { projectAccessCondition } from "../../project-access/project-access-condition";
 import { topicAccess } from "../visibility";
 import { readLineage } from "./lineage";
 import { documentParentName } from "./list-documents";
@@ -18,40 +22,62 @@ export async function getDocument(
   userId: string,
 ) {
   const doc = await loadDocument(workspaceId, id, userId);
-  const [shares, subscribers, [parent], revisionOf] = await Promise.all([
-    db
-      .select({
-        userId: documentShareTable.userId,
-        name: userTable.name,
-        image: userTable.image,
-        access: documentShareTable.access,
-      })
-      .from(documentShareTable)
-      .innerJoin(userTable, eq(userTable.id, documentShareTable.userId))
-      .where(eq(documentShareTable.documentId, id))
-      .orderBy(documentShareTable.createdAt),
-    db
-      .select({ userId: documentSubscriberTable.userId })
-      .from(documentSubscriberTable)
-      .where(eq(documentSubscriberTable.documentId, id)),
-    // A document shared by name can sit on a topic the viewer cannot open.
-    // That topic stays unnamed, like a team they cannot enter.
-    db
-      .select({
-        name: documentParentName(userId),
-        topicName: topicTable.name,
-      })
-      .from(documentTable)
-      .leftJoin(
-        topicTable,
-        and(
-          eq(topicTable.id, documentTable.topicId),
-          topicAccess(userId, topicTable.id),
-        ),
-      )
-      .where(eq(documentTable.id, id)),
-    readLineage(workspaceId, id, userId),
-  ]);
+  const [shares, subscribers, [parent], revisionOf, citedBy] =
+    await Promise.all([
+      db
+        .select({
+          userId: documentShareTable.userId,
+          name: userTable.name,
+          image: userTable.image,
+          access: documentShareTable.access,
+        })
+        .from(documentShareTable)
+        .innerJoin(userTable, eq(userTable.id, documentShareTable.userId))
+        .where(eq(documentShareTable.documentId, id))
+        .orderBy(documentShareTable.createdAt),
+      db
+        .select({ userId: documentSubscriberTable.userId })
+        .from(documentSubscriberTable)
+        .where(eq(documentSubscriberTable.documentId, id)),
+      // A document shared by name can sit on a topic the viewer cannot open.
+      // That topic stays unnamed, like a team they cannot enter.
+      db
+        .select({
+          name: documentParentName(userId),
+          topicName: topicTable.name,
+        })
+        .from(documentTable)
+        .leftJoin(
+          topicTable,
+          and(
+            eq(topicTable.id, documentTable.topicId),
+            topicAccess(userId, topicTable.id),
+          ),
+        )
+        .where(eq(documentTable.id, id)),
+      readLineage(workspaceId, id, userId),
+      // Each issue once, however many places link it, and only issues of this
+      // workspace the viewer can open.
+      db
+        .selectDistinct({
+          id: taskTable.id,
+          title: taskTable.title,
+          number: taskTable.number,
+          projectId: projectTable.id,
+          projectSlug: projectTable.slug,
+        })
+        .from(taskDocumentTable)
+        .innerJoin(taskTable, eq(taskTable.id, taskDocumentTable.taskId))
+        .innerJoin(projectTable, eq(projectTable.id, taskTable.projectId))
+        .where(
+          and(
+            eq(taskDocumentTable.documentId, id),
+            eq(projectTable.workspaceId, workspaceId),
+            projectAccessCondition(userId, projectTable.id),
+          ),
+        )
+        .orderBy(asc(projectTable.slug), asc(taskTable.number)),
+    ]);
   const topicName = parent?.topicName ?? null;
   const personIds = [doc.creatorId, doc.updatedById, doc.approvedBy].filter(
     (value): value is string => value !== null,
@@ -108,6 +134,7 @@ export async function getDocument(
     updatedAt: doc.updatedAt,
     role: doc.role,
     revisionOf,
+    citedBy,
     shares,
     subscriberIds: subscribers.map((row) => row.userId),
   };

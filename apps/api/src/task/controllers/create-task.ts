@@ -33,6 +33,8 @@ import { assertTaskWorkProject } from "../../work-project/assert-task-work-proje
 import { claimTaskNumber } from "./claim-task-numbers";
 import { findSourceComment } from "./find-source-comment";
 import { nextTaskPosition } from "./next-task-position";
+import { mentionsDocument } from "../../task-document/find-links";
+import { syncTaskDescriptionLinks } from "../../task-document/sync-links";
 import { subscribeUsers } from "./task-subscribers";
 
 type CustomFieldInput = {
@@ -215,6 +217,13 @@ async function createTask({
 
     if (task)
       await subscribeUsers(tx, task.id, [currentUserId, normalizedUserId]);
+    if (task && mentionsDocument(task.description))
+      await syncTaskDescriptionLinks(
+        tx,
+        task.id,
+        currentUserId,
+        task.description,
+      );
 
     if (task && draftAssetIds?.length) {
       const referenced = extractAssetIds(description);

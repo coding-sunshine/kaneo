@@ -9,6 +9,8 @@ import {
 import { publishEvent } from "../../events";
 import createNotification from "../../notification/controllers/create-notification";
 import { deleteOrphanedAssets } from "../../storage/cleanup-assets";
+import { mentionsDocument } from "../../task-document/find-links";
+import { syncTaskDescriptionLinks } from "../../task-document/sync-links";
 import { getSubtaskParentProjects } from "../get-subtask-parent-projects";
 import { parseMentionIds } from "../../utils/parse-mentions";
 
@@ -153,6 +155,17 @@ export async function publishTaskMutation(
     before.description !== undefined &&
     before.description !== after.description
   ) {
+    // Before the event: it makes open pages read the issue's documents again.
+    if (
+      mentionsDocument(before.description) ||
+      mentionsDocument(after.description)
+    )
+      await syncTaskDescriptionLinks(
+        db,
+        after.id,
+        userId ?? null,
+        after.description ?? null,
+      );
     await publishEvent("task.description_changed", {
       ...common,
       oldDescription: before.description,

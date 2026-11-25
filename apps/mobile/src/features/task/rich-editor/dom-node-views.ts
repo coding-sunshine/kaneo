@@ -1,5 +1,6 @@
 import {
   AttachmentCard,
+  KaneoDocumentLink,
   KaneoImage,
   KaneoIssueLink,
   KaneoTaskItem,
@@ -32,6 +33,11 @@ export function domNodeViews(serverUrl: string, attachmentLabel: string) {
         return ({ node }) => ({
           dom: chip(String(node.attrs.issueKey || node.attrs.url || "")),
         });
+      },
+    }),
+    kaneoDocumentLink: KaneoDocumentLink.extend({
+      addNodeView() {
+        return ({ node }) => ({ dom: chip(String(node.attrs.url || "")) });
       },
     }),
     taskItem: KaneoTaskItem.extend({

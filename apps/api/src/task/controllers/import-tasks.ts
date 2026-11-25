@@ -12,6 +12,8 @@ import { coercePriority, VIRTUAL_STATUSES } from "../validate-task-fields";
 import { resolveImportTaskStatus } from "../resolve-import-task-status";
 import { claimTaskNumber } from "./claim-task-numbers";
 import { nextTaskPosition } from "./next-task-position";
+import { mentionsDocument } from "../../task-document/find-links";
+import { syncTaskDescriptionLinks } from "../../task-document/sync-links";
 import { subscribeUsers } from "./task-subscribers";
 import { resolveImportAssignees } from "../resolve-import-assignees";
 
@@ -140,6 +142,13 @@ async function importTasks(
 
         if (task)
           await subscribeUsers(tx, task.id, [currentUserId, assigneeId]);
+        if (task && mentionsDocument(task.description))
+          await syncTaskDescriptionLinks(
+            tx,
+            task.id,
+            currentUserId ?? null,
+            task.description,
+          );
 
         return task;
       });

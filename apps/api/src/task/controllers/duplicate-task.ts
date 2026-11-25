@@ -31,6 +31,8 @@ import {
 } from "../validate-task-fields";
 import { claimTaskNumber } from "./claim-task-numbers";
 import { nextTaskPosition } from "./next-task-position";
+import { mentionsDocument } from "../../task-document/find-links";
+import { syncTaskDescriptionLinks } from "../../task-document/sync-links";
 import { subscribeUsers } from "./task-subscribers";
 
 async function discardCopiedObjects(objectKeys: string[]) {
@@ -405,6 +407,13 @@ async function duplicateTask({
       }
 
       await subscribeUsers(tx, task.id, [currentUserId, userId]);
+      if (mentionsDocument(task.description))
+        await syncTaskDescriptionLinks(
+          tx,
+          task.id,
+          currentUserId || null,
+          task.description,
+        );
 
       if (customFields.length > 0) {
         await tx

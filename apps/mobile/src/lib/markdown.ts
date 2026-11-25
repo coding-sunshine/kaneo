@@ -49,6 +49,7 @@ export function toDisplayMarkdown(markdown: string, serverUrl: string): string {
         return `[${a.filename ?? i18n.t("mobile:editor.attachment")}](${resolveUrl(serverUrl, a.url) ?? ""})`;
       case "kaneo-issue-link":
         return `[${a["issue-key"] || a.url}](${a.url})`;
+      case "kaneo-document-link":
       case "kaneo-embed":
         return `[${a.url}](${a.url})`;
       default:

@@ -36,6 +36,10 @@ export const listDocumentsQuery = z.object({
   projectId: z.string().optional().openapi({ description: "Team documents" }),
   workProjectId: z.string().optional(),
   taskId: z.string().optional(),
+  linkedTaskId: z.string().optional().openapi({
+    description:
+      "Documents linked with an issue you can open, in the text of either. Empty for an issue you cannot open.",
+  }),
   topicId: z.string().optional().openapi({
     description: "Documents filed on a topic you can open.",
   }),
@@ -188,7 +192,14 @@ const snoozedUntil = nullableResponseTimestamp.openapi({
 });
 
 export const documentSummarySchema = z
-  .object({ ...documentFields, snoozedUntil })
+  .object({
+    ...documentFields,
+    snoozedUntil,
+    currentDocumentId: z.string().nullable().openapi({
+      description:
+        "On a replaced document: the current document of its topic, if you can open it.",
+    }),
+  })
   .openapi("DocumentSummary");
 
 export const snoozeDocumentBody = z.object({
@@ -269,6 +280,20 @@ export const documentSchema = z
     updatedByName: z.string().nullable(),
     role,
     revisionOf,
+    citedBy: z
+      .array(
+        z.object({
+          id: z.string(),
+          title: z.string(),
+          number: z.number().nullable(),
+          projectId: z.string(),
+          projectSlug: z.string(),
+        }),
+      )
+      .openapi({
+        description:
+          "Issues linked with the document, in the text of either. Only issues you can open.",
+      }),
     shares: z.array(
       z.object({
         userId: z.string(),

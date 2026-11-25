@@ -36,6 +36,21 @@ export function extractIssueKeyFromUrl(value: string) {
   return null;
 }
 
+/** The workspace and the document an address points to, if it is a document's. */
+export function extractDocumentLinkFromUrl(value: string) {
+  try {
+    const match = new URL(value).pathname.match(
+      /\/workspace\/([^/]+)\/document\/([a-z0-9]+)\/?$/,
+    );
+    if (match?.[1] && match[2])
+      return { workspaceId: match[1], documentId: match[2] };
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 export function extractTaskIdFromUrl(value: string) {
   try {
     const parsed = new URL(value);

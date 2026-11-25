@@ -18,6 +18,12 @@ const MARKDOWN = [
   '<kaneo-issue-link url="https://kaneo.app/dashboard/workspace/w1/project/p1/task/t1" issue-key="KAN-1" task-id="t1" />',
   "",
   "",
+  "The plan:",
+  "",
+  "",
+  '<kaneo-document-link url="https://kaneo.app/dashboard/workspace/w1/document/d1" />',
+  "",
+  "",
   "Demo:",
   "",
   "",
@@ -69,6 +75,8 @@ describe("createBaseExtensions", () => {
       "text",
       "kaneoIssueLink",
       "text",
+      "kaneoDocumentLink",
+      "text",
       "embedBlock",
       "image",
       "taskItem",
@@ -109,6 +117,18 @@ describe("createBaseExtensions", () => {
             },
           ],
         },
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "kaneoDocumentLink",
+              attrs: {
+                url: 'https://kaneo.app/workspace/w1/document/d1?a="b"',
+              },
+            },
+            { type: "kaneoDocumentLink", attrs: { url: "" } },
+          ],
+        },
       ],
     });
 
@@ -120,6 +140,10 @@ describe("createBaseExtensions", () => {
         "",
         "",
         '<kaneo-issue-link url="https://kaneo.app/task/t1" issue-key="KAN-1" task-id="t1" />',
+        "",
+        "",
+        "",
+        '<kaneo-document-link url="https://kaneo.app/workspace/w1/document/d1?a=&quot;b&quot;" />',
         "",
       ].join("\n"),
     );

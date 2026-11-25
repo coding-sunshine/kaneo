@@ -13,6 +13,8 @@ export type DocumentParent = {
 export type DocumentListQuery = {
   filter?: DocumentFilter;
   topicId?: string;
+  /** Documents linked with this issue, in the text of either. */
+  linkedTaskId?: string;
 } & DocumentParent;
 export type DocumentAccess = "edit" | "comment" | "view";
 export type DocumentScope =

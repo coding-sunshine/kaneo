@@ -14,6 +14,7 @@ export {
 export { EmbedBlock, type EmbedBlockOptions } from "./embed-block";
 export { getEmbedSource } from "./embed-source";
 export { KaneoImage } from "./kaneo-image";
+export { KaneoDocumentLink } from "./kaneo-document-link";
 export { KaneoIssueLink } from "./kaneo-issue-link";
 export { KaneoMention } from "./kaneo-mention";
 export { parseWidth } from "./parse-width";

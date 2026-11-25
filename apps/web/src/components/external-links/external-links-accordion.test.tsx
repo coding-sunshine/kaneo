@@ -173,6 +173,22 @@ describe("issue documents", () => {
     await openAddMenu("settings:externalLinks.addDocument");
     expect(createDocument).toHaveBeenCalledWith({ taskId: "task-1" });
   });
+
+  it("adds the documents linked in the issue's text, each once", async () => {
+    getDocuments.mockImplementation(
+      async (_workspaceId: string, query: { linkedTaskId?: string }) =>
+        query.linkedTaskId === "task-1"
+          ? [
+              { id: "doc-1", title: "Spec" },
+              { id: "doc-2", title: "Rollout" },
+            ]
+          : [{ id: "doc-1", title: "Spec" }],
+    );
+    renderResources();
+    expect(await screen.findByRole("link", { name: "Rollout" })).toBeTruthy();
+    expect(screen.getAllByRole("link", { name: "Spec" })).toHaveLength(1);
+    expect(screen.getByText("2")).toBeTruthy();
+  });
 });
 
 const manualLink: ExternalLink = {

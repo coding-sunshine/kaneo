@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { getApiUrl } from "@/fetchers/get-api-url";
+import { invalidateLinkedDocuments } from "@/hooks/queries/document/invalidate-linked-documents";
 import { authClient } from "@/lib/auth-client";
 import { evictProjectCache } from "@/lib/evict-project-cache";
 import getTask from "@/fetchers/task/get-task";
@@ -162,6 +163,15 @@ export function useProjectWebSocket(projectId: string) {
         queryClient.invalidateQueries({
           queryKey: ["external-links", message.taskId],
         });
+      }
+
+      // A saved description or comment can add or drop a link to a document.
+      if (
+        (message.type === "TASK_UPDATED" ||
+          message.type === "COMMENT_UPDATED") &&
+        message.taskId
+      ) {
+        invalidateLinkedDocuments(queryClient, message.taskId);
       }
 
       if (message.type === "COMMENT_UPDATED") {

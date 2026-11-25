@@ -4,6 +4,7 @@ import {
 } from "@/lib/board-cache-version";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import updateTaskDescription from "@/fetchers/task/update-task-description";
+import { invalidateLinkedDocuments } from "@/hooks/queries/document/invalidate-linked-documents";
 import type Task from "@/types/task";
 import { updateBoardTaskCache } from "@/lib/update-board-task-cache";
 
@@ -40,6 +41,7 @@ export function useUpdateTaskDescription() {
       queryClient.invalidateQueries({
         queryKey: ["activities", variables.id],
       });
+      void invalidateLinkedDocuments(queryClient, variables.id);
     },
   });
 }

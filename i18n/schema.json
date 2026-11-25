@@ -13968,6 +13968,24 @@
 						"unsubscribed": {
 							"type": "string"
 						},
+						"citedBy_one": {
+							"type": "string"
+						},
+						"citedBy_zero": {
+							"type": "string"
+						},
+						"citedBy_two": {
+							"type": "string"
+						},
+						"citedBy_few": {
+							"type": "string"
+						},
+						"citedBy_many": {
+							"type": "string"
+						},
+						"citedBy_other": {
+							"type": "string"
+						},
 						"notFound": {
 							"type": "string"
 						},
