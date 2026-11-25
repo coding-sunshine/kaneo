@@ -162,6 +162,7 @@ describe("API integration: reading a topic before writing", () => {
           name: "Launch plan",
           parentName: world.alpha.name,
           deciderName: owner.name,
+          tasks: [],
           unreviewed: 2,
           current: {
             id: v2,
@@ -345,6 +346,7 @@ describe("API integration: reading a topic before writing", () => {
           name: "Launch plan",
           parentName: world.alpha.name,
           deciderName: owner.name,
+          tasks: [],
           documents: [
             waiting(idea, "Launch ideas"),
             waiting(proposal, "Launch plan v3"),
