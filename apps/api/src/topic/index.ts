@@ -12,18 +12,29 @@ import { createTopic } from "./controllers/create-topic";
 import { confirmCurrent, makeCurrent, setAside } from "./controllers/decide";
 import { fileDocument } from "./controllers/file-document";
 import { followTopic, unfollowTopic } from "./controllers/follow-topic";
+import { findTopics } from "./controllers/find-topics";
 import { getTopic, listTopics } from "./controllers/get-topic";
 import { getCurrent, listUnreviewed } from "./controllers/read-topic";
+import {
+  linkTaskTopic,
+  listTaskTopics,
+  listTopicTasks,
+  unlinkTaskTopic,
+} from "./controllers/topic-tasks";
 import { updateTopic } from "./controllers/update-topic";
 import {
   createTopicBody,
   makeCurrentBody,
+  taskTopicsParam,
   topicDocumentParam,
   topicCurrentSchema,
+  topicListQuery,
   topicListSchema,
   topicParam,
   topicReadQuery,
   topicSchema,
+  topicTaskParam,
+  topicTasksSchema,
   topicUnreviewedSchema,
   updateTopicBody,
   workspaceIdParam,
@@ -38,6 +49,9 @@ const noAccess = errorResponse(
   "Missing permission for this workspace, topic or document",
 );
 const notFound = errorResponse("Topic or document not found");
+const noTopicOrTask = errorResponse(
+  "Topic or issue not found. One you cannot open answers the same.",
+);
 const read = [
   workspaceAccess.fromParam(),
   requireWorkspacePermission({ task: ["read"] }),
@@ -48,6 +62,7 @@ const write = [
 ] as const;
 const one = "/workspace/{workspaceId}/{id}";
 const filed = `${one}/document/{documentId}`;
+const onTopic = `${one}/task/{taskId}`;
 
 const listRoute = createRoute({
   method: "get",
@@ -56,9 +71,9 @@ const listRoute = createRoute({
   tags,
   summary: "List topics",
   description:
-    "List the topics you can open. A topic is open to whoever can open the place it lives in.",
+    "List the topics you can open. A topic is open to whoever can open the place it lives in. With `match`, only the topics that text names.",
   middleware: [...read] as const,
-  request: { params: workspaceIdParam },
+  request: { params: workspaceIdParam, query: topicListQuery },
   responses: {
     200: jsonResponse("Topics", topicListSchema),
     403: noAccess,
@@ -255,10 +270,89 @@ const unfollowRoute = createRoute({
   },
 });
 
+const taskTopicsRoute = createRoute({
+  method: "get",
+  operationId: "listTaskTopics",
+  path: "/workspace/{workspaceId}/task/{taskId}/topics",
+  tags,
+  summary: "List an issue's topics",
+  description:
+    "List the topics an issue is on that you can open, each with its current document.",
+  middleware: [...read] as const,
+  request: { params: taskTopicsParam },
+  responses: {
+    200: jsonResponse("Topics", topicListSchema),
+    403: noAccess,
+    404: noTopicOrTask,
+  },
+});
+
+const topicTasksRoute = createRoute({
+  method: "get",
+  operationId: "listTopicTasks",
+  path: `${one}/task`,
+  tags,
+  summary: "List a topic's issues",
+  description: "List the issues on a topic that you can open.",
+  middleware: [...read] as const,
+  request: { params: topicParam },
+  responses: {
+    200: jsonResponse("Issues", topicTasksSchema),
+    403: noAccess,
+    404: notFound,
+  },
+});
+
+const linkTaskRoute = createRoute({
+  method: "put",
+  operationId: "linkTaskTopic",
+  path: onTopic,
+  tags,
+  summary: "Put an issue on a topic",
+  description:
+    "Put an issue you can open on a topic you can open. Nobody is notified. Doing it twice changes nothing.",
+  middleware: [...write] as const,
+  request: { params: topicTaskParam },
+  responses: {
+    200: jsonResponse("Issues on the topic", topicTasksSchema),
+    403: noAccess,
+    404: noTopicOrTask,
+  },
+});
+
+const unlinkTaskRoute = createRoute({
+  method: "delete",
+  operationId: "unlinkTaskTopic",
+  path: onTopic,
+  tags,
+  summary: "Take an issue off a topic",
+  description: "Take an issue off a topic. Doing it twice changes nothing.",
+  middleware: [...write] as const,
+  request: { params: topicTaskParam },
+  responses: {
+    200: jsonResponse("Issues on the topic", topicTasksSchema),
+    403: noAccess,
+    404: noTopicOrTask,
+  },
+});
+
 const topic = apiRouter()
   .openapi(listRoute, async (c) => {
     const { workspaceId } = c.req.valid("param");
-    return c.json(await listTopics(workspaceId, c.get("userId")), 200);
+    const { match } = c.req.valid("query");
+    return c.json(
+      match
+        ? await findTopics(workspaceId, c.get("userId"), match)
+        : await listTopics(workspaceId, c.get("userId")),
+      200,
+    );
+  })
+  .openapi(taskTopicsRoute, async (c) => {
+    const { workspaceId, taskId } = c.req.valid("param");
+    return c.json(
+      await listTaskTopics(workspaceId, taskId, c.get("userId")),
+      200,
+    );
   })
   .openapi(createTopicRoute, async (c) =>
     c.json(await createTopic(c.get("userId"), c.req.valid("json")), 200),
@@ -293,6 +387,24 @@ const topic = apiRouter()
     const { workspaceId, id } = c.req.valid("param");
     return c.json(
       await updateTopic(workspaceId, id, c.get("userId"), c.req.valid("json")),
+      200,
+    );
+  })
+  .openapi(topicTasksRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(await listTopicTasks(workspaceId, id, c.get("userId")), 200);
+  })
+  .openapi(linkTaskRoute, async (c) => {
+    const { workspaceId, id, taskId } = c.req.valid("param");
+    return c.json(
+      await linkTaskTopic(workspaceId, id, taskId, c.get("userId")),
+      200,
+    );
+  })
+  .openapi(unlinkTaskRoute, async (c) => {
+    const { workspaceId, id, taskId } = c.req.valid("param");
+    return c.json(
+      await unlinkTaskTopic(workspaceId, id, taskId, c.get("userId")),
       200,
     );
   })

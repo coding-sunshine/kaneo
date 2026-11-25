@@ -4,6 +4,7 @@ import { documentTable, userTable } from "../../database/schema";
 import { listDocuments } from "../../document/controllers/list-documents";
 import { documentVisibility } from "../../document/visibility";
 import { findTopics } from "./find-topics";
+import { tasksOfTopics } from "./topic-tasks";
 
 type Found = Awaited<ReturnType<typeof findTopics>>[number];
 
@@ -42,6 +43,11 @@ export async function getCurrent(
   text: string,
 ) {
   const topics = await findTopics(workspaceId, userId, text);
+  const tasks = await tasksOfTopics(
+    workspaceId,
+    userId,
+    topics.map((topic) => topic.id),
+  );
   const currentIds = topics.flatMap((topic) => topic.currentDocumentId ?? []);
   const current =
     currentIds.length === 0
@@ -74,6 +80,7 @@ export async function getCurrent(
         const doc = current.find((row) => row.id === topic.currentDocumentId);
         return {
           ...head(topic),
+          tasks: tasks.filter((task) => task.topicId === topic.id),
           unreviewed: (await waiting(workspaceId, userId, topic.id)).length,
           // The text stays last: an answer cut for length keeps the rest.
           current: doc
@@ -101,10 +108,16 @@ export async function listUnreviewed(
   text: string,
 ) {
   const topics = await findTopics(workspaceId, userId, text);
+  const tasks = await tasksOfTopics(
+    workspaceId,
+    userId,
+    topics.map((topic) => topic.id),
+  );
   return {
     topics: await Promise.all(
       topics.map(async (topic) => ({
         ...head(topic),
+        tasks: tasks.filter((task) => task.topicId === topic.id),
         documents: (await waiting(workspaceId, userId, topic.id)).map(
           ({ id, title, kind, creatorName, filedAt, updatedAt }) => ({
             id,

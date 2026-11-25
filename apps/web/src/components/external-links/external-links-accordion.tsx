@@ -14,6 +14,7 @@ import { useNewDocument } from "@/components/documents/use-new-document";
 import { GithubIcon } from "@/components/icons/github-icon";
 import { GitlabIcon } from "@/components/icons/gitlab-icon";
 import { ShortcutKeys } from "@/components/shortcuts/shortcut-keys";
+import { TaskTopics } from "@/components/task/task-topics";
 import { SectionAddButton } from "@/components/task/sections/section-add-button";
 import { SectionHeader } from "@/components/task/sections/section-header";
 import { sectionRowClass } from "@/components/task/sections/section-row-class";
@@ -357,6 +358,7 @@ export function ExternalLinksAccordion({
                 {t("settings:externalLinks.empty")}
               </p>
             )}
+            <TaskTopics workspaceId={workspaceId} taskId={taskId} />
           </CollapsibleContent>
         </section>
       </Collapsible>

@@ -1,7 +1,14 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 import type {
   DocumentDetail,
   DocumentSummary,
@@ -12,6 +19,7 @@ import { TopicPage } from "./topic-page";
 
 const mocks = vi.hoisted(() => ({
   getTopic: vi.fn(),
+  getTopicTasks: vi.fn(),
   getDocument: vi.fn(),
   getDocuments: vi.fn(),
 }));
@@ -24,7 +32,10 @@ vi.mock("react-i18next", () => ({
   }),
   initReactI18next: { type: "3rdParty", init: () => {} },
 }));
-vi.mock("@/fetchers/topic/topics", () => ({ getTopic: mocks.getTopic }));
+vi.mock("@/fetchers/topic/topics", () => ({
+  getTopic: mocks.getTopic,
+  getTopicTasks: mocks.getTopicTasks,
+}));
 vi.mock("@/fetchers/document/documents", () => ({
   getDocument: mocks.getDocument,
   getDocuments: mocks.getDocuments,
@@ -64,6 +75,7 @@ const topic = {
   backupDeciderName: "Backup Person",
   backupDeciderImage: null,
   currentDocumentId: "doc-current",
+  currentDocumentTitle: "Launch plan v2",
   canDecide: false,
   createdAt: APPROVED_AT,
   updatedAt: APPROVED_AT,
@@ -105,6 +117,7 @@ const section = async (name: string) =>
   within(await screen.findByRole("region", { name }));
 
 describe("TopicPage", () => {
+  beforeEach(() => mocks.getTopicTasks.mockResolvedValue({ tasks: [] }));
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();

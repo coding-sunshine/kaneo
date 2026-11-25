@@ -3579,7 +3579,23 @@
 				"proposed": "Looks like a revision of",
 				"undo": "Not a revision"
 			},
-			"citedBy_other": "Cited by {{count}} issues:"
+			"citedBy_other": "Cited by {{count}} issues:",
+			"taskTopic": {
+				"add": "Add topic",
+				"addFailed": "Could not add the topic",
+				"allClosed": "All linked issues are closed",
+				"cannotOpen": "A current document you cannot open",
+				"closed": "Closed",
+				"current": "Current: {{title}}",
+				"issues": "Issues",
+				"matches": "Topics that match",
+				"noIssues": "No issues on this topic yet. Add the topic from an issue's Resources.",
+				"noMore": "No more topics to add",
+				"nothingCurrent": "Nothing current yet",
+				"picked": "Topic: {{name}}",
+				"remove": "Remove topic {{name}}",
+				"removeFailed": "Could not remove the topic"
+			}
 		},
 		"drafts": {
 			"delete": "Delete draft",

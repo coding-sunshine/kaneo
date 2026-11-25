@@ -325,7 +325,9 @@ const createTaskRoute = createRoute({
     403: errorResponse(
       "No access to the project, or missing task:create permission",
     ),
-    404: errorResponse("Project not found"),
+    404: errorResponse(
+      "Project not found, or a topic that does not exist or that you cannot open",
+    ),
   },
 });
 
@@ -1234,6 +1236,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       workProjectMilestoneId: c.req.valid("json").workProjectMilestoneId,
       cycleId: c.req.valid("json").cycleId,
       sourceCommentId: c.req.valid("json").sourceCommentId,
+      topicId: c.req.valid("json").topicId,
     });
 
     return c.json(task, 200);

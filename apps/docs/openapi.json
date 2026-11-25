@@ -4684,6 +4684,13 @@
               "null"
             ]
           },
+          "currentDocumentTitle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Title of the current document. Null when nothing is current, or when you cannot open that document."
+          },
           "canDecide": {
             "type": "boolean",
             "description": "Whether you can make a document current here: the decider, the backup decider or a workspace owner."
@@ -4716,6 +4723,7 @@
           "backupDeciderName",
           "backupDeciderImage",
           "currentDocumentId",
+          "currentDocumentTitle",
           "canDecide",
           "following",
           "createdAt",
@@ -4748,6 +4756,13 @@
                     "string",
                     "null"
                   ]
+                },
+                "tasks": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TopicTask"
+                  },
+                  "description": "The issues on the topic that you can open. An issue in a team you cannot enter is left out."
                 },
                 "unreviewed": {
                   "type": "number",
@@ -4811,6 +4826,7 @@
                 "name",
                 "parentName",
                 "deciderName",
+                "tasks",
                 "unreviewed",
                 "current"
               ]
@@ -4819,6 +4835,49 @@
         },
         "required": [
           "topics"
+        ]
+      },
+      "TopicTask": {
+        "type": "object",
+        "properties": {
+          "topicId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "number": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "projectSlug": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "closed": {
+            "type": "boolean",
+            "description": "The issue is completed, canceled or archived."
+          }
+        },
+        "required": [
+          "topicId",
+          "id",
+          "title",
+          "number",
+          "projectId",
+          "projectSlug",
+          "status",
+          "closed"
         ]
       },
       "TopicUnreviewed": {
@@ -4847,6 +4906,13 @@
                     "string",
                     "null"
                   ]
+                },
+                "tasks": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TopicTask"
+                  },
+                  "description": "The issues on the topic that you can open. An issue in a team you cannot enter is left out."
                 },
                 "documents": {
                   "type": "array",
@@ -4900,6 +4966,7 @@
                 "name",
                 "parentName",
                 "deciderName",
+                "tasks",
                 "documents"
               ]
             }
@@ -16035,6 +16102,10 @@
                     "type": "string",
                     "description": "The comment the task is created from. The comment lists the task under its body."
                   },
+                  "topicId": {
+                    "type": "string",
+                    "description": "A topic you can open. The new task is put on it, and the topic lists the task."
+                  },
                   "customFields": {
                     "type": "array",
                     "items": {
@@ -16106,7 +16177,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or a topic that does not exist or that you cannot open",
             "content": {
               "application/json": {
                 "schema": {
@@ -29482,7 +29553,7 @@
           "Topics"
         ],
         "summary": "List topics",
-        "description": "List the topics you can open. A topic is open to whoever can open the place it lives in.",
+        "description": "List the topics you can open. A topic is open to whoever can open the place it lives in. With `match`, only the topics that text names.",
         "parameters": [
           {
             "schema": {
@@ -29490,6 +29561,84 @@
             },
             "required": true,
             "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Only the topics this text names: a topic's id, its name, or a sentence with the name in it."
+            },
+            "required": false,
+            "description": "Only the topics this text names: a topic's id, its name, or a sentence with the name in it.",
+            "name": "match",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Topics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Topic"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/task/{taskId}/topics": {
+      "get": {
+        "operationId": "listTaskTopics",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "List an issue's topics",
+        "description": "List the topics an issue is on that you can open, each with its current document.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "taskId",
             "in": "path"
           }
         ],
@@ -29519,6 +29668,16 @@
           },
           "403": {
             "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or issue not found. One you cannot open answers the same.",
             "content": {
               "application/json": {
                 "schema": {
@@ -29940,6 +30099,275 @@
           },
           "404": {
             "description": "Topic or document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/{id}/task": {
+      "get": {
+        "operationId": "listTopicTasks",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "List a topic's issues",
+        "description": "List the issues on a topic that you can open.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Issues",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tasks": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TopicTask"
+                      },
+                      "description": "The issues on the topic that you can open. An issue in a team you cannot enter is left out."
+                    }
+                  },
+                  "required": [
+                    "tasks"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/{id}/task/{taskId}": {
+      "put": {
+        "operationId": "linkTaskTopic",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "Put an issue on a topic",
+        "description": "Put an issue you can open on a topic you can open. Nobody is notified. Doing it twice changes nothing.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "taskId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Issues on the topic",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tasks": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TopicTask"
+                      },
+                      "description": "The issues on the topic that you can open. An issue in a team you cannot enter is left out."
+                    }
+                  },
+                  "required": [
+                    "tasks"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or issue not found. One you cannot open answers the same.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "unlinkTaskTopic",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "Take an issue off a topic",
+        "description": "Take an issue off a topic. Doing it twice changes nothing.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "taskId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Issues on the topic",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tasks": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TopicTask"
+                      },
+                      "description": "The issues on the topic that you can open. An issue in a team you cannot enter is left out."
+                    }
+                  },
+                  "required": [
+                    "tasks"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or issue not found. One you cannot open answers the same.",
             "content": {
               "application/json": {
                 "schema": {

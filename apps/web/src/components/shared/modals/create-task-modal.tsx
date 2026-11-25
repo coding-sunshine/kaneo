@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "@tanstack/react-router";
 import { produce } from "immer";
 import {
@@ -24,6 +25,7 @@ import type { CustomFieldDefinition } from "@/components/project/custom-fields/t
 import TaskDescriptionEditor from "@/components/task/task-description-editor";
 import TaskDueDatePicker from "@/components/task/task-due-date-picker";
 import { TaskRecurrenceBadge } from "@/components/task/task-recurrence-badge";
+import { TopicSuggestions } from "@/components/task/topic-suggestions";
 import {
   AlertDialog,
   AlertDialogClose,
@@ -57,6 +59,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
+import type { Topic } from "@/fetchers/topic/topics";
+import { topicsKey } from "@/hooks/queries/topic/use-topics";
 import { useGetColumns } from "@/hooks/queries/column/use-get-columns";
 import { CreateTaskTemplatePicker } from "@/components/shared/modals/create-task-template-picker";
 import type { IssueTemplate } from "@/components/project/issue-templates/issue-template-dialog";
@@ -260,6 +264,8 @@ function CreateTaskModalContent({
   const canCreateLabelCapability = canCreateLabels();
 
   const [title, setTitle] = useState(prefill?.title ?? "");
+  const [topic, setTopic] = useState<Topic | null>(null);
+  const queryClient = useQueryClient();
   const titleRef = useAutoGrowTextarea(title);
   const [description, setDescription] = useState(prefill?.description ?? "");
   const [priority, setPriority] = useState<Priority>("no-priority");
@@ -705,6 +711,7 @@ function CreateTaskModalContent({
           workProjectMilestoneId: workProjectMilestoneId ?? undefined,
           cycleId: validCycleId ?? undefined,
           sourceCommentId: prefill?.sourceCommentId,
+          topicId: topic?.id,
           status: submitStatus,
           draftAssetIds: stagedAssetsRef.current.filter((id) =>
             description.includes(`/asset/${id}`),
@@ -778,12 +785,17 @@ function CreateTaskModalContent({
       }
       if (!activeRef.current) return;
       syncTaskIntoProject(savedTask);
+      if (topic && workspace?.id)
+        void queryClient.invalidateQueries({
+          queryKey: topicsKey(workspace.id),
+        });
       toast.success(t("common:modals.createTask.successCreated"), {
         icon: SquarePlusIcon,
       });
 
       if (createMore) {
         setTitle("");
+        setTopic(null);
         setDescription("");
         setPriority("no-priority");
         setWorkProjectId(null);
@@ -1001,6 +1013,43 @@ function CreateTaskModalContent({
               className="block w-full resize-none overflow-hidden border-0 bg-transparent px-0 py-3 font-semibold text-2xl text-foreground leading-tight tracking-tight outline-none placeholder:text-muted-foreground"
               required
             />
+            {workspace?.id && (
+              <TopicSuggestions
+                workspaceId={workspace.id}
+                title={title}
+                picked={topic}
+                onPick={setTopic}
+              />
+            )}
+            {topic && (
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="inline-flex items-center gap-1 rounded-full border border-border/70 px-2 py-0.5">
+                  {t("navigation:documents.taskTopic.picked", {
+                    name: topic.name,
+                  })}
+                  <button
+                    type="button"
+                    aria-label={t("navigation:documents.taskTopic.remove", {
+                      name: topic.name,
+                    })}
+                    onClick={() => setTopic(null)}
+                    className="rounded-full outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <X aria-hidden="true" className="size-3" />
+                  </button>
+                </span>
+                {topic.currentDocumentId && topic.currentDocumentTitle && (
+                  <a
+                    href={`/dashboard/workspace/${workspace?.id}/document/${topic.currentDocumentId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-info-foreground underline underline-offset-2"
+                  >
+                    {topic.currentDocumentTitle}
+                  </a>
+                )}
+              </div>
+            )}
 
             <div className="min-h-[200px]">
               <TaskDescriptionEditor

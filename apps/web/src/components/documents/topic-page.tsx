@@ -13,6 +13,7 @@ import { getInitials } from "@/lib/get-initials";
 import { DocumentList } from "./document-list";
 import { TopicCurrentDocument } from "./topic-current-document";
 import { TopicFollowButton } from "./topic-follow-button";
+import { TopicIssues } from "./topic-issues";
 import { TopicSection } from "./topic-section";
 
 type TopicPageProps = { workspaceId: string; topicId: string };
@@ -132,6 +133,7 @@ export function TopicPage({ workspaceId, topicId }: TopicPageProps) {
               </p>
             )}
           </TopicSection>
+          <TopicIssues workspaceId={workspaceId} topicId={topicId} />
           {replaced.length > 0 && (
             <TopicSection
               id="topic-replaced"

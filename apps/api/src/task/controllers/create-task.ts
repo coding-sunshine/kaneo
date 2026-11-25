@@ -8,6 +8,7 @@ import {
   customFieldDefinitionTable,
   customFieldValueTable,
   taskTable,
+  taskTopicTable,
   projectTable,
   userTable,
 } from "../../database/schema";
@@ -35,6 +36,7 @@ import { findSourceComment } from "./find-source-comment";
 import { nextTaskPosition } from "./next-task-position";
 import { mentionsDocument } from "../../task-document/find-links";
 import { syncTaskDescriptionLinks } from "../../task-document/sync-links";
+import { getTopic } from "../../topic/controllers/get-topic";
 import { subscribeUsers } from "./task-subscribers";
 
 type CustomFieldInput = {
@@ -75,6 +77,7 @@ async function createTask({
   workProjectMilestoneId,
   cycleId,
   sourceCommentId,
+  topicId,
 }: {
   projectId: string;
   currentUserId: string;
@@ -92,6 +95,7 @@ async function createTask({
   workProjectMilestoneId?: string | null;
   cycleId?: string | null;
   sourceCommentId?: string;
+  topicId?: string;
 }) {
   const resolvedStatus = status || "to-do";
   const resolvedPriority = priority || "no-priority";
@@ -109,6 +113,14 @@ async function createTask({
         currentUserId,
       )
     : null;
+  // A topic the person cannot open answers like one that does not exist, and
+  // no issue is made.
+  if (topicId)
+    await getTopic(
+      await getProjectWorkspaceId(projectId),
+      topicId,
+      currentUserId,
+    );
 
   const allFields = await db
     .select()
@@ -217,6 +229,8 @@ async function createTask({
 
     if (task)
       await subscribeUsers(tx, task.id, [currentUserId, normalizedUserId]);
+    if (task && topicId)
+      await tx.insert(taskTopicTable).values({ taskId: task.id, topicId });
     if (task && mentionsDocument(task.description))
       await syncTaskDescriptionLinks(
         tx,

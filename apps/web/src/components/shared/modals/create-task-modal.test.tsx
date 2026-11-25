@@ -114,6 +114,15 @@ vi.mock("@tanstack/react-router", () => ({
     }),
 }));
 
+const launchPlan = { id: "topic-1", name: "Launch plan" };
+vi.mock("@/components/task/topic-suggestions", () => ({
+  TopicSuggestions: ({ onPick }: { onPick: (topic: unknown) => void }) => (
+    <button type="button" onClick={() => onPick(launchPlan)}>
+      pick topic
+    </button>
+  ),
+}));
+
 vi.mock("@/components/task/task-description-editor", () => ({
   default: (props: {
     taskId?: string;
@@ -1029,6 +1038,25 @@ describe("CreateTaskModal custom fields", () => {
             { fieldId: "billable", value: "false" },
           ],
         }),
+      ),
+    );
+  });
+
+  it("sends the picked topic with the new issue", async () => {
+    render(<CreateTaskModal open onClose={vi.fn()} projectId="project-2" />, {
+      wrapper: createWrapper(),
+    });
+    enterTitle();
+    fireEvent.click(screen.getByText("pick topic"));
+    expect(
+      screen.getByRole("button", {
+        name: "navigation:documents.taskTopic.remove",
+      }),
+    ).toBeInTheDocument();
+    submit();
+    await vi.waitFor(() =>
+      expect(createTask).toHaveBeenCalledWith(
+        expect.objectContaining({ topicId: "topic-1" }),
       ),
     );
   });

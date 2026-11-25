@@ -14,7 +14,11 @@ import { loadDocument } from "./load-document";
 type Database = Pick<typeof db, "insert">;
 
 // An issue of the workspace the user can open. Any other id looks missing.
-async function loadTask(workspaceId: string, taskId: string, userId: string) {
+export async function loadTask(
+  workspaceId: string,
+  taskId: string,
+  userId: string,
+) {
   const [task] = await db
     .select({ id: taskTable.id })
     .from(taskTable)

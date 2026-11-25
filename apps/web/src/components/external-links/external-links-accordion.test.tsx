@@ -45,6 +45,7 @@ vi.mock("@/components/documents/document-resource-row", () => ({
     <a href="/doc">{document.title}</a>
   ),
 }));
+vi.mock("@/components/task/task-topics", () => ({ TaskTopics: () => null }));
 vi.mock("@/components/shortcuts/shortcut-keys", () => ({
   ShortcutKeys: () => null,
 }));

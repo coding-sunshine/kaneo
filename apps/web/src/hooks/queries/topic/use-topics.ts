@@ -1,5 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { getTopic, getTopics } from "@/fetchers/topic/topics";
+import {
+  getTaskTopics,
+  getTopic,
+  getTopics,
+  getTopicTasks,
+} from "@/fetchers/topic/topics";
 import { documentsKey } from "@/hooks/queries/document/use-documents";
 
 /**
@@ -26,5 +31,30 @@ export function useTopic(workspaceId: string, id: string | null) {
     queryKey: [...topicsKey(workspaceId), id],
     queryFn: () => getTopic(workspaceId, id ?? ""),
     retry: false,
+  });
+}
+
+/** Topics the text names; asks nothing under three characters. */
+export function useMatchingTopics(workspaceId: string, text: string) {
+  return useQuery({
+    enabled: Boolean(workspaceId) && text.length >= 3,
+    queryKey: [...topicsKey(workspaceId), "match", text],
+    queryFn: () => getTopics(workspaceId, text),
+  });
+}
+
+export function useTopicTasks(workspaceId: string, id: string) {
+  return useQuery({
+    enabled: Boolean(workspaceId && id),
+    queryKey: [...topicsKey(workspaceId), id, "tasks"],
+    queryFn: () => getTopicTasks(workspaceId, id),
+  });
+}
+
+export function useTaskTopics(workspaceId: string, taskId: string) {
+  return useQuery({
+    enabled: Boolean(workspaceId && taskId),
+    queryKey: [...topicsKey(workspaceId), "task", taskId],
+    queryFn: () => getTaskTopics(workspaceId, taskId),
   });
 }

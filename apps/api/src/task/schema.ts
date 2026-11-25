@@ -111,6 +111,10 @@ export const createTaskBody = z.object({
     description:
       "The comment the task is created from. The comment lists the task under its body.",
   }),
+  topicId: z.string().optional().openapi({
+    description:
+      "A topic you can open. The new task is put on it, and the topic lists the task.",
+  }),
   customFields: z
     .array(z.object({ fieldId: z.string(), value: z.string() }))
     .optional(),

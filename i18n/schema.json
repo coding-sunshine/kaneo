@@ -14781,6 +14781,70 @@
 								}
 							},
 							"required": ["action", "title", "hint", "done"]
+						},
+						"taskTopic": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"matches": {
+									"type": "string"
+								},
+								"current": {
+									"type": "string"
+								},
+								"cannotOpen": {
+									"type": "string"
+								},
+								"nothingCurrent": {
+									"type": "string"
+								},
+								"picked": {
+									"type": "string"
+								},
+								"remove": {
+									"type": "string"
+								},
+								"issues": {
+									"type": "string"
+								},
+								"allClosed": {
+									"type": "string"
+								},
+								"closed": {
+									"type": "string"
+								},
+								"noIssues": {
+									"type": "string"
+								},
+								"add": {
+									"type": "string"
+								},
+								"noMore": {
+									"type": "string"
+								},
+								"addFailed": {
+									"type": "string"
+								},
+								"removeFailed": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"matches",
+								"current",
+								"cannotOpen",
+								"nothingCurrent",
+								"picked",
+								"remove",
+								"issues",
+								"allClosed",
+								"closed",
+								"noIssues",
+								"add",
+								"noMore",
+								"addFailed",
+								"removeFailed"
+							]
 						}
 					},
 					"required": [
@@ -14840,7 +14904,8 @@
 						"file",
 						"audience",
 						"makeCurrent",
-						"setAside"
+						"setAside",
+						"taskTopic"
 					]
 				},
 				"agent": {

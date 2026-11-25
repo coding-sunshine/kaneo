@@ -9,6 +9,11 @@ export const topicParam = z.object({
 export const topicDocumentParam = topicParam.extend({
   documentId: z.string(),
 });
+export const topicTaskParam = topicParam.extend({ taskId: z.string() });
+export const taskTopicsParam = z.object({
+  workspaceId: z.string(),
+  taskId: z.string(),
+});
 
 const name = z.string().trim().min(1).max(200);
 const backupDeciderId = z.string().nullable().optional().openapi({
@@ -60,6 +65,10 @@ export const topicSchema = z
     backupDeciderName: z.string().nullable(),
     backupDeciderImage: z.string().nullable(),
     currentDocumentId: z.string().nullable(),
+    currentDocumentTitle: z.string().nullable().openapi({
+      description:
+        "Title of the current document. Null when nothing is current, or when you cannot open that document.",
+    }),
     canDecide: z.boolean().openapi({
       description:
         "Whether you can make a document current here: the decider, the backup decider or a workspace owner.",
@@ -73,6 +82,32 @@ export const topicSchema = z
   })
   .openapi("Topic");
 export const topicListSchema = z.array(topicSchema);
+export const topicListQuery = z.object({
+  match: name.optional().openapi({
+    description:
+      "Only the topics this text names: a topic's id, its name, or a sentence with the name in it.",
+  }),
+});
+
+const topicTaskSchema = z
+  .object({
+    topicId: z.string(),
+    id: z.string(),
+    title: z.string(),
+    number: z.number().nullable(),
+    projectId: z.string(),
+    projectSlug: z.string(),
+    status: z.string(),
+    closed: z.boolean().openapi({
+      description: "The issue is completed, canceled or archived.",
+    }),
+  })
+  .openapi("TopicTask");
+const topicTasks = z.array(topicTaskSchema).openapi({
+  description:
+    "The issues on the topic that you can open. An issue in a team you cannot enter is left out.",
+});
+export const topicTasksSchema = z.object({ tasks: topicTasks });
 
 export const topicReadQuery = z.object({
   topic: name.openapi({
@@ -86,6 +121,7 @@ const topicHead = {
     description: "Team or project name. Null for a workspace topic.",
   }),
   deciderName: z.string().nullable(),
+  tasks: topicTasks,
 };
 export const topicCurrentSchema = z
   .object({

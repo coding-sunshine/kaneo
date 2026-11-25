@@ -3,10 +3,13 @@ import {
   confirmCurrentDocument,
   createTopic,
   fileDocumentOnTopic,
+  linkTaskTopic,
   makeDocumentCurrent,
   setCurrentDocumentAside,
   setTopicFollowed,
   type TopicDocument,
+  type TopicTask,
+  unlinkTaskTopic,
 } from "@/fetchers/topic/topics";
 import { documentsKey } from "@/hooks/queries/document/use-documents";
 import { topicsKey } from "@/hooks/queries/topic/use-topics";
@@ -66,4 +69,24 @@ export function useConfirmCurrentDocument(workspaceId: string) {
 
 export function useSetCurrentDocumentAside(workspaceId: string) {
   return useTopicDocumentMutation(workspaceId, setCurrentDocumentAside);
+}
+
+function useTopicTaskMutation(
+  workspaceId: string,
+  mutationFn: (input: TopicTask) => Promise<unknown>,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: topicsKey(workspaceId) }),
+  });
+}
+
+export function useLinkTaskTopic(workspaceId: string) {
+  return useTopicTaskMutation(workspaceId, linkTaskTopic);
+}
+
+export function useUnlinkTaskTopic(workspaceId: string) {
+  return useTopicTaskMutation(workspaceId, unlinkTaskTopic);
 }

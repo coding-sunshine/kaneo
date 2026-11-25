@@ -186,6 +186,38 @@ describe("registerTools", () => {
     });
   });
 
+  it("puts a new task on a topic when create_task is given one", async () => {
+    const { server, tools } = createServerMock();
+    const client = { json: vi.fn().mockResolvedValue({ id: "task-1" }) };
+
+    registerTools(server as never, { client: client as never });
+
+    const create = tools.get("create_task");
+    const args = {
+      projectId: "project-1",
+      title: "Book the venue",
+      description: "",
+      priority: "no-priority",
+      status: "to-do",
+    };
+    await create?.handler({ ...args, topicId: "topic-1" });
+    await create?.handler(args);
+
+    const sent = client.json.mock.calls.map(([path, init]) => [
+      path,
+      JSON.parse(init.body),
+    ]);
+    expect(sent[0]).toEqual([
+      "/api/task/project-1",
+      { ...args, projectId: undefined, topicId: "topic-1" },
+    ]);
+    expect(sent[1]?.[1]).not.toHaveProperty("topicId");
+    expect(create?.config.inputSchema.safeParse(args).success).toBe(true);
+    expect(
+      create?.config.inputSchema.safeParse({ ...args, topicId: "" }).success,
+    ).toBe(false);
+  });
+
   it("gets one task by ticket ID with an optional workspace", async () => {
     const { server, tools } = createServerMock();
     const client = {

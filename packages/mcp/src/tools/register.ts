@@ -301,6 +301,9 @@ export function registerTools(
         startDate: optionalIsoDateTimeSchema,
         dueDate: optionalIsoDateTimeSchema,
         userId: optionalNonEmptyString,
+        topicId: optionalNonEmptyString.describe(
+          "Id of a topic from get_current. The task is put on that topic.",
+        ),
       }),
     },
     async (args) => {
@@ -309,6 +312,7 @@ export function registerTools(
         description: args.description,
         priority: args.priority,
         status: args.status,
+        topicId: args.topicId,
       };
       if (args.startDate !== undefined) {
         body.startDate = args.startDate;

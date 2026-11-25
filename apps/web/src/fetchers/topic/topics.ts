@@ -4,8 +4,11 @@ import { HttpError } from "@/lib/http-error";
 const api = client.topic.workspace[":workspaceId"];
 const filed = api[":id"].document[":documentId"];
 
-export async function getTopics(workspaceId: string) {
-  const response = await api.$get({ param: { workspaceId } });
+export async function getTopics(workspaceId: string, match?: string) {
+  const response = await api.$get({
+    param: { workspaceId },
+    query: { match },
+  });
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }
@@ -71,6 +74,35 @@ export async function confirmCurrentDocument(param: TopicDocument) {
 
 export async function setCurrentDocumentAside(param: TopicDocument) {
   const response = await filed["set-aside"].$post({ param });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function getTopicTasks(workspaceId: string, id: string) {
+  const response = await api[":id"].task.$get({ param: { workspaceId, id } });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function getTaskTopics(workspaceId: string, taskId: string) {
+  const response = await api.task[":taskId"].topics.$get({
+    param: { workspaceId, taskId },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+/** An issue on a topic: the ids every change of the link needs. */
+export type TopicTask = { workspaceId: string; id: string; taskId: string };
+
+export async function linkTaskTopic(param: TopicTask) {
+  const response = await api[":id"].task[":taskId"].$put({ param });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function unlinkTaskTopic(param: TopicTask) {
+  const response = await api[":id"].task[":taskId"].$delete({ param });
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }
