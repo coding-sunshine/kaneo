@@ -12,6 +12,7 @@ import {
   persistNotification,
   dispatchNotification,
 } from "../notification/controllers/create-notification";
+import { projectAccessCondition } from "../project-access/project-access-condition";
 import { workspaceIsActive } from "../workspace/archive/active-workspace-sql";
 import {
   DUE_DATE_DURATION_MS,
@@ -96,6 +97,7 @@ async function getTasksNeedingReminder(
         // Archived tasks keep their due date but should not notify anyone
         ne(taskTable.status, "archived"),
         workspaceIsActive(projectTable.workspaceId),
+        projectAccessCondition(taskTable.userId, taskTable.projectId),
       ),
     );
 

@@ -1,4 +1,4 @@
-import { and, asc, eq, or } from "drizzle-orm";
+import { and, asc, eq, isNull, or } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
 import db from "../database";
@@ -8,6 +8,7 @@ import {
   savedViewTable,
   userTable,
 } from "../database/schema";
+import { projectAccessCondition } from "../project-access/project-access-condition";
 import type { createViewBody, updateViewBody } from "./schema";
 
 const selectView = () =>
@@ -29,11 +30,19 @@ const selectView = () =>
     .from(savedViewTable)
     .leftJoin(userTable, eq(userTable.id, savedViewTable.ownerId));
 
-// Personal views exist only for their owner; everything else is shared.
+// Personal views exist only for their owner; everything else is shared. A
+// view on a team is open to whoever can open that team, its owner included:
+// its name and filters describe the team's issues.
 const visibleTo = (userId: string) =>
-  or(
-    eq(savedViewTable.visibility, "shared"),
-    eq(savedViewTable.ownerId, userId),
+  and(
+    or(
+      eq(savedViewTable.visibility, "shared"),
+      eq(savedViewTable.ownerId, userId),
+    ),
+    or(
+      isNull(savedViewTable.projectId),
+      projectAccessCondition(userId, savedViewTable.projectId),
+    ),
   );
 
 const withCanEdit = <T extends { ownerId: string | null }>(
@@ -72,6 +81,8 @@ export async function createView(
         and(
           eq(projectTable.id, body.projectId),
           eq(projectTable.workspaceId, body.workspaceId),
+          // A team the person cannot open answers like one that is not there.
+          projectAccessCondition(ownerId, projectTable.id),
         ),
       );
     if (!team) throw new HTTPException(400, { message: "Team not found" });

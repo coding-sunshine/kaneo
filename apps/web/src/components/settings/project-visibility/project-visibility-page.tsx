@@ -2,7 +2,10 @@ import { useParams } from "@tanstack/react-router";
 import { Globe, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import PageTitle from "@/components/page-title";
+import { PrivateMembersSection } from "@/components/settings/project-visibility/private-members-section";
+import { PrivateTeamRow } from "@/components/settings/project-visibility/private-team-row";
 import { PublicLinkUrlRow } from "@/components/settings/project-visibility/public-link-url-row";
+import { useCanManagePrivateTeam } from "@/components/settings/project-visibility/use-can-manage-private-team";
 import { useCanShareProject } from "@/components/settings/project-visibility/use-can-share-project";
 import { useToggleProjectPublic } from "@/components/settings/project-visibility/use-toggle-project-public";
 import { SettingsCard } from "@/components/settings/settings-card";
@@ -24,8 +27,10 @@ export function ProjectVisibilityPage() {
     workspaceId: workspace?.id || "",
   });
   const canShare = useCanShareProject();
+  const canManagePrivate = useCanManagePrivateTeam();
   const togglePublic = useToggleProjectPublic(project, workspace?.id);
   const isPublic = Boolean(project?.isPublic);
+  const isPrivate = Boolean(project?.isPrivate);
   const publicUrl = project?.id
     ? `${window.location.origin}/public-project/${project.id}`
     : "";
@@ -53,12 +58,23 @@ export function ProjectVisibilityPage() {
               title={t("settings:projectVisibility.membersTitle", {
                 workspace: workspaceName,
               })}
-              description={t("settings:projectVisibility.membersDescription")}
+              description={
+                isPrivate
+                  ? t("settings:projectVisibility.membersDescriptionPrivate")
+                  : t("settings:projectVisibility.membersDescription")
+              }
             >
-              <span className="text-xs text-muted-foreground">
-                {t("settings:projectVisibility.always")}
-              </span>
+              {isPrivate ? null : (
+                <span className="text-xs text-muted-foreground">
+                  {t("settings:projectVisibility.always")}
+                </span>
+              )}
             </SettingsRow>
+            <PrivateTeamRow
+              project={project}
+              workspaceId={workspace?.id}
+              canManage={canManagePrivate}
+            />
             <SettingsRow
               icon={<Globe />}
               title={t("settings:projectVisibility.publicAccess")}
@@ -69,13 +85,19 @@ export function ProjectVisibilityPage() {
                   </StatusBadge>
                 ) : null
               }
-              description={t("settings:projectVisibility.publicAccessHint")}
+              description={
+                isPrivate
+                  ? t("settings:projectVisibility.publicBlockedByPrivate")
+                  : t("settings:projectVisibility.publicAccessHint")
+              }
             >
               <Switch
                 aria-label={t("settings:projectVisibility.publicAccess")}
                 checked={isPublic}
-                onCheckedChange={canShare ? togglePublic : undefined}
-                disabled={!canShare}
+                onCheckedChange={
+                  canShare && !isPrivate ? togglePublic : undefined
+                }
+                disabled={!canShare || isPrivate}
               />
             </SettingsRow>
             {isPublic && publicUrl ? (
@@ -84,6 +106,12 @@ export function ProjectVisibilityPage() {
           </SettingsCard>
           <SettingsNote>{t("settings:projectVisibility.offNote")}</SettingsNote>
         </SettingsSection>
+        {isPrivate && canManagePrivate && project && workspace ? (
+          <PrivateMembersSection
+            projectId={project.id}
+            workspaceId={workspace.id}
+          />
+        ) : null}
       </SettingsPage>
     </>
   );

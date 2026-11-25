@@ -8118,6 +8118,54 @@
 						},
 						"offNote": {
 							"type": "string"
+						},
+						"privateTeam": {
+							"type": "string"
+						},
+						"privateTeamHint": {
+							"type": "string"
+						},
+						"privateBlockedByPublic": {
+							"type": "string"
+						},
+						"publicBlockedByPrivate": {
+							"type": "string"
+						},
+						"membersDescriptionPrivate": {
+							"type": "string"
+						},
+						"makePrivateTitle": {
+							"type": "string"
+						},
+						"makePrivateBody": {
+							"type": "string"
+						},
+						"makePrivateConfirm": {
+							"type": "string"
+						},
+						"openTeamTitle": {
+							"type": "string"
+						},
+						"openTeamBody": {
+							"type": "string"
+						},
+						"openTeamConfirm": {
+							"type": "string"
+						},
+						"privateMembersTitle": {
+							"type": "string"
+						},
+						"privateMembersOwnerNote": {
+							"type": "string"
+						},
+						"privateMembersEmpty": {
+							"type": "string"
+						},
+						"privateMemberAddError": {
+							"type": "string"
+						},
+						"privateMemberRemoveError": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -8139,7 +8187,23 @@
 						"copied",
 						"copyError",
 						"openPublicPage",
-						"offNote"
+						"offNote",
+						"privateTeam",
+						"privateTeamHint",
+						"privateBlockedByPublic",
+						"publicBlockedByPrivate",
+						"membersDescriptionPrivate",
+						"makePrivateTitle",
+						"makePrivateBody",
+						"makePrivateConfirm",
+						"openTeamTitle",
+						"openTeamBody",
+						"openTeamConfirm",
+						"privateMembersTitle",
+						"privateMembersOwnerNote",
+						"privateMembersEmpty",
+						"privateMemberAddError",
+						"privateMemberRemoveError"
 					]
 				},
 				"projectWorkflow": {
@@ -24595,6 +24659,12 @@
 						},
 						"updateError": {
 							"type": "string"
+						},
+						"privateTeamsLabel": {
+							"type": "string"
+						},
+						"privateTeamsHint": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -24614,7 +24684,9 @@
 						"dialogDescription",
 						"save",
 						"updateSuccess",
-						"updateError"
+						"updateError",
+						"privateTeamsLabel",
+						"privateTeamsHint"
 					]
 				}
 			},

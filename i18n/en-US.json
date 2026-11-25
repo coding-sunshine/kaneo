@@ -1995,7 +1995,23 @@
 			"copied": "Copied",
 			"copyError": "Couldn't copy the link",
 			"openPublicPage": "Open public page",
-			"offNote": "Turning the public link off stops it working right away."
+			"offNote": "Turning the public link off stops it working right away.",
+			"privateTeam": "Private team",
+			"privateTeamHint": "Only the people you add can open this team and its issues, documents and files.",
+			"privateBlockedByPublic": "Turn the public link off before making this team private.",
+			"publicBlockedByPrivate": "A private team can't have a public link.",
+			"membersDescriptionPrivate": "Only the people added below. The workspace owner can always open this team.",
+			"makePrivateTitle": "Make {{project}} private?",
+			"makePrivateBody": "You and members whose access is already limited to this team keep it. Everyone else loses access, and their issues here become unassigned. Calendar links for this team are deleted and webhooks stop receiving its events.",
+			"makePrivateConfirm": "Make private",
+			"openTeamTitle": "Open {{project}} to the workspace?",
+			"openTeamBody": "Everyone in the workspace can open this team again, unless their access is limited to other teams.",
+			"openTeamConfirm": "Open team",
+			"privateMembersTitle": "People in this team",
+			"privateMembersOwnerNote": "The workspace owner can always open a private team and isn't listed here.",
+			"privateMembersEmpty": "There's nobody else in this workspace yet.",
+			"privateMemberAddError": "Couldn't add this person",
+			"privateMemberRemoveError": "Couldn't remove this person"
 		},
 		"projectWorkflow": {
 			"pageTitle": "Workflow settings",
@@ -5904,7 +5920,9 @@
 			"dialogDescription": "Choose which projects {{name}} can access.",
 			"save": "Save",
 			"updateSuccess": "Project access updated",
-			"updateError": "Failed to update project access"
+			"updateError": "Failed to update project access",
+			"privateTeamsLabel": "Private teams",
+			"privateTeamsHint": "Managed in each team's settings."
 		}
 	},
 	"publicProject": {

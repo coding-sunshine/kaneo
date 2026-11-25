@@ -44,6 +44,16 @@ export async function createCalendarFeed(
   canCreateLabels: boolean,
 ) {
   return db.transaction(async (tx) => {
+    // A calendar link is read by whoever holds its address, with no sign-in.
+    const [team] = await tx
+      .select({ isPrivate: projectTable.isPrivate })
+      .from(projectTable)
+      .where(eq(projectTable.id, projectId));
+    if (team?.isPrivate) {
+      throw new HTTPException(400, {
+        message: "A private team can't have a calendar link",
+      });
+    }
     const ids = [...new Set(labelIds)];
     const labels = await tx
       .select({
@@ -162,6 +172,7 @@ export async function getCalendarFeed(token: string) {
     .where(
       and(
         eq(calendarFeedTable.token, token),
+        eq(projectTable.isPrivate, false),
         // Subscriptions pause while the workspace is archived.
         workspaceIsActive(projectTable.workspaceId),
       ),

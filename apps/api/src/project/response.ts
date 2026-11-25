@@ -44,6 +44,10 @@ export const projectSchema = z
       description:
         "When true the project's board is readable without signing in, via /api/public-project/{id}.",
     }),
+    isPrivate: z.boolean().openapi({
+      description:
+        "When true only the team's members, the workspace owner and instance administrators can open the team.",
+    }),
     archivedAt: nullableResponseTimestamp.openapi({
       description:
         "Non-null once archived; archived projects are hidden by default.",
@@ -83,6 +87,18 @@ export const teamMembershipSchema = z
     }),
   })
   .openapi("TeamMembership");
+
+export const privateTeamMembersSchema = z
+  .object({
+    projectId: z.string(),
+    userIds: z.array(z.string()).openapi({
+      description:
+        "The workspace members added to the private team. The workspace owner and instance administrators can open every team and are not listed.",
+    }),
+  })
+  .openapi("PrivateTeamMembers");
+
+export const privateTeamMembersListSchema = z.array(privateTeamMembersSchema);
 
 export const projectListItemSchema = projectSchema
   .extend({

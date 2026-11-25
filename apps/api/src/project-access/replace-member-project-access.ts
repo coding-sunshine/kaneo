@@ -1,10 +1,15 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { schema } from "../database";
-import { clearMemberProjectAccess } from "./clear-member-project-access";
 import type { DbOrTx } from "./db-or-tx";
-import { findWorkspaceProjectIds } from "./find-workspace-project-ids";
 import type { ProjectAccessMode } from "./project-access-mode";
 
+const grants = schema.workspaceMemberProjectTable;
+const rules = schema.workspaceMemberAccessTable;
+const projects = schema.projectTable;
+
+// Sets a member's mode and their chosen teams. Who is in a private team is
+// set on the team, so this never adds or removes a row on a private team:
+// changing a member's mode or list cannot put them into one or take them out.
 export async function replaceMemberProjectAccess(
   database: DbOrTx,
   access: {
@@ -17,39 +22,57 @@ export async function replaceMemberProjectAccess(
   const { workspaceId, userId, projectAccess } = access;
 
   if (projectAccess === "all") {
-    await clearMemberProjectAccess(workspaceId, userId, database);
-    return;
+    await database
+      .delete(rules)
+      .where(and(eq(rules.workspaceId, workspaceId), eq(rules.userId, userId)));
+  } else {
+    await database
+      .insert(rules)
+      .values({ workspaceId, userId, projectAccess })
+      .onConflictDoUpdate({
+        target: [rules.workspaceId, rules.userId],
+        set: { projectAccess, updatedAt: new Date() },
+      });
   }
 
-  await database
-    .insert(schema.workspaceMemberAccessTable)
-    .values({ workspaceId, userId, projectAccess })
-    .onConflictDoUpdate({
-      target: [
-        schema.workspaceMemberAccessTable.workspaceId,
-        schema.workspaceMemberAccessTable.userId,
-      ],
-      set: { projectAccess, updatedAt: new Date() },
-    });
+  await database.delete(grants).where(
+    and(
+      eq(grants.workspaceId, workspaceId),
+      eq(grants.userId, userId),
+      inArray(
+        grants.projectId,
+        database
+          .select({ id: projects.id })
+          .from(projects)
+          .where(
+            and(
+              eq(projects.workspaceId, workspaceId),
+              eq(projects.isPrivate, false),
+            ),
+          ),
+      ),
+    ),
+  );
 
-  await database
-    .delete(schema.workspaceMemberProjectTable)
+  if (projectAccess === "all" || access.projectIds.length === 0) return;
+
+  // The row lock waits for a change of a team's privacy that is under way and
+  // reads the flag after it, so no row lands on a team that just went private.
+  const open = await database
+    .select({ id: projects.id })
+    .from(projects)
     .where(
       and(
-        eq(schema.workspaceMemberProjectTable.workspaceId, workspaceId),
-        eq(schema.workspaceMemberProjectTable.userId, userId),
+        eq(projects.workspaceId, workspaceId),
+        inArray(projects.id, [...access.projectIds]),
+        eq(projects.isPrivate, false),
       ),
-    );
-
-  const projectIds = await findWorkspaceProjectIds(
-    workspaceId,
-    access.projectIds,
-    database,
-  );
-  if (projectIds.length === 0) return;
+    )
+    .for("key share");
+  if (open.length === 0) return;
 
   await database
-    .insert(schema.workspaceMemberProjectTable)
-    .values(projectIds.map((projectId) => ({ workspaceId, userId, projectId })))
+    .insert(grants)
+    .values(open.map(({ id }) => ({ workspaceId, userId, projectId: id })))
     .onConflictDoNothing();
 }

@@ -14,6 +14,7 @@ async function updateProject({
   slug,
   description,
   isPublic,
+  isPrivate,
   includeSubtasks,
   autoArchiveMonths,
   ...estimation
@@ -26,6 +27,7 @@ async function updateProject({
       slug,
       description,
       isPublic,
+      isPrivate,
       includeSubtasks,
       autoArchiveMonths,
       ...estimation,

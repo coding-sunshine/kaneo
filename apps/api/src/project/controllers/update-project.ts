@@ -3,11 +3,40 @@ import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { publishEvent } from "../../events";
 import { projectTable } from "../../database/schema";
+import { findInaccessibleProjectIds } from "../../project-access/find-inaccessible-project-ids";
+import { lockAccessChange } from "../../project-access/lock-access-change";
+import { changeProjectPrivacy } from "./change-project-privacy";
 import {
   findProjectKeyConflict,
   isSameProjectKey,
   projectKeyTakenMessage,
 } from "../project-key";
+
+type PrivacyChange = Awaited<ReturnType<typeof changeProjectPrivacy>>;
+
+async function announce(
+  workspaceId: string,
+  projectId: string,
+  actorId: string,
+  change: PrivacyChange,
+) {
+  await publishEvent("project_members.updated", {
+    workspaceId,
+    projectIds: [projectId],
+  });
+  if (change.unassigned) {
+    await publishEvent("task.bulk_unassigned", { projectId, userId: actorId });
+  }
+  // ponytail: one event per member whose access changed. Send one event with
+  // the whole list when a workspace holds thousands of members.
+  for (const userId of change.changedUserIds) {
+    await publishEvent("project_access.updated", {
+      workspaceId,
+      userId,
+      projectIds: [],
+    });
+  }
+}
 
 async function updateProject(
   id: string,
@@ -29,11 +58,23 @@ async function updateProject(
       | "estimateCountUnestimated"
     >
   > = {},
+  // Given only when the request names `isPrivate`. A body without the field
+  // leaves the team as it is, so an older client cannot flip it.
+  privacy?: { isPrivate: boolean; actorId: string },
 ) {
-  const updated = await db.transaction(async (tx) => {
+  const { updated, privacyChange } = await db.transaction(async (tx) => {
     await tx.execute(
       sql`SELECT pg_advisory_xact_lock(1524, hashtext(${workspaceId}))`,
     );
+    // Same order as every change to who can open a team: the caller's member
+    // row first, then the team row.
+    const lock = privacy
+      ? await lockAccessChange(tx, {
+          workspaceId,
+          actorId: privacy.actorId,
+          userId: privacy.actorId,
+        })
+      : null;
 
     const [existingProject] = await tx
       .select()
@@ -54,6 +95,32 @@ async function updateProject(
       throw new HTTPException(403, {
         message:
           "Changing project visibility requires the project:share permission",
+      });
+    }
+
+    let privacyChange: PrivacyChange | null = null;
+    const isPrivate = privacy?.isPrivate ?? existingProject.isPrivate;
+    if (isPrivate && isPublic) {
+      throw new HTTPException(400, {
+        message: "A private team can't be shared publicly",
+      });
+    }
+    if (privacy && isPrivate !== existingProject.isPrivate) {
+      // It changes who has access, so it needs what editing a member's access
+      // needs, and a caller who lost the team since the route check is refused.
+      if (
+        !lock?.actorAllowed ||
+        (await findInaccessibleProjectIds(privacy.actorId, [id], tx)).length
+      ) {
+        throw new HTTPException(403, {
+          message: "Changing who can open a team requires member:update",
+        });
+      }
+      privacyChange = await changeProjectPrivacy(tx, {
+        workspaceId,
+        projectId: id,
+        actorId: privacy.actorId,
+        isPrivate,
       });
     }
 
@@ -83,9 +150,12 @@ async function updateProject(
       .where(eq(projectTable.id, id))
       .returning();
 
-    return updatedProject;
+    return { updated: updatedProject, privacyChange };
   });
   if (updated) await publishEvent("project.updated", { projectId: id });
+  if (privacy && privacyChange) {
+    await announce(workspaceId, id, privacy.actorId, privacyChange);
+  }
   return updated;
 }
 

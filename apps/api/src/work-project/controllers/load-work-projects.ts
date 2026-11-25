@@ -9,6 +9,7 @@ import {
   workProjectTable,
   workProjectTeamTable,
 } from "../../database/schema";
+import { projectAccessCondition } from "../../project-access/project-access-condition";
 
 // Linear's progress: completed issues out of all issues, canceled ones excluded.
 const countedTasks = and(
@@ -22,6 +23,7 @@ async function progressBy(
     | typeof taskTable.workProjectId
     | typeof taskTable.workProjectMilestoneId,
   ids: string[],
+  userId: string,
 ) {
   const out = new Map<string, { total: number; done: number }>();
   if (ids.length === 0) return out;
@@ -32,7 +34,14 @@ async function progressBy(
       done: sql<number>`(count(*) filter (where ${taskTable.status} = 'done'))::int`,
     })
     .from(taskTable)
-    .where(and(inArray(column, ids), countedTasks))
+    // Issues in a team the reader cannot open are not counted for them.
+    .where(
+      and(
+        inArray(column, ids),
+        countedTasks,
+        projectAccessCondition(userId, taskTable.projectId),
+      ),
+    )
     .groupBy(column);
   for (const row of rows)
     if (row.id) out.set(row.id, { total: row.total, done: row.done });
@@ -43,6 +52,7 @@ const noProgress = { total: 0, done: 0 };
 
 export async function loadWorkProjects(
   where: ReturnType<typeof eq>,
+  userId: string,
   teamId?: string,
 ) {
   const rows = await db
@@ -52,7 +62,7 @@ export async function loadWorkProjects(
       teamId
         ? and(
             where,
-            sql`exists (select 1 from ${workProjectTeamTable} where ${workProjectTeamTable.workProjectId} = ${workProjectTable.id} and ${workProjectTeamTable.projectId} = ${teamId})`,
+            sql`exists (select 1 from ${workProjectTeamTable} where ${workProjectTeamTable.workProjectId} = ${workProjectTable.id} and ${workProjectTeamTable.projectId} = ${teamId} and ${projectAccessCondition(userId, workProjectTeamTable.projectId)})`,
           )
         : where,
     )
@@ -64,7 +74,13 @@ export async function loadWorkProjects(
     db
       .select()
       .from(workProjectTeamTable)
-      .where(inArray(workProjectTeamTable.workProjectId, ids)),
+      // A team the reader cannot open is not named.
+      .where(
+        and(
+          inArray(workProjectTeamTable.workProjectId, ids),
+          projectAccessCondition(userId, workProjectTeamTable.projectId),
+        ),
+      ),
     db
       .select()
       .from(workProjectMemberTable)
@@ -73,7 +89,7 @@ export async function loadWorkProjects(
       .select()
       .from(workProjectLabelTable)
       .where(inArray(workProjectLabelTable.workProjectId, ids)),
-    progressBy(taskTable.workProjectId, ids),
+    progressBy(taskTable.workProjectId, ids, userId),
   ]);
 
   return rows.map((row) => ({
@@ -91,8 +107,8 @@ export async function loadWorkProjects(
   }));
 }
 
-export async function loadWorkProjectDetail(id: string) {
-  const [project] = await loadWorkProjects(eq(workProjectTable.id, id));
+export async function loadWorkProjectDetail(id: string, userId: string) {
+  const [project] = await loadWorkProjects(eq(workProjectTable.id, id), userId);
   if (!project) throw new HTTPException(404, { message: "Project not found" });
   const milestones = await db
     .select()
@@ -106,6 +122,7 @@ export async function loadWorkProjectDetail(id: string) {
   const progress = await progressBy(
     taskTable.workProjectMilestoneId,
     milestones.map((m) => m.id),
+    userId,
   );
   return {
     ...project,
@@ -116,13 +133,17 @@ export async function loadWorkProjectDetail(id: string) {
   };
 }
 
-export async function loadMilestone(id: string) {
+export async function loadMilestone(id: string, userId: string) {
   const [milestone] = await db
     .select()
     .from(workProjectMilestoneTable)
     .where(eq(workProjectMilestoneTable.id, id));
   if (!milestone)
     throw new HTTPException(404, { message: "Milestone not found" });
-  const progress = await progressBy(taskTable.workProjectMilestoneId, [id]);
+  const progress = await progressBy(
+    taskTable.workProjectMilestoneId,
+    [id],
+    userId,
+  );
   return { ...milestone, progress: progress.get(id) ?? noProgress };
 }

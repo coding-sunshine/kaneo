@@ -13,6 +13,16 @@ import {
 // Queue one delivery per matching webhook: same workspace, enabled, subscribed
 // to the resource type, and (when it lists teams) the record's team.
 export async function enqueueWorkspaceWebhooks(event: ResolvedWebhookEvent) {
+  // ponytail: a webhook has no person behind it, so a private team sends
+  // nothing to any webhook. Let a webhook name the private teams it may hear
+  // from when someone needs one.
+  if (event.projectId) {
+    const [team] = await db
+      .select({ isPrivate: schema.projectTable.isPrivate })
+      .from(schema.projectTable)
+      .where(eq(schema.projectTable.id, event.projectId));
+    if (team?.isPrivate) return;
+  }
   const webhook = schema.workspaceWebhookTable;
   const rows = await db
     .select({ id: webhook.id, url: webhook.url })

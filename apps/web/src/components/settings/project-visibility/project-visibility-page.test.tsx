@@ -1,4 +1,10 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import {
   afterEach,
   beforeEach,
@@ -13,9 +19,14 @@ const m = vi.hoisted(() => ({
   project: { id: "p1", name: "Website", isPublic: false } as {
     id: string;
     name: string;
+    slug?: string;
     isPublic: boolean;
+    isPrivate?: boolean;
   },
   canShare: false,
+  update: vi.fn(),
+  add: vi.fn(),
+  remove: vi.fn(),
 }));
 
 vi.mock("react-i18next", () => ({
@@ -37,7 +48,27 @@ vi.mock("@/hooks/use-workspace-permission", () => ({
   }),
 }));
 vi.mock("@/hooks/mutations/project/use-update-project", () => ({
-  default: () => ({ mutateAsync: vi.fn() }),
+  default: () => ({ mutateAsync: m.update }),
+}));
+vi.mock("@/hooks/mutations/project/use-private-team-member", () => ({
+  useAddPrivateTeamMember: () => ({ mutate: m.add, isPending: false }),
+  useRemovePrivateTeamMember: () => ({ mutate: m.remove, isPending: false }),
+}));
+vi.mock("@/hooks/queries/project/use-get-private-team-members", () => ({
+  default: () => ({
+    data: [{ projectId: "p1", userIds: ["u2"] }],
+    isLoading: false,
+  }),
+}));
+vi.mock("@/hooks/queries/workspace-users/use-get-workspace-users", () => ({
+  default: () => ({
+    data: [
+      { userId: "u1", role: "owner", user: { name: "Olive", email: "o@x.io" } },
+      { userId: "u2", role: "member", user: { name: "Max", email: "m@x.io" } },
+      { userId: "u3", role: "member", user: { name: "Ann", email: "a@x.io" } },
+    ],
+    isLoading: false,
+  }),
 }));
 vi.mock("@tanstack/react-query", () => ({
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
@@ -50,7 +81,15 @@ describe("ProjectVisibilityPage", () => {
   beforeEach(() => {
     m.project = { id: "p1", name: "Website", isPublic: false };
     m.canShare = false;
+    m.update.mockReset().mockResolvedValue({});
+    m.add.mockReset();
+    m.remove.mockReset();
   });
+
+  const privateSwitch = () =>
+    screen.getByRole("switch", {
+      name: "settings:projectVisibility.privateTeam",
+    });
 
   it("hides the link while the project is private", () => {
     render(<ProjectVisibilityPage />);
@@ -88,6 +127,81 @@ describe("ProjectVisibilityPage", () => {
           name: "settings:projectVisibility.publicAccess",
         }),
       ).not.toHaveAttribute("aria-disabled", "true"),
+    );
+  });
+
+  it("reflects isPrivate and blocks the public switch", () => {
+    m.project = { ...m.project, isPrivate: true };
+    m.canShare = true;
+    render(<ProjectVisibilityPage />);
+
+    expect(privateSwitch()).toHaveAttribute("aria-checked", "true");
+    expect(
+      screen.getByRole("switch", {
+        name: "settings:projectVisibility.publicAccess",
+      }),
+    ).toHaveAttribute("aria-disabled", "true");
+    expect(
+      screen.getByText("settings:projectVisibility.publicBlockedByPrivate"),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("settings:projectVisibility.membersDescriptionPrivate"),
+    ).toBeTruthy();
+  });
+
+  it("disables the private switch while the public link is on", async () => {
+    m.project = { ...m.project, isPublic: true };
+    m.canShare = true;
+    render(<ProjectVisibilityPage />);
+
+    expect(privateSwitch()).toHaveAttribute("aria-disabled", "true");
+    expect(
+      screen.getByText("settings:projectVisibility.privateBlockedByPublic"),
+    ).toBeTruthy();
+  });
+
+  it("asks before making the team private, then sends isPrivate", async () => {
+    m.canShare = true;
+    render(<ProjectVisibilityPage />);
+    await waitFor(() =>
+      expect(privateSwitch()).not.toHaveAttribute("aria-disabled", "true"),
+    );
+
+    fireEvent.click(privateSwitch());
+    expect(m.update).not.toHaveBeenCalled();
+    fireEvent.click(
+      await screen.findByText("settings:projectVisibility.makePrivateConfirm"),
+    );
+
+    await waitFor(() => expect(m.update).toHaveBeenCalledTimes(1));
+    expect(m.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "p1",
+        name: "Website",
+        isPublic: false,
+        isPrivate: true,
+      }),
+    );
+  });
+
+  it("lists non-owners and adds or removes them", async () => {
+    m.project = { ...m.project, isPrivate: true };
+    m.canShare = true;
+    render(<ProjectVisibilityPage />);
+
+    const max = await screen.findByRole("checkbox", { name: "Max" });
+    expect(screen.queryByRole("checkbox", { name: "Olive" })).toBeNull();
+    expect(max).toHaveAttribute("aria-checked", "true");
+
+    fireEvent.click(max);
+    expect(m.remove).toHaveBeenCalledWith(
+      { projectId: "p1", userId: "u2" },
+      expect.anything(),
+    );
+    fireEvent.click(screen.getByRole("checkbox", { name: "Ann" }));
+    expect(m.add).toHaveBeenCalledWith(
+      { projectId: "p1", userId: "u3" },
+      expect.anything(),
     );
   });
 });

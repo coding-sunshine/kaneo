@@ -1257,7 +1257,23 @@
 			"offNote": "关闭公开链接后，链接会立即失效。",
 			"on": "已开启",
 			"openPublicPage": "打开公开页面",
-			"thisWorkspace": "此工作区"
+			"thisWorkspace": "此工作区",
+			"makePrivateBody": "You and members whose access is already limited to this team keep it. Everyone else loses access, and their issues here become unassigned. Calendar links for this team are deleted and webhooks stop receiving its events.",
+			"makePrivateConfirm": "Make private",
+			"makePrivateTitle": "Make {{project}} private?",
+			"membersDescriptionPrivate": "Only the people added below. The workspace owner can always open this team.",
+			"openTeamBody": "Everyone in the workspace can open this team again, unless their access is limited to other teams.",
+			"openTeamConfirm": "Open team",
+			"openTeamTitle": "Open {{project}} to the workspace?",
+			"privateBlockedByPublic": "Turn the public link off before making this team private.",
+			"privateMemberAddError": "Couldn't add this person",
+			"privateMemberRemoveError": "Couldn't remove this person",
+			"privateMembersEmpty": "There's nobody else in this workspace yet.",
+			"privateMembersOwnerNote": "The workspace owner can always open a private team and isn't listed here.",
+			"privateMembersTitle": "People in this team",
+			"privateTeam": "Private team",
+			"privateTeamHint": "Only the people you add can open this team and its issues, documents and files.",
+			"publicBlockedByPrivate": "A private team can't have a public link."
 		},
 		"projectWorkflow": {
 			"pageTitle": "工作流设置",
@@ -5792,7 +5808,9 @@
 			"updateError": "更新项目访问权限失败",
 			"updateSuccess": "项目访问权限已更新",
 			"archived": "已归档",
-			"allProjectsUnavailable": "你自己的访问权限有限，所以只能授予指定项目。"
+			"allProjectsUnavailable": "你自己的访问权限有限，所以只能授予指定项目。",
+			"privateTeamsHint": "Managed in each team's settings.",
+			"privateTeamsLabel": "Private teams"
 		}
 	},
 	"publicProject": {

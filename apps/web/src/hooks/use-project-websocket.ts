@@ -232,6 +232,9 @@ export function useProjectWebSocket(projectId: string) {
                 query.queryKey[2] === "project" &&
                 query.queryKey[3] === projectId,
             });
+            void queryClient.invalidateQueries({
+              queryKey: ["private-team-members"],
+            });
             return;
           }
           if (

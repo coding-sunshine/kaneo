@@ -1257,7 +1257,23 @@
 			"offNote": "Tắt liên kết công khai sẽ khiến liên kết ngừng hoạt động ngay lập tức.",
 			"on": "Bật",
 			"openPublicPage": "Mở trang công khai",
-			"thisWorkspace": "không gian làm việc này"
+			"thisWorkspace": "không gian làm việc này",
+			"makePrivateBody": "You and members whose access is already limited to this team keep it. Everyone else loses access, and their issues here become unassigned. Calendar links for this team are deleted and webhooks stop receiving its events.",
+			"makePrivateConfirm": "Make private",
+			"makePrivateTitle": "Make {{project}} private?",
+			"membersDescriptionPrivate": "Only the people added below. The workspace owner can always open this team.",
+			"openTeamBody": "Everyone in the workspace can open this team again, unless their access is limited to other teams.",
+			"openTeamConfirm": "Open team",
+			"openTeamTitle": "Open {{project}} to the workspace?",
+			"privateBlockedByPublic": "Turn the public link off before making this team private.",
+			"privateMemberAddError": "Couldn't add this person",
+			"privateMemberRemoveError": "Couldn't remove this person",
+			"privateMembersEmpty": "There's nobody else in this workspace yet.",
+			"privateMembersOwnerNote": "The workspace owner can always open a private team and isn't listed here.",
+			"privateMembersTitle": "People in this team",
+			"privateTeam": "Private team",
+			"privateTeamHint": "Only the people you add can open this team and its issues, documents and files.",
+			"publicBlockedByPrivate": "A private team can't have a public link."
 		},
 		"projectWorkflow": {
 			"pageTitle": "Cài đặt quy trình làm việc",
@@ -5792,7 +5808,9 @@
 			"updateError": "Failed to update project access",
 			"updateSuccess": "Project access updated",
 			"archived": "Archived",
-			"allProjectsUnavailable": "Your own access is limited, so you can only give access to selected projects."
+			"allProjectsUnavailable": "Your own access is limited, so you can only give access to selected projects.",
+			"privateTeamsHint": "Managed in each team's settings.",
+			"privateTeamsLabel": "Private teams"
 		}
 	},
 	"publicProject": {

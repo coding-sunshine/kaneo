@@ -407,6 +407,7 @@ const workProject = apiRouter()
     return c.json(
       await loadWorkProjects(
         eq(workProjectTable.workspaceId, workspaceId),
+        c.get("userId"),
         teamId,
       ),
       200,
@@ -482,27 +483,41 @@ const workProject = apiRouter()
     ),
   )
   .openapi(getRoute, async (c) =>
-    c.json(await loadWorkProjectDetail(c.req.valid("param").id), 200),
+    c.json(
+      await loadWorkProjectDetail(c.req.valid("param").id, c.get("userId")),
+      200,
+    ),
   )
   .openapi(createProjectRoute, async (c) =>
-    c.json(await saveWorkProject(c.req.valid("json")), 200),
+    c.json(await saveWorkProject(c.req.valid("json"), c.get("userId")), 200),
   )
   .openapi(updateProjectRoute, async (c) => {
     const { id } = c.req.valid("param");
-    return c.json(await saveWorkProject(c.req.valid("json"), id), 200);
+    return c.json(
+      await saveWorkProject(c.req.valid("json"), c.get("userId"), id),
+      200,
+    );
   })
   .openapi(deleteProjectRoute, async (c) =>
     c.json(await deleteWorkProject(c.req.valid("param").id), 200),
   )
   .openapi(createMilestoneRoute, async (c) =>
     c.json(
-      await createMilestone(c.req.valid("param").id, c.req.valid("json")),
+      await createMilestone(
+        c.req.valid("param").id,
+        c.req.valid("json"),
+        c.get("userId"),
+      ),
       200,
     ),
   )
   .openapi(updateMilestoneRoute, async (c) =>
     c.json(
-      await updateMilestone(c.req.valid("param").id, c.req.valid("json")),
+      await updateMilestone(
+        c.req.valid("param").id,
+        c.req.valid("json"),
+        c.get("userId"),
+      ),
       200,
     ),
   )

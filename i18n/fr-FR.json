@@ -1026,7 +1026,23 @@
 			"offNote": "Désactiver le lien public le rend immédiatement inutilisable.",
 			"on": "Activé",
 			"openPublicPage": "Ouvrir la page publique",
-			"thisWorkspace": "cet espace de travail"
+			"thisWorkspace": "cet espace de travail",
+			"makePrivateBody": "You and members whose access is already limited to this team keep it. Everyone else loses access, and their issues here become unassigned. Calendar links for this team are deleted and webhooks stop receiving its events.",
+			"makePrivateConfirm": "Make private",
+			"makePrivateTitle": "Make {{project}} private?",
+			"membersDescriptionPrivate": "Only the people added below. The workspace owner can always open this team.",
+			"openTeamBody": "Everyone in the workspace can open this team again, unless their access is limited to other teams.",
+			"openTeamConfirm": "Open team",
+			"openTeamTitle": "Open {{project}} to the workspace?",
+			"privateBlockedByPublic": "Turn the public link off before making this team private.",
+			"privateMemberAddError": "Couldn't add this person",
+			"privateMemberRemoveError": "Couldn't remove this person",
+			"privateMembersEmpty": "There's nobody else in this workspace yet.",
+			"privateMembersOwnerNote": "The workspace owner can always open a private team and isn't listed here.",
+			"privateMembersTitle": "People in this team",
+			"privateTeam": "Private team",
+			"privateTeamHint": "Only the people you add can open this team and its issues, documents and files.",
+			"publicBlockedByPrivate": "A private team can't have a public link."
 		},
 		"projectWorkflow": {
 			"pageTitle": "Paramètres du flux de travail",
@@ -6016,7 +6032,9 @@
 			"updateError": "Échec de la mise à jour de l'accès aux projets",
 			"updateSuccess": "Accès aux projets mis à jour",
 			"archived": "Archivé",
-			"allProjectsUnavailable": "Vos propres accès sont limités. Vous ne pouvez donc donner accès qu'à certains projets."
+			"allProjectsUnavailable": "Vos propres accès sont limités. Vous ne pouvez donc donner accès qu'à certains projets.",
+			"privateTeamsHint": "Managed in each team's settings.",
+			"privateTeamsLabel": "Private teams"
 		}
 	},
 	"publicProject": {

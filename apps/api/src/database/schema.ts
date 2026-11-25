@@ -589,6 +589,9 @@ export const projectTable = pgTable(
       .default(utcNow)
       .notNull(),
     isPublic: boolean("is_public").default(false),
+    // Open only to people with a row in workspace_member_project, the workspace
+    // owner and instance administrators, whatever the person's own access mode.
+    isPrivate: boolean("is_private").notNull().default(false),
     includeSubtasks: boolean("include_subtasks").notNull().default(true),
     archivedAt: timestamp("archived_at", { mode: "date" }),
     lastTaskNumber: integer("last_task_number").notNull().default(0),

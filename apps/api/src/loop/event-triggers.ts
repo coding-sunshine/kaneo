@@ -3,6 +3,7 @@ import db from "../database";
 import { loopRunTable, loopTable, projectTable } from "../database/schema";
 import { isAgentEnabled } from "../agent/openrouter";
 import { subscribeToEvent } from "../events";
+import { projectAccessCondition } from "../project-access/project-access-condition";
 import { executeLoop, loopRunContext } from "./run-loop";
 
 const EVENT_TRIGGERS = {
@@ -54,6 +55,9 @@ export async function fireEventLoops(
         eq(loopTable.enabled, true),
         eq(loopTable.trigger, EVENT_TRIGGERS[eventType]),
         sql`(${loopTable.projectId} is null or ${loopTable.projectId} = ${data.projectId})`,
+        // A loop runs as the person who made it, and the event's text goes into
+        // its prompt: it hears only teams that person can open.
+        projectAccessCondition(loopTable.creatorId, data.projectId),
       ),
     );
 

@@ -18,6 +18,7 @@ export async function deleteWorkProject(id: string) {
 export async function createMilestone(
   workProjectId: string,
   body: z.infer<typeof createMilestoneBody>,
+  userId: string,
 ) {
   const [last] = await db
     .select({ sortOrder: max(workProjectMilestoneTable.sortOrder) })
@@ -40,12 +41,13 @@ export async function createMilestone(
     throw new HTTPException(409, {
       message: "A milestone with this name already exists",
     });
-  return loadMilestone(created.id);
+  return loadMilestone(created.id, userId);
 }
 
 export async function updateMilestone(
   id: string,
   body: z.infer<typeof updateMilestoneBody>,
+  userId: string,
 ) {
   const set = {
     name: body.name,
@@ -86,7 +88,7 @@ export async function updateMilestone(
       .update(workProjectMilestoneTable)
       .set(set)
       .where(eq(workProjectMilestoneTable.id, id));
-  return loadMilestone(id);
+  return loadMilestone(id, userId);
 }
 
 export async function deleteMilestone(id: string) {

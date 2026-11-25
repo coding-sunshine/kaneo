@@ -8,6 +8,7 @@ import {
   workProjectTable,
   workProjectTeamTable,
 } from "../../database/schema";
+import { projectAccessCondition } from "../../project-access/project-access-condition";
 import { filterAssignableUsers } from "../../utils/assert-assignable-user";
 import { validateAndParseDate } from "../../utils/validate-dates";
 import type { createWorkProjectBody, updateWorkProjectBody } from "../schema";
@@ -19,7 +20,7 @@ type Body = Partial<z.infer<typeof createWorkProjectBody>> &
 const date = (value: string | null | undefined, field: string) =>
   value == null ? value : validateAndParseDate(value, field);
 
-async function assertRefs(workspaceId: string, body: Body) {
+async function assertRefs(workspaceId: string, body: Body, userId: string) {
   const userIds = [
     ...new Set([...(body.memberIds ?? []), body.leadId ?? ""]),
   ].filter(Boolean);
@@ -37,6 +38,8 @@ async function assertRefs(workspaceId: string, body: Body) {
         and(
           inArray(projectTable.id, teamIds),
           eq(projectTable.workspaceId, workspaceId),
+          // A team the person cannot open answers like one that is not there.
+          projectAccessCondition(userId, projectTable.id),
         ),
       );
     if (teams.length !== teamIds.length)
@@ -46,7 +49,11 @@ async function assertRefs(workspaceId: string, body: Body) {
   }
 }
 
-export async function saveWorkProject(body: Body, existingId?: string) {
+export async function saveWorkProject(
+  body: Body,
+  userId: string,
+  existingId?: string,
+) {
   const existing = existingId
     ? (
         await db
@@ -63,7 +70,7 @@ export async function saveWorkProject(body: Body, existingId?: string) {
   const workspaceId = existing?.workspaceId ?? body.workspaceId;
   if (!workspaceId)
     throw new HTTPException(400, { message: "Workspace ID is required" });
-  await assertRefs(workspaceId, body);
+  await assertRefs(workspaceId, body, userId);
 
   const values = {
     name: body.name,
@@ -115,9 +122,16 @@ export async function saveWorkProject(body: Body, existingId?: string) {
       projectId = created.id;
     }
     if (body.teamIds) {
+      // Only the teams the person can open are theirs to replace. A team they
+      // cannot open stays attached: they never saw it in the list they sent.
       await tx
         .delete(workProjectTeamTable)
-        .where(eq(workProjectTeamTable.workProjectId, projectId));
+        .where(
+          and(
+            eq(workProjectTeamTable.workProjectId, projectId),
+            projectAccessCondition(userId, workProjectTeamTable.projectId),
+          ),
+        );
       const teamIds = [...new Set(body.teamIds)];
       if (teamIds.length)
         await tx.insert(workProjectTeamTable).values(
@@ -141,5 +155,5 @@ export async function saveWorkProject(body: Body, existingId?: string) {
     }
     return projectId;
   });
-  return loadWorkProjectDetail(id);
+  return loadWorkProjectDetail(id, userId);
 }

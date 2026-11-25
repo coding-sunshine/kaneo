@@ -2,6 +2,7 @@ import { FolderLockIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import useUpdateMemberProjectAccess from "@/hooks/mutations/workspace-user/use-update-member-project-access";
+import useGetPrivateTeamMembers from "@/hooks/queries/project/use-get-private-team-members";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import useGetMyProjectAccess from "@/hooks/queries/workspace-users/use-get-my-project-access";
 import { toast } from "@/lib/toast";
@@ -16,6 +17,7 @@ import {
   DialogPopup,
   DialogTitle,
 } from "../ui/dialog";
+import { MemberPrivateTeams } from "./member-private-teams";
 import { isProjectAccessComplete } from "./project-access/is-project-access-complete";
 import { type ProjectAccessValue } from "./project-access/project-access-value";
 import { toProjectAccessRequest } from "./project-access/to-project-access-request";
@@ -47,6 +49,18 @@ function MemberProjectAccessDialog({
   const myAccess = useGetMyProjectAccess(workspaceId, open);
   const managerLimited =
     myAccess.isError || myAccess.data?.projectAccess === "selected";
+  const privateTeams = useGetPrivateTeamMembers(workspaceId, open);
+  const memberPrivateTeamNames = (projects ?? [])
+    .filter(
+      (project) =>
+        project.isPrivate &&
+        privateTeams.data?.some(
+          (team) =>
+            team.projectId === project.id &&
+            team.userIds.includes(member?.userId ?? ""),
+        ),
+    )
+    .map((project) => project.name);
   const { mutateAsync, isPending } = useUpdateMemberProjectAccess();
 
   if (open !== wasOpen) {
@@ -61,7 +75,9 @@ function MemberProjectAccessDialog({
     if (!member) return;
     const request = toProjectAccessRequest(
       value,
-      (projects ?? []).map((project) => project.id),
+      (projects ?? [])
+        .filter((project) => !project.isPrivate)
+        .map((project) => project.id),
     );
     if (!isProjectAccessComplete(request)) {
       setShowError(true);
@@ -108,6 +124,7 @@ function MemberProjectAccessDialog({
               showError ? t("team:projectAccess.selectAtLeastOne") : undefined
             }
           />
+          <MemberPrivateTeams names={memberPrivateTeamNames} />
         </DialogPanel>
         <DialogFooter>
           <DialogClose

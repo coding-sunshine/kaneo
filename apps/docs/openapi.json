@@ -1069,6 +1069,10 @@
             ],
             "description": "When true the project's board is readable without signing in, via /api/public-project/{id}."
           },
+          "isPrivate": {
+            "type": "boolean",
+            "description": "When true only the team's members, the workspace owner and instance administrators can open the team."
+          },
           "archivedAt": {
             "type": [
               "string",
@@ -1096,6 +1100,7 @@
           "description",
           "createdAt",
           "isPublic",
+          "isPrivate",
           "archivedAt",
           "position",
           "lastTaskNumber"
@@ -1220,6 +1225,25 @@
             "type": "boolean"
           }
         }
+      },
+      "PrivateTeamMembers": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string"
+          },
+          "userIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The workspace members added to the private team. The workspace owner and instance administrators can open every team and are not listed."
+          }
+        },
+        "required": [
+          "projectId",
+          "userIds"
+        ]
       },
       "ProjectBackgroundUpload": {
         "type": "object",
@@ -14056,6 +14080,10 @@
                   "isPublic": {
                     "type": "boolean"
                   },
+                  "isPrivate": {
+                    "type": "boolean",
+                    "description": "Make the team private or open it again. Leave it out to keep the team as it is. Changing it needs member:update, and a private team can't be shared publicly."
+                  },
                   "includeSubtasks": {
                     "type": "boolean"
                   },
@@ -14665,6 +14693,174 @@
           },
           "404": {
             "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/project/{id}/private-members/{userId}": {
+      "put": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "addPrivateTeamMember",
+        "summary": "Add a member to a private team",
+        "description": "Let a workspace member open a private project. Adding someone who is already in it, or the workspace owner, changes nothing. Needs access to the project and member:update.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "The workspace member"
+            },
+            "required": true,
+            "description": "The workspace member",
+            "name": "userId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The members of the private project after the change",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivateTeamMembers"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The project isn't private",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing member:update permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or member not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "removePrivateTeamMember",
+        "summary": "Remove a member from a private team",
+        "description": "Stop a workspace member opening a private project and unassign their tasks in it. You can remove yourself; the answer then lists nobody, because you can no longer open the project. Needs access to the project and member:update.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "The workspace member"
+            },
+            "required": true,
+            "description": "The workspace member",
+            "name": "userId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The members of the private project after the change",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivateTeamMembers"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The project isn't private",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing member:update permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or member not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -43170,6 +43366,74 @@
                     "$ref": "#/components/schemas/MemberProjectAccess"
                   },
                   "description": "Members limited to selected projects. Members not listed can access every project. Project IDs only include projects the caller can access."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing member:update permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/workspace/{workspaceId}/project-access/private": {
+      "get": {
+        "operationId": "listPrivateTeamMembers",
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "List private team members",
+        "description": "List the private projects you can open, each with the members added to it. A private project you cannot open is left out. The workspace owner and instance administrators can open every project and are not listed.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Private projects and their members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PrivateTeamMembers"
+                  }
                 }
               }
             }

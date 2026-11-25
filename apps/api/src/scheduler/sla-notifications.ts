@@ -7,6 +7,7 @@ import {
   taskTable,
 } from "../database/schema";
 import createNotification from "../notification/controllers/create-notification";
+import { filterUsersWithProjectAccess } from "../project-access/filter-users-with-project-access";
 import { workspaceIsActive } from "../workspace/archive/active-workspace-sql";
 
 // Linear's docs say 24h; the parity brief asks for 1h.
@@ -60,12 +61,18 @@ function openTask() {
 }
 
 async function recipients(task: { userId: string | null; projectId: string }) {
-  if (task.userId) return [task.userId];
-  const rows = await db
-    .select({ userId: projectTriageResponsibleTable.userId })
-    .from(projectTriageResponsibleTable)
-    .where(eq(projectTriageResponsibleTable.projectId, task.projectId));
-  return rows.map((row) => row.userId);
+  const userIds = task.userId
+    ? [task.userId]
+    : (
+        await db
+          .select({ userId: projectTriageResponsibleTable.userId })
+          .from(projectTriageResponsibleTable)
+          .where(eq(projectTriageResponsibleTable.projectId, task.projectId))
+      ).map((row) => row.userId);
+  if (userIds.length === 0) return [];
+  // Nobody is told about an issue they cannot open.
+  const open = await filterUsersWithProjectAccess(userIds, task.projectId);
+  return userIds.filter((userId) => open.has(userId));
 }
 
 async function notifyStage(

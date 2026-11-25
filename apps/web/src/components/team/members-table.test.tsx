@@ -114,6 +114,10 @@ vi.mock("@/hooks/queries/workspace-users/use-get-my-project-access", () => ({
   default: () => ({ data: myProjectAccess() }),
 }));
 
+vi.mock("@/hooks/queries/project/use-get-private-team-members", () => ({
+  default: () => ({ data: undefined, isError: true }),
+}));
+
 vi.mock("@/hooks/queries/project/use-get-projects", () => ({
   default: () => ({
     data: [

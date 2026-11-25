@@ -29,6 +29,10 @@ export const updateProjectBody = z.object({
   slug: z.string(),
   description: z.string(),
   isPublic: z.boolean(),
+  isPrivate: z.boolean().optional().openapi({
+    description:
+      "Make the team private or open it again. Leave it out to keep the team as it is. Changing it needs member:update, and a private team can't be shared publicly.",
+  }),
   includeSubtasks: z.boolean().optional(),
   autoArchiveMonths: z.number().int().min(0).max(120).optional(),
   estimateType: z.enum(ESTIMATE_TYPES).optional().openapi({

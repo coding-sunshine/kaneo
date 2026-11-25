@@ -1,9 +1,9 @@
-import db from "../database";
+import { and, eq, inArray } from "drizzle-orm";
+import db, { schema } from "../database";
 import type { DbOrTx } from "./db-or-tx";
-import { findInaccessibleProjectIds } from "./find-inaccessible-project-ids";
 import { isProjectAccessRestricted } from "./is-project-access-restricted";
-import { findWorkspaceProjectIds } from "./find-workspace-project-ids";
 import { isOwnerRole } from "./is-owner-role";
+import { projectAccessCondition } from "./project-access-condition";
 import {
   isProjectAccessMode,
   type ProjectAccessMode,
@@ -70,11 +70,24 @@ export async function resolveProjectAccessRequest(request: {
   }
 
   const projectIds = [...new Set(rawIds as string[])];
-  const known = await findWorkspaceProjectIds(
-    request.workspaceId,
-    projectIds,
-    database,
-  );
+  const teams = projectIds.length
+    ? await database
+        .select({
+          id: schema.projectTable.id,
+          isPrivate: schema.projectTable.isPrivate,
+          open: projectAccessCondition(request.actorId, schema.projectTable.id),
+        })
+        .from(schema.projectTable)
+        .where(
+          and(
+            eq(schema.projectTable.workspaceId, request.workspaceId),
+            inArray(schema.projectTable.id, projectIds),
+          ),
+        )
+    : [];
+  // A private team the caller cannot open answers like an id from another
+  // workspace, so this endpoint cannot be used to find one.
+  const known = teams.filter((team) => team.open || !team.isPrivate);
   if (known.length !== projectIds.length) {
     return {
       ok: false,
@@ -82,15 +95,19 @@ export async function resolveProjectAccessRequest(request: {
       message: "Some selected projects don't belong to this workspace",
     };
   }
-
-  const denied = await findInaccessibleProjectIds(
-    request.actorId,
-    projectIds,
-    database,
-  );
-  if (denied.length > 0) {
+  if (known.some((team) => !team.open)) {
     return { ok: false, status: 403, message: GRANT_DENIED };
   }
 
-  return { ok: true, access: { projectAccess, projectIds } };
+  // Who is in a private team is set on the team, never here, so a private id
+  // is neither granted nor sent back.
+  return {
+    ok: true,
+    access: {
+      projectAccess,
+      projectIds: known
+        .filter((team) => !team.isPrivate)
+        .map((team) => team.id),
+    },
+  };
 }

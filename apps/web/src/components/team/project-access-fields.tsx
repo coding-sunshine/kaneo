@@ -13,7 +13,12 @@ type Props = {
   value: ProjectAccessValue;
   onChange: (value: ProjectAccessValue) => void;
   projects:
-    | readonly { id: string; name: string; archivedAt?: string | null }[]
+    | readonly {
+        id: string;
+        name: string;
+        archivedAt?: string | null;
+        isPrivate?: boolean;
+      }[]
     | undefined;
   isLoadingProjects?: boolean;
   disabled?: boolean;
@@ -31,6 +36,8 @@ function ProjectAccessFields({
   error,
 }: Props) {
   const { t } = useTranslation();
+  // Private teams are managed in each team's settings, never granted here.
+  const publicProjects = projects?.filter((project) => !project.isPrivate);
 
   return (
     <div className="flex flex-col gap-3">
@@ -101,12 +108,12 @@ function ProjectAccessFields({
                 <Skeleton className="h-4 w-2/3" />
                 <Skeleton className="h-4 w-1/2" />
               </>
-            ) : !projects?.length ? (
+            ) : !publicProjects?.length ? (
               <p className="text-muted-foreground text-sm">
                 {t("team:projectAccess.noProjects")}
               </p>
             ) : (
-              projects.map((project) => (
+              publicProjects.map((project) => (
                 <Label key={project.id} className="max-w-full">
                   <Checkbox value={project.id} />
                   <span className="truncate">{project.name}</span>

@@ -29,6 +29,7 @@ import {
 import { validateWorkspaceAccess } from "../utils/validate-workspace-access";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import archiveProjectCtrl from "./controllers/archive-project";
+import { changePrivateMember } from "./controllers/change-private-member";
 import createProjectCtrl from "./controllers/create-project";
 import deleteProjectCtrl from "./controllers/delete-project";
 import getProjectCtrl from "./controllers/get-project";
@@ -40,6 +41,7 @@ import updateProjectCtrl from "./controllers/update-project";
 import updateTeamMembershipCtrl from "./controllers/update-team-membership";
 import {
   movedProjectSchema,
+  privateTeamMembersSchema,
   projectBackgroundFinalizeSchema,
   projectBackgroundUploadSchema,
   projectListSchema,
@@ -315,6 +317,54 @@ const updateTeamMembershipRoute = createRoute({
   },
 });
 
+const privateMember = {
+  tags: ["Projects"],
+  request: {
+    params: projectParam.extend({
+      userId: z.string().openapi({ description: "The workspace member" }),
+    }),
+  },
+  responses: {
+    200: jsonResponse(
+      "The members of the private project after the change",
+      privateTeamMembersSchema,
+    ),
+    400: errorResponse("The project isn't private"),
+    403: errorResponse(
+      "No access to the project, or missing member:update permission",
+    ),
+    404: errorResponse("Project or member not found"),
+  },
+};
+
+const addPrivateMemberRoute = createRoute({
+  ...privateMember,
+  method: "put",
+  operationId: "addPrivateTeamMember",
+  middleware: [
+    workspaceAccess.fromProject(),
+    requireWorkspacePermission({ member: ["update"] }),
+  ] as const,
+  path: "/{id}/private-members/{userId}",
+  summary: "Add a member to a private team",
+  description:
+    "Let a workspace member open a private project. Adding someone who is already in it, or the workspace owner, changes nothing. Needs access to the project and member:update.",
+});
+
+const removePrivateMemberRoute = createRoute({
+  ...privateMember,
+  method: "delete",
+  operationId: "removePrivateTeamMember",
+  middleware: [
+    workspaceAccess.fromProject(),
+    requireWorkspacePermission({ member: ["update"] }),
+  ] as const,
+  path: "/{id}/private-members/{userId}",
+  summary: "Remove a member from a private team",
+  description:
+    "Stop a workspace member opening a private project and unassign their tasks in it. You can remove yourself; the answer then lists nobody, because you can no longer open the project. Needs access to the project and member:update.",
+});
+
 const getProjectBackgroundRoute = createRoute({
   method: "get",
   operationId: "getProjectBackground",
@@ -573,6 +623,7 @@ const project = apiRouter<BaseVariables & { workspaceId: string }>()
       slug,
       description,
       isPublic,
+      isPrivate,
       includeSubtasks,
       autoArchiveMonths,
       ...estimation
@@ -590,6 +641,9 @@ const project = apiRouter<BaseVariables & { workspaceId: string }>()
       includeSubtasks,
       autoArchiveMonths,
       estimation,
+      isPrivate === undefined
+        ? undefined
+        : { isPrivate, actorId: c.get("userId") },
     );
     await publishEvent("project.updated", { projectId: id });
     return c.json(toPublicProject(updatedProject), 200);
@@ -623,6 +677,32 @@ const project = apiRouter<BaseVariables & { workspaceId: string }>()
       200,
     ),
   )
+  .openapi(addPrivateMemberRoute, async (c) => {
+    const { id, userId } = c.req.valid("param");
+    return c.json(
+      await changePrivateMember({
+        workspaceId: c.get("workspaceId"),
+        projectId: id,
+        actorId: c.get("userId"),
+        userId,
+        member: true,
+      }),
+      200,
+    );
+  })
+  .openapi(removePrivateMemberRoute, async (c) => {
+    const { id, userId } = c.req.valid("param");
+    return c.json(
+      await changePrivateMember({
+        workspaceId: c.get("workspaceId"),
+        projectId: id,
+        actorId: c.get("userId"),
+        userId,
+        member: false,
+      }),
+      200,
+    );
+  })
   .openapi(uploadProjectBackgroundRoute, async (c) => {
     const { id } = c.req.valid("param");
     const { contentType, size } = c.req.valid("json");

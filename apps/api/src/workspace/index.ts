@@ -5,6 +5,8 @@ import {
   errorResponse,
   jsonResponse,
 } from "../openapi";
+import { privateTeamMembersListSchema } from "../project/response";
+import { listPrivateProjectMembers } from "../project-access/list-private-project-members";
 import { listWorkspaceProjectAccess } from "../project-access/list-workspace-project-access";
 import {
   requireApiKeyScope,
@@ -114,6 +116,29 @@ const getWorkspaceProjectAccessRoute = createRoute({
   },
 });
 
+const listPrivateTeamMembersRoute = createRoute({
+  method: "get",
+  operationId: "listPrivateTeamMembers",
+  path: "/{workspaceId}/project-access/private",
+  tags: ["Workspaces"],
+  summary: "List private team members",
+  description:
+    "List the private projects you can open, each with the members added to it. A private project you cannot open is left out. The workspace owner and instance administrators can open every project and are not listed.",
+  middleware: [
+    workspaceAccess.fromParam("workspaceId"),
+    requireWorkspacePermission({ member: ["update"] }),
+  ] as const,
+  request: { params: workspaceIdParam },
+  responses: {
+    200: jsonResponse(
+      "Private projects and their members",
+      privateTeamMembersListSchema,
+    ),
+    403: errorResponse("Missing member:update permission"),
+    404: errorResponse("Workspace not found"),
+  },
+});
+
 const getMyProjectAccessRoute = createRoute({
   method: "get",
   operationId: "getMyProjectAccess",
@@ -214,6 +239,12 @@ const workspace = apiRouter<BaseVariables & { workspaceId: string }>()
   .openapi(getWorkspaceProjectAccessRoute, async (c) =>
     c.json(
       await listWorkspaceProjectAccess(c.get("workspaceId"), c.get("userId")),
+      200,
+    ),
+  )
+  .openapi(listPrivateTeamMembersRoute, async (c) =>
+    c.json(
+      await listPrivateProjectMembers(c.get("workspaceId"), c.get("userId")),
       200,
     ),
   )

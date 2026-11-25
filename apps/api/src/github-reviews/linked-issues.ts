@@ -7,6 +7,7 @@ import {
   workProjectTable,
   workspaceUserTable,
 } from "../database/schema";
+import { projectAccessCondition } from "../project-access/project-access-condition";
 
 export type LinkedIssue = {
   taskId: string;
@@ -23,7 +24,7 @@ export type LinkedIssue = {
   completedAt: string | null;
 };
 
-/** Kaneo tasks linked to the given pull request urls, limited to workspaces the user belongs to. */
+/** Kaneo tasks linked to the given pull request urls, limited to the teams the user can open. */
 export async function findLinkedIssues(userId: string, urls: string[]) {
   const issues = new Map<string, LinkedIssue>();
   if (urls.length === 0) return issues;
@@ -62,6 +63,7 @@ export async function findLinkedIssues(userId: string, urls: string[]) {
         inArray(externalLinkTable.url, urls),
         eq(externalLinkTable.resourceType, "pull_request"),
         isNull(taskTable.archivedAt),
+        projectAccessCondition(userId, projectTable.id),
       ),
     );
   for (const row of rows) {
