@@ -62,6 +62,19 @@ export type Receipt = {
   notChecked: { slot: string; slotName: string; type: string }[];
 };
 
+export type Answer = {
+  slot: string;
+  slotName: string;
+  type: string;
+  value: string | null;
+  quote: string | null;
+  documentId: string | null;
+  documentTitle: string | null;
+  approvedByName: string | null;
+  approvedAt: string | null;
+  proposedIn: { id: string; title: string }[];
+};
+
 export const LAUNCH = "We launch on 5 March 2027.";
 export const PRICE = "The price is 40 USD per seat.";
 export const TEXT = `<p>${LAUNCH}</p><p>${PRICE}</p>`;
@@ -167,6 +180,13 @@ export function filing(world: DocumentWorld) {
       ),
     receipt: async (id: string, user: Member = owner) =>
       (await ok(await world.as(user)(`${docBase(id)}/receipt`))) as Receipt,
+    current: async (topic: string, slot?: string, user: Member = owner) =>
+      (await ok(
+        await world.as(user)(
+          `/topic/workspace/${ws}/current?` +
+            new URLSearchParams(slot ? { topic, slot } : { topic }),
+        ),
+      )) as { topics: { id: string; answers: Answer[] }[] },
     settleConflict: (
       id: string,
       conflictId: string,

@@ -4,6 +4,7 @@ import {
   documentTable,
   statementTable,
   topicSlotTable,
+  userTable,
 } from "../../database/schema";
 import { documentVisibility } from "../../document/visibility";
 
@@ -28,10 +29,13 @@ export function currentStatements(
       quote: statementTable.quote,
       documentId: documentTable.id,
       documentTitle: documentTable.title,
+      approvedByName: userTable.name,
+      approvedAt: documentTable.approvedAt,
     })
     .from(statementTable)
     .innerJoin(topicSlotTable, eq(topicSlotTable.id, statementTable.slotId))
     .innerJoin(documentTable, eq(documentTable.id, statementTable.documentId))
+    .leftJoin(userTable, eq(userTable.id, documentTable.approvedBy))
     .where(
       and(
         eq(topicSlotTable.topicId, topicId),

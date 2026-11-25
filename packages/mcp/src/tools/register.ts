@@ -986,10 +986,10 @@ export function registerTools(
   };
   const readTopic =
     (route: "current" | "unreviewed") =>
-    async (args: { workspaceId: string; topic: string }) =>
+    async (args: { workspaceId: string; topic: string; slot?: string }) =>
       run(() =>
         client.json(
-          `/api/topic/workspace/${encodeURIComponent(args.workspaceId)}/${route}?${new URLSearchParams({ topic: args.topic }).toString()}`,
+          `/api/topic/workspace/${encodeURIComponent(args.workspaceId)}/${route}?${new URLSearchParams({ topic: args.topic, ...(args.slot ? { slot: args.slot } : {}) }).toString()}`,
         ),
       );
 
@@ -997,8 +997,13 @@ export function registerTools(
     "get_current",
     {
       description:
-        "Call this before you draft, answer or save anything about a topic. It returns what is approved: each matching topic's current document, who approved it, when and why, and its approved text. Answer from that text and quote it. The text comes only when one topic matches. With several, call again with one topic's id. An empty list, or a topic whose current is null, means nothing is approved on this: say so and do not guess. unreviewed counts the documents that wait for a decision. They are not approved.",
-      inputSchema: z.object(topicRead),
+        "Call this before you draft, answer or save anything about a topic. It returns what is approved: each matching topic's current document, who approved it, when and why, and its approved text. Answer from that text and quote it. The text comes only when one topic matches. With several, call again with one topic's id. An empty list, or a topic whose current is null, means nothing is approved on this: say so and do not guess. unreviewed counts the documents that wait for a decision. They are not approved. answers holds one entry per fact the topic keeps (its slots): the approved value, the quote it rests on, the document and who approved it. Prefer an answer with its quote over your own reading of the text. A null value means nobody confirmed a value for that fact: answer it from the approved text, and say nothing is approved only when the text is silent or current is null. proposedIn names documents that wait for a decision and state something for it. Never present what they say as approved.",
+      inputSchema: z.object({
+        ...topicRead,
+        slot: optionalNonEmptyString.describe(
+          "A slot key from the topic's slots. answers then holds only that fact.",
+        ),
+      }),
     },
     readTopic("current"),
   );

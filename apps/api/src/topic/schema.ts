@@ -151,6 +151,12 @@ export const topicReadQuery = z.object({
     description: "A topic's id, its name, or a sentence that names it.",
   }),
 });
+export const currentReadQuery = topicReadQuery.extend({
+  slot: z.string().trim().min(1).max(80).optional().openapi({
+    description:
+      "A slot's key. `answers` then holds that one slot, or nothing when the topic does not keep it.",
+  }),
+});
 const slotHead = {
   key: z.string().openapi({
     description: "What a statement names the slot by.",
@@ -207,6 +213,36 @@ export const topicCurrentSchema = z
             "How many documents wait for a decision on this topic. None of them is approved.",
         }),
         slots: slotHeadsSchema,
+        answers: z
+          .array(
+            z.object({
+              slot: z.string().openapi({ description: "The slot's key." }),
+              slotName: z.string(),
+              type: z.enum(SLOT_TYPES),
+              value: z.string().nullable().openapi({
+                description:
+                  "What the current document states for the slot, confirmed by a person for the text that was approved. Null when nobody confirmed a value for the slot: the approved text may still state one.",
+              }),
+              quote: z.string().nullable().openapi({
+                description:
+                  "The words of the approved text the value rests on.",
+              }),
+              documentId: z.string().nullable(),
+              documentTitle: z.string().nullable(),
+              approvedByName: z.string().nullable(),
+              approvedAt: responseTimestamp.nullable(),
+              proposedIn: z
+                .array(z.object({ id: z.string(), title: z.string() }))
+                .openapi({
+                  description:
+                    "Documents that wait for a decision and state something for the slot. Titles only: none of them is approved.",
+                }),
+            }),
+          )
+          .openapi({
+            description:
+              "One answer per slot of the topic, from what was approved. Only a current document you can open answers.",
+          }),
         current: z
           .object({
             id: z.string(),

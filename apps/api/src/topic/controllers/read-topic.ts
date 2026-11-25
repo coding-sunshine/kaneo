@@ -3,6 +3,7 @@ import db from "../../database";
 import { documentTable, userTable } from "../../database/schema";
 import { listDocuments } from "../../document/controllers/list-documents";
 import { documentVisibility } from "../../document/visibility";
+import { answersOf } from "./answers";
 import { findTopics } from "./find-topics";
 import { slotHeads, slotsOf } from "./slots";
 import { tasksOfTopics } from "./topic-tasks";
@@ -42,6 +43,7 @@ export async function getCurrent(
   workspaceId: string,
   userId: string,
   text: string,
+  slot?: string,
 ) {
   const topics = await findTopics(workspaceId, userId, text);
   const tasks = await tasksOfTopics(
@@ -85,6 +87,12 @@ export async function getCurrent(
           tasks: tasks.filter((task) => task.topicId === topic.id),
           unreviewed: (await waiting(workspaceId, userId, topic.id)).length,
           slots: slotHeads(slots.get(topic.id)),
+          answers: await answersOf(
+            topic.id,
+            slots.get(topic.id) ?? [],
+            userId,
+            slot,
+          ),
           // The text stays last: an answer cut for length keeps the rest.
           current: doc
             ? {

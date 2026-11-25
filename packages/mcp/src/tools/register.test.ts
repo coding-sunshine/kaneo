@@ -679,6 +679,14 @@ describe("registerTools", () => {
     expect(client.json).toHaveBeenLastCalledWith(
       "/api/topic/workspace/ws%201/current?topic=Launch+plan+%26+price",
     );
+    await tools.get("get_current")?.handler({
+      workspaceId: "ws-1",
+      topic: "topic-1",
+      slot: "price",
+    });
+    expect(client.json).toHaveBeenLastCalledWith(
+      "/api/topic/workspace/ws-1/current?topic=topic-1&slot=price",
+    );
     await tools.get("list_unreviewed")?.handler({
       workspaceId: "ws-1",
       topic: "topic-1",
@@ -686,6 +694,7 @@ describe("registerTools", () => {
     expect(client.json).toHaveBeenLastCalledWith(
       "/api/topic/workspace/ws-1/unreviewed?topic=topic-1",
     );
+    expect(tools.get("get_current")?.config.description).toContain("answers");
 
     // Where an assistant reads first: the start of each description.
     const start = (name: string) =>
@@ -699,6 +708,12 @@ describe("registerTools", () => {
     expect(() => schema?.parse({ ...ask, topic: "  " })).toThrow();
     expect(() => schema?.parse({ ...ask, topic: "x".repeat(201) })).toThrow();
     expect(() => schema?.parse({ ...ask, topic: "Launch plan" })).not.toThrow();
+    expect(() =>
+      schema?.parse({ ...ask, topic: "Launch plan", slot: "" }),
+    ).toThrow();
+    expect(() =>
+      schema?.parse({ ...ask, topic: "Launch plan", slot: "price" }),
+    ).not.toThrow();
   });
 
   it("refuses a text too long for one call before it sends anything", async () => {

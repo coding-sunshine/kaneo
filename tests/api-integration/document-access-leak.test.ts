@@ -831,14 +831,54 @@ describe("API integration: document access leaks", () => {
         json("POST", { decision: "keep", reason: "Still 40." }),
       );
 
+    // What the topic answers for its slots, as `user` reads it.
+    const answers = async (user: Member) =>
+      (
+        (await call(user, `${topics}/current?topic=${topicId}`)).body as {
+          topics: { answers: Record<string, unknown>[] }[];
+        }
+      ).topics[0].answers;
+
     await state(docs.teamAlpha, 45);
     const alone = await call(limited, receipt);
     expect(alone.body).toMatchObject({
       new: [{ slot: "price", value: "45" }],
       conflicts: [],
     });
+    const unanswered = await answers(limited);
+    expect(unanswered).toMatchObject([
+      {
+        slot: "price",
+        value: null,
+        quote: null,
+        documentId: null,
+        approvedByName: null,
+        proposedIn: [{ id: docs.teamAlpha }],
+      },
+    ]);
 
     const hidden = await state(docs.teamBeta, 40);
+    // Filing moves a document into its topic's place, so no route leaves a
+    // document where someone who can open the topic cannot open it. The row
+    // is moved by hand: the rule has to hold the day a route does.
+    await db
+      .update(schema.documentTable)
+      .set({ projectId: world.beta.id })
+      .where(eq(schema.documentTable.id, docs.teamBeta));
+    expect((await world.as(limited)(doc(docs.teamBeta))).status).toBe(404);
+
+    // A hidden document that waits for a decision is not named.
+    expect(await answers(limited)).toEqual(unanswered);
+    expect(await answers(open)).toMatchObject([
+      {
+        value: null,
+        proposedIn: expect.arrayContaining([
+          expect.objectContaining({ id: docs.teamBeta }),
+          expect.objectContaining({ id: docs.teamAlpha }),
+        ]),
+      },
+    ]);
+
     await done(
       `${doc(docs.teamBeta)}/statements/${hidden.id}/confirm`,
       json("POST"),
@@ -848,14 +888,18 @@ describe("API integration: document access leaks", () => {
       json("POST", { reason: "Agreed." }),
     );
 
-    // Filing moves a document into its topic's place, so no route leaves a
-    // current document where someone who can open the topic cannot open it.
-    // The row is moved by hand: the rule has to hold the day a route does.
-    await db
-      .update(schema.documentTable)
-      .set({ projectId: world.beta.id })
-      .where(eq(schema.documentTable.id, docs.teamBeta));
-    expect((await world.as(limited)(doc(docs.teamBeta))).status).toBe(404);
+    // A hidden current document answers nothing: `limited` reads the same as
+    // when nothing was approved, `open` reads the value and its quote.
+    expect(await answers(limited)).toEqual(unanswered);
+    expect(await answers(open)).toMatchObject([
+      {
+        slot: "price",
+        value: "40",
+        quote: "40 USD",
+        documentId: docs.teamBeta,
+        proposedIn: [{ id: docs.teamAlpha }],
+      },
+    ]);
 
     // Someone who can open both documents sees the conflict and both quotes.
     const seen = await call(open, receipt);

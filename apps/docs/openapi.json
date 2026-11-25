@@ -5581,6 +5581,101 @@
                   },
                   "description": "The facts this topic keeps, such as a date or a price. A statement gives one slot's value as a document states it."
                 },
+                "answers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "slot": {
+                        "type": "string",
+                        "description": "The slot's key."
+                      },
+                      "slotName": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "date",
+                          "number",
+                          "money",
+                          "person",
+                          "enum",
+                          "bool",
+                          "term"
+                        ]
+                      },
+                      "value": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "What the current document states for the slot, confirmed by a person for the text that was approved. Null when nobody confirmed a value for the slot: the approved text may still state one."
+                      },
+                      "quote": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "The words of the approved text the value rests on."
+                      },
+                      "documentId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "documentTitle": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "approvedByName": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "approvedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "proposedIn": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "title"
+                          ]
+                        },
+                        "description": "Documents that wait for a decision and state something for the slot. Titles only: none of them is approved."
+                      }
+                    },
+                    "required": [
+                      "slot",
+                      "slotName",
+                      "type",
+                      "value",
+                      "quote",
+                      "documentId",
+                      "documentTitle",
+                      "approvedByName",
+                      "approvedAt",
+                      "proposedIn"
+                    ]
+                  },
+                  "description": "One answer per slot of the topic, from what was approved. Only a current document you can open answers."
+                },
                 "current": {
                   "type": [
                     "object",
@@ -5642,6 +5737,7 @@
                 "tasks",
                 "unreviewed",
                 "slots",
+                "answers",
                 "current"
               ]
             }
@@ -32082,7 +32178,7 @@
           "Topics"
         ],
         "summary": "Read what is approved on a topic",
-        "description": "Find topics by id or by name and return each one's current document with its approved text. The text is sent when exactly one topic matches. A topic you cannot open answers like a name nobody used: an empty list.",
+        "description": "Find topics by id or by name and return each one's current document with its approved text, and what it states for each slot of the topic. The text is sent when exactly one topic matches. A topic you cannot open answers like a name nobody used: an empty list.",
         "parameters": [
           {
             "schema": {
@@ -32102,6 +32198,18 @@
             "required": true,
             "description": "A topic's id, its name, or a sentence that names it.",
             "name": "topic",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80,
+              "description": "A slot's key. `answers` then holds that one slot, or nothing when the topic does not keep it."
+            },
+            "required": false,
+            "description": "A slot's key. `answers` then holds that one slot, or nothing when the topic does not keep it.",
+            "name": "slot",
             "in": "query"
           }
         ],

@@ -34,6 +34,7 @@ import {
   topicListQuery,
   topicListSchema,
   topicParam,
+  currentReadQuery,
   topicReadQuery,
   topicSchema,
   topicTaskParam,
@@ -95,9 +96,9 @@ const readCurrentRoute = createRoute({
   tags,
   summary: "Read what is approved on a topic",
   description:
-    "Find topics by id or by name and return each one's current document with its approved text. The text is sent when exactly one topic matches. A topic you cannot open answers like a name nobody used: an empty list.",
+    "Find topics by id or by name and return each one's current document with its approved text, and what it states for each slot of the topic. The text is sent when exactly one topic matches. A topic you cannot open answers like a name nobody used: an empty list.",
   middleware: [...read] as const,
-  request: { params: workspaceIdParam, query: topicReadQuery },
+  request: { params: workspaceIdParam, query: currentReadQuery },
   responses: {
     200: jsonResponse("Matching topics", topicCurrentSchema),
     403: noAccess,
@@ -390,6 +391,7 @@ const topic = apiRouter()
         c.req.valid("param").workspaceId,
         c.get("userId"),
         c.req.valid("query").topic,
+        c.req.valid("query").slot,
       ),
       200,
     ),
