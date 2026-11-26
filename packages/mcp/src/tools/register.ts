@@ -1012,6 +1012,40 @@ export function registerTools(
   );
 
   registerTool(
+    "list_topics",
+    {
+      description:
+        "List the topics the person can open in a workspace: each topic's id, name, the team or project it lives in, its decider, and its current document. Use it when file_document finds no topic whose name matches the title, so the author can pick one for settle_document. Then call get_current with that topic's id.",
+      inputSchema: z.object({
+        workspaceId: nonEmptyString.describe("Workspace ID"),
+      }),
+    },
+    async ({ workspaceId }) =>
+      run(async () => {
+        const topics = await client.json<
+          Array<{
+            id: string;
+            name: string;
+            parentName: string | null;
+            deciderName: string | null;
+            currentDocumentId: string | null;
+            currentDocumentTitle: string | null;
+          }>
+        >(`/api/topic/workspace/${encodeURIComponent(workspaceId)}`);
+        return {
+          topics: topics.map((topic) => ({
+            id: topic.id,
+            name: topic.name,
+            place: topic.parentName,
+            decider: topic.deciderName,
+            currentDocumentId: topic.currentDocumentId,
+            currentDocumentTitle: topic.currentDocumentTitle,
+          })),
+        };
+      }),
+  );
+
+  registerTool(
     "list_unreviewed",
     {
       description:

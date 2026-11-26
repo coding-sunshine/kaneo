@@ -117,7 +117,7 @@ For headless or sandboxed environments where opening a browser is impractical, s
 
 - Session: `whoami`, `list_workspaces`, `list_workspace_members`, `list_notifications`
 - Search: `search`
-- Documents: `get_current`, `list_unreviewed`, `get_document`, `file_document`, `settle_document`
+- Documents: `get_current`, `list_unreviewed`, `list_topics`, `get_document`, `file_document`, `settle_document`
 - Projects: `list_projects`, `get_project`, `create_project`, `update_project`, `list_project_columns`
 - Tasks: `list_tasks`, `get_task`, `get_task_by_ticket_id`, `create_task`, `update_task`, `delete_task`, `move_task`, `update_task_status`, `update_task_assignee`, `update_task_due_date`, `update_task_recurrence`, `list_task_activity`
 - Custom fields: `list_project_custom_fields`, `get_task_custom_field_values`, `set_task_custom_field_value`

@@ -666,6 +666,45 @@ describe("registerTools", () => {
     ).toThrow();
   });
 
+  it("lists the topics the person can open, so the author can pick one", async () => {
+    const { server, tools } = createServerMock();
+    const client = {
+      json: vi.fn().mockResolvedValue([
+        {
+          id: "topic-1",
+          name: "Launch plan",
+          scope: "team",
+          parentName: "Growth",
+          deciderName: "Ana",
+          deciderImage: "https://example.test/ana.png",
+          currentDocumentId: "doc-1",
+          currentDocumentTitle: "Launch plan v2",
+          following: true,
+        },
+      ]),
+    };
+    registerTools(server as never, { client: client as never });
+
+    const listed = await tools.get("list_topics")?.handler({
+      workspaceId: "ws 1",
+    });
+    expect(listed?.isError).toBe(false);
+    expect(client.json).toHaveBeenLastCalledWith("/api/topic/workspace/ws%201");
+    const body = JSON.parse(listed?.content[0]?.text ?? "null");
+    expect(body).toEqual({
+      topics: [
+        {
+          id: "topic-1",
+          name: "Launch plan",
+          place: "Growth",
+          decider: "Ana",
+          currentDocumentId: "doc-1",
+          currentDocumentTitle: "Launch plan v2",
+        },
+      ],
+    });
+  });
+
   it("reads what is approved on a topic, and what waits, before writing", async () => {
     const { server, tools } = createServerMock();
     const client = { json: vi.fn().mockResolvedValue({ topics: [] }) };
