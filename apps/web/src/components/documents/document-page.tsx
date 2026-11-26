@@ -152,7 +152,9 @@ export function DocumentPage({
                     workspaceId={workspaceId}
                     targetId={replaces}
                     title={replaced?.title ?? null}
-                    stale={replaces !== topic?.currentDocumentId}
+                    stale={
+                      Boolean(topic) && replaces !== topic?.currentDocumentId
+                    }
                   />
                 )
               }
