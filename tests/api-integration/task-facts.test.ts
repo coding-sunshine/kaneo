@@ -261,6 +261,26 @@ describe("API integration: facts found in issues", () => {
       ).toEqual(["launch_date", "price"]);
     });
 
+    it("never reads the same text twice: not for a new topic, a new slot or another model", async () => {
+      const { world, topicId } = await found();
+      await attach(world, { filename: "notes.md", mimeType: "text/markdown" });
+      readObject.mockImplementation(async () => ({
+        body: new Response(PRICE).body,
+      }));
+      await run();
+      // Two issues and one file.
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+
+      const other = await filing(world).topic("Office lease");
+      await filing(world).addSlot(other, { name: "Rent", type: "number" });
+      await filing(world).addSlot(topicId, { name: "Owner", type: "term" });
+      vi.stubEnv("EXTRACTION_MODEL", "another/model");
+      await run();
+
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect(await records()).toHaveLength(3);
+    });
+
     it("drops a fact when its words are no longer in the issue, unless a person dismissed it", async () => {
       const { world, topicId, fact } = await found();
       await comment(world, world.betaTask.id, PRICE);

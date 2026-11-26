@@ -223,11 +223,9 @@ async function readWorkspace(
   run: Run,
   outcome: Outcome,
 ): Promise<void> {
-  const answered = [
-    eq(taskExtractionTable.slotsHash, run.slotsHash),
-    eq(taskExtractionTable.promptVersion, PROMPT_VERSION),
-    eq(taskExtractionTable.model, run.model),
-  ];
+  // The owner's rule: a text is never asked about twice. A record for the
+  // same words ends it, whatever the topics, slots, prompt or model were. So
+  // a topic or slot added later gets no facts from texts already read.
   const handle = (result: Awaited<ReturnType<typeof read>>) => {
     outcome.left -= 1;
     if (result === "stop") outcome.stop = true;
@@ -244,7 +242,6 @@ async function readWorkspace(
         eq(taskExtractionTable.taskId, taskTable.id),
         isNull(taskExtractionTable.assetId),
         eq(taskExtractionTable.contentHash, issueHash),
-        ...answered,
       ),
     )
     .where(
@@ -278,7 +275,7 @@ async function readWorkspace(
     .innerJoin(projectTable, eq(projectTable.id, taskTable.projectId))
     .leftJoin(
       taskExtractionTable,
-      and(eq(taskExtractionTable.assetId, assetTable.id), ...answered),
+      eq(taskExtractionTable.assetId, assetTable.id),
     )
     .where(
       and(
@@ -333,9 +330,9 @@ async function readWorkspace(
  * Asks the model which facts each issue, and each text file on an issue,
  * states for the slots of the workspace's topics, and stores them as
  * proposals. A proposal changes nothing a topic states: a person puts the
- * issue on the topic or dismisses the fact. A text is asked about once per
- * wording, set of topics and slots, prompt and model, and every file gets a
- * record, read or not. Does nothing without a key or once this job's share
+ * issue on the topic or dismisses the fact. A text is asked about once: an
+ * issue again only when its words change, a file never again. Every file
+ * gets a record, read or not. Does nothing without a key or once this job's share
  * of a cap is used up.
  */
 export async function extractTaskFacts() {
@@ -351,8 +348,7 @@ export async function extractTaskFacts() {
     .from(topicTable)
     .where(inArray(topicTable.id, [...slots.keys()]))
     .orderBy(asc(topicTable.name), asc(topicTable.id));
-  // ponytail: every topic of the workspace goes into every question, and a
-  // change to one slot or topic name asks about every text again. Pick the
+  // ponytail: every topic of the workspace goes into every question. Pick the
   // topics per issue when a workspace has more than a few dozen.
   const byWorkspace = new Map<string, AskedTopic[]>();
   for (const { workspaceId, id, name } of topics) {
