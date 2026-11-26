@@ -19,7 +19,12 @@ import { toast } from "@/lib/toast";
 type EditTopicDialogProps = {
   topic: Pick<
     Topic,
-    "workspaceId" | "id" | "name" | "deciderId" | "backupDeciderId"
+    | "workspaceId"
+    | "id"
+    | "name"
+    | "deciderId"
+    | "deciderName"
+    | "backupDeciderId"
   >;
   onClose: () => void;
 };
@@ -39,15 +44,24 @@ export function EditTopicDialog({ topic, onClose }: EditTopicDialogProps) {
   const [deciderId, setDeciderId] = useState(topic.deciderId ?? "");
   const [backupId, setBackupId] = useState(topic.backupDeciderId ?? "");
 
+  // Only what changed: naming a decider or backup again makes them follow.
+  const changes = {
+    ...(name.trim() !== topic.name ? { name: name.trim() } : {}),
+    ...(deciderId && deciderId !== topic.deciderId ? { deciderId } : {}),
+    ...((backupId || null) !== topic.backupDeciderId
+      ? { backupDeciderId: backupId || null }
+      : {}),
+  };
+  // A decider no longer offered (they cannot open the place now) still shows.
+  const options =
+    topic.deciderId &&
+    !people.some((person) => person.userId === topic.deciderId)
+      ? [{ userId: topic.deciderId, name: topic.deciderName ?? "" }, ...people]
+      : people;
+
   const submit = () =>
     update.mutate(
-      {
-        workspaceId,
-        id,
-        name: name.trim(),
-        ...(deciderId ? { deciderId } : {}),
-        backupDeciderId: backupId || null,
-      },
+      { workspaceId, id, ...changes },
       {
         onSuccess: () => {
           toast.success(t("navigation:documents.topics.edit.done"));
@@ -82,7 +96,11 @@ export function EditTopicDialog({ topic, onClose }: EditTopicDialogProps) {
             <select
               value={deciderId}
               className={SELECT}
-              onChange={(event) => setDeciderId(event.target.value)}
+              onChange={(event) => {
+                setDeciderId(event.target.value);
+                // One person cannot be both.
+                if (event.target.value === backupId) setBackupId("");
+              }}
             >
               {/* The API cannot clear a decider, only name another one. */}
               {!topic.deciderId && (
@@ -90,7 +108,7 @@ export function EditTopicDialog({ topic, onClose }: EditTopicDialogProps) {
                   {t("navigation:documents.topics.edit.choose")}
                 </option>
               )}
-              {people.map((person) => (
+              {options.map((person) => (
                 <option key={person.userId} value={person.userId}>
                   {person.name}
                 </option>
@@ -123,7 +141,11 @@ export function EditTopicDialog({ topic, onClose }: EditTopicDialogProps) {
           </Button>
           <Button
             size="sm"
-            disabled={!name.trim() || update.isPending}
+            disabled={
+              !name.trim() ||
+              Object.keys(changes).length === 0 ||
+              update.isPending
+            }
             onClick={submit}
           >
             {t("navigation:documents.topics.edit.save")}

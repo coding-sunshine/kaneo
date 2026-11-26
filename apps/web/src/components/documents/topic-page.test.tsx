@@ -279,6 +279,35 @@ describe("TopicPage", () => {
     );
   });
 
+  it("sends only what changed, so a rename does not name the deciders again", async () => {
+    mocks.getTopic.mockResolvedValue({ ...topic, canManage: true });
+    mocks.getDocument.mockResolvedValue(current);
+    mocks.getDocuments.mockResolvedValue([]);
+    mocks.getTopicDeciderCandidates.mockResolvedValue([
+      { userId: "user-1", name: "Decider Person", image: null },
+      { userId: "user-2", name: "Backup Person", image: null },
+    ]);
+    mocks.updateTopic.mockResolvedValue({});
+    show();
+
+    const EDIT = "navigation:documents.topics.edit";
+    fireEvent.click(
+      await screen.findByRole("button", { name: `${EDIT}.action` }),
+    );
+    await screen.findAllByRole("option", { name: "Backup Person" });
+    fireEvent.change(screen.getByRole("textbox", { name: `${EDIT}.name` }), {
+      target: { value: "Launch" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: `${EDIT}.save` }));
+    await waitFor(() =>
+      expect(mocks.updateTopic.mock.calls[0]?.[0]).toEqual({
+        workspaceId: "ws-1",
+        id: "topic-1",
+        name: "Launch",
+      }),
+    );
+  });
+
   it("offers no change to someone who does not manage the topic", async () => {
     mocks.getTopic.mockResolvedValue({ ...topic, canManage: false });
     mocks.getDocument.mockResolvedValue(current);
