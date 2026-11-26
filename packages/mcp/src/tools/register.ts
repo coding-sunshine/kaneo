@@ -5,6 +5,8 @@ import { buildFullTaskUpdateBody } from "../kaneo/task-helpers.js";
 import { errorResult, textResult } from "../utils/mcp-result.js";
 import { getCurrentUser } from "./get-current-user.js";
 
+export { SERVER_INSTRUCTIONS } from "./instructions.js";
+
 export type ToolClient = {
   readonly usingApiKey?: boolean;
   json<T = unknown>(path: string, init?: RequestInit): Promise<T>;

@@ -87,6 +87,20 @@ afterEach(() => {
 });
 
 describe("MCP 2026-07-28 stateless HTTP", () => {
+  it("sends instructions that ask for get_current first on server/discover", async () => {
+    const handler = createModernMcpHandler("test-token", "http://api.test");
+
+    const response = await handler.fetch(modernRequest("server/discover", 1));
+    const body = (await rpcBody(response)) as unknown as {
+      result: { instructions?: string };
+    };
+
+    expect(response.status).toBe(200);
+    expect((body.result.instructions ?? "").slice(0, 512)).toMatch(
+      /call get_current before you draft or save/i,
+    );
+  });
+
   it("serves tools/list on independent HTTP requests without session IDs", async () => {
     const handler = createModernMcpHandler("test-token", "http://api.test");
 

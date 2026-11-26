@@ -1,4 +1,5 @@
 import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
+import { SERVER_INSTRUCTIONS } from "@kaneo/mcp/tools";
 import { registerMcpTools, toMcpToolRegistrar } from "./tools";
 import { MCP_BODY_BYTES, MCP_MAX_TOOL_INPUT_ELEMENTS } from "./request-bounds";
 
@@ -15,6 +16,7 @@ export function createModernMcpHandler(
           version: "1.0.0",
         },
         {
+          instructions: SERVER_INSTRUCTIONS,
           maxToolInputElements: MCP_MAX_TOOL_INPUT_ELEMENTS,
         },
       );

@@ -1,4 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { SERVER_INSTRUCTIONS } from "@kaneo/mcp/tools";
 import { registerMcpTools, toMcpToolRegistrar } from "./tools";
 import { MCP_MAX_TOOL_INPUT_ELEMENTS } from "./request-bounds";
 
@@ -8,7 +9,10 @@ export function createMcpServerForUser(
 ): McpServer {
   const server = new McpServer(
     { name: "kaneo-mcp", version: "1.0.0" },
-    { maxToolInputElements: MCP_MAX_TOOL_INPUT_ELEMENTS },
+    {
+      instructions: SERVER_INSTRUCTIONS,
+      maxToolInputElements: MCP_MAX_TOOL_INPUT_ELEMENTS,
+    },
   );
   registerMcpTools(toMcpToolRegistrar(server), internalApiUrl, token);
   return server;
