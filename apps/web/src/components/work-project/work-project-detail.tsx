@@ -181,6 +181,7 @@ export function WorkProjectDetail({ workspaceId, workProjectId }: Props) {
               workspaceId={workspaceId}
               workProjectId={workProjectId}
               editable={editable}
+              links={project.links}
             />
 
             <WorkProjectUpdates

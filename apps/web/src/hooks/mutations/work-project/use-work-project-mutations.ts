@@ -8,6 +8,11 @@ import {
   updateMilestone,
   type CreateMilestoneInput,
 } from "@/fetchers/work-project/milestones";
+import {
+  type AddWorkProjectLinkInput,
+  addWorkProjectLink,
+  removeWorkProjectLink,
+} from "@/fetchers/work-project/links";
 import type { UpdateWorkProjectInput } from "@/fetchers/work-project/types";
 import {
   type CreateUpdateInput,
@@ -65,6 +70,24 @@ export function useDeleteMilestone(workProjectId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteMilestone,
+    onSuccess: () => invalidateWorkProjects(queryClient, workProjectId),
+  });
+}
+
+export function useAddWorkProjectLink(workProjectId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (json: AddWorkProjectLinkInput) =>
+      addWorkProjectLink(workProjectId, json),
+    onSuccess: () => invalidateWorkProjects(queryClient, workProjectId),
+  });
+}
+
+export function useRemoveWorkProjectLink(workProjectId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (linkId: string) =>
+      removeWorkProjectLink(workProjectId, linkId),
     onSuccess: () => invalidateWorkProjects(queryClient, workProjectId),
   });
 }

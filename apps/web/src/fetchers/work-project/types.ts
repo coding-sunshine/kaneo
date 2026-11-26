@@ -12,6 +12,8 @@ export type WorkProjectDetail = InferResponseType<Api[":id"]["$get"], 200>;
 
 export type WorkProjectMilestone = WorkProjectDetail["milestones"][number];
 
+export type WorkProjectLink = WorkProjectDetail["links"][number];
+
 export type CreateWorkProjectInput = InferRequestType<Api["$post"]>["json"];
 
 export type UpdateWorkProjectInput = InferRequestType<
