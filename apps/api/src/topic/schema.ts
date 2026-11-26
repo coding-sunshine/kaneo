@@ -348,6 +348,13 @@ export const topicDependentsSchema = z
         statementId: z.string(),
         slot: z.string().openapi({ description: "The slot's key." }),
         slotName: z.string(),
+        value: z.string().openapi({
+          description: "The value the work relies on.",
+        }),
+        statedIn: z.string().openapi({
+          description:
+            "The id of the document that states it. Removing the link needs it.",
+        }),
         needsReview: z.boolean().openapi({
           description:
             "True when the value changed after the link was made and nobody looked at the work since.",

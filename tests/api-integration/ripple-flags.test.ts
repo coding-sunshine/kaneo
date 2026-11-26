@@ -45,6 +45,8 @@ type Dependent = {
   statementId: string;
   slot: string;
   slotName: string;
+  value: string;
+  statedIn: string;
   task: { id: string; title: string; projectSlug: string } | null;
   document: { id: string; title: string } | null;
   needsReview: boolean;
@@ -577,6 +579,8 @@ describe("API integration: ripple flags", () => {
       expect(item).toMatchObject({
         statementId: cost.id,
         slot: "price",
+        value: expect.stringContaining("40"),
+        statedIn: docId,
         needsReview: false,
       });
     }

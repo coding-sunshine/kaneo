@@ -6119,6 +6119,14 @@
                 "slotName": {
                   "type": "string"
                 },
+                "value": {
+                  "type": "string",
+                  "description": "The value the work relies on."
+                },
+                "statedIn": {
+                  "type": "string",
+                  "description": "The id of the document that states it. Removing the link needs it."
+                },
                 "needsReview": {
                   "type": "boolean",
                   "description": "True when the value changed after the link was made and nobody looked at the work since."
@@ -6177,6 +6185,8 @@
                 "statementId",
                 "slot",
                 "slotName",
+                "value",
+                "statedIn",
                 "needsReview",
                 "task",
                 "document"

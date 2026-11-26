@@ -171,6 +171,8 @@ export async function listDependents(
       statementId: reliedOn.id,
       slot: reliedSlot.key,
       slotName: reliedSlot.name,
+      value: reliedOn.value,
+      statedIn: reliedOn.documentId,
       needsReview: sql<boolean>`${dependency.needsReviewAt} IS NOT NULL`,
       ...work,
     })
@@ -192,11 +194,22 @@ export async function listDependents(
     .orderBy(reliedSlot.name, dependency.id);
   return {
     items: rows.map(
-      ({ id, statementId, slot, slotName, needsReview, ...on }) => ({
+      ({
         id,
         statementId,
         slot,
         slotName,
+        value,
+        statedIn,
+        needsReview,
+        ...on
+      }) => ({
+        id,
+        statementId,
+        slot,
+        slotName,
+        value,
+        statedIn,
         needsReview,
         ...workOf(on),
       }),
