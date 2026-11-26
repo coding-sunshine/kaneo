@@ -112,6 +112,7 @@ export function getNotificationTitle(
       case "document_comment":
       case "document_proposed":
       case "document_current":
+      case "document_question":
         return t(`notifications:events.${notification.type}.title`, {
           ...documentValues(eventData, t),
           defaultValue: notification.title ?? notification.type,
@@ -215,6 +216,7 @@ export function getNotificationContent(
       case "document_proposed":
       case "document_current":
       case "document_replaced":
+      case "document_question":
         return t(`notifications:events.${notification.type}.content`, {
           ...documentValues(eventData, t),
           defaultValue: notification.content ?? "",

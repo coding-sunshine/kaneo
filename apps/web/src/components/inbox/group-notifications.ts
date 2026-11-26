@@ -7,6 +7,7 @@ export type InboxFilter = "all" | "unread" | "mentions" | "priority" | "other";
 export const PRIORITY_TYPES = [
   "task_mention",
   "document_mention",
+  "document_question",
   "task_assignee_changed",
   "due_date_reminder",
   "task_overdue",
@@ -19,7 +20,12 @@ export const NOTIFICATION_TYPE_FILTERS = [
   { label: "Comments", types: ["task_comment", "document_comment"] },
   {
     label: "Documents",
-    types: ["document_proposed", "document_current", "document_replaced"],
+    types: [
+      "document_proposed",
+      "document_current",
+      "document_replaced",
+      "document_question",
+    ],
   },
   { label: "Status changes", types: ["task_status_changed"] },
   { label: "Assignments", types: ["task_assignee_changed"] },

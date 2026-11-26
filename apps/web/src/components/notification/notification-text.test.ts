@@ -73,6 +73,26 @@ describe("notification display content", () => {
     );
   });
 
+  it("asks which value holds, naming the fact, the topic and the document", () => {
+    const say = (key: string, options?: Record<string, unknown>) =>
+      `${key} ${JSON.stringify(options)}`;
+    const item = notification("document_question", {
+      actorName: null,
+      documentTitle: "Pricing",
+      topicName: "Launch plan",
+      slotName: "Launch date",
+    });
+    expect(getNotificationTitle(item, say)).toContain(
+      "notifications:events.document_question.title",
+    );
+    expect(getNotificationTitle(item, say)).toContain(
+      '"topicName":"Launch plan","slotName":"Launch date"',
+    );
+    expect(getNotificationContent(item, say)).toContain(
+      "notifications:events.document_question.content",
+    );
+  });
+
   it("names the actor, the document and the topic for document events", () => {
     const say = (key: string, options?: Record<string, unknown>) =>
       `${key} ${JSON.stringify(options)}`;

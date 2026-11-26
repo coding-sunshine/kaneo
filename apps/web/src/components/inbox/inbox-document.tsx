@@ -13,6 +13,7 @@ import {
   useDocumentComments,
 } from "@/hooks/queries/document/use-documents";
 import { useShortcut } from "@/lib/shortcuts/use-shortcut";
+import { InboxDocumentQuestions } from "./inbox-document-questions";
 
 type InboxDocumentProps = { workspaceId: string; documentId: string };
 
@@ -83,6 +84,8 @@ export function InboxDocument({ workspaceId, documentId }: InboxDocumentProps) {
           className="kaneo-comment-viewer [&_.kaneo-comment-editor-content_.ProseMirror]:max-h-80 [&_.kaneo-comment-editor-content_.ProseMirror]:overflow-y-auto [&_.kaneo-comment-editor-content_.ProseMirror]:px-0 [&_.kaneo-comment-editor-content_.ProseMirror]:text-[13px]"
         />
       )}
+
+      <InboxDocumentQuestions document={document} />
 
       <div className="flex flex-col gap-3 border-border/60 border-t pt-5">
         <h3 className="font-medium text-muted-foreground text-xs">

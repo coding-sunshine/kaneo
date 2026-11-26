@@ -22,6 +22,11 @@ vi.mock("@/hooks/mutations/document/use-document-mutations", () => ({
   useCreateDocumentComment: () => ({ mutateAsync: vi.fn() }),
 }));
 vi.mock("@/lib/shortcuts/use-shortcut", () => ({ useShortcut: vi.fn() }));
+vi.mock("./inbox-document-questions", () => ({
+  InboxDocumentQuestions: ({ document }: { document: { id: string } }) => (
+    <p>questions of {document.id}</p>
+  ),
+}));
 vi.mock("@/components/activity/comment-editor", () => ({
   default: ({ value }: { value: string }) => <div>{value}</div>,
 }));
@@ -56,6 +61,7 @@ describe("inbox document", () => {
     expect(screen.getByText("Body")).toBeTruthy();
     expect(screen.getByText("Open one")).toBeTruthy();
     expect(screen.queryByText("Done")).toBeNull();
+    expect(screen.getByText("questions of doc-1")).toBeTruthy();
     expect(
       screen
         .getByRole("link", { name: /notifications:inbox.openDocument/ })
