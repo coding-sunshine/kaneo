@@ -37,7 +37,13 @@ type Fact = {
   slotName: string;
   value: string;
   quote: string;
-  task: { id: string; title: string; number: number; projectSlug: string };
+  task: {
+    id: string;
+    title: string;
+    number: number;
+    projectId: string;
+    projectSlug: string;
+  };
   file: { id: string; filename: string } | null;
   onTopic: boolean;
   dismissed: boolean;
@@ -217,7 +223,11 @@ describe("API integration: facts found in issues", () => {
         slotName: "Launch date",
         value: "2027-03-05",
         quote: "5 March 2027",
-        task: { id: world.betaTask.id, title: "Beta issue" },
+        task: {
+          id: world.betaTask.id,
+          title: "Beta issue",
+          projectId: world.beta.id,
+        },
         file: null,
         onTopic: false,
         dismissed: false,

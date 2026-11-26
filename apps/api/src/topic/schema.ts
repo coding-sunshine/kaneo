@@ -160,6 +160,7 @@ const taskStatementSchema = z
       id: z.string(),
       title: z.string(),
       number: z.number().nullable(),
+      projectId: z.string(),
       projectSlug: z.string(),
     }),
     file: z

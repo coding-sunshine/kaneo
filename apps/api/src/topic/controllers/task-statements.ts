@@ -31,6 +31,7 @@ const factsOf = (
       taskId: taskTable.id,
       title: taskTable.title,
       number: taskTable.number,
+      projectId: taskTable.projectId,
       projectSlug: projectTable.slug,
       fileId: assetTable.id,
       filename: assetTable.filename,
@@ -88,6 +89,7 @@ export async function listTaskStatements(
         id: row.taskId,
         title: row.title,
         number: row.number,
+        projectId: row.projectId,
         projectSlug: row.projectSlug,
       },
       file:

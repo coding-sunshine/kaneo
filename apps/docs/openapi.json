@@ -6318,6 +6318,9 @@
                   "null"
                 ]
               },
+              "projectId": {
+                "type": "string"
+              },
               "projectSlug": {
                 "type": "string"
               }
@@ -6326,6 +6329,7 @@
               "id",
               "title",
               "number",
+              "projectId",
               "projectSlug"
             ]
           },
