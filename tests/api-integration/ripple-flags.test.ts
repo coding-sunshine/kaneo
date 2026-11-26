@@ -31,6 +31,7 @@ type Ref = {
   quote: string;
   documentId: string;
   documentTitle: string;
+  topicId: string;
 };
 type Item = {
   id: string;
@@ -236,6 +237,8 @@ describe("API integration: ripple flags", () => {
       quote: "40 USD",
       documentId: docId,
       documentTitle: "Launch plan",
+      // Where the reader finds what holds now.
+      topicId,
     });
     expect(byTask.cause).toEqual(byTask.dependsOn);
     expect(byDoc.cause).toEqual(byDoc.dependsOn);

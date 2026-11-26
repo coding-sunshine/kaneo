@@ -5619,6 +5619,10 @@
                     },
                     "documentTitle": {
                       "type": "string"
+                    },
+                    "topicId": {
+                      "type": "string",
+                      "description": "The topic of the slot. Its current answers say what holds now."
                     }
                   },
                   "required": [
@@ -5628,7 +5632,8 @@
                     "value",
                     "quote",
                     "documentId",
-                    "documentTitle"
+                    "documentTitle",
+                    "topicId"
                   ],
                   "description": "The statement the work relies on."
                 },
@@ -5658,6 +5663,10 @@
                     },
                     "documentTitle": {
                       "type": "string"
+                    },
+                    "topicId": {
+                      "type": "string",
+                      "description": "The topic of the slot. Its current answers say what holds now."
                     }
                   },
                   "required": [
@@ -5667,7 +5676,8 @@
                     "value",
                     "quote",
                     "documentId",
-                    "documentTitle"
+                    "documentTitle",
+                    "topicId"
                   ],
                   "description": "The statement whose change raised the flag. Another one than dependsOn when the flag came down a chain of documents. Null when it sits in a place the reader cannot open."
                 }

@@ -306,6 +306,10 @@ const reliedStatement = z.object({
   quote: z.string(),
   documentId: z.string(),
   documentTitle: z.string(),
+  topicId: z.string().openapi({
+    description:
+      "The topic of the slot. Its current answers say what holds now.",
+  }),
 });
 const flaggedTask = z
   .object({

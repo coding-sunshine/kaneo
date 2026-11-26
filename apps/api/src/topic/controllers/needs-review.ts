@@ -100,6 +100,7 @@ function flagged(workspaceId: string, userId: string, id?: string) {
         quote: reliedOn.quote,
         documentId: reliedDocument.id,
         documentTitle: reliedDocument.title,
+        topicId: reliedSlot.topicId,
       },
       cause: {
         statementId: cause.id,
@@ -109,6 +110,7 @@ function flagged(workspaceId: string, userId: string, id?: string) {
         quote: cause.quote,
         documentId: causeDocument.id,
         documentTitle: causeDocument.title,
+        topicId: causeSlot.topicId,
       },
     })
     .from(dependency)
