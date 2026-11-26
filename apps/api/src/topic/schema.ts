@@ -115,6 +115,10 @@ export const topicSchema = z
       description:
         "Whether you can make a document current here: the decider, the backup decider or a workspace owner.",
     }),
+    canManage: z.boolean().openapi({
+      description:
+        "Whether you can rename the topic and name its decider and backup: the decider or a workspace owner.",
+    }),
     following: z.boolean().openapi({
       description:
         "Whether you follow the topic: you are told about a new proposal and a new current document.",
@@ -415,3 +419,13 @@ export const topicDependentsSchema = z
 export const clearedReviewFlagSchema = z
   .object({ id: z.string(), needsReview: z.boolean() })
   .openapi("ClearedReviewFlag");
+
+export const topicDeciderCandidatesSchema = z
+  .array(
+    z.object({
+      userId: z.string(),
+      name: z.string(),
+      image: z.string().nullable(),
+    }),
+  )
+  .openapi("TopicDeciderCandidates");

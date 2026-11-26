@@ -14789,6 +14789,54 @@
 								"title": {
 									"type": "string"
 								},
+								"edit": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"action": {
+											"type": "string"
+										},
+										"title": {
+											"type": "string"
+										},
+										"hint": {
+											"type": "string"
+										},
+										"name": {
+											"type": "string"
+										},
+										"decider": {
+											"type": "string"
+										},
+										"backup": {
+											"type": "string"
+										},
+										"choose": {
+											"type": "string"
+										},
+										"noBackup": {
+											"type": "string"
+										},
+										"save": {
+											"type": "string"
+										},
+										"done": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"action",
+										"title",
+										"hint",
+										"name",
+										"decider",
+										"backup",
+										"choose",
+										"noBackup",
+										"save",
+										"done"
+									]
+								},
 								"new": {
 									"type": "string"
 								},
@@ -14858,6 +14906,7 @@
 							},
 							"required": [
 								"title",
+								"edit",
 								"new",
 								"name",
 								"namePlaceholder",

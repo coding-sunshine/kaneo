@@ -5555,6 +5555,10 @@
             "type": "boolean",
             "description": "Whether you can make a document current here: the decider, the backup decider or a workspace owner."
           },
+          "canManage": {
+            "type": "boolean",
+            "description": "Whether you can rename the topic and name its decider and backup: the decider or a workspace owner."
+          },
           "following": {
             "type": "boolean",
             "description": "Whether you follow the topic: you are told about a new proposal and a new current document."
@@ -5586,6 +5590,7 @@
           "currentDocumentTitle",
           "hasReplaced",
           "canDecide",
+          "canManage",
           "following",
           "createdAt",
           "updatedAt"
@@ -6164,6 +6169,31 @@
         "required": [
           "topics"
         ]
+      },
+      "TopicDeciderCandidates": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "userId": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "image": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "userId",
+            "name",
+            "image"
+          ]
+        }
       },
       "TopicDependents": {
         "type": "object",
@@ -33463,6 +33493,79 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace, topic or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/{id}/deciders": {
+      "get": {
+        "operationId": "listTopicDeciderCandidates",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "List who can decide on a topic",
+        "description": "The workspace members who can open the topic's place, so one of them can be named decider or backup decider.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "People",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicDeciderCandidates"
                 }
               }
             }

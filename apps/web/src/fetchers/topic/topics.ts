@@ -21,6 +21,38 @@ export async function getTopic(workspaceId: string, id: string) {
   return response.json();
 }
 
+/** Rename a topic or name its decider and backup. Null clears the backup. */
+export async function updateTopic({
+  workspaceId,
+  id,
+  ...json
+}: {
+  workspaceId: string;
+  id: string;
+  name?: string;
+  deciderId?: string;
+  backupDeciderId?: string | null;
+}) {
+  const response = await api[":id"].$patch({
+    param: { workspaceId, id },
+    json,
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+/** The people who may be named decider or backup of a topic. */
+export async function getTopicDeciderCandidates(
+  workspaceId: string,
+  id: string,
+) {
+  const response = await api[":id"].deciders.$get({
+    param: { workspaceId, id },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
 export async function createTopic(json: {
   workspaceId: string;
   name: string;

@@ -3595,7 +3595,19 @@
 				"title": "Topics",
 				"follow": "Follow",
 				"followHint": "Followers hear about each new proposal and each new current document on this topic.",
-				"unfollow": "Unfollow"
+				"unfollow": "Unfollow",
+				"edit": {
+					"action": "Edit topic",
+					"backup": "Backup decider",
+					"choose": "Choose a person",
+					"decider": "Decider",
+					"done": "Topic updated",
+					"hint": "Only people who can open the topic's place can decide on it.",
+					"name": "Name",
+					"noBackup": "No backup",
+					"save": "Save",
+					"title": "Edit topic"
+				}
 			},
 			"inbox": {
 				"confirm": "Snooze",

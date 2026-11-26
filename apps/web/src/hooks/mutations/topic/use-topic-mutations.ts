@@ -12,6 +12,7 @@ import {
   type TopicDocument,
   type TopicTask,
   unlinkTaskTopic,
+  updateTopic,
 } from "@/fetchers/topic/topics";
 import { documentsKey } from "@/hooks/queries/document/use-documents";
 import { topicsKey } from "@/hooks/queries/topic/use-topics";
@@ -22,6 +23,15 @@ export function useCreateTopic(workspaceId: string) {
     mutationFn: (input: { name: string; projectId?: string }) =>
       createTopic({ workspaceId, ...input }),
     onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: topicsKey(workspaceId) }),
+  });
+}
+
+export function useUpdateTopic(workspaceId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateTopic,
+    onSettled: () =>
       queryClient.invalidateQueries({ queryKey: topicsKey(workspaceId) }),
   });
 }

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getTaskTopics,
   getTopic,
+  getTopicDeciderCandidates,
   getTopics,
   getTopicTasks,
 } from "@/fetchers/topic/topics";
@@ -65,5 +66,17 @@ export function useTopicTaskStatements(workspaceId: string, id: string) {
     enabled: Boolean(workspaceId && id),
     queryKey: [...topicsKey(workspaceId), id, "task-statements"],
     queryFn: () => getTopicTaskStatements(workspaceId, id),
+  });
+}
+
+/** Who may be named decider or backup. Pass no id to ask nothing. */
+export function useTopicDeciderCandidates(
+  workspaceId: string,
+  id: string | null,
+) {
+  return useQuery({
+    enabled: Boolean(workspaceId && id),
+    queryKey: [...topicsKey(workspaceId), id, "deciders"],
+    queryFn: () => getTopicDeciderCandidates(workspaceId, id ?? ""),
   });
 }

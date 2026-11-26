@@ -109,6 +109,8 @@ export async function listTopics(
     ...topic,
     canDecide:
       owner || topic.deciderId === userId || topic.backupDeciderId === userId,
+    // The rule assertTopicOwner applies: the backup only approves.
+    canManage: owner || topic.deciderId === userId,
   }));
 }
 

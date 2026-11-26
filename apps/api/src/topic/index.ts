@@ -9,6 +9,7 @@ import {
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import { createTopic } from "./controllers/create-topic";
+import { deciderCandidates } from "./controllers/decider-candidates";
 import { confirmCurrent, makeCurrent, setAside } from "./controllers/decide";
 import { fileDocument } from "./controllers/file-document";
 import { followTopic, unfollowTopic } from "./controllers/follow-topic";
@@ -46,6 +47,7 @@ import {
   topicUnreviewedSchema,
   updateTopicBody,
   workspaceIdParam,
+  topicDeciderCandidatesSchema,
 } from "./schema";
 import {
   createSlotRoute,
@@ -171,6 +173,23 @@ const getRoute = createRoute({
   request: { params: topicParam },
   responses: {
     200: jsonResponse("Topic", topicSchema),
+    403: noAccess,
+    404: notFound,
+  },
+});
+
+const decidersRoute = createRoute({
+  method: "get",
+  operationId: "listTopicDeciderCandidates",
+  path: `${one}/deciders`,
+  tags,
+  summary: "List who can decide on a topic",
+  description:
+    "The workspace members who can open the topic's place, so one of them can be named decider or backup decider.",
+  middleware: [...read] as const,
+  request: { params: topicParam },
+  responses: {
+    200: jsonResponse("People", topicDeciderCandidatesSchema),
     403: noAccess,
     404: notFound,
   },
@@ -441,6 +460,13 @@ const topic = apiRouter()
   .openapi(getRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");
     return c.json(await getTopic(workspaceId, id, c.get("userId")), 200);
+  })
+  .openapi(decidersRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(
+      await deciderCandidates(workspaceId, id, c.get("userId")),
+      200,
+    );
   })
   .openapi(updateRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");

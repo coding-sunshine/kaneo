@@ -1,5 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import type { ReactNode } from "react";
 import {
   afterEach,
@@ -22,6 +29,8 @@ const mocks = vi.hoisted(() => ({
   getTopicTasks: vi.fn(),
   getDocument: vi.fn(),
   getDocuments: vi.fn(),
+  updateTopic: vi.fn(),
+  getTopicDeciderCandidates: vi.fn(),
 }));
 
 // Prints what a key was given, so a test can see a name or a date.
@@ -35,6 +44,8 @@ vi.mock("react-i18next", () => ({
 vi.mock("@/fetchers/topic/topics", () => ({
   getTopic: mocks.getTopic,
   getTopicTasks: mocks.getTopicTasks,
+  updateTopic: mocks.updateTopic,
+  getTopicDeciderCandidates: mocks.getTopicDeciderCandidates,
 }));
 vi.mock("@/fetchers/topic/task-statements", () => ({
   getTopicTaskStatements: vi.fn().mockResolvedValue({ statements: [] }),
@@ -223,6 +234,63 @@ describe("TopicPage", () => {
     );
     expect(screen.getByText("Growth")).toBeTruthy();
     expect(text).not.toContain("topics.notFound");
+  });
+
+  it("lets whoever manages the topic rename it and pick a decider and a backup", async () => {
+    mocks.getTopic.mockResolvedValue({ ...topic, canManage: true });
+    mocks.getDocument.mockResolvedValue(current);
+    mocks.getDocuments.mockResolvedValue([]);
+    mocks.getTopicDeciderCandidates.mockResolvedValue([
+      { userId: "user-1", name: "Decider Person", image: null },
+      { userId: "user-2", name: "Backup Person", image: null },
+      { userId: "user-3", name: "Third Person", image: null },
+    ]);
+    mocks.updateTopic.mockResolvedValue({});
+    show();
+
+    const EDIT = "navigation:documents.topics.edit";
+    fireEvent.click(
+      await screen.findByRole("button", { name: `${EDIT}.action` }),
+    );
+    await screen.findAllByRole("option", { name: "Third Person" });
+    expect(mocks.getTopicDeciderCandidates).toHaveBeenCalledWith(
+      "ws-1",
+      "topic-1",
+    );
+    fireEvent.change(screen.getByRole("textbox", { name: `${EDIT}.name` }), {
+      target: { value: "Launch" },
+    });
+    fireEvent.change(
+      screen.getByRole("combobox", { name: `${EDIT}.decider` }),
+      { target: { value: "user-3" } },
+    );
+    fireEvent.change(screen.getByRole("combobox", { name: `${EDIT}.backup` }), {
+      target: { value: "user-1" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: `${EDIT}.save` }));
+    await waitFor(() =>
+      expect(mocks.updateTopic.mock.calls[0]?.[0]).toEqual({
+        workspaceId: "ws-1",
+        id: "topic-1",
+        name: "Launch",
+        deciderId: "user-3",
+        backupDeciderId: "user-1",
+      }),
+    );
+  });
+
+  it("offers no change to someone who does not manage the topic", async () => {
+    mocks.getTopic.mockResolvedValue({ ...topic, canManage: false });
+    mocks.getDocument.mockResolvedValue(current);
+    mocks.getDocuments.mockResolvedValue([]);
+    show();
+
+    await screen.findByRole("heading", { name: "Launch plan" });
+    expect(
+      screen.queryByRole("button", {
+        name: "navigation:documents.topics.edit.action",
+      }),
+    ).toBeNull();
   });
 
   it("says when the current document was edited after its approval", async () => {

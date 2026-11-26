@@ -3624,6 +3624,18 @@
 			},
 			"topics": {
 				"title": "Topics",
+				"edit": {
+					"action": "Edit topic",
+					"title": "Edit topic",
+					"hint": "Only people who can open the topic's place can decide on it.",
+					"name": "Name",
+					"decider": "Decider",
+					"backup": "Backup decider",
+					"choose": "Choose a person",
+					"noBackup": "No backup",
+					"save": "Save",
+					"done": "Topic updated"
+				},
 				"new": "New topic",
 				"name": "Topic name",
 				"namePlaceholder": "For example: Launch plan",

@@ -12,6 +12,7 @@ import { useTopic } from "@/hooks/queries/topic/use-topics";
 import { getInitials } from "@/lib/get-initials";
 import { DocumentList } from "./document-list";
 import { DocumentReplaceIntent } from "./document-replace-intent";
+import { EditTopicButton } from "./edit-topic-button";
 import { TopicCurrentDocument } from "./topic-current-document";
 import { RecordDecisionButton } from "./record-decision-button";
 import { TopicFollowButton } from "./topic-follow-button";
@@ -85,6 +86,7 @@ export function TopicPage({ workspaceId, topicId }: TopicPageProps) {
                 {topic.name}
               </h1>
               <div className="flex shrink-0 items-center gap-2">
+                <EditTopicButton topic={topic} />
                 <RecordDecisionButton topic={topic} />
                 <TopicFollowButton topic={topic} />
               </div>

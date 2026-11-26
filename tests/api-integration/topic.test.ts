@@ -237,6 +237,31 @@ describe("API integration: topics and the current document", () => {
     expect(await statusOf(api.update(third, topic.id, { name: "Mine" }))).toBe(
       403,
     );
+    // Who may change the topic, and whom they may name.
+    const manages = async (user: Member) =>
+      ((await (await api.get(user, topic.id)).json()) as { canManage: boolean })
+        .canManage;
+    expect(await manages(open)).toBe(true);
+    expect(await manages(owner)).toBe(true);
+    expect(await manages(third)).toBe(false);
+    const people = await world.as(open)(
+      `/topic/workspace/${world.ws}/${topic.id}/deciders`,
+    );
+    expect(people.status).toBe(200);
+    const ids = ((await people.json()) as { userId: string }[]).map(
+      (person) => person.userId,
+    );
+    expect(ids).toEqual(expect.arrayContaining([owner.id, open.id, third.id]));
+    // `limited` cannot enter team Beta, so cannot be named.
+    expect(ids).not.toContain(limited.id);
+    expect(
+      (
+        await world.as(limited)(
+          `/topic/workspace/${world.ws}/${topic.id}/deciders`,
+        )
+      ).status,
+    ).toBe(404);
+
     const cleared = await api.update(owner, topic.id, {
       backupDeciderId: null,
     });
