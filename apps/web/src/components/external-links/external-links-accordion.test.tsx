@@ -46,6 +46,8 @@ vi.mock("@/components/documents/document-resource-row", () => ({
   ),
 }));
 vi.mock("@/components/task/task-topics", () => ({ TaskTopics: () => null }));
+const useTaskTopics = vi.hoisted(() => vi.fn());
+vi.mock("@/hooks/queries/topic/use-topics", () => ({ useTaskTopics }));
 vi.mock("@/components/shortcuts/shortcut-keys", () => ({
   ShortcutKeys: () => null,
 }));
@@ -58,6 +60,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   canUpdateTasks.mockReturnValue(true);
   getDocuments.mockResolvedValue([]);
+  useTaskTopics.mockReturnValue({ data: [] });
 });
 afterEach(cleanup);
 
@@ -204,6 +207,15 @@ const manualLink: ExternalLink = {
 };
 
 describe("removing manual resources", () => {
+  it("says nothing is linked only when the issue has no topic either", () => {
+    renderResources();
+    expect(screen.getByText("settings:externalLinks.empty")).toBeTruthy();
+    cleanup();
+    useTaskTopics.mockReturnValue({ data: [{ id: "topic-1" }] });
+    renderResources();
+    expect(screen.queryByText("settings:externalLinks.empty")).toBeNull();
+  });
+
   it("removes a manual link and refreshes its task's resource list", async () => {
     vi.mocked(deleteExternalLink).mockResolvedValue({ id: "link-1" });
     const invalidate = renderResources([manualLink]);

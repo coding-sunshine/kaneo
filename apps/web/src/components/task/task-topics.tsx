@@ -11,54 +11,64 @@ import {
 import { useTaskTopics, useTopics } from "@/hooks/queries/topic/use-topics";
 import { toast } from "@/lib/toast";
 import { useTopicCurrentLine } from "./use-topic-current-line";
+import { TaskTopicFacts } from "./task-topic-facts";
 
 type TaskTopicsProps = { workspaceId: string; taskId: string };
 
 function TopicRow({
   workspaceId,
+  taskId,
   topic,
   onRemove,
 }: {
   workspaceId: string;
+  taskId: string;
   topic: Topic;
   onRemove: () => void;
 }) {
   const { t } = useTranslation();
   const line = useTopicCurrentLine(topic);
   return (
-    <li className="flex min-w-0 items-center gap-1">
-      <div className={`${sectionRowClass} flex-1`}>
-        <Link
-          to="/dashboard/workspace/$workspaceId/topic/$topicId"
-          params={{ workspaceId, topicId: topic.id }}
-          className="min-w-0 truncate text-[13px] text-foreground/85 outline-none hover:text-foreground focus-visible:underline"
-        >
-          {topic.name}
-        </Link>
-        {topic.currentDocumentId && topic.currentDocumentTitle ? (
+    <li className="flex min-w-0 flex-col">
+      <div className="flex min-w-0 items-center gap-1">
+        <div className={`${sectionRowClass} flex-1`}>
           <Link
-            to="/dashboard/workspace/$workspaceId/document/$documentId"
-            params={{ workspaceId, documentId: topic.currentDocumentId }}
-            className="min-w-0 flex-1 truncate text-info-foreground text-xs underline underline-offset-2 outline-none focus-visible:bg-accent"
+            to="/dashboard/workspace/$workspaceId/topic/$topicId"
+            params={{ workspaceId, topicId: topic.id }}
+            className="min-w-0 truncate text-[13px] text-foreground/85 outline-none hover:text-foreground focus-visible:underline"
           >
-            {topic.currentDocumentTitle}
+            {topic.name}
           </Link>
-        ) : (
-          <span className="min-w-0 flex-1 truncate text-muted-foreground text-xs">
-            {line}
-          </span>
-        )}
+          {topic.currentDocumentId && topic.currentDocumentTitle ? (
+            <Link
+              to="/dashboard/workspace/$workspaceId/document/$documentId"
+              params={{ workspaceId, documentId: topic.currentDocumentId }}
+              className="min-w-0 flex-1 truncate text-info-foreground text-xs underline underline-offset-2 outline-none focus-visible:bg-accent"
+            >
+              {topic.currentDocumentTitle}
+            </Link>
+          ) : (
+            <span className="min-w-0 flex-1 truncate text-muted-foreground text-xs">
+              {line}
+            </span>
+          )}
+        </div>
+        <button
+          type="button"
+          aria-label={t("navigation:documents.taskTopic.remove", {
+            name: topic.name,
+          })}
+          onClick={onRemove}
+          className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:bg-accent"
+        >
+          <X aria-hidden="true" className="size-3.5" />
+        </button>
       </div>
-      <button
-        type="button"
-        aria-label={t("navigation:documents.taskTopic.remove", {
-          name: topic.name,
-        })}
-        onClick={onRemove}
-        className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:bg-accent"
-      >
-        <X aria-hidden="true" className="size-3.5" />
-      </button>
+      <TaskTopicFacts
+        workspaceId={workspaceId}
+        taskId={taskId}
+        topicId={topic.id}
+      />
     </li>
   );
 }
@@ -91,6 +101,7 @@ export function TaskTopics({ workspaceId, taskId }: TaskTopicsProps) {
             <TopicRow
               key={topic.id}
               workspaceId={workspaceId}
+              taskId={taskId}
               topic={topic}
               onRemove={() => change(unlink, topic, "removeFailed")}
             />

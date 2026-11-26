@@ -12,6 +12,7 @@ import { DocumentUsageButton } from "./document-usage-button";
 import { DocumentsEmpty } from "./documents-empty";
 import { DocumentsTabs } from "./documents-tabs";
 import { IssueFileList } from "./issue-file-list";
+import { NeedsReviewList } from "./needs-review-list";
 import { IssueFilesEmpty } from "./issue-files-empty";
 import { InboxList } from "./inbox-list";
 import { NewDocuments } from "./new-documents";
@@ -23,9 +24,14 @@ type DocumentsPageProps = { workspaceId: string; filter: DocumentTabKey };
 /** Linear's workspace Documents page. */
 export function DocumentsPage({ workspaceId, filter }: DocumentsPageProps) {
   const { t } = useTranslation();
-  // The issue-file tab is not a documents filter: the documents API rejects it.
+  // Two tabs are not documents filters: the documents API rejects them.
   const onFiles = filter === "issueFiles";
-  const docs = useDocuments(workspaceId, onFiles ? {} : { filter }, !onFiles);
+  const onReview = filter === "needsReview";
+  const docs = useDocuments(
+    workspaceId,
+    onFiles || onReview ? {} : { filter },
+    !onFiles && !onReview,
+  );
   const files = useIssueFiles(workspaceId, undefined, onFiles);
   const documents = docs.data;
   const isLoading = onFiles ? files.isLoading : docs.isLoading;
@@ -52,12 +58,14 @@ export function DocumentsPage({ workspaceId, filter }: DocumentsPageProps) {
           </>
         }
       >
-        <div className="flex h-11 shrink-0 items-center border-border/50 border-b px-4">
+        <div className="flex h-11 shrink-0 items-center overflow-x-auto border-border/50 border-b px-4">
           <DocumentsTabs workspaceId={workspaceId} value={filter} />
         </div>
         <TopicsStrip workspaceId={workspaceId} />
         <NewDocuments workspaceId={workspaceId} />
-        {isLoading ? (
+        {filter === "needsReview" ? (
+          <NeedsReviewList workspaceId={workspaceId} />
+        ) : isLoading ? (
           <div className="flex flex-col gap-2 p-4">
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-8 w-full" />

@@ -1,4 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ShortcutTooltipLabel } from "@/components/shortcuts/shortcut-tooltip-label";
 import { Button } from "@/components/ui/button";
@@ -16,10 +17,17 @@ type DocumentsTabsProps = {
   value: DocumentTabKey;
 };
 
-/** One pill per Documents tab; 1 to 6 switch them. */
+/** One pill per Documents tab; 1 to 7 switch them. */
 export function DocumentsTabs({ workspaceId, value }: DocumentsTabsProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const list = useRef<HTMLDivElement>(null);
+  // On a phone the strip scrolls sideways, so the selected tab can be out of sight.
+  useEffect(() => {
+    list.current
+      ?.querySelector('[aria-selected="true"]')
+      ?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+  }, [value]);
   const open = (slug: string | null) =>
     slug
       ? navigate({
@@ -37,9 +45,10 @@ export function DocumentsTabs({ workspaceId, value }: DocumentsTabsProps) {
   useShortcut("documentsUnfiled", () => open(DOCUMENT_TABS[3].slug));
   useShortcut("documentsInbox", () => open(DOCUMENT_TABS[4].slug));
   useShortcut("documentsIssueFiles", () => open(DOCUMENT_TABS[5].slug));
+  useShortcut("documentsNeedsReview", () => open(DOCUMENT_TABS[6].slug));
 
   return (
-    <div role="tablist" className="inline-flex items-center gap-1.5">
+    <div ref={list} role="tablist" className="inline-flex items-center gap-1.5">
       {DOCUMENT_TABS.map((tab) => {
         const name = t(`navigation:documents.tabs.${tab.filter}`);
         return (

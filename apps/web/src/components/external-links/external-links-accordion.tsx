@@ -43,6 +43,7 @@ import {
 import useCreateExternalLink from "@/hooks/mutations/external-link/use-create-external-link";
 import useDeleteExternalLink from "@/hooks/mutations/external-link/use-delete-external-link";
 import { useDocuments } from "@/hooks/queries/document/use-documents";
+import { useTaskTopics } from "@/hooks/queries/topic/use-topics";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { cn } from "@/lib/cn";
 import type { ExternalLink } from "@/types/external-link";
@@ -101,6 +102,7 @@ export function ExternalLinksAccordion({
     [attached, linked],
   );
   const newDocument = useNewDocument(workspaceId);
+  const { data: topics = [] } = useTaskTopics(workspaceId, taskId);
 
   const linksWithoutRedundantBranches = useMemo(() => {
     const hasPR = externalLinks.some(
@@ -355,9 +357,11 @@ export function ExternalLinksAccordion({
                 })}
               </div>
             ) : (
-              <p className="px-2 py-1 text-muted-foreground text-xs">
-                {t("settings:externalLinks.empty")}
-              </p>
+              topics.length === 0 && (
+                <p className="px-2 py-1 text-muted-foreground text-xs">
+                  {t("settings:externalLinks.empty")}
+                </p>
+              )
             )}
             <TaskTopics workspaceId={workspaceId} taskId={taskId} />
           </CollapsibleContent>
