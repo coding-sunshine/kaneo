@@ -314,7 +314,7 @@ describe("MCP token scope", () => {
     const doc = await send(w, w.docs, "POST", "/document", {
       workspaceId: w.ws,
       title: "Doc",
-      content: "<p>x</p>",
+      content: "<p>Falcon</p>",
     });
     expect(doc.status).toBe(200);
     const topic = await send(w, w.docs, "POST", "/topic", {
@@ -337,7 +337,7 @@ describe("MCP token scope", () => {
       [
         "POST",
         `/document/workspace/${w.ws}/${docId}/statements`,
-        { slot: "code", value: "x", quote: "x" },
+        { slot: "code", value: "Falcon", quote: "Falcon" },
       ],
       ["GET", `/document/workspace/${w.ws}/${docId}/statements`],
       ["GET", `/document/workspace/${w.ws}/${docId}/receipt`],

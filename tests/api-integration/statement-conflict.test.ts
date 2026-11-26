@@ -122,11 +122,15 @@ describe("API integration: statement conflicts", () => {
       await api.decide(incomingId, priceStatement.id, "confirm"),
       200,
     );
-    await api.edit(incomingId, INCOMING_TEXT + "<p>Doors open at nine.</p>");
+    await api.edit(
+      incomingId,
+      INCOMING_TEXT.replace("per seat", "per seat a month"),
+    );
 
     const edited = await api.receipt(incomingId);
     expect(edited.conflicts).toHaveLength(1);
-    // A confirmation is for one text, so the edit drops it; the conflict stays.
+    // A confirmation is for the paragraph it was read in, so an edit there
+    // drops it; the conflict stays.
     expect(edited.conflicts[0]).toMatchObject({
       id,
       status: "open",

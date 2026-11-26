@@ -26,8 +26,22 @@ export function documentText(content: string) {
   );
 }
 
-/** Where the quote starts in a document's text, or -1 when it is not there. */
+/** A shorter quote is found almost anywhere, so it shows nothing. */
+export const MIN_QUOTE_LENGTH = 4;
+
+/**
+ * Where the quote starts in a document's text, or -1 when it is not there or
+ * is too short to count.
+ */
 export function quoteStart(text: string, quote: string) {
   const passage = collapse(quote);
-  return passage ? text.indexOf(passage) : -1;
+  return passage.length >= MIN_QUOTE_LENGTH ? text.indexOf(passage) : -1;
+}
+
+/** The text of each paragraph, heading, list item, cell and line. */
+export function textBlocks(content: string) {
+  return content
+    .split(/<\/(?:p|h[1-6]|li|td|th|blockquote|pre|div)>|<br\s*\/?>/i)
+    .map(documentText)
+    .filter(Boolean);
 }

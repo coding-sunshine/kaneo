@@ -210,6 +210,36 @@ describe("API integration: ripple flags", () => {
     expect(byTask.flaggedAt).toEqual(expect.any(String));
   });
 
+  it("flags nothing when the current document is approved again after an edit to another paragraph", async () => {
+    const s = await setup();
+    const { api, r, topicId, docId } = s;
+    await dependOnPrice(s);
+
+    await api.edit(
+      docId,
+      `${textOf([DATE, price(40), CODENAME])}<p>Doors open at nine.</p>`,
+    );
+    await expectStatus(await api.approve(topicId, docId), 200);
+
+    expect(await r.needsReview()).toEqual([]);
+    const { answers } = (await api.current(topicId, "price")).topics[0];
+    expect(answers.map((answer) => answer.value)).toEqual(["40"]);
+  });
+
+  it("flags work when the paragraph it relies on was edited and the document is approved again", async () => {
+    const s = await setup();
+    const { api, r, topicId, docId } = s;
+    await dependOnPrice(s);
+
+    await api.edit(
+      docId,
+      "<p>We state 5 March 2027.</p><p>We state 40 USD, for now.</p>",
+    );
+    await expectStatus(await api.approve(topicId, docId), 200);
+
+    expect(await r.needsReview()).toHaveLength(2);
+  });
+
   it("flags nothing when the new current document confirms the same value", async () => {
     const s = await setup();
     await dependOnPrice(s);

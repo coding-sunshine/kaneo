@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vite-plus/test";
-import { collapse, documentText, quoteStart } from "./statement-text";
+import {
+  collapse,
+  documentText,
+  quoteStart,
+  textBlocks,
+} from "./statement-text";
 
 describe("documentText", () => {
   it("drops tags, decodes entities and collapses whitespace", () => {
@@ -27,6 +32,19 @@ describe("quoteStart", () => {
     expect(quoteStart(text, "live on 6 March")).toBe(-1);
     expect(quoteStart(text, "LIVE ON 5 MARCH")).toBe(-1);
     expect(quoteStart(text, "  ")).toBe(-1);
+  });
+
+  it("answers -1 for a quote of fewer than four characters", () => {
+    expect(quoteStart(text, " 5 M ")).toBe(-1);
+    expect(quoteStart(text, "5 Ma")).toBeGreaterThan(0);
+  });
+
+  it("splits a document into the text of its paragraphs, items and lines", () => {
+    expect(
+      textBlocks(
+        "<h2>Plan</h2><p>We go <b>live</b>.<br>Soon.</p><ul><li>One</li><li></li></ul>",
+      ),
+    ).toEqual(["Plan", "We go live .", "Soon.", "One"]);
   });
 
   it("does not find a quote that spans a tag the text does not have", () => {

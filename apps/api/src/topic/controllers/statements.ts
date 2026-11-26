@@ -11,7 +11,13 @@ import {
 } from "../../database/schema";
 import { loadDocument } from "../../document/controllers/load-document";
 import { topicAccess } from "../../document/visibility";
-import { collapse, documentText, quoteStart } from "../statement-text";
+import {
+  collapse,
+  documentText,
+  MIN_QUOTE_LENGTH,
+  quoteStart,
+  textBlocks,
+} from "../statement-text";
 import { normalizeValue } from "../statement-value";
 import { changingTopic } from "./flag-dependents";
 import { getTopic } from "./get-topic";
@@ -114,11 +120,22 @@ export async function proposeStatements(
       continue;
     }
     if (existing) {
-      await db
+      // Only while it is still a proposal: one confirmed meanwhile stays.
+      const [replaced] = await db
         .update(statementTable)
         .set(values)
-        .where(eq(statementTable.id, existing.id));
-      results.push({ slot: slot.key, result: "added", id: existing.id });
+        .where(
+          and(
+            eq(statementTable.id, existing.id),
+            eq(statementTable.status, "proposed"),
+          ),
+        )
+        .returning({ id: statementTable.id });
+      results.push({
+        slot: slot.key,
+        result: replaced ? "added" : "exists",
+        id: existing.id,
+      });
       continue;
     }
     const [added] = await db
@@ -143,15 +160,19 @@ export async function proposeStatements(
 
 /**
  * When a document's text changes, the statements of the old text whose quote
- * is still in the new text are written again for it, as proposals. A
- * confirmation is for one text: the words around a quote can turn its
- * meaning, so a person confirms again. The old rows stay, because the answer
- * of a current document is read from the text that was approved.
+ * is still in the new text are written again for it. The words around a quote
+ * can turn its meaning, so a confirmation is kept only when every paragraph
+ * that holds the quote reads as it did before; otherwise the statement comes
+ * back as a proposal and a person confirms again. An edit elsewhere in the
+ * text is read by whoever approves the document next. The old rows stay,
+ * because the answer of a current document is read from the text that was
+ * approved.
  */
 export async function carryStatements(
   documentId: string,
   fromHash: string | null,
   toHash: string | null,
+  before: string,
   content: string,
 ) {
   if (!fromHash || !toHash || fromHash === toHash) return;
@@ -166,23 +187,34 @@ export async function carryStatements(
       ),
     );
   const text = documentText(content);
+  const was = new Set(textBlocks(before));
+  const blocks = textBlocks(content);
   const carried = previous.flatMap((statement) => {
     const start = text.indexOf(statement.quote);
-    return start < 0
-      ? []
-      : [
-          {
-            slotId: statement.slotId,
-            documentId,
-            value: statement.value,
-            normalized: statement.normalized,
-            quote: statement.quote,
-            quoteStart: start,
-            contentHash: toHash,
-            source: statement.source,
-            createdBy: statement.createdBy,
-          },
-        ];
+    if (start < 0) return [];
+    const holding = blocks.filter((block) => block.includes(statement.quote));
+    const untouched =
+      statement.status === "confirmed" &&
+      holding.length > 0 &&
+      holding.every((block) => was.has(block));
+    return [
+      {
+        slotId: statement.slotId,
+        documentId,
+        value: statement.value,
+        normalized: statement.normalized,
+        quote: statement.quote,
+        quoteStart: start,
+        contentHash: toHash,
+        source: statement.source,
+        createdBy: statement.createdBy,
+        ...(untouched && {
+          status: "confirmed" as const,
+          decidedBy: statement.decidedBy,
+          decidedAt: statement.decidedAt,
+        }),
+      },
+    ];
   });
   if (carried.length === 0) return;
   // The text may be one the document had before, with its own statements.
@@ -261,7 +293,7 @@ export async function addStatement(
       outcome?.result === "unknown_slot"
         ? `This topic has no slot "${body.slot}". Its slots: ${slots.map((slot) => slot.key).join(", ") || "none"}`
         : outcome?.result === "quote_not_found"
-          ? "The quote is not in the document. Copy it from the text as it is"
+          ? `The quote is not in the document. Copy at least ${MIN_QUOTE_LENGTH} characters from the text as they are`
           : "The value does not fit this slot",
   });
 }

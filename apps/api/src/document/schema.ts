@@ -130,7 +130,7 @@ export const statementBody = z.object({
   }),
   quote: z.string().trim().min(1).max(400).openapi({
     description:
-      "The passage of the document that states the value, copied as it is written. A quote that is not in the document is refused.",
+      "The passage of the document that states the value, copied as it is written: at least 4 characters. A quote that is not in the document is refused.",
   }),
 });
 
@@ -649,7 +649,7 @@ export const settledDocumentSchema = z
           slot: z.string(),
           result: z.enum(STATEMENT_RESULTS).openapi({
             description:
-              "added: stored as a proposal. unknown_slot: the topic has no slot with that key. quote_not_found: the quote is not in the document. invalid_value: the value does not fit the slot. exists: the slot already has a statement from this document.",
+              "added: stored as a proposal. unknown_slot: the topic has no slot with that key. quote_not_found: the quote is not in the document, or is shorter than 4 characters. invalid_value: the value does not fit the slot. exists: the slot already has a statement from this document.",
           }),
           id: z.string().optional(),
         }),

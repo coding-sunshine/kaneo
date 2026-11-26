@@ -4407,7 +4407,7 @@
                     "invalid_value",
                     "exists"
                   ],
-                  "description": "added: stored as a proposal. unknown_slot: the topic has no slot with that key. quote_not_found: the quote is not in the document. invalid_value: the value does not fit the slot. exists: the slot already has a statement from this document."
+                  "description": "added: stored as a proposal. unknown_slot: the topic has no slot with that key. quote_not_found: the quote is not in the document, or is shorter than 4 characters. invalid_value: the value does not fit the slot. exists: the slot already has a statement from this document."
                 },
                 "id": {
                   "type": "string"
@@ -28603,7 +28603,7 @@
                           "type": "string",
                           "minLength": 1,
                           "maxLength": 400,
-                          "description": "The passage of the document that states the value, copied as it is written. A quote that is not in the document is refused."
+                          "description": "The passage of the document that states the value, copied as it is written: at least 4 characters. A quote that is not in the document is refused."
                         }
                       },
                       "required": [
@@ -28803,7 +28803,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 400,
-                    "description": "The passage of the document that states the value, copied as it is written. A quote that is not in the document is refused."
+                    "description": "The passage of the document that states the value, copied as it is written: at least 4 characters. A quote that is not in the document is refused."
                   }
                 },
                 "required": [

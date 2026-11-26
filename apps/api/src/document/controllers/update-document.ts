@@ -64,6 +64,7 @@ export async function writeDocument(
       id,
       doc.contentHash,
       written?.contentHash ?? null,
+      doc.content,
       content,
     );
   }

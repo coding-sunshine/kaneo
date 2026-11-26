@@ -6,10 +6,12 @@ import {
   it,
   vi,
 } from "vite-plus/test";
+import { eq, sql } from "drizzle-orm";
 import db from "../../apps/api/src/database";
 import {
   aiUsageTable,
   documentExtractionTable,
+  statementTable,
 } from "../../apps/api/src/database/schema";
 import { resetTestDatabase } from "./helpers/database";
 import {
@@ -195,6 +197,45 @@ describe("API integration: statements of a document", () => {
     expect((await api.post(docId, HOW_MUCH)).status).toBe(409);
   });
 
+  it("refuses a short quote, which would be found almost anywhere", async () => {
+    const { api, docId } = await setup();
+    expect((await api.post(docId, { ...WHEN, quote: "5" })).status).toBe(400);
+    expect((await api.post(docId, { ...WHEN, quote: " 27. " })).status).toBe(
+      400,
+    );
+    expect(await api.statementsOf(docId)).toEqual([]);
+  });
+
+  it("keeps a statement that was confirmed meanwhile when a person writes another", async () => {
+    const { api, docId } = await setup();
+    const first = await api.add(docId, HOW_MUCH);
+    let sending: Promise<Response> | undefined;
+    await db.transaction(async (tx) => {
+      await tx
+        .select({ id: statementTable.id })
+        .from(statementTable)
+        .where(eq(statementTable.id, first.id))
+        .for("update");
+      sending = api.post(docId, { ...HOW_MUCH, value: "45" });
+      // The request has read the proposal and now waits to write the row.
+      await vi.waitFor(async () => {
+        const waiting = await db.execute(
+          sql`select 1 from pg_locks where not granted`,
+        );
+        expect(waiting.rows).toHaveLength(1);
+      });
+      await tx
+        .update(statementTable)
+        .set({ status: "confirmed" })
+        .where(eq(statementTable.id, first.id));
+    });
+
+    expect((await sending)?.status).toBe(409);
+    expect(await api.statementsOf(docId)).toMatchObject([
+      { id: first.id, value: "40", status: "confirmed" },
+    ]);
+  });
+
   it("answers 403 to a member who can only view the document", async () => {
     const { api, world, docId } = await setup();
     // Everyone who can open the document's place may edit it until its owner
@@ -295,6 +336,23 @@ describe("API integration: statements and edits", () => {
     expect(listed).toHaveLength(1);
     expect(listed[0]).toMatchObject({ status: "proposed" });
     expect(listed[0].id).not.toBe(old.id);
+  });
+
+  it("keeps a confirmation when the edit leaves the statement's paragraph as it was", async () => {
+    const { api, docId } = await setup();
+    for (const said of [WHEN, HOW_MUCH]) {
+      const { id } = await api.add(docId, said);
+      await api.decide(docId, id, "confirm");
+    }
+
+    await api.edit(docId, `<p>${LAUNCH}</p><p>${PRICE} Children pay half.</p>`);
+    const listed = await api.statementsOf(docId);
+    expect(listed.map((s) => [s.slot, s.status, s.decidedAt !== null])).toEqual(
+      [
+        ["launch_date", "confirmed", true],
+        ["price", "proposed", false],
+      ],
+    );
   });
 
   it("lists nothing for a slot whose quote is gone", async () => {
@@ -443,10 +501,8 @@ describe("API integration: statement extraction job", () => {
         usage: { prompt_tokens: 10, completion_tokens: 2, total_tokens: 12 },
       }),
     );
-  const run = async () =>
-    (
-      await import("../../apps/api/src/scheduler/statement-extraction")
-    ).extractFiledDocuments();
+  const job = () => import("../../apps/api/src/scheduler/statement-extraction");
+  const run = async () => (await job()).extractFiledDocuments();
   const body = (fetchMock: ReturnType<typeof vi.fn>, call = 0) =>
     JSON.parse(
       (fetchMock.mock.calls[call] as unknown as [string, { body: string }])[1]
@@ -459,6 +515,7 @@ describe("API integration: statement extraction job", () => {
   beforeEach(async () => {
     await resetTestDatabase();
     vi.stubEnv("OPENROUTER_API_KEY", "test-key");
+    (await job()).extractionRetry.reset();
     fetchMock = vi.fn(async () => answer([WHEN, HOW_MUCH]));
     vi.stubGlobal("fetch", fetchMock);
   });
@@ -537,15 +594,54 @@ describe("API integration: statement extraction job", () => {
     expect(rows[0].readable).toBe(false);
   });
 
-  it("keeps no row when the model fails, and asks again next run", async () => {
+  it("keeps no row when the model fails, and asks again an hour later", async () => {
     await setup();
     fetchMock.mockImplementation(
       async () => new Response("boom", { status: 500 }),
     );
     await run();
     expect(await extractions()).toEqual([]);
+    // Not on the next run: a provider that is down is not asked every minute.
     await run();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    const later = Date.now() + 61 * 60_000;
+    const clock = vi.spyOn(Date, "now").mockReturnValue(later);
+    await run();
+    clock.mockRestore();
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("reads a long document part by part and asks later parts only about the empty slots", async () => {
+    const world = await buildDocumentWorld();
+    const api = filing(world);
+    const topicId = await api.topic();
+    await api.addSlot(topicId, { name: "Launch date", type: "date" });
+    await api.addSlot(topicId, { name: "Price", type: "number" });
+    const filler = `<p>${"Nothing to report. ".repeat(700)}</p>`;
+    const docId = await api.filed(
+      topicId,
+      "Long plan",
+      `<p>${LAUNCH}</p>${filler}<p>${PRICE}</p>`,
+    );
+    fetchMock
+      .mockImplementationOnce(async () => answer([WHEN]))
+      .mockImplementationOnce(async () => answer([HOW_MUCH]));
+    await run();
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const [first, second] = [0, 1].map(
+      (call) => body(fetchMock, call).messages[1].content as string,
+    );
+    expect(first).toContain(LAUNCH);
+    expect(first).not.toContain(PRICE);
+    expect(second).toContain(PRICE);
+    expect(second).not.toContain("launch_date");
+    expect((await api.statementsOf(docId)).map((s) => s.slot)).toEqual([
+      "launch_date",
+      "price",
+    ]);
+    expect(await extractions()).toHaveLength(1);
   });
 
   it("stops at the daily token cap", async () => {
