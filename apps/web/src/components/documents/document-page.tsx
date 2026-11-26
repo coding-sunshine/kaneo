@@ -10,6 +10,7 @@ import { useDocument } from "@/hooks/queries/document/use-documents";
 import { useTopic } from "@/hooks/queries/topic/use-topics";
 import { descriptionSaveQueue } from "@/lib/description-save-queue";
 import { toast } from "@/lib/toast";
+import { cn } from "@/lib/cn";
 import { DocumentComments } from "./document-comments";
 import { DocumentCrumbs } from "./document-crumbs";
 import { DocumentEditor } from "./document-editor";
@@ -17,12 +18,14 @@ import { DocumentHeaderActions } from "./document-header-actions";
 import { DocumentHistory } from "./document-history";
 import { DocumentRevisionHint } from "./document-revision-hint";
 import { DocumentCitedBy } from "./document-cited-by";
+import { DocumentFacts } from "./document-facts";
+import { DocumentFactsHint } from "./document-facts-hint";
 import { DocumentStatusBanner } from "./document-status-banner";
 import { DocumentTopicActions } from "./document-topic-actions";
 import { DOCUMENT_SAVE_OWNER } from "./document-save";
 import { DocumentVersionPreview } from "./document-version-preview";
 
-type Panel = "comments" | "history" | null;
+type Panel = "comments" | "facts" | "history" | null;
 
 /** A Linear document: header crumbs and actions, the editor, side panels. */
 export function DocumentPage({
@@ -120,13 +123,21 @@ export function DocumentPage({
             document={document}
             commentsOpen={panel === "comments"}
             onToggleComments={() => toggle("comments")}
+            factsOpen={panel === "facts"}
+            onToggleFacts={() => toggle("facts")}
             shareOpen={shareOpen}
             onShareOpenChange={setShareOpen}
           />
         }
       >
         <div className="flex h-full min-h-0">
-          <div className="flex min-w-0 flex-1 flex-col">
+          {/* On a phone a side panel takes the whole width, and a picked version takes it back. */}
+          <div
+            className={cn(
+              "flex min-w-0 flex-1 flex-col",
+              panel && !version && "max-md:hidden",
+            )}
+          >
             <DocumentStatusBanner
               document={document}
               currentDocumentId={topic?.currentDocumentId}
@@ -139,6 +150,16 @@ export function DocumentPage({
               }
             />
             <DocumentRevisionHint document={document} canEdit={canEdit} />
+            {panel !== "facts" && (
+              <DocumentFactsHint
+                document={document}
+                canConfirm={
+                  canEdit &&
+                  (document.status !== "current" || Boolean(topic?.canDecide))
+                }
+                onOpen={() => setPanel("facts")}
+              />
+            )}
             <DocumentCitedBy document={document} />
             <div className="min-h-0 flex-1 overflow-y-auto">
               {version ? (
@@ -164,17 +185,27 @@ export function DocumentPage({
               onClose={() => setPanel(null)}
             />
           )}
-          {panel === "history" && (
-            <DocumentHistory
-              workspaceId={workspaceId}
-              documentId={document.id}
-              selectedId={version?.id ?? null}
-              onSelect={setVersion}
-              onClose={() => {
-                setPanel(null);
-                setVersion(null);
-              }}
+          {panel === "facts" && (
+            <DocumentFacts
+              document={document}
+              topic={topic}
+              canEdit={canEdit}
+              onClose={() => setPanel(null)}
             />
+          )}
+          {panel === "history" && (
+            <div className={cn("contents", version && "max-md:hidden")}>
+              <DocumentHistory
+                workspaceId={workspaceId}
+                documentId={document.id}
+                selectedId={version?.id ?? null}
+                onSelect={setVersion}
+                onClose={() => {
+                  setPanel(null);
+                  setVersion(null);
+                }}
+              />
+            </div>
           )}
         </div>
       </WorkspaceLayout>

@@ -1,4 +1,4 @@
-import { Bell, BellOff, Link2, MessageSquare } from "lucide-react";
+import { Bell, BellOff, Link2, ListChecks, MessageSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import useAuth from "@/components/providers/auth-provider/hooks/use-auth";
 import { HeaderIconButton } from "@/components/task/header/header-icon-button";
@@ -14,15 +14,19 @@ type DocumentHeaderActionsProps = {
   document: DocumentDetail;
   commentsOpen: boolean;
   onToggleComments: () => void;
+  factsOpen: boolean;
+  onToggleFacts: () => void;
   shareOpen: boolean;
   onShareOpenChange: (open: boolean) => void;
 };
 
-/** Kind, then share, comments, copy link and subscribe as in Linear. */
+/** Kind, then share, facts, comments, copy link and subscribe as in Linear. */
 export function DocumentHeaderActions({
   document,
   commentsOpen,
   onToggleComments,
+  factsOpen,
+  onToggleFacts,
   shareOpen,
   onShareOpenChange,
 }: DocumentHeaderActionsProps) {
@@ -60,6 +64,19 @@ export function DocumentHeaderActions({
         open={shareOpen}
         onOpenChange={onShareOpenChange}
       />
+      {document.topicId && (
+        <HeaderIconButton
+          label={
+            factsOpen
+              ? t("navigation:documents.facts.close")
+              : t("navigation:documents.facts.show")
+          }
+          onClick={onToggleFacts}
+          className={cn(factsOpen && "bg-accent text-foreground")}
+        >
+          <ListChecks aria-hidden />
+        </HeaderIconButton>
+      )}
       <HeaderIconButton
         label={
           commentsOpen
