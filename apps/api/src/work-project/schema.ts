@@ -85,6 +85,23 @@ export const createUpdateBody = z.object({
 
 export const updateUpdateBody = createUpdateBody.partial();
 
+export const linkParam = z.object({ id: z.string(), linkId: z.string() });
+
+// A link opens in the reader's browser: only a web address, or a path inside
+// the app. A backslash is refused because browsers read "/\host" as "//host".
+const linkUrl = z
+  .string()
+  .trim()
+  .max(2048)
+  .regex(/^(https?:\/\/[^\s/\\]|\/(?![/\\]))[^\s\\]*$/i, {
+    message: "A link is a web address or a path inside the app",
+  });
+
+export const linkBody = z.object({
+  url: linkUrl,
+  label: z.string().trim().max(255).optional(),
+});
+
 export const commentBody = z.object({
   content: z.string().trim().min(1).max(20000),
 });

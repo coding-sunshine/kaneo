@@ -10,6 +10,7 @@ import {
   workProjectTeamTable,
 } from "../../database/schema";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
+import { listProjectLinks } from "./work-project-links";
 
 // Linear's progress: completed issues out of all issues, canceled ones excluded.
 const countedTasks = and(
@@ -130,6 +131,7 @@ export async function loadWorkProjectDetail(id: string, userId: string) {
       ...m,
       progress: progress.get(m.id) ?? noProgress,
     })),
+    links: await listProjectLinks(id),
   };
 }
 

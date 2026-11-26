@@ -23,6 +23,11 @@ import {
   editProjectComment,
   listProjectComments,
 } from "./controllers/work-project-comments";
+import {
+  addProjectLink,
+  removeProjectLink,
+} from "./controllers/work-project-links";
+import { addLinkRoute, removeLinkRoute } from "./link-routes";
 import { saveWorkProject } from "./controllers/save-work-project";
 import {
   createMilestone,
@@ -523,6 +528,20 @@ const workProject = apiRouter()
   )
   .openapi(deleteMilestoneRoute, async (c) =>
     c.json(await deleteMilestone(c.req.valid("param").id), 200),
-  );
+  )
+  .openapi(addLinkRoute, async (c) =>
+    c.json(
+      await addProjectLink(
+        c.req.valid("param").id,
+        c.get("userId"),
+        c.req.valid("json"),
+      ),
+      200,
+    ),
+  )
+  .openapi(removeLinkRoute, async (c) => {
+    const { id, linkId } = c.req.valid("param");
+    return c.json(await removeProjectLink(id, linkId), 200);
+  });
 
 export default workProject;

@@ -1207,6 +1207,34 @@ export const workProjectCommentTable = pgTable(
   ],
 );
 
+// Linear's project resources: a link to a web page, or to a path inside the app.
+export const workProjectLinkTable = pgTable(
+  "work_project_link",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workProjectId: text("work_project_id")
+      .notNull()
+      .references(() => workProjectTable.id, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => userTable.id, {
+      onDelete: "set null",
+    }),
+    url: text("url").notNull(),
+    label: text("label").notNull().default(""),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("work_project_link_projectId_idx").on(
+      table.workProjectId,
+      table.sortOrder,
+    ),
+  ],
+);
+
 export const taskTable = pgTable(
   "task",
   {

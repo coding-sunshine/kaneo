@@ -42,8 +42,20 @@ export const workProjectSchema = z
   })
   .openapi("WorkProject");
 
+export const workProjectLinkSchema = z
+  .object({
+    id: z.string(),
+    url: z.string(),
+    label: z.string(),
+    createdAt: responseTimestamp,
+  })
+  .openapi("WorkProjectLink");
+
 export const workProjectDetailSchema = workProjectSchema
-  .extend({ milestones: z.array(workProjectMilestoneSchema) })
+  .extend({
+    milestones: z.array(workProjectMilestoneSchema),
+    links: z.array(workProjectLinkSchema),
+  })
   .openapi("WorkProjectDetail");
 
 export const workProjectListSchema = z.array(workProjectSchema);
