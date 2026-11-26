@@ -679,7 +679,7 @@ export function registerTools(
     "search",
     {
       description:
-        "Search across tasks, projects, workspaces, comments, and activities.",
+        "Search across tasks, projects, workspaces, comments, activities, and documents.",
       inputSchema: z.object({
         q: nonEmptyString.describe("Search query"),
         type: z
@@ -690,6 +690,7 @@ export function registerTools(
             "workspaces",
             "comments",
             "activities",
+            "documents",
           ])
           .optional()
           .describe("Restrict results to one kind. Defaults to all."),
@@ -1019,6 +1020,24 @@ export function registerTools(
   );
 
   registerTool(
+    "get_document",
+    {
+      description:
+        "Read one document someone can open: its title, status, topic and text.",
+      inputSchema: z.object({
+        workspaceId: nonEmptyString.describe("Workspace ID"),
+        documentId: nonEmptyString.describe("The document's id"),
+      }),
+    },
+    async ({ workspaceId, documentId }) =>
+      run(() =>
+        client.json(
+          `/api/document/workspace/${encodeURIComponent(workspaceId)}/${encodeURIComponent(documentId)}`,
+        ),
+      ),
+  );
+
+  registerTool(
     "file_document",
     {
       description:
@@ -1077,7 +1096,7 @@ export function registerTools(
               ),
               value: nonEmptyString.describe("The fact, in a few words"),
               quote: nonEmptyString.describe(
-                "The passage of the text that states it, copied character for character",
+                "The passage of the text that states it, copied character for character: at least 4 characters",
               ),
             }),
           )

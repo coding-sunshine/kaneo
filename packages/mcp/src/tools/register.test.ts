@@ -716,6 +716,36 @@ describe("registerTools", () => {
     ).not.toThrow();
   });
 
+  it("get_document reads one document by id", async () => {
+    const { server, tools } = createServerMock();
+    const client = { json: vi.fn().mockResolvedValue({ title: "Plan" }) };
+    registerTools(server as never, { client: client as never });
+
+    const read = await tools.get("get_document")?.handler({
+      workspaceId: "ws 1",
+      documentId: "doc/1",
+    });
+    expect(read?.isError).toBe(false);
+    expect(client.json).toHaveBeenLastCalledWith(
+      "/api/document/workspace/ws%201/doc%2F1",
+    );
+    const schema = tools.get("get_document")?.config.inputSchema;
+    expect(() => schema?.parse({ workspaceId: "ws-1" })).toThrow();
+    expect(() =>
+      schema?.parse({ workspaceId: "ws-1", documentId: "doc-1" }),
+    ).not.toThrow();
+  });
+
+  it("search accepts the documents kind", () => {
+    const { server, tools } = createServerMock();
+    registerTools(server as never, { client: {} as never });
+    const search = tools.get("search");
+    expect(() =>
+      search?.config.inputSchema.parse({ q: "plan", type: "documents" }),
+    ).not.toThrow();
+    expect(search?.config.description).toContain("documents");
+  });
+
   it("refuses a text too long for one call before it sends anything", async () => {
     const { server, tools } = createServerMock();
     const client = { json: vi.fn().mockResolvedValue({ id: "doc-1" }) };
