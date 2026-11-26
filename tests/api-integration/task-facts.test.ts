@@ -15,6 +15,8 @@ import {
   notificationTable,
   taskExtractionTable,
   taskTable,
+  topicSlotTable,
+  topicTable,
 } from "../../apps/api/src/database/schema";
 import { resetTestDatabase } from "./helpers/database";
 import {
@@ -261,24 +263,265 @@ describe("API integration: facts found in issues", () => {
       ).toEqual(["launch_date", "price"]);
     });
 
-    it("never reads the same text twice: not for a new topic, a new slot or another model", async () => {
+    it("asks old texts once about a field added later", async () => {
       const { world, topicId } = await found();
       await attach(world, { filename: "notes.md", mimeType: "text/markdown" });
+      // Two files that are not read: they stay out of every later run.
+      await attach(world, {
+        filename: "scan.pdf",
+        mimeType: "application/pdf",
+      });
+      await attach(world, {
+        filename: "big.md",
+        mimeType: "text/markdown",
+        size: 6_000_000,
+      });
       readObject.mockImplementation(async () => ({
         body: new Response(PRICE).body,
       }));
       await run();
       // Two issues and one file.
       expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect(readObject).toHaveBeenCalledTimes(1);
 
-      const other = await filing(world).topic("Office lease");
-      await filing(world).addSlot(other, { name: "Rent", type: "number" });
-      await filing(world).addSlot(topicId, { name: "Owner", type: "term" });
+      await filing(world).addSlot(topicId, { name: "State", type: "term" });
+      fetchMock.mockClear();
+      tells(fetchMock, "Beta issue", {
+        topics: [NAMED],
+        // The new slot is the only one in the question.
+        statements: [
+          {
+            slot: "s1",
+            about: "the launch plan",
+            value: "settled",
+            quote: "is settled",
+          },
+        ],
+      });
+      await run();
+
+      const sent = prompts(fetchMock);
+      expect(sent).toHaveLength(3);
+      for (const prompt of sent) {
+        expect(prompt).toContain("): State");
+        expect(prompt).not.toContain("): Launch date");
+        expect(prompt).not.toContain("): Price");
+      }
+      expect(
+        (await facts(world, topicId, world.owner))
+          .map((fact) => fact.slot)
+          .sort(),
+      ).toEqual(["launch_date", "state"]);
+
+      await run();
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect(
+        (await records()).map((row) => row.reason ?? "read").sort(),
+      ).toEqual(["read", "read", "read", "too_large", "unsupported"]);
+
+      const lease = await filing(world).topic("Office lease");
+      await filing(world).addSlot(lease, { name: "Rent", type: "number" });
+      fetchMock.mockClear();
+      await run();
+      await run();
+
+      const about = prompts(fetchMock);
+      expect(about).toHaveLength(3);
+      for (const prompt of about) {
+        expect(prompt).toContain("Topic t1: Office lease");
+        expect(prompt).not.toContain("): State");
+      }
+    });
+
+    it("reads nothing again after a rename, a deletion or another model", async () => {
+      const { world, topicId, price } = await found();
+      await attach(world, { filename: "notes.md", mimeType: "text/markdown" });
+      readObject.mockImplementation(async () => ({
+        body: new Response(PRICE).body,
+      }));
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+
+      await db
+        .update(topicTable)
+        .set({ name: "Launch plan 2027" })
+        .where(eq(topicTable.id, topicId));
+      // The newest slot of the workspace.
+      await db.delete(topicSlotTable).where(eq(topicSlotTable.id, price.id));
       vi.stubEnv("EXTRACTION_MODEL", "another/model");
       await run();
 
       expect(fetchMock).toHaveBeenCalledTimes(3);
       expect(await records()).toHaveLength(3);
+    });
+
+    it("does not read the same file text twice", async () => {
+      const { world, topicId } = await setup();
+      await attach(world, { filename: "notes.md", mimeType: "text/markdown" });
+      await attach(world, { filename: "copy.md", mimeType: "text/markdown" });
+      readObject.mockImplementation(async () => ({
+        body: new Response(PRICE).body,
+      }));
+      const ofFiles = async () =>
+        (await records()).filter((row) => row.assetId !== null);
+      await run();
+
+      // Two issues and one of the two files.
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect((await ofFiles()).map((row) => row.reason).sort()).toEqual([
+        "duplicate",
+        null,
+      ]);
+
+      // A field added later is asked of the file that was read, not of its copy.
+      await filing(world).addSlot(topicId, { name: "State", type: "term" });
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(6);
+
+      // The file that was read goes. Its copy now holds the only text: it is read.
+      const [read] = (await ofFiles()).filter((row) => row.reason === null);
+      await db.delete(assetTable).where(eq(assetTable.id, read.assetId ?? ""));
+      await run();
+      await run();
+
+      expect(fetchMock).toHaveBeenCalledTimes(7);
+      expect((await ofFiles()).map((row) => row.reason)).toEqual([null]);
+    });
+
+    it("makes no call for records written before this build", async () => {
+      const { world, topicId } = await found();
+      await attach(world, { filename: "notes.md", mimeType: "text/markdown" });
+      await attach(world, { filename: "copy.md", mimeType: "text/markdown" });
+      readObject.mockImplementation(async () => ({
+        body: new Response(PRICE).body,
+      }));
+      await run();
+      // As the build before wrote them: the time of writing on each record,
+      // both files read, and an older record left where the slots had changed.
+      await db.update(taskExtractionTable).set({
+        slotsHash: "before",
+        model: "before/model",
+        readable: true,
+        reason: null,
+        createdAt: new Date(),
+      });
+      const [issue] = (await records()).filter(
+        (row) => row.taskId === world.betaTask.id && row.assetId === null,
+      );
+      await db.insert(taskExtractionTable).values({
+        ...issue,
+        id: undefined,
+        slotsHash: "older",
+        createdAt: new Date(0),
+      });
+      fetchMock.mockClear();
+      await run();
+
+      expect(fetchMock).not.toHaveBeenCalled();
+
+      // A field added after the upgrade: once for each issue, once for the two files.
+      await filing(world).addSlot(topicId, { name: "State", type: "term" });
+      await run();
+      await run();
+
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      for (const prompt of prompts(fetchMock)) {
+        expect(prompt).not.toContain("): Launch date");
+      }
+    });
+
+    it("reads new words before it catches up on a new field", async () => {
+      const { world, topicId } = await found();
+      await filing(world).addSlot(topicId, { name: "State", type: "term" });
+      // The issue the job reaches last gets the new comment.
+      const alphaLast = world.alphaTask.id > world.betaTask.id;
+      await comment(
+        world,
+        alphaLast ? world.alphaTask.id : world.betaTask.id,
+        PRICE,
+      );
+      fetchMock.mockClear();
+      await run();
+
+      const sent = prompts(fetchMock);
+      expect(sent).toHaveLength(2);
+      // Every field for the new words, then the new field for the other issue.
+      expect(sent[0]).toContain(alphaLast ? "Alpha issue" : "Beta issue");
+      expect(sent[0]).toContain("): Launch date");
+      expect(sent[1]).toContain(alphaLast ? "Beta issue" : "Alpha issue");
+      expect(sent[1]).not.toContain("): Launch date");
+      expect(sent[1]).toContain("): State");
+    });
+
+    it("asks about a field added while a run was on", async () => {
+      const { topicId } = await setup();
+      let added = false;
+      fetchMock.mockImplementation(async () => {
+        if (!added) {
+          added = true;
+          await db
+            .insert(topicSlotTable)
+            .values({ topicId, key: "state", name: "State", type: "term" });
+        }
+        return answer(NOTHING);
+      });
+      await run();
+      // Two issues, asked before the field was there.
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+
+      await run();
+      await run();
+
+      const sent = prompts(fetchMock).slice(2);
+      expect(sent).toHaveLength(2);
+      for (const prompt of sent) {
+        expect(prompt).toContain("): State");
+        expect(prompt).not.toContain("): Launch date");
+      }
+    });
+
+    it("sends words that came in while a run was on only once", async () => {
+      const { world } = await setup();
+      const alphaLast = world.alphaTask.id > world.betaTask.id;
+      let said = false;
+      fetchMock.mockImplementation(async () => {
+        if (!said) {
+          said = true;
+          // On the issue the run has not reached yet.
+          await comment(
+            world,
+            alphaLast ? world.alphaTask.id : world.betaTask.id,
+            PRICE,
+          );
+        }
+        return answer(NOTHING);
+      });
+      await run();
+      await run();
+
+      const sent = prompts(fetchMock);
+      expect(sent).toHaveLength(2);
+      expect(sent[1]).toContain(PRICE);
+    });
+
+    it("reads an issue again when an edit is undone, so its facts come back", async () => {
+      const { world, topicId, fact } = await found();
+      await describeIssue(world.betaTask.id, "Nothing is settled yet.");
+      tells(fetchMock, "no such text", NOTHING);
+      await run();
+      expect(await facts(world, topicId, world.owner)).toEqual([]);
+
+      await describeIssue(world.betaTask.id, LAUNCH);
+      tells(fetchMock, "Beta issue", { topics: [NAMED], statements: [WHEN] });
+      await run();
+      await run();
+
+      // Two issues, the edit and the undo.
+      expect(fetchMock).toHaveBeenCalledTimes(4);
+      expect(
+        (await facts(world, topicId, world.owner)).map((found) => found.value),
+      ).toEqual([fact.value]);
     });
 
     it("drops a fact when its words are no longer in the issue, unless a person dismissed it", async () => {

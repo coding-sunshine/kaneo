@@ -3549,9 +3549,12 @@ export const taskExtractionTable = pgTable(
     promptVersion: integer("prompt_version").notNull(),
     model: text("model").notNull(),
     readable: boolean("readable").notNull(),
-    // Why not: unsupported, too_large, unparsed or no_answer. `truncated` on
-    // a text that was read only in part.
+    // Why not: unsupported, too_large, unparsed, no_answer, or duplicate for
+    // a file whose text another file holds. `truncated` on a text that was
+    // read only in part.
     reason: text("reason"),
+    // When the newest slot the text was asked about was made, not when the
+    // row was written: the job sets it.
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),
