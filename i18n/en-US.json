@@ -3947,6 +3947,10 @@
 					"clear": "Clear flag",
 					"clearDone": "Flag cleared"
 				},
+				"reliesOn": {
+					"hint": "Facts of a topic this document rests on. When the topic replaces one, the document shows under Needs review.",
+					"pick": "Rely on a fact from a topic"
+				},
 				"needsReview": {
 					"hint": "Work that rests on a value its topic has since replaced. Check each one, then clear its flag.",
 					"empty": "Nothing needs review. Work shows up here when a value it relies on is replaced.",

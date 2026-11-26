@@ -1,8 +1,13 @@
 import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
-import { statementDependencyTable } from "../../database/schema";
+import {
+  statementDependencyTable,
+  statementTable,
+  topicSlotTable,
+} from "../../database/schema";
 import { loadDocument } from "../../document/controllers/load-document";
+import { topicAccess } from "../../document/visibility";
 import { loadTask } from "../../document/controllers/share-with-task";
 import { currentStatements } from "./current-statements";
 import { statementOf } from "./statements";
@@ -107,4 +112,32 @@ export async function removeDependency(
     .delete(statementDependencyTable)
     .where(eq(statementDependencyTable.id, row.id));
   return { id: row.id };
+}
+
+/**
+ * The topics whose values a document relies on, for someone who can open the
+ * document. A topic they cannot open is left out.
+ */
+export async function reliedTopics(
+  workspaceId: string,
+  documentId: string,
+  userId: string,
+) {
+  const doc = await loadDocument(workspaceId, documentId, userId);
+  const rows = await db
+    .selectDistinct({ topicId: topicSlotTable.topicId })
+    .from(statementDependencyTable)
+    .innerJoin(
+      statementTable,
+      eq(statementTable.id, statementDependencyTable.statementId),
+    )
+    .innerJoin(topicSlotTable, eq(topicSlotTable.id, statementTable.slotId))
+    .where(
+      and(
+        eq(statementDependencyTable.documentId, doc.id),
+        topicAccess(userId, topicSlotTable.topicId),
+      ),
+    )
+    .orderBy(topicSlotTable.topicId);
+  return { topicIds: rows.map((row) => row.topicId) };
 }

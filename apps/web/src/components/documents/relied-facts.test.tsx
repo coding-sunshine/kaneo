@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { formatDateMedium } from "@/lib/format";
 import { toast } from "@/lib/toast";
-import { TaskTopicFacts } from "./task-topic-facts";
+import { ReliedFacts, type ReliedWork } from "./relied-facts";
 
 const mocks = vi.hoisted(() => ({
   getTopicDependents: vi.fn(),
@@ -69,6 +69,7 @@ const show = ({
   dependents = [] as unknown[],
   answers = [] as unknown[],
   flagged = [] as unknown[],
+  work = { taskId: "task-1" } as ReliedWork,
 } = {}) => {
   mocks.getTopicDependents.mockResolvedValue(dependents);
   mocks.getTopicFacts.mockResolvedValue({ id: "t1", answers });
@@ -78,7 +79,7 @@ const show = ({
   mocks.clearNeedsReview.mockResolvedValue({});
   return render(
     <QueryClientProvider client={new QueryClient()}>
-      <TaskTopicFacts workspaceId="ws" taskId="task-1" topicId="t1" />
+      <ReliedFacts workspaceId="ws" work={work} topicId="t1" />
     </QueryClientProvider>,
   );
 };
@@ -88,7 +89,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe("TaskTopicFacts", () => {
+describe("ReliedFacts", () => {
   it("renders nothing with no relied values and no choices", async () => {
     const { container } = show();
     await vi.waitFor(() => expect(mocks.getTopicFacts).toHaveBeenCalled());
@@ -189,6 +190,40 @@ describe("TaskTopicFacts", () => {
         id: "doc-2",
         statementId: "s2",
         taskId: "task-1",
+      }),
+    );
+  });
+
+  it("works for a document: its own links, never a value it states itself", async () => {
+    show({
+      work: { documentId: "memo-1" },
+      dependents: [
+        dependent(),
+        dependent({
+          id: "dep-2",
+          slotName: "Venue",
+          value: "Pier",
+          task: null,
+          document: { id: "memo-1", title: "Memo" },
+        }),
+      ],
+      answers: [
+        answer(),
+        answer({ statementId: "s3", slotName: "Own", documentId: "memo-1" }),
+      ],
+    });
+    await screen.findByText(item("Venue", "Pier"));
+    expect(screen.queryByText(item("Launch date", "May 1"))).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: `${R}.add` }));
+    await screen.findByRole("menuitem", { name: item("Price", "$9") });
+    expect(screen.getAllByRole("menuitem")).toHaveLength(1);
+    fireEvent.click(screen.getByRole("menuitem"));
+    await vi.waitFor(() =>
+      expect(mocks.addFactDependent.mock.calls[0]?.[0]).toEqual({
+        workspaceId: "ws",
+        id: "doc-2",
+        statementId: "s2",
+        documentId: "memo-1",
       }),
     );
   });

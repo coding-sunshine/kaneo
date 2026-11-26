@@ -3949,7 +3949,11 @@
 					"person": "A name.",
 					"term": "A short phrase."
 				},
-				"valueLabel": "Value"
+				"valueLabel": "Value",
+				"reliesOn": {
+					"hint": "Facts of a topic this document rests on. When the topic replaces one, the document shows under Needs review.",
+					"pick": "Rely on a fact from a topic"
+				}
 			},
 			"issueFacts": {
 				"addFailed": "Could not add the issue to the topic",

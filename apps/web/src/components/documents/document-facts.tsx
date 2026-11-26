@@ -15,6 +15,7 @@ import {
 import { toast } from "@/lib/toast";
 import { DocumentFactMissing } from "./document-fact-missing";
 import { DocumentFactRow } from "./document-fact-row";
+import { DocumentReliesOn } from "./document-relies-on";
 import { factGroups } from "./fact-groups";
 import { FactConflictCard } from "./fact-conflict-card";
 import { RejectFactDialog } from "./reject-fact-dialog";
@@ -181,6 +182,11 @@ export function DocumentFacts({
       </div>
       <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-3 pb-3">
         {body}
+        <DocumentReliesOn
+          workspaceId={workspaceId}
+          documentId={id}
+          canEdit={canEdit}
+        />
       </div>
       {rejecting && (
         <RejectFactDialog

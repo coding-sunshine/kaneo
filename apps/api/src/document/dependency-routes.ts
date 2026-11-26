@@ -5,6 +5,7 @@ import {
   dependencyBody,
   dependencySchema,
   documentDependencyParam,
+  documentParam,
   documentStatementParam,
 } from "./schema";
 
@@ -55,5 +56,29 @@ export const removeDependentRoute = createRoute({
   responses: {
     200: jsonResponse("Removed", z.object({ id: z.string() })),
     404: notFound,
+  },
+});
+
+export const reliedTopicsRoute = createRoute({
+  method: "get",
+  operationId: "listDocumentReliedTopics",
+  path: "/workspace/{workspaceId}/{id}/relies-on",
+  tags,
+  summary: "List the topics a document relies on",
+  description:
+    "The topics whose values the document relies on. A topic you cannot open is left out.",
+  middleware: [
+    workspaceAccess.fromParam(),
+    requireWorkspacePermission({ task: ["read"] }),
+  ] as const,
+  request: { params: documentParam },
+  responses: {
+    200: jsonResponse(
+      "Topic ids",
+      z
+        .object({ topicIds: z.array(z.string()) })
+        .openapi("DocumentReliedTopics"),
+    ),
+    404: errorResponse("Document not found"),
   },
 });

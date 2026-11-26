@@ -9,9 +9,9 @@ import {
   useUnlinkTaskTopic,
 } from "@/hooks/mutations/topic/use-topic-mutations";
 import { useTaskTopics, useTopics } from "@/hooks/queries/topic/use-topics";
+import { ReliedFacts } from "@/components/documents/relied-facts";
 import { toast } from "@/lib/toast";
 import { useTopicCurrentLine } from "./use-topic-current-line";
-import { TaskTopicFacts } from "./task-topic-facts";
 
 type TaskTopicsProps = { workspaceId: string; taskId: string };
 
@@ -64,9 +64,9 @@ function TopicRow({
           <X aria-hidden="true" className="size-3.5" />
         </button>
       </div>
-      <TaskTopicFacts
+      <ReliedFacts
         workspaceId={workspaceId}
-        taskId={taskId}
+        work={{ taskId }}
         topicId={topic.id}
       />
     </li>

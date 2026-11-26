@@ -64,19 +64,18 @@ export function DocumentHeaderActions({
         open={shareOpen}
         onOpenChange={onShareOpenChange}
       />
-      {document.topicId && (
-        <HeaderIconButton
-          label={
-            factsOpen
-              ? t("navigation:documents.facts.close")
-              : t("navigation:documents.facts.show")
-          }
-          onClick={onToggleFacts}
-          className={cn(factsOpen && "bg-accent text-foreground")}
-        >
-          <ListChecks aria-hidden />
-        </HeaderIconButton>
-      )}
+      {/* Every document can rely on facts; a filed one also states them. */}
+      <HeaderIconButton
+        label={
+          factsOpen
+            ? t("navigation:documents.facts.close")
+            : t("navigation:documents.facts.show")
+        }
+        onClick={onToggleFacts}
+        className={cn(factsOpen && "bg-accent text-foreground")}
+      >
+        <ListChecks aria-hidden />
+      </HeaderIconButton>
       <HeaderIconButton
         label={
           commentsOpen

@@ -245,6 +245,46 @@ describe("API integration: ripple flags", () => {
     expect(byTask.flaggedAt).toEqual(expect.any(String));
   });
 
+  it("lists the topics a document relies on, only to someone who can open it", async () => {
+    const s = await setup();
+    const { world, topicId, docId } = s;
+    const { doc } = await dependOnPrice(s);
+    const reliesOn = (id: string, user: Member = world.owner) =>
+      world.as(user)(`/document/workspace/${world.ws}/${id}/relies-on`);
+
+    const read = await reliesOn(doc);
+    await expectStatus(read, 200);
+    expect(await read.json()).toEqual({ topicIds: [topicId] });
+    // The document that states the value relies on nothing.
+    expect(await (await reliesOn(docId)).json()).toEqual({ topicIds: [] });
+    // The memo and the topic are in Alpha. A member who cannot enter Alpha
+    // cannot open the memo at all.
+    const betaOnly = await addWorkspaceMember(world.ws);
+    await restrictToProjects(world.ws, betaOnly.id, [world.beta.id]);
+    await expectStatus(await reliesOn(doc, betaOnly), 404);
+    // A note everyone opens relies on the Alpha topic: they read the note but
+    // never learn of the topic.
+    const [note] = await db
+      .insert(schema.documentTable)
+      .values({
+        workspaceId: world.ws,
+        title: "Workspace note",
+        scope: "workspace",
+        creatorId: world.owner.id,
+      })
+      .returning();
+    await expectStatus(
+      await s.r.depend(docId, s.cost.id, { documentId: note.id }),
+      200,
+    );
+    expect(await (await reliesOn(note.id)).json()).toEqual({
+      topicIds: [topicId],
+    });
+    const hidden = await reliesOn(note.id, betaOnly);
+    await expectStatus(hidden, 200);
+    expect(await hidden.json()).toEqual({ topicIds: [] });
+  });
+
   it("flags nothing when the current document is approved again after an edit to another paragraph", async () => {
     const s = await setup();
     const { api, r, topicId, docId } = s;

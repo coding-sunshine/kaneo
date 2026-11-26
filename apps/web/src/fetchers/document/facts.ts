@@ -16,6 +16,13 @@ export async function getDocumentFacts(workspaceId: string, id: string) {
 
 export type DocumentFact = Awaited<ReturnType<typeof getDocumentFacts>>[number];
 
+/** The topics whose values the document relies on. */
+export async function getDocumentReliedTopics(workspaceId: string, id: string) {
+  const response = await one["relies-on"].$get({ param: { workspaceId, id } });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
 export async function addDocumentFact({
   workspaceId,
   id,
@@ -78,12 +85,20 @@ export async function decideDocumentConflict({
   return response.json();
 }
 
-/** Says an issue relies on a value the topic states now. */
+/** Says an issue or a document relies on a value the topic states now. */
 export async function addFactDependent({
   taskId,
+  documentId,
   ...param
-}: OneFact & { taskId: string }) {
-  const response = await stated.dependents.$put({ param, json: { taskId } });
+}: OneFact &
+  (
+    | { taskId: string; documentId?: never }
+    | { documentId: string; taskId?: never }
+  )) {
+  const response = await stated.dependents.$put({
+    param,
+    json: taskId ? { taskId } : { documentId },
+  });
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }

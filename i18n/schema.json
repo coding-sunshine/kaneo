@@ -16136,6 +16136,19 @@
 										"clearDone"
 									]
 								},
+								"reliesOn": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"hint": {
+											"type": "string"
+										},
+										"pick": {
+											"type": "string"
+										}
+									},
+									"required": ["hint", "pick"]
+								},
 								"needsReview": {
 									"type": "object",
 									"additionalProperties": false,
@@ -16211,6 +16224,7 @@
 								"conflict",
 								"topic",
 								"relies",
+								"reliesOn",
 								"needsReview"
 							]
 						}

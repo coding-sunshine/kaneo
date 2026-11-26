@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getDocumentFacts,
   getDocumentReceipt,
+  getDocumentReliedTopics,
 } from "@/fetchers/document/facts";
 import {
   getNeedsReview,
@@ -30,6 +31,15 @@ export function useDocumentReceipt(workspaceId: string, id: string | null) {
     enabled: Boolean(workspaceId && id),
     queryKey: [...documentsKey(workspaceId), "receipt", id],
     queryFn: () => getDocumentReceipt(workspaceId, id ?? ""),
+  });
+}
+
+/** The topics a document relies on, for the facts panel. */
+export function useDocumentReliedTopics(workspaceId: string, id: string) {
+  return useQuery({
+    enabled: Boolean(workspaceId && id),
+    queryKey: [...documentsKey(workspaceId), "relies-on", id],
+    queryFn: () => getDocumentReliedTopics(workspaceId, id),
   });
 }
 

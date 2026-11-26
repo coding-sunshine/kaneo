@@ -4569,6 +4569,20 @@
           "decidedByName"
         ]
       },
+      "DocumentReliedTopics": {
+        "type": "object",
+        "properties": {
+          "topicIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "topicIds"
+        ]
+      },
       "StatementDependency": {
         "type": "object",
         "properties": {
@@ -29501,6 +29515,69 @@
           },
           "404": {
             "description": "Document or statement not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/relies-on": {
+      "get": {
+        "operationId": "listDocumentReliedTopics",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "List the topics a document relies on",
+        "description": "The topics whose values the document relies on. A topic you cannot open is left out.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Topic ids",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentReliedTopics"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
             "content": {
               "application/json": {
                 "schema": {

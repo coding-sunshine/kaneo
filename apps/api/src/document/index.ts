@@ -109,9 +109,14 @@ import {
   rejectStatementRoute,
 } from "./statement-routes";
 import { decideConflictRoute, receiptRoute } from "./receipt-routes";
-import { addDependentRoute, removeDependentRoute } from "./dependency-routes";
+import {
+  addDependentRoute,
+  reliedTopicsRoute,
+  removeDependentRoute,
+} from "./dependency-routes";
 import {
   addDependency,
+  reliedTopics,
   removeDependency,
 } from "../topic/controllers/dependencies";
 import { decideConflict } from "../topic/controllers/decide-conflict";
@@ -813,6 +818,10 @@ const document = apiRouter()
       ),
       200,
     );
+  })
+  .openapi(reliedTopicsRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(await reliedTopics(workspaceId, id, c.get("userId")), 200);
   })
   .openapi(addDependentRoute, async (c) => {
     const { workspaceId, id, statementId } = c.req.valid("param");

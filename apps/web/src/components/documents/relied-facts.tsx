@@ -1,6 +1,5 @@
 import { AlertTriangle, Plus, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { FactNow } from "@/components/documents/fact-now";
 import { Button } from "@/components/ui/button";
 import { Menu, MenuItem, MenuPopup, MenuTrigger } from "@/components/ui/menu";
 import type { TopicDependent } from "@/fetchers/topic/facts";
@@ -16,23 +15,30 @@ import {
 } from "@/hooks/queries/topic/use-facts";
 import { formatDateMedium } from "@/lib/format";
 import { toast } from "@/lib/toast";
+import { FactNow } from "./fact-now";
 
-type TaskTopicFactsProps = {
+/** The issue or the document that relies on a topic's values. */
+export type ReliedWork = { taskId: string } | { documentId: string };
+
+type ReliedFactsProps = {
   workspaceId: string;
-  taskId: string;
+  work: ReliedWork;
   topicId: string;
 };
 
-/** The values of one topic an issue relies on, and a way to add or drop one. */
-export function TaskTopicFacts({
-  workspaceId,
-  taskId,
-  topicId,
-}: TaskTopicFactsProps) {
+/**
+ * The values of one topic an issue or a document relies on, and a way to add
+ * or drop one. A document never relies on a value it states itself.
+ */
+export function ReliedFacts({ workspaceId, work, topicId }: ReliedFactsProps) {
   const { t } = useTranslation();
   const { data: dependents = [] } = useTopicDependents(workspaceId, topicId);
   const { data: facts } = useTopicFacts(workspaceId, topicId);
-  const relied = dependents.filter((d) => d.task?.id === taskId);
+  const isWork = (d: TopicDependent) =>
+    "taskId" in work
+      ? d.task?.id === work.taskId
+      : d.document?.id === work.documentId;
+  const relied = dependents.filter(isWork);
   const { data: flagged = [] } = useNeedsReview(
     workspaceId,
     relied.some((d) => d.needsReview),
@@ -45,6 +51,7 @@ export function TaskTopicFacts({
     a.statementId &&
     a.value &&
     a.documentId &&
+    !("documentId" in work && a.documentId === work.documentId) &&
     !relied.some((d) => d.statementId === a.statementId)
       ? [
           {
@@ -165,7 +172,7 @@ export function TaskTopicFacts({
                       workspaceId,
                       id: c.documentId,
                       statementId: c.statementId,
-                      taskId,
+                      ...work,
                     },
                     { onError },
                   )
