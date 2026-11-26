@@ -157,6 +157,7 @@ export function TopicPage({ workspaceId, topicId }: TopicPageProps) {
                         )?.title ?? null
                       }
                       stale={row.replacesDocumentId !== topic.currentDocumentId}
+                      compact
                     />
                   )
                 }
