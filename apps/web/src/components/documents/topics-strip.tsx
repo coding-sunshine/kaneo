@@ -26,7 +26,7 @@ export function TopicsStrip({ workspaceId }: TopicsStripProps) {
           key={topic.id}
           to="/dashboard/workspace/$workspaceId/topic/$topicId"
           params={{ workspaceId, topicId: topic.id }}
-          className="shrink-0 rounded-full border border-border/70 px-2.5 py-0.5 text-xs hover:bg-accent"
+          className="touch-hitbox relative shrink-0 rounded-full border border-border/70 px-2.5 py-0.5 text-xs hover:bg-accent"
         >
           {topic.name}
         </Link>

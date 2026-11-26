@@ -79,8 +79,10 @@ export function TopicPage({ workspaceId, topicId }: TopicPageProps) {
       <WorkspaceLayout title={topic.name}>
         <div className="mx-auto flex w-full max-w-[55rem] flex-col gap-8 py-10">
           <header className="flex flex-col gap-3 px-4">
-            <div className="flex items-start justify-between gap-4">
-              <h1 className="font-semibold text-2xl leading-8">{topic.name}</h1>
+            <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+              <h1 className="min-w-48 flex-1 break-words font-semibold text-2xl leading-8">
+                {topic.name}
+              </h1>
               <div className="flex shrink-0 items-center gap-2">
                 <RecordDecisionButton topic={topic} />
                 <TopicFollowButton topic={topic} />

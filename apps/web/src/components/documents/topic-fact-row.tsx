@@ -32,14 +32,15 @@ export function TopicFactRow({
     </Link>
   );
   return (
-    <li className="grid gap-x-4 gap-y-0.5 rounded-md px-2 py-2 sm:grid-cols-[10rem_1fr_auto]">
+    <li className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-0.5 rounded-md px-2 py-2 sm:grid-cols-[10rem_1fr_auto]">
       <div className="min-w-0">
         <p className="break-words font-medium text-[13px]">{fact.slotName}</p>
         <p className="text-muted-foreground text-xs">
           {t(`navigation:documents.facts.topic.types.${fact.type}`)}
         </p>
       </div>
-      <div className="min-w-0 break-words text-[13px]">
+      {/* On a phone the value goes under the name and the remove button stays beside the name. */}
+      <div className="min-w-0 break-words text-[13px] max-sm:col-start-1 max-sm:row-start-2">
         {fact.value ? (
           <p>{fact.value}</p>
         ) : (
@@ -91,7 +92,7 @@ export function TopicFactRow({
             name: fact.slotName,
           })}
           onClick={onUntrack}
-          className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:bg-accent"
+          className="touch-hitbox relative flex size-6 shrink-0 items-center max-sm:col-start-2 max-sm:row-start-1 justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:bg-accent"
         >
           <X aria-hidden="true" className="size-3.5" />
         </button>

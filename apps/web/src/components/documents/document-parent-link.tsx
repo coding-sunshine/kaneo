@@ -6,7 +6,7 @@ import useGetTask from "@/hooks/queries/task/use-get-task";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 
 const crumb =
-  "flex min-w-0 items-center gap-1.5 truncate rounded px-1 py-0.5 text-card-foreground text-xs hover:bg-accent/60 [&_svg]:size-3.5 [&_svg]:shrink-0 [&_svg]:text-muted-foreground";
+  "flex min-w-[1.375rem] items-center gap-1.5 truncate rounded px-1 py-0.5 text-card-foreground text-xs hover:bg-accent/60 [&_svg]:size-3.5 [&_svg]:shrink-0 [&_svg]:text-muted-foreground";
 
 /** The first breadcrumb on a document: where it lives, linking there. */
 export function DocumentParentLink({
