@@ -16,6 +16,7 @@ import { RecordDecisionButton } from "./record-decision-button";
 import { TopicFollowButton } from "./topic-follow-button";
 import { TopicIssueFiles } from "./topic-issue-files";
 import { TopicIssues } from "./topic-issues";
+import { TopicFacts } from "./topic-facts";
 import { TopicSection } from "./topic-section";
 
 type TopicPageProps = { workspaceId: string; topicId: string };
@@ -112,6 +113,11 @@ export function TopicPage({ workspaceId, topicId }: TopicPageProps) {
               )}
             </div>
           </header>
+          <TopicFacts
+            workspaceId={workspaceId}
+            topicId={topicId}
+            canManage={topic.canDecide}
+          />
           <TopicSection
             id="topic-current"
             title={t("navigation:documents.topics.current")}
