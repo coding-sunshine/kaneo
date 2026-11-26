@@ -13,6 +13,8 @@ type DocumentRevisionHintProps = {
 /**
  * One line under the status: the older document this text looks like a
  * revision of. A hint only, so somebody who can edit says whether it is true.
+ * A dismissed hint stays in view for them, quietly, so a wrong "No" can be
+ * taken back.
  */
 export function DocumentRevisionHint({
   document,
@@ -21,7 +23,9 @@ export function DocumentRevisionHint({
   const { t } = useTranslation();
   const { workspaceId, id, revisionOf } = document;
   const decide = useDecideDocumentLineage(workspaceId, id);
-  if (!revisionOf || revisionOf.status === "dismissed") return null;
+  if (!revisionOf) return null;
+  const dismissed = revisionOf.status === "dismissed";
+  if (dismissed && !canEdit) return null;
 
   const proposed = revisionOf.status === "proposed";
   const answer = (status: "confirmed" | "dismissed") => (
@@ -37,7 +41,13 @@ export function DocumentRevisionHint({
     >
       {t(
         `navigation:documents.lineage.${
-          status === "confirmed" ? "confirm" : proposed ? "dismiss" : "undo"
+          status === "confirmed"
+            ? dismissed
+              ? "restore"
+              : "confirm"
+            : proposed
+              ? "dismiss"
+              : "undo"
         }`,
       )}
     </Button>
@@ -66,8 +76,8 @@ export function DocumentRevisionHint({
       </div>
       {canEdit && (
         <div className="ml-auto flex shrink-0 items-center gap-1.5">
-          {proposed && answer("confirmed")}
-          {answer("dismissed")}
+          {(proposed || dismissed) && answer("confirmed")}
+          {!dismissed && answer("dismissed")}
         </div>
       )}
     </div>

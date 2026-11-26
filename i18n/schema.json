@@ -14763,6 +14763,12 @@
 								},
 								"undo": {
 									"type": "string"
+								},
+								"dismissed": {
+									"type": "string"
+								},
+								"restore": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -14771,7 +14777,9 @@
 								"overlap",
 								"confirm",
 								"dismiss",
-								"undo"
+								"undo",
+								"dismissed",
+								"restore"
 							]
 						},
 						"topics": {

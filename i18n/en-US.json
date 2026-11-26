@@ -3618,7 +3618,9 @@
 				"overlap": "{{percent}}% of the text is the same",
 				"confirm": "Yes, a revision",
 				"dismiss": "No",
-				"undo": "Not a revision"
+				"undo": "Not a revision",
+				"dismissed": "Marked as not a revision of",
+				"restore": "It is a revision"
 			},
 			"topics": {
 				"title": "Topics",

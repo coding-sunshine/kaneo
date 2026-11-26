@@ -68,10 +68,32 @@ afterEach(() => {
 });
 
 describe("DocumentRevisionHint", () => {
-  it("says nothing without a link, or about a link somebody dismissed", () => {
+  it("says nothing without a link, or to a reader about a link somebody dismissed", () => {
     expect(show(null).textContent).toBe("");
     cleanup();
-    expect(show("dismissed").textContent).toBe("");
+    expect(show("dismissed", { canEdit: false }).textContent).toBe("");
+  });
+
+  it("lets an editor bring back a link somebody dismissed", async () => {
+    mocks.decideDocumentLineage.mockResolvedValue({});
+    const text = show("dismissed").textContent;
+
+    expect(text).toContain(`${LINEAGE}.dismissed`);
+    expect(text).not.toContain(`${LINEAGE}.overlap`);
+    expect(
+      screen.getByRole("link", { name: "Launch plan" }).getAttribute("href"),
+    ).toBe("/document/doc-1");
+    expect(button("confirm")).toBeNull();
+    expect(button("undo")).toBeNull();
+
+    click("restore");
+    await waitFor(() =>
+      expect(mocks.decideDocumentLineage).toHaveBeenCalledWith(
+        "ws",
+        "doc-2",
+        "confirmed",
+      ),
+    );
   });
 
   it("names the document a text looks like a revision of, and asks", async () => {

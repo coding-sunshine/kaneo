@@ -1200,7 +1200,9 @@
 				"dismiss": "No",
 				"overlap": "{{percent}}% of the text is the same",
 				"proposed": "Looks like a revision of",
-				"undo": "Not a revision"
+				"undo": "Not a revision",
+				"dismissed": "Marked as not a revision of",
+				"restore": "It is a revision"
 			},
 			"citedBy_few": "Cited by {{count}} issues:",
 			"citedBy_many": "Cited by {{count}} issues:",
