@@ -35,6 +35,19 @@ const searchResults = {
       title: "Onboarding handbook",
       projectName: "Platform",
     },
+    {
+      id: "doc-2",
+      type: "document",
+      title: "Release handbook",
+      status: "current",
+      topicName: "Release process",
+    },
+    {
+      id: "doc-3",
+      type: "document",
+      title: "Release handbook ideas",
+      status: "draft",
+    },
   ],
 };
 
@@ -90,6 +103,25 @@ describe("SearchCommandMenu", () => {
       to: "/dashboard/workspace/$workspaceId/document/$documentId",
       params: { workspaceId: "workspace-1", documentId: "doc-1" },
     });
+  });
+
+  it("marks a current document apart from a draft and names its topic", async () => {
+    render(<SearchCommandMenu open setOpen={vi.fn()} />);
+    fireEvent.change(
+      screen.getByPlaceholderText("navigation:search.inputPlaceholder"),
+      { target: { value: "release" } },
+    );
+
+    const current = await screen.findByRole("option", {
+      name: /Release handbook$/,
+    });
+    const draft = screen.getByRole("option", {
+      name: /Release handbook ideas/,
+    });
+    expect(current).toHaveTextContent("navigation:documents.status.current");
+    expect(current).toHaveTextContent("Release process");
+    expect(draft).toHaveTextContent("navigation:documents.status.draft");
+    expect(draft).not.toHaveTextContent("navigation:documents.status.current");
   });
 
   it("opens the task a comment belongs to", async () => {

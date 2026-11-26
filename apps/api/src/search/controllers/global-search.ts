@@ -6,11 +6,12 @@ import {
   documentTable,
   projectTable,
   taskTable,
+  topicTable,
   userTable,
   workspaceTable,
   workspaceUserTable,
 } from "../../database/schema";
-import { documentVisibility } from "../../document/visibility";
+import { documentVisibility, topicAccess } from "../../document/visibility";
 import { canAccessProject } from "../../project-access/can-access-project";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
 import { bodyVector, buildFtsQuery, ftsMatch, titleBodyVector } from "../fts";
@@ -54,6 +55,7 @@ type SearchResult = {
   projectSlug?: string;
   priority?: string;
   status?: string;
+  topicName?: string;
   archivedAt?: Date | null;
 };
 
@@ -536,9 +538,18 @@ async function globalSearch(params: SearchParams): Promise<{
         userId: documentTable.creatorId,
         createdAt: documentTable.createdAt,
         status: documentTable.status,
+        topicName: topicTable.name,
         relevanceScore: docScore.as("relevanceScore"),
       })
       .from(documentTable)
+      // A topic the searcher cannot open stays unnamed, as on the document.
+      .leftJoin(
+        topicTable,
+        and(
+          eq(topicTable.id, documentTable.topicId),
+          topicAccess(resolvedUserId, topicTable.id),
+        ),
+      )
       .leftJoin(
         workspaceTable,
         eq(documentTable.workspaceId, workspaceTable.id),
@@ -595,6 +606,7 @@ async function globalSearch(params: SearchParams): Promise<{
         createdAt: doc.createdAt,
         relevanceScore: doc.relevanceScore,
         status: doc.status,
+        topicName: doc.topicName ?? undefined,
       });
     }
   }

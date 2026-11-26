@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
+import { topicTable } from "../../apps/api/src/database/schema";
 import { createApp } from "../../apps/api/src/index";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
@@ -106,6 +107,54 @@ describe("full-text search", () => {
       type: string;
     }[];
     expect(all.map((r) => r.title)).toContain("Onboarding handbook");
+  });
+
+  it("names the topic of a document only for a reader who can open it", async () => {
+    const { member, project, search } = await setup();
+    const [teamTopic] = await db
+      .insert(topicTable)
+      .values({
+        workspaceId: member.workspace.id,
+        name: "Hiring policy",
+        scope: "team",
+        projectId: project.id,
+      })
+      .returning();
+    await db.insert(schema.documentTable).values({
+      workspaceId: member.workspace.id,
+      title: "walrus handbook",
+      scope: "workspace",
+      topicId: teamTopic.id,
+      status: "current",
+    });
+    const mine = (await search("walrus", "documents")) as {
+      status?: string;
+      topicName?: string;
+    }[];
+    expect(mine).toMatchObject([
+      { status: "current", topicName: "Hiring policy" },
+    ]);
+
+    const viewer = await createWorkspaceMember();
+    await db.insert(schema.workspaceUserTable).values({
+      workspaceId: member.workspace.id,
+      userId: viewer.user.id,
+      role: "member",
+      joinedAt: new Date(),
+    });
+    await db.insert(schema.workspaceMemberAccessTable).values({
+      workspaceId: member.workspace.id,
+      userId: viewer.user.id,
+      projectAccess: "selected",
+    });
+    const theirs = (await search(
+      "walrus",
+      "documents",
+      viewer.user,
+      member.workspace.id,
+    )) as { topicName?: string }[];
+    expect(theirs).toHaveLength(1);
+    expect(theirs[0].topicName).toBeUndefined();
   });
 
   it("never returns another workspace's rows or a team the user cannot see", async () => {

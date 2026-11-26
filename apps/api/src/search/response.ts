@@ -39,6 +39,10 @@ export const searchResultSchema = z
       description:
         "A task's column, or where a document stands: `draft`, `in_review`, `current` or `superseded`.",
     }),
+    topicName: z.string().optional().openapi({
+      description:
+        "The topic a document is filed on. Left out when it has none or the searcher cannot open that topic.",
+    }),
     archivedAt: nullableResponseTimestamp.optional(),
   })
   .openapi("SearchResult");

@@ -8,13 +8,7 @@ import type { DocumentSummary } from "@/fetchers/document/documents";
 import { formatRelativeTime } from "@/lib/format";
 import { getInitials } from "@/lib/get-initials";
 import { DocumentAccessLabel } from "./document-access-label";
-
-const STATUS_TONE = {
-  draft: "outline",
-  in_review: "info",
-  current: "success",
-  superseded: "warning",
-} as const satisfies Record<DocumentSummary["status"], string>;
+import { STATUS_TONE } from "./document-status-tone";
 
 type DocumentListProps = {
   workspaceId: string;

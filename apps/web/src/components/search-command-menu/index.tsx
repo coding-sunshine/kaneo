@@ -24,6 +24,8 @@ import {
   CommandPanel,
   CommandSeparator,
 } from "@/components/ui/command";
+import { STATUS_TONE } from "@/components/documents/document-status-tone";
+import { Badge } from "@/components/ui/badge";
 import useGlobalSearch from "@/hooks/queries/search/use-global-search";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 
@@ -41,8 +43,14 @@ type SearchResultItem = {
   projectSlug?: string;
   priority?: string;
   status?: string;
+  topicName?: string;
   archivedAt?: string | null;
 };
+
+const isDocumentStatus = (
+  status: string | undefined,
+): status is keyof typeof STATUS_TONE =>
+  status !== undefined && status in STATUS_TONE;
 
 type SearchGroup = {
   value: string;
@@ -236,19 +244,34 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
                               aria-hidden="true"
                             />
                             <div className="flex-1 min-w-0">
-                              <div className="font-medium text-sm truncate">
-                                {item.title}
+                              <div className="flex min-w-0 items-center gap-2 font-medium text-sm">
+                                <span className="truncate">{item.title}</span>
+                                {item.type === "document" &&
+                                  isDocumentStatus(item.status) && (
+                                    <Badge
+                                      variant={STATUS_TONE[item.status]}
+                                      size="sm"
+                                      className="shrink-0 font-normal"
+                                    >
+                                      {t(
+                                        `navigation:documents.status.${item.status}`,
+                                      )}
+                                    </Badge>
+                                  )}
                                 {item.archivedAt && (
-                                  <span className="ml-2 rounded bg-muted px-1.5 py-0.5 font-normal text-[10px] text-muted-foreground">
+                                  <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 font-normal text-[10px] text-muted-foreground">
                                     {t("tasks:detail.archived.badge")}
                                   </span>
                                 )}
                               </div>
-                              {item.type === "document" && item.projectName && (
-                                <div className="text-xs text-muted-foreground truncate mt-1">
-                                  {item.projectName}
-                                </div>
-                              )}
+                              {item.type === "document" &&
+                                (item.projectName || item.topicName) && (
+                                  <div className="text-xs text-muted-foreground truncate mt-1">
+                                    {[item.topicName, item.projectName]
+                                      .filter(Boolean)
+                                      .join(" · ")}
+                                  </div>
+                                )}
                               {item.description && (
                                 <div className="text-xs text-muted-foreground truncate mt-1">
                                   {item.description}

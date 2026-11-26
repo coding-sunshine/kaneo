@@ -6794,6 +6794,10 @@
             "type": "string",
             "description": "A task's column, or where a document stands: `draft`, `in_review`, `current` or `superseded`."
           },
+          "topicName": {
+            "type": "string",
+            "description": "The topic a document is filed on. Left out when it has none or the searcher cannot open that topic."
+          },
           "archivedAt": {
             "type": [
               "string",
