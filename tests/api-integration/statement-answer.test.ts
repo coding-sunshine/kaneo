@@ -54,6 +54,7 @@ const empty = (slot: string, slotName: string, type: string): Answer => ({
   slot,
   slotName,
   type,
+  statementId: null,
   value: null,
   quote: null,
   documentId: null,

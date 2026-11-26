@@ -4912,7 +4912,7 @@
               "tolerated",
               "resolved"
             ],
-            "description": "open: the document cannot be made current. tolerated: the two may differ until tolerateUntil. resolved: the decider said the document's value stands."
+            "description": "open: the document cannot be made current. tolerated: the two may differ until tolerateUntil. resolved: the decider said the document's value stands, or that the two do not contradict each other."
           },
           "reason": {
             "type": [
@@ -5559,11 +5559,23 @@
                     },
                     "title": {
                       "type": "string"
+                    },
+                    "number": {
+                      "type": "number"
+                    },
+                    "projectId": {
+                      "type": "string"
+                    },
+                    "projectSlug": {
+                      "type": "string"
                     }
                   },
                   "required": [
                     "id",
-                    "title"
+                    "title",
+                    "number",
+                    "projectId",
+                    "projectSlug"
                   ]
                 },
                 "document": {
@@ -5621,7 +5633,10 @@
                   "description": "The statement the work relies on."
                 },
                 "cause": {
-                  "type": "object",
+                  "type": [
+                    "object",
+                    "null"
+                  ],
                   "properties": {
                     "statementId": {
                       "type": "string"
@@ -5654,7 +5669,7 @@
                     "documentId",
                     "documentTitle"
                   ],
-                  "description": "The statement whose change raised the flag. Another one than dependsOn when the flag came down a chain of documents."
+                  "description": "The statement whose change raised the flag. Another one than dependsOn when the flag came down a chain of documents. Null when it sits in a place the reader cannot open."
                 }
               },
               "required": [
@@ -5793,6 +5808,13 @@
                           "term"
                         ]
                       },
+                      "statementId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "The statement behind the value. Work that relies on the value is linked to it. Null when value is null."
+                      },
                       "value": {
                         "type": [
                           "string",
@@ -5853,6 +5875,7 @@
                       "slot",
                       "slotName",
                       "type",
+                      "statementId",
                       "value",
                       "quote",
                       "documentId",
@@ -6072,6 +6095,97 @@
         },
         "required": [
           "topics"
+        ]
+      },
+      "TopicDependents": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The dependency's id."
+                },
+                "statementId": {
+                  "type": "string"
+                },
+                "slot": {
+                  "type": "string",
+                  "description": "The slot's key."
+                },
+                "slotName": {
+                  "type": "string"
+                },
+                "needsReview": {
+                  "type": "boolean",
+                  "description": "True when the value changed after the link was made and nobody looked at the work since."
+                },
+                "task": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "number": {
+                      "type": "number"
+                    },
+                    "projectId": {
+                      "type": "string"
+                    },
+                    "projectSlug": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title",
+                    "number",
+                    "projectId",
+                    "projectSlug"
+                  ]
+                },
+                "document": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "statementId",
+                "slot",
+                "slotName",
+                "needsReview",
+                "task",
+                "document"
+              ]
+            }
+          }
+        },
+        "required": [
+          "items"
         ]
       },
       "TopicSlot": {
@@ -29373,9 +29487,10 @@
                     "enum": [
                       "replace",
                       "keep",
-                      "tolerate"
+                      "tolerate",
+                      "dismiss"
                     ],
-                    "description": "replace: the document's value stands, and its statement is confirmed. keep: the current value stands, and the document's statement is rejected with the reason. tolerate: the two may differ until tolerateUntil."
+                    "description": "replace: the document's value stands, and its statement is confirmed. keep: the current value stands, and the document's statement is rejected with the reason. tolerate: the two may differ until tolerateUntil. dismiss: the two do not contradict each other, and the document's statement stays as it is."
                   },
                   "reason": {
                     "type": "string",
@@ -32970,6 +33085,69 @@
           },
           "404": {
             "description": "Topic or document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/{id}/dependents": {
+      "get": {
+        "operationId": "listTopicDependents",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "List the work that relies on a topic's values",
+        "description": "Issues and documents that rely on a value one of the topic's documents states, and whether each needs review. Only work the reader can open is listed.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Work that relies on the topic",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicDependents"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic not found",
             "content": {
               "application/json": {
                 "schema": {

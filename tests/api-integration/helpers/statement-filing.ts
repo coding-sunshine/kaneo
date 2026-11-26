@@ -64,6 +64,7 @@ export type Receipt = {
 
 export type Answer = {
   slot: string;
+  statementId: string | null;
   slotName: string;
   type: string;
   value: string | null;

@@ -48,8 +48,16 @@ import {
   deleteSlotRoute,
   listSlotsRoute,
 } from "./slot-routes";
-import { clearFlag, listNeedsReview } from "./controllers/needs-review";
-import { clearNeedsReviewRoute, needsReviewRoute } from "./needs-review-routes";
+import {
+  clearFlag,
+  listDependents,
+  listNeedsReview,
+} from "./controllers/needs-review";
+import {
+  clearNeedsReviewRoute,
+  needsReviewRoute,
+  topicDependentsRoute,
+} from "./needs-review-routes";
 
 const body = <T extends ZodType>(schema: T) => ({
   required: true as const,
@@ -431,6 +439,10 @@ const topic = apiRouter()
       await updateTopic(workspaceId, id, c.get("userId"), c.req.valid("json")),
       200,
     );
+  })
+  .openapi(topicDependentsRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(await listDependents(workspaceId, id, c.get("userId")), 200);
   })
   .openapi(listSlotsRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");

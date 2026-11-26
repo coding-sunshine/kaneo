@@ -12,6 +12,7 @@ import {
 } from "../../database/schema";
 import { documentVisibility, topicAccess } from "../../document/visibility";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
+import { getTopic } from "./get-topic";
 
 const dependency = statementDependencyTable;
 // The statement the work relies on, and the one whose change raised the flag.
@@ -24,12 +25,59 @@ const causeSlot = alias(topicSlotTable, "cause_slot");
 const causeDocument = alias(documentTable, "cause_document");
 const workDocument = alias(documentTable, "work_document");
 
+// The issue or the document that relies on a statement.
+const work = {
+  taskId: taskTable.id,
+  taskTitle: taskTable.title,
+  taskNumber: taskTable.number,
+  projectId: projectTable.id,
+  projectSlug: projectTable.slug,
+  workDocumentId: workDocument.id,
+  workDocumentTitle: workDocument.title,
+};
+type Work = { [K in keyof typeof work]: string | number | null };
+
+const workOf = (row: Work) => ({
+  task: row.taskId
+    ? {
+        id: String(row.taskId),
+        title: String(row.taskTitle ?? ""),
+        number: Number(row.taskNumber),
+        projectId: String(row.projectId),
+        projectSlug: String(row.projectSlug ?? ""),
+      }
+    : null,
+  document: row.workDocumentId
+    ? {
+        id: String(row.workDocumentId),
+        title: String(row.workDocumentTitle ?? ""),
+      }
+    : null,
+});
+
+// Work the reader can open: an issue of a team they are in, or a document
+// they can read that is not in the trash.
+const workVisible = (workspaceId: string, userId: string) =>
+  or(
+    and(
+      eq(projectTable.workspaceId, workspaceId),
+      projectAccessCondition(userId, projectTable.id),
+    ),
+    and(
+      eq(workDocument.workspaceId, workspaceId),
+      isNull(workDocument.deletedAt),
+      documentVisibility(userId, workDocument),
+    ),
+  );
+
 /**
- * Flagged work, for someone who can open all three: the work, the document
- * whose statement it relies on, and the document whose change raised the
- * flag. Anything else is left out in the query, so a hidden one cannot be
- * counted either. A replaced document that sits in the trash still explains
- * its flag to the people who could open it.
+ * Flagged work, for someone who can open the work and the document whose
+ * statement it relies on. Anything else is left out in the query, so a hidden
+ * one cannot be counted either. The statement whose change raised the flag
+ * may sit further up a chain, in a place the reader cannot open: the flag
+ * still shows, so the work can be looked at and cleared, and `causeVisible`
+ * says whether the cause may be named. A replaced document that sits in the
+ * trash still explains its flag to the people who could open it.
  */
 function flagged(workspaceId: string, userId: string, id?: string) {
   return db
@@ -39,10 +87,11 @@ function flagged(workspaceId: string, userId: string, id?: string) {
       flaggedAt: sql`${dependency.needsReviewAt}`.mapWith(
         dependency.needsReviewAt,
       ),
-      taskId: taskTable.id,
-      taskTitle: taskTable.title,
-      workDocumentId: workDocument.id,
-      workDocumentTitle: workDocument.title,
+      ...work,
+      causeVisible: sql<boolean>`(
+        ${documentVisibility(userId, causeDocument)}
+        AND ${topicAccess(userId, causeSlot.topicId)}
+      )`,
       dependsOn: {
         statementId: reliedOn.id,
         slot: reliedSlot.key,
@@ -85,19 +134,7 @@ function flagged(workspaceId: string, userId: string, id?: string) {
         eq(reliedDocument.workspaceId, workspaceId),
         documentVisibility(userId, reliedDocument),
         topicAccess(userId, reliedSlot.topicId),
-        documentVisibility(userId, causeDocument),
-        topicAccess(userId, causeSlot.topicId),
-        or(
-          and(
-            eq(projectTable.workspaceId, workspaceId),
-            projectAccessCondition(userId, projectTable.id),
-          ),
-          and(
-            eq(workDocument.workspaceId, workspaceId),
-            isNull(workDocument.deletedAt),
-            documentVisibility(userId, workDocument),
-          ),
-        ),
+        workVisible(workspaceId, userId),
       ),
     )
     .orderBy(desc(dependency.needsReviewAt), dependency.id);
@@ -110,13 +147,60 @@ export async function listNeedsReview(workspaceId: string, userId: string) {
     items: rows.map((row) => ({
       id: row.id,
       flaggedAt: row.flaggedAt,
-      task: row.taskId ? { id: row.taskId, title: row.taskTitle ?? "" } : null,
-      document: row.workDocumentId
-        ? { id: row.workDocumentId, title: row.workDocumentTitle ?? "" }
-        : null,
+      ...workOf(row),
       dependsOn: row.dependsOn,
-      cause: row.cause,
+      cause: row.causeVisible ? row.cause : null,
     })),
+  };
+}
+
+/**
+ * The work that relies on a value one of the topic's documents states, for
+ * someone who can open the topic, that document and the work. A link to a
+ * replaced document stays listed: that is the work a change flagged.
+ */
+export async function listDependents(
+  workspaceId: string,
+  topicId: string,
+  userId: string,
+) {
+  await getTopic(workspaceId, topicId, userId);
+  const rows = await db
+    .select({
+      id: dependency.id,
+      statementId: reliedOn.id,
+      slot: reliedSlot.key,
+      slotName: reliedSlot.name,
+      needsReview: sql<boolean>`${dependency.needsReviewAt} IS NOT NULL`,
+      ...work,
+    })
+    .from(dependency)
+    .innerJoin(reliedOn, eq(reliedOn.id, dependency.statementId))
+    .innerJoin(reliedSlot, eq(reliedSlot.id, reliedOn.slotId))
+    .innerJoin(reliedDocument, eq(reliedDocument.id, reliedOn.documentId))
+    .leftJoin(taskTable, eq(taskTable.id, dependency.taskId))
+    .leftJoin(projectTable, eq(projectTable.id, taskTable.projectId))
+    .leftJoin(workDocument, eq(workDocument.id, dependency.documentId))
+    .where(
+      and(
+        eq(reliedSlot.topicId, topicId),
+        eq(reliedDocument.workspaceId, workspaceId),
+        documentVisibility(userId, reliedDocument),
+        workVisible(workspaceId, userId),
+      ),
+    )
+    .orderBy(reliedSlot.name, dependency.id);
+  return {
+    items: rows.map(
+      ({ id, statementId, slot, slotName, needsReview, ...on }) => ({
+        id,
+        statementId,
+        slot,
+        slotName,
+        needsReview,
+        ...workOf(on),
+      }),
+    ),
   };
 }
 

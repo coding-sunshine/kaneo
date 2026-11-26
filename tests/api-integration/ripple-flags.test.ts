@@ -7,6 +7,8 @@ import {
   json,
 } from "./helpers/document-access/build-document-world";
 import { createWorkspaceMember } from "./helpers/fixtures";
+import { addWorkspaceMember } from "./helpers/project-access/add-workspace-member";
+import { restrictToProjects } from "./helpers/project-access/restrict-to-projects";
 import {
   filing,
   type Member,
@@ -36,7 +38,16 @@ type Item = {
   task: { id: string; title: string } | null;
   document: { id: string; title: string } | null;
   dependsOn: Ref;
-  cause: Ref;
+  cause: Ref | null;
+};
+type Dependent = {
+  id: string;
+  statementId: string;
+  slot: string;
+  slotName: string;
+  task: { id: string; title: string; projectSlug: string } | null;
+  document: { id: string; title: string } | null;
+  needsReview: boolean;
 };
 
 const DATE: Said = {
@@ -138,6 +149,25 @@ async function replaceWith(
   }
   await expectStatus(await api.approve(topicId, id), 200);
   return id;
+}
+
+// A topic in team Beta, which `limited` cannot enter.
+async function beta(world: DocumentWorld, name: string) {
+  const response = await world.as(world.owner)(
+    "/topic",
+    json("POST", { workspaceId: world.ws, name, projectId: world.beta.id }),
+  );
+  await expectStatus(response, 200);
+  return ((await response.json()) as { id: string }).id;
+}
+
+async function asUserList(world: DocumentWorld, user: Member) {
+  const response = await world.as(user)(
+    `/topic/workspace/${world.ws}/needs-review`,
+  );
+  await expectStatus(response, 200);
+  const body = (await response.json()) as { items: Item[] };
+  return { items: body.items, body };
 }
 
 async function setup() {
@@ -289,11 +319,11 @@ describe("API integration: ripple flags", () => {
     const viaTask = items.find((i) => i.task)!;
     expect(viaDoc.document?.id).toBe(d);
     expect(viaDoc.dependsOn.statementId).toBe(cost.id);
-    expect(viaDoc.cause.statementId).toBe(cost.id);
+    expect(viaDoc.cause?.statementId).toBe(cost.id);
     expect(viaTask.task?.id).toBe(world.alphaTask.id);
     expect(viaTask.dependsOn.statementId).toBe(t.id);
-    expect(viaTask.cause.statementId).toBe(cost.id);
-    expect(viaTask.cause.documentId).toBe(docId);
+    expect(viaTask.cause?.statementId).toBe(cost.id);
+    expect(viaTask.cause?.documentId).toBe(docId);
   });
 
   it("clears a flag, brings it back on the next change, and lists an uncleared flag once", async () => {
@@ -479,5 +509,94 @@ describe("API integration: ripple flags", () => {
 
     await expectStatus(await r.remove(docId, cost.id, link.id), 200);
     await expectStatus(await drop(), 200);
+  });
+
+  it("shows a flag with a hidden cause to someone who can open the work, without naming the cause", async () => {
+    const world = await buildDocumentWorld();
+    const api = filing(world);
+    const r = routes(world);
+    const { owner, limited: m } = world;
+    const topicId = await beta(world, "Launch plan");
+    await api.addSlot(topicId, { name: "Price", type: "number" });
+    const docId = await api.filed(topicId, "Secret plan", textOf([price(40)]));
+    const [cost] = await confirmAll(api, docId, [price(40)]);
+    await expectStatus(await api.approve(topicId, docId), 200);
+    const other = await api.topic("Pricing");
+    await api.addSlot(other, { name: "Codename", type: "term" });
+    const d = await api.filed(other, "Pricing memo", textOf([CODENAME]));
+    const [t] = await confirmAll(api, d, [CODENAME]);
+    await expectStatus(await api.approve(other, d), 200);
+    await expectStatus(await r.depend(docId, cost.id, { documentId: d }), 200);
+    await expectStatus(
+      await r.depend(d, t.id, { taskId: world.alphaTask.id }),
+      200,
+    );
+    await replaceWith(api, topicId, "Secret plan v2", [price(45)]);
+
+    const seen = await asUserList(world, m);
+    expect(seen.items).toHaveLength(1);
+    const [item] = seen.items;
+    expect(item.task?.id).toBe(world.alphaTask.id);
+    expect(item.cause).toBeNull();
+    expect(item.dependsOn.statementId).toBe(t.id);
+    for (const secret of [cost.id, "40 USD", "Secret plan"]) {
+      expect(JSON.stringify(seen.body)).not.toContain(secret);
+    }
+
+    // Someone who can open the first topic is told the cause.
+    const mine = (await r.needsReview(owner)).find((i) => i.task);
+    expect(mine?.cause?.statementId).toBe(cost.id);
+
+    await expectStatus(await r.clear(item.id, m), 200);
+    expect((await asUserList(world, m)).items).toEqual([]);
+  });
+
+  it("lists the work that relies on a topic's facts, only what the reader can open", async () => {
+    const s = await setup();
+    const { world, api, r, topicId, docId, cost } = s;
+    const { limited: m } = world;
+    const dw = await writeMemo(s, "Pricing memo");
+    for (const body of [
+      { taskId: world.alphaTask.id },
+      { taskId: world.betaTask.id },
+      { documentId: dw },
+    ]) {
+      await expectStatus(await r.depend(docId, cost.id, body), 200);
+    }
+    const list = async (user: Member, id = topicId) =>
+      world.as(user)(`/topic/workspace/${world.ws}/${id}/dependents`);
+    const read = async (user: Member) => {
+      const response = await list(user);
+      await expectStatus(response, 200);
+      return (await response.json()) as { items: Dependent[] };
+    };
+
+    const all = (await read(world.owner)).items;
+    expect(all).toHaveLength(3);
+    for (const item of all) {
+      expect(item).toMatchObject({
+        statementId: cost.id,
+        slot: "price",
+        needsReview: false,
+      });
+    }
+    const seen = await read(m);
+    expect(seen.items.map((i) => i.task?.id ?? i.document?.id).sort()).toEqual(
+      [world.alphaTask.id, dw].sort(),
+    );
+    expect(JSON.stringify(seen)).not.toContain(world.betaTask.id);
+    expect(JSON.stringify(seen)).not.toContain("Beta issue");
+
+    const outsider = await addWorkspaceMember(world.ws);
+    await restrictToProjects(world.ws, outsider.id, [world.beta.id]);
+    await expectStatus(await list(outsider), 404);
+    const { topics } = await api.current(topicId);
+    const answer = topics[0].answers.find((a) => a.slot === "price");
+    expect(answer?.statementId).toBe(cost.id);
+
+    await replaceWith(api, topicId, "Launch plan v2", [DATE, price(45)]);
+    const later = (await read(world.owner)).items;
+    expect(later).toHaveLength(3);
+    expect(later.every((i) => i.needsReview)).toBe(true);
   });
 });

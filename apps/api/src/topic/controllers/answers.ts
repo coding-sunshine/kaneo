@@ -57,6 +57,7 @@ export async function answersOf(
       slot: slot.key,
       slotName: slot.name,
       type: slot.type,
+      statementId: stated?.statementId ?? null,
       value: stated?.value ?? null,
       quote: stated?.quote ?? null,
       documentId: stated?.documentId ?? null,

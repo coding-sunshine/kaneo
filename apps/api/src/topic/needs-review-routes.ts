@@ -5,6 +5,8 @@ import {
   clearedReviewFlagSchema,
   needsReviewSchema,
   reviewFlagParam,
+  topicDependentsSchema,
+  topicParam,
   workspaceIdParam,
 } from "./schema";
 
@@ -43,5 +45,24 @@ export const clearNeedsReviewRoute = createRoute({
   responses: {
     200: jsonResponse("Cleared", clearedReviewFlagSchema),
     404: errorResponse("No flag under this id"),
+  },
+});
+
+export const topicDependentsRoute = createRoute({
+  method: "get",
+  operationId: "listTopicDependents",
+  path: "/workspace/{workspaceId}/{id}/dependents",
+  tags,
+  summary: "List the work that relies on a topic's values",
+  description:
+    "Issues and documents that rely on a value one of the topic's documents states, and whether each needs review. Only work the reader can open is listed.",
+  middleware: [
+    workspaceAccess.fromParam(),
+    requireWorkspacePermission({ task: ["read"] }),
+  ] as const,
+  request: { params: topicParam },
+  responses: {
+    200: jsonResponse("Work that relies on the topic", topicDependentsSchema),
+    404: errorResponse("Topic not found"),
   },
 });

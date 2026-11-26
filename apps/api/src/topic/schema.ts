@@ -219,6 +219,10 @@ export const topicCurrentSchema = z
               slot: z.string().openapi({ description: "The slot's key." }),
               slotName: z.string(),
               type: z.enum(SLOT_TYPES),
+              statementId: z.string().nullable().openapi({
+                description:
+                  "The statement behind the value. Work that relies on the value is linked to it. Null when value is null.",
+              }),
               value: z.string().nullable().openapi({
                 description:
                   "What the current document states for the slot, confirmed by a person for the text that was approved. Null when nobody confirmed a value for the slot: the approved text may still state one.",
@@ -303,7 +307,18 @@ const reliedStatement = z.object({
   documentId: z.string(),
   documentTitle: z.string(),
 });
-const flaggedWork = z.object({ id: z.string(), title: z.string() }).nullable();
+const flaggedTask = z
+  .object({
+    id: z.string(),
+    title: z.string(),
+    number: z.number(),
+    projectId: z.string(),
+    projectSlug: z.string(),
+  })
+  .nullable();
+const flaggedDocument = z
+  .object({ id: z.string(), title: z.string() })
+  .nullable();
 
 export const needsReviewSchema = z
   .object({
@@ -311,19 +326,38 @@ export const needsReviewSchema = z
       z.object({
         id: z.string(),
         flaggedAt: responseTimestamp,
-        task: flaggedWork,
-        document: flaggedWork,
+        task: flaggedTask,
+        document: flaggedDocument,
         dependsOn: reliedStatement.openapi({
           description: "The statement the work relies on.",
         }),
-        cause: reliedStatement.openapi({
+        cause: reliedStatement.nullable().openapi({
           description:
-            "The statement whose change raised the flag. Another one than dependsOn when the flag came down a chain of documents.",
+            "The statement whose change raised the flag. Another one than dependsOn when the flag came down a chain of documents. Null when it sits in a place the reader cannot open.",
         }),
       }),
     ),
   })
   .openapi("TopicNeedsReview");
+
+export const topicDependentsSchema = z
+  .object({
+    items: z.array(
+      z.object({
+        id: z.string().openapi({ description: "The dependency's id." }),
+        statementId: z.string(),
+        slot: z.string().openapi({ description: "The slot's key." }),
+        slotName: z.string(),
+        needsReview: z.boolean().openapi({
+          description:
+            "True when the value changed after the link was made and nobody looked at the work since.",
+        }),
+        task: flaggedTask,
+        document: flaggedDocument,
+      }),
+    ),
+  })
+  .openapi("TopicDependents");
 
 export const clearedReviewFlagSchema = z
   .object({ id: z.string(), needsReview: z.boolean() })
