@@ -272,6 +272,10 @@ export const documentSummarySchema = z
       description:
         "On a replaced document: the current document of its topic, if you can open it.",
     }),
+    replacesDocumentId: z.string().nullable().openapi({
+      description:
+        "On a proposal: the document its author means it to replace. It may no longer be current. Null when you cannot open the topic.",
+    }),
   })
   .openapi("DocumentSummary");
 

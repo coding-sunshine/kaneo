@@ -3645,6 +3645,11 @@
 				"notFound": "Topic not found",
 				"notFoundHint": "It may have been removed, or you may not have access to it."
 			},
+			"replaceIntent": {
+				"lead": "Filed to replace",
+				"hidden": "a document you cannot open",
+				"stale": "That document is no longer current."
+			},
 			"file": {
 				"action": "File on a topic",
 				"title": "File on a topic",

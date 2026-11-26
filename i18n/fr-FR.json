@@ -4034,6 +4034,11 @@
 				"showDismissed_one": "Show {{count}} dismissed",
 				"showDismissed_other": "Show {{count}} dismissed",
 				"title": "Found in issues"
+			},
+			"replaceIntent": {
+				"hidden": "a document you cannot open",
+				"lead": "Filed to replace",
+				"stale": "That document is no longer current."
 			}
 		},
 		"drafts": {

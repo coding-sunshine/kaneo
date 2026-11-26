@@ -179,6 +179,34 @@ describe("TopicPage", () => {
     ).toEqual(["/doc-old"]);
   });
 
+  it("names the document a proposal means to replace, and says when it is no longer current", async () => {
+    mocks.getTopic.mockResolvedValue(topic);
+    mocks.getDocument.mockResolvedValue(current);
+    mocks.getDocuments.mockResolvedValue([
+      row("doc-old", "superseded"),
+      row("doc-current", "current"),
+      { ...row("doc-fresh", "in_review"), replacesDocumentId: "doc-current" },
+      { ...row("doc-late", "in_review"), replacesDocumentId: "doc-old" },
+    ]);
+    show();
+
+    const proposals = await section("navigation:documents.topics.proposals");
+    const intents = await proposals.findAllByText(
+      "navigation:documents.replaceIntent.lead",
+    );
+    expect(intents).toHaveLength(2);
+    expect(
+      proposals.getByRole("link", { name: "Title of doc-current" }),
+    ).toBeTruthy();
+    expect(
+      proposals.getByRole("link", { name: "Title of doc-old" }),
+    ).toBeTruthy();
+    // Only the proposal whose target was replaced meanwhile says so.
+    expect(
+      proposals.getAllByText("navigation:documents.replaceIntent.stale"),
+    ).toHaveLength(1);
+  });
+
   it("names the decider, the backup and the place", async () => {
     mocks.getTopic.mockResolvedValue(topic);
     mocks.getDocument.mockResolvedValue(current);

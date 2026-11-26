@@ -49,6 +49,13 @@ export const documentSummaryColumns = (userId: string) => ({
     WHEN ${topicAccess(userId, documentTable.topicId)} THEN ${documentTable.topicId}
   END`,
   filedAt: documentTable.filedAt,
+  // On a proposal: the current document its author means to replace. Named
+  // to the same people as the topic.
+  replacesDocumentId: sql<string | null>`CASE
+    WHEN ${documentTable.status} = 'in_review'
+      AND ${topicAccess(userId, documentTable.topicId)}
+    THEN ${documentTable.supersedesDocumentId}
+  END`,
   // Null once the date has passed: the item is back in the Inbox.
   snoozedUntil: sql<Date | null>`CASE
     WHEN ${gt(documentTable.inboxSnoozedUntil, new Date())}

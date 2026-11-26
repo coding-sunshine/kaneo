@@ -20,6 +20,7 @@ import { DocumentRevisionHint } from "./document-revision-hint";
 import { DocumentCitedBy } from "./document-cited-by";
 import { DocumentFacts } from "./document-facts";
 import { DocumentFactsHint } from "./document-facts-hint";
+import { DocumentReplaceIntent } from "./document-replace-intent";
 import { DocumentStatusBanner } from "./document-status-banner";
 import { DocumentTopicActions } from "./document-topic-actions";
 import { DOCUMENT_SAVE_OWNER } from "./document-save";
@@ -39,6 +40,10 @@ export function DocumentPage({
   const { data: document, isLoading } = useDocument(workspaceId, documentId);
   // Null for a reader who holds only a share: the topic is not theirs to open.
   const { data: topic } = useTopic(workspaceId, document?.topicId ?? null);
+  // A proposal filed to replace a document names it; that one may be gone.
+  const replaces =
+    document?.status === "in_review" ? document.supersedesDocumentId : null;
+  const { data: replaced } = useDocument(workspaceId, replaces ?? "");
   const restore = useRestoreDocumentVersion(workspaceId, documentId);
   const [panel, setPanel] = useState<Panel>(null);
   const [version, setVersion] = useState<DocumentVersion | null>(null);
@@ -141,6 +146,16 @@ export function DocumentPage({
             <DocumentStatusBanner
               document={document}
               currentDocumentId={topic?.currentDocumentId}
+              replaceIntent={
+                replaces && (
+                  <DocumentReplaceIntent
+                    workspaceId={workspaceId}
+                    targetId={replaces}
+                    title={replaced?.title ?? null}
+                    stale={replaces !== topic?.currentDocumentId}
+                  />
+                )
+              }
               actions={
                 <DocumentTopicActions
                   document={document}

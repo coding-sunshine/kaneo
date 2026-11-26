@@ -26,6 +26,8 @@ type DocumentStatusBannerProps = {
   document: BannerDocument;
   /** The document the topic relies on today, for a reader who may open the topic. */
   currentDocumentId?: string | null;
+  /** On a proposal: the document its author means it to replace. */
+  replaceIntent?: ReactNode;
   /** What this reader may do next: file it, approve it, confirm it. */
   actions?: ReactNode;
 };
@@ -42,6 +44,7 @@ const LINK = "underline underline-offset-2";
 export function DocumentStatusBanner({
   document,
   currentDocumentId,
+  replaceIntent,
   actions,
 }: DocumentStatusBannerProps) {
   const { t } = useTranslation();
@@ -115,6 +118,7 @@ export function DocumentStatusBanner({
             {t("navigation:documents.banner.openCurrent")}
           </Link>
         )}
+        {replaceIntent}
         {sourceClient && sourceClient !== "web" && (
           <span className="opacity-80">
             {t(`navigation:documents.savedFrom.${sourceClient}`)}

@@ -11,6 +11,7 @@ import {
 import { useTopic } from "@/hooks/queries/topic/use-topics";
 import { getInitials } from "@/lib/get-initials";
 import { DocumentList } from "./document-list";
+import { DocumentReplaceIntent } from "./document-replace-intent";
 import { TopicCurrentDocument } from "./topic-current-document";
 import { RecordDecisionButton } from "./record-decision-button";
 import { TopicFollowButton } from "./topic-follow-button";
@@ -140,7 +141,24 @@ export function TopicPage({ workspaceId, topicId }: TopicPageProps) {
             title={t("navigation:documents.topics.proposals")}
           >
             {proposals.length ? (
-              <DocumentList workspaceId={workspaceId} documents={proposals} />
+              <DocumentList
+                workspaceId={workspaceId}
+                documents={proposals}
+                action={(row) =>
+                  row.replacesDocumentId && (
+                    <DocumentReplaceIntent
+                      workspaceId={workspaceId}
+                      targetId={row.replacesDocumentId}
+                      title={
+                        documents.find(
+                          (other) => other.id === row.replacesDocumentId,
+                        )?.title ?? null
+                      }
+                      stale={row.replacesDocumentId !== topic.currentDocumentId}
+                    />
+                  )
+                }
+              />
             ) : (
               <p className="px-4 text-muted-foreground text-sm">
                 {t("navigation:documents.topics.noProposals")}

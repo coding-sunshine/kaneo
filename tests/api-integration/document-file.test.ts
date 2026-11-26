@@ -379,6 +379,18 @@ describe("API integration: save a document from chat", () => {
       topicId: topic,
       supersedesDocumentId: docs.teamAlpha,
     });
+    // The topic's list says it too, so the topic page can name the target.
+    const onTopic = (await (
+      await world.as(world.open)(
+        `/document/workspace/${world.ws}?topicId=${topic}`,
+      )
+    ).json()) as { id: string; replacesDocumentId: string | null }[];
+    expect(onTopic.find((row) => row.id === replacement)).toMatchObject({
+      replacesDocumentId: docs.teamAlpha,
+    });
+    expect(onTopic.find((row) => row.id === proposal)).toMatchObject({
+      replacesDocumentId: null,
+    });
 
     const brainstorm = await draft("brainstorm");
     expect(await settled(brainstorm, { choice: "brainstorm" })).toMatchObject({

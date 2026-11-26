@@ -14874,6 +14874,22 @@
 								"notFoundHint"
 							]
 						},
+						"replaceIntent": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"lead": {
+									"type": "string"
+								},
+								"hidden": {
+									"type": "string"
+								},
+								"stale": {
+									"type": "string"
+								}
+							},
+							"required": ["lead", "hidden", "stale"]
+						},
 						"file": {
 							"type": "object",
 							"additionalProperties": false,
@@ -16250,6 +16266,7 @@
 						"savedFrom",
 						"lineage",
 						"topics",
+						"replaceIntent",
 						"file",
 						"audience",
 						"makeCurrent",
