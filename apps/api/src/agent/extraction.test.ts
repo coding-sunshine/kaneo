@@ -11,6 +11,7 @@ import { extractJson } from "./extraction";
 const usage = vi.hoisted(() => ({
   tokensUsedToday: vi.fn(async () => 0),
   recordUsage: vi.fn(async () => undefined),
+  spentUsd: vi.fn(async () => 0),
 }));
 
 vi.mock("./usage", () => usage);
@@ -54,6 +55,8 @@ beforeEach(() => {
   vi.stubEnv("EXTRACTION_DAILY_TOKEN_CAP", "");
   usage.tokensUsedToday.mockReset().mockResolvedValue(0);
   usage.recordUsage.mockReset().mockResolvedValue(undefined);
+  usage.spentUsd.mockReset().mockResolvedValue(0);
+  vi.stubEnv("EXTRACTION_TOTAL_USD_CAP", "");
 });
 
 afterEach(() => {
@@ -125,6 +128,26 @@ describe("extractJson", () => {
   it("calls while the day is under its cap", async () => {
     vi.stubEnv("EXTRACTION_DAILY_TOKEN_CAP", "1000");
     usage.tokensUsedToday.mockResolvedValue(999);
+    const fetchMock = vi.fn(async () => answer('{"statements":[]}'));
+    vi.stubGlobal("fetch", fetchMock);
+
+    expect(await extractJson(request)).toEqual({ statements: [] });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("makes no call when the total spend has reached its cap", async () => {
+    vi.stubEnv("EXTRACTION_TOTAL_USD_CAP", "5");
+    usage.spentUsd.mockResolvedValue(5);
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    expect(await extractJson(request)).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("calls while the total spend is under its cap", async () => {
+    vi.stubEnv("EXTRACTION_TOTAL_USD_CAP", "5");
+    usage.spentUsd.mockResolvedValue(4.99);
     const fetchMock = vi.fn(async () => answer('{"statements":[]}'));
     vi.stubGlobal("fetch", fetchMock);
 

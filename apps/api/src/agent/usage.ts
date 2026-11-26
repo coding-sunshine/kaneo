@@ -23,6 +23,19 @@ export async function tokensUsedToday() {
   return row?.tokens ?? 0;
 }
 
+/**
+ * Dollars spent on every extraction call so far.
+ * ponytail: a call the provider reports no cost for is not counted.
+ */
+export async function spentUsd() {
+  const [row] = await db
+    .select({
+      spent: sql<number>`coalesce(sum(${aiUsageTable.cost}), 0)::float8`,
+    })
+    .from(aiUsageTable);
+  return row?.spent ?? 0;
+}
+
 export async function recordUsage(usage: Usage) {
   await db.insert(aiUsageTable).values(usage);
 }

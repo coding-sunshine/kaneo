@@ -168,6 +168,10 @@ describe("API integration: conflict questions", () => {
 
   beforeEach(async () => {
     await resetTestDatabase();
+    // The wait after a failed request lives in the process, not the database.
+    (
+      await import("../../apps/api/src/scheduler/conflict-questions")
+    ).conflictRetry.reset();
     vi.stubEnv("OPENROUTER_API_KEY", "test-key");
     fetchMock = vi.fn(async () => answer(true));
     vi.stubGlobal("fetch", fetchMock);
@@ -294,18 +298,32 @@ describe("API integration: conflict questions", () => {
         throw new Error("down");
       },
     ],
-  ])("keeps no row after %s and asks again next run", async (_name, fail) => {
-    fetchMock.mockImplementation(fail);
-    const { api, topicId, incomingId } = await scene();
-    await expect(run()).resolves.not.toThrow();
-    expect(await judgements()).toEqual([]);
-    expect((await api.receipt(incomingId)).unjudged).toHaveLength(1);
+  ])(
+    "keeps no row after %s and asks again an hour later",
+    async (_name, fail) => {
+      fetchMock.mockImplementation(fail);
+      const { api, topicId, incomingId } = await scene();
+      await expect(run()).resolves.not.toThrow();
+      expect(await judgements()).toEqual([]);
+      expect((await api.receipt(incomingId)).unjudged).toHaveLength(1);
 
-    await run();
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(await judgements()).toEqual([]);
-    await expectStatus(await api.approve(topicId, incomingId), 200);
-  });
+      // Within the hour the failed request is not sent again.
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      const clock = vi
+        .spyOn(Date, "now")
+        .mockReturnValue(Date.now() + 61 * 60_000);
+      try {
+        await run();
+      } finally {
+        clock.mockRestore();
+      }
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(await judgements()).toEqual([]);
+      await expectStatus(await api.approve(topicId, incomingId), 200);
+    },
+  );
 
   it.each([
     ["text that is not JSON", "maybe"],

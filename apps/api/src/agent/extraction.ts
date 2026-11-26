@@ -1,7 +1,8 @@
 import { DEFAULT_AGENT_MODEL, isAgentEnabled } from "./openrouter";
-import { recordUsage, tokensUsedToday } from "./usage";
+import { recordUsage, spentUsd, tokensUsedToday } from "./usage";
 
 const DEFAULT_DAILY_TOKEN_CAP = 300_000;
+const DEFAULT_TOTAL_USD_CAP = 10;
 const MAX_OUTPUT_TOKENS = 1500;
 
 type ExtractionRequest = {
@@ -29,6 +30,11 @@ function dailyTokenCap() {
   return Number.isFinite(cap) && cap >= 0 ? cap : DEFAULT_DAILY_TOKEN_CAP;
 }
 
+function totalUsdCap() {
+  const cap = Number(process.env.EXTRACTION_TOTAL_USD_CAP || Number.NaN);
+  return Number.isFinite(cap) && cap >= 0 ? cap : DEFAULT_TOTAL_USD_CAP;
+}
+
 export function extractionModel() {
   return process.env.AGENT_MODEL || DEFAULT_AGENT_MODEL;
 }
@@ -37,8 +43,9 @@ export function extractionModel() {
  * One model call that answers in the given JSON schema, for jobs that read
  * documents. Unlike the assistant's `createCompletion` it does not stream,
  * limits the answer, writes the tokens it used to `ai_usage` and stops for
- * the day at `EXTRACTION_DAILY_TOKEN_CAP`. Returns null, without calling,
- * when no key is set or the cap is used up.
+ * the day at `EXTRACTION_DAILY_TOKEN_CAP` and for good at
+ * `EXTRACTION_TOTAL_USD_CAP` dollars. Returns null, without calling, when no
+ * key is set or a cap is used up.
  *
  * `zdr` keeps the request on endpoints with zero data retention. An
  * OpenRouter account can still allow "safety retention" endpoints; that is
@@ -49,6 +56,7 @@ export async function extractJson<T>(
 ): Promise<T | null> {
   if (!isAgentEnabled()) return null;
   if ((await tokensUsedToday()) >= dailyTokenCap()) return null;
+  if ((await spentUsd()) >= totalUsdCap()) return null;
 
   const model = extractionModel();
   const response = await fetch(
