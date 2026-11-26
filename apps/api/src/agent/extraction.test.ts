@@ -7,6 +7,7 @@ import {
   vi,
 } from "vite-plus/test";
 import { extractJson } from "./extraction";
+import { DEFAULT_AGENT_MODEL } from "./openrouter";
 
 const usage = vi.hoisted(() => ({
   tokensUsedToday: vi.fn(async () => 0),
@@ -52,6 +53,7 @@ const sent = (fetchMock: ReturnType<typeof vi.fn>) =>
 beforeEach(() => {
   vi.stubEnv("OPENROUTER_API_KEY", "test-key");
   vi.stubEnv("AGENT_MODEL", "");
+  vi.stubEnv("EXTRACTION_MODEL", "");
   vi.stubEnv("EXTRACTION_DAILY_TOKEN_CAP", "");
   usage.tokensUsedToday.mockReset().mockResolvedValue(0);
   usage.recordUsage.mockReset().mockResolvedValue(undefined);
@@ -94,6 +96,22 @@ describe("extractJson", () => {
       { role: "user", content: "Go-live is 14 March." },
     ]);
     expect(body.tools).toBeUndefined();
+  });
+
+  it("sends the model set for reading documents, else the assistant's, else the default", async () => {
+    const fetchMock = vi.fn(async () => answer('{"statements":[]}'));
+    vi.stubGlobal("fetch", fetchMock);
+    const model = async () => {
+      fetchMock.mockClear();
+      await extractJson(request);
+      return sent(fetchMock).model;
+    };
+
+    expect(await model()).toBe(DEFAULT_AGENT_MODEL);
+    vi.stubEnv("AGENT_MODEL", "assistant/model");
+    expect(await model()).toBe("assistant/model");
+    vi.stubEnv("EXTRACTION_MODEL", "reader/model");
+    expect(await model()).toBe("reader/model");
   });
 
   it("writes the tokens the call used to the usage table", async () => {

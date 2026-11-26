@@ -35,8 +35,13 @@ function totalUsdCap() {
   return Number.isFinite(cap) && cap >= 0 ? cap : DEFAULT_TOTAL_USD_CAP;
 }
 
+/** Jobs that read documents can run on another model than the assistant. */
 export function extractionModel() {
-  return process.env.AGENT_MODEL || DEFAULT_AGENT_MODEL;
+  return (
+    process.env.EXTRACTION_MODEL ||
+    process.env.AGENT_MODEL ||
+    DEFAULT_AGENT_MODEL
+  );
 }
 
 /**
