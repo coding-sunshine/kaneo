@@ -13499,6 +13499,9 @@
 								},
 								"openAgent": {
 									"type": "string"
+								},
+								"documentsNeedsReview": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -13611,7 +13614,8 @@
 								"documentsUnfiled",
 								"documentsInbox",
 								"documentsIssueFiles",
-								"openAgent"
+								"openAgent",
+								"documentsNeedsReview"
 							]
 						},
 						"title": {
@@ -13887,6 +13891,9 @@
 								},
 								"issueFiles": {
 									"type": "string"
+								},
+								"needsReview": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -13895,7 +13902,8 @@
 								"shared",
 								"unfiled",
 								"inbox",
-								"issueFiles"
+								"issueFiles",
+								"needsReview"
 							]
 						},
 						"tabHints": {
@@ -13919,6 +13927,9 @@
 								},
 								"issueFiles": {
 									"type": "string"
+								},
+								"needsReview": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -13927,7 +13938,8 @@
 								"shared",
 								"unfiled",
 								"inbox",
-								"issueFiles"
+								"issueFiles",
+								"needsReview"
 							]
 						},
 						"viewTab": {
@@ -15380,6 +15392,705 @@
 								"failed",
 								"status"
 							]
+						},
+						"facts": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"show": {
+									"type": "string"
+								},
+								"close": {
+									"type": "string"
+								},
+								"noTopic": {
+									"type": "string"
+								},
+								"noFacts": {
+									"type": "string"
+								},
+								"openTopic": {
+									"type": "string"
+								},
+								"intro": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"proposal": {
+											"type": "string"
+										},
+										"current": {
+											"type": "string"
+										}
+									},
+									"required": ["proposal", "current"]
+								},
+								"groups": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"conflicts": {
+											"type": "string"
+										},
+										"decided": {
+											"type": "string"
+										},
+										"unjudged": {
+											"type": "string"
+										},
+										"new": {
+											"type": "string"
+										},
+										"repeats": {
+											"type": "string"
+										},
+										"waiting": {
+											"type": "string"
+										},
+										"stated": {
+											"type": "string"
+										},
+										"notChecked": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"conflicts",
+										"decided",
+										"unjudged",
+										"new",
+										"repeats",
+										"waiting",
+										"stated",
+										"notChecked"
+									]
+								},
+								"groupHints": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"conflicts": {
+											"type": "string"
+										},
+										"decided": {
+											"type": "string"
+										},
+										"unjudged": {
+											"type": "string"
+										},
+										"new": {
+											"type": "string"
+										},
+										"repeats": {
+											"type": "string"
+										},
+										"waiting": {
+											"type": "string"
+										},
+										"stated": {
+											"type": "string"
+										},
+										"notChecked": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"conflicts",
+										"decided",
+										"unjudged",
+										"new",
+										"repeats",
+										"waiting",
+										"stated",
+										"notChecked"
+									]
+								},
+								"status": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"proposed": {
+											"type": "string"
+										},
+										"confirmed": {
+											"type": "string"
+										},
+										"rejected": {
+											"type": "string"
+										}
+									},
+									"required": ["proposed", "confirmed", "rejected"]
+								},
+								"source": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"model": {
+											"type": "string"
+										},
+										"assistant": {
+											"type": "string"
+										},
+										"person": {
+											"type": "string"
+										}
+									},
+									"required": ["model", "assistant", "person"]
+								},
+								"confirmedBy": {
+									"type": "string"
+								},
+								"currentValue": {
+									"type": "string"
+								},
+								"confirm": {
+									"type": "string"
+								},
+								"confirmName": {
+									"type": "string"
+								},
+								"confirmDone": {
+									"type": "string"
+								},
+								"reject": {
+									"type": "string"
+								},
+								"rejectName": {
+									"type": "string"
+								},
+								"rejectTitle": {
+									"type": "string"
+								},
+								"rejectHint": {
+									"type": "string"
+								},
+								"rejectSubmit": {
+									"type": "string"
+								},
+								"rejectDone": {
+									"type": "string"
+								},
+								"rejectedLine": {
+									"type": "string"
+								},
+								"reasonLabel": {
+									"type": "string"
+								},
+								"deciderOnly": {
+									"type": "string"
+								},
+								"add": {
+									"type": "string"
+								},
+								"addName": {
+									"type": "string"
+								},
+								"valueLabel": {
+									"type": "string"
+								},
+								"valueHints": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"date": {
+											"type": "string"
+										},
+										"number": {
+											"type": "string"
+										},
+										"money": {
+											"type": "string"
+										},
+										"person": {
+											"type": "string"
+										},
+										"enum": {
+											"type": "string"
+										},
+										"bool": {
+											"type": "string"
+										},
+										"term": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"date",
+										"number",
+										"money",
+										"person",
+										"enum",
+										"bool",
+										"term"
+									]
+								},
+								"quoteLabel": {
+									"type": "string"
+								},
+								"quoteHint": {
+									"type": "string"
+								},
+								"addSubmit": {
+									"type": "string"
+								},
+								"addDone": {
+									"type": "string"
+								},
+								"hint": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"conflicts_one": {
+											"type": "string"
+										},
+										"conflicts_zero": {
+											"type": "string"
+										},
+										"conflicts_two": {
+											"type": "string"
+										},
+										"conflicts_few": {
+											"type": "string"
+										},
+										"conflicts_many": {
+											"type": "string"
+										},
+										"conflicts_other": {
+											"type": "string"
+										},
+										"waiting_one": {
+											"type": "string"
+										},
+										"waiting_zero": {
+											"type": "string"
+										},
+										"waiting_two": {
+											"type": "string"
+										},
+										"waiting_few": {
+											"type": "string"
+										},
+										"waiting_many": {
+											"type": "string"
+										},
+										"waiting_other": {
+											"type": "string"
+										},
+										"review": {
+											"type": "string"
+										}
+									},
+									"required": ["review"]
+								},
+								"conflict": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"open": {
+											"type": "string"
+										},
+										"thisDocument": {
+											"type": "string"
+										},
+										"current": {
+											"type": "string"
+										},
+										"decide": {
+											"type": "string"
+										},
+										"decideName": {
+											"type": "string"
+										},
+										"change": {
+											"type": "string"
+										},
+										"askDecider": {
+											"type": "string"
+										},
+										"askNoDecider": {
+											"type": "string"
+										},
+										"title": {
+											"type": "string"
+										},
+										"choice": {
+											"type": "string"
+										},
+										"options": {
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"replace": {
+													"type": "string"
+												},
+												"keep": {
+													"type": "string"
+												},
+												"tolerate": {
+													"type": "string"
+												},
+												"dismiss": {
+													"type": "string"
+												}
+											},
+											"required": ["replace", "keep", "tolerate", "dismiss"]
+										},
+										"optionHints": {
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"replace": {
+													"type": "string"
+												},
+												"keep": {
+													"type": "string"
+												},
+												"tolerate": {
+													"type": "string"
+												},
+												"dismiss": {
+													"type": "string"
+												}
+											},
+											"required": ["replace", "keep", "tolerate", "dismiss"]
+										},
+										"until": {
+											"type": "string"
+										},
+										"submit": {
+											"type": "string"
+										},
+										"done": {
+											"type": "string"
+										},
+										"tolerated": {
+											"type": "string"
+										},
+										"settled": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"open",
+										"thisDocument",
+										"current",
+										"decide",
+										"decideName",
+										"change",
+										"askDecider",
+										"askNoDecider",
+										"title",
+										"choice",
+										"options",
+										"optionHints",
+										"until",
+										"submit",
+										"done",
+										"tolerated",
+										"settled"
+									]
+								},
+								"topic": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"title": {
+											"type": "string"
+										},
+										"hint": {
+											"type": "string"
+										},
+										"empty": {
+											"type": "string"
+										},
+										"emptyReadOnly": {
+											"type": "string"
+										},
+										"columns": {
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"fact": {
+													"type": "string"
+												},
+												"value": {
+													"type": "string"
+												},
+												"source": {
+													"type": "string"
+												},
+												"approved": {
+													"type": "string"
+												}
+											},
+											"required": ["fact", "value", "source", "approved"]
+										},
+										"noValue": {
+											"type": "string"
+										},
+										"approved": {
+											"type": "string"
+										},
+										"alsoIn_one": {
+											"type": "string"
+										},
+										"alsoIn_zero": {
+											"type": "string"
+										},
+										"alsoIn_two": {
+											"type": "string"
+										},
+										"alsoIn_few": {
+											"type": "string"
+										},
+										"alsoIn_many": {
+											"type": "string"
+										},
+										"alsoIn_other": {
+											"type": "string"
+										},
+										"reliedOn_one": {
+											"type": "string"
+										},
+										"reliedOn_zero": {
+											"type": "string"
+										},
+										"reliedOn_two": {
+											"type": "string"
+										},
+										"reliedOn_few": {
+											"type": "string"
+										},
+										"reliedOn_many": {
+											"type": "string"
+										},
+										"reliedOn_other": {
+											"type": "string"
+										},
+										"track": {
+											"type": "string"
+										},
+										"trackHint": {
+											"type": "string"
+										},
+										"nameLabel": {
+											"type": "string"
+										},
+										"namePlaceholder": {
+											"type": "string"
+										},
+										"typeLabel": {
+											"type": "string"
+										},
+										"types": {
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"date": {
+													"type": "string"
+												},
+												"number": {
+													"type": "string"
+												},
+												"money": {
+													"type": "string"
+												},
+												"person": {
+													"type": "string"
+												},
+												"enum": {
+													"type": "string"
+												},
+												"bool": {
+													"type": "string"
+												},
+												"term": {
+													"type": "string"
+												}
+											},
+											"required": [
+												"date",
+												"number",
+												"money",
+												"person",
+												"enum",
+												"bool",
+												"term"
+											]
+										},
+										"optionsLabel": {
+											"type": "string"
+										},
+										"optionsHint": {
+											"type": "string"
+										},
+										"trackSubmit": {
+											"type": "string"
+										},
+										"trackDone": {
+											"type": "string"
+										},
+										"untrack": {
+											"type": "string"
+										},
+										"untrackTitle": {
+											"type": "string"
+										},
+										"untrackHint": {
+											"type": "string"
+										},
+										"untrackSubmit": {
+											"type": "string"
+										},
+										"untrackDone": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"title",
+										"hint",
+										"empty",
+										"emptyReadOnly",
+										"columns",
+										"noValue",
+										"approved",
+										"track",
+										"trackHint",
+										"nameLabel",
+										"namePlaceholder",
+										"typeLabel",
+										"types",
+										"optionsLabel",
+										"optionsHint",
+										"trackSubmit",
+										"trackDone",
+										"untrack",
+										"untrackTitle",
+										"untrackHint",
+										"untrackSubmit",
+										"untrackDone"
+									]
+								},
+								"relies": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"title": {
+											"type": "string"
+										},
+										"add": {
+											"type": "string"
+										},
+										"none": {
+											"type": "string"
+										},
+										"item": {
+											"type": "string"
+										},
+										"remove": {
+											"type": "string"
+										},
+										"flag": {
+											"type": "string"
+										},
+										"clear": {
+											"type": "string"
+										},
+										"clearDone": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"title",
+										"add",
+										"none",
+										"item",
+										"remove",
+										"flag",
+										"clear",
+										"clearDone"
+									]
+								},
+								"needsReview": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"hint": {
+											"type": "string"
+										},
+										"empty": {
+											"type": "string"
+										},
+										"was": {
+											"type": "string"
+										},
+										"holdsNow": {
+											"type": "string"
+										},
+										"holdsNothing": {
+											"type": "string"
+										},
+										"causeHidden": {
+											"type": "string"
+										},
+										"replaced": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"hint",
+										"empty",
+										"was",
+										"holdsNow",
+										"holdsNothing",
+										"causeHidden",
+										"replaced"
+									]
+								}
+							},
+							"required": [
+								"title",
+								"show",
+								"close",
+								"noTopic",
+								"noFacts",
+								"openTopic",
+								"intro",
+								"groups",
+								"groupHints",
+								"status",
+								"source",
+								"confirmedBy",
+								"currentValue",
+								"confirm",
+								"confirmName",
+								"confirmDone",
+								"reject",
+								"rejectName",
+								"rejectTitle",
+								"rejectHint",
+								"rejectSubmit",
+								"rejectDone",
+								"rejectedLine",
+								"reasonLabel",
+								"deciderOnly",
+								"add",
+								"addName",
+								"valueLabel",
+								"valueHints",
+								"quoteLabel",
+								"quoteHint",
+								"addSubmit",
+								"addDone",
+								"hint",
+								"conflict",
+								"topic",
+								"relies",
+								"needsReview"
+							]
 						}
 					},
 					"required": [
@@ -15448,7 +16159,8 @@
 						"taskTopic",
 						"decision",
 						"usage",
-						"checklist"
+						"checklist",
+						"facts"
 					]
 				},
 				"agent": {
@@ -16497,6 +17209,19 @@
 								}
 							},
 							"required": ["title", "content"]
+						},
+						"document_question": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"content": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "content"]
 						}
 					},
 					"required": [
@@ -16518,7 +17243,8 @@
 						"time_entry_created",
 						"team_issue_added",
 						"team_issue_closed",
-						"team_issue_triage"
+						"team_issue_triage",
+						"document_question"
 					]
 				},
 				"inbox": {

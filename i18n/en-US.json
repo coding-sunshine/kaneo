@@ -3320,7 +3320,8 @@
 				"documentsUnfiled": "View Not yet filed",
 				"documentsInbox": "View the document Inbox",
 				"documentsIssueFiles": "View Issue files",
-				"openAgent": "Open agent"
+				"openAgent": "Open agent",
+				"documentsNeedsReview": "View Needs review"
 			},
 			"title": "Keyboard Shortcuts",
 			"searchPlaceholder": "Search shortcuts",
@@ -3387,7 +3388,8 @@
 				"shared": "Shared with me",
 				"unfiled": "Not yet filed",
 				"inbox": "Inbox",
-				"issueFiles": "Issue files"
+				"issueFiles": "Issue files",
+				"needsReview": "Needs review"
 			},
 			"tabHints": {
 				"recent": "Documents you work on and documents shared with you",
@@ -3395,7 +3397,8 @@
 				"shared": "Documents shared with you directly, including personal documents and documents from private teams you're not in",
 				"unfiled": "Private drafts that are not on a topic yet",
 				"inbox": "Shared documents that are not on a topic yet",
-				"issueFiles": "Files attached to issues. Reference material until proposed on a topic."
+				"issueFiles": "Files attached to issues. Reference material until proposed on a topic.",
+				"needsReview": "Issues and documents that rest on a value their topic has since replaced."
 			},
 			"viewTab": "View {{name}}",
 			"issueFiles": {
@@ -3756,6 +3759,174 @@
 				"partial": "Created {{done}} of {{total}} issues. Create the rest again from the checklist.",
 				"failed": "Could not create the issues",
 				"status": "Issue status: {{status}}"
+			},
+			"facts": {
+				"title": "Facts",
+				"show": "Show facts",
+				"close": "Close facts",
+				"noTopic": "File this document on a topic first. Its facts are then checked against what the topic states.",
+				"noFacts": "This topic tracks no facts yet. Track facts on the topic page, and each document filed there is checked against them.",
+				"openTopic": "Open topic",
+				"intro": {
+					"proposal": "What this document says, next to what the topic states now.",
+					"current": "This is the current document. A fact confirmed here is what the topic states."
+				},
+				"groups": {
+					"conflicts": "Conflicts",
+					"decided": "Decided",
+					"unjudged": "Being compared",
+					"new": "New",
+					"repeats": "Same as current",
+					"waiting": "Waiting for confirmation",
+					"stated": "Confirmed",
+					"notChecked": "Not found here"
+				},
+				"groupHints": {
+					"conflicts": "This document and the current document say different things.",
+					"decided": "Settled by the topic's decider, with the reason.",
+					"unjudged": "The wording differs from the current document. A check is deciding if the meaning differs too.",
+					"new": "The topic states no value for these yet.",
+					"repeats": "This document says the same as the current document.",
+					"waiting": "Read from the text and not confirmed yet. The topic does not state these.",
+					"stated": "The topic states these.",
+					"notChecked": "No value was found in the text. Add one if the text has it."
+				},
+				"status": {
+					"proposed": "Not confirmed",
+					"confirmed": "Confirmed",
+					"rejected": "Rejected"
+				},
+				"source": {
+					"model": "Read by AI",
+					"assistant": "Added by an assistant",
+					"person": "Added by hand"
+				},
+				"confirmedBy": "Confirmed by {{name}}",
+				"currentValue": "Current: {{value}}",
+				"confirm": "Confirm",
+				"confirmName": "Confirm {{name}}",
+				"confirmDone": "Fact confirmed",
+				"reject": "Reject",
+				"rejectName": "Reject {{name}}",
+				"rejectTitle": "Reject this fact?",
+				"rejectHint": "{{name}}: {{value}}. The value is dropped from this document. You can add the right one afterwards.",
+				"rejectSubmit": "Reject fact",
+				"rejectDone": "Fact rejected",
+				"rejectedLine": "Rejected: {{value}}. {{reason}}",
+				"reasonLabel": "Reason",
+				"deciderOnly": "Only the topic's decider confirms or rejects facts on the current document.",
+				"add": "Add value",
+				"addName": "Add a value for {{name}}",
+				"valueLabel": "Value",
+				"valueHints": {
+					"date": "A date, such as 5 March 2027.",
+					"number": "A number.",
+					"money": "An amount with its currency, such as 40 USD.",
+					"person": "A name.",
+					"enum": "One of the choices the topic lists for this fact.",
+					"bool": "Yes or no.",
+					"term": "A short phrase."
+				},
+				"quoteLabel": "Words from the text",
+				"quoteHint": "Copy at least 4 characters exactly as the text has them.",
+				"addSubmit": "Add",
+				"addDone": "Value added",
+				"hint": {
+					"conflicts_one": "{{count}} fact conflicts with the current document.",
+					"conflicts_other": "{{count}} facts conflict with the current document.",
+					"waiting_one": "{{count}} fact waits for confirmation.",
+					"waiting_other": "{{count}} facts wait for confirmation.",
+					"review": "Review facts"
+				},
+				"conflict": {
+					"open": "Open conflicts",
+					"thisDocument": "This document",
+					"current": "Current: {{title}}",
+					"decide": "Decide",
+					"decideName": "Decide the conflict on {{name}}",
+					"change": "Change decision",
+					"askDecider": "{{name}} decides this as the topic's decider.",
+					"askNoDecider": "The topic's decider decides this.",
+					"title": "Which holds for {{name}}?",
+					"choice": "Decision",
+					"options": {
+						"replace": "This document holds",
+						"keep": "Current holds",
+						"tolerate": "Both stand until a date",
+						"dismiss": "Not a conflict"
+					},
+					"optionHints": {
+						"replace": "Confirms the value in this document. The topic states it once this document is made current.",
+						"keep": "Rejects the value in this document.",
+						"tolerate": "Nothing changes until the date. Then the question is open again.",
+						"dismiss": "The two do not contradict each other. The value in this document stays as it is."
+					},
+					"until": "Until",
+					"submit": "Save decision",
+					"done": "Decision saved",
+					"tolerated": "Both stand until {{date}}",
+					"settled": "Settled"
+				},
+				"topic": {
+					"title": "Current facts",
+					"hint": "What this topic states now. Each value comes from the current document and was confirmed by a person.",
+					"empty": "No facts tracked yet. A fact is one thing this topic settles, such as a launch date or a price. Track one, and every document filed here is checked against it.",
+					"emptyReadOnly": "No facts tracked yet. The topic's decider chooses which facts to track.",
+					"columns": {
+						"fact": "Fact",
+						"value": "Value",
+						"source": "From the text",
+						"approved": "Approved"
+					},
+					"noValue": "No value yet",
+					"approved": "{{name}}, {{date}}",
+					"alsoIn_one": "Also in a proposal:",
+					"alsoIn_other": "Also in {{count}} proposals:",
+					"reliedOn_one": "{{count}} item relies on this",
+					"reliedOn_other": "{{count}} items rely on this",
+					"track": "Track a fact",
+					"trackHint": "Name one thing this topic settles. Documents filed here are read for it.",
+					"nameLabel": "Name",
+					"namePlaceholder": "Launch date",
+					"typeLabel": "Kind of value",
+					"types": {
+						"date": "Date",
+						"number": "Number",
+						"money": "Money",
+						"person": "Person",
+						"enum": "One of a list",
+						"bool": "Yes or no",
+						"term": "Text"
+					},
+					"optionsLabel": "Choices",
+					"optionsHint": "Separate them with commas. Two or more.",
+					"trackSubmit": "Track fact",
+					"trackDone": "Now tracking {{name}}",
+					"untrack": "Stop tracking {{name}}",
+					"untrackTitle": "Stop tracking {{name}}?",
+					"untrackHint": "Every value read for it, in every document on this topic, is removed. This cannot be undone.",
+					"untrackSubmit": "Stop tracking",
+					"untrackDone": "No longer tracking {{name}}"
+				},
+				"relies": {
+					"title": "Relies on",
+					"add": "Relies on a fact",
+					"none": "This topic states no facts yet.",
+					"item": "{{name}}: {{value}}",
+					"remove": "Stop relying on {{name}}",
+					"flag": "Rests on a replaced decision: {{name}}, replaced {{date}}.",
+					"clear": "Clear flag",
+					"clearDone": "Flag cleared"
+				},
+				"needsReview": {
+					"hint": "Work that rests on a value its topic has since replaced. Check each one, then clear its flag.",
+					"empty": "Nothing needs review. Work shows up here when a value it relies on is replaced.",
+					"was": "Relied on {{name}}: {{value}}",
+					"holdsNow": "{{name}} now: {{value}}",
+					"holdsNothing": "{{name}} has no value now.",
+					"causeHidden": "What changed is in a document you cannot open.",
+					"replaced": "Replaced {{date}}"
+				}
 			}
 		},
 		"agent": {
@@ -4030,6 +4201,10 @@
 			"team_issue_triage": {
 				"title": "Added to {{teamName}} triage",
 				"content": "\"{{taskTitle}}\" is waiting in {{teamName}} triage"
+			},
+			"document_question": {
+				"title": "Which holds for {{slotName}} in {{topicName}}?",
+				"content": "{{documentTitle}}"
 			}
 		},
 		"inbox": {

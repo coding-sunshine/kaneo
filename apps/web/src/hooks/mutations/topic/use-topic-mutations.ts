@@ -40,7 +40,7 @@ export function useFollowTopic(workspaceId: string) {
  * current document, the document it replaced and every list. All of them are
  * read again, also after a refusal: that mostly means this page's copy is old.
  */
-function useTopicDocumentMutation<TInput, TResult = unknown>(
+export function useTopicDocumentMutation<TInput, TResult = unknown>(
   workspaceId: string,
   mutationFn: (input: TInput) => Promise<TResult>,
 ) {
