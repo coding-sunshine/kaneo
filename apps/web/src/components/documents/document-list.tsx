@@ -23,7 +23,10 @@ type DocumentListProps = {
   action?: (document: DocumentSummary) => ReactNode;
 };
 
-/** One row per document: title, status, where it lives, owner, last update. */
+/**
+ * One row per document: title, status, where it lives, owner, last update.
+ * A phone keeps the title and the time; the rest would cut the title short.
+ */
 export function DocumentList({
   workspaceId,
   documents,
@@ -59,7 +62,7 @@ export function DocumentList({
             <DocumentAccessLabel
               scope={document.scope}
               parentName={document.parentName}
-              className="max-w-24 shrink-0 sm:max-w-48"
+              className="hidden max-w-48 shrink-0 sm:inline-flex"
             />
             <Avatar
               className="hidden size-5 shrink-0 sm:block"
@@ -72,7 +75,7 @@ export function DocumentList({
             </Avatar>
             <time
               dateTime={String(document.updatedAt)}
-              className="w-24 shrink-0 text-right text-muted-foreground"
+              className="shrink-0 text-right text-muted-foreground sm:w-24"
             >
               {formatRelativeTime(document.updatedAt)}
             </time>
