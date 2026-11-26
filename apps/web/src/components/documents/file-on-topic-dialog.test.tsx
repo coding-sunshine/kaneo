@@ -55,7 +55,7 @@ const topics = [
 const FILE = "navigation:documents.file";
 const AUDIENCE = "navigation:documents.audience";
 
-const show = () => {
+const show = (fromTopicId?: string) => {
   const onClose = vi.fn();
   render(
     <QueryClientProvider
@@ -65,6 +65,7 @@ const show = () => {
     >
       <FileOnTopicDialog
         document={{ workspaceId: "ws-1", id: "doc-1" }}
+        fromTopicId={fromTopicId}
         onClose={onClose}
       />
     </QueryClientProvider>,
@@ -160,6 +161,31 @@ describe("FileOnTopicDialog", () => {
     await choose("topic-team");
     expect(await screen.findByText(`${AUDIENCE}.failed`)).toBeTruthy();
     expect(submit().disabled).toBe(true);
+  });
+
+  it("moves a proposal to another topic and never offers the one it is on", async () => {
+    mocks.getTopics.mockResolvedValue(topics);
+    mocks.getDocumentAudience.mockResolvedValue({
+      current: [person("Author")],
+      proposed: [person("Author")],
+    });
+    mocks.fileDocumentOnTopic.mockResolvedValue({});
+    const onClose = show("topic-ws");
+
+    expect(screen.getByText(`${FILE}.moveTitle`)).toBeTruthy();
+    await screen.findByRole("option", { name: /Launch plan/ });
+    expect(screen.queryByRole("option", { name: "Pricing" })).toBeNull();
+    fireEvent.change(screen.getByRole("combobox"), {
+      target: { value: "topic-team" },
+    });
+    await screen.findByText(`${AUDIENCE}.same`);
+    fireEvent.click(screen.getByRole("button", { name: `${FILE}.moveSubmit` }));
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(mocks.fileDocumentOnTopic.mock.calls[0]?.[0]).toEqual({
+      workspaceId: "ws-1",
+      id: "topic-team",
+      documentId: "doc-1",
+    });
   });
 
   it("says so when there is no topic to file on", async () => {

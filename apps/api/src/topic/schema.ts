@@ -107,6 +107,10 @@ export const topicSchema = z
       description:
         "Title of the current document. Null when nothing is current, or when you cannot open that document.",
     }),
+    hasReplaced: z.boolean().openapi({
+      description:
+        "Whether a document on the topic was ever replaced, so the topic has a history even when nothing is current now.",
+    }),
     canDecide: z.boolean().openapi({
       description:
         "Whether you can make a document current here: the decider, the backup decider or a workspace owner.",

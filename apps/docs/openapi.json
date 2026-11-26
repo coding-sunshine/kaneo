@@ -5525,6 +5525,10 @@
             ],
             "description": "Title of the current document. Null when nothing is current, or when you cannot open that document."
           },
+          "hasReplaced": {
+            "type": "boolean",
+            "description": "Whether a document on the topic was ever replaced, so the topic has a history even when nothing is current now."
+          },
           "canDecide": {
             "type": "boolean",
             "description": "Whether you can make a document current here: the decider, the backup decider or a workspace owner."
@@ -5558,6 +5562,7 @@
           "backupDeciderImage",
           "currentDocumentId",
           "currentDocumentTitle",
+          "hasReplaced",
           "canDecide",
           "following",
           "createdAt",

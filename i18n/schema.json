@@ -14901,6 +14901,18 @@
 								},
 								"done": {
 									"type": "string"
+								},
+								"move": {
+									"type": "string"
+								},
+								"moveTitle": {
+									"type": "string"
+								},
+								"moveHint": {
+									"type": "string"
+								},
+								"moveSubmit": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -14911,7 +14923,11 @@
 								"choose",
 								"noTopics",
 								"submit",
-								"done"
+								"done",
+								"move",
+								"moveTitle",
+								"moveHint",
+								"moveSubmit"
 							]
 						},
 						"audience": {

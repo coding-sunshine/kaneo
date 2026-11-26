@@ -42,6 +42,7 @@ const show = (
   document: { status: "in_review" | "current"; content: string },
   currentDocumentId: string | null,
   initialReason?: string,
+  hasReplaced = currentDocumentId !== null,
 ) => {
   const onClose = vi.fn();
   render(
@@ -58,7 +59,12 @@ const show = (
           contentHash: "hash-read",
           ...document,
         }}
-        topic={{ id: "topic-1", name: "Launch plan", currentDocumentId }}
+        topic={{
+          id: "topic-1",
+          name: "Launch plan",
+          currentDocumentId,
+          hasReplaced,
+        }}
         initialReason={initialReason}
         onClose={onClose}
       />
@@ -95,6 +101,17 @@ describe("MakeCurrentDialog", () => {
       // The text on screen, so an approval of older text is refused.
       "hash-read",
     );
+  });
+
+  it("never calls a topic with history a starting point after its current document was set aside", async () => {
+    show({ status: "in_review", content: AFTER }, null, undefined, true);
+
+    expect(reason().value).toBe("");
+    expect(
+      screen.getByText(`${REASON}.hintStart {"topic":"Launch plan"}`),
+    ).toBeTruthy();
+    expect(screen.queryByText(`${REASON}.noBase`)).toBeNull();
+    expect(mocks.getDocument).not.toHaveBeenCalled();
   });
 
   it("shows a proposal's changed sentences against the document it replaces", async () => {

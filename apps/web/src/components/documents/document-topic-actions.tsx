@@ -32,9 +32,9 @@ export function DocumentTopicActions({
 }: DocumentTopicActionsProps) {
   const { t } = useTranslation();
   const { workspaceId, status } = document;
-  const [dialog, setDialog] = useState<"file" | "current" | "aside" | null>(
-    null,
-  );
+  const [dialog, setDialog] = useState<
+    "file" | "move" | "current" | "aside" | null
+  >(null);
   const confirm = useConfirmCurrentDocument(workspaceId);
   const ids = topic && { workspaceId, id: topic.id, documentId: document.id };
   const decides = Boolean(topic?.canDecide);
@@ -54,6 +54,11 @@ export function DocumentTopicActions({
       {status === "draft" && canEdit && (
         <Button size="xs" variant="outline" onClick={() => open("file")}>
           {t("navigation:documents.file.action")}
+        </Button>
+      )}
+      {status === "in_review" && canEdit && document.topicId && (
+        <Button size="xs" variant="outline" onClick={() => open("move")}>
+          {t("navigation:documents.file.move")}
         </Button>
       )}
       {decides && status === "in_review" && (
@@ -92,6 +97,13 @@ export function DocumentTopicActions({
       )}
       {dialog === "file" && (
         <FileOnTopicDialog document={document} onClose={close} />
+      )}
+      {dialog === "move" && document.topicId && (
+        <FileOnTopicDialog
+          document={document}
+          fromTopicId={document.topicId}
+          onClose={close}
+        />
       )}
       {dialog === "current" && topic && (
         <MakeCurrentDialog document={document} topic={topic} onClose={close} />

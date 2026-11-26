@@ -32,7 +32,7 @@ type MakeCurrentDialogProps = {
     | "contentHash"
     | "approvedVersionId"
   >;
-  topic: Pick<Topic, "id" | "name" | "currentDocumentId">;
+  topic: Pick<Topic, "id" | "name" | "currentDocumentId" | "hasReplaced">;
   /** The reason to start from, instead of the suggested one. */
   initialReason?: string;
   onClose: () => void;
@@ -54,7 +54,10 @@ export function MakeCurrentDialog({
   const { t } = useTranslation();
   const { workspaceId, id } = document;
   const approvesEdit = document.status === "current";
-  const starts = !approvesEdit && !topic.currentDocumentId;
+  const noCurrent = !approvesEdit && !topic.currentDocumentId;
+  // After a set-aside nothing is current, but a topic that replaced documents
+  // is not starting: the decider writes the reason.
+  const starts = noCurrent && !topic.hasReplaced;
   const replaced = useDocument(
     workspaceId,
     approvesEdit ? "" : (topic.currentDocumentId ?? ""),
@@ -69,7 +72,7 @@ export function MakeCurrentDialog({
         ?.content
     : replaced.data?.content;
   const changes =
-    starts || before == null
+    noCurrent || before == null
       ? null
       : changedSentences(before, document.content ?? "");
   const name = approvesEdit ? "reasonEdit" : "reasonReplaces";
@@ -124,7 +127,7 @@ export function MakeCurrentDialog({
             {t(
               approvesEdit
                 ? "navigation:documents.makeCurrent.hintEdit"
-                : starts
+                : noCurrent
                   ? "navigation:documents.makeCurrent.hintStart"
                   : "navigation:documents.makeCurrent.hintReplaces",
               { topic: topic.name },
@@ -139,7 +142,7 @@ export function MakeCurrentDialog({
           ) : changes ? (
             <ChangedSentences changes={changes} />
           ) : (
-            !starts && (
+            !noCurrent && (
               <p className="text-muted-foreground text-xs">
                 {t("navigation:documents.makeCurrent.noBase")}
               </p>

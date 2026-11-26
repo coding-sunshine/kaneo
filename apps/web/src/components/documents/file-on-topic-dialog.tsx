@@ -20,6 +20,8 @@ import { DocumentAudience } from "./document-audience";
 
 type FileOnTopicDialogProps = {
   document: Pick<DocumentDetail, "workspaceId" | "id">;
+  /** The topic a proposal waits on, when it moves to another one. */
+  fromTopicId?: string;
   onClose: () => void;
 };
 
@@ -32,16 +34,20 @@ const placeOf = (topic: Topic) =>
       : { scope: "workspace" as const };
 
 /**
- * Files a draft on a topic as a proposal. Filing moves the document, so the
- * dialog first says who will be able to open it there.
+ * Files a draft on a topic as a proposal, or moves a proposal to another
+ * topic. Filing moves the document, so the dialog first says who will be able
+ * to open it there.
  */
 export function FileOnTopicDialog({
   document,
+  fromTopicId,
   onClose,
 }: FileOnTopicDialogProps) {
   const { t } = useTranslation();
   const { workspaceId, id } = document;
-  const { data: topics = [], isLoading } = useTopics(workspaceId);
+  const moving = fromTopicId !== undefined;
+  const { data: allTopics = [], isLoading } = useTopics(workspaceId);
+  const topics = allTopics.filter((row) => row.id !== fromTopicId);
   const [topicId, setTopicId] = useState("");
   const topic = topics.find((row) => row.id === topicId);
   const audience = useDocumentAudience(
@@ -71,9 +77,19 @@ export function FileOnTopicDialog({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogPopup>
         <DialogHeader>
-          <DialogTitle>{t("navigation:documents.file.title")}</DialogTitle>
+          <DialogTitle>
+            {t(
+              moving
+                ? "navigation:documents.file.moveTitle"
+                : "navigation:documents.file.title",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            {t("navigation:documents.file.hint")}
+            {t(
+              moving
+                ? "navigation:documents.file.moveHint"
+                : "navigation:documents.file.hint",
+            )}
           </DialogDescription>
         </DialogHeader>
         <DialogPanel className="flex flex-col gap-3">
@@ -125,7 +141,11 @@ export function FileOnTopicDialog({
             disabled={!audience.data?.proposed || file.isPending}
             onClick={submit}
           >
-            {t("navigation:documents.file.submit")}
+            {t(
+              moving
+                ? "navigation:documents.file.moveSubmit"
+                : "navigation:documents.file.submit",
+            )}
           </Button>
         </DialogFooter>
       </DialogPopup>

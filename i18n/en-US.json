@@ -3653,7 +3653,11 @@
 				"choose": "Choose a topic",
 				"noTopics": "There are no topics yet. Create one on the Documents page first.",
 				"submit": "File as a proposal",
-				"done": "Filed on {{topic}}"
+				"done": "Filed on {{topic}}",
+				"move": "Move to another topic",
+				"moveTitle": "Move to another topic",
+				"moveHint": "The proposal moves to the other topic's place and waits there for its decider.",
+				"moveSubmit": "Move the proposal"
 			},
 			"audience": {
 				"loading": "Checking who will be able to open it...",

@@ -3534,7 +3534,11 @@
 				"noTopics": "There are no topics yet. Create one on the Documents page first.",
 				"submit": "File as a proposal",
 				"title": "File on a topic",
-				"topic": "Topic"
+				"topic": "Topic",
+				"move": "Move to another topic",
+				"moveHint": "The proposal moves to the other topic's place and waits there for its decider.",
+				"moveSubmit": "Move the proposal",
+				"moveTitle": "Move to another topic"
 			},
 			"makeCurrent": {
 				"action": "Make current",

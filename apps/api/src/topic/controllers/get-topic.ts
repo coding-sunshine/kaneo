@@ -78,6 +78,12 @@ export async function listTopics(
               taskId: sql`current_document.task_id`,
             })}
         )`,
+        hasReplaced: sql<boolean>`EXISTS (
+          SELECT 1 FROM document AS replaced_document
+          WHERE replaced_document.topic_id = ${topicTable.id}
+            AND replaced_document.status = 'superseded'
+            AND replaced_document.deleted_at IS NULL
+        )`,
         following: sql<boolean>`EXISTS (
           SELECT 1 FROM topic_subscriber AS following
           WHERE following.topic_id = ${topicTable.id}

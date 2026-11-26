@@ -356,7 +356,7 @@ describe("API integration: topics and the current document", () => {
     });
     expect(
       (await (await api.get(owner, topic.id)).json()) as Topic,
-    ).toMatchObject({ currentDocumentId: first });
+    ).toMatchObject({ currentDocumentId: first, hasReplaced: false });
 
     // The backup decider replaces it.
     const replaced = (await (
@@ -382,7 +382,11 @@ describe("API integration: topics and the current document", () => {
     ).toEqual(["superseded", "superseded", "current"]);
     expect(
       (await (await api.get(limited, topic.id)).json()) as Topic,
-    ).toMatchObject({ currentDocumentId: third, canDecide: false });
+    ).toMatchObject({
+      currentDocumentId: third,
+      canDecide: false,
+      hasReplaced: true,
+    });
     // A replaced document does not come back.
     expect(await statusOf(api.current(open, topic.id, first))).toBe(409);
 
