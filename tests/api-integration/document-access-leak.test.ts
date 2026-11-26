@@ -87,7 +87,7 @@ async function searched(world: DocumentWorld, user: Member, type: string) {
   };
 }
 
-type Flag = { id: string };
+type Flag = { id: string; cause: unknown; task: { id: string } | null };
 
 const RIPPLE_DATE: Said = {
   slot: "launch_date",
@@ -1164,7 +1164,7 @@ describe("API integration: document access leaks", () => {
     expect((await s.flags(owner)).items).toHaveLength(1);
   });
 
-  it("hides a flag that came down a chain when the cause's document is hidden", async () => {
+  it("withholds the cause of a flag that came down a chain when the cause's document is hidden", async () => {
     const s = await rippleSetup();
     const { world, api, docId, cost } = s;
     const { owner, limited } = world;
@@ -1185,11 +1185,25 @@ describe("API integration: document access leaks", () => {
     expect(seen).toHaveLength(2);
     await s.hide(docId);
 
-    expect(await s.flags(limited)).toEqual({ items: [] });
-    for (const flag of seen) {
-      expect((await s.clear(flag.id, limited)).status).toBe(404);
+    // The memo's flag relies on a statement of the hidden document: gone.
+    // The issue's flag relies on the memo, which the member can open: it
+    // stays so they can review their work, and says nothing of the cause.
+    const left = await s.flags(limited);
+    expect(left.items).toHaveLength(1);
+    const [flag] = left.items;
+    expect(flag.task?.id).toBe(world.alphaTask.id);
+    expect(flag.cause).toBeNull();
+    for (const secret of [docId, cost.id, "Launch plan", "40 USD"]) {
+      expect(JSON.stringify(left)).not.toContain(secret);
     }
     expect((await s.flags(owner)).items).toHaveLength(2);
+    for (const { id } of seen) {
+      expect((await s.clear(id, limited)).status).toBe(
+        id === flag.id ? 200 : 404,
+      );
+    }
+    expect((await s.flags(limited)).items).toEqual([]);
+    expect((await s.flags(owner)).items).toHaveLength(1);
   });
 
   it("refuses a link to work or a statement the member cannot open", async () => {
@@ -1232,7 +1246,7 @@ describe("API integration: document access leaks", () => {
     ).toBe(404);
   });
 
-  it("hides a flag when one end of its chain is hidden: the document relied on, its topic, or the topic of the cause", async () => {
+  it("hides a flag when the document it relies on or that document's topic is hidden, and only its cause when the cause's topic is", async () => {
     const s = await rippleSetup();
     const { world, api, topicId, docId, cost } = s;
     const { limited } = world;
@@ -1259,7 +1273,7 @@ describe("API integration: document access leaks", () => {
         db.update(table).set({ projectId: project.id }).where(eq(table.id, id)),
     });
     const works = async () =>
-      ((await s.flags(limited)).items as { task: unknown }[]).map((flag) =>
+      (await s.flags(limited)).items.map((flag) =>
         flag.task ? "issue" : "memo",
       );
     expect((await works()).sort()).toEqual(["issue", "memo"]);
@@ -1277,8 +1291,15 @@ describe("API integration: document access leaks", () => {
     await place(topicTable, other).to(world.alpha);
     expect(await works()).toHaveLength(2);
 
-    // The topic of the cause: both flags start there.
+    // The topic of the cause: the memo relies on a statement of it, so its
+    // flag goes. The issue relies on the memo, so its flag stays, unnamed.
     await place(topicTable, topicId).to(world.beta);
-    expect(await works()).toEqual([]);
+    const left = await s.flags(limited);
+    expect(left.items.map((flag) => [flag.task?.id, flag.cause])).toEqual([
+      [world.alphaTask.id, null],
+    ]);
+    for (const secret of [docId, cost.id, topicId, "40 USD"]) {
+      expect(JSON.stringify(left)).not.toContain(secret);
+    }
   });
 });
