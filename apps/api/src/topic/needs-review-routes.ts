@@ -20,7 +20,7 @@ export const needsReviewRoute = createRoute({
   tags,
   summary: "List work that needs review",
   description:
-    "Issues and documents that rely on a value a topic no longer states. Each names the statement it relies on and the statement whose change raised the flag. Lists only what the caller can open: the work and both documents.",
+    "Issues and documents that rely on a value a topic no longer states. Each names the statement it relies on and the statement whose change raised the flag. Lists only work the caller can open that relies on a document the caller can open. The statement that raised the flag is null when the caller cannot open its document or its topic.",
   middleware: [
     workspaceAccess.fromParam(),
     requireWorkspacePermission({ task: ["read"] }),
