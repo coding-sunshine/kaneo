@@ -3522,3 +3522,97 @@ export const documentExtractionTable = pgTable(
     ),
   ],
 );
+
+// One row for each text of an issue the model was asked about: the issue's
+// own words (no file) or one file on it. A file that was not read gets a row
+// too, with the reason, so that every source has an answer to "was it read?".
+export const taskExtractionTable = pgTable(
+  "task_extraction",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    taskId: text("task_id")
+      .notNull()
+      .references(() => taskTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    // Empty for the issue's title, description and comments.
+    assetId: text("asset_id").references(() => assetTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    // Of the text that was asked about. Empty for a file that was not read.
+    contentHash: text("content_hash").notNull(),
+    slotsHash: text("slots_hash").notNull(),
+    promptVersion: integer("prompt_version").notNull(),
+    model: text("model").notNull(),
+    readable: boolean("readable").notNull(),
+    // Why not: unsupported, too_large, unparsed or no_answer. `truncated` on
+    // a text that was read only in part.
+    reason: text("reason"),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    unique("task_extraction_uidx")
+      .on(
+        table.taskId,
+        table.assetId,
+        table.contentHash,
+        table.slotsHash,
+        table.promptVersion,
+        table.model,
+      )
+      .nullsNotDistinct(),
+  ],
+);
+
+// A fact the model found in an issue or in a file on it, for a slot of a
+// topic. It is a proposal only: it never changes what the topic states. A
+// person puts the issue on the topic or dismisses the fact, and a dismissed
+// fact stays dismissed when the issue is read again.
+export const taskStatementTable = pgTable(
+  "task_statement",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    slotId: text("slot_id")
+      .notNull()
+      .references(() => topicSlotTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    taskId: text("task_id")
+      .notNull()
+      .references(() => taskTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    // The file the quote is from. Empty when it is from the issue itself.
+    assetId: text("asset_id").references(() => assetTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    value: text("value").notNull(),
+    normalized: text("normalized").notNull(),
+    quote: text("quote").notNull(),
+    dismissedBy: text("dismissed_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    dismissedAt: timestamp("dismissed_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    unique("task_statement_uidx")
+      .on(table.slotId, table.taskId, table.assetId, table.normalized)
+      .nullsNotDistinct(),
+    index("task_statement_task_idx").on(table.taskId),
+  ],
+);

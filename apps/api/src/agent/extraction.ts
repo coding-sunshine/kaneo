@@ -11,6 +11,11 @@ type ExtractionRequest = {
   system: string;
   text: string;
   schema: Record<string, unknown>;
+  /**
+   * The share of both caps this call leaves to the others, from 0 to 1. A
+   * job that reads a lot gives way with it, so reading documents never stops.
+   */
+  reserve?: number;
 };
 
 type Completion = {
@@ -60,8 +65,9 @@ export async function extractJson<T>(
   request: ExtractionRequest,
 ): Promise<T | null> {
   if (!isAgentEnabled()) return null;
-  if ((await tokensUsedToday()) >= dailyTokenCap()) return null;
-  if ((await spentUsd()) >= totalUsdCap()) return null;
+  const share = 1 - (request.reserve ?? 0);
+  if ((await tokensUsedToday()) >= dailyTokenCap() * share) return null;
+  if ((await spentUsd()) >= totalUsdCap() * share) return null;
 
   const model = extractionModel();
   const response = await fetch(

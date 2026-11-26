@@ -23,6 +23,10 @@ import {
   listTopicTasks,
   unlinkTaskTopic,
 } from "./controllers/topic-tasks";
+import {
+  listTaskStatements,
+  setTaskStatementDismissed,
+} from "./controllers/task-statements";
 import { updateTopic } from "./controllers/update-topic";
 import {
   createTopicBody,
@@ -48,6 +52,11 @@ import {
   deleteSlotRoute,
   listSlotsRoute,
 } from "./slot-routes";
+import {
+  dismissTaskStatementRoute,
+  listTaskStatementsRoute,
+  restoreTaskStatementRoute,
+} from "./task-statement-routes";
 import {
   clearFlag,
   listDependents,
@@ -459,6 +468,39 @@ const topic = apiRouter()
     const { workspaceId, id, slotId } = c.req.valid("param");
     return c.json(
       await deleteSlot(workspaceId, id, slotId, c.get("userId")),
+      200,
+    );
+  })
+  .openapi(listTaskStatementsRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(
+      await listTaskStatements(workspaceId, id, c.get("userId")),
+      200,
+    );
+  })
+  .openapi(dismissTaskStatementRoute, async (c) => {
+    const { workspaceId, id, factId } = c.req.valid("param");
+    return c.json(
+      await setTaskStatementDismissed(
+        workspaceId,
+        id,
+        factId,
+        c.get("userId"),
+        true,
+      ),
+      200,
+    );
+  })
+  .openapi(restoreTaskStatementRoute, async (c) => {
+    const { workspaceId, id, factId } = c.req.valid("param");
+    return c.json(
+      await setTaskStatementDismissed(
+        workspaceId,
+        id,
+        factId,
+        c.get("userId"),
+        false,
+      ),
       200,
     );
   })

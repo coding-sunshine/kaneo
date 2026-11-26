@@ -6283,6 +6283,91 @@
           "options"
         ]
       },
+      "TopicTaskStatement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slot": {
+            "type": "string",
+            "description": "The key of the slot."
+          },
+          "slotName": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "quote": {
+            "type": "string",
+            "description": "The words of the issue or the file that state the value."
+          },
+          "task": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "number": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "projectSlug": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "number",
+              "projectSlug"
+            ]
+          },
+          "file": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "filename": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "filename"
+            ],
+            "description": "The file on the issue the words are from. Empty when they are from the issue's own text or a comment."
+          },
+          "onTopic": {
+            "type": "boolean",
+            "description": "The issue is already on this topic."
+          },
+          "dismissed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "slot",
+          "slotName",
+          "value",
+          "quote",
+          "task",
+          "file",
+          "onTopic",
+          "dismissed"
+        ]
+      },
       "Notification": {
         "type": "object",
         "properties": {
@@ -33674,6 +33759,264 @@
           },
           "409": {
             "description": "Work relies on a value in this slot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/{id}/task-statement": {
+      "get": {
+        "operationId": "listTopicTaskStatements",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "List what issues say about a topic",
+        "description": "Facts the assistant read from issues, their comments and their text files for the topic's slots. Each one is a proposal with the words it was read from. It changes nothing the topic states. Facts from issues you cannot open are left out.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Facts read from issues",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statements": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TopicTaskStatement"
+                      }
+                    }
+                  },
+                  "required": [
+                    "statements"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/topic/workspace/{workspaceId}/{id}/task-statement/{factId}/dismissed": {
+      "put": {
+        "operationId": "dismissTopicTaskStatement",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "Dismiss a fact read from an issue",
+        "description": "Hides a proposal that is wrong or not about this topic. It stays dismissed when the issue is read again.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "factId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fact dismissed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "dismissed": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "dismissed"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You do not have permission to change issues in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or fact not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "restoreTopicTaskStatement",
+        "tags": [
+          "Topics"
+        ],
+        "summary": "Bring back a dismissed fact",
+        "description": "Shows a dismissed proposal again.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "factId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fact restored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "dismissed": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "dismissed"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You do not have permission to change issues in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Topic or fact not found",
             "content": {
               "application/json": {
                 "schema": {

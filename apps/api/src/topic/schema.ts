@@ -11,6 +11,7 @@ export const topicDocumentParam = topicParam.extend({
 });
 export const topicTaskParam = topicParam.extend({ taskId: z.string() });
 export const topicSlotParam = topicParam.extend({ slotId: z.string() });
+export const topicFactParam = topicParam.extend({ factId: z.string() });
 export const taskTopicsParam = z.object({
   workspaceId: z.string(),
   taskId: z.string(),
@@ -145,6 +146,42 @@ const topicTasks = z.array(topicTaskSchema).openapi({
     "The issues on the topic that you can open. An issue in a team you cannot enter is left out.",
 });
 export const topicTasksSchema = z.object({ tasks: topicTasks });
+
+const taskStatementSchema = z
+  .object({
+    id: z.string(),
+    slot: z.string().openapi({ description: "The key of the slot." }),
+    slotName: z.string(),
+    value: z.string(),
+    quote: z.string().openapi({
+      description: "The words of the issue or the file that state the value.",
+    }),
+    task: z.object({
+      id: z.string(),
+      title: z.string(),
+      number: z.number().nullable(),
+      projectSlug: z.string(),
+    }),
+    file: z
+      .object({ id: z.string(), filename: z.string() })
+      .nullable()
+      .openapi({
+        description:
+          "The file on the issue the words are from. Empty when they are from the issue's own text or a comment.",
+      }),
+    onTopic: z.boolean().openapi({
+      description: "The issue is already on this topic.",
+    }),
+    dismissed: z.boolean(),
+  })
+  .openapi("TopicTaskStatement");
+export const taskStatementListSchema = z.object({
+  statements: z.array(taskStatementSchema),
+});
+export const taskStatementDismissedSchema = z.object({
+  id: z.string(),
+  dismissed: z.boolean(),
+});
 
 export const topicReadQuery = z.object({
   topic: name.openapi({

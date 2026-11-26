@@ -12,6 +12,7 @@ import { checkProjectWebhookReminders } from "./project-webhook-reminders";
 import { reconcileWorkspaceSeats } from "./seat-reconciliation";
 import { runDueLoops } from "./loops";
 import { extractFiledDocuments } from "./statement-extraction";
+import { extractTaskFacts } from "./task-extraction";
 import { askConflictQuestions } from "./conflict-questions";
 import { checkTrialReminders } from "./trial-reminders";
 
@@ -132,6 +133,13 @@ export function initializeScheduler(): void {
       "*/5 * * * *",
       { protect: true },
       withCheckIn("statement-extraction", extractFiledDocuments),
+    ),
+  );
+  jobs.push(
+    new Cron(
+      "2-59/5 * * * *",
+      { protect: true },
+      withCheckIn("task-extraction", extractTaskFacts),
     ),
   );
   jobs.push(
