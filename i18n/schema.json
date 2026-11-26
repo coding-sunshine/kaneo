@@ -15105,6 +15105,88 @@
 							},
 							"required": ["action", "title", "hint", "done"]
 						},
+						"issueFacts": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"hint": {
+									"type": "string"
+								},
+								"inFile": {
+									"type": "string"
+								},
+								"onTopic": {
+									"type": "string"
+								},
+								"addIssue": {
+									"type": "string"
+								},
+								"addIssueLabel": {
+									"type": "string"
+								},
+								"dismiss": {
+									"type": "string"
+								},
+								"dismissLabel": {
+									"type": "string"
+								},
+								"restore": {
+									"type": "string"
+								},
+								"restoreLabel": {
+									"type": "string"
+								},
+								"showDismissed_one": {
+									"type": "string"
+								},
+								"showDismissed_zero": {
+									"type": "string"
+								},
+								"showDismissed_two": {
+									"type": "string"
+								},
+								"showDismissed_few": {
+									"type": "string"
+								},
+								"showDismissed_many": {
+									"type": "string"
+								},
+								"showDismissed_other": {
+									"type": "string"
+								},
+								"hideDismissed": {
+									"type": "string"
+								},
+								"addFailed": {
+									"type": "string"
+								},
+								"dismissFailed": {
+									"type": "string"
+								},
+								"restoreFailed": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"hint",
+								"inFile",
+								"onTopic",
+								"addIssue",
+								"addIssueLabel",
+								"dismiss",
+								"dismissLabel",
+								"restore",
+								"restoreLabel",
+								"hideDismissed",
+								"addFailed",
+								"dismissFailed",
+								"restoreFailed"
+							]
+						},
 						"taskTopic": {
 							"type": "object",
 							"additionalProperties": false,
@@ -16156,6 +16238,7 @@
 						"audience",
 						"makeCurrent",
 						"setAside",
+						"issueFacts",
 						"taskTopic",
 						"decision",
 						"usage",

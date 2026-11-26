@@ -36,6 +36,12 @@ vi.mock("@/fetchers/topic/topics", () => ({
   getTopic: mocks.getTopic,
   getTopicTasks: mocks.getTopicTasks,
 }));
+vi.mock("@/fetchers/topic/task-statements", () => ({
+  getTopicTaskStatements: vi.fn().mockResolvedValue({ statements: [] }),
+}));
+vi.mock("@/hooks/use-workspace-permission", () => ({
+  useWorkspacePermission: () => ({ canUpdateTasks: () => true }),
+}));
 vi.mock("@/fetchers/document/issue-files", () => ({
   getIssueFiles: vi.fn().mockResolvedValue([]),
 }));

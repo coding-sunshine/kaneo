@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { setTaskStatementDismissed } from "@/fetchers/topic/task-statements";
 import {
   confirmCurrentDocument,
   createTopic,
@@ -109,4 +110,20 @@ export function useLinkTaskTopic(workspaceId: string) {
 
 export function useUnlinkTaskTopic(workspaceId: string) {
   return useTopicTaskMutation(workspaceId, unlinkTaskTopic);
+}
+
+export function useSetTaskStatementDismissed(workspaceId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      dismissed,
+      ...param
+    }: {
+      id: string;
+      factId: string;
+      dismissed: boolean;
+    }) => setTaskStatementDismissed({ workspaceId, ...param }, dismissed),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: topicsKey(workspaceId) }),
+  });
 }

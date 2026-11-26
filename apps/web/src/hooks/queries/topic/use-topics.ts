@@ -5,6 +5,7 @@ import {
   getTopics,
   getTopicTasks,
 } from "@/fetchers/topic/topics";
+import { getTopicTaskStatements } from "@/fetchers/topic/task-statements";
 import { documentsKey } from "@/hooks/queries/document/use-documents";
 
 /**
@@ -56,5 +57,13 @@ export function useTaskTopics(workspaceId: string, taskId: string) {
     enabled: Boolean(workspaceId && taskId),
     queryKey: [...topicsKey(workspaceId), "task", taskId],
     queryFn: () => getTaskTopics(workspaceId, taskId),
+  });
+}
+
+export function useTopicTaskStatements(workspaceId: string, id: string) {
+  return useQuery({
+    enabled: Boolean(workspaceId && id),
+    queryKey: [...topicsKey(workspaceId), id, "task-statements"],
+    queryFn: () => getTopicTaskStatements(workspaceId, id),
   });
 }

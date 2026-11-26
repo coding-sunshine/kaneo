@@ -3698,6 +3698,24 @@
 				"hint": "It goes back to being a proposal and its approval is removed. The topic has no current document until you make one current.",
 				"done": "Set aside. The topic has no current document."
 			},
+			"issueFacts": {
+				"title": "Found in issues",
+				"hint": "Read by AI from issues, their comments and their files. Nothing here changes what the topic states.",
+				"inFile": "in the file {{filename}}",
+				"onTopic": "Issue is on this topic",
+				"addIssue": "Add issue to topic",
+				"addIssueLabel": "Add issue {{issue}} to this topic",
+				"dismiss": "Dismiss",
+				"dismissLabel": "Dismiss {{name}}: {{value}}",
+				"restore": "Restore",
+				"restoreLabel": "Restore {{name}}: {{value}}",
+				"showDismissed_one": "Show {{count}} dismissed",
+				"showDismissed_other": "Show {{count}} dismissed",
+				"hideDismissed": "Hide dismissed",
+				"addFailed": "Could not add the issue to the topic",
+				"dismissFailed": "Could not dismiss this",
+				"restoreFailed": "Could not restore this"
+			},
 			"taskTopic": {
 				"matches": "Topics that match",
 				"current": "Current: {{title}}",

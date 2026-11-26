@@ -3944,6 +3944,24 @@
 					"term": "A short phrase."
 				},
 				"valueLabel": "Value"
+			},
+			"issueFacts": {
+				"addFailed": "Could not add the issue to the topic",
+				"addIssue": "Add issue to topic",
+				"addIssueLabel": "Add issue {{issue}} to this topic",
+				"dismiss": "Dismiss",
+				"dismissFailed": "Could not dismiss this",
+				"dismissLabel": "Dismiss {{name}}: {{value}}",
+				"hideDismissed": "Hide dismissed",
+				"hint": "Read by AI from issues, their comments and their files. Nothing here changes what the topic states.",
+				"inFile": "in the file {{filename}}",
+				"onTopic": "Issue is on this topic",
+				"restore": "Restore",
+				"restoreFailed": "Could not restore this",
+				"restoreLabel": "Restore {{name}}: {{value}}",
+				"showDismissed_one": "Show {{count}} dismissed",
+				"showDismissed_other": "Show {{count}} dismissed",
+				"title": "Found in issues"
 			}
 		},
 		"drafts": {

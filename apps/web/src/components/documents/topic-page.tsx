@@ -15,6 +15,7 @@ import { TopicCurrentDocument } from "./topic-current-document";
 import { RecordDecisionButton } from "./record-decision-button";
 import { TopicFollowButton } from "./topic-follow-button";
 import { TopicIssueFiles } from "./topic-issue-files";
+import { TopicIssueFacts } from "./topic-issue-facts";
 import { TopicIssues } from "./topic-issues";
 import { TopicFacts } from "./topic-facts";
 import { TopicSection } from "./topic-section";
@@ -145,6 +146,7 @@ export function TopicPage({ workspaceId, topicId }: TopicPageProps) {
             )}
           </TopicSection>
           <TopicIssues workspaceId={workspaceId} topicId={topicId} />
+          <TopicIssueFacts workspaceId={workspaceId} topicId={topicId} />
           <TopicIssueFiles workspaceId={workspaceId} topicId={topicId} />
           {replaced.length > 0 && (
             <TopicSection
