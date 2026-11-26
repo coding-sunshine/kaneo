@@ -5,6 +5,7 @@ import db from "../../database";
 import {
   documentSubscriberTable,
   documentTable,
+  userTable,
   workspaceUserTable,
 } from "../../database/schema";
 import { isOwnerRole } from "../../project-access/is-owner-role";
@@ -112,8 +113,8 @@ export async function handOverDocuments(
   return { moved: moved.length };
 }
 
-// Title and date only: the owner decides whether to take a draft over
-// without reading it.
+// Title, date and the author who left: the owner decides whether to take a
+// draft over, or give one person's drafts to a colleague, without reading it.
 export async function listOwnerlessDocuments(
   workspaceId: string,
   userId: string,
@@ -124,8 +125,11 @@ export async function listOwnerlessDocuments(
       id: documentTable.id,
       title: documentTable.title,
       updatedAt: documentTable.updatedAt,
+      creatorId: documentTable.creatorId,
+      creatorName: userTable.name,
     })
     .from(documentTable)
+    .leftJoin(userTable, eq(userTable.id, documentTable.creatorId))
     .where(and(ownerless(workspaceId), isNull(documentTable.deletedAt)))
     .orderBy(desc(documentTable.updatedAt));
 }

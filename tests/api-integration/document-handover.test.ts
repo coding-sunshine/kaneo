@@ -154,8 +154,15 @@ describe("API integration: handing over a leaving member's drafts", () => {
       string,
       unknown
     >[];
+    // Who wrote it, so the owner can give one person's drafts to a colleague.
     expect(after).toEqual([
-      { id: left, title: "Left behind", updatedAt: expect.any(String) },
+      {
+        id: left,
+        title: "Left behind",
+        updatedAt: expect.any(String),
+        creatorId: open.id,
+        creatorName: open.name,
+      },
     ]);
 
     // A deleted account leaves its drafts with no author at all.

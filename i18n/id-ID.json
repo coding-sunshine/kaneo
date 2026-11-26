@@ -6006,7 +6006,10 @@
 			"ownerlessTitle": "Private documents with no author",
 			"takeOver": "Take over",
 			"takeOverError": "Could not take over the document",
-			"takeOverSuccess": "You are now the author of this document"
+			"takeOverSuccess": "You are now the author of this document",
+			"handOverDone_other": "{{count}} documents are now {{name}}'s",
+			"handOverGive": "Give their documents",
+			"ownerlessFrom": "Left by {{name}}"
 		},
 		"projectAccess": {
 			"allProjects": "All projects",

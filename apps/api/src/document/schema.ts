@@ -509,6 +509,11 @@ export const ownerlessDocumentListSchema = z.array(
       id: z.string(),
       title: z.string(),
       updatedAt: responseTimestamp,
+      creatorId: z.string().nullable().openapi({
+        description:
+          "The author who left. Null when they deleted their account. Hand the documents over with it.",
+      }),
+      creatorName: z.string().nullable(),
     })
     .openapi("OwnerlessDocument"),
 );

@@ -548,7 +548,15 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
         </TableBody>
       </Table>
 
-      {isOwner ? <OwnerlessDocuments workspaceId={workspaceId} /> : null}
+      {isOwner ? (
+        <OwnerlessDocuments
+          workspaceId={workspaceId}
+          members={users.map((member) => ({
+            userId: member.userId,
+            name: member.user.name || member.user.email,
+          }))}
+        />
+      ) : null}
 
       <MemberProjectAccessDialog
         workspaceId={workspaceId}

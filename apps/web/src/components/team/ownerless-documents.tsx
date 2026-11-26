@@ -8,12 +8,17 @@ import {
 import { formatDateMedium } from "@/lib/format";
 import { toast } from "@/lib/toast";
 import { Button } from "../ui/button";
+import OwnerlessHandOver from "./ownerless-hand-over";
 
-type Props = { workspaceId: string };
+type Props = {
+  workspaceId: string;
+  /** The current members, who can receive a former member's documents. */
+  members: { userId: string; name: string }[];
+};
 
 // Private documents whose author left. Render it for a workspace owner only:
 // the list is refused to everybody else.
-function OwnerlessDocuments({ workspaceId }: Props) {
+function OwnerlessDocuments({ workspaceId, members }: Props) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { data: documents = [] } = useOwnerlessDocuments(workspaceId);
@@ -26,6 +31,16 @@ function OwnerlessDocuments({ workspaceId }: Props) {
     onError: () => toast.error(t("team:membersTable.takeOverError")),
   });
   if (documents.length === 0) return null;
+  // One hand-over per person who left. A deleted account has no one to name.
+  const leavers = [
+    ...new Map(
+      documents.flatMap((document) =>
+        document.creatorId
+          ? [[document.creatorId, document.creatorName ?? ""] as const]
+          : [],
+      ),
+    ),
+  ];
 
   return (
     <section className="mt-8 px-6" aria-labelledby="ownerless-documents-title">
@@ -35,6 +50,15 @@ function OwnerlessDocuments({ workspaceId }: Props) {
       <p className="mt-1 text-xs text-muted-foreground">
         {t("team:membersTable.ownerlessDescription")}
       </p>
+      {leavers.map(([fromUserId, fromName]) => (
+        <OwnerlessHandOver
+          key={fromUserId}
+          workspaceId={workspaceId}
+          fromUserId={fromUserId}
+          fromName={fromName}
+          members={members}
+        />
+      ))}
       <ul className="mt-3 divide-y divide-border">
         {documents.map((document) => (
           <li

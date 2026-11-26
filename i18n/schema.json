@@ -25450,6 +25450,30 @@
 						"takeOverError": {
 							"type": "string"
 						},
+						"ownerlessFrom": {
+							"type": "string"
+						},
+						"handOverGive": {
+							"type": "string"
+						},
+						"handOverDone_one": {
+							"type": "string"
+						},
+						"handOverDone_zero": {
+							"type": "string"
+						},
+						"handOverDone_two": {
+							"type": "string"
+						},
+						"handOverDone_few": {
+							"type": "string"
+						},
+						"handOverDone_many": {
+							"type": "string"
+						},
+						"handOverDone_other": {
+							"type": "string"
+						},
 						"cancelDialogTitle": {
 							"type": "string"
 						},
@@ -25500,6 +25524,8 @@
 						"takeOver",
 						"takeOverSuccess",
 						"takeOverError",
+						"ownerlessFrom",
+						"handOverGive",
 						"cancelDialogTitle",
 						"cancelDialogDescription",
 						"removeMember",
