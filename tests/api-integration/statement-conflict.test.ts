@@ -1,8 +1,24 @@
-import { beforeEach, describe, expect, it } from "vite-plus/test";
+import { and, eq } from "drizzle-orm";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 import db from "../../apps/api/src/database";
-import { statementConflictTable } from "../../apps/api/src/database/schema";
+import {
+  notificationTable,
+  statementConflictTable,
+} from "../../apps/api/src/database/schema";
 import { resetTestDatabase } from "./helpers/database";
-import { buildDocumentWorld } from "./helpers/document-access/build-document-world";
+import {
+  buildDocumentWorld,
+  json,
+} from "./helpers/document-access/build-document-world";
+import { addWorkspaceMember } from "./helpers/project-access/add-workspace-member";
+import { restrictToProjects } from "./helpers/project-access/restrict-to-projects";
 import { filing } from "./helpers/statement-filing";
 
 const CURRENT_TEXT =
@@ -325,5 +341,122 @@ describe("API integration: statement conflicts", () => {
     expect(receipt.conflicts).toEqual([]);
     expect(receipt.unjudged).toHaveLength(1);
     await expectStatus(await api.approve(topicId, id), 200);
+  });
+
+  it("settles a pair as not a conflict and keeps the statement proposed", async () => {
+    const { world, api, topicId, incomingId, priceStatement } = await setup();
+    const id = (await api.receipt(incomingId)).conflicts[0].id;
+    const dismiss = (user = world.owner) =>
+      api.settleConflict(
+        incomingId,
+        id,
+        { decision: "dismiss", reason: "Same thing in other words" },
+        user,
+      );
+    await expectStatus(await api.approve(topicId, incomingId), 409);
+
+    const settled = await dismiss();
+    await expectStatus(settled, 200);
+    expect(await settled.json()).toMatchObject({
+      id,
+      status: "resolved",
+      reason: "Same thing in other words",
+      tolerateUntil: null,
+    });
+    expect((await api.receipt(incomingId)).conflicts[0]).toMatchObject({
+      id,
+      status: "resolved",
+    });
+    const rows = await api.statementsOf(incomingId);
+    expect(rows.find((r) => r.id === priceStatement.id)?.status).toBe(
+      "proposed",
+    );
+    await expectStatus(await dismiss(world.open), 403);
+    await expectStatus(await api.approve(topicId, incomingId), 200);
+  });
+});
+
+describe("API integration: conflict question access", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  it("asks no question of a decider without topic access", async () => {
+    vi.stubEnv("OPENROUTER_API_KEY", "test-key");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              model: "test/model",
+              choices: [{ message: { content: '{"contradicts":true}' } }],
+              usage: {
+                prompt_tokens: 4,
+                completion_tokens: 1,
+                total_tokens: 5,
+              },
+            }),
+          ),
+      ),
+    );
+    await resetTestDatabase();
+    const world = await buildDocumentWorld();
+    const api = filing(world);
+    const decider = await addWorkspaceMember(world.ws);
+    const made = await world.as(world.owner)(
+      "/topic",
+      json("POST", {
+        workspaceId: world.ws,
+        name: "Launch plan",
+        projectId: world.alpha.id,
+        deciderId: decider.id,
+      }),
+    );
+    await expectStatus(made, 200);
+    const { id: topicId } = (await made.json()) as { id: string };
+    await api.addSlot(topicId, { name: "Codename", type: "term" });
+    const current = await api.filed(
+      topicId,
+      "Launch plan",
+      "<p>The codename is Falcon.</p>",
+    );
+    const falcon = await api.add(current, codename("Falcon"));
+    await expectStatus(await api.decide(current, falcon.id, "confirm"), 200);
+    await expectStatus(await api.approve(topicId, current), 200);
+    const incoming = await api.filed(
+      topicId,
+      "Launch plan v2",
+      "<p>The codename is Kestrel.</p>",
+    );
+    await api.add(incoming, codename("Kestrel"));
+    // The decider reads both documents by share, but cannot open the topic.
+    for (const id of [current, incoming]) {
+      await expectStatus(
+        await world.as(world.owner)(
+          `/document/workspace/${world.ws}/${id}/share/${decider.id}`,
+          json("PUT", { access: "view" }),
+        ),
+        200,
+      );
+    }
+    await restrictToProjects(world.ws, decider.id, [world.beta.id]);
+
+    const scheduler =
+      await import("../../apps/api/src/scheduler/conflict-questions");
+    scheduler.conflictRetry.reset();
+    await scheduler.askConflictQuestions();
+
+    const asked = await db
+      .select()
+      .from(notificationTable)
+      .where(
+        and(
+          eq(notificationTable.userId, decider.id),
+          eq(notificationTable.type, "document_question"),
+        ),
+      );
+    expect(asked).toEqual([]);
   });
 });

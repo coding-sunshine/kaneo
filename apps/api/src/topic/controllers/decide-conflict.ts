@@ -17,7 +17,7 @@ const notFound = () =>
   new HTTPException(404, { message: "Document or conflict not found" });
 
 type Decided = {
-  decision: "replace" | "keep" | "tolerate";
+  decision: "replace" | "keep" | "tolerate" | "dismiss";
   reason: string;
   tolerateUntil?: string;
 };
@@ -26,6 +26,8 @@ type Decided = {
  * The topic's decider settles one conflict of a document. `keep` is carried
  * out by rejecting the document's statement, and leaves no decision behind:
  * if the document states the value again, the conflict is open again.
+ * `dismiss` says the two do not contradict each other, and says nothing about
+ * the document's value: its statement stays as it is.
  */
 export async function decideConflict(
   workspaceId: string,
@@ -112,6 +114,14 @@ export async function decideConflict(
         status: "tolerated" as const,
         reason,
         tolerateUntil: until,
+      };
+    }
+    if (decision === "dismiss") {
+      return {
+        ...conflict,
+        status: "resolved" as const,
+        reason,
+        tolerateUntil: null,
       };
     }
     // The decider says the document's value is right: that confirms it.

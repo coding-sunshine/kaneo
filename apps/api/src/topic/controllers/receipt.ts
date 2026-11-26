@@ -39,10 +39,11 @@ type Compared = Stated & {
 const pairHash = (...parts: string[]) =>
   createHash("sha256").update(JSON.stringify(parts)).digest("hex");
 
-// Only two decisions hold a conflict back: the document's value stands, or
-// the two may differ until a date that has not come yet.
+// Three decisions hold a conflict back: the document's value stands, the two
+// do not contradict each other, or the two may differ until a date that has
+// not come yet.
 function standing(decision: Decision | undefined) {
-  if (decision?.decision === "replace") {
+  if (decision?.decision === "replace" || decision?.decision === "dismiss") {
     return {
       status: "resolved" as const,
       reason: decision.reason,

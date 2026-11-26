@@ -14,6 +14,7 @@ import {
   topicTable,
 } from "../database/schema";
 import { notifyConflictQuestion } from "../document/controllers/notify";
+import { topicAccess } from "../document/visibility";
 import {
   JUDGEMENT_PROMPT_VERSION,
   judgementsOf,
@@ -80,7 +81,13 @@ async function askDecider(doc: Asked, statementId: string, slotName: string) {
       deciderId: topicTable.deciderId,
     })
     .from(topicTable)
-    .where(eq(topicTable.id, doc.topicId));
+    // A decider who can no longer open the topic is not asked about it.
+    .where(
+      and(
+        eq(topicTable.id, doc.topicId),
+        topicAccess(topicTable.deciderId, topicTable.id),
+      ),
+    );
   if (!topic?.deciderId) return;
   const { conflicts } = await receiptOf(db, doc, topic.id, topic.deciderId);
   const open = conflicts.some(

@@ -3334,7 +3334,7 @@ export const statementTable = pgTable(
   ],
 );
 
-export const CONFLICT_DECISIONS = ["replace", "tolerate"] as const;
+export const CONFLICT_DECISIONS = ["replace", "tolerate", "dismiss"] as const;
 export type ConflictDecision = (typeof CONFLICT_DECISIONS)[number];
 
 // A conflict is found by comparing what a document states with what its

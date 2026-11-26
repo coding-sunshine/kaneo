@@ -165,9 +165,9 @@ export const dependencySchema = z
   .openapi("StatementDependency");
 
 export const decideConflictBody = z.object({
-  decision: z.enum(["replace", "keep", "tolerate"]).openapi({
+  decision: z.enum(["replace", "keep", "tolerate", "dismiss"]).openapi({
     description:
-      "replace: the document's value stands, and its statement is confirmed. keep: the current value stands, and the document's statement is rejected with the reason. tolerate: the two may differ until tolerateUntil.",
+      "replace: the document's value stands, and its statement is confirmed. keep: the current value stands, and the document's statement is rejected with the reason. tolerate: the two may differ until tolerateUntil. dismiss: the two do not contradict each other, and the document's statement stays as it is.",
   }),
   reason: z.string().trim().min(1).max(500),
   tolerateUntil: z.string().datetime().optional().openapi({
@@ -721,7 +721,7 @@ export const conflictSchema = comparedSchema
     }),
     status: z.enum(["open", "tolerated", "resolved"]).openapi({
       description:
-        "open: the document cannot be made current. tolerated: the two may differ until tolerateUntil. resolved: the decider said the document's value stands.",
+        "open: the document cannot be made current. tolerated: the two may differ until tolerateUntil. resolved: the decider said the document's value stands, or that the two do not contradict each other.",
     }),
     reason: z.string().nullable(),
     tolerateUntil: nullableResponseTimestamp,
