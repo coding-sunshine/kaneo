@@ -25,13 +25,15 @@ vi.mock("@/fetchers/topic/facts", () => ({ getTopicFacts }));
 
 const NOW = "navigation:documents.facts.needsReview";
 const cause = { topicId: "t1", slot: "price", slotName: "Price" };
-const show = (answers: unknown[] | null) => {
-  getTopicFacts.mockResolvedValue(answers && { id: "t1", answers });
-  return render(
+const mount = () =>
+  render(
     <QueryClientProvider client={new QueryClient()}>
       <FactNow workspaceId="ws" cause={cause} />
     </QueryClientProvider>,
   );
+const show = (answers: unknown[] | null) => {
+  getTopicFacts.mockResolvedValue(answers && { id: "t1", answers });
+  return mount();
 };
 
 afterEach(() => {
@@ -73,6 +75,13 @@ describe("FactNow", () => {
 
   it("shows nothing for a topic the reader cannot open", async () => {
     const { container } = show(null);
+    await vi.waitFor(() => expect(getTopicFacts).toHaveBeenCalled());
+    expect(container.textContent).toBe("");
+  });
+
+  it("claims nothing when the topic's facts are refused", async () => {
+    getTopicFacts.mockRejectedValue(new Error("refused"));
+    const { container } = mount();
     await vi.waitFor(() => expect(getTopicFacts).toHaveBeenCalled());
     expect(container.textContent).toBe("");
   });
