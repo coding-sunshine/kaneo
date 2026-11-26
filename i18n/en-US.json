@@ -3878,7 +3878,7 @@
 						"source": "From the text",
 						"approved": "Approved"
 					},
-					"noValue": "No value yet",
+					"noValue": "No value to show",
 					"approved": "{{name}}, {{date}}",
 					"alsoIn_one": "Also in a proposal:",
 					"alsoIn_other": "Also in {{count}} proposals:",
@@ -3923,7 +3923,7 @@
 					"empty": "Nothing needs review. Work shows up here when a value it relies on is replaced.",
 					"was": "Relied on {{name}}: {{value}}",
 					"holdsNow": "{{name}} now: {{value}}",
-					"holdsNothing": "{{name}} has no value now.",
+					"holdsNothing": "No current value to show for {{name}}.",
 					"causeHidden": "What changed is in a document you cannot open.",
 					"replaced": "Replaced {{date}}"
 				}

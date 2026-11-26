@@ -3920,7 +3920,7 @@
 					"replaced": "Replaced {{date}}",
 					"was": "Relied on {{name}}: {{value}}",
 					"causeHidden": "What changed is in a document you cannot open.",
-					"holdsNothing": "{{name}} has no value now.",
+					"holdsNothing": "No current value to show for {{name}}.",
 					"holdsNow": "{{name}} now: {{value}}"
 				},
 				"noFacts": "This topic tracks no facts yet. Track facts on the topic page, and each document filed there is checked against them.",
@@ -3974,7 +3974,7 @@
 					"hint": "What this topic states now. Each value comes from the current document and was confirmed by a person.",
 					"nameLabel": "Name",
 					"namePlaceholder": "Launch date",
-					"noValue": "No value yet",
+					"noValue": "No value to show",
 					"optionsHint": "Separate them with commas. Two or more.",
 					"optionsLabel": "Choices",
 					"reliedOn_many": "{{count}} items rely on this",
