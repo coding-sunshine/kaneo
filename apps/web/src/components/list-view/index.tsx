@@ -34,6 +34,8 @@ import { toast } from "@/lib/toast";
 import useBulkSelectionStore from "@/store/bulk-selection";
 import useProjectStore from "@/store/project";
 import type { ProjectWithTasks } from "@/types/project";
+import { completesTask } from "@/lib/board/completes-task";
+import { celebrateCompletion } from "@/lib/completion-celebration";
 import BulkToolbar from "../bulk-selection/bulk-toolbar";
 import { ArchiveTasksModal } from "../shared/modals/archive-tasks-modal";
 import CreateTaskModal from "../shared/modals/create-task-modal";
@@ -294,6 +296,14 @@ function ListView({
       }
     });
 
+    const landed = updatedProject.columns?.find((col) =>
+      col.tasks.some((task) => task.id === activeTaskId),
+    );
+    if (
+      landed &&
+      completesTask(project, [{ id: activeTaskId, status: landed.slug }])
+    )
+      celebrateCompletion();
     setProject(updatedProject);
   };
 

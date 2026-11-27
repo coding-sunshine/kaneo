@@ -846,7 +846,9 @@
 			},
 			"chatPresence": "Show when I'm online",
 			"chatPresenceDescription": "Others see a dot by your name in chat, but only people who turned this on too. Off by default.",
-			"chatTitle": "Chat"
+			"chatTitle": "Chat",
+			"completionAnimation": "Completion animation",
+			"completionAnimationDescription": "Play a short animation when you complete an issue. Never plays when your system asks for reduced motion."
 		},
 		"managedProfile": {
 			"note": "Керується вашою організацією.",
