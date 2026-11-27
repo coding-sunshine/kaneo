@@ -437,6 +437,33 @@ describe("API integration: draft lineage", () => {
     expect((await link(world, owner, next))?.id).toBe(copy);
   });
 
+  // A one-line text shares its runs with any text on the same subject: a
+  // heading, a greeting, a line of a template. It says nothing about where a
+  // document came from, on either side of the comparison.
+  it("does not compare a text of one or two lines", async () => {
+    const world = await buildDocumentWorld();
+    const { owner } = world;
+    const team = { projectId: world.alpha.id };
+    const line = "<p>Agenda for the weekly product sync on Monday morning.</p>";
+    const first = await write(world, owner, "Sync", line, team);
+    const second = await write(world, owner, "Sync again", line, team);
+    expect(await link(world, owner, second)).toBeNull();
+    expect(await link(world, owner, first)).toBeNull();
+
+    // Nor is a longer text a revision of the two lines it starts with.
+    const [a, b, c] = SENTENCES.map((sentence) => `<p>${sentence}</p>`);
+    await write(world, owner, "Two lines", `${a}${b}`, team);
+    const longer = await write(world, owner, "Three", `${a}${b}${c}`, team);
+    expect(await link(world, owner, longer)).toBeNull();
+
+    // A proposal goes once its text is cut down to a line.
+    const plan = await write(world, owner, "Launch plan", PLAN, team);
+    const copy = await write(world, owner, "Launch plan v2", ONE_CHANGE, team);
+    expect((await link(world, owner, copy))?.id).toBe(plan);
+    expect((await edit(world, owner, copy, line)).revisionOf).toBeNull();
+    expect(await rows()).toEqual([]);
+  });
+
   it("compares again when an older text is restored", async () => {
     const world = await buildDocumentWorld();
     const { owner, open } = world;
