@@ -34,6 +34,8 @@ const searchResults = {
       type: "document",
       title: "Onboarding handbook",
       projectName: "Platform",
+      scope: "team",
+      parentName: "Platform",
     },
     {
       id: "doc-2",
@@ -47,6 +49,15 @@ const searchResults = {
       type: "document",
       title: "Release handbook ideas",
       status: "draft",
+      scope: "private",
+      parentName: null,
+    },
+    {
+      id: "doc-4",
+      type: "document",
+      title: "Hiring handbook",
+      scope: "team",
+      parentName: null,
     },
   ],
 };
@@ -103,6 +114,27 @@ describe("SearchCommandMenu", () => {
       to: "/dashboard/workspace/$workspaceId/document/$documentId",
       params: { workspaceId: "workspace-1", documentId: "doc-1" },
     });
+  });
+
+  it("says who can open a document, naming only a team the reader can enter", async () => {
+    render(<SearchCommandMenu open setOpen={vi.fn()} />);
+    fireEvent.change(
+      screen.getByPlaceholderText("navigation:search.inputPlaceholder"),
+      { target: { value: "handbook" } },
+    );
+
+    const named = await screen.findByRole("option", {
+      name: /Onboarding handbook/,
+    });
+    expect(named).toHaveTextContent(
+      "navigation:documents.accessLabel.team: Platform",
+    );
+    expect(
+      screen.getByRole("option", { name: /Release handbook ideas/ }),
+    ).toHaveTextContent("navigation:documents.accessLabel.private");
+    const hidden = screen.getByRole("option", { name: /Hiring handbook/ });
+    expect(hidden).toHaveTextContent("navigation:documents.accessLabel.team");
+    expect(hidden).not.toHaveTextContent("Platform");
   });
 
   it("marks a current document apart from a draft and names its topic", async () => {

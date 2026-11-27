@@ -3657,7 +3657,13 @@
 				"hiddenTasks_other": "Also shared with {{count}} issues you cannot open",
 				"hiddenTasksUnshared": "Stopped sharing with issues you cannot open",
 				"stopHiddenTasks": "Stop sharing with them",
-				"unshareHiddenTasksFailed": "Could not stop sharing with those issues"
+				"unshareHiddenTasksFailed": "Could not stop sharing with those issues",
+				"everyoneUnnamed": {
+					"issue": "Everyone who can open an issue you cannot open",
+					"project": "Everyone in the project's teams",
+					"team": "Everyone in a team you cannot open",
+					"workspace": "Everyone in this workspace"
+				}
 			},
 			"shareMenu": "Share…",
 			"showComments": "Show comments",

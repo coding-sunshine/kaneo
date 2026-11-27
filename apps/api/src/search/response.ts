@@ -1,3 +1,4 @@
+import { DOCUMENT_SCOPES } from "../database/schema";
 import { nullableResponseTimestamp, responseTimestamp, z } from "../openapi";
 
 export const searchResultSchema = z
@@ -42,6 +43,14 @@ export const searchResultSchema = z
     topicName: z.string().optional().openapi({
       description:
         "The topic a document is filed on. Left out when it has none or the searcher cannot open that topic.",
+    }),
+    scope: z.enum(DOCUMENT_SCOPES).optional().openapi({
+      description:
+        "Where a document lives, and so who can open it besides the people it is shared with.",
+    }),
+    parentName: z.string().nullable().optional().openapi({
+      description:
+        "A document's team or project name, or its issue key. Null for a private or workspace document, and for a team or issue the searcher cannot enter.",
     }),
     archivedAt: nullableResponseTimestamp.optional(),
   })

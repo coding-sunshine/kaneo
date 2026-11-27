@@ -13,6 +13,7 @@ import {
 } from "../../../database/schema";
 import { publishEvent } from "../../../events";
 import { claimTaskNumber } from "../../../task/controllers/claim-task-numbers";
+import { syncTaskDescriptionLinks } from "../../../task-document/sync-links";
 import {
   createExternalLink,
   findExternalLink,
@@ -148,6 +149,7 @@ export async function handleGiteaIssueOpened(
         })
         .returning();
       if (!task) throw new Error("Failed to create task from gitea issue");
+      await syncTaskDescriptionLinks(tx, task.id, null, task.description);
       const linkMetadata = {
         state: closed ? "closed" : "open",
         createdFrom: "gitea",

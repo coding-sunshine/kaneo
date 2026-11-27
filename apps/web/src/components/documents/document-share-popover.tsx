@@ -50,6 +50,9 @@ export function DocumentSharePopover({
   const candidates = (users?.members ?? []).filter(
     (member) => !taken.has(member.userId),
   );
+  // Null for a team or issue the reader cannot enter: it stays unnamed.
+  const placeName =
+    document.scope === "workspace" ? workspace?.name : document.parentName;
   const onError = (error: Error) => toast.error(error.message);
   const updated = () => toast.success(t("navigation:documents.share.updated"));
 
@@ -230,12 +233,13 @@ export function DocumentSharePopover({
                   className="size-4 shrink-0 text-muted-foreground"
                 />
                 <span className="truncate">
-                  {t("navigation:documents.share.everyoneIn", {
-                    name:
-                      document.scope === "workspace"
-                        ? workspace?.name
-                        : document.parentName,
-                  })}
+                  {placeName
+                    ? t("navigation:documents.share.everyoneIn", {
+                        name: placeName,
+                      })
+                    : t(
+                        `navigation:documents.share.everyoneUnnamed.${document.scope}`,
+                      )}
                 </span>
               </span>
               <DocumentAccessMenu

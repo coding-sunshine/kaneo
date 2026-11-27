@@ -9,6 +9,7 @@ import {
   useUnlinkTaskTopic,
 } from "@/hooks/mutations/topic/use-topic-mutations";
 import { useTaskTopics, useTopics } from "@/hooks/queries/topic/use-topics";
+import { DocumentAccessLabel } from "@/components/documents/document-access-label";
 import { ReliedFacts } from "@/components/documents/relied-facts";
 import { toast } from "@/lib/toast";
 import { useTopicCurrentLine } from "./use-topic-current-line";
@@ -39,6 +40,11 @@ function TopicRow({
           >
             {topic.name}
           </Link>
+          <DocumentAccessLabel
+            scope={topic.scope}
+            parentName={topic.parentName}
+            className="max-w-24 shrink-0 text-xs"
+          />
           {topic.currentDocumentId && topic.currentDocumentTitle ? (
             <Link
               to="/dashboard/workspace/$workspaceId/document/$documentId"

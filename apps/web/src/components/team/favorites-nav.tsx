@@ -1,7 +1,9 @@
 import { useQueries } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, FileText, GitPullRequest, Layers2 } from "lucide-react";
+import type { ReactElement, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { DocumentAccessLabel } from "@/components/documents/document-access-label";
 import {
   Collapsible,
   CollapsiblePanel,
@@ -25,6 +27,15 @@ import { parsePullRequestKey } from "@/lib/pull-request-key";
 import { teamColor } from "@/lib/team-color";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 
+type Row = {
+  key: string;
+  name: string;
+  icon: ReactNode;
+  link: ReactElement;
+  /** Shown after the name, such as who can open a document. */
+  detail?: ReactNode;
+};
+
 /** Linear's Favorites section: starred teams, views, documents and pull requests. */
 export function FavoritesNav({ workspaceId }: { workspaceId: string }) {
   const { t } = useTranslation();
@@ -44,7 +55,7 @@ export function FavoritesNav({ workspaceId }: { workspaceId: string }) {
   const collapsedNavIds = useUserPreferencesStore((s) => s.collapsedNavIds);
   const setNavOpen = useUserPreferencesStore((s) => s.setNavOpen);
 
-  const rows = favorites.flatMap((favorite) => {
+  const rows = favorites.flatMap((favorite): Row[] => {
     // A pin belongs to the Documents page, not the sidebar.
     if (favorite.type === "documentPin") return [];
     if (favorite.type === "project") {
@@ -75,6 +86,13 @@ export function FavoritesNav({ workspaceId }: { workspaceId: string }) {
           key: favorite.id,
           name: document.title || t("navigation:documents.untitled"),
           icon: <FileText />,
+          detail: (
+            <DocumentAccessLabel
+              scope={document.scope}
+              parentName={document.parentName}
+              className="ms-auto max-w-20 shrink-0 text-xs"
+            />
+          ),
           link: (
             <Link
               to="/dashboard/workspace/$workspaceId/document/$documentId"
@@ -144,6 +162,7 @@ export function FavoritesNav({ workspaceId }: { workspaceId: string }) {
                   <SidebarMenuButton render={row.link}>
                     {row.icon}
                     <span className="min-w-0 truncate">{row.name}</span>
+                    {row.detail}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

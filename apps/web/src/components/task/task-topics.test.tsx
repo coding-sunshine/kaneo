@@ -38,6 +38,8 @@ vi.mock("@tanstack/react-router", () => ({
 const topic = (id: string, name: string, over = {}) => ({
   id,
   name,
+  scope: "workspace",
+  parentName: null,
   currentDocumentId: null,
   currentDocumentTitle: null,
   ...over,
@@ -46,7 +48,7 @@ const launch = topic("t1", "Launch plan", {
   currentDocumentId: "d1",
   currentDocumentTitle: "Launch plan v2",
 });
-const venue = topic("t2", "Venue");
+const venue = topic("t2", "Venue", { scope: "team", parentName: "Events" });
 
 const show = () => {
   mocks.getTaskTopics.mockResolvedValue([launch]);
@@ -70,6 +72,23 @@ describe("TaskTopics", () => {
     show();
     const link = await screen.findByRole("link", { name: "Launch plan v2" });
     expect(link.getAttribute("href")).toBe("/d1");
+  });
+
+  it("says who can open each topic on the issue", async () => {
+    mocks.getTaskTopics.mockResolvedValue([launch, venue]);
+    mocks.getTopics.mockResolvedValue([launch, venue]);
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <TaskTopics workspaceId="ws" taskId="task-1" />
+      </QueryClientProvider>,
+    );
+    expect(
+      await screen.findByText("navigation:documents.accessLabel.workspace"),
+    ).toBeTruthy();
+    expect(screen.getByText("Events")).toBeTruthy();
+    expect(
+      screen.getByText("navigation:documents.accessLabel.team:"),
+    ).toBeTruthy();
   });
 
   it("removes the topic from the issue", async () => {

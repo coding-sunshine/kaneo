@@ -50,7 +50,7 @@ vi.mock("./use-copy-document-link", () => ({
 const sharedTasks = [
   { id: "t1", title: "Fix it", number: 7, projectId: "p", projectSlug: "eng" },
 ];
-const show = (role: string, hidden = 0) =>
+const show = (role: string, hidden = 0, place: Partial<DocumentDetail> = {}) =>
   render(
     <DocumentSharePopover
       document={
@@ -66,6 +66,7 @@ const show = (role: string, hidden = 0) =>
           generalAccess: "view",
           sharedTasks,
           hiddenSharedTaskCount: hidden,
+          ...place,
         } as unknown as DocumentDetail
       }
       open
@@ -159,4 +160,28 @@ describe("DocumentSharePopover messages", () => {
     );
     mocks.members = [];
   });
+});
+
+describe("DocumentSharePopover general access", () => {
+  it("names the team the document sits in", () => {
+    show("edit", 0, { scope: "team", parentName: "Alpha" });
+    expect(
+      screen.getByText(
+        'navigation:documents.share.everyoneIn {"name":"Alpha"}',
+      ),
+    ).toBeTruthy();
+  });
+
+  it.each(["team", "issue"] as const)(
+    "reads as a sentence when the %s is one the reader cannot enter",
+    (scope) => {
+      show("edit", 0, { scope, parentName: null });
+      expect(
+        screen.getByText(`navigation:documents.share.everyoneUnnamed.${scope}`),
+      ).toBeTruthy();
+      expect(
+        screen.queryByText(/navigation:documents\.share\.everyoneIn/),
+      ).toBeNull();
+    },
+  );
 });

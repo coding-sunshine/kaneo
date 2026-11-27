@@ -8,6 +8,7 @@ import {
   taskDocumentTable,
   taskTable,
 } from "../database/schema";
+import { documentTeamAccess } from "../document/visibility";
 import { findDocumentIds, findTaskReferences } from "./find-links";
 import { resolveTaskReferences } from "./resolve-tasks";
 
@@ -23,6 +24,7 @@ async function reconcile(
   anchor: { taskId: string } | { documentId: string },
   others: string[],
   userId: string | null,
+  prune = true,
 ) {
   const [own, other, id] =
     "taskId" in anchor
@@ -32,15 +34,16 @@ async function reconcile(
           taskDocumentTable.taskId,
           anchor.documentId,
         ];
-  await database
-    .delete(taskDocumentTable)
-    .where(
-      and(
-        eq(own, id),
-        eq(taskDocumentTable.source, source),
-        others.length ? notInArray(other, others) : undefined,
-      ),
-    );
+  if (prune)
+    await database
+      .delete(taskDocumentTable)
+      .where(
+        and(
+          eq(own, id),
+          eq(taskDocumentTable.source, source),
+          others.length ? notInArray(other, others) : undefined,
+        ),
+      );
   if (!others.length) return;
   await database
     .insert(taskDocumentTable)
@@ -62,9 +65,13 @@ async function syncTask(
   source: TaskDocumentSource,
   userId: string | null,
   texts: string[],
+  prune = true,
 ) {
   const [task] = await database
-    .select({ workspaceId: projectTable.workspaceId })
+    .select({
+      workspaceId: projectTable.workspaceId,
+      teamId: taskTable.projectId,
+    })
     .from(taskTable)
     .innerJoin(projectTable, eq(projectTable.id, taskTable.projectId))
     .where(eq(taskTable.id, taskId));
@@ -76,6 +83,8 @@ async function syncTask(
       ]
     : [];
   // An address is a link only if the document is in the issue's workspace.
+  // Text with no author, such as an integration's, links only what the
+  // issue's team can open, so it never records a closed team's document.
   const documents =
     task && candidates.length
       ? await database
@@ -85,6 +94,9 @@ async function syncTask(
             and(
               eq(documentTable.workspaceId, task.workspaceId),
               inArray(documentTable.id, candidates),
+              userId === null
+                ? documentTeamAccess(task.teamId, documentTable)
+                : undefined,
             ),
           )
       : [];
@@ -94,6 +106,7 @@ async function syncTask(
     { taskId },
     documents.map((document) => document.id),
     userId,
+    prune,
   );
 }
 
@@ -121,12 +134,15 @@ export async function syncTaskCommentLinks(
         like(activityTable.content, "%/document/%"),
       ),
     );
+  // Without an author only the team's documents are found, so a link that
+  // a member wrote to a closed team's document must stay: add, never drop.
   await syncTask(
     database,
     taskId,
     "comment",
     userId,
     comments.map((comment) => comment.content ?? ""),
+    userId !== null,
   );
 }
 

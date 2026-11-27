@@ -1,3 +1,4 @@
+import { syncTaskDescriptionLinks } from "../../../task-document/sync-links";
 import { brand } from "@kaneo/brand";
 import { issueEditScope } from "../utils/deferred-issue-edit";
 import { deferIssueEdit } from "../services/deferred-issue-edits";
@@ -212,6 +213,13 @@ export async function handleIssueEdited(payload: IssueEditedPayload) {
                 .update(taskTable)
                 .set(updateData)
                 .where(linkedTaskScope(task.id, integration.projectId));
+              if (typeof updateData.description === "string")
+                await syncTaskDescriptionLinks(
+                  db,
+                  task.id,
+                  null,
+                  updateData.description,
+                );
 
               await updateExternalLink(
                 externalLink.id,

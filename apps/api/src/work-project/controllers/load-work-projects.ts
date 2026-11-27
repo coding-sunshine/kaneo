@@ -1,4 +1,13 @@
-import { and, asc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  eq,
+  getTableColumns,
+  inArray,
+  isNull,
+  ne,
+  sql,
+} from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
@@ -9,6 +18,7 @@ import {
   workProjectTable,
   workProjectTeamTable,
 } from "../../database/schema";
+import { workProjectDocumentAccess } from "../../document/visibility";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
 import { listProjectLinks } from "./work-project-links";
 
@@ -57,7 +67,11 @@ export async function loadWorkProjects(
   teamId?: string,
 ) {
   const rows = await db
-    .select()
+    .select({
+      ...getTableColumns(workProjectTable),
+      // Counts the teams the reader cannot open, which `teamIds` leaves out.
+      canOpenDocuments: workProjectDocumentAccess(userId, workProjectTable.id),
+    })
     .from(workProjectTable)
     .where(
       teamId
