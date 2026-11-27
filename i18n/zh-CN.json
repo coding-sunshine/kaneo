@@ -168,6 +168,9 @@
 				"apply": "应用链接",
 				"remove": "移除链接"
 			}
+		},
+		"mentionedIn": {
+			"title": "Mentioned in"
 		}
 	},
 	"auth": {

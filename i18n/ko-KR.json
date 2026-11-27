@@ -168,6 +168,9 @@
 				"apply": "링크 적용",
 				"remove": "링크 제거"
 			}
+		},
+		"mentionedIn": {
+			"title": "Mentioned in"
 		}
 	},
 	"auth": {

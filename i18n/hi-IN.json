@@ -168,6 +168,9 @@
 				"apply": "लिंक लागू करें",
 				"remove": "लिंक हटाएँ"
 			}
+		},
+		"mentionedIn": {
+			"title": "Mentioned in"
 		}
 	},
 	"auth": {

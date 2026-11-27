@@ -659,6 +659,16 @@
 						}
 					},
 					"required": ["link"]
+				},
+				"mentionedIn": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						}
+					},
+					"required": ["title"]
 				}
 			},
 			"required": [
@@ -673,7 +683,8 @@
 				"people",
 				"error",
 				"modals",
-				"editor"
+				"editor",
+				"mentionedIn"
 			]
 		},
 		"auth": {

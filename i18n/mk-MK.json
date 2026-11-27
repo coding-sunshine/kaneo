@@ -168,6 +168,9 @@
 				"apply": "Примени врска",
 				"remove": "Отстрани врска"
 			}
+		},
+		"mentionedIn": {
+			"title": "Mentioned in"
 		}
 	},
 	"auth": {

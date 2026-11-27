@@ -8664,6 +8664,13 @@
             ],
             "description": "A task's key, such as ENG-12. Null for a document."
           },
+          "projectId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The team a task belongs to. Null for a document."
+          },
           "places": {
             "type": "array",
             "items": {
@@ -8682,6 +8689,7 @@
           "id",
           "title",
           "key",
+          "projectId",
           "places"
         ]
       },

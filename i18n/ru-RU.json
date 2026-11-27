@@ -168,6 +168,9 @@
 				"apply": "Применить ссылку",
 				"remove": "Удалить ссылку"
 			}
+		},
+		"mentionedIn": {
+			"title": "Mentioned in"
 		}
 	},
 	"auth": {

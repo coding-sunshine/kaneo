@@ -11,6 +11,9 @@ const referenceSchema = z
     key: z.string().nullable().openapi({
       description: "A task's key, such as ENG-12. Null for a document.",
     }),
+    projectId: z.string().nullable().openapi({
+      description: "The team a task belongs to. Null for a document.",
+    }),
     places: z.array(z.enum(REFERENCE_PLACES)).openapi({
       description:
         "Where the source names the target: a task's `description` or `comment`, or a document's text (`document`).",

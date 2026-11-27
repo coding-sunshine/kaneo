@@ -168,6 +168,9 @@
 				"apply": "Keçidi tətbiq et",
 				"remove": "Keçidi sil"
 			}
+		},
+		"mentionedIn": {
+			"title": "Mentioned in"
 		}
 	},
 	"auth": {
