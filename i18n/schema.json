@@ -17230,6 +17230,176 @@
 						}
 					},
 					"required": ["title", "untitled", "delete", "empty", "emptyHint"]
+				},
+				"chat": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"channels": {
+							"type": "string"
+						},
+						"browse": {
+							"type": "string"
+						},
+						"directoryTitle": {
+							"type": "string"
+						},
+						"newChannel": {
+							"type": "string"
+						},
+						"createTitle": {
+							"type": "string"
+						},
+						"create": {
+							"type": "string"
+						},
+						"name": {
+							"type": "string"
+						},
+						"namePlaceholder": {
+							"type": "string"
+						},
+						"topic": {
+							"type": "string"
+						},
+						"topicPlaceholder": {
+							"type": "string"
+						},
+						"private": {
+							"type": "string"
+						},
+						"privateHint": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "string"
+						},
+						"emptyHint": {
+							"type": "string"
+						},
+						"join": {
+							"type": "string"
+						},
+						"joined": {
+							"type": "string"
+						},
+						"joinToPost": {
+							"type": "string"
+						},
+						"archived": {
+							"type": "string"
+						},
+						"archivedNotice": {
+							"type": "string"
+						},
+						"archive": {
+							"type": "string"
+						},
+						"unarchive": {
+							"type": "string"
+						},
+						"leave": {
+							"type": "string"
+						},
+						"actions": {
+							"type": "string"
+						},
+						"setTopic": {
+							"type": "string"
+						},
+						"saveTopic": {
+							"type": "string"
+						},
+						"addMember": {
+							"type": "string"
+						},
+						"addMemberTitle": {
+							"type": "string"
+						},
+						"add": {
+							"type": "string"
+						},
+						"everyoneIsIn": {
+							"type": "string"
+						},
+						"memberCount_one": {
+							"type": "string"
+						},
+						"memberCount_zero": {
+							"type": "string"
+						},
+						"memberCount_two": {
+							"type": "string"
+						},
+						"memberCount_few": {
+							"type": "string"
+						},
+						"memberCount_many": {
+							"type": "string"
+						},
+						"memberCount_other": {
+							"type": "string"
+						},
+						"notFound": {
+							"type": "string"
+						},
+						"messages": {
+							"type": "string"
+						},
+						"noMessages": {
+							"type": "string"
+						},
+						"deletedUser": {
+							"type": "string"
+						},
+						"messageLabel": {
+							"type": "string"
+						},
+						"messagePlaceholder": {
+							"type": "string"
+						},
+						"send": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"channels",
+						"browse",
+						"directoryTitle",
+						"newChannel",
+						"createTitle",
+						"create",
+						"name",
+						"namePlaceholder",
+						"topic",
+						"topicPlaceholder",
+						"private",
+						"privateHint",
+						"empty",
+						"emptyHint",
+						"join",
+						"joined",
+						"joinToPost",
+						"archived",
+						"archivedNotice",
+						"archive",
+						"unarchive",
+						"leave",
+						"actions",
+						"setTopic",
+						"saveTopic",
+						"addMember",
+						"addMemberTitle",
+						"add",
+						"everyoneIsIn",
+						"notFound",
+						"messages",
+						"noMessages",
+						"deletedUser",
+						"messageLabel",
+						"messagePlaceholder",
+						"send"
+					]
 				}
 			},
 			"required": [
@@ -17250,7 +17420,8 @@
 				"agent",
 				"loops",
 				"customizeSidebar",
-				"drafts"
+				"drafts",
+				"chat"
 			]
 		},
 		"notifications": {

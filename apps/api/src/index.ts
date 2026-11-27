@@ -73,6 +73,7 @@ import workProject from "./work-project";
 import agent from "./agent";
 import { setSelfFetch } from "./agent/self-client";
 import loop from "./loop";
+import chat from "./chat";
 import savedView from "./saved-view";
 import taskDraft from "./task-draft";
 import document from "./document";
@@ -860,6 +861,7 @@ export function createApp() {
   const teamAutomationApi = api.route("/team-automation", teamAutomation);
   const workProjectApi = api.route("/work-project", workProject);
   const savedViewApi = api.route("/view", savedView);
+  const chatApi = api.route("/chat", chat);
   const taskDraftApi = api.route("/task-draft", taskDraft);
   const agentApi = api.route("/agent", agent);
   const loopApi = api.route("/loop", loop);
@@ -1054,6 +1056,7 @@ export function createApp() {
     teamAutomationApi,
     workProjectApi,
     savedViewApi,
+    chatApi,
     taskDraftApi,
     agentApi,
     loopApi,
@@ -1207,6 +1210,7 @@ const {
   teamAutomationApi,
   workProjectApi,
   savedViewApi,
+  chatApi,
   taskDraftApi,
   agentApi,
   loopApi,
@@ -1264,6 +1268,7 @@ export type AppType =
   | typeof teamAutomationApi
   | typeof workProjectApi
   | typeof savedViewApi
+  | typeof chatApi
   | typeof taskDraftApi
   | typeof agentApi
   | typeof loopApi
