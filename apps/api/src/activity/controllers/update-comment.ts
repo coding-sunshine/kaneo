@@ -5,6 +5,10 @@ import { activityTable, taskTable } from "../../database/schema";
 import { publishEvent } from "../../events";
 import { deleteOrphanedAssets } from "../../storage/cleanup-assets";
 import { mentionsDocument } from "../../task-document/find-links";
+import {
+  mayReference,
+  syncTaskCommentReferences,
+} from "../../reference/sync-references";
 import { syncTaskCommentLinks } from "../../task-document/sync-links";
 
 async function updateComment(userId: string, id: string, content: string) {
@@ -50,6 +54,8 @@ async function updateComment(userId: string, id: string, content: string) {
 
   if (mentionsDocument(existing.content) || mentionsDocument(content))
     await syncTaskCommentLinks(db, updated.taskId, userId);
+  if (mayReference(existing.content) || mayReference(content))
+    await syncTaskCommentReferences(db, updated.taskId);
 
   const [task] = await db
     .select({ projectId: taskTable.projectId })

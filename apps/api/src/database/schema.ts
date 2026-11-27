@@ -2973,6 +2973,77 @@ export const taskDocumentTable = pgTable(
   ],
 );
 
+export const REFERENCE_PLACES = ["description", "comment", "document"] as const;
+export type ReferencePlace = (typeof REFERENCE_PLACES)[number];
+
+// Where a ticket's or a document's text names a ticket, a document or a team,
+// by address or by a typed key. One row per place in the source, kept right on
+// every save of that place. A row lets nobody into anything.
+export const referenceTable = pgTable(
+  "reference",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    // Exactly one source and one target is set.
+    sourceTaskId: text("source_task_id").references(() => taskTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    sourceDocumentId: text("source_document_id").references(
+      () => documentTable.id,
+      { onDelete: "cascade", onUpdate: "cascade" },
+    ),
+    place: text("place").$type<ReferencePlace>().notNull(),
+    targetTaskId: text("target_task_id").references(() => taskTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    targetDocumentId: text("target_document_id").references(
+      () => documentTable.id,
+      { onDelete: "cascade", onUpdate: "cascade" },
+    ),
+    targetProjectId: text("target_project_id").references(
+      () => projectTable.id,
+      { onDelete: "cascade", onUpdate: "cascade" },
+    ),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    unique("reference_uidx")
+      .on(
+        table.sourceTaskId,
+        table.sourceDocumentId,
+        table.place,
+        table.targetTaskId,
+        table.targetDocumentId,
+        table.targetProjectId,
+      )
+      .nullsNotDistinct(),
+    check(
+      "reference_one_source",
+      sql`num_nonnulls(${table.sourceTaskId}, ${table.sourceDocumentId}) = 1`,
+    ),
+    check(
+      "reference_one_target",
+      sql`num_nonnulls(${table.targetTaskId}, ${table.targetDocumentId}, ${table.targetProjectId}) = 1`,
+    ),
+    // The unique index above leads with the source ticket.
+    index("reference_source_document_idx").on(table.sourceDocumentId),
+    index("reference_target_task_idx").on(table.targetTaskId),
+    index("reference_target_document_idx").on(table.targetDocumentId),
+    index("reference_target_project_idx").on(table.targetProjectId),
+  ],
+);
+
 export const documentSubscriberTable = pgTable(
   "document_subscriber",
   {

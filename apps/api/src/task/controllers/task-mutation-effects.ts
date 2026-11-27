@@ -10,6 +10,10 @@ import { publishEvent } from "../../events";
 import createNotification from "../../notification/controllers/create-notification";
 import { deleteOrphanedAssets } from "../../storage/cleanup-assets";
 import { mentionsDocument } from "../../task-document/find-links";
+import {
+  mayReference,
+  syncTaskDescriptionReferences,
+} from "../../reference/sync-references";
 import { syncTaskDescriptionLinks } from "../../task-document/sync-links";
 import { getSubtaskParentProjects } from "../get-subtask-parent-projects";
 import { parseMentionIds } from "../../utils/parse-mentions";
@@ -166,6 +170,8 @@ export async function publishTaskMutation(
         userId ?? null,
         after.description ?? null,
       );
+    if (mayReference(before.description) || mayReference(after.description))
+      await syncTaskDescriptionReferences(db, after.id, after.description);
     await publishEvent("task.description_changed", {
       ...common,
       oldDescription: before.description,

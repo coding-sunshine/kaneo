@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import {
   findDocumentIds,
+  findProjectIds,
   findTaskReferences,
   mentionsDocument,
 } from "./find-links";
@@ -72,5 +73,28 @@ describe("findTaskReferences", () => {
         '<p class="mt-4" data-row="ENG-9">ENG-1234567890 /task/ENG-1234567890</p>',
       ),
     ).toEqual({ ids: [], keys: [] });
+  });
+});
+
+describe("findProjectIds", () => {
+  const team = (workspace: string, id: string, rest = "") =>
+    `https://tracker.example/dashboard/workspace/${workspace}/project/${id}${rest}`;
+
+  it("reads team addresses of the workspace, each once", () => {
+    const text = [
+      `<a href="${team("ws-1", "abc123", "/board")}">board</a>`,
+      team("ws-1", "abc123", "/list?view=1"),
+      team("ws-1", "def456"),
+      team("ws-2", "other1", "/board"),
+    ].join(" ");
+
+    expect(findProjectIds(text, "ws-1")).toEqual(["abc123", "def456"]);
+    expect(findProjectIds(text, "ws-2")).toEqual(["other1"]);
+  });
+
+  it("does not read the team out of a ticket address", () => {
+    expect(
+      findProjectIds(team("ws-1", "abc123", "/task/xyz789"), "ws-1"),
+    ).toEqual([]);
   });
 });

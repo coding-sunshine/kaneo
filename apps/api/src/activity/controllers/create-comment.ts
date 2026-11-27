@@ -13,6 +13,10 @@ import createNotification from "../../notification/controllers/create-notificati
 import { commentPreview } from "../../utils/comment-preview";
 import { subscribeUsers } from "../../task/controllers/task-subscribers";
 import { mentionsDocument } from "../../task-document/find-links";
+import {
+  mayReference,
+  syncTaskCommentReferences,
+} from "../../reference/sync-references";
 import { syncTaskCommentLinks } from "../../task-document/sync-links";
 import { parseMentionIds } from "../../utils/parse-mentions";
 import {
@@ -110,6 +114,7 @@ async function createComment(
 
   if (!external) await subscribeUsers(db, taskId, [userId]);
   if (mentionsDocument(content)) await syncTaskCommentLinks(db, taskId, userId);
+  if (mayReference(content)) await syncTaskCommentReferences(db, taskId);
 
   const [user] = await db
     .select({ name: userTable.name })

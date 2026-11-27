@@ -35,6 +35,10 @@ import { claimTaskNumber } from "./claim-task-numbers";
 import { findSourceComment } from "./find-source-comment";
 import { nextTaskPosition } from "./next-task-position";
 import { mentionsDocument } from "../../task-document/find-links";
+import {
+  mayReference,
+  syncTaskDescriptionReferences,
+} from "../../reference/sync-references";
 import { syncTaskDescriptionLinks } from "../../task-document/sync-links";
 import { getTopic } from "../../topic/controllers/get-topic";
 import { subscribeUsers } from "./task-subscribers";
@@ -238,6 +242,8 @@ async function createTask({
         currentUserId,
         task.description,
       );
+    if (task && mayReference(task.description))
+      await syncTaskDescriptionReferences(tx, task.id, task.description);
 
     if (task && draftAssetIds?.length) {
       const referenced = extractAssetIds(description);

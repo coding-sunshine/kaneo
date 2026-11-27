@@ -8626,6 +8626,69 @@
           "assigneeName"
         ]
       },
+      "ReferenceList": {
+        "type": "object",
+        "properties": {
+          "references": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Reference"
+            }
+          }
+        },
+        "required": [
+          "references"
+        ]
+      },
+      "Reference": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "task",
+              "document"
+            ],
+            "description": "Whether the source is a task or a document."
+          },
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The source's title. Null when the caller cannot open the source."
+          },
+          "key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A task's key, such as ENG-12. Null for a document, or when the caller cannot open the task."
+          },
+          "places": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "description",
+                "comment",
+                "document"
+              ]
+            },
+            "description": "Where the source names the target: a task's `description` or `comment`, or a document's text (`document`)."
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "title",
+          "key",
+          "places"
+        ]
+      },
       "CreatedExternalLink": {
         "type": "object",
         "properties": {
@@ -45611,6 +45674,209 @@
           },
           "404": {
             "description": "Task relation not found, or its source task is gone",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/reference/task/{taskId}": {
+      "get": {
+        "operationId": "getTaskReferences",
+        "tags": [
+          "References"
+        ],
+        "summary": "Get a task's references",
+        "description": "List the tasks and documents whose text links to the task or types its key. Each source is listed once with the places it names the target in. A source the caller cannot open is listed without its title or key.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "taskId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tasks and documents whose text names the target, each once",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing task:read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/reference/project/{projectId}": {
+      "get": {
+        "operationId": "getProjectReferences",
+        "tags": [
+          "References"
+        ],
+        "summary": "Get a project's references",
+        "description": "List the tasks and documents whose text links to the project. Each source is listed once with the places it names the target in. A source the caller cannot open is listed without its title or key.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tasks and documents whose text names the target, each once",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing task:read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/reference/workspace/{workspaceId}/document/{documentId}": {
+      "get": {
+        "operationId": "getDocumentReferences",
+        "tags": [
+          "References"
+        ],
+        "summary": "Get a document's references",
+        "description": "List the tasks and documents whose text links to the document. Each source is listed once with the places it names the target in. A source the caller cannot open is listed without its title or key.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "documentId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tasks and documents whose text names the target, each once",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
             "content": {
               "application/json": {
                 "schema": {

@@ -1,4 +1,4 @@
-import { and, eq, inArray, like, notInArray, or } from "drizzle-orm";
+import { and, eq, inArray, like, notInArray } from "drizzle-orm";
 import type db from "../database";
 import {
   activityTable,
@@ -8,8 +8,8 @@ import {
   taskDocumentTable,
   taskTable,
 } from "../database/schema";
-import { isSameProjectKey } from "../project/project-key";
 import { findDocumentIds, findTaskReferences } from "./find-links";
+import { resolveTaskReferences } from "./resolve-tasks";
 
 type Database = Pick<typeof db, "select" | "insert" | "delete">;
 
@@ -137,48 +137,16 @@ export async function syncDocumentTaskLinks(
   userId: string | null,
   content: string,
 ) {
-  const { ids, keys } = findTaskReferences(content);
-  const projects = keys.length
-    ? await database
-        .select({ id: projectTable.id, slug: projectTable.slug })
-        .from(projectTable)
-        .where(eq(projectTable.workspaceId, document.workspaceId))
-    : [];
-  const numbered = keys.flatMap(({ key, number }) => {
-    const named = projects.filter((project) =>
-      isSameProjectKey(project.slug, key),
-    );
-    // A key two teams answer to names neither.
-    return named.length === 1 && named[0]
-      ? [
-          and(
-            eq(taskTable.projectId, named[0].id),
-            eq(taskTable.number, number),
-          ),
-        ]
-      : [];
-  });
-  const tasks =
-    ids.length || numbered.length
-      ? await database
-          .select({ id: taskTable.id })
-          .from(taskTable)
-          .innerJoin(projectTable, eq(projectTable.id, taskTable.projectId))
-          .where(
-            and(
-              eq(projectTable.workspaceId, document.workspaceId),
-              or(
-                ids.length ? inArray(taskTable.id, ids) : undefined,
-                ...numbered,
-              ),
-            ),
-          )
-      : [];
+  const tasks = await resolveTaskReferences(
+    database,
+    document.workspaceId,
+    findTaskReferences(content),
+  );
   await reconcile(
     database,
     "document",
     { documentId: document.id },
-    tasks.map((task) => task.id),
+    tasks,
     userId,
   );
 }
