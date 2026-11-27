@@ -47,6 +47,7 @@ type MyTasksListProps = {
   total: number;
   groupBy: MyTasksGroupBy;
   activity?: boolean;
+  review?: boolean;
   workspaceId: string;
   layout?: MyTasksLayout;
 };
@@ -56,6 +57,7 @@ export function MyTasksList({
   total,
   groupBy,
   activity = false,
+  review = false,
   workspaceId,
   layout = "list",
 }: MyTasksListProps) {
@@ -139,6 +141,7 @@ export function MyTasksList({
                   workspaceId={workspaceId}
                   showLabels
                   showActivity={activity}
+                  showReview={review}
                 />
               ),
             )}

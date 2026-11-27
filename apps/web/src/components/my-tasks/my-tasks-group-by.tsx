@@ -109,29 +109,29 @@ export function MyTasksTabs({
   const { t } = useTranslation();
   return (
     <div role="tablist" className="inline-flex items-center gap-1.5">
-      {(["assigned", "created", "subscribed", "activity"] as const).map(
-        (tab) => (
-          <Button
-            key={tab}
-            role="tab"
-            aria-selected={value === tab}
-            variant="outline"
-            size="xs"
-            onClick={() => onChange(tab)}
-            className={cn(
-              "rounded-full",
-              value === tab
-                ? "bg-accent text-foreground"
-                : "text-muted-foreground",
-            )}
-          >
-            {t(
-              `workspace:myTasks.tabs.${tab}`,
-              tab[0].toUpperCase() + tab.slice(1),
-            )}
-          </Button>
-        ),
-      )}
+      {(
+        ["assigned", "created", "subscribed", "activity", "review"] as const
+      ).map((tab) => (
+        <Button
+          key={tab}
+          role="tab"
+          aria-selected={value === tab}
+          variant="outline"
+          size="xs"
+          onClick={() => onChange(tab)}
+          className={cn(
+            "rounded-full",
+            value === tab
+              ? "bg-accent text-foreground"
+              : "text-muted-foreground",
+          )}
+        >
+          {t(
+            `workspace:myTasks.tabs.${tab}`,
+            tab[0].toUpperCase() + tab.slice(1),
+          )}
+        </Button>
+      ))}
     </div>
   );
 }

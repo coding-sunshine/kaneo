@@ -9,7 +9,12 @@ export type AssignedTasks = InferResponseType<
 
 export type AssignedTask = AssignedTasks["tasks"][number];
 
-export type MyTasksTab = "assigned" | "created" | "subscribed" | "activity";
+export type MyTasksTab =
+  | "assigned"
+  | "created"
+  | "subscribed"
+  | "activity"
+  | "review";
 
 async function getAssignedTasks(
   workspaceId: string,

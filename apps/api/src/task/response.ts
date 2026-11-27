@@ -376,6 +376,14 @@ export const assignedTasksSchema = z
               "The caller's latest activity on the task. Set on the activity tab only.",
           }),
           lastActivityType: z.string().nullable(),
+          reviewRequestedAt: nullableResponseTimestamp.openapi({
+            description:
+              "When the caller was asked to review the task's design. Set on the review tab only.",
+          }),
+          reviewSlaDueAt: nullableResponseTimestamp.openapi({
+            description:
+              "When the caller's design review is due: two days after the request. Set on the review tab only.",
+          }),
           workProjectId: z.string().nullable(),
           workProjectMilestoneId: z.string().nullable(),
           projectName: z.string(),

@@ -923,7 +923,15 @@
 				"confirm": "Transfer kepemilikan"
 			},
 			"ownershipSubtitle": "Hanya pemilik yang dapat melihat ini.",
-			"ownershipTitle": "Kepemilikan"
+			"ownershipTitle": "Kepemilikan",
+			"export": {
+				"button": "Export workspace",
+				"description": "Download a zip of tickets, documents, channel messages and members, as JSON and Markdown. It holds what you can open in Kaneo.",
+				"failed": "Could not export the workspace",
+				"pending": "Exporting…",
+				"rowTitle": "Workspace data",
+				"title": "Export"
+			}
 		},
 		"projectGeneral": {
 			"pageTitle": "Pengaturan Proyek",
@@ -4324,6 +4332,12 @@
 				"empty": "No pages yet",
 				"expand": "Show pages inside",
 				"title": "Pages"
+			},
+			"export": {
+				"failed": "Could not export the document",
+				"label": "Export",
+				"markdown": "Markdown",
+				"pdf": "PDF"
 			}
 		},
 		"drafts": {
@@ -5741,6 +5755,20 @@
 			"sources": "Based on",
 			"title": "Summary",
 			"working": "Summarising…"
+		},
+		"designReview": {
+			"approve": "Approve",
+			"approved": "Approved",
+			"approveError": "Could not approve the design review.",
+			"request": "Request design review",
+			"requestError": "Could not request the design review.",
+			"reviewer": "Reviewer",
+			"reviewerPlaceholder": "Choose a reviewer...",
+			"title": "Design review",
+			"unknownReviewer": "Former member",
+			"waitingTitle": "Waiting for {{age}}",
+			"withdraw": "Withdraw the review request from {{name}}",
+			"withdrawError": "Could not withdraw the design review request."
 		}
 	},
 	"invitations": {
@@ -5889,8 +5917,10 @@
 			"tabs": {
 				"assigned": "Assigned",
 				"created": "Created",
-				"subscribed": "Subscribed"
-			}
+				"subscribed": "Subscribed",
+				"review": "Needs my review"
+			},
+			"reviewEmptyDescription": "Issues someone asked you to review show up here, oldest request first."
 		},
 		"myWork": {
 			"due": {

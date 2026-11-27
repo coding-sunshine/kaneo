@@ -40,6 +40,7 @@ import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import { useGetWorkProjects } from "@/hooks/queries/work-project/use-get-work-projects";
 import { toast } from "@/lib/toast";
 import { DeletePageDialog } from "./delete-page-dialog";
+import { DocumentExportMenu } from "./document-export-menu";
 import { type MoveLocation, MoveDocumentDialog } from "./move-document-dialog";
 import { useCopyDocumentLink } from "./use-copy-document-link";
 import { useDocumentPins } from "./use-document-pins";
@@ -258,6 +259,11 @@ export function DocumentOptionsMenu({
               {t("navigation:documents.templates.saveAs")}
             </MenuItem>
           )}
+          <DocumentExportMenu
+            workspaceId={workspaceId}
+            id={id}
+            title={document.title}
+          />
           <MenuItem onClick={onToggleHistory}>
             <Clock aria-hidden />
             {historyOpen

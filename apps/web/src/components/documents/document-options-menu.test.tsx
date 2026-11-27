@@ -14,6 +14,8 @@ const mocks = vi.hoisted(() => ({
   getFavorites: vi.fn(),
   setFavorite: vi.fn(),
   saveDocumentTemplate: vi.fn(),
+  exportDocument: vi.fn(),
+  downloadBlob: vi.fn(),
 }));
 
 vi.mock("react-i18next", () => ({
@@ -28,6 +30,10 @@ vi.mock("@/fetchers/favorite", () => ({
 vi.mock("@/fetchers/document/templates", () => ({
   saveDocumentTemplate: mocks.saveDocumentTemplate,
 }));
+vi.mock("@/fetchers/document/export-document", () => ({
+  exportDocument: mocks.exportDocument,
+}));
+vi.mock("@/lib/download-blob", () => ({ downloadBlob: mocks.downloadBlob }));
 vi.mock("@/lib/toast", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
@@ -50,6 +56,7 @@ vi.mock("@/hooks/mutations/document/use-document-mutations", () => ({
 const document = {
   id: "d1",
   workspaceId: "ws",
+  title: "Release: plan",
   role: "view",
   scope: "workspace",
 } as unknown as DocumentDetail;
@@ -191,4 +198,29 @@ describe("DocumentOptionsMenu delete", () => {
       await screen.findByText("navigation:documents.pageTree.delete.title"),
     ).toBeTruthy();
   });
+});
+
+describe("DocumentOptionsMenu export", () => {
+  it.each([
+    ["markdown", "navigation:documents.export.markdown", "Release- plan.md"],
+    ["pdf", "navigation:documents.export.pdf", "Release- plan.pdf"],
+  ])(
+    "downloads the page as %s, also for a reader",
+    async (format, item, name) => {
+      mocks.getFavorites.mockResolvedValue([]);
+      const file = new Blob(["# Release: plan"]);
+      mocks.exportDocument.mockResolvedValue(file);
+      openMenu();
+      fireEvent.click(
+        await screen.findByRole("menuitem", {
+          name: "navigation:documents.export.label",
+        }),
+      );
+      fireEvent.click(await screen.findByRole("menuitem", { name: item }));
+      await waitFor(() =>
+        expect(mocks.downloadBlob).toHaveBeenCalledWith(file, name),
+      );
+      expect(mocks.exportDocument).toHaveBeenCalledWith("ws", "d1", format);
+    },
+  );
 });

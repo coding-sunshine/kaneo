@@ -1342,6 +1342,14 @@
 			"descriptionLabel": "Description",
 			"descriptionPlaceholder": "What does your team work on?",
 			"dangerZone": "Danger zone",
+			"export": {
+				"title": "Export",
+				"rowTitle": "Workspace data",
+				"description": "Download a zip of tickets, documents, channel messages and members, as JSON and Markdown. It holds what you can open in Kaneo.",
+				"button": "Export workspace",
+				"pending": "Exporting…",
+				"failed": "Could not export the workspace"
+			},
 			"deleteWorkspace": "Delete workspace",
 			"deleteWorkspaceDescription": "Permanently deletes {{name}}, its projects, and issues.",
 			"deleteModalTitle": "Delete workspace?",
@@ -3789,6 +3797,12 @@
 			"moveTo": "Move to",
 			"rename": "Rename…",
 			"shareMenu": "Share…",
+			"export": {
+				"label": "Export",
+				"markdown": "Markdown",
+				"pdf": "PDF",
+				"failed": "Could not export the document"
+			},
 			"copyLink": "Copy link",
 			"copyUrl": "Copy document URL",
 			"linkCopied": "Document URL copied to clipboard",
@@ -5849,6 +5863,20 @@
 			"label": "SLA",
 			"ageTitle": "Open for {{age}}",
 			"none": "No SLA"
+		},
+		"designReview": {
+			"title": "Design review",
+			"request": "Request design review",
+			"reviewer": "Reviewer",
+			"reviewerPlaceholder": "Choose a reviewer...",
+			"approve": "Approve",
+			"approved": "Approved",
+			"withdraw": "Withdraw the review request from {{name}}",
+			"waitingTitle": "Waiting for {{age}}",
+			"unknownReviewer": "Former member",
+			"requestError": "Could not request the design review.",
+			"approveError": "Could not approve the design review.",
+			"withdrawError": "Could not withdraw the design review request."
 		}
 	},
 	"invitations": {
@@ -6453,10 +6481,12 @@
 		"myTasks": {
 			"pageTitle": "My issues",
 			"emptyDescription": "Issues assigned to you across this workspace show up here.",
+			"reviewEmptyDescription": "Issues someone asked you to review show up here, oldest request first.",
 			"tabs": {
 				"assigned": "Assigned",
 				"created": "Created",
-				"subscribed": "Subscribed"
+				"subscribed": "Subscribed",
+				"review": "Needs my review"
 			},
 			"groupBy": {
 				"label": "Group by",

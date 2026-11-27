@@ -21,6 +21,9 @@ const m = vi.hoisted(() => ({
   error: vi.fn(),
   isOwner: true,
   canDelete: true,
+  canManage: true,
+  exportWorkspace: vi.fn(),
+  downloadBlob: vi.fn(),
   members: [] as Array<{
     id: string;
     role: string;
@@ -52,6 +55,7 @@ vi.mock("@/hooks/use-workspace-permission", () => ({
   useWorkspacePermission: () => ({
     canManageWorkspace: () => true,
     canDeleteWorkspace: () => m.canDelete,
+    canManageSettings: () => m.canManage,
     isOwner: m.isOwner,
   }),
 }));
@@ -64,6 +68,10 @@ vi.mock("@/hooks/mutations/workspace/use-delete-workspace", () => ({
 vi.mock("@/hooks/mutations/workspace/use-transfer-workspace-ownership", () => ({
   default: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
+vi.mock("@/fetchers/workspace/export-workspace", () => ({
+  exportWorkspace: m.exportWorkspace,
+}));
+vi.mock("@/lib/download-blob", () => ({ downloadBlob: m.downloadBlob }));
 vi.mock("@/lib/toast", () => ({
   toast: { success: m.success, error: m.error },
 }));
@@ -83,6 +91,7 @@ describe("WorkspaceGeneralPage", () => {
     m.update.mockResolvedValue(undefined);
     m.isOwner = true;
     m.canDelete = true;
+    m.canManage = true;
     m.members = [owner];
   });
 
@@ -112,6 +121,34 @@ describe("WorkspaceGeneralPage", () => {
     ).toBeNull();
     expect(
       screen.queryByText("settings:workspaceGeneral.dangerZone"),
+    ).toBeNull();
+  });
+
+  it("downloads the workspace export as a zip for an admin", async () => {
+    const zip = new Blob(["zip"]);
+    m.exportWorkspace.mockResolvedValue(zip);
+    render(<WorkspaceGeneralPage />);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "settings:workspaceGeneral.export.button",
+      }),
+    );
+
+    await waitFor(() =>
+      expect(m.downloadBlob).toHaveBeenCalledWith(zip, "Studio export.zip"),
+    );
+    expect(m.exportWorkspace).toHaveBeenCalledWith("w1");
+  });
+
+  it("does not offer the export to people who cannot manage settings", () => {
+    m.canManage = false;
+    render(<WorkspaceGeneralPage />);
+
+    expect(
+      screen.queryByRole("button", {
+        name: "settings:workspaceGeneral.export.button",
+      }),
     ).toBeNull();
   });
 
