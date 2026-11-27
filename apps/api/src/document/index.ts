@@ -16,7 +16,11 @@ import {
   updateComment,
 } from "./controllers/comments";
 import { createDocument } from "./controllers/create-document";
-import { deleteDocument, restoreDocument } from "./controllers/delete-document";
+import {
+  deleteDocument,
+  purgeDocument,
+  restoreDocument,
+} from "./controllers/delete-document";
 import { documentAudience } from "./controllers/document-audience";
 import { documentUsage } from "./controllers/document-usage";
 import { getDocument } from "./controllers/get-document";
@@ -472,6 +476,26 @@ const deleteRoute = createRoute({
     200: jsonResponse("Document deleted", idSchema),
     403: noAccess,
     404: notFound,
+  },
+});
+
+const purgeRoute = createRoute({
+  method: "delete",
+  operationId: "purgeDocument",
+  path: `${one}/permanent`,
+  tags,
+  summary: "Delete document permanently",
+  description:
+    "Permanently delete a document in the trash and queue its uploaded files for storage cleanup.",
+  middleware: [...write] as const,
+  request: { params: documentParam },
+  responses: {
+    200: jsonResponse("Document permanently deleted", idSchema),
+    403: noAccess,
+    404: notFound,
+    409: errorResponse(
+      "This is the current document on its topic. Make another one current first.",
+    ),
   },
 });
 
@@ -983,6 +1007,10 @@ const document = apiRouter()
   .openapi(deleteRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");
     return c.json(await deleteDocument(workspaceId, id, c.get("userId")), 200);
+  })
+  .openapi(purgeRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(await purgeDocument(workspaceId, id, c.get("userId")), 200);
   })
   .openapi(restoreRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");

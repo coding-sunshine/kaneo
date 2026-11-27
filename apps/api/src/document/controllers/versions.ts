@@ -10,6 +10,7 @@ import { fingerprint } from "../fingerprint";
 import { syncDocumentReferences } from "../../reference/sync-references";
 import { syncDocumentTaskLinks } from "../../task-document/sync-links";
 import { assertNotSuperseded } from "./assert-not-superseded";
+import { cleanupUnlinkedDocumentFiles } from "./cleanup-document-files";
 import { getDocument } from "./get-document";
 import { proposeLineage } from "./lineage";
 import { loadDocument } from "./load-document";
@@ -72,6 +73,9 @@ export async function restoreVersion(
     .where(eq(documentTable.id, id));
   // A restore is its own history entry, never folded into the last edit.
   await recordVersion(id, userId, version, { fold: false });
+  if (version.content !== doc.content) {
+    await cleanupUnlinkedDocumentFiles(id, doc.content, version.content);
+  }
   await proposeLineage(doc, prints, userId);
   await syncDocumentTaskLinks(db, doc, userId, version.content);
   await syncDocumentReferences(db, doc.id, version.content);

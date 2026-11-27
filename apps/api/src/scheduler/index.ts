@@ -1,4 +1,5 @@
 import { retryStorageCleanup } from "../storage/cleanup-queue";
+import { purgeTrashedDocuments } from "./document-trash-cleanup";
 import { cleanupDraftUploads } from "./draft-upload-cleanup";
 import { replayDeferredIssueEdits } from "../plugins/github/services/deferred-issue-edits";
 import { replayDeferredLabelFields } from "../plugins/sync/replay-deferred-label-fields";
@@ -90,6 +91,13 @@ export function initializeScheduler(): void {
       "31 * * * *",
       { protect: true },
       withCheckIn("draft-upload-cleanup", cleanupDraftUploads),
+    ),
+  );
+  jobs.push(
+    new Cron(
+      "43 3 * * *",
+      { protect: true },
+      withCheckIn("document-trash-cleanup", purgeTrashedDocuments),
     ),
   );
   jobs.push(

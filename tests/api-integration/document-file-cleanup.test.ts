@@ -1,8 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { auth } from "../../apps/api/src/auth";
 import db, { schema } from "../../apps/api/src/database";
 import deleteProject from "../../apps/api/src/project/controllers/delete-project";
+import { purgeTrashedDocuments } from "../../apps/api/src/scheduler/document-trash-cleanup";
 import { cleanupDraftUploads } from "../../apps/api/src/scheduler/draft-upload-cleanup";
 import { retryStorageCleanup } from "../../apps/api/src/storage/cleanup-queue";
 import deleteTask from "../../apps/api/src/task/controllers/delete-task";
@@ -10,6 +12,7 @@ import updateTaskDescription from "../../apps/api/src/task/controllers/update-ta
 import { deleteWorkProject } from "../../apps/api/src/work-project/controllers/work-project-crud";
 import { deleteWorkspaceData } from "../../apps/api/src/workspace/lifecycle/delete-workspace-data";
 import { listWorkspaceObjectKeys } from "../../apps/api/src/workspace/lifecycle/list-workspace-object-keys";
+import { mockAnonymousSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
 import {
   buildDocumentWorld,
@@ -166,5 +169,144 @@ describe("API integration: cleaning up a document's files from storage", () => {
     expect(await assetRow(file.id)).toBeDefined();
     expect(await queuedKeys()).toEqual([]);
     expect(m.deleteS3Object).not.toHaveBeenCalled();
+  });
+
+  it("queues a document's file when it is unlinked from the document text", async () => {
+    const removed = await fileOf(world.docs.teamAlpha);
+    const kept = await fileOf(world.docs.teamAlpha);
+    const commented = await fileOf(world.docs.teamAlpha);
+    const foreign = await fileOf(world.docs.private);
+    const path = `/document/workspace/${world.ws}/${world.docs.teamAlpha}`;
+
+    const initial = await world.as(world.owner)(
+      path,
+      json("PATCH", {
+        content: `<p>/api/asset/${removed.id} /api/asset/${kept.id} /api/asset/${commented.id} /api/asset/${foreign.id}</p>`,
+      }),
+    );
+    expect(initial.status).toBe(200);
+
+    await db.insert(schema.documentCommentTable).values({
+      documentId: world.docs.teamAlpha,
+      userId: world.owner.id,
+      content: `<p>still using /api/asset/${commented.id}</p>`,
+    });
+
+    const unlinked = await world.as(world.owner)(
+      path,
+      json("PATCH", {
+        content: `<p>only /api/asset/${kept.id}</p>`,
+      }),
+    );
+    expect(unlinked.status).toBe(200);
+
+    expect(await assetRow(removed.id)).toBeUndefined();
+    expect(await assetRow(kept.id)).toBeDefined();
+    expect(await assetRow(commented.id)).toBeDefined();
+    expect(await assetRow(foreign.id)).toBeDefined();
+    expect(await queuedKeys()).toEqual([removed.objectKey]);
+  });
+
+  it("queues the file when a trashed document is deleted for good", async () => {
+    const file = await fileOf(world.docs.teamAlpha);
+    const path = `/document/workspace/${world.ws}/${world.docs.teamAlpha}`;
+
+    // Must be in the trash first.
+    const beforeTrash = await world.as(world.owner)(
+      `${path}/permanent`,
+      json("DELETE"),
+    );
+    expect(beforeTrash.status).toBe(404);
+    expect(await assetRow(file.id)).toBeDefined();
+
+    const trashed = await world.as(world.owner)(path, json("DELETE"));
+    expect(trashed.status).toBe(200);
+
+    const purged = await world.as(world.owner)(
+      `${path}/permanent`,
+      json("DELETE"),
+    );
+    expect(purged.status).toBe(200);
+    expect(await assetRow(file.id)).toBeUndefined();
+    expect(await queuedKeys()).toEqual([file.objectKey]);
+  });
+
+  it("enforces access rules on permanent document deletion", async () => {
+    const trash = async (docId: string) => {
+      const res = await world.as(world.owner)(
+        `/document/workspace/${world.ws}/${docId}`,
+        json("DELETE"),
+      );
+      expect(res.status).toBe(200);
+    };
+    const permanentPath = (docId: string) =>
+      `/document/workspace/${world.ws}/${docId}/permanent`;
+
+    await trash(world.docs.sharedInBeta);
+    await trash(world.docs.private);
+
+    // Viewer gets 403.
+    const viewerRes = await world.as(world.limited)(
+      permanentPath(world.docs.sharedInBeta),
+      json("DELETE"),
+    );
+    expect(viewerRes.status).toBe(403);
+
+    // Member who cannot open the document gets 404 matching unknown id.
+    const hidden = await world.as(world.open)(
+      permanentPath(world.docs.private),
+      json("DELETE"),
+    );
+    const unknown = await world.as(world.open)(
+      permanentPath("no-such-doc"),
+      json("DELETE"),
+    );
+    expect(hidden.status).toBe(404);
+    expect(await hidden.json()).toEqual(await unknown.json());
+
+    // Anonymous gets 401.
+    const asOwner = world.as(world.owner);
+    mockAnonymousSession();
+    const anon = await asOwner(
+      permanentPath(world.docs.private),
+      json("DELETE"),
+    );
+    expect(anon.status).toBe(401);
+
+    // Read-only API key gets 403.
+    const { key } = await auth.api.createApiKey({
+      body: {
+        userId: world.owner.id,
+        name: "Read only doc purge",
+        permissions: { task: ["read"] },
+      },
+    });
+    const reqWithKey = world.as(world.owner);
+    mockAnonymousSession();
+    const keyRes = await reqWithKey(permanentPath(world.docs.private), {
+      ...json("DELETE"),
+      headers: { "content-type": "application/json", "x-api-key": key },
+    } as never);
+    expect(keyRes.status).toBe(403);
+  });
+
+  it("purges old trashed documents and queues their files, while keeping recent trash", async () => {
+    const oldFile = await fileOf(world.docs.teamAlpha);
+    const recentFile = await fileOf(world.docs.private);
+
+    await db
+      .update(schema.documentTable)
+      .set({ deletedAt: new Date(Date.now() - 31 * 24 * 60 * 60 * 1000) })
+      .where(eq(schema.documentTable.id, world.docs.teamAlpha));
+    await db
+      .update(schema.documentTable)
+      .set({ deletedAt: new Date(Date.now() - 24 * 60 * 60 * 1000) })
+      .where(eq(schema.documentTable.id, world.docs.private));
+
+    await purgeTrashedDocuments();
+
+    expect(await assetRow(oldFile.id)).toBeUndefined();
+    expect(await assetRow(recentFile.id)).toBeDefined();
+    expect(await queuedKeys()).toEqual([oldFile.objectKey]);
   });
 });
