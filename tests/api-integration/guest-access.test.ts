@@ -1,17 +1,26 @@
+import { once } from "node:events";
 import { readFileSync } from "node:fs";
+import type { IncomingMessage } from "node:http";
+import { createRequire } from "node:module";
 import { defaultRolePayloads } from "@kaneo/permissions";
 import { and, eq } from "drizzle-orm";
-import { beforeEach, describe, expect, it } from "vite-plus/test";
+import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
+import { serve } from "../../apps/api/node_modules/@hono/node-server";
 import db, { schema } from "../../apps/api/src/database";
 import {
   chatChannelMemberTable,
   chatChannelTable,
   chatMessageTable,
+  referenceTable,
   savedViewTable,
   topicTable,
 } from "../../apps/api/src/database/schema";
 import { markInternalRequest } from "../../apps/api/src/agent/internal-auth";
 import { createApp } from "../../apps/api/src/index";
+import {
+  initializeWebSocketAdapter,
+  shutdownWebSocketAdapter,
+} from "../../apps/api/src/ws";
 import { signUpWithSession } from "./helpers/auth-session";
 import { resetTestDatabase } from "./helpers/database";
 import { createProjectFixture } from "./helpers/fixtures";
@@ -117,6 +126,57 @@ async function setUp() {
     userId: owner.userId,
     content: "Canary comment on salaries",
   });
+  const [label] = await db
+    .insert(schema.labelTable)
+    .values({
+      name: "Canary label",
+      color: "#ff0000",
+      taskId: qTask.id,
+      workspaceId,
+      projectId: q.project.id,
+    })
+    .returning();
+  const [cycle] = await db
+    .insert(schema.cycleTable)
+    .values({
+      projectId: q.project.id,
+      number: 1,
+      name: "Canary sprint",
+      startsAt: new Date(),
+      endsAt: new Date(Date.now() + 7 * 86_400_000),
+    })
+    .returning();
+  const [timeEntry] = await db
+    .insert(schema.timeEntryTable)
+    .values({
+      taskId: qTask.id,
+      userId: owner.userId,
+      description: "Canary hours",
+      startTime: new Date(),
+    })
+    .returning();
+  const [asset] = await db
+    .insert(schema.assetTable)
+    .values({
+      workspaceId,
+      projectId: q.project.id,
+      taskId: qTask.id,
+      objectKey: "canary-object",
+      filename: "canary.png",
+      mimeType: "image/png",
+      size: 3,
+      surface: "description",
+      createdBy: owner.userId,
+    })
+    .returning();
+  const [chat] = await db
+    .insert(schema.agentChatTable)
+    .values({ workspaceId, userId: owner.userId, title: "Canary chat" })
+    .returning();
+  const [run] = await db
+    .insert(schema.loopRunTable)
+    .values({ loopId: loop.id, trigger: "manual", status: "succeeded" })
+    .returning();
 
   const [x] = await db
     .insert(chatChannelTable)
@@ -165,6 +225,34 @@ async function setUp() {
     body: { organizationId: workspaceId },
   });
 
+  // Hidden sources that name what the guest can open: P and its task.
+  await db.insert(referenceTable).values([
+    {
+      workspaceId,
+      sourceTaskId: qTask.id,
+      place: "description",
+      targetTaskId: pTask.id,
+    },
+    {
+      workspaceId,
+      sourceDocumentId: workspaceDoc.id,
+      place: "document",
+      targetTaskId: pTask.id,
+    },
+    {
+      workspaceId,
+      sourceDocumentId: planDoc.id,
+      place: "document",
+      targetProjectId: p.project.id,
+    },
+    {
+      workspaceId,
+      sourceTaskId: qTask.id,
+      place: "comment",
+      targetProjectId: p.project.id,
+    },
+  ]);
+
   return {
     workspaceId,
     owner,
@@ -185,46 +273,62 @@ async function setUp() {
     view,
     x,
     y,
+    label,
+    cycle,
+    timeEntry,
+    asset,
+    chat,
+    run,
   };
 }
 
 type World = Awaited<ReturnType<typeof setUp>>;
 
-const SKIPPED_PREFIXES = [
-  "/admin/",
-  "/auth/device",
-  "/mcp/",
-  "/oauth/",
-  "/github-reviews",
-  "/github-integration",
-  "/import/trello",
-];
+// An invitation id is its own credential and avatars are public by design.
+const SKIPPED_PREFIXES = ["/invitation/", "/user/avatar/"];
 
-function sweepPaths(world: World) {
+type Side = "hidden" | "own";
+
+/**
+ * Every documented GET, filled in either with ids from outside the guest's
+ * reach (they must be refused) or with the guest's own P and X (they must
+ * answer without naming anything outside).
+ */
+function sweepPaths(world: World, side: Side = "hidden") {
   const openapi = JSON.parse(
     readFileSync(
       new URL("../../apps/docs/openapi.json", import.meta.url),
       "utf8",
     ),
   ) as { paths: Record<string, Record<string, unknown>> };
+  const own = side === "own";
   const values: Record<string, string> = {
     workspaceId: world.workspaceId,
-    projectId: world.q.id,
-    taskId: world.qTask.id,
+    projectId: own ? world.p.id : world.q.id,
+    taskId: own ? world.pTask.id : world.qTask.id,
     documentId: world.workspaceDoc.id,
-    channelId: world.y.id,
-    userId: world.teammate.userId,
+    channelId: own ? world.x.id : world.y.id,
+    userId: own ? world.owner.userId : world.teammate.userId,
     workProjectId: world.roadmap.id,
+    chatId: world.chat.id,
+    runId: world.run.id,
+    assetId: world.asset.id,
+    provider: "github",
   };
   // What `{id}` names, by the route it appears in.
   const ids: [string, string[]][] = [
-    ["/project/", [world.q.id]],
-    ["/task/", [world.qTask.id]],
+    ["/project/", [own ? world.p.id : world.q.id]],
+    ["/public-project/", [own ? world.p.id : world.q.id]],
+    ["/task/", [own ? world.pTask.id : world.qTask.id]],
     ["/work-project/", [world.roadmap.id]],
     ["/view/", [world.view.id]],
     ["/loop/", [world.loop.id]],
     ["/document/", [world.workspaceDoc.id, world.planDoc.id]],
     ["/topic/", [world.topic.id]],
+    ["/label/", [world.label.id]],
+    ["/cycle/", [world.cycle.id]],
+    ["/time-entry/", [world.timeEntry.id]],
+    ["/asset/", [world.asset.id]],
   ];
   const paths: string[] = [];
   for (const [path, operations] of Object.entries(openapi.paths)) {
@@ -282,7 +386,8 @@ describe("guest access", () => {
     expect(messages.status).toBe(200);
     expect(messages.text).toContain("Welcome aboard");
 
-    // Pickers still list the people of P, and only them.
+    // Pickers still list the people of P, and only them, by name and
+    // avatar: a guest sees no one's email address but their own.
     for (const path of [
       `/auth/organization/list-members?organizationId=${workspaceId}`,
       `/auth/organization/get-full-organization?organizationId=${workspaceId}`,
@@ -290,19 +395,38 @@ describe("guest access", () => {
     ]) {
       const people = await bodyOf(guestRequest, path);
       expect(people.status, path).toBe(200);
-      expect(people.text, path).toContain("owner@example.test");
+      expect(people.text, path).toContain('"Owner"');
+      expect(people.text, path).not.toContain("owner@example.test");
+      expect(people.text, path).toContain("guest@example.test");
       expect(people.text, path).not.toMatch(CANARY);
     }
+    // Members keep seeing addresses.
+    const forMember = await bodyOf(
+      world.ownerRequest,
+      `/workspace/${workspaceId}/members`,
+    );
+    expect(forMember.text).toContain("canary-teammate@example.test");
   });
 
   it("leaks nothing outside P and X through any read", async () => {
     const world = await setUp();
     const leaks: string[] = [];
+    const sides = [...sweepPaths(world), ...sweepPaths(world, "own")];
+    // Activity, comments and notifications are read with the guest's own
+    // task, too, so a hidden author or source would show up in an answer.
+    expect(sides).toEqual(
+      expect.arrayContaining([
+        `/activity/${world.pTask.id}`,
+        `/comment/${world.pTask.id}`,
+        `/reference/task/${world.pTask.id}`,
+        `/reference/project/${world.p.id}`,
+        "/notification",
+        `/admin/users/${world.teammate.userId}/sessions`,
+      ]),
+    );
     const reads = [
-      ...sweepPaths(world),
-      ...sweepPaths(world).map(
-        (path) => `${path}?workspaceId=${world.workspaceId}`,
-      ),
+      ...sides,
+      ...sides.map((path) => `${path}?workspaceId=${world.workspaceId}`),
       `/search?q=canary&workspaceId=${world.workspaceId}`,
       "/search?q=canary",
       `/workspace/${world.workspaceId}/members?projectId=${world.p.id}`,
@@ -511,5 +635,151 @@ describe("guest access", () => {
         );
       }
     }
+  });
+
+  it("shows a guest no invitations or teams, even when members may invite", async () => {
+    const world = await setUp();
+    const { workspaceId, ownerRequest, guestRequest } = world;
+    await db
+      .update(schema.workspaceRoleTable)
+      .set({
+        permission: JSON.stringify({
+          ...defaultRolePayloads.member,
+          invitation: ["create"],
+        }),
+      })
+      .where(
+        and(
+          eq(schema.workspaceRoleTable.workspaceId, workspaceId),
+          eq(schema.workspaceRoleTable.role, "member"),
+        ),
+      );
+    const invited = await ownerRequest("/auth/organization/invite-member", {
+      method: "POST",
+      body: {
+        organizationId: workspaceId,
+        email: "canary-friend@example.test",
+        role: "member",
+        projectAccess: "selected",
+        projectIds: [world.p.id],
+      },
+    });
+    expect(invited.status).toBe(200);
+
+    // The teammate holds the same role and does see it.
+    const forTeammate = await bodyOf(
+      world.teammateRequest,
+      `/auth/organization/list-invitations?organizationId=${workspaceId}`,
+    );
+    expect(forTeammate.text).toContain("canary-friend@example.test");
+
+    const listed = await guestRequest(
+      `/auth/organization/list-invitations?organizationId=${workspaceId}`,
+    );
+    expect(listed.status).toBe(200);
+    expect(await listed.json()).toEqual([]);
+    const full = await guestRequest(
+      `/auth/organization/get-full-organization?organizationId=${workspaceId}`,
+    );
+    expect(full.status).toBe(200);
+    const organization = (await full.json()) as {
+      invitations: unknown[];
+      teams?: unknown[];
+    };
+    expect(organization.invitations).toEqual([]);
+    expect(organization.teams ?? []).toEqual([]);
+  });
+
+  it("shows a guest only references from inside their projects", async () => {
+    const world = await setUp();
+    const reads = [
+      `/reference/task/${world.pTask.id}`,
+      `/reference/project/${world.p.id}`,
+    ];
+    for (const path of reads) {
+      // The owner sees every source, so the sources are really there.
+      const forOwner = await bodyOf(world.ownerRequest, path);
+      expect(forOwner.text, path).toMatch(CANARY);
+
+      const forGuest = await world.guestRequest(path);
+      expect(forGuest.status, path).toBe(200);
+      expect(await forGuest.json(), path).toEqual({ references: [] });
+    }
+  });
+
+  describe("over WebSocket", () => {
+    let server: ReturnType<typeof serve> | null = null;
+    let base = "";
+    const sockets: { terminate(): void }[] = [];
+
+    afterEach(async () => {
+      for (const socket of sockets.splice(0)) socket.terminate();
+      await shutdownWebSocketAdapter();
+      const running = server;
+      server = null;
+      if (running) {
+        await new Promise<void>((resolve, reject) =>
+          running.close((error) => (error ? reject(error) : resolve())),
+        );
+      }
+    });
+
+    async function listen() {
+      const created = createApp();
+      server = serve({
+        fetch: created.app.fetch,
+        hostname: "127.0.0.1",
+        port: 0,
+      });
+      created.injectWebSocket(server);
+      if (!server.listening) await once(server, "listening");
+      const address = server.address();
+      if (!address || typeof address === "string") throw new Error("No port");
+      base = `127.0.0.1:${address.port}`;
+      delete process.env.REDIS_URL;
+      await initializeWebSocketAdapter();
+    }
+
+    const apiRequire = createRequire(
+      new URL("../../apps/api/package.json", import.meta.url),
+    );
+    const WebSocket: new (
+      url: string,
+      options: { headers: Record<string, string> },
+    ) => {
+      once(event: string, listener: (...args: never[]) => void): void;
+      on(event: string, listener: (...args: never[]) => void): void;
+      terminate(): void;
+    } = createRequire(apiRequire.resolve("@hono/node-ws"))("ws").WebSocket;
+
+    /** 101 when the upgrade is accepted, else the refusal's status. */
+    async function open(path: string, cookie: string) {
+      const socket = new WebSocket(`ws://${base}/api${path}`, {
+        headers: { cookie, origin: "http://localhost:5173" },
+      });
+      sockets.push(socket);
+      socket.on("error", () => {});
+      return new Promise<number>((resolve) => {
+        socket.once("open", () => resolve(101));
+        socket.once(
+          "unexpected-response",
+          (_request: never, response: IncomingMessage) => {
+            response.resume();
+            resolve(response.statusCode ?? 0);
+          },
+        );
+      });
+    }
+
+    it("lets a guest subscribe only to their own channel and project", async () => {
+      await listen();
+      const world = await setUp();
+      const cookie = world.guest.cookies;
+
+      expect(await open(`/ws/chat/${world.x.id}`, cookie)).toBe(101);
+      expect(await open(`/ws/${world.p.id}`, cookie)).toBe(101);
+      expect(await open(`/ws/chat/${world.y.id}`, cookie)).toBe(404);
+      expect(await open(`/ws/${world.q.id}`, cookie)).toBe(404);
+    });
   });
 });

@@ -5,12 +5,19 @@ import { isWorkspaceGuest } from "./is-workspace-guest";
 import { sharesProjectCondition } from "./shares-project-condition";
 
 type MemberList = {
-  members?: { userId?: unknown; organizationId?: unknown }[];
+  members?: {
+    userId?: unknown;
+    organizationId?: unknown;
+    user?: { email?: unknown } | null;
+  }[];
   total?: number;
+  teams?: unknown[];
 };
 
 // Trims a Better Auth member list for a guest to the people of their own
-// projects, so the app's pickers keep working without a directory.
+// projects, so the app's pickers keep working without a directory. Their
+// email addresses are blanked; names and avatars stay. Teams go too: a guest
+// may not list them either.
 export async function hideMembersFromGuest(
   viewerId: string,
   returned: unknown,
@@ -38,6 +45,10 @@ export async function hideMembersFromGuest(
   const kept = members.filter(
     (member) => typeof member.userId === "string" && visible.has(member.userId),
   );
+  for (const member of kept) {
+    if (member.userId !== viewerId && member.user) member.user.email = "";
+  }
   members.splice(0, members.length, ...kept);
   if (typeof list.total === "number") list.total = kept.length;
+  if (Array.isArray(list.teams)) list.teams.splice(0);
 }

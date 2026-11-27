@@ -26,7 +26,10 @@ export const workspaceMemberSchema = z
   .object({
     id: z.string(),
     name: z.string(),
-    email: z.string(),
+    email: z.string().openapi({
+      description:
+        "Empty when a workspace guest reads the list, except for their own row.",
+    }),
     image: z.string().nullable(),
     role: z.string().openapi({
       description:

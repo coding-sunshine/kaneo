@@ -113,6 +113,7 @@ function renderCommentCard(
   externalSource?: string,
   importedBy?: string,
   ownerId = "user-1",
+  email = "tin@example.com",
 ) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -134,7 +135,7 @@ function renderCommentCard(
         user={{
           id: "user-1",
           name: "Tin",
-          email: "tin@example.com",
+          email,
           image: null,
         }}
       />
@@ -153,6 +154,12 @@ describe("CommentCard", () => {
       ).toBeVisible();
     },
   );
+
+  it("names an author whose email a guest cannot see", () => {
+    renderCommentCard(undefined, undefined, "user-1", "");
+    expect(screen.getAllByText("Tin").length).toBeGreaterThan(0);
+    expect(screen.queryByText(/@/)).not.toBeInTheDocument();
+  });
 
   it("does not label ordinary comments as imports", () => {
     renderCommentCard();

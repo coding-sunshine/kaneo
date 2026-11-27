@@ -301,9 +301,10 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
               !(managerLimited && access.projectAccess === "all");
             const accessLabel = describeAccess(access);
             const memberName = member.user.name || member.user.email;
-            const tone = toneFor(member.user.email);
+            // A guest reads members without email addresses.
+            const tone = toneFor(member.user.email || member.userId);
             return (
-              <TableRow key={member.user.email}>
+              <TableRow key={member.id}>
                 <TableCell className="ps-6 py-3">
                   <div className="flex items-center gap-3">
                     <Avatar className={cn("size-8", tone)}>

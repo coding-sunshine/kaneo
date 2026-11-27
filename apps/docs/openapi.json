@@ -9454,7 +9454,8 @@
             "type": "string"
           },
           "email": {
-            "type": "string"
+            "type": "string",
+            "description": "Empty when a workspace guest reads the list, except for their own row."
           },
           "image": {
             "type": [
