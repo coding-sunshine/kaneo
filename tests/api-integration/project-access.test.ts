@@ -103,7 +103,7 @@ describe("project access enforcement", () => {
       method: "PUT",
       body: { destinationProjectId: ctx.beta.id },
     });
-    expect(moved.status).toBe(403);
+    expect(moved.status).toBe(404);
   });
 
   it("filters search, assigned tasks and ticket lookups", async () => {
@@ -225,7 +225,7 @@ describe("project access enforcement", () => {
     const peek = await projectAccessApi()(
       `/workspace/${ctx.workspace.id}/members?projectId=${ctx.beta.id}`,
     );
-    expect(peek.status).toBe(403);
+    expect(peek.status).toBe(404);
   });
 
   it("unassigns a task moved into a project its assignee can't see", async () => {

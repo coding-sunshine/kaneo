@@ -87,7 +87,7 @@ import { createRoute, errorResponse, jsonResponse, z } from "./openapi";
 import { initializePlugins, integrationPlugins } from "./plugins";
 import { migrateGitHubIntegration } from "./plugins/github/migration";
 import project from "./project";
-import { assertProjectAccess } from "./project-access/assert-project-access";
+import { hideClosedTeams } from "./project-access/hide-closed-teams";
 import { getPublicProject } from "./project/controllers/get-public-project";
 import { initializeScheduler, shutdownScheduler } from "./scheduler";
 import search from "./search";
@@ -989,7 +989,11 @@ export function createApp() {
         await validateWorkspaceAccess(userId, project.workspaceId, undefined, {
           notFoundMessage: "Project not found",
         });
-        await assertProjectAccess(userId, projectId);
+        await hideClosedTeams(
+          userId,
+          projectId,
+          () => new HTTPException(404, { message: "Project not found" }),
+        );
         workspaceId = project.workspaceId;
         c.set("workspaceId", workspaceId);
         await requireWorkspacePermission(PROJECT_READ_PERMISSIONS)(

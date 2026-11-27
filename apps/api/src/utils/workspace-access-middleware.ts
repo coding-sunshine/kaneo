@@ -3,7 +3,7 @@ import type { Context, Next } from "hono";
 import { HTTPException } from "hono/http-exception";
 import db, { schema } from "../database";
 import { assertProjectAccess } from "../project-access/assert-project-access";
-import { findInaccessibleProjectIds } from "../project-access/find-inaccessible-project-ids";
+import { hideClosedTeams } from "../project-access/hide-closed-teams";
 import { validateWorkspaceAccess } from "./validate-workspace-access";
 
 type LookupResource =
@@ -177,11 +177,12 @@ export function workspaceAccessMiddleware(
     await validateWorkspaceAccess(userId, workspaceId, apiKeyId, {
       notFoundMessage,
     });
-    if (
-      hideClosedTeam &&
-      (await findInaccessibleProjectIds(userId, projectIds)).length
-    ) {
-      throw new HTTPException(404, { message: notFoundMessage });
+    if (hideClosedTeam) {
+      await hideClosedTeams(
+        userId,
+        projectIds,
+        () => new HTTPException(404, { message: notFoundMessage }),
+      );
     }
     await assertProjectAccess(userId, projectIds);
 

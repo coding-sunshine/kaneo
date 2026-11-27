@@ -7,7 +7,7 @@ import {
   taskTable,
   workProjectTable,
 } from "../../database/schema";
-import { assertProjectAccess } from "../../project-access/assert-project-access";
+import { hideClosedTeams } from "../../project-access/hide-closed-teams";
 import { workProjectDocumentAccess } from "../visibility";
 
 type ParentInput = {
@@ -50,7 +50,7 @@ export async function resolveParent(
         ),
       );
     if (!team) throw parentNotFound();
-    await assertProjectAccess(userId, team.id);
+    await hideClosedTeams(userId, team.id, parentNotFound);
     return { ...none, projectId: team.id };
   }
 
@@ -91,7 +91,7 @@ export async function resolveParent(
         ),
       );
     if (!task) throw parentNotFound();
-    await assertProjectAccess(userId, task.projectId);
+    await hideClosedTeams(userId, task.projectId, parentNotFound);
     return { ...none, taskId: task.id };
   }
 

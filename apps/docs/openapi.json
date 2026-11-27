@@ -18635,7 +18635,7 @@
             }
           },
           "404": {
-            "description": "Task or destination project not found",
+            "description": "Task or destination project not found, or a destination you cannot open",
             "content": {
               "application/json": {
                 "schema": {
@@ -46745,7 +46745,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing read permission",
+            "description": "Missing read permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -46755,7 +46755,7 @@
             }
           },
           "404": {
-            "description": "Workspace not found, or project not found in this workspace",
+            "description": "Workspace not found, or project not found in this workspace or closed to you",
             "content": {
               "application/json": {
                 "schema": {
