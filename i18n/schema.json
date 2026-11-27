@@ -13661,6 +13661,12 @@
 								},
 								"fallback": {
 									"type": "string"
+								},
+								"message": {
+									"type": "string"
+								},
+								"person": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -13670,7 +13676,9 @@
 								"comment",
 								"activity",
 								"document",
-								"fallback"
+								"fallback",
+								"message",
+								"person"
 							]
 						}
 					},
@@ -24008,6 +24016,9 @@
 						},
 						"suggestionCompleted": {
 							"type": "string"
+						},
+						"directMessage": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -24025,7 +24036,8 @@
 						"suggestionBug",
 						"suggestionFeature",
 						"suggestionInProgress",
-						"suggestionCompleted"
+						"suggestionCompleted",
+						"directMessage"
 					]
 				},
 				"create": {
