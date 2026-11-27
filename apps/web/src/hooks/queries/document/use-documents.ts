@@ -5,6 +5,7 @@ import {
   getDocument,
   getDocumentAudience,
   getDocumentComments,
+  getDocumentPageTree,
   getDocumentTaskAudience,
   getDocuments,
   getDocumentVersions,
@@ -131,5 +132,20 @@ export function useDocumentUsage(workspaceId: string) {
     enabled: Boolean(workspaceId),
     queryKey: [...documentsKey(workspaceId), "usage"],
     queryFn: () => getDocumentUsage(workspaceId),
+  });
+}
+
+/** Under "list", so every change to the documents lists refreshes it too. */
+export const pageTreeKey = (workspaceId: string) => [
+  ...documentsKey(workspaceId),
+  "list",
+  "tree",
+];
+
+export function usePageTree(workspaceId: string, enabled = true) {
+  return useQuery({
+    enabled: Boolean(workspaceId) && enabled,
+    queryKey: pageTreeKey(workspaceId),
+    queryFn: () => getDocumentPageTree(workspaceId),
   });
 }

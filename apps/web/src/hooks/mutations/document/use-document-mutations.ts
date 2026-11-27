@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  type ChildPages,
   createDocument,
   createDocumentComment,
   type DocumentAccess,
@@ -8,6 +9,7 @@ import {
   deleteDocument,
   deleteDocumentComment,
   moveDocument,
+  moveDocumentPage,
   restoreDocument,
   restoreDocumentVersion,
   setDocumentSubscribers,
@@ -147,11 +149,26 @@ export function useSetDocumentSubscribers(workspaceId: string, id: string) {
 export function useDeleteDocument(workspaceId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => deleteDocument(workspaceId, id),
+    mutationFn: ({ id, children }: { id: string; children?: ChildPages }) =>
+      deleteDocument(workspaceId, id, children),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: documentsKey(workspaceId) });
       queryClient.invalidateQueries({ queryKey: favoritesKey(workspaceId) });
     },
+  });
+}
+
+export function useMoveDocumentPage(workspaceId: string) {
+  const store = useStoreDocument(workspaceId);
+  return useMutation({
+    mutationFn: ({
+      id,
+      parentDocumentId,
+    }: {
+      id: string;
+      parentDocumentId: string | null;
+    }) => moveDocumentPage(workspaceId, id, parentDocumentId),
+    onSuccess: store,
   });
 }
 

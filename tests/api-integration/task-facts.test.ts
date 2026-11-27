@@ -897,6 +897,7 @@ describe("API integration: facts found in issues", () => {
         .insert(aiUsageTable)
         .values({
           purpose: "statements",
+          workspaceId: world.ws,
           model: "m",
           promptTokens: 0,
           completionTokens: 0,
@@ -1362,11 +1363,12 @@ describe("API integration: facts found in issues", () => {
 
     it("stops at its share of the day's tokens, so that documents are still read", async () => {
       vi.stubEnv("EXTRACTION_DAILY_TOKEN_CAP", "1000");
-      await setup();
+      const { world } = await setup();
       const [used] = await db
         .insert(aiUsageTable)
         .values({
           purpose: "statements",
+          workspaceId: world.ws,
           model: "m",
           promptTokens: 700,
           completionTokens: 0,

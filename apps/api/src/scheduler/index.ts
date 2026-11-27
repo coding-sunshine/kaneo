@@ -16,6 +16,7 @@ import { extractTaskFacts } from "./task-extraction";
 import { askConflictQuestions } from "./conflict-questions";
 import { checkTrialReminders } from "./trial-reminders";
 import { runBackupIfDue } from "../backup/run-backup-if-due";
+import { checkInboxReminders } from "./inbox-reminders";
 
 const jobs: Cron[] = [];
 
@@ -136,6 +137,13 @@ export function initializeScheduler(): void {
   );
   jobs.push(
     new Cron("23 * * * *", withCheckIn("trial-reminders", checkTrialReminders)),
+  );
+  jobs.push(
+    new Cron(
+      "41 * * * *",
+      { protect: true },
+      withCheckIn("inbox-reminders", checkInboxReminders),
+    ),
   );
   jobs.push(new Cron("* * * * *", withCheckIn("loops", runDueLoops)));
   jobs.push(

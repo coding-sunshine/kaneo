@@ -9,6 +9,7 @@ import {
   Layers2,
   type LucideIcon,
   Mail,
+  MessagesSquare,
   MousePointer2,
   SquareUser,
   Users,
@@ -154,6 +155,12 @@ export function useSidebarItems() {
       `${homeUrl}/work-projects`,
     ),
     item("views", t("navigation:sidebar.views"), Layers2, `${homeUrl}/views`),
+    item(
+      "chat",
+      t("navigation:sidebar.chat"),
+      MessagesSquare,
+      `${homeUrl}/channels`,
+    ),
     item(
       "members",
       t("navigation:sidebar.members"),

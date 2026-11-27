@@ -1,4 +1,4 @@
-import { and, eq, gte, sql } from "drizzle-orm";
+import { and, eq, gte, isNotNull, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../database";
 import { aiBudgetTable, aiUsageTable } from "../database/schema";
@@ -43,6 +43,10 @@ export async function setBudget(workspaceId: string, budget: AiBudget) {
   return getBudget(workspaceId);
 }
 
+// Calls made for people. The extraction jobs' rows have no person and keep
+// to their own daily cap.
+export const forPeople = isNotNull(aiUsageTable.userId);
+
 async function tokensSince(since: Date, workspaceId: string, userId?: string) {
   const [row] = await db
     .select({ tokens: usedTokens })
@@ -50,7 +54,7 @@ async function tokensSince(since: Date, workspaceId: string, userId?: string) {
     .where(
       and(
         eq(aiUsageTable.workspaceId, workspaceId),
-        userId ? eq(aiUsageTable.userId, userId) : undefined,
+        userId ? eq(aiUsageTable.userId, userId) : forPeople,
         gte(aiUsageTable.createdAt, since),
       ),
     );

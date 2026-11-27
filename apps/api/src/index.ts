@@ -37,6 +37,7 @@ import comment from "./comment";
 import config from "./config";
 import customField from "./custom-field";
 import issueTemplate from "./issue-template";
+import documentTemplate from "./document-template";
 import emoji from "./emoji";
 import db, { getDatabase, schema } from "./database";
 import { apiErrorSchema } from "./errors/api-error-schema";
@@ -877,6 +878,7 @@ export function createApp() {
   const agentApi = api.route("/agent", agent);
   const loopApi = api.route("/loop", loop);
   const documentApi = api.route("/document", document);
+  const documentTemplateApi = api.route("/document-template", documentTemplate);
   const topicApi = api.route("/topic", topic);
   const favoriteApi = api.route("/favorite", favorite);
   const notificationApi = api.route("/notification", notification);
@@ -1119,6 +1121,7 @@ export function createApp() {
     agentApi,
     loopApi,
     documentApi,
+    documentTemplateApi,
     topicApi,
     favoriteApi,
     notificationApi,
@@ -1273,6 +1276,7 @@ const {
   agentApi,
   loopApi,
   documentApi,
+  documentTemplateApi,
   topicApi,
   favoriteApi,
   mattermostIntegrationApi,
@@ -1331,6 +1335,7 @@ export type AppType =
   | typeof agentApi
   | typeof loopApi
   | typeof documentApi
+  | typeof documentTemplateApi
   | typeof topicApi
   | typeof favoriteApi
   | typeof notificationApi

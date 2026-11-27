@@ -3209,6 +3209,7 @@
 			"cycles": "Cycles",
 			"documents": "Documents",
 			"drafts": "Drafts",
+			"chat": "Trò chuyện",
 			"exploring": "Exploring",
 			"favorites": "Favorites",
 			"loops": "Loops",
@@ -4117,6 +4118,77 @@
 				"selectRow": "Select {{title}}",
 				"title": "Pinned documents",
 				"unpin": "Unpin"
+			},
+			"templates": {
+				"blank": "Blank document",
+				"builtIn": {
+					"meetingNotes": {
+						"hint": "Attendees, agenda, decisions and action items",
+						"name": "Meeting notes"
+					},
+					"postmortem": {
+						"hint": "What happened, why, and what changes now",
+						"name": "Postmortem"
+					},
+					"rfc": {
+						"hint": "A proposal for others to review",
+						"name": "RFC"
+					},
+					"runbook": {
+						"hint": "Steps to run a task, and how to roll back",
+						"name": "Runbook"
+					}
+				},
+				"builtInHeading": "Templates",
+				"delete": "Delete template",
+				"deleted": "Template deleted",
+				"fromTemplate": "From template…",
+				"headings": {
+					"actionItems": "Action items",
+					"agenda": "Agenda",
+					"alternatives": "Alternatives considered",
+					"attendees": "Attendees",
+					"contacts": "Who to ask",
+					"decisions": "Decisions",
+					"impact": "Impact",
+					"motivation": "Motivation",
+					"notes": "Notes",
+					"openQuestions": "Open questions",
+					"overview": "Overview",
+					"prerequisites": "Before you start",
+					"proposal": "Proposal",
+					"rollback": "Roll back",
+					"rootCause": "Root cause",
+					"steps": "Steps",
+					"summary": "Summary",
+					"timeline": "Timeline",
+					"wentWell": "What went well",
+					"wentWrong": "What went wrong",
+					"whenToUse": "When to use this"
+				},
+				"hint": "The document gets a copy. Editing it leaves the template as it is.",
+				"loading": "Loading templates…",
+				"noneSaved": "No saved templates yet. Save any page as one from its ··· menu.",
+				"saveAs": "Save as template",
+				"saved": "Saved as a template for everyone in the workspace",
+				"savedHeading": "Saved in this workspace",
+				"title": "New document from a template"
+			},
+			"pageTree": {
+				"addChild": "Add a page inside",
+				"addPage": "New page",
+				"collapse": "Hide pages inside",
+				"delete": {
+					"confirm": "Delete page",
+					"deleteChildren": "Delete them too",
+					"hint": "It has pages inside. Choose what happens to them.",
+					"liftChildren": "Keep them and move them up a level",
+					"title": "Delete this page?"
+				},
+				"dropTop": "Drop here to move to the top",
+				"empty": "No pages yet",
+				"expand": "Show pages inside",
+				"title": "Pages"
 			}
 		},
 		"drafts": {
@@ -4420,6 +4492,10 @@
 			"document_decision": {
 				"content": "In {{documentTitle}}",
 				"title": "{{actorName}} recorded a decision on {{topicName}}"
+			},
+			"document_inbox_waiting": {
+				"content": "{{documentTitle}} has no topic yet",
+				"title": "Waiting in the Inbox for three days"
 			}
 		},
 		"inbox": {

@@ -1,7 +1,8 @@
-import { and, eq, isNotNull } from "drizzle-orm";
+import { and, eq, isNotNull, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { documentTable } from "../../database/schema";
+import { releaseChildPages } from "../release-child-pages";
 import { getDocument } from "./get-document";
 import { loadDocument } from "./load-document";
 import { keepFilesLinkedElsewhere } from "./purge-document-files";
@@ -42,6 +43,7 @@ export async function purgeDocument(
   }
   await db.transaction(async (tx) => {
     await keepFilesLinkedElsewhere(tx, doc);
+    await releaseChildPages(tx, sql`doomed.id = ${id}`);
     await tx
       .delete(documentTable)
       .where(and(eq(documentTable.id, id), isNotNull(documentTable.deletedAt)));
@@ -57,7 +59,8 @@ export async function restoreDocument(
   await loadDocument(workspaceId, id, userId, { need: "edit", deleted: true });
   await db
     .update(documentTable)
-    .set({ deletedAt: null })
+    // Time in the trash is no time waiting in the Inbox.
+    .set({ deletedAt: null, inboxSince: new Date() })
     .where(eq(documentTable.id, id));
   return getDocument(workspaceId, id, userId);
 }

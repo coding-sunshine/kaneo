@@ -4510,6 +4510,29 @@
             "items": {
               "type": "string"
             }
+          },
+          "ancestors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "title"
+              ]
+            },
+            "description": "The pages above this one, top first. It starts below the nearest page you cannot open."
+          },
+          "hasChildren": {
+            "type": "boolean",
+            "description": "Whether any page sits under this one."
           }
         },
         "required": [
@@ -4553,7 +4576,9 @@
           "sharedTasks",
           "hiddenSharedTaskCount",
           "shares",
-          "subscriberIds"
+          "subscriberIds",
+          "ancestors",
+          "hasChildren"
         ]
       },
       "SavedDraft": {
@@ -5002,6 +5027,39 @@
           "documentId",
           "needsReview"
         ]
+      },
+      "DocumentPageTree": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "icon": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "parentDocumentId": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "The page it sits under. Null at the top, and when you cannot open that page."
+            }
+          },
+          "required": [
+            "id",
+            "title",
+            "icon",
+            "parentDocumentId"
+          ]
+        }
       },
       "DocumentReceipt": {
         "type": "object",
@@ -5867,6 +5925,45 @@
           "resolvedById",
           "createdAt",
           "updatedAt"
+        ]
+      },
+      "DocumentTemplate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "creatorId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "workspaceId",
+          "name",
+          "title",
+          "content",
+          "creatorId",
+          "createdAt"
         ]
       },
       "Topic": {
@@ -16220,7 +16317,7 @@
           "Projects"
         ],
         "summary": "Delete project",
-        "description": "Permanently delete a project and everything in it. Archive it instead to keep the data.",
+        "description": "Permanently delete a project and everything in it. Archive it instead to keep the data. Refused while work outside the project relies on a fact of its topics or documents.",
         "parameters": [
           {
             "schema": {
@@ -16264,6 +16361,16 @@
           },
           "404": {
             "description": "Project not found, or the caller cannot open it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Work outside the project relies on facts of its topics or documents",
             "content": {
               "application/json": {
                 "schema": {
@@ -26806,7 +26913,7 @@
           "Work projects"
         ],
         "summary": "Delete project",
-        "description": "Delete a project and its milestones. Its issues stay and lose the project.",
+        "description": "Delete a project and its milestones. Its issues stay and lose the project. Its topics and documents go with it, so it is refused while other work relies on one of their facts.",
         "parameters": [
           {
             "schema": {
@@ -26858,6 +26965,16 @@
           },
           "404": {
             "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Other work relies on facts of the project's topics or documents",
             "content": {
               "application/json": {
                 "schema": {
@@ -30819,6 +30936,10 @@
                       "string",
                       "null"
                     ]
+                  },
+                  "parentDocumentId": {
+                    "type": "string",
+                    "description": "The page to put the new one under. Needs edit access to it. Without a team, project or issue, the new page lives where that page lives."
                   }
                 },
                 "required": [
@@ -31754,6 +31875,61 @@
           },
           "404": {
             "description": "Document, statement, issue or dependency not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/tree": {
+      "get": {
+        "operationId": "getDocumentPageTree",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Page tree",
+        "description": "Every document you can open, with the page it sits under, for the sidebar tree.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentPageTree"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
             "content": {
               "application/json": {
                 "schema": {
@@ -32814,7 +32990,7 @@
           "Documents"
         ],
         "summary": "Delete document",
-        "description": "Move a document to trash. Restore undoes it.",
+        "description": "Move a document to trash. Restore undoes it. A page with pages under it needs `children` to say what happens to them.",
         "parameters": [
           {
             "schema": {
@@ -32831,6 +33007,20 @@
             "required": true,
             "name": "id",
             "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "lift",
+                "delete"
+              ],
+              "description": "What happens to the pages under this one: lift moves them up to where it was, delete moves them to trash too. Required when it has any. A page you may not delete is lifted instead."
+            },
+            "required": false,
+            "description": "What happens to the pages under this one: lift moves them up to where it was, delete moves them to trash too. Required when it has any. A page you may not delete is lifted instead.",
+            "name": "children",
+            "in": "query"
           }
         ],
         "responses": {
@@ -32843,10 +33033,18 @@
                   "properties": {
                     "id": {
                       "type": "string"
+                    },
+                    "alsoDeleted": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "The pages under it that went to trash with it. Restore each to undo."
                     }
                   },
                   "required": [
-                    "id"
+                    "id",
+                    "alsoDeleted"
                   ]
                 }
               }
@@ -32874,6 +33072,16 @@
           },
           "404": {
             "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The document is current on its topic, or it has pages under it and no choice for them",
             "content": {
               "application/json": {
                 "schema": {
@@ -33203,6 +33411,111 @@
           },
           "404": {
             "description": "Document not found, or it has no link to decide",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/parent": {
+      "put": {
+        "operationId": "moveDocumentPage",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Put a page under another",
+        "description": "Put a page under another page, or at the top of the tree. The page keeps its place and who can open it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "parentDocumentId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "The page to put this one under, or null for the top of the tree. Needs edit access to both pages."
+                  }
+                },
+                "required": [
+                  "parentDocumentId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The moved page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The new parent is the page itself or a page below it",
             "content": {
               "application/json": {
                 "schema": {
@@ -34952,6 +35265,225 @@
           },
           "404": {
             "description": "Comment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document-template/workspace/{workspaceId}": {
+      "get": {
+        "operationId": "listDocumentTemplates",
+        "tags": [
+          "Document Templates"
+        ],
+        "summary": "List document templates",
+        "description": "List the templates saved in the workspace. Every member sees all of them.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document templates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentTemplate"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "post": {
+        "operationId": "saveDocumentTemplate",
+        "tags": [
+          "Document Templates"
+        ],
+        "summary": "Save a page as a template",
+        "description": "Copy the title and text of a page open to the whole workspace into a template every member can start a document from. Later edits to the page leave the template as it is.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "documentId": {
+                    "type": "string",
+                    "description": "The page to copy. It must be open to the whole workspace (scope workspace)."
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "description": "Shown in the template list. Defaults to the page title."
+                  }
+                },
+                "required": [
+                  "documentId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Template saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentTemplate"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission, or the page is not open to the whole workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document-template/workspace/{workspaceId}/{id}": {
+      "delete": {
+        "operationId": "deleteDocumentTemplate",
+        "tags": [
+          "Document Templates"
+        ],
+        "summary": "Delete a document template",
+        "description": "Delete a template. Its creator or a workspace owner may. Documents made from it stay.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentTemplate"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not the creator of the template or a workspace owner",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Template not found",
             "content": {
               "application/json": {
                 "schema": {

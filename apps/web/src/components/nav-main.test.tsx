@@ -10,9 +10,10 @@ import {
 import { useUserPreferencesStore } from "@/store/user-preferences";
 import { NavMain } from "./nav-main";
 
+const navigate = vi.hoisted(() => vi.fn());
 vi.mock("@tanstack/react-router", () => ({
   useLocation: () => "/dashboard/workspace/w1",
-  useNavigate: () => vi.fn(),
+  useNavigate: () => navigate,
 }));
 vi.mock("@/components/ui/sidebar", () => ({
   SidebarGroup: ({ children }: { children: React.ReactNode }) => (
@@ -138,6 +139,16 @@ describe("NavMain reviews row", () => {
     expect(buttonLabels()).toContain("navigation:sidebar.drafts3");
   });
 
+  it("opens the workspace's chat channels from the Chat row", () => {
+    render(<NavMain />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "navigation:sidebar.chat" }),
+    );
+    expect(navigate).toHaveBeenCalledWith({
+      to: "/dashboard/workspace/w1/channels",
+    });
+  });
+
   it("shows a Pulse row", () => {
     render(<NavMain />);
     const labels = screen
@@ -169,6 +180,7 @@ describe("NavMain customization", () => {
       "navigation:sidebar.documents",
       "navigation:sidebar.projects",
       "navigation:sidebar.views",
+      "navigation:sidebar.chat",
       "navigation:sidebar.more",
     ]);
   });
@@ -189,6 +201,7 @@ describe("NavMain customization", () => {
       "navigation:sidebar.reviews",
       "navigation:sidebar.pulse",
       "navigation:sidebar.views",
+      "navigation:sidebar.chat",
       "navigation:sidebar.members",
       "navigation:sidebar.more",
     ]);

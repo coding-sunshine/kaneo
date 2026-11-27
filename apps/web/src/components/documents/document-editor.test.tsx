@@ -105,6 +105,8 @@ const base: DocumentDetail = {
   hiddenSharedTaskCount: 0,
   shares: [],
   subscriberIds: [],
+  ancestors: [],
+  hasChildren: false,
 };
 
 const client = new QueryClient();

@@ -2,6 +2,7 @@ import { and, asc, eq, ne } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
+  documentTable,
   type StatementResult,
   type StatementSource,
   statementTable,
@@ -18,8 +19,9 @@ import {
   quoteStart,
   textBlocks,
 } from "../statement-text";
+import { forText, textHashOf, valueHash } from "../statement-hash";
 import { normalizeValue } from "../statement-value";
-import { changingTopic } from "./flag-dependents";
+import { changingTopic, type Transaction } from "./flag-dependents";
 import { getTopic } from "./get-topic";
 import { type Slot, slotsOf } from "./slots";
 
@@ -65,8 +67,11 @@ const notFound = () =>
  * Writes statements for the present text of a document that is filed on the
  * slots' topic. Each one is checked on its own and none fails the others: the
  * slot must be the topic's, the quote must be in the text and the value must
- * fit the slot. A slot keeps the statement it has, unless `replace` is set and
- * nobody confirmed it.
+ * fit the slot. A value the slot already has keeps its statement. With
+ * `replace` (a person) a new value replaces the slot's proposal, never a
+ * confirmed statement. Without it a slot keeps the statement it has, except
+ * that the model adds a new value beside its own proposals, as a long text
+ * can state two values for one fact; a free-text slot keeps the first value.
  */
 export async function proposeStatements(
   doc: Text,
@@ -104,19 +109,37 @@ export async function proposeStatements(
       source,
       createdBy: userId,
     };
-    const [existing] = await db
-      .select({ id: statementTable.id, status: statementTable.status })
+    const held = await db
+      .select({
+        id: statementTable.id,
+        status: statementTable.status,
+        source: statementTable.source,
+        normalized: statementTable.normalized,
+      })
       .from(statementTable)
       .where(
         and(
           eq(statementTable.slotId, slot.id),
           eq(statementTable.documentId, doc.id),
-          eq(statementTable.contentHash, contentHash),
+          forText(contentHash),
           ne(statementTable.status, "rejected"),
         ),
-      );
-    if (existing && (!replace || existing.status === "confirmed")) {
-      results.push({ slot: slot.key, result: "exists", id: existing.id });
+      )
+      .orderBy(asc(statementTable.createdAt));
+    const same = held.find((row) => row.normalized === normalized);
+    const existing = replace ? (same ?? held[0]) : same;
+    const kept = replace
+      ? existing?.status === "confirmed"
+      : existing !== undefined ||
+        (held.length > 0 &&
+          (source !== "model" ||
+            slot.type === "term" ||
+            held.some(
+              (row) => row.source !== "model" || row.status !== "proposed",
+            )));
+    if (kept) {
+      const id = existing?.id ?? held[0]?.id;
+      results.push({ slot: slot.key, result: "exists", id });
       continue;
     }
     if (existing) {
@@ -144,9 +167,11 @@ export async function proposeStatements(
         ...values,
         slotId: slot.id,
         documentId: doc.id,
-        contentHash,
+        // A further value of the slot on this text: see statement-hash.ts.
+        contentHash:
+          held.length > 0 ? valueHash(contentHash, normalized) : contentHash,
       })
-      // Two writers at once: the slot keeps the first statement.
+      // Two writers at once: the value keeps the first statement.
       .onConflictDoNothing()
       .returning({ id: statementTable.id });
     results.push({
@@ -182,7 +207,7 @@ export async function carryStatements(
     .where(
       and(
         eq(statementTable.documentId, documentId),
-        eq(statementTable.contentHash, fromHash),
+        forText(fromHash),
         ne(statementTable.status, "rejected"),
       ),
     );
@@ -190,9 +215,11 @@ export async function carryStatements(
   const was = new Set(textBlocks(before));
   const blocks = textBlocks(content);
   const carried = previous.flatMap((statement) => {
-    const start = text.indexOf(statement.quote);
+    const start = quoteStart(text, statement.quote);
     if (start < 0) return [];
-    const holding = blocks.filter((block) => block.includes(statement.quote));
+    const holding = blocks.filter(
+      (block) => quoteStart(block, statement.quote) >= 0,
+    );
     const untouched =
       statement.status === "confirmed" &&
       holding.length > 0 &&
@@ -205,7 +232,8 @@ export async function carryStatements(
         normalized: statement.normalized,
         quote: statement.quote,
         quoteStart: start,
-        contentHash: toHash,
+        // A further value keeps its own part after the text's hash.
+        contentHash: toHash + statement.contentHash.slice(fromHash.length),
         source: statement.source,
         createdBy: statement.createdBy,
         ...(untouched && {
@@ -250,7 +278,7 @@ export async function listStatements(
     .where(
       and(
         eq(statementTable.documentId, doc.id),
-        eq(statementTable.contentHash, doc.contentHash ?? ""),
+        forText(doc.contentHash ?? ""),
         eq(topicSlotTable.topicId, topicId),
       ),
     )
@@ -359,36 +387,85 @@ export async function confirmStatement(
   statementId: string,
   userId: string,
 ) {
-  const { doc, statement, topicId } = await forDecision(
+  const { statement, topicId } = await forDecision(
     workspaceId,
     documentId,
     statementId,
     userId,
   );
-  if (statement.status === "rejected") {
-    throw new HTTPException(409, {
-      message: "A rejected statement cannot be confirmed. Write it again",
-    });
-  }
-  const texts = [
-    doc.contentHash,
-    ...(doc.status === "current" ? [doc.approvedHash] : []),
-  ];
-  if (!texts.includes(statement.contentHash)) {
-    throw new HTTPException(409, {
-      message: "The document changed after this statement was written",
-    });
-  }
-  if (statement.status === "proposed") {
-    // On the current document this changes what the topic states.
-    await changingTopic(topicId, (tx) =>
-      tx
+  // On the current document this changes what the topic states.
+  await changingTopic(topicId, async (tx) => {
+    // Read again under the topic's lock: a reject or an edit that landed
+    // while this request waited decides what happens now.
+    const { status, contentHash, slotId, documentId, doc } =
+      await lockedStatement(tx, statement.id);
+    if (status === "rejected") {
+      throw new HTTPException(409, {
+        message: "A rejected statement cannot be confirmed. Write it again",
+      });
+    }
+    const texts = [
+      doc.contentHash,
+      ...(doc.status === "current" ? [doc.approvedHash] : []),
+    ];
+    if (!texts.includes(textHashOf(contentHash))) {
+      throw new HTTPException(409, {
+        message: "The document changed after this statement was written",
+      });
+    }
+    // A text that states two values for one fact has one confirmed value.
+    const [other] = await tx
+      .select({ id: statementTable.id })
+      .from(statementTable)
+      .where(
+        and(
+          eq(statementTable.slotId, slotId),
+          eq(statementTable.documentId, documentId),
+          forText(textHashOf(contentHash)),
+          eq(statementTable.status, "confirmed"),
+          ne(statementTable.id, statement.id),
+        ),
+      );
+    if (other) {
+      throw new HTTPException(409, {
+        message:
+          "The document has a confirmed statement for this slot. Reject it first",
+      });
+    }
+    if (status === "proposed") {
+      await tx
         .update(statementTable)
         .set({ status: "confirmed", decidedBy: userId, decidedAt: new Date() })
-        .where(eq(statementTable.id, statement.id)),
-    );
-  }
+        .where(eq(statementTable.id, statement.id));
+    }
+  });
   return one(statement.id);
+}
+
+// The statement and its document, locked in that order after the topic.
+async function lockedStatement(tx: Transaction, statementId: string) {
+  const [locked] = await tx
+    .select({
+      status: statementTable.status,
+      contentHash: statementTable.contentHash,
+      documentId: statementTable.documentId,
+      slotId: statementTable.slotId,
+    })
+    .from(statementTable)
+    .where(eq(statementTable.id, statementId))
+    .for("update");
+  if (!locked) throw notFound();
+  const [doc] = await tx
+    .select({
+      contentHash: documentTable.contentHash,
+      approvedHash: documentTable.approvedHash,
+      status: documentTable.status,
+    })
+    .from(documentTable)
+    .where(eq(documentTable.id, locked.documentId))
+    .for("update");
+  if (!doc) throw notFound();
+  return { ...locked, doc };
 }
 
 export async function rejectStatement(
@@ -404,8 +481,11 @@ export async function rejectStatement(
     statementId,
     userId,
   );
-  await changingTopic(topicId, (tx) =>
-    tx
+  await changingTopic(topicId, async (tx) => {
+    // A reject that landed first keeps its reason and its person.
+    const { status } = await lockedStatement(tx, statement.id);
+    if (status === "rejected") return;
+    await tx
       .update(statementTable)
       .set({
         status: "rejected",
@@ -413,7 +493,7 @@ export async function rejectStatement(
         decidedBy: userId,
         decidedAt: new Date(),
       })
-      .where(eq(statementTable.id, statement.id)),
-  );
+      .where(eq(statementTable.id, statement.id));
+  });
   return one(statement.id);
 }

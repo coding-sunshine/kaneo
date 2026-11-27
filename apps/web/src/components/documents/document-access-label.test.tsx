@@ -112,6 +112,7 @@ describe("DocumentCrumbs", () => {
             title: "Launch plan",
             scope: "workspace",
             parentName: null,
+            ancestors: [],
           } as unknown as DocumentDetail
         }
         historyOpen={false}
