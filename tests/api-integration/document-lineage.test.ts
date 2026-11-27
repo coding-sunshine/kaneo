@@ -247,6 +247,36 @@ describe("API integration: draft lineage", () => {
     expect((await link(world, limited, second))?.id).toBe(visible);
   });
 
+  it("keeps an undecided link when somebody who cannot see its source saves", async () => {
+    const world = await buildDocumentWorld();
+    const { owner, limited } = world;
+    // Team Beta: `limited` cannot open it.
+    const plan = await write(world, owner, "Secret plan", PLAN, {
+      projectId: world.beta.id,
+    });
+    // Team Alpha, which everyone in the team may edit.
+    const copy = await write(world, owner, "Launch plan v2", ONE_CHANGE, {
+      projectId: world.alpha.id,
+    });
+    expect((await link(world, owner, copy))?.id).toBe(plan);
+
+    // They see no link, and their save leaves the author's in place.
+    expect(
+      (await edit(world, limited, copy, revised(3, 5))).revisionOf,
+    ).toBeNull();
+    expect(await link(world, owner, copy)).toMatchObject({
+      id: plan,
+      status: "proposed",
+    });
+    expect(await rows()).toEqual([
+      { documentId: copy, sourceDocumentId: plan },
+    ]);
+
+    // A save by somebody who can see the source still moves it along.
+    expect((await edit(world, owner, copy, OTHER_TEXT)).revisionOf).toBeNull();
+    expect(await rows()).toEqual([]);
+  });
+
   it("shows the link only to a reader who can open the other document", async () => {
     const world = await buildDocumentWorld();
     const { owner, limited } = world;

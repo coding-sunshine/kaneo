@@ -29,7 +29,9 @@ type Written = Pick<
  * Proposes the older document that a text which was just written resembles,
  * among the documents its writer can open. `prints` is the fingerprint the
  * writer stored with the text. A link that a person confirmed or dismissed is
- * left alone.
+ * left alone, and so is a proposal whose source the writer cannot open: the
+ * comparison runs as the writer, and what they cannot see says nothing about
+ * it.
  */
 export async function proposeLineage(
   doc: Written,
@@ -37,10 +39,17 @@ export async function proposeLineage(
   userId: string,
 ) {
   const [link] = await db
-    .select({ status: documentLineageTable.status })
+    .select({
+      status: documentLineageTable.status,
+      sourceVisible: documentVisibility(userId, documentTable),
+    })
     .from(documentLineageTable)
+    .innerJoin(
+      documentTable,
+      eq(documentTable.id, documentLineageTable.sourceDocumentId),
+    )
     .where(eq(documentLineageTable.documentId, doc.id));
-  if (link && link.status !== "proposed") return;
+  if (link && (link.status !== "proposed" || !link.sourceVisible)) return;
 
   // ponytail: every save of an undecided text loads the fingerprints of the
   // recent documents of a similar length and compares them here. That holds at
