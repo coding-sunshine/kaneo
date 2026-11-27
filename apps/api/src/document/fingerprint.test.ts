@@ -64,6 +64,26 @@ describe("fingerprint", () => {
     );
   });
 
+  it("skips link targets and code blocks in both forms", () => {
+    const target = "https://kaneo.example/docs/launch-plan/final-review";
+    const [first, second, third] = SENTENCES;
+    const markdown = [
+      `${first} See [the launch plan](${target} "Launch plan") today.`,
+      "```ts\nconst launchDate = getLaunchDate(auditReport);\n```",
+      `${second} ![release chart](${target}/chart.png) ${third}`,
+    ].join("\n\n");
+    const html = [
+      `<p>${first} See <a href="${target}">the launch plan</a> today.</p>`,
+      '<pre><code class="language-ts">const launchDate = getLaunchDate(auditReport);</code></pre>',
+      `<p>${second} <img src="${target}/chart.png" alt="release chart"> ${third}</p>`,
+    ].join("");
+
+    expect(fingerprint(markdown)).toEqual(fingerprint(html));
+    expect(fingerprint(markdown)).toEqual(
+      fingerprint(`${first} See the launch plan today. ${second} ${third}`),
+    );
+  });
+
   it("tells the order of the words apart", () => {
     expect(fingerprint("one two three four five")).not.toEqual(
       fingerprint("five four three two one"),

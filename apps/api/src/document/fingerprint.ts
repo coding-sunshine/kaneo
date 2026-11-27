@@ -6,10 +6,15 @@ const RUN = 5;
 /**
  * The fingerprint of a text: a 32-bit hash for each distinct run of five
  * words, sorted. Markup, case and punctuation do not count, so the same words
- * saved as HTML or as Markdown give the same list.
+ * saved as HTML or as Markdown give the same list. Code blocks, images and link
+ * targets are not prose, so they do not count either.
  */
 export function fingerprint(text: string) {
   const words = text
+    .replace(/^ {0,3}(`{3,}|~{3,})[^]*?(?:^ {0,3}\1|(?![^]))/gm, " ")
+    .replace(/<pre\b[^]*?<\/pre>/gi, " ")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
     .replace(/<[^>]*>|&#?\w+;/g, " ")
     .toLowerCase()
     .split(/[^\p{L}\p{N}]+/u)
