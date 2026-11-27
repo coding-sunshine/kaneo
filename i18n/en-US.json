@@ -3275,6 +3275,39 @@
 				"documents": "Documents",
 				"chatMessages": "Chat messages"
 			}
+		},
+		"calendarSync": {
+			"navLabel": "Calendar",
+			"pageTitle": "Calendar",
+			"title": "Calendar",
+			"subtitle": "Connect your Google or Microsoft calendar.",
+			"accountsTitle": "Calendars",
+			"accountsDescription": "A connection belongs to you alone. Nobody else in your workspaces can see your calendar.",
+			"providers": {
+				"google": "Google Calendar",
+				"microsoft": "Outlook calendar"
+			},
+			"descriptions": {
+				"google": "Syncs with the main calendar of a Google account.",
+				"microsoft": "Syncs with the calendar of a Microsoft 365 or Outlook.com account."
+			},
+			"notConfigured": "Not set up on this server yet. An administrator has to add the OAuth keys first.",
+			"connected": "Connected",
+			"connectedNoEmail": "Connected account",
+			"needsReconnect": "Reconnect needed",
+			"needsReconnectDescription": "The calendar stopped accepting access. Reconnect to keep syncing.",
+			"connect": "Connect",
+			"reconnect": "Reconnect",
+			"disconnect": "Disconnect",
+			"disconnected": "Calendar disconnected",
+			"loadFailed": "Couldn't load your calendar connections.",
+			"howItWorks": "Events from your calendar show up on each team's calendar view. Due dates of issues assigned to you go into your calendar as all-day events.",
+			"dueDatesTitle": "Due dates",
+			"syncNow": "Sync due dates",
+			"syncNowDescription": "Adds due dates from the past 30 days onward that aren't in your calendar yet.",
+			"syncNowAction": "Sync now",
+			"synced_one": "{{count}} issue is in your calendar",
+			"synced_other": "{{count}} issues are in your calendar"
 		}
 	},
 	"navigation": {
@@ -5384,7 +5417,33 @@
 			"loadError": "Failed to load issues.",
 			"dayTasksAriaLabel": "Show all issues for {{date}}",
 			"taskAriaLabel": "{{title}}, {{range}}: open issue",
-			"noTasksThisMonth": "Nothing scheduled this month"
+			"noTasksThisMonth": "Nothing scheduled this month",
+			"newEvent": "New event",
+			"untitledEvent": "Untitled event",
+			"allDay": "All day",
+			"joinMeeting": "Join meeting",
+			"eventAriaLabel": "{{title}}, {{time}}: open in your calendar",
+			"moreEvents": "+{{count}} more",
+			"eventsUnavailable": "Some calendar events couldn't load. Reconnect the calendar in Settings.",
+			"createEvent": {
+				"title": "New calendar event",
+				"calendar": "Calendar",
+				"eventTitle": "Title",
+				"titlePlaceholder": "What's it about?",
+				"date": "Date",
+				"startTime": "Starts",
+				"endTime": "Ends",
+				"allDay": "All day",
+				"addMeeting": {
+					"google": "Add a Google Meet link",
+					"microsoft": "Add a Microsoft Teams meeting"
+				},
+				"meetingUrl": "Or paste a meeting link",
+				"meetingUrlPlaceholder": "https://",
+				"create": "Create event",
+				"created": "Event added to your calendar",
+				"invalid": "Give the event a title and an end time after its start."
+			}
 		},
 		"gantt": {
 			"searchPlaceholder": "Search scheduled tickets...",

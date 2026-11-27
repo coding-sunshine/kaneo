@@ -1,8 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { addMonths, startOfMonth, subMonths } from "date-fns";
+import { Plus } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import CalendarToolbar from "@/components/calendar/calendar-toolbar";
+import CreateCalendarEventDialog from "@/components/calendar/create-calendar-event-dialog";
 import MonthAgenda from "@/components/calendar/month-agenda";
 import MonthGrid from "@/components/calendar/month-grid";
 import { buildMonthWeeks } from "@/components/calendar/month-grid-model";
@@ -16,6 +18,8 @@ import { TaskCount } from "@/components/project/toolbar/task-count";
 import { useProjectTaskView } from "@/components/project/toolbar/use-project-task-view";
 import { LayoutSwitch } from "@/components/project/views/layout-switch";
 import TaskDetailsSheet from "@/components/task/task-details-sheet";
+import { Button } from "@/components/ui/button";
+import { useMonthCalendarEvents } from "@/hooks/queries/calendar-sync/use-month-calendar-events";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toCalendarTasks } from "@/lib/calendar-tasks";
@@ -80,6 +84,9 @@ function RouteComponent() {
     () => buildMonthWeeks(visibleMonth, weekStartsOn),
     [visibleMonth, weekStartsOn],
   );
+
+  const calendar = useMonthCalendarEvents(weeks);
+  const [creatingEvent, setCreatingEvent] = useState(false);
 
   const handlePreviousMonth = useCallback(() => {
     setVisibleMonth((current) => subMonths(current, 1));
@@ -158,7 +165,28 @@ function RouteComponent() {
           onPreviousMonth={handlePreviousMonth}
           onNextMonth={handleNextMonth}
           onToday={handleToday}
+          actions={
+            calendar.connected.length > 0 && (
+              <Button
+                variant="outline"
+                size="xs"
+                className="min-h-11 touch-manipulation sm:min-h-0"
+                onClick={() => setCreatingEvent(true)}
+              >
+                <Plus />
+                {t("tasks:calendar.newEvent")}
+              </Button>
+            )
+          }
         />
+
+        {calendar.unavailable.length > 0 && (
+          <div className="border-b border-border/80 px-4 py-2 text-center">
+            <p role="status" className="text-xs text-muted-foreground">
+              {t("tasks:calendar.eventsUnavailable")}
+            </p>
+          </div>
+        )}
 
         {isLoading || relationsLoading ? (
           <div className="border-b border-border/80 px-4 py-3 text-center">
@@ -193,9 +221,10 @@ function RouteComponent() {
           !relationsLoading &&
           !isError &&
           (isMobile ? (
-            scheduledTasks.length > 0 && (
+            (scheduledTasks.length > 0 || calendar.eventsByDay.size > 0) && (
               <MonthAgenda
                 tasks={scheduledTasks}
+                eventsByDay={calendar.eventsByDay}
                 visibleMonth={visibleMonth}
                 projectSlug={project?.slug}
                 onOpenTask={handleOpenTask}
@@ -207,10 +236,19 @@ function RouteComponent() {
               tasks={scheduledTasks}
               visibleMonth={visibleMonth}
               maxLanes={MAX_LANES_DESKTOP}
+              eventsByDay={calendar.eventsByDay}
               projectSlug={project?.slug}
               onOpenTask={handleOpenTask}
             />
           ))}
+
+        {calendar.connected.length > 0 && (
+          <CreateCalendarEventDialog
+            open={creatingEvent}
+            onOpenChange={setCreatingEvent}
+            providers={calendar.connected}
+          />
+        )}
 
         <TaskDetailsSheet
           taskId={taskId}

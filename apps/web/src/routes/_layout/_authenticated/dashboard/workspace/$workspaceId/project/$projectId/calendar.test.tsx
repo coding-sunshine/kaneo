@@ -49,6 +49,13 @@ vi.mock("react-i18next", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react-i18next")>()),
   useTranslation: () => ({ t: (key: string) => key }),
 }));
+vi.mock("@/hooks/queries/calendar-sync/use-month-calendar-events", () => ({
+  useMonthCalendarEvents: () => ({
+    connected: [],
+    eventsByDay: new Map(),
+    unavailable: [],
+  }),
+}));
 vi.mock("@/hooks/queries/task/use-get-tasks", () => ({
   useGetTasks: () => ({
     data: state.project,

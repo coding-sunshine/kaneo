@@ -2,6 +2,7 @@ import {
   Activity,
   Bell,
   Building2,
+  CalendarDays,
   ChartColumn,
   Code,
   CreditCard,
@@ -188,6 +189,12 @@ export function buildSettingsNav({
           label: t("settings:notifications"),
           to: "/dashboard/settings/account/notifications",
           icon: Bell,
+        },
+        {
+          id: "calendar",
+          label: t("settings:calendarSync.navLabel"),
+          to: "/dashboard/settings/account/calendar",
+          icon: CalendarDays,
         },
         {
           id: "security",

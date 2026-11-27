@@ -1,7 +1,10 @@
 import { format, isSameMonth, isToday, isWeekend } from "date-fns";
 import { type JSX, useMemo } from "react";
 import { cn } from "@/lib/cn";
+import type { ExternalCalendarEvent } from "@/fetchers/calendar-sync/calendar-sync";
+import { dayKey } from "@/lib/external-events-by-day";
 import { formatDate } from "@/lib/format";
+import CalendarDayEvents from "./calendar-day-events";
 import CalendarTaskBar, { type CalendarTask } from "./calendar-task-bar";
 import DayOverflowPopover from "./day-overflow-popover";
 import { packWeekLanes } from "./month-grid-model";
@@ -13,7 +16,11 @@ type MonthGridProps = {
   maxLanes: number;
   projectSlug?: string;
   onOpenTask: (taskId: string) => void;
+  /** Events from the person's connected calendars, keyed by local day. */
+  eventsByDay?: ReadonlyMap<string, readonly ExternalCalendarEvent[]>;
 };
+
+const MAX_EVENTS_PER_DAY = 2;
 
 export default function MonthGrid({
   weeks,
@@ -22,6 +29,7 @@ export default function MonthGrid({
   maxLanes,
   projectSlug,
   onOpenTask,
+  eventsByDay,
 }: MonthGridProps): JSX.Element {
   const weekdayTemplate = weeks[0] ?? [];
   const layouts = useMemo(
@@ -71,11 +79,11 @@ export default function MonthGrid({
                 <div
                   key={`number-${day.toISOString()}`}
                   style={{ gridColumn: dayIndex + 1, gridRow: 1 }}
-                  className="z-10 flex justify-end px-1 py-1"
+                  className="z-10 flex min-w-0 flex-col gap-0.5 px-1 py-1"
                 >
                   <span
                     className={cn(
-                      "flex size-5 items-center justify-center rounded-full text-[11px] font-medium",
+                      "flex size-5 items-center justify-center self-end rounded-full text-[11px] font-medium",
                       !isSameMonth(day, visibleMonth) &&
                         "text-muted-foreground/60",
                       isToday(day) && "bg-primary text-primary-foreground",
@@ -83,6 +91,12 @@ export default function MonthGrid({
                   >
                     {format(day, "d")}
                   </span>
+                  {eventsByDay?.has(dayKey(day)) && (
+                    <CalendarDayEvents
+                      events={eventsByDay.get(dayKey(day)) ?? []}
+                      max={MAX_EVENTS_PER_DAY}
+                    />
+                  )}
                 </div>
               ))}
 
