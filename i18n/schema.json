@@ -14535,6 +14535,25 @@
 								"everyoneIn": {
 									"type": "string"
 								},
+								"everyoneUnnamed": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"workspace": {
+											"type": "string"
+										},
+										"team": {
+											"type": "string"
+										},
+										"project": {
+											"type": "string"
+										},
+										"issue": {
+											"type": "string"
+										}
+									},
+									"required": ["workspace", "team", "project", "issue"]
+								},
 								"private": {
 									"type": "string"
 								},
@@ -14630,6 +14649,7 @@
 								"owner",
 								"generalAccess",
 								"everyoneIn",
+								"everyoneUnnamed",
 								"private",
 								"privateHint",
 								"addPeople",

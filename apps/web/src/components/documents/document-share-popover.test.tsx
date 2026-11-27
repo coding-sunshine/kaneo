@@ -46,7 +46,7 @@ const sharedTasks = [
   { id: "t1", title: "Fix it", number: 7, projectId: "p", projectSlug: "eng" },
   { id: "t2", title: null, number: null, projectId: null, projectSlug: null },
 ];
-const show = (role: string) =>
+const show = (role: string, place: Partial<DocumentDetail> = {}) =>
   render(
     <DocumentSharePopover
       document={
@@ -61,6 +61,7 @@ const show = (role: string) =>
           scope: "workspace",
           generalAccess: "view",
           sharedTasks,
+          ...place,
         } as unknown as DocumentDetail
       }
       open
@@ -139,4 +140,28 @@ describe("DocumentSharePopover messages", () => {
     );
     mocks.members = [];
   });
+});
+
+describe("DocumentSharePopover general access", () => {
+  it("names the team the document sits in", () => {
+    show("edit", { scope: "team", parentName: "Alpha" });
+    expect(
+      screen.getByText(
+        'navigation:documents.share.everyoneIn {"name":"Alpha"}',
+      ),
+    ).toBeTruthy();
+  });
+
+  it.each(["team", "issue"] as const)(
+    "reads as a sentence when the %s is one the reader cannot enter",
+    (scope) => {
+      show("edit", { scope, parentName: null });
+      expect(
+        screen.getByText(`navigation:documents.share.everyoneUnnamed.${scope}`),
+      ).toBeTruthy();
+      expect(
+        screen.queryByText(/navigation:documents\.share\.everyoneIn/),
+      ).toBeNull();
+    },
+  );
 });

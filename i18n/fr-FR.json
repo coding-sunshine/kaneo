@@ -3589,7 +3589,13 @@
 				"taskGains": "Sharing gives view access to {{names}}.",
 				"taskShared": "Shared with this issue",
 				"taskUnshared": "Stopped sharing with this issue",
-				"updated": "Access updated"
+				"updated": "Access updated",
+				"everyoneUnnamed": {
+					"issue": "Everyone who can open an issue you cannot open",
+					"project": "Everyone in the project's teams",
+					"team": "Everyone in a team you cannot open",
+					"workspace": "Everyone in this workspace"
+				}
 			},
 			"shareMenu": "Share…",
 			"showComments": "Show comments",

@@ -3557,6 +3557,12 @@
 				"owner": "Owner",
 				"generalAccess": "General access",
 				"everyoneIn": "Everyone in {{name}}",
+				"everyoneUnnamed": {
+					"workspace": "Everyone in this workspace",
+					"team": "Everyone in a team you cannot open",
+					"project": "Everyone in the project's teams",
+					"issue": "Everyone who can open an issue you cannot open"
+				},
 				"private": "Private",
 				"privateHint": "Only people invited can open this document",
 				"addPeople": "Add people…",
