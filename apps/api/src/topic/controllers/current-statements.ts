@@ -7,6 +7,7 @@ import {
   userTable,
 } from "../../database/schema";
 import { documentVisibility } from "../../document/visibility";
+import { forText } from "../statement-hash";
 
 export type Reader = Pick<typeof db, "select">;
 
@@ -43,7 +44,7 @@ export function currentStatements(
         eq(documentTable.status, "current"),
         isNull(documentTable.deletedAt),
         eq(statementTable.status, "confirmed"),
-        eq(statementTable.contentHash, documentTable.approvedHash),
+        forText(documentTable.approvedHash),
         viewerId ? documentVisibility(viewerId, documentTable) : undefined,
       ),
     );

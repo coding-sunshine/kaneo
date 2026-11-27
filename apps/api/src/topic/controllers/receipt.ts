@@ -11,6 +11,7 @@ import { loadDocument } from "../../document/controllers/load-document";
 import { currentStatements, type Reader } from "./current-statements";
 import { judgementsOf, textsHash } from "./judgement";
 import { openTopic } from "./statements";
+import { forText } from "../statement-hash";
 
 type Text = { id: string; contentHash: string | null };
 type Decision = typeof statementConflictTable.$inferSelect;
@@ -83,7 +84,7 @@ export async function receiptOf(
     .where(
       and(
         eq(statementTable.documentId, doc.id),
-        eq(statementTable.contentHash, doc.contentHash ?? ""),
+        forText(doc.contentHash ?? ""),
         ne(statementTable.status, "rejected"),
       ),
     )

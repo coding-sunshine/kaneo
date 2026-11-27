@@ -848,6 +848,20 @@ describe("API integration: statement extraction job", () => {
     );
     expect((await api.decide(docId, first!.id, "confirm")).status).toBe(200);
     expect((await api.decide(docId, other!.id, "confirm")).status).toBe(409);
+
+    // Both values go with the text through an edit elsewhere.
+    await api.edit(
+      docId,
+      `<p>${LAUNCH}</p>${filler}${filler}<p>${MOVED}</p><p>Doors open at nine.</p>`,
+    );
+    const carried = (await api.statementsOf(docId))
+      .filter((statement) => statement.slot === "launch_date")
+      .map((statement) => [statement.value, statement.status])
+      .sort();
+    expect(carried).toEqual([
+      ["2027-03-05", "confirmed"],
+      ["2027-04-09", "proposed"],
+    ]);
   });
 
   it("stops at the workspace's daily token cap", async () => {

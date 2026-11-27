@@ -3512,7 +3512,9 @@ export const statementTable = pgTable(
     quote: text("quote").notNull(),
     quoteStart: integer("quote_start").notNull(),
     // The document's `contentHash` the quote was checked against. A statement
-    // for another text of the document says nothing about this one.
+    // for another text of the document says nothing about this one. A further
+    // value of a slot on the same text has `#` and its value's hash after it
+    // (see topic/statement-hash.ts).
     contentHash: text("content_hash").notNull(),
     status: text("status")
       .$type<StatementStatus>()
@@ -3535,11 +3537,10 @@ export const statementTable = pgTable(
   },
   (table) => [
     index("statement_document_idx").on(table.documentId),
-    // One statement a value of a slot for each text of a document: a long
-    // text can state two values for one fact. Rejected ones stay as a record
-    // beside them.
+    // One statement a slot for each text of a document. Rejected ones stay
+    // as a record beside it.
     uniqueIndex("statement_slot_document_hash_uidx")
-      .on(table.slotId, table.documentId, table.contentHash, table.normalized)
+      .on(table.slotId, table.documentId, table.contentHash)
       .where(sql`${table.status} <> 'rejected'`),
     check(
       "statement_rejected_has_reason",

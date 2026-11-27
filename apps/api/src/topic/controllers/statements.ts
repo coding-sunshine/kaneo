@@ -19,6 +19,7 @@ import {
   quoteStart,
   textBlocks,
 } from "../statement-text";
+import { forText, textHashOf, valueHash } from "../statement-hash";
 import { normalizeValue } from "../statement-value";
 import { changingTopic, type Transaction } from "./flag-dependents";
 import { getTopic } from "./get-topic";
@@ -120,7 +121,7 @@ export async function proposeStatements(
         and(
           eq(statementTable.slotId, slot.id),
           eq(statementTable.documentId, doc.id),
-          eq(statementTable.contentHash, contentHash),
+          forText(contentHash),
           ne(statementTable.status, "rejected"),
         ),
       )
@@ -166,7 +167,9 @@ export async function proposeStatements(
         ...values,
         slotId: slot.id,
         documentId: doc.id,
-        contentHash,
+        // A further value of the slot on this text: see statement-hash.ts.
+        contentHash:
+          held.length > 0 ? valueHash(contentHash, normalized) : contentHash,
       })
       // Two writers at once: the value keeps the first statement.
       .onConflictDoNothing()
@@ -204,7 +207,7 @@ export async function carryStatements(
     .where(
       and(
         eq(statementTable.documentId, documentId),
-        eq(statementTable.contentHash, fromHash),
+        forText(fromHash),
         ne(statementTable.status, "rejected"),
       ),
     );
@@ -229,7 +232,8 @@ export async function carryStatements(
         normalized: statement.normalized,
         quote: statement.quote,
         quoteStart: start,
-        contentHash: toHash,
+        // A further value keeps its own part after the text's hash.
+        contentHash: toHash + statement.contentHash.slice(fromHash.length),
         source: statement.source,
         createdBy: statement.createdBy,
         ...(untouched && {
@@ -274,7 +278,7 @@ export async function listStatements(
     .where(
       and(
         eq(statementTable.documentId, doc.id),
-        eq(statementTable.contentHash, doc.contentHash ?? ""),
+        forText(doc.contentHash ?? ""),
         eq(topicSlotTable.topicId, topicId),
       ),
     )
@@ -404,7 +408,7 @@ export async function confirmStatement(
       doc.contentHash,
       ...(doc.status === "current" ? [doc.approvedHash] : []),
     ];
-    if (!texts.includes(contentHash)) {
+    if (!texts.includes(textHashOf(contentHash))) {
       throw new HTTPException(409, {
         message: "The document changed after this statement was written",
       });
@@ -417,7 +421,7 @@ export async function confirmStatement(
         and(
           eq(statementTable.slotId, slotId),
           eq(statementTable.documentId, documentId),
-          eq(statementTable.contentHash, contentHash),
+          forText(textHashOf(contentHash)),
           eq(statementTable.status, "confirmed"),
           ne(statementTable.id, statement.id),
         ),

@@ -24,6 +24,7 @@ import {
 } from "../topic/controllers/judgement";
 import { receiptOf } from "../topic/controllers/receipt";
 import { retryLater } from "./retry-later";
+import { forText } from "../topic/statement-hash";
 
 const PER_TICK = 5;
 const QUESTIONS_A_DAY = 5;
@@ -128,7 +129,7 @@ export async function askConflictQuestions() {
         eq(documentTable.topicId, topicSlotTable.topicId),
         isNull(documentTable.deletedAt),
         inArray(documentTable.status, ["in_review", "current"]),
-        eq(statementTable.contentHash, documentTable.contentHash),
+        forText(documentTable.contentHash),
         ne(statementTable.status, "rejected"),
       ),
     )
