@@ -5879,6 +5879,12 @@
 			"requestError": "Could not request the design review.",
 			"approveError": "Could not approve the design review.",
 			"withdrawError": "Could not withdraw the design review request."
+		},
+		"figma": {
+			"open": "Open {{name}} in Figma",
+			"fetchedAt": "Fetched {{time}}",
+			"refresh": "Refresh Figma preview",
+			"refreshError": "Could not refresh the Figma preview."
 		}
 	},
 	"invitations": {

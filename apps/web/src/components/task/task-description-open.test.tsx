@@ -20,6 +20,10 @@ function inert(name: string) {
   });
 }
 
+// Figma cards read the config and workspace queries; not under test here.
+vi.mock("@/components/figma/figma-link-cards", () => ({
+  FigmaLinkCards: () => null,
+}));
 vi.mock("./extensions/shiki-code-block", () => ({
   ShikiCodeBlock: inert("shikiCodeBlockStub"),
 }));

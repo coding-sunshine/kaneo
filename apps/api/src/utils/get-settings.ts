@@ -3,6 +3,7 @@ import { isSmtpConfigured } from "@kaneo/email";
 import { config } from "dotenv-mono";
 import { isAgentEnabled } from "../agent/openrouter";
 import { isBillingEnabled } from "../billing/config";
+import { figmaConfigured } from "../figma/figma-config";
 import {
   DEFAULT_STORED_SETTINGS,
   type InstanceSettings,
@@ -70,6 +71,7 @@ function getSettings(
     billingEnabled: isBillingAvailable(),
     hasAgent: isAgentEnabled(),
     hasCalls: callsConfigured(),
+    hasFigmaPreviews: figmaConfigured(),
   };
 }
 

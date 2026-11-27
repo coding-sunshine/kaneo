@@ -35,6 +35,8 @@ import billing from "./billing";
 import calendarFeed, { publicCalendarFeed } from "./calendar-feed";
 import calendarSync from "./calendar-sync";
 import designReview from "./design-review";
+import figma from "./figma";
+import { figmaConfigured, logFigmaOffOnce } from "./figma/figma-config";
 import column from "./column";
 import comment from "./comment";
 import config from "./config";
@@ -914,6 +916,7 @@ export function createApp() {
   const githubReviewsApi = api.route("/github-reviews", githubReviews);
   const calendarSyncApi = api.route("/calendar-sync", calendarSync);
   const designReviewApi = api.route("/design-review", designReview);
+  const figmaApi = api.route("/figma", figma);
   const githubIntegrationApi = api.route(
     "/github-integration",
     githubIntegration,
@@ -1119,6 +1122,7 @@ export function createApp() {
     githubReviewsApi,
     calendarSyncApi,
     designReviewApi,
+    figmaApi,
     githubIntegrationApi,
     giteaIntegrationApi,
     gitlabIntegrationApi,
@@ -1232,6 +1236,7 @@ export async function startServer(
         `⚡ API is running at ${process.env.KANEO_API_URL || "http://localhost:1337"}`,
       );
       if (!callsConfigured()) logCallsOffOnce();
+      if (!figmaConfigured()) logFigmaOffOnce();
     },
   );
 
@@ -1285,6 +1290,7 @@ const {
   githubReviewsApi,
   calendarSyncApi,
   designReviewApi,
+  figmaApi,
   githubIntegrationApi,
   giteaIntegrationApi,
   gitlabIntegrationApi,
@@ -1377,6 +1383,7 @@ export type AppType =
   | typeof githubReviewsApi
   | typeof calendarSyncApi
   | typeof designReviewApi
+  | typeof figmaApi
   | typeof githubIntegrationApi
   | typeof giteaIntegrationApi
   | typeof gitlabIntegrationApi

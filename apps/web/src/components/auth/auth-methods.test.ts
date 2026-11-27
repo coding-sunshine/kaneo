@@ -35,6 +35,7 @@ function config(overrides: Partial<GetConfigResponse> = {}) {
     billingEnabled: false,
     hasAgent: false,
     hasCalls: false,
+    hasFigmaPreviews: false,
     ...overrides,
   } satisfies GetConfigResponse;
 }

@@ -52,6 +52,7 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { AuthContext } from "@/components/providers/auth-provider";
+import { FigmaLinkCards } from "@/components/figma/figma-link-cards";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogPopup } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -1783,6 +1784,7 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
         onMouseMove={handleEditorMouseMove}
         onMouseLeave={handleEditorMouseLeave}
       />
+      <FigmaLinkCards content={task?.description ?? ""} className="mt-3" />
       {workspace && (
         <LinkedDocumentAccessWarning
           workspaceId={workspace.id}

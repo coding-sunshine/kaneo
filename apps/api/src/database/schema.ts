@@ -1655,6 +1655,33 @@ export const taskDesignReviewTable = pgTable(
   ],
 );
 
+// Figma link cards, stored per workspace so a page of comments never fans out
+// to Figma and everyone sees the same fetched-at time until someone refreshes.
+export const figmaLinkPreviewTable = pgTable(
+  "figma_link_preview",
+  {
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    fileKey: text("file_key").notNull(),
+    // Empty when the link points at the whole file rather than a frame.
+    nodeId: text("node_id").default("").notNull(),
+    url: text("url").notNull(),
+    fileName: text("file_name").notNull(),
+    frameName: text("frame_name"),
+    thumbnailUrl: text("thumbnail_url"),
+    fetchedAt: timestamp("fetched_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.workspaceId, table.fileKey, table.nodeId] }),
+  ],
+);
+
 export const billingReminderSentTable = pgTable(
   "billing_reminder_sent",
   {

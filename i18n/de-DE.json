@@ -5879,6 +5879,12 @@
 			"waitingTitle": "Waiting for {{age}}",
 			"withdraw": "Withdraw the review request from {{name}}",
 			"withdrawError": "Could not withdraw the design review request."
+		},
+		"figma": {
+			"open": "{{name}} in Figma öffnen",
+			"fetchedAt": "Abgerufen {{time}}",
+			"refresh": "Figma-Vorschau aktualisieren",
+			"refreshError": "Die Figma-Vorschau konnte nicht aktualisiert werden."
 		}
 	},
 	"invitations": {

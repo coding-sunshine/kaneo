@@ -154,6 +154,21 @@ Name | Description | Default |
 | `LIVEKIT_API_KEY` | API key from your LiveKit server or project. | Unset |
 | `LIVEKIT_API_SECRET` | API secret paired with the key. Also read from `LIVEKIT_API_SECRET_FILE`. Keep it on the server; it never reaches browsers. | Unset |
 
+### Figma link cards
+
+Figma links in tickets, comments and documents show as a card with a thumbnail, the file name and when it was fetched. The API reads the file through the Figma REST API with a personal access token that has read access to file content. Without a token, cards are off: the API logs that once, and Figma links stay plain links.
+
+Use a token that only sees files the whole workspace may see, such as one from a Figma account that is a viewer on your shared team projects. Kaneo limits what a card can reveal, but it cannot know which Figma files are private to whom:
+
+- A card is shown only for a file whose link appears in a task description, comment or document that the person can read in that workspace. Any other link gets the same "not found" answer as a file the token cannot open.
+- Guests never get cards.
+- Each workspace stores its cards. Figma is read again only when someone presses refresh, or when the stored image link expires (after 14 days); if that read fails, the card shows without an image.
+- Each person can make 20 lookups that reach Figma in 10 minutes. A file Figma could not return is not asked again for 5 minutes. Both limits are kept per API instance.
+
+Name | Description | Default |
+--- | --- | --- |
+| `FIGMA_ACCESS_TOKEN` | Figma personal access token used to read file names and thumbnails. Also read from `FIGMA_ACCESS_TOKEN_FILE`. It stays on the server. Give it access only to files every workspace member may see. | Unset |
+
 ### Imports
 
 The [in-app importer](/core/migrations) reads from the source on the API server. Sources on a private network, such as a PLANKA container in the same Docker network, also need `KANEO_ALLOW_PRIVATE_WEBHOOK_DESTINATIONS=true` (see [Notifications](#notifications)).
