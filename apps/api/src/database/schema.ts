@@ -2738,6 +2738,13 @@ export const documentTable = pgTable(
     fingerprint: integer("fingerprint").array(),
     // The assistant a document was saved from, when it was not typed here.
     sourceClient: text("source_client").$type<DocumentSourceClient>(),
+    // The page this one sits under in the page tree. Each page keeps its own
+    // place and access: a reader who cannot open the parent sees the child at
+    // the top of the tree.
+    parentDocumentId: text("parent_document_id").references(
+      (): AnyPgColumn => documentTable.id,
+      { onDelete: "set null", onUpdate: "cascade" },
+    ),
     // The topic the document is filed on. A filed document lives in the
     // topic's place.
     topicId: text("topic_id").references(() => topicTable.id, {
@@ -2814,6 +2821,7 @@ export const documentTable = pgTable(
     index("document_task_idx").on(table.taskId),
     index("document_creator_idx").on(table.creatorId),
     index("document_topic_idx").on(table.topicId),
+    index("document_parent_document_idx").on(table.parentDocumentId),
     // One current document per topic, whatever the code does.
     uniqueIndex("one_current")
       .on(table.topicId)

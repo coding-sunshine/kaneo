@@ -9,6 +9,7 @@ import type { createDocumentBody } from "../schema";
 import { copyLinkedFiles } from "./copy-linked-files";
 import { getDocument } from "./get-document";
 import { proposeLineage } from "./lineage";
+import { loadHoldingPage } from "./move-page";
 import { recordVersion } from "./record-version";
 import { resolveParent } from "./resolve-parent";
 
@@ -16,7 +17,17 @@ export async function createDocument(
   userId: string,
   body: z.infer<typeof createDocumentBody>,
 ) {
-  const parent = await resolveParent(body.workspaceId, userId, body);
+  // A page made under another one lives in that page's place, unless the
+  // request names a place of its own.
+  const holder = body.parentDocumentId
+    ? await loadHoldingPage(body.workspaceId, body.parentDocumentId, userId)
+    : null;
+  const named = body.projectId || body.workProjectId || body.taskId;
+  const parent = await resolveParent(
+    body.workspaceId,
+    userId,
+    holder && !named ? holder : body,
+  );
   const title = body.title ?? "";
   const written = body.content ?? "";
   let prints = fingerprint(written);
@@ -30,6 +41,7 @@ export async function createDocument(
       icon: body.icon ?? null,
       color: body.color ?? null,
       ...parent,
+      parentDocumentId: holder?.id ?? null,
       creatorId: userId,
       updatedById: userId,
     })

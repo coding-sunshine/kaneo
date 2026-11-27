@@ -48,6 +48,7 @@ export async function createDocument(
     projectId?: string | null;
     workProjectId?: string | null;
     taskId?: string | null;
+    parentDocumentId?: string;
   },
 ) {
   const response = await client.document.$post({ json: input });
@@ -90,8 +91,18 @@ export async function moveDocument(
   return response.json();
 }
 
-export async function deleteDocument(workspaceId: string, id: string) {
-  const response = await one.$delete({ param: { workspaceId, id } });
+/** What happens to the pages under a page that is deleted. */
+export type ChildPages = "lift" | "delete";
+
+export async function deleteDocument(
+  workspaceId: string,
+  id: string,
+  children?: ChildPages,
+) {
+  const response = await one.$delete({
+    param: { workspaceId, id },
+    query: children ? { children } : {},
+  });
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }
@@ -378,6 +389,29 @@ export async function finalizeDocumentFileUpload(
   const response = await one.upload.finalize.$post({
     param: { workspaceId, id },
     json,
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function getDocumentPageTree(workspaceId: string) {
+  const response = await api.tree.$get({ param: { workspaceId } });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export type DocumentPage = Awaited<
+  ReturnType<typeof getDocumentPageTree>
+>[number];
+
+export async function moveDocumentPage(
+  workspaceId: string,
+  id: string,
+  parentDocumentId: string | null,
+) {
+  const response = await one.parent.$put({
+    param: { workspaceId, id },
+    json: { parentDocumentId },
   });
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();

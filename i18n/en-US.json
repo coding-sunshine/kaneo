@@ -3427,6 +3427,22 @@
 			"title": "Documents",
 			"pageTitle": "Documents",
 			"newDocument": "New document",
+			"pageTree": {
+				"title": "Pages",
+				"addPage": "New page",
+				"addChild": "Add a page inside",
+				"expand": "Show pages inside",
+				"collapse": "Hide pages inside",
+				"dropTop": "Drop here to move to the top",
+				"empty": "No pages yet",
+				"delete": {
+					"title": "Delete this page?",
+					"hint": "It has pages inside. Choose what happens to them.",
+					"liftChildren": "Keep them and move them up a level",
+					"deleteChildren": "Delete them too",
+					"confirm": "Delete page"
+				}
+			},
 			"templates": {
 				"blank": "Blank document",
 				"fromTemplate": "From template…",

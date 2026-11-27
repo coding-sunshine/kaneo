@@ -6,6 +6,7 @@ type Start = {
   projectId?: string;
   workProjectId?: string;
   taskId?: string;
+  parentDocumentId?: string;
   title?: string;
   content?: string;
 };

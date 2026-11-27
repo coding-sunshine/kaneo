@@ -4213,6 +4213,22 @@
 				"saved": "Saved as a template for everyone in the workspace",
 				"savedHeading": "Saved in this workspace",
 				"title": "New document from a template"
+			},
+			"pageTree": {
+				"addChild": "Add a page inside",
+				"addPage": "New page",
+				"collapse": "Hide pages inside",
+				"delete": {
+					"confirm": "Delete page",
+					"deleteChildren": "Delete them too",
+					"hint": "It has pages inside. Choose what happens to them.",
+					"liftChildren": "Keep them and move them up a level",
+					"title": "Delete this page?"
+				},
+				"dropTop": "Drop here to move to the top",
+				"empty": "No pages yet",
+				"expand": "Show pages inside",
+				"title": "Pages"
 			}
 		},
 		"drafts": {

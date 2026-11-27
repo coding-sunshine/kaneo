@@ -160,3 +160,22 @@ describe("DocumentOptionsMenu template", () => {
     );
   });
 });
+
+describe("DocumentOptionsMenu delete", () => {
+  it("asks what happens to the pages inside before deleting", async () => {
+    mocks.getFavorites.mockResolvedValue([]);
+    openMenu({
+      ...document,
+      role: "edit",
+      hasChildren: true,
+    } as DocumentDetail);
+    fireEvent.click(
+      await screen.findByRole("menuitem", {
+        name: "navigation:documents.delete",
+      }),
+    );
+    expect(
+      await screen.findByText("navigation:documents.pageTree.delete.title"),
+    ).toBeTruthy();
+  });
+});

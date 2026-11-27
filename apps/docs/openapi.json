@@ -4510,6 +4510,29 @@
             "items": {
               "type": "string"
             }
+          },
+          "ancestors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "title"
+              ]
+            },
+            "description": "The pages above this one, top first. It starts below the nearest page you cannot open."
+          },
+          "hasChildren": {
+            "type": "boolean",
+            "description": "Whether any page sits under this one."
           }
         },
         "required": [
@@ -4553,7 +4576,9 @@
           "sharedTasks",
           "hiddenSharedTaskCount",
           "shares",
-          "subscriberIds"
+          "subscriberIds",
+          "ancestors",
+          "hasChildren"
         ]
       },
       "SavedDraft": {
@@ -5002,6 +5027,39 @@
           "documentId",
           "needsReview"
         ]
+      },
+      "DocumentPageTree": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "icon": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "parentDocumentId": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "The page it sits under. Null at the top, and when you cannot open that page."
+            }
+          },
+          "required": [
+            "id",
+            "title",
+            "icon",
+            "parentDocumentId"
+          ]
+        }
       },
       "DocumentReceipt": {
         "type": "object",
@@ -30478,6 +30536,10 @@
                       "string",
                       "null"
                     ]
+                  },
+                  "parentDocumentId": {
+                    "type": "string",
+                    "description": "The page to put the new one under. Needs edit access to it. Without a team, project or issue, the new page lives where that page lives."
                   }
                 },
                 "required": [
@@ -31413,6 +31475,61 @@
           },
           "404": {
             "description": "Document, statement, issue or dependency not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/tree": {
+      "get": {
+        "operationId": "getDocumentPageTree",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Page tree",
+        "description": "Every document you can open, with the page it sits under, for the sidebar tree.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentPageTree"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
             "content": {
               "application/json": {
                 "schema": {
@@ -32473,7 +32590,7 @@
           "Documents"
         ],
         "summary": "Delete document",
-        "description": "Move a document to trash. Restore undoes it.",
+        "description": "Move a document to trash. Restore undoes it. A page with pages under it needs `children` to say what happens to them.",
         "parameters": [
           {
             "schema": {
@@ -32490,6 +32607,20 @@
             "required": true,
             "name": "id",
             "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "lift",
+                "delete"
+              ],
+              "description": "What happens to the pages under this one: lift moves them up to where it was, delete moves them to trash too. Required when it has any. A page you may not delete is lifted instead."
+            },
+            "required": false,
+            "description": "What happens to the pages under this one: lift moves them up to where it was, delete moves them to trash too. Required when it has any. A page you may not delete is lifted instead.",
+            "name": "children",
+            "in": "query"
           }
         ],
         "responses": {
@@ -32502,10 +32633,18 @@
                   "properties": {
                     "id": {
                       "type": "string"
+                    },
+                    "alsoDeleted": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "The pages under it that went to trash with it. Restore each to undo."
                     }
                   },
                   "required": [
-                    "id"
+                    "id",
+                    "alsoDeleted"
                   ]
                 }
               }
@@ -32533,6 +32672,16 @@
           },
           "404": {
             "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The document is current on its topic, or it has pages under it and no choice for them",
             "content": {
               "application/json": {
                 "schema": {
@@ -32862,6 +33011,111 @@
           },
           "404": {
             "description": "Document not found, or it has no link to decide",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/parent": {
+      "put": {
+        "operationId": "moveDocumentPage",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Put a page under another",
+        "description": "Put a page under another page, or at the top of the tree. The page keeps its place and who can open it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "parentDocumentId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "The page to put this one under, or null for the top of the tree. Needs edit access to both pages."
+                  }
+                },
+                "required": [
+                  "parentDocumentId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The moved page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The new parent is the page itself or a page below it",
             "content": {
               "application/json": {
                 "schema": {

@@ -4,6 +4,8 @@ import { useEffect } from "react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
+import { PageTreeNav } from "@/components/documents/page-tree/page-tree-nav";
+import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { TrialCard } from "@/components/trial-card";
 import {
   Sidebar,
@@ -16,6 +18,7 @@ import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { setOpenMobile } = useSidebar();
+  const { data: workspace } = useActiveWorkspace();
   const pathname = useLocation({ select: (location) => location.pathname });
 
   // Navigation that doesn't start from a sidebar link (creating a project,
@@ -37,6 +40,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent className="overflow-hidden gap-1 py-1">
         <NavMain />
         <NavProjects />
+        {workspace && <PageTreeNav workspaceId={workspace.id} />}
       </SidebarContent>
       <SidebarFooter>
         <TrialCard />

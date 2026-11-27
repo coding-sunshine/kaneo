@@ -14054,6 +14054,71 @@
 						"newDocument": {
 							"type": "string"
 						},
+						"pageTree": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"addPage": {
+									"type": "string"
+								},
+								"addChild": {
+									"type": "string"
+								},
+								"expand": {
+									"type": "string"
+								},
+								"collapse": {
+									"type": "string"
+								},
+								"dropTop": {
+									"type": "string"
+								},
+								"empty": {
+									"type": "string"
+								},
+								"delete": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"title": {
+											"type": "string"
+										},
+										"hint": {
+											"type": "string"
+										},
+										"liftChildren": {
+											"type": "string"
+										},
+										"deleteChildren": {
+											"type": "string"
+										},
+										"confirm": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"title",
+										"hint",
+										"liftChildren",
+										"deleteChildren",
+										"confirm"
+									]
+								}
+							},
+							"required": [
+								"title",
+								"addPage",
+								"addChild",
+								"expand",
+								"collapse",
+								"dropTop",
+								"empty",
+								"delete"
+							]
+						},
 						"templates": {
 							"type": "object",
 							"additionalProperties": false,
@@ -16869,6 +16934,7 @@
 						"title",
 						"pageTitle",
 						"newDocument",
+						"pageTree",
 						"templates",
 						"untitled",
 						"tabs",
