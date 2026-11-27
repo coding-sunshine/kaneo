@@ -3630,6 +3630,44 @@ export const aiBudgetTable = pgTable("ai_budget", {
     .notNull(),
 });
 
+// Where a workspace's AI calls send its text: each row is one change an admin
+// made, and the newest row is the setting in force. Without a row the server
+// default applies. The rows are also the AI audit's record of the setting.
+export const aiDestinationChangeTable = pgTable(
+  "ai_destination_change",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    provider: text("provider").$type<"openrouter" | "self-hosted">().notNull(),
+    // The self-hosted model's name; null for OpenRouter, whose model the
+    // server sets.
+    model: text("model"),
+    changedBy: text("changed_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    diff: jsonb("diff")
+      .$type<{ field: string; from: string | null; to: string | null }[]>()
+      .notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("ai_destination_change_workspace_created_idx").on(
+      table.workspaceId,
+      table.createdAt,
+    ),
+  ],
+);
+
 export const SLOT_TYPES = [
   "date",
   "number",

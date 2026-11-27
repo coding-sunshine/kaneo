@@ -3209,7 +3209,9 @@
 			"features": {
 				"assistant": "Assistant",
 				"loop": "Loop runs",
-				"loopDraft": "Loop drafts"
+				"loopDraft": "Loop drafts",
+				"filter": "Plain-English filters",
+				"summary": "Ticket summaries"
 			},
 			"invalid": "Enter a whole number of tokens, or leave the field empty.",
 			"loadError": "AI usage could not be loaded.",
@@ -3279,7 +3281,35 @@
 			"sources": "Sources",
 			"title": "AI audit",
 			"toolCalls": "Tool calls",
-			"unknownUser": "a removed user"
+			"unknownUser": "a removed user",
+			"destinationChangedBy": "{{name}} changed the AI data destination"
+		},
+		"aiDestination": {
+			"adminsOnly": "Only workspace admins can change where AI text goes.",
+			"change": "Change destination",
+			"changeHint": "Each change is recorded in the AI audit.",
+			"current": "Data destination",
+			"description": "Where this workspace's text goes when the assistant, loops and summaries run.",
+			"host": "Served by {{host}}",
+			"loadError": "The AI settings could not be loaded.",
+			"model": "Model",
+			"noModel": "No model set",
+			"notConfigured": "Not configured on this server",
+			"provider": "Provider",
+			"providers": {
+				"openrouter": "OpenRouter",
+				"selfHosted": "Self-hosted model"
+			},
+			"receiver": "Receives your content",
+			"receiverHint": {
+				"openrouter": "Ticket text, comments and documents the AI reads are sent to OpenRouter, which passes them to the model below. Providers that keep data for training are excluded.",
+				"selfHosted": "Ticket text, comments and documents the AI reads go only to the model server your administrator runs."
+			},
+			"save": "Save destination",
+			"saved": "AI data destination saved",
+			"selfHostedModel": "Self-hosted model name",
+			"selfHostedModelHint": "The model name your self-hosted server serves, for example llama-3.1-8b-instruct.",
+			"title": "AI"
 		}
 	},
 	"navigation": {
@@ -3613,7 +3643,12 @@
 					"team": "Team",
 					"title": "Title",
 					"position": "Position",
-					"topic": "Topic"
+					"topic": "Topic",
+					"model": "Model",
+					"provider": "Provider",
+					"health": "Health",
+					"project": "Project",
+					"update": "Update"
 				},
 				"label": "Proposed change",
 				"reason": "Why:",
@@ -4396,7 +4431,8 @@
 				"create_task_comment": "Comment",
 				"update_task": "Edit issue",
 				"update_task_assignee": "Assign",
-				"update_task_status": "Change status"
+				"update_task_status": "Change status",
+				"create_project_update": "Draft project update"
 			},
 			"actions": "Allowed changes",
 			"all": "All",
@@ -5353,7 +5389,10 @@
 				"estimate": "Estimate",
 				"noEstimate": "No estimate",
 				"workProject": "Project",
-				"workable": "Workable"
+				"workable": "Workable",
+				"blocked": "Blocked",
+				"created": "Created",
+				"statusAge": "Time in status"
 			},
 			"operators": {
 				"isAnyOf": "est l'un des",
@@ -5366,7 +5405,13 @@
 			},
 			"allCustomFieldValues": "Toutes les valeurs",
 			"noCustomFieldValues": "Aucune valeur de champ personnalisé",
-			"noValuesUsedYet": "Aucune valeur utilisée pour le moment"
+			"noValuesUsedYet": "Aucune valeur utilisée pour le moment",
+			"olderThanDays_many": "Older than {{count}} days",
+			"olderThanDays_one": "Older than {{count}} day",
+			"olderThanDays_other": "Older than {{count}} days",
+			"statusAgeOption_many": "{{status}} for more than {{count}} days",
+			"statusAgeOption_one": "{{status}} for more than {{count}} day",
+			"statusAgeOption_other": "{{status}} for more than {{count}} days"
 		},
 		"gantt": {
 			"searchPlaceholder": "Rechercher des tâches planifiées...",
@@ -5668,7 +5713,10 @@
 		"filterMenu": {
 			"addFilter": "Ajouter un filtre…",
 			"searchSubject": "{{name}}…",
-			"noResults": "Aucun résultat"
+			"noResults": "Aucun résultat",
+			"askAi": "Filter with AI: “{{text}}”",
+			"askAiApplied": "Filter applied",
+			"askAiWorking": "Reading your filter…"
 		},
 		"shortcuts": {
 			"assignedToMe": "Assignée à vous",
@@ -5752,7 +5800,8 @@
 				"cycleTime": "Cycle time",
 				"effort": "Effort",
 				"leadTime": "Lead time",
-				"triageTime": "Triage time"
+				"triageTime": "Triage time",
+				"timeInStatus": "Time in status"
 			},
 			"median": "Median",
 			"noSegment": "No segment",
@@ -5803,6 +5852,20 @@
 			"toTriage_many": "{{count}} issues to triage",
 			"toTriage_one": "{{count}} issue to triage",
 			"toTriage_other": "{{count}} issues to triage"
+		},
+		"summary": {
+			"action": "Summarise",
+			"again": "Summarise again",
+			"blockers": "Blockers",
+			"noBlockers": "Nothing is blocking this ticket.",
+			"sources": "Based on",
+			"title": "Summary",
+			"working": "Summarising…"
+		},
+		"statusTime": {
+			"current": "current",
+			"error": "Could not load time in status",
+			"title": "Time in status"
 		}
 	},
 	"invitations": {
@@ -6589,7 +6652,9 @@
 				"postError": "Could not post the update",
 				"pulseEmpty": "No project updates yet.",
 				"save": "Save",
-				"title": "Project updates"
+				"title": "Project updates",
+				"drafts": "Drafts waiting for you",
+				"draftsHint": "Your loops drafted these updates. Nothing is posted until you accept one; it is then posted as you."
 			}
 		}
 	},

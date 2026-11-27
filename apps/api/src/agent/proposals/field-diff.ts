@@ -48,6 +48,11 @@ const FIELDS: Record<string, Record<string, string>> = {
     topicId: "topic",
   },
   create_task_comment: { content: "comment" },
+  create_project_update: {
+    workProjectId: "project",
+    health: "health",
+    body: "update",
+  },
 };
 
 /**
@@ -84,7 +89,10 @@ export function fieldDiff(
   current: TaskState | null,
 ): FieldChange[] {
   const changes: FieldChange[] = [];
-  const creates = tool === "create_task" || tool === "create_task_comment";
+  const creates =
+    tool === "create_task" ||
+    tool === "create_task_comment" ||
+    tool === "create_project_update";
   for (const [arg, field] of Object.entries(FIELDS[tool] ?? {})) {
     if (!(arg in args)) continue;
     const from =

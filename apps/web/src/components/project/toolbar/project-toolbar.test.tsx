@@ -16,6 +16,9 @@ vi.mock("@/components/project/task-filters/filter-menu", () => ({
 vi.mock("@/components/project/task-filters/use-filter-shortcuts", () => ({
   useFilterShortcuts: vi.fn(),
 }));
+vi.mock("@/components/project/task-filters/use-natural-filter", () => ({
+  useNaturalFilter: () => undefined,
+}));
 vi.mock("./project-search", () => ({ ProjectSearch: () => null }));
 afterEach(cleanup);
 

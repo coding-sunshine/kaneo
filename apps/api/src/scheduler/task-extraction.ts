@@ -416,6 +416,7 @@ async function workspaceQueue(
       text = await readFileText(kind, bytes, file.filename, see);
     } catch (error) {
       if (error instanceof ReadLater) {
+        if (error.waits) return;
         if (error.failed) {
           taskExtractionRetry.failed(key);
           outcome.degraded = true;

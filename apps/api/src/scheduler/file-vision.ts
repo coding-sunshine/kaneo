@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import {
   extractJson,
+  readsFiles,
   RefusedRequest,
   UnreadableAnswer,
 } from "../agent/extraction";
@@ -34,9 +35,17 @@ type Words = { text?: string; more?: boolean };
  * written out: a request refused for what it holds, or an answer that is not
  * the JSON asked for.
  */
-export const seeWith =
-  (reserve: number, run: { parts: number }, workspaceId: string): See =>
-  async (file) => {
+export const seeWith = (
+  reserve: number,
+  run: { parts: number },
+  workspaceId: string,
+): See => {
+  let reads: Promise<boolean> | undefined;
+  return async (file) => {
+    // A self-hosted model gets no files: the file waits for a model that
+    // reads it, and is not recorded as read or unreadable.
+    reads ??= readsFiles(workspaceId);
+    if (!(await reads)) throw new ReadLater(false, true);
     const hash = createHash("sha256").update(file.bytes).digest("hex");
     const known = written.get(hash);
     if (known !== undefined) return known;
@@ -80,3 +89,4 @@ export const seeWith =
     written.set(hash, text);
     return text;
   };
+};

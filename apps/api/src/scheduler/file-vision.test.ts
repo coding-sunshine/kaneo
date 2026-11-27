@@ -3,10 +3,14 @@ import { RefusedRequest, UnreadableAnswer } from "../agent/extraction";
 import { seeWith } from "./file-vision";
 import { ReadLater } from "./read-later";
 
-const { extractJson } = vi.hoisted(() => ({ extractJson: vi.fn() }));
+const { extractJson, readsFiles } = vi.hoisted(() => ({
+  extractJson: vi.fn(),
+  readsFiles: vi.fn(),
+}));
 vi.mock("../agent/extraction", async (importOriginal) => ({
   ...(await importOriginal<object>()),
   extractJson,
+  readsFiles,
 }));
 
 let n = 0;
@@ -17,7 +21,10 @@ const file = () => ({
   filename: "scan.png",
 });
 
-beforeEach(() => extractJson.mockReset());
+beforeEach(() => {
+  extractJson.mockReset();
+  readsFiles.mockReset().mockResolvedValue(true);
+});
 
 it("writes out a file in as many answers as it needs, each one a question of the run", async () => {
   extractJson
@@ -61,4 +68,15 @@ it("gives up on a file the model refuses or answers about with no JSON", async (
   await expect(
     seeWith(0.3, { parts: 5 }, "ws-1")(file()),
   ).rejects.toBeInstanceOf(UnreadableAnswer);
+});
+
+it("leaves the file waiting, without asking, when the workspace's model reads no files", async () => {
+  readsFiles.mockResolvedValue(false);
+  const see = seeWith(0.3, { parts: 5 }, "ws-1");
+  await expect(see(file())).rejects.toEqual(new ReadLater(false, true));
+  await expect(see(file())).rejects.toMatchObject({ waits: true });
+  expect(extractJson).not.toHaveBeenCalled();
+  // Asked once per run of the workspace.
+  expect(readsFiles).toHaveBeenCalledTimes(1);
+  expect(readsFiles).toHaveBeenCalledWith("ws-1");
 });

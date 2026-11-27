@@ -23,9 +23,10 @@ export function applyViewFilters(
     customFields: null,
     ...filters,
   };
-  const blockedTaskIds = full.workable
-    ? getBlockedTaskIds(project, relations)
-    : undefined;
+  const blockedTaskIds =
+    full.workable || full.blocked
+      ? getBlockedTaskIds(project, relations)
+      : undefined;
   return filterProjectTasks(project, (task) =>
     taskMatchesFilters(task, full, {
       weekStartsOn: 1,

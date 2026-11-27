@@ -1,3 +1,4 @@
+import { Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Popover, PopoverContent } from "@/components/ui/popover";
@@ -12,11 +13,14 @@ export function FilterRootPanel({
   subjects,
   onApplied,
   actions = [],
+  onAsk,
 }: {
   subjects: FilterSubject[];
   onApplied?: () => void;
   /** Entries listed above the subjects that act at once, like Linear's "Advanced filter". */
   actions?: FilterEntry[];
+  /** Reads a typed sentence as a filter (AI); offered once the query has two words. */
+  onAsk?: (text: string) => void;
 }) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
@@ -54,11 +58,28 @@ export function FilterRootPanel({
       },
     }));
 
+  const sentence = query.trim();
+  const askEntries: FilterEntry[] =
+    onAsk && /\s/.test(sentence)
+      ? [
+          {
+            value: "ask-ai",
+            label: t("tasks:filterMenu.askAi", { text: sentence }),
+            icon: <Sparkles />,
+            closeOnSelect: true,
+            toggle: () => onAsk(sentence),
+          },
+        ]
+      : [];
+
   return (
     <div className="-mx-1 -my-0.5">
       <FilterListbox
         placeholder={t("tasks:filterMenu.addFilter")}
         groups={[
+          ...(askEntries.length > 0
+            ? [{ value: "ask", items: askEntries }]
+            : []),
           ...(shownActions.length > 0
             ? [{ value: "actions", items: shownActions }]
             : []),

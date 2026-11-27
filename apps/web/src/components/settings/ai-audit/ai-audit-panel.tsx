@@ -6,8 +6,9 @@ import { SettingsRowsSkeleton } from "@/components/settings/settings-rows-skelet
 import { useAiAudit } from "@/hooks/queries/agent/use-ai-audit";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { AiAuditRow } from "./ai-audit-row";
+import { AiAuditSettingRow } from "./ai-audit-setting-row";
 
-/** Settings, AI audit: every agent write someone accepted, newest first. */
+/** Settings, AI audit: every agent write someone accepted, and every change of the AI data destination, newest first. */
 export default function AiAuditPanel() {
   const { t } = useTranslation();
   const { data: workspace } = useActiveWorkspace();
@@ -33,9 +34,13 @@ export default function AiAuditPanel() {
             {t("settings:aiAudit.empty")}
           </p>
         ) : null}
-        {data?.map((row) => (
-          <AiAuditRow key={row.id} workspaceId={workspaceId} row={row} />
-        ))}
+        {data?.map((row) =>
+          row.kind === "setting" ? (
+            <AiAuditSettingRow key={row.id} row={row} />
+          ) : (
+            <AiAuditRow key={row.id} workspaceId={workspaceId} row={row} />
+          ),
+        )}
       </SettingsCard>
     </SettingsPage>
   );

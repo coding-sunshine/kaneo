@@ -72,6 +72,7 @@ import cycle from "./cycle";
 import teamAutomation from "./team-automation";
 import workProject from "./work-project";
 import agent from "./agent";
+import { isAgentEnabled } from "./agent/openrouter";
 import { setSelfFetch } from "./agent/self-client";
 import loop from "./loop";
 import chat from "./chat";
@@ -1184,6 +1185,11 @@ export async function runStartupTasks() {
 
   initializePlugins();
   initializeScheduler();
+  if (!isAgentEnabled()) {
+    console.log(
+      "ℹ️ AI is off: set OPENROUTER_API_KEY or AI_SELF_HOSTED_URL to turn on the assistant and loops.",
+    );
+  }
   await initializeWebSocketAdapter();
 }
 

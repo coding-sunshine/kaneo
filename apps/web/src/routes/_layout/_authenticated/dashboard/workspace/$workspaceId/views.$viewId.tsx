@@ -38,7 +38,7 @@ function TeamIssues({
 }) {
   const { data } = useGetTasks(projectId);
   const { data: relations } = useGetProjectTaskRelations(
-    filters.workable ? projectId : "",
+    filters.workable || filters.blocked ? projectId : "",
   );
   const insightIds = useInsightsSelectionStore((state) => state.ids);
   const project = useMemo(

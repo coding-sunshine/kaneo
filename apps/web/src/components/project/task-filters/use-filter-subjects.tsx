@@ -1,9 +1,16 @@
+import {
+  OLDER_THAN_PRESETS,
+  olderThanValue,
+  parseOlderThan,
+} from "@/lib/task-filters/created-filter";
 import { parseDateCondition } from "@/lib/task-filters/date-condition";
 import { formatDateCondition } from "./format-date-condition";
 import {
   Box,
   CalendarDays,
   CircleCheck,
+  CircleSlash,
+  Clock,
   CircleDot,
   CirclePlay,
   Hourglass,
@@ -357,6 +364,42 @@ export function useFilterSubjects({
       : []),
     dateSubject("startDate"),
     dateSubject("dueDate"),
+    subject("createdAt", {
+      label: t("tasks:boardFilters.subjects.created"),
+      icon: <Clock />,
+      selected: filters.createdAt ?? [],
+      options: [
+        ...new Set([
+          ...OLDER_THAN_PRESETS.map(olderThanValue),
+          ...(filters.createdAt ?? []),
+        ]),
+      ].flatMap((value) => {
+        const days = parseOlderThan(value);
+        return days === null
+          ? []
+          : [
+              {
+                value,
+                label: t("tasks:boardFilters.olderThanDays", { count: days }),
+              },
+            ];
+      }),
+      onToggle: (value) => toggleFilter("createdAt", value),
+      onClear: () => updateFilter("createdAt", null),
+    }),
+    subject("blocked", {
+      label: t("tasks:boardFilters.subjects.blocked"),
+      icon: <CircleSlash />,
+      toggleOnly: true,
+      section: "readiness",
+      options: [
+        { value: "true", label: t("tasks:boardFilters.subjects.blocked") },
+      ],
+      selected: filters.blocked ? ["true"] : [],
+      onToggle: () =>
+        updateFilter("blocked", filters.blocked ? undefined : true),
+      onClear: () => updateFilter("blocked", undefined),
+    }),
     subject("workable", {
       label: t("tasks:boardFilters.subjects.workable"),
       icon: <CircleCheck />,

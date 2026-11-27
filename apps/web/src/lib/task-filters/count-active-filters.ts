@@ -8,6 +8,7 @@ export function countActiveFilters(filters: BoardFilters) {
       "assignee",
       "dueDate",
       "startDate",
+      "createdAt",
       "labels",
       "workProject",
       "cycle",
@@ -18,5 +19,10 @@ export function countActiveFilters(filters: BoardFilters) {
   const customFieldCount = Object.values(filters.customFields ?? {}).filter(
     (values) => values.length > 0,
   ).length;
-  return listCount + customFieldCount + (filters.workable ? 1 : 0);
+  return (
+    listCount +
+    customFieldCount +
+    (filters.workable ? 1 : 0) +
+    (filters.blocked ? 1 : 0)
+  );
 }

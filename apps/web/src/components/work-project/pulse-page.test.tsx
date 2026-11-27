@@ -9,6 +9,20 @@ vi.mock("@/fetchers/work-project/updates", () => ({
   editWorkProjectUpdate: vi.fn(),
   deleteWorkProjectUpdate: vi.fn(),
 }));
+const getDrafts = vi.fn();
+vi.mock("@/fetchers/agent/proposals", () => ({
+  getAgentDrafts: (...a: unknown[]) => getDrafts(...a),
+  decideProposal: vi.fn(),
+}));
+const agent = vi.hoisted(() => ({ on: true }));
+vi.mock("@/hooks/queries/agent/use-agent", () => ({
+  useHasAgent: () => agent.on,
+}));
+vi.mock("@/components/agent/agent-proposal-card", () => ({
+  AgentProposalCard: ({ proposal }: { proposal: { reason: string } }) => (
+    <section aria-label="draft">{proposal.reason}</section>
+  ),
+}));
 vi.mock("@/components/providers/auth-provider/hooks/use-auth", () => ({
   useAuth: () => ({ user: { id: "me" } }),
 }));
@@ -25,7 +39,12 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  getDrafts.mockReset().mockResolvedValue([]);
+  agent.on = true;
+});
+getDrafts.mockResolvedValue([]);
 
 const renderPage = () =>
   render(
@@ -55,6 +74,38 @@ describe("PulsePage", () => {
       screen.queryByLabelText("workspace:workProject.updates.delete"),
     ).toBeNull();
     expect(getUpdates).toHaveBeenCalledWith("w1");
+  });
+
+  it("shows a loop's drafted update to accept, even before any update is posted", async () => {
+    getUpdates.mockResolvedValue([]);
+    getDrafts.mockResolvedValue([
+      {
+        id: "d1",
+        toolCallId: "c1",
+        tool: "create_project_update",
+        taskId: null,
+        status: "pending",
+        diff: [{ field: "update", from: null, to: "Shipped search" }],
+        reason: "Weekly summary",
+        sources: [],
+        decidedAt: null,
+        result: null,
+      },
+    ]);
+    renderPage();
+    expect(await screen.findByText("Weekly summary")).toBeTruthy();
+    expect(getDrafts).toHaveBeenCalledWith("w1");
+    expect(
+      screen.queryByText("workspace:workProject.updates.pulseEmpty"),
+    ).toBeNull();
+  });
+
+  it("asks for no drafts without AI", async () => {
+    agent.on = false;
+    getUpdates.mockResolvedValue([]);
+    renderPage();
+    await screen.findByText("workspace:workProject.updates.pulseEmpty");
+    expect(getDrafts).not.toHaveBeenCalled();
   });
 
   it("shows the empty state", async () => {
