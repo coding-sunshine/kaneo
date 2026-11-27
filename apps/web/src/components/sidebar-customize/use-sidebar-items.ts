@@ -27,6 +27,7 @@ import {
   useReviewsStatus,
 } from "@/hooks/queries/github-reviews/use-github-reviews";
 import useGetNotifications from "@/hooks/queries/notification/use-get-notifications";
+import useGetMyProjectAccess from "@/hooks/queries/workspace-users/use-get-my-project-access";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { reviewsCount } from "@/lib/reviews-count";
 import { splitSnoozed } from "@/lib/reviews-snooze";
@@ -71,8 +72,13 @@ export function useSidebarItems() {
   );
   const snoozes = useReviewsSnoozeStore((state) => state.entries);
   const { data: drafts = [] } = useTaskDrafts(workspace?.id);
+  const { data: myAccess } = useGetMyProjectAccess(workspace?.id ?? "");
 
   if (!workspace) return null;
+  // The API gives a guest no workspace-wide projects, pulse or directory.
+  const guestHidden = new Set<SidebarItemId>(
+    myAccess?.guest ? ["pulse", "projects", "members"] : [],
+  );
 
   const homeUrl = `/dashboard/workspace/${workspace.id}`;
   const item = (
@@ -199,8 +205,8 @@ export function useSidebarItems() {
 
   return {
     workspaceId: workspace.id,
-    personal,
-    workspace: workspaceItems,
+    personal: personal.filter((row) => !guestHidden.has(row.id)),
+    workspace: workspaceItems.filter((row) => !guestHidden.has(row.id)),
     invitations: invitationsItem,
   };
 }

@@ -571,6 +571,22 @@
 				"description": "サインイン後すぐにこのページに戻り、内容を確認できます。",
 				"submit": "サインイン"
 			}
+		},
+		"twoFactor": {
+			"backToSignIn": "Back to sign in",
+			"codeLabel": "6-digit code",
+			"description": "Open your authenticator app and enter the 6-digit code for this account.",
+			"expired": "This sign-in has expired. Sign in again.",
+			"heading": "Enter your sign-in code",
+			"pageTitle": "Two-factor sign-in",
+			"recoveryLabel": "Recovery code",
+			"setupDescription": "Your administrator requires a second step when you sign in with a password. Set it up to continue.",
+			"setupHeading": "Set up two-factor sign-in",
+			"setupPageTitle": "Set up two-factor sign-in",
+			"submit": "Continue",
+			"useAuthenticator": "Use your authenticator app instead",
+			"useRecovery": "Use a recovery code instead",
+			"wrongCode": "That code is not right. Try again."
 		}
 	},
 	"settings": {
@@ -1677,7 +1693,8 @@
 				"markEmailVerified": "Mark email as verified",
 				"sendPasswordReset": "Send password reset link",
 				"sendVerification": "Resend verification email",
-				"security": "Sessions & API keys"
+				"security": "Sessions & API keys",
+				"resetTwoFactor": "Reset two-factor sign-in"
 			},
 			"clearSearch": "Clear search",
 			"columns": {
@@ -1716,6 +1733,12 @@
 				"sendVerification": {
 					"action": "Send email",
 					"title": "Resend the verification email?"
+				},
+				"resetTwoFactor": {
+					"action": "Reset two-factor",
+					"description": "{{name}} can sign in with only their password until they turn two-factor on again. Their authenticator app, recovery codes and remembered devices stop working. Do this only after confirming who is asking.",
+					"title": "Reset two-factor sign-in?",
+					"codeLabel": "Your own authenticator code or a recovery code"
 				}
 			},
 			"directoryTitle": "すべてのユーザー",
@@ -1768,7 +1791,8 @@
 				"emailError": "The email could not be sent",
 				"emailVerified": "Email marked as verified",
 				"passwordResetSent": "Password reset link sent to {{email}}",
-				"verificationSent": "Verification email sent to {{email}}"
+				"verificationSent": "Verification email sent to {{email}}",
+				"twoFactorReset": "Two-factor sign-in reset for {{email}}"
 			},
 			"you": "あなた",
 			"create": {
@@ -1884,6 +1908,39 @@
 				"toastDeleted": "Passkey deleted.",
 				"toastDeleteError": "Couldn't delete the passkey.",
 				"unnamed": "Passkey"
+			},
+			"twoFactor": {
+				"codeLabel": "6-digit code",
+				"codesCopied": "Recovery codes copied",
+				"codesHint": "Keep these somewhere safe. Each one signs you in once if you lose your authenticator app.",
+				"codesTitle": "Recovery codes",
+				"continue": "Continue",
+				"copyCodes": "Copy codes",
+				"copyFailed": "Could not copy the codes",
+				"description": "Ask for a code from your authenticator app after your password, or any other sign-in.",
+				"disableDescription": "Signing in will only need your password or email again.",
+				"disableTitle": "Turn off two-factor sign-in?",
+				"done": "Done",
+				"failed": "Two-factor sign-in could not be changed.",
+				"needsPassword": "Set a password first to turn on two-factor sign-in.",
+				"newCodes": "New recovery codes",
+				"on": "On",
+				"qrLabel": "QR code for your authenticator app",
+				"regenerateDescription": "Your old recovery codes stop working.",
+				"regenerateTitle": "Make new recovery codes?",
+				"rowTitle": "Authenticator app",
+				"scanHint": "Scan this code with your authenticator app, then enter the 6-digit code it shows.",
+				"secretHint": "Can't scan it? Enter this key:",
+				"setupDescription": "Confirm your password, then scan the code with your authenticator app.",
+				"setupTitle": "Turn on two-factor sign-in",
+				"title": "Two-factor sign-in",
+				"turnedOff": "Two-factor sign-in is off",
+				"turnedOn": "Two-factor sign-in is on",
+				"turnOff": "Turn off",
+				"turnOn": "Turn on",
+				"verify": "Verify",
+				"wrongCode": "That code is not right. Try again.",
+				"currentCode": "Code from your authenticator app"
 			}
 		},
 		"gitlabIntegration": {
@@ -2583,7 +2640,8 @@
 				"webhookCreated": "Created webhook",
 				"webhookDeleted": "Deleted webhook",
 				"webhookSecretRotated": "Rotated webhook secret",
-				"webhookUpdated": "Updated webhook"
+				"webhookUpdated": "Updated webhook",
+				"userTwoFactorReset": "Reset two-factor sign-in"
 			},
 			"categories": {
 				"all": "All actions",
@@ -2848,7 +2906,9 @@
 			},
 			"workspaceCreationRestricted": "Only administrators can create workspaces",
 			"workspaces": "Workspaces",
-			"save": "Save"
+			"save": "Save",
+			"requireTwoFactor": "Require two-factor sign-in",
+			"requireTwoFactorHint": "Password users set it up at their next sign-in."
 		},
 		"adminWebhooks": {
 			"actions": "Actions for {{url}}",
@@ -3060,6 +3120,45 @@
 			"userDailyHint": "Tokens each person may use per day. Resets at 00:00 UTC. Leave empty for no limit.",
 			"workspaceMonthly": "Monthly budget for the workspace",
 			"workspaceMonthlyHint": "Tokens everyone may use together per calendar month (UTC). 0 turns AI off. Leave empty for no limit."
+		},
+		"adminBackups": {
+			"failed": {
+				"description": "The backup started {{time}} failed ({{code}}). It is retried every hour until one succeeds.",
+				"title": "The last backup failed"
+			},
+			"last": {
+				"backup": "Latest backup",
+				"description": "The database is backed up once a day and copied to offsite storage.",
+				"none": "No backup yet",
+				"offsite": "Offsite copy",
+				"offsiteNone": "No offsite copy",
+				"offsiteOk": "Offsite copy ok",
+				"summary": "{{time}} · {{size}}",
+				"title": "Last backup"
+			},
+			"loadError": "Backup status could not be loaded.",
+			"off": {
+				"description": "Set {{settings}} on the server to turn on daily backups with an offsite copy.",
+				"title": "Backups are off"
+			},
+			"restoreTest": {
+				"button": "Test restore",
+				"chatMessages": "Chat messages",
+				"description": "Restores the latest backup into a scratch database, counts its rows, then deletes the scratch database.",
+				"documents": "Documents",
+				"error": "The restore test could not be run.",
+				"failed": "Restore failed ({{code}})",
+				"live": "Live",
+				"passed": "Restore passed",
+				"restored": "Restored",
+				"run": "Restore the latest backup",
+				"running": "Restoring…",
+				"table": "Table",
+				"tickets": "Tickets",
+				"title": "Restore test"
+			},
+			"retry": "Retry",
+			"title": "Backups"
 		},
 		"aiAudit": {
 			"acceptedBy": "Accepted by {{name}}",
@@ -4348,6 +4447,11 @@
 			"unpin": "Unpin",
 			"online": "Online",
 			"unread_other": "{{count}} unread messages",
+			"manageMembers": "Manage members",
+			"manageMembersTitle": "People in #{{name}}",
+			"onlyYou": "Only you are in this channel.",
+			"remove": "Remove",
+			"removeMemberAria": "Remove {{name}} from the channel",
 			"directHint": "Pick one person, or several for a group conversation.",
 			"directMessages": "Direct messages",
 			"directTitle": "New message",
@@ -6328,6 +6432,13 @@
 			"allProjectsUnavailable": "Your own access is limited, so you can only give access to selected projects.",
 			"privateTeamsHint": "Managed in each team's settings.",
 			"privateTeamsLabel": "Private teams"
+		},
+		"guest": {
+			"badge": "Guest",
+			"channelsLabel": "Channels",
+			"inviteHint": "Guests see only the projects and channels you pick here. They can't browse the workspace's people, documents or other channels.",
+			"inviteLabel": "Invite as a guest",
+			"noChannels": "There are no channels to add yet."
 		}
 	},
 	"publicProject": {

@@ -14,6 +14,7 @@ export const adminUserColumns = {
   name: userTable.name,
   email: userTable.email,
   emailVerified: userTable.emailVerified,
+  twoFactorEnabled: userTable.twoFactorEnabled,
   isAnonymous: userTable.isAnonymous,
   image: userTable.image,
   createdAt: userTable.createdAt,

@@ -8,6 +8,7 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { auth } from "../auth";
 import { apiRouter, createRoute, jsonResponse } from "../openapi";
+import { isTwoFactorSetupPending } from "../two-factor/setup-pending";
 import { type BanState, isBanActive } from "../utils/user-ban";
 import {
   beginMcpAuthorization,
@@ -58,6 +59,7 @@ async function validateBearerToken(
 
   if (!session?.user?.id) return null;
   if (isBanActive(session.user as BanState)) return null;
+  if (isTwoFactorSetupPending(session)) return null;
   return { userId: session.user.id, token };
 }
 

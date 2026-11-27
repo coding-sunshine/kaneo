@@ -6,6 +6,7 @@ import {
   chatChannelTable,
   workspaceUserTable,
 } from "../../database/schema";
+import { assertGuestsWorkWithMembers } from "../../guest/assert-guests-work-with-members";
 import { getChannel } from "./get-channel";
 
 // Opens the one conversation for this set of people, creating it on first
@@ -33,6 +34,7 @@ export async function openDirectMessage(
     throw new HTTPException(404, { message: "Member not found" });
 
   const memberIds = [userId, ...others].sort();
+  await assertGuestsWorkWithMembers(workspaceId, memberIds);
   const directKey = memberIds.join(",");
   await db.transaction(async (tx) => {
     const [created] = await tx

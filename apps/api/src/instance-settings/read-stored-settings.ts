@@ -19,6 +19,7 @@ export async function readStoredSettings(
       passwordRegistrationEnabled:
         instanceSettingsTable.passwordRegistrationEnabled,
       requireEmailVerification: instanceSettingsTable.requireEmailVerification,
+      requireTwoFactor: instanceSettingsTable.requireTwoFactor,
       defaultRoleId: instanceSettingsTable.defaultRoleId,
       defaultRole: instanceRoleTable.name,
       workspaceCreationRestricted:

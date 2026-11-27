@@ -30,6 +30,7 @@ const SETTING_LABEL_KEYS = new Map([
     "requireEmailVerification",
     "settings:adminSettings.requireEmailVerification",
   ],
+  ["requireTwoFactor", "settings:adminSettings.requireTwoFactor"],
   ["defaultRole", "settings:adminSettings.defaultRole"],
   [
     "workspaceCreationRestricted",

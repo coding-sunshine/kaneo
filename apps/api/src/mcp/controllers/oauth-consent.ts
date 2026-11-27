@@ -1,6 +1,7 @@
 import { HTTPException } from "hono/http-exception";
 import { publishEvent } from "../../events";
 import type { z } from "../../openapi";
+import { isTwoFactorSetupPending } from "../../two-factor/setup-pending";
 import { getUserSession } from "../../utils/get-user-session";
 import { DOCUMENTS_SCOPE } from "../scope";
 import {
@@ -119,6 +120,9 @@ export async function decideMcpAuthorizationRequest(params: {
   if (!session?.user?.id) throwOAuthError(401, "unauthorized");
   // A token limited to documents must not approve a wider one for itself.
   if (session.session.mcpScope) throwOAuthError(403, "insufficient_scope");
+  if (isTwoFactorSetupPending(session)) {
+    throwOAuthError(403, "two_factor_setup_required");
+  }
 
   const request = await getAuthorizationRequest(params.requestId);
   if (!request) throwOAuthError(404, "invalid_or_expired_request");

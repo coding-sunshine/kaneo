@@ -201,6 +201,12 @@ function SignIn() {
             captcha={captcha}
             disabled={busy}
             onSuccess={() => navigate({ to: destination })}
+            onTwoFactor={() =>
+              navigate({
+                to: "/auth/two-factor",
+                search: { redirect: destination },
+              })
+            }
           />
         ) : null}
         {emailMethod ? (

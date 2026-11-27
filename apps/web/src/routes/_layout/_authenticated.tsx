@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { needsTwoFactorSetup } from "@/components/auth/two-factor-state";
 import { GlobalShortcuts } from "@/components/shortcuts/global-shortcuts";
 import { useTrackSignup } from "@/hooks/use-track-signup";
 import { useUserWebSocket } from "@/hooks/use-user-websocket";
@@ -10,6 +11,8 @@ export const Route = createFileRoute("/_layout/_authenticated")({
   component: AuthenticatedLayout,
   beforeLoad: async ({ location }) => {
     const cached = getCachedSession();
+    if (needsTwoFactorSetup(cached))
+      throw redirect({ to: "/auth/two-factor-setup" });
     if (cached) return { session: cached, sessionError: false };
 
     let session = null;
@@ -40,6 +43,9 @@ export const Route = createFileRoute("/_layout/_authenticated")({
           redirect: location.href,
         },
       });
+    }
+    if (needsTwoFactorSetup(session)) {
+      throw redirect({ to: "/auth/two-factor-setup" });
     }
     return { session, sessionError };
   },

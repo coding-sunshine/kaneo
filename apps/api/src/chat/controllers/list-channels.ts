@@ -3,12 +3,14 @@ import {
   chatChannelMemberTable,
   chatChannelTable,
 } from "../../database/schema";
+import { isWorkspaceGuest } from "../../guest/is-workspace-guest";
 import { countUnread } from "./count-unread";
 import { selectChannels } from "./select-channels";
 
 // The channel directory: every public channel plus the private ones the
-// caller belongs to. The sidebar shows the joined, unarchived subset. Direct
-// messages have their own list.
+// caller belongs to. A guest gets only the channels they were added to. The
+// sidebar shows the joined, unarchived subset. Direct messages have their own
+// list.
 export async function listChannels(workspaceId: string, userId: string) {
   const [channels, unread] = await Promise.all([
     listVisibleChannels(workspaceId, userId),
@@ -20,16 +22,18 @@ export async function listChannels(workspaceId: string, userId: string) {
   }));
 }
 
-const listVisibleChannels = (workspaceId: string, userId: string) =>
-  selectChannels(userId)
+async function listVisibleChannels(workspaceId: string, userId: string) {
+  const joined = isNotNull(chatChannelMemberTable.userId);
+  const visible = (await isWorkspaceGuest(workspaceId, userId))
+    ? joined
+    : or(eq(chatChannelTable.isPrivate, false), joined);
+  return selectChannels(userId)
     .where(
       and(
         eq(chatChannelTable.workspaceId, workspaceId),
         isNull(chatChannelTable.directKey),
-        or(
-          eq(chatChannelTable.isPrivate, false),
-          isNotNull(chatChannelMemberTable.userId),
-        ),
+        visible,
       ),
     )
     .orderBy(asc(chatChannelTable.name));
+}

@@ -27,6 +27,13 @@ export const USER_ACTION_COPY: Record<UserActionType, ActionCopy> = {
     action: "settings:adminUsers.confirm.markEmailVerified.action",
     destructive: false,
   },
+  resetTwoFactor: {
+    menu: "settings:adminUsers.actions.resetTwoFactor",
+    title: "settings:adminUsers.confirm.resetTwoFactor.title",
+    description: "settings:adminUsers.confirm.resetTwoFactor.description",
+    action: "settings:adminUsers.confirm.resetTwoFactor.action",
+    destructive: true,
+  },
   deactivate: {
     menu: "settings:adminUsers.actions.deactivate",
     title: "settings:adminUsers.confirm.deactivate.title",

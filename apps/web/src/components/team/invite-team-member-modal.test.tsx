@@ -60,6 +60,14 @@ vi.mock("@/hooks/queries/workspace-users/use-get-my-project-access", () => ({
 }));
 vi.mock("@/lib/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("./invitation-link-field", () => ({ default: () => null }));
+vi.mock("@/hooks/queries/chat/use-channels", () => ({
+  useChannels: () => ({
+    data: [
+      { id: "channel-x", name: "client-site", archivedAt: null },
+      { id: "channel-old", name: "old", archivedAt: "2026-01-01T00:00:00Z" },
+    ],
+  }),
+}));
 function wrapper({ children }: PropsWithChildren) {
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -221,6 +229,45 @@ describe("invitation project access", () => {
         expect.objectContaining({
           projectAccess: "selected",
           projectIds: ["project-b"],
+        }),
+      ),
+    );
+  });
+});
+
+describe("guest invitations", () => {
+  beforeEach(() => {
+    inviteMember.mockResolvedValue({ data: { id: "invite-1" }, error: null });
+  });
+
+  it("invites a guest to chosen projects and channels only", async () => {
+    render(<InviteTeamMemberModal open onClose={vi.fn()} />, { wrapper });
+    fireEvent.change(
+      await screen.findByPlaceholderText("team:inviteModal.emailPlaceholder"),
+      { target: { value: "guest@example.test" } },
+    );
+    fireEvent.click(
+      screen.getByRole("switch", { name: /team:guest.inviteLabel/ }),
+    );
+
+    expect(
+      screen.getByRole("radio", { name: /team:projectAccess.allProjects/ }),
+    ).toHaveAttribute("aria-disabled", "true");
+    expect(screen.queryByRole("checkbox", { name: "#old" })).toBeNull();
+    fireEvent.click(screen.getByRole("checkbox", { name: "Alpha" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "#client-site" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "team:inviteModal.sendInvitation" }),
+    );
+
+    await waitFor(() =>
+      expect(inviteMember).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: "guest@example.test",
+          projectAccess: "selected",
+          projectIds: ["project-a"],
+          guest: true,
+          channelIds: ["channel-x"],
         }),
       ),
     );

@@ -4,6 +4,7 @@ export type UserActionType =
   | "sendPasswordReset"
   | "sendVerification"
   | "markEmailVerified"
+  | "resetTwoFactor"
   | "deactivate"
   | "reactivate"
   | "delete";

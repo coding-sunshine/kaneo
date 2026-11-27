@@ -11,6 +11,9 @@ type InviteWorkspaceUserRequest = {
   resend?: boolean;
   projectAccess?: "all" | "selected";
   projectIds?: string[];
+  // A guest invitation: selected projects plus these chat channels.
+  guest?: boolean;
+  channelIds?: string[];
 };
 
 function useInviteWorkspaceUser() {
@@ -23,6 +26,8 @@ function useInviteWorkspaceUser() {
       resend,
       projectAccess,
       projectIds,
+      guest,
+      channelIds,
     }: InviteWorkspaceUserRequest) => {
       const { data, error } = await authClient.organization.inviteMember({
         email,
@@ -30,6 +35,7 @@ function useInviteWorkspaceUser() {
         organizationId: workspaceId,
         resend,
         ...(projectAccess ? { projectAccess, projectIds } : {}),
+        ...(guest ? { guest, channelIds } : {}),
       });
 
       if (error?.code === "INVITATION_EMAIL_FAILED") {
