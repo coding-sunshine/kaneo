@@ -106,7 +106,7 @@ export function ReliedFacts({ workspaceId, work, topicId }: ReliedFactsProps) {
                         { onError },
                       )
                     }
-                    className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:bg-accent"
+                    className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:bg-accent pointer-coarse:size-11"
                   >
                     <X aria-hidden="true" className="size-3.5" />
                   </button>
