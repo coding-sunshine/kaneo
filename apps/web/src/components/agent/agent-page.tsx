@@ -95,6 +95,7 @@ export function AgentPage({ workspaceId, chatId }: AgentPageProps) {
         ) : (
           <div className="mx-auto max-w-[712px] px-4 py-6">
             <AgentTranscript
+              workspaceId={workspaceId}
               messages={[
                 ...messages,
                 ...(pendingText

@@ -3386,12 +3386,92 @@
           },
           "tool_call_id": {
             "type": "string"
+          },
+          "citations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentCitation"
+            },
+            "description": "On an answer: the tasks, documents and comments it rests on, checked against the reader's access when the chat is read."
+          },
+          "unsourced": {
+            "type": "boolean",
+            "description": "On an answer: true when it names no source."
           }
         },
         "required": [
           "role",
           "content"
         ]
+      },
+      "AgentCitation": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "task",
+                  "document",
+                  "comment"
+                ]
+              },
+              "restricted": {
+                "type": "boolean",
+                "enum": [
+                  false
+                ]
+              },
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "taskId": {
+                "type": "string",
+                "description": "The issue a task or a comment is on."
+              },
+              "projectId": {
+                "type": "string"
+              },
+              "ticket": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "restricted",
+              "id",
+              "title"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "task",
+                  "document",
+                  "comment"
+                ]
+              },
+              "restricted": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              }
+            },
+            "required": [
+              "kind",
+              "restricted"
+            ]
+          }
+        ],
+        "description": "A source an answer rests on. One the reader cannot open, or that is gone, is only `restricted`, with no title or id."
       },
       "AgentReply": {
         "type": "object",
