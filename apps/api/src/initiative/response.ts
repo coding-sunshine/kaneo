@@ -20,7 +20,7 @@ export const initiativeSchema = z
     }),
     rolledUpHealth: health.openapi({
       description:
-        "The worst of the latest update's health and the health of the initiative's open projects.",
+        "The worst of the latest update's health and the health of the initiative's open projects that you can open.",
     }),
     progress: z
       .object({ total: z.number().int(), done: z.number().int() })

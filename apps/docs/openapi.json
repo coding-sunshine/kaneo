@@ -3429,7 +3429,7 @@
               "offTrack",
               null
             ],
-            "description": "The worst of the latest update's health and the health of the initiative's open projects."
+            "description": "The worst of the latest update's health and the health of the initiative's open projects that you can open."
           },
           "progress": {
             "type": "object",

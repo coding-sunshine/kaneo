@@ -58,7 +58,12 @@ async function load(where: SQL, userId: string) {
       ...row,
       workProjectIds: own,
       health: rollUpHealth(ownHealth, []),
-      rolledUpHealth: rollUpHealth(ownHealth, workProjects),
+      // A project whose teams are all closed to the reader does not speak
+      // for the initiative to them.
+      rolledUpHealth: rollUpHealth(
+        ownHealth,
+        workProjects.filter((project) => project.canOpenDocuments),
+      ),
       progress: rollUpProgress(workProjects),
       workProjects,
     };

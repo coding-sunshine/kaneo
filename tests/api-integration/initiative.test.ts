@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
@@ -155,6 +156,86 @@ describe("API integration: initiatives", () => {
     expect((await app.request(`/api/initiative/${initiative.id}`)).status).toBe(
       404,
     );
+  });
+
+  it("leaves a private team the reader cannot open out of the roll-up", async () => {
+    const owner = await createWorkspaceMember({ role: "owner" });
+    const ws = owner.workspace.id;
+    const reader = await join(ws, "member");
+    const open = await createProjectFixture({ workspaceId: ws });
+    const closed = await createProjectFixture({ workspaceId: ws });
+    await db
+      .update(schema.projectTable)
+      .set({ isPrivate: true })
+      .where(eq(schema.projectTable.id, closed.project.id));
+
+    const app = as(owner.user);
+    const visible = await (
+      await app.request(
+        "/api/work-project",
+        json("POST", {
+          workspaceId: ws,
+          name: "Visible",
+          teamIds: [open.project.id],
+        }),
+      )
+    ).json();
+    const hidden = await (
+      await app.request(
+        "/api/work-project",
+        json("POST", {
+          workspaceId: ws,
+          name: "Hidden",
+          teamIds: [closed.project.id],
+        }),
+      )
+    ).json();
+    const issues: [typeof open, string, string][] = [
+      [open, visible.id, "done"],
+      [closed, hidden.id, "to-do"],
+      [closed, hidden.id, "to-do"],
+    ];
+    for (const [index, [team, workProjectId, status]] of issues.entries())
+      await db.insert(schema.taskTable).values({
+        projectId: team.project.id,
+        workProjectId,
+        title: `Task ${index}`,
+        status,
+        columnId: team.columns.todo.id,
+        priority: "medium",
+        number: index + 1,
+        position: index,
+      });
+    await app.request(
+      `/api/work-project/${visible.id}/update`,
+      json("POST", { health: "onTrack" }),
+    );
+    await app.request(
+      `/api/work-project/${hidden.id}/update`,
+      json("POST", { health: "offTrack" }),
+    );
+    const initiative = await (
+      await app.request(
+        "/api/initiative",
+        json("POST", {
+          workspaceId: ws,
+          name: "Grow",
+          workProjectIds: [visible.id, hidden.id],
+        }),
+      )
+    ).json();
+    // The owner opens every team.
+    expect(initiative.progress).toEqual({ total: 3, done: 1 });
+    expect(initiative.rolledUpHealth).toBe("offTrack");
+
+    const read = async (path: string) =>
+      (await as(reader).request(path)).json();
+    const detail = await read(`/api/initiative/${initiative.id}`);
+    expect(detail.progress).toEqual({ total: 1, done: 1 });
+    expect(detail.rolledUpHealth).toBe("onTrack");
+    const [listed] = await read(`/api/initiative/workspace/${ws}`);
+    expect(listed.progress).toEqual({ total: 1, done: 1 });
+    expect(listed.rolledUpHealth).toBe("onTrack");
   });
 
   it("refuses projects and owners from outside the workspace", async () => {
