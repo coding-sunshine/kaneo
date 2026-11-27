@@ -18,6 +18,8 @@ export type TaskFilterContext = {
   weekStartsOn: Day;
   today: Date;
   labelIds?: ReadonlySet<string>;
+  /** Task IDs blocked by at least one open "blocks" relation. */
+  blockedTaskIds?: ReadonlySet<string>;
   getCustomFieldValues: (
     taskId: string,
   ) => Array<{ fieldId: string; value: string | null }>;
@@ -159,6 +161,12 @@ export function taskMatchesFilters(
   for (const [subject, values, matches] of checks) {
     if (values?.length && !handled.has(subject))
       results.push(passes(subject, matches()));
+  }
+
+  if (filters.workable) {
+    results.push(
+      passes("workable", !(context.blockedTaskIds?.has(task.id) ?? false)),
+    );
   }
 
   const fieldValues = filters.customFields

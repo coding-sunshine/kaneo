@@ -20208,6 +20208,9 @@
 								},
 								"noEstimate": {
 									"type": "string"
+								},
+								"workable": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -20220,7 +20223,8 @@
 								"workProject",
 								"cycle",
 								"estimate",
-								"noEstimate"
+								"noEstimate",
+								"workable"
 							]
 						},
 						"operators": {

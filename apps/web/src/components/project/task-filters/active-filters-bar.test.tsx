@@ -164,3 +164,31 @@ it("closes the date filter popup after applying from an active chip", async () =
     expect(screen.queryByRole("grid")).not.toBeInTheDocument(),
   );
 });
+
+it("renders toggleOnly filters as a compact chip without operator or value pickers", () => {
+  const onClear = vi.fn();
+  render(
+    <ActiveFiltersBar
+      subjects={[
+        subject({
+          id: "workable",
+          label: "Workable",
+          toggleOnly: true,
+          options: [{ value: "true", label: "Workable" }],
+          selected: ["true"],
+          onClear,
+        }),
+      ]}
+      onClear={vi.fn()}
+    />,
+  );
+
+  expect(screen.getByText("Workable")).toBeVisible();
+  expect(screen.queryByRole("button", { name: "is any of" })).toBeNull();
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "tasks:filterBar.removeFilter:Workable",
+    }),
+  );
+  expect(onClear).toHaveBeenCalledOnce();
+});

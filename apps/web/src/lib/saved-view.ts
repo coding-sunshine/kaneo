@@ -31,5 +31,7 @@ export const countViewFilters = (filters: Partial<BoardFilters>) =>
       ? false
       : Array.isArray(value)
         ? value.length > 0
-        : value !== null && value !== undefined,
+        : typeof value === "boolean"
+          ? value
+          : value !== null && value !== undefined,
   ).length;

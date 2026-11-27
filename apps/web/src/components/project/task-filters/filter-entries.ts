@@ -8,6 +8,7 @@ export type FilterEntry = {
   meta?: string;
   badge?: number;
   checked?: boolean;
+  closeOnSelect?: boolean;
   opensSubject?: string;
   toggle?: () => void;
 };
@@ -21,13 +22,23 @@ export type FilterEntryGroup = {
 export const matches = (text: string, query: string) =>
   text.toLowerCase().includes(query.trim().toLowerCase());
 
-const subjectEntry = (subject: FilterSubject): FilterEntry => ({
-  value: `subject:${subject.id}`,
-  label: subject.label,
-  icon: subject.icon,
-  badge: subject.selected.length,
-  opensSubject: subject.id,
-});
+const subjectEntry = (subject: FilterSubject): FilterEntry =>
+  subject.toggleOnly
+    ? {
+        value: `subject:${subject.id}`,
+        label: subject.label,
+        icon: subject.icon,
+        checked: subject.selected.length > 0,
+        closeOnSelect: true,
+        toggle: () => subject.onToggle("true"),
+      }
+    : {
+        value: `subject:${subject.id}`,
+        label: subject.label,
+        icon: subject.icon,
+        badge: subject.selected.length,
+        opensSubject: subject.id,
+      };
 
 const optionEntries = (
   subject: FilterSubject,
@@ -79,9 +90,11 @@ export function rootFilterEntries(
     },
     {
       value: "options",
-      items: subjects.flatMap((subject) =>
-        optionEntries(subject, query, () => subject.label),
-      ),
+      items: subjects
+        .filter((subject) => !subject.toggleOnly)
+        .flatMap((subject) =>
+          optionEntries(subject, query, () => subject.label),
+        ),
     },
   ].filter((group) => group.items.length > 0);
 }

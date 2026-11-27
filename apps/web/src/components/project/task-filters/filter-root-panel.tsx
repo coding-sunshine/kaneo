@@ -77,6 +77,7 @@ export function FilterRootPanel({
             openNested(entry, element);
           } else {
             entry.toggle?.();
+            if (entry.closeOnSelect) onApplied?.();
           }
         }}
         onEntryHover={(entry, element) => {

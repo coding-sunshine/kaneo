@@ -41,6 +41,8 @@ export type FilterSubject = {
   };
   /** Root menu section; a new section starts a separator. */
   section?: string;
+  /** Single-click boolean filter with no submenu or operator/value chip controls. */
+  toggleOnly?: boolean;
   /** Overrides the "N tasks" meta shown beside an option's count. */
   formatCount?: (count: number) => string;
   onToggle: (value: string) => void;

@@ -310,3 +310,60 @@ describe("match all / match any", () => {
     ).toBe(true);
   });
 });
+
+describe("workable filter", () => {
+  it("hides blocked tickets and keeps unblocked tickets", () => {
+    const ticketA = task({ id: "A" });
+    const ticketB = task({ id: "B" });
+    const workableFilters: BoardFilters = { ...noFilters, workable: true };
+    const withBlocker: TaskFilterContext = {
+      ...context,
+      blockedTaskIds: new Set(["B"]),
+    };
+
+    expect(taskMatchesFilters(ticketB, workableFilters, withBlocker)).toBe(
+      false,
+    );
+    expect(taskMatchesFilters(ticketA, workableFilters, withBlocker)).toBe(
+      true,
+    );
+
+    // Once A is closed, B is no longer in blockedTaskIds and reappears.
+    const afterClose: TaskFilterContext = {
+      ...context,
+      blockedTaskIds: new Set(),
+    };
+    expect(taskMatchesFilters(ticketB, workableFilters, afterClose)).toBe(true);
+  });
+
+  it("supports matchAny and negation with workable", () => {
+    const blockedHigh = task({ id: "B", priority: "high" });
+    const blockedLow = task({ id: "B", priority: "low" });
+    const withBlocker: TaskFilterContext = {
+      ...context,
+      blockedTaskIds: new Set(["B"]),
+    };
+
+    expect(
+      taskMatchesFilters(
+        blockedHigh,
+        { ...noFilters, workable: true, priority: ["high"], matchAny: true },
+        withBlocker,
+      ),
+    ).toBe(true);
+    expect(
+      taskMatchesFilters(
+        blockedLow,
+        { ...noFilters, workable: true, priority: ["high"], matchAny: true },
+        withBlocker,
+      ),
+    ).toBe(false);
+    expect(
+      taskMatchesFilters(
+        blockedHigh,
+        { ...noFilters, workable: true, negated: ["workable"] },
+        withBlocker,
+      ),
+    ).toBe(true);
+  });
+});

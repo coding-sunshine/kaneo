@@ -16,11 +16,14 @@ export type ProjectTaskView = ReturnType<typeof useProjectTaskView>;
 
 export function useProjectTaskView({
   project,
+  sourceProject,
   projectId,
   workspaceId,
   scope,
 }: {
   project: ProjectWithTasks | null | undefined;
+  /** Unscoped project board used when checking cross-view blockers. */
+  sourceProject?: ProjectWithTasks | null;
   projectId: string;
   workspaceId: string;
   scope: TaskViewScope;
@@ -35,6 +38,7 @@ export function useProjectTaskView({
     search,
     descriptionSearch.ids,
     ignore,
+    sourceProject,
   );
   const options = useTaskFilterOptions(projectId, workspaceId);
   const tasks = useMemo(

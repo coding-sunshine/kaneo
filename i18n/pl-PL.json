@@ -5661,7 +5661,8 @@
 				"cycle": "Cycle",
 				"estimate": "Estimate",
 				"noEstimate": "No estimate",
-				"workProject": "Project"
+				"workProject": "Project",
+				"workable": "Workable"
 			},
 			"allCustomFieldValues": "All values",
 			"noCustomFieldValues": "No custom field values",

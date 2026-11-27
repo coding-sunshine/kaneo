@@ -27,4 +27,12 @@ describe("normalizeFilters", () => {
   it("does not count matchAny as a filter in saved views", () => {
     expect(countViewFilters({ status: ["todo"], matchAny: true })).toBe(1);
   });
+
+  it("keeps workable only when true and counts it in saved views", () => {
+    expect(normalizeFilters({ workable: true }).workable).toBe(true);
+    expect(normalizeFilters({ workable: false }).workable).toBeUndefined();
+    expect(normalizeFilters({ workable: "yes" }).workable).toBeUndefined();
+    expect(countViewFilters({ workable: true })).toBe(1);
+    expect(countViewFilters({ workable: false })).toBe(0);
+  });
 });
