@@ -330,11 +330,6 @@ function getDeviceAuthVerificationUri(): string {
 const twoFactorPlugin = twoFactor({ issuer: brand.name });
 const authRateLimitEnabled = process.env.DISABLE_AUTH_RATE_LIMIT !== "true";
 const authRateLimit = createAuthRateLimit();
-if (authRateLimitEnabled && authRateLimit.perAccount) {
-  console.warn(
-    "TRUSTED_PROXIES is not set: auth rate limits count per client address and account, so people behind one proxy do not share a limit. Requests that name no account, and sign-ups, still share one limit per address. Set TRUSTED_PROXIES to limit by client address.",
-  );
-}
 
 export const auth = betterAuth({
   baseURL: baseURLWithoutPath,
@@ -1447,3 +1442,7 @@ export const auth = betterAuth({
     }),
   },
 });
+
+/** Serves one HTTP auth request; use instead of calling `auth.handler`. */
+export const handleAuthRequest = (request: Request) =>
+  authRateLimit.track(() => auth.handler(request));

@@ -1,5 +1,5 @@
 import type { Context } from "hono";
-import { auth } from "../auth";
+import { auth, handleAuthRequest } from "../auth";
 import { withJsonNotFound } from "../errors/not-found-response";
 import { withJsonRateLimit } from "../errors/rate-limit-response";
 import { apiKeyRejection } from "./api-key-rejection";
@@ -33,7 +33,7 @@ export async function forwardAuthRequest(c: Context): Promise<Response> {
   }
   const response = await withJsonRateLimit(
     await withJsonNotFound(
-      await auth.handler(
+      await handleAuthRequest(
         await normalizeCustomOAuthRequest(new Request(c.req.raw, { headers })),
       ),
     ),

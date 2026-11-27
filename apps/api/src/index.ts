@@ -22,7 +22,7 @@ import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import activity from "./activity";
 import admin from "./admin";
-import { auth } from "./auth";
+import { handleAuthRequest } from "./auth";
 import { forwardAuthRequest } from "./utils/forward-auth-request";
 import { organizationRoutes } from "./auth-openapi";
 import {
@@ -815,7 +815,7 @@ export function createApp() {
         }
         return c.redirect(deviceUrl.toString(), 302);
       }
-      return withJsonRateLimit(await auth.handler(c.req.raw));
+      return withJsonRateLimit(await handleAuthRequest(c.req.raw));
     },
   );
 
