@@ -3132,6 +3132,89 @@ export const agentMessageTable = pgTable(
   (table) => [index("agent_message_chat_idx").on(table.chatId)],
 );
 
+// Team chat. A public channel is open to every workspace member; a private
+// one only to its members. Archiving keeps the history readable.
+export const chatChannelTable = pgTable(
+  "chat_channel",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    topic: text("topic"),
+    isPrivate: boolean("is_private").default(false).notNull(),
+    createdBy: text("created_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    archivedAt: timestamp("archived_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [index("chat_channel_workspace_idx").on(table.workspaceId)],
+);
+
+export const chatChannelMemberTable = pgTable(
+  "chat_channel_member",
+  {
+    channelId: text("channel_id")
+      .notNull()
+      .references(() => chatChannelTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    joinedAt: timestamp("joined_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.channelId, table.userId] }),
+    index("chat_channel_member_user_idx").on(table.userId),
+  ],
+);
+
+export const chatMessageTable = pgTable(
+  "chat_message",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    channelId: text("channel_id")
+      .notNull()
+      .references(() => chatChannelTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("chat_message_channel_created_idx").on(
+      table.channelId,
+      table.createdAt,
+    ),
+  ],
+);
+
 // A loop runs its instructions as the agent on a schedule, with the creator's
 // permissions at run time. Disabled loops keep their `nextRunAt` but never run.
 export const loopTable = pgTable(

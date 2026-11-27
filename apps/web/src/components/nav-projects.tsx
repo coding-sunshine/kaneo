@@ -21,6 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Link, useParams } from "@tanstack/react-router";
+import { ChannelsNav } from "@/components/chat/channels-nav";
 import { FavoritesNav } from "@/components/team/favorites-nav";
 import {
   LeaveTeamDialog,
@@ -197,6 +198,7 @@ export function NavProjects() {
   return (
     <>
       <FavoritesNav workspaceId={workspace.id} />
+      <ChannelsNav workspaceId={workspace.id} />
       <Collapsible
         open={!collapsedNavIds.includes("your-teams")}
         onOpenChange={(open) => setNavOpen("your-teams", open)}
