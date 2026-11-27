@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import {
   and,
   asc,
@@ -11,17 +10,14 @@ import {
   sql,
 } from "drizzle-orm";
 import { type AnyPgColumn, alias } from "drizzle-orm/pg-core";
-import {
-  extractJson,
-  extractionModel,
-  UnreadableAnswer,
-} from "../agent/extraction";
+import { extractionModel } from "../agent/extraction";
 import { isAgentEnabled } from "../agent/openrouter";
 import db from "../database";
 import {
   activityTable,
   assetTable,
   projectTable,
+  taskExtractionProgressTable,
   taskExtractionTable,
   taskStatementTable,
   taskTable,
@@ -35,15 +31,14 @@ import { ReadLater } from "./read-later";
 import { retryLater } from "./retry-later";
 import { fileKind, readFileText } from "./task-file-text";
 import {
-  type Asked,
-  type AskedTopic,
-  keptStatements,
-  numbered,
-  TASK_SYSTEM,
-  taskAnswerSchema,
-  taskQuestion,
-} from "./task-question";
-import { textParts } from "./text-parts";
+  ask,
+  hashOf,
+  type Outcome,
+  RESERVE,
+  type Run,
+  type Source,
+} from "./task-parts";
+import { type AskedTopic, numbered } from "./task-question";
 
 /**
  * Kept on each record. Raising it reads no text again that was read whole: a
@@ -57,17 +52,11 @@ export const PROMPT_VERSION = 2;
 const PER_TICK = 10;
 /** Questions in one run. A longer text goes on in the next run. */
 const PARTS_PER_RUN = 50;
-const MAX_CHARACTERS = 12_000;
-const OVERLAP = 200;
 // A file is held in memory whole while it is read, and the API is one
 // process. Nothing of it is written to disk.
 const MAX_FILE_BYTES = 100_000_000;
 // Records that a reader before this version left short: read once again.
 const AGAIN = new Set(["truncated", "too_large", "unparsed"]);
-// Issues are many and documents are few, so this job leaves a share of the
-// day's tokens and of the spending cap to the job that reads documents.
-const RESERVE = 0.3;
-
 // What a file's place on the issue is called in the question.
 const WHERE: Record<string, string> = {
   description: "Picture in the issue description",
@@ -77,94 +66,8 @@ const WHERE: Record<string, string> = {
 /** A text whose request failed is asked about again after an hour. */
 export const taskExtractionRetry = retryLater(60 * 60_000);
 
-type Source = {
-  key: string;
-  taskId: string;
-  assetId: string | null;
-  contentHash: string;
-  /** What every part of the question starts with. */
-  head: string;
-  body: string;
-  /** The text a quote must be found in. Without it: the part asked about. */
-  quotable?: string;
-};
-type Run = {
-  model: string;
-  slotsHash: string;
-  topics: AskedTopic[];
-  asked: Asked;
-  /** When the newest slot of the workspace was made. */
-  upTo: Date;
-};
-
 // Another record of the same issue, in a query about one of its records.
 const newer = alias(taskExtractionTable, "newer");
-
-const hashOf = (text: string) =>
-  createHash("sha256").update(text).digest("hex");
-
-// Where a text that stopped part way goes on, and whether a part of it had
-// an answer. In memory only: after a restart the text is asked about from its
-// start, and the facts found before are not stored twice.
-const resume = new Map<string, { next: number; readable: boolean }>();
-
-/**
- * Asks about the whole of one text, part by part, and stores what each part
- * states as proposals. `stop` when a cap or the run's questions are used up,
- * `failed` when a request failed; nothing is recorded then, and the text goes
- * on from that part later. Else whether any part had an answer.
- */
-async function ask(run: Run, source: Source, outcome: Outcome) {
-  const parts = textParts(source.body, MAX_CHARACTERS, OVERLAP);
-  const at = `${source.key}:${source.contentHash}:${hashOf(JSON.stringify(run.asked))}`;
-  const state = resume.get(at) ?? { next: 0, readable: false };
-  resume.delete(at);
-  for (; state.next < parts.length; state.next++) {
-    const part = parts[state.next] ?? "";
-    if (outcome.parts <= 0) {
-      resume.set(at, state);
-      return "stop" as const;
-    }
-    try {
-      const answer = await extractJson<unknown>({
-        purpose: "task-facts",
-        system: TASK_SYSTEM,
-        text: taskQuestion(run.asked, source.head + part),
-        schema: taskAnswerSchema(run.asked),
-        reserve: RESERVE,
-      });
-      if (!answer) {
-        resume.set(at, state);
-        return "stop" as const;
-      }
-      outcome.parts -= 1;
-      const found = keptStatements(run.asked, answer, source.quotable ?? part);
-      if (!found) continue;
-      state.readable = true;
-      if (found.length === 0) continue;
-      await db
-        .insert(taskStatementTable)
-        .values(
-          found.map((statement) => ({
-            ...statement,
-            taskId: source.taskId,
-            assetId: source.assetId,
-          })),
-        )
-        // A fact that is already there stays as it is, dismissed or not.
-        .onConflictDoNothing();
-    } catch (error) {
-      if (!(error instanceof UnreadableAnswer)) {
-        resume.set(at, state);
-        taskExtractionRetry.failed(source.key);
-        console.error(`Reading ${source.key} for facts failed`, error);
-        return "failed" as const;
-      }
-      outcome.parts -= 1;
-    }
-  }
-  return { readable: state.readable };
-}
 
 // One record for each text: the one before it goes. Its time is not when it
 // was written. It is when the newest slot the text was asked about was made,
@@ -184,6 +87,17 @@ const record = (
           source.assetId
             ? eq(taskExtractionTable.assetId, source.assetId)
             : isNull(taskExtractionTable.assetId),
+        ),
+      );
+    // Progress on older words of the text goes with the record before.
+    await tx
+      .delete(taskExtractionProgressTable)
+      .where(
+        and(
+          eq(taskExtractionProgressTable.taskId, source.taskId),
+          source.assetId
+            ? eq(taskExtractionProgressTable.assetId, source.assetId)
+            : isNull(taskExtractionProgressTable.assetId),
         ),
       );
     await tx
@@ -223,6 +137,7 @@ const later = (run: Run, since: Date): Run => ({
 /** Asks, stores what was found as proposals and records that the text was read. */
 async function read(run: Run, source: Source, outcome: Outcome) {
   const answer = await ask(run, source, outcome);
+  if (answer === "failed") taskExtractionRetry.failed(source.key);
   if (answer === "stop" || answer === "failed") return answer;
   await record(
     run,
@@ -323,14 +238,6 @@ async function dropStale(source: Source) {
     ),
   );
 }
-
-type Outcome = {
-  left: number;
-  /** Questions left in this run. */
-  parts: number;
-  degraded: boolean;
-  stop: boolean;
-};
 
 // The newest of each id's rows, which come newest first.
 const newest = <Row extends { id: string }>(rows: Row[]) =>

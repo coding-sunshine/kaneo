@@ -15,6 +15,7 @@ import {
   aiUsageTable,
   assetTable,
   notificationTable,
+  taskExtractionProgressTable,
   taskExtractionTable,
   taskTable,
   topicSlotTable,
@@ -778,6 +779,43 @@ describe("API integration: facts found in issues", () => {
       );
       expect(record).toMatchObject({ readable: true, reason: null });
     });
+
+    it("goes on with a long file where it stopped after a restart, sending no part twice", async () => {
+      const { world } = await setup();
+      const log = await attach(world, {
+        filename: "server.log",
+        mimeType: "text/plain",
+      });
+      const long = Array.from(
+        { length: 60_000 },
+        (_, i) => `Line ${i} of the log.`,
+      ).join("\n");
+      readObject.mockImplementation(async () => ({
+        body: new Response(long).body,
+      }));
+      const ofLog = () =>
+        prompts(fetchMock).filter((prompt) => prompt.includes("server.log"));
+      await run();
+      expect(ofLog().length).toBeGreaterThan(0);
+      // Each run in a fresh process: nothing is kept in memory between them.
+      // Fifty parts a run: three more runs read the rest and find it read.
+      for (let runs = 0; runs < 3; runs++) {
+        // The modules before stay with the tests after: their pool stays open.
+        const before = await import("../../apps/api/src/database");
+        vi.resetModules();
+        await run();
+        if (runs > 0) await before.getDatabasePool().end();
+      }
+
+      const sent = ofLog();
+      expect(sent.length).toBe(textParts(long, 12_000, 200).length);
+      expect(new Set(sent).size).toBe(sent.length);
+      const [record] = (await records()).filter(
+        (row) => row.assetId === log.id,
+      );
+      expect(record).toMatchObject({ readable: true, reason: null });
+      expect(await db.select().from(taskExtractionProgressTable)).toEqual([]);
+    }, 240_000);
 
     it("reads once more each file the readers before this change cut short, found too large or could not read, and only once", async () => {
       const { world } = await setup();
