@@ -100,6 +100,15 @@ kaneo:
     disableRegistration: false
     disablePasswordRegistration: false
     disableEmailOtpSignIn: false
+    # Sets TRUSTED_PROXIES: proxies whose X-Forwarded-For Kaneo believes.
+    # Sign-in limits and session records use the client address found this way.
+    # The default trusts the bundled loopback Nginx plus the private ranges
+    # cluster ingress controllers and gateways connect from. Narrow it to your
+    # pod or proxy CIDR if pods you do not control can reach the Service, and
+    # use "127.0.0.0/8,::1/128" if clients reach the Service directly
+    # (NodePort or LoadBalancer without an ingress). Set "" to leave
+    # TRUSTED_PROXIES unset; Kaneo then limits sign-ins per address and account.
+    trustedProxies: "127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7"
     # Database configuration
     database:
       # Use external PostgreSQL (set postgresql.enabled to false)

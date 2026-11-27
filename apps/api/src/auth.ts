@@ -66,6 +66,7 @@ import {
 import { getInstanceSettings } from "./instance-settings/get-instance-settings";
 import { readStoredSettings } from "./instance-settings/read-stored-settings";
 import { lockedSessionRevocation } from "./utils/locked-session-revocation";
+import { createAuthRateLimit } from "./auth-rate-limit/auth-rate-limit";
 import { challengeEverySignIn } from "./two-factor/challenge-every-sign-in";
 import {
   needsTwoFactorSetup,
@@ -321,6 +322,13 @@ function getDeviceAuthVerificationUri(): string {
 }
 
 const twoFactorPlugin = twoFactor({ issuer: brand.name });
+const authRateLimitEnabled = process.env.DISABLE_AUTH_RATE_LIMIT !== "true";
+const authRateLimit = createAuthRateLimit();
+if (authRateLimitEnabled && authRateLimit.perAccount) {
+  console.warn(
+    "TRUSTED_PROXIES is not set: auth rate limits count per client address and account, so people behind one proxy do not share a limit. Requests that name no account, and sign-ups, still share one limit per address. Set TRUSTED_PROXIES to limit by client address.",
+  );
+}
 
 export const auth = betterAuth({
   baseURL: baseURLWithoutPath,
@@ -430,6 +438,7 @@ export const auth = betterAuth({
     },
   },
   plugins: [
+    authRateLimit.plugin,
     lockedSessionRevocation,
     // Before `anonymous`, so a guest session is never linked before the code.
     twoFactorPlugin,
@@ -845,14 +854,14 @@ export const auth = betterAuth({
   rateLimit: {
     // On for every instance, cloud or self-hosted. Better Auth's default
     // rules cap sign-in and password flows; customRules tighten signup/invite.
-    enabled: process.env.DISABLE_AUTH_RATE_LIMIT !== "true",
+    enabled: authRateLimitEnabled,
     window: 10,
     max: 100,
-    customRules: {
+    customRules: authRateLimit.customRules({
       "/sign-up/email": { window: 60, max: 3 },
       "/sign-in/anonymous": { window: 60, max: 3 },
       "/organization/invite-member": { window: 60, max: 5 },
-    },
+    }),
   },
   databaseHooks: {
     user: {
