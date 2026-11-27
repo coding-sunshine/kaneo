@@ -593,6 +593,31 @@ export const finalizeDocumentFileUploadBody = documentFileUploadBody.extend({
     .openapi({ description: "The key returned when the URL was issued." }),
 });
 
+// The largest file an assistant sends in one call: as base64 inside JSON it
+// stays under the 1 MiB the MCP endpoint reads.
+export const MAX_CHAT_FILE_BYTES = 700_000;
+
+export const chatFileBody = z.object({
+  filename: z.string().min(1).max(255).openapi({
+    description:
+      "The file's name. Its extension decides the stored type; a type sent by the caller is never used.",
+  }),
+  contentBase64: z
+    .string()
+    .max(Math.ceil(MAX_CHAT_FILE_BYTES / 3) * 4)
+    .openapi({
+      description: `The file's bytes, base64 encoded. At most ${MAX_CHAT_FILE_BYTES.toLocaleString("en-US")} bytes before encoding.`,
+    }),
+  sourceClient: z
+    .enum(DOCUMENT_SOURCE_CLIENTS)
+    .exclude(["web"])
+    .optional()
+    .openapi({
+      description:
+        "The assistant that sends the file. The assistant names itself and nothing checks it.",
+    }),
+});
+
 export const issueFileParam = z.object({
   workspaceId: z.string(),
   assetId: z.string(),

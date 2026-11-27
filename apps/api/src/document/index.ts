@@ -52,6 +52,7 @@ import {
   createDocumentFileUpload,
   finalizeDocumentFileUpload,
 } from "./controllers/upload-document-file";
+import { attachChatFile } from "./controllers/attach-chat-file";
 import { saveDraft } from "./controllers/save-draft";
 import { settleDocument } from "./controllers/settle-document";
 import {
@@ -71,6 +72,7 @@ import {
   documentTaskAudienceSchema,
   documentCommentSchema,
   documentFileSchema,
+  chatFileBody,
   documentFileUploadBody,
   finalizeDocumentFileUploadBody,
   documentListSchema,
@@ -688,6 +690,31 @@ const finalizeFileUploadRoute = createRoute({
   },
 });
 
+const chatFileRoute = createRoute({
+  method: "post",
+  operationId: "attachDocumentFileFromChat",
+  path: `${one}/files`,
+  tags,
+  summary: "Add a file from an assistant chat",
+  description:
+    "Store a file an assistant sends from a chat as one of the document's files, and link it at the end of the text. The bytes come in the request as base64, at most 700,000 bytes. The same people may do it as may edit the text, and the stored type comes from the file name's extension, as for an upload. Answers 503 while file storage is not configured on this instance.",
+  middleware: [...write] as const,
+  request: { params: documentParam, body: body(chatFileBody) },
+  responses: {
+    200: jsonResponse("The stored file", documentFileSchema),
+    400: errorResponse(
+      "The bytes are not base64, or the file is empty or too large",
+    ),
+    403: noAccess,
+    404: notFound,
+    409: superseded,
+    415: fileRefused,
+    503: errorResponse(
+      "File uploads are not configured on this instance, or the file could not be stored",
+    ),
+  },
+});
+
 const versionsRoute = createRoute({
   method: "get",
   operationId: "listDocumentVersions",
@@ -1129,6 +1156,19 @@ const document = apiRouter()
     );
     return c.json(
       { ...file, url: `${apiBaseUrl(c.req.url)}/asset/${file.id}` },
+      200,
+    );
+  })
+  .openapi(chatFileRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(
+      await attachChatFile(
+        workspaceId,
+        id,
+        c.get("userId"),
+        c.req.valid("json"),
+        apiBaseUrl(c.req.url),
+      ),
       200,
     );
   })

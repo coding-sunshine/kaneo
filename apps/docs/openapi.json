@@ -37543,6 +37543,154 @@
         }
       }
     },
+    "/document/workspace/{workspaceId}/{id}/files": {
+      "post": {
+        "operationId": "attachDocumentFileFromChat",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Add a file from an assistant chat",
+        "description": "Store a file an assistant sends from a chat as one of the document's files, and link it at the end of the text. The bytes come in the request as base64, at most 700,000 bytes. The same people may do it as may edit the text, and the stored type comes from the file name's extension, as for an upload. Answers 503 while file storage is not configured on this instance.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filename": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "description": "The file's name. Its extension decides the stored type; a type sent by the caller is never used."
+                  },
+                  "contentBase64": {
+                    "type": "string",
+                    "maxLength": 933336,
+                    "description": "The file's bytes, base64 encoded. At most 700,000 bytes before encoding."
+                  },
+                  "sourceClient": {
+                    "type": "string",
+                    "enum": [
+                      "claude",
+                      "chatgpt"
+                    ],
+                    "description": "The assistant that sends the file. The assistant names itself and nothing checks it."
+                  }
+                },
+                "required": [
+                  "filename",
+                  "contentBase64"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The stored file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentFile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The bytes are not base64, or the file is empty or too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A superseded document cannot be changed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The file's name does not end in a type a document can hold",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "503": {
+            "description": "File uploads are not configured on this instance, or the file could not be stored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/document/workspace/{workspaceId}/{id}/versions": {
       "get": {
         "operationId": "listDocumentVersions",

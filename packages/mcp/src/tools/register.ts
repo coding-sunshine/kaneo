@@ -46,6 +46,10 @@ const hexColorSchema = z
 // The hosted endpoint refuses a request over 1 MiB before any tool runs.
 // This leaves room for the rest of the request and gives a clear answer.
 const MAX_MARKDOWN_BYTES = 900_000;
+// A file goes as base64, a third larger than its bytes; the API holds the
+// same limit.
+const MAX_FILE_BYTES = 700_000;
+const MAX_FILE_BASE64 = Math.ceil(MAX_FILE_BYTES / 3) * 4;
 
 function run(fn: () => Promise<unknown>): Promise<CallToolResult> {
   return fn()
@@ -1127,6 +1131,47 @@ export function registerTools(
             sourceClient,
           }),
         });
+      }),
+  );
+
+  registerTool(
+    "attach_document_file",
+    {
+      description:
+        "Put a file from this conversation into a document, when the person asks for it. Anyone who can edit the document's text can add a file. The file is stored with the document and linked at the end of its text; whoever can open the document can open the file. Send the bytes as base64, at most 700,000 bytes before encoding. The name's extension decides the type: PDF, Office and OpenDocument files, plain text, Markdown, CSV and pictures are taken. When the instance has no file storage, nothing is stored and the error says so: tell the person.",
+      inputSchema: z.object({
+        workspaceId: nonEmptyString.describe("Workspace ID"),
+        documentId: nonEmptyString.describe("The document's id"),
+        filename: nonEmptyString
+          .max(255)
+          .describe("The file's name, with its extension"),
+        contentBase64: z.string().describe("The file's bytes, base64 encoded"),
+        sourceClient: z
+          .enum(["claude", "chatgpt"])
+          .optional()
+          .describe("The assistant you are, if it is one of these"),
+      }),
+    },
+    async ({
+      workspaceId,
+      documentId,
+      filename,
+      contentBase64,
+      sourceClient,
+    }) =>
+      run(async () => {
+        if (contentBase64.length > MAX_FILE_BASE64) {
+          throw new Error(
+            `The file is too large. One call can send at most ${MAX_FILE_BYTES.toLocaleString("en-US")} bytes. Nothing was stored.`,
+          );
+        }
+        return client.json(
+          `/api/document/workspace/${encodeURIComponent(workspaceId)}/${encodeURIComponent(documentId)}/files`,
+          {
+            method: "POST",
+            body: JSON.stringify({ filename, contentBase64, sourceClient }),
+          },
+        );
       }),
   );
 

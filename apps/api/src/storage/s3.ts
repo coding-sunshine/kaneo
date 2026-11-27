@@ -746,6 +746,34 @@ export async function copyToDocumentFile({
   return key;
 }
 
+/** Stores bytes the API received itself as one of a document's files. */
+export async function putDocumentFile({
+  filename,
+  contentType,
+  body,
+  ...context
+}: DocumentFileContext & {
+  filename: string;
+  contentType: string;
+  body: Uint8Array;
+}): Promise<string> {
+  const config = getStorageConfig();
+  const key = applyKeyPrefix(
+    config.keyPrefix,
+    `${buildDocumentFileObjectKeyPrefix(context)}/${buildObjectFileName(filename)}`,
+  );
+  await getClient(config).send(
+    new PutObjectCommand({
+      Bucket: config.bucket,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+      ContentLength: body.byteLength,
+    }),
+  );
+  return key;
+}
+
 export async function deleteS3Object(key: string): Promise<void> {
   const config = getStorageConfig();
   const client = getClient(config);
