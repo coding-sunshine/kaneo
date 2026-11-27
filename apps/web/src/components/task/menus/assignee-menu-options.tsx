@@ -2,18 +2,22 @@ import type { OptionMenuItem } from "@/components/common/option-menu/option-menu
 import { UnassignedAvatar } from "@/components/common/unassigned-avatar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/get-initials";
+import { memberStatusHint } from "@/lib/people/member-status-hint";
+import type { PersonProfile } from "@/lib/people/profile-types";
 
 type AssignableMember = {
   id: string;
   name?: string | null;
   email?: string | null;
   image?: string | null;
+  profile?: Pick<PersonProfile, "status" | "outOfOffice">;
 };
 
 export function assigneeMenuOptions(
   members: AssignableMember[],
   current: string | null | undefined,
   unassignedLabel: string,
+  outOfOfficeLabel = "",
 ): OptionMenuItem[] {
   return [
     {
@@ -25,6 +29,7 @@ export function assigneeMenuOptions(
     ...members.map((member) => ({
       value: member.id,
       label: member.name || member.email || "",
+      hint: memberStatusHint(member.profile, outOfOfficeLabel),
       icon: (
         <Avatar className="size-4">
           <AvatarImage src={member.image ?? ""} alt="" />

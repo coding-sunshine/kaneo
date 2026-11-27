@@ -19,6 +19,7 @@ export type SidebarItemId =
   | "views"
   | "chat"
   | "members"
+  | "people"
   | "loops"
   | "teams";
 export type SidebarSection = "personal" | "workspace";
@@ -56,7 +57,15 @@ export const SIDEBAR_SECTIONS: Record<SidebarSection, SidebarItemId[]> = {
     "agent",
     "drafts",
   ],
-  workspace: ["projects", "views", "chat", "members", "loops", "teams"],
+  workspace: [
+    "projects",
+    "views",
+    "chat",
+    "people",
+    "members",
+    "loops",
+    "teams",
+  ],
 };
 
 // Linear keeps these two behind the workspace "More" menu until asked.

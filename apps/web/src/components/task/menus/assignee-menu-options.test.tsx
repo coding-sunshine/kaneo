@@ -29,4 +29,25 @@ describe("assigneeMenuOptions", () => {
   it("marks nothing when the selection is mixed", () => {
     expect(selectedValues(undefined)).toEqual([]);
   });
+
+  it("shows a member's status and out-of-office next to their name", () => {
+    const [, option] = assigneeMenuOptions(
+      [
+        {
+          ...members[0],
+          profile: {
+            status: { text: "In a meeting", clearsAt: null },
+            outOfOffice: {
+              from: "2026-11-30T00:00:00Z",
+              until: "2026-12-04T23:59:59Z",
+            },
+          },
+        },
+      ],
+      null,
+      "Unassigned",
+      "Out of office",
+    );
+    expect(option?.hint).toBe("In a meeting · Out of office");
+  });
 });

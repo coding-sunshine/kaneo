@@ -14,12 +14,15 @@ type MessageListProps = {
   canWrite: boolean;
   /** Authors to mark online; only set while the reader's presence is on. */
   online?: Set<string>;
+  /** Status lines of authors who set one, by user id. */
+  statuses?: Map<string, string>;
   onRemovePreview?: (messageId: string) => void;
 };
 
 export function MessageList({
   messages,
   online,
+  statuses,
   focusId,
   ...item
 }: MessageListProps) {
@@ -52,6 +55,7 @@ export function MessageList({
           key={message.id}
           message={message}
           online={Boolean(message.userId && online?.has(message.userId))}
+          status={message.userId ? statuses?.get(message.userId) : undefined}
           focused={message.id === focusId}
           {...item}
         />

@@ -69,6 +69,27 @@ export const userTable = pgTable("user", {
   twoFactorEnabled: boolean("two_factor_enabled").default(false).notNull(),
 });
 
+// What teammates see about a person: optional profile fields, a status and an
+// out-of-office range. The status and range are kept after they end and
+// hidden at read time, so nothing has to run to clear them.
+export const userProfileTable = pgTable("user_profile", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => userTable.id, { onDelete: "cascade" }),
+  jobTitle: text("job_title"),
+  department: text("department"),
+  location: text("location"),
+  timeZone: text("time_zone"),
+  statusText: text("status_text"),
+  statusClearsAt: timestamp("status_clears_at", { mode: "date" }),
+  outOfOfficeFrom: timestamp("out_of_office_from", { mode: "date" }),
+  outOfOfficeUntil: timestamp("out_of_office_until", { mode: "date" }),
+  updatedAt: timestamp("updated_at", { mode: "date" })
+    .default(utcNow)
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
 export const sessionTable = pgTable(
   "session",
   {

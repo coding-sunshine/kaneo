@@ -87,6 +87,15 @@ describe("MessageList", () => {
     expect(container.querySelector(".rounded-full")).toBeNull();
   });
 
+  it("shows the author's status next to their name", () => {
+    renderList([message()], {
+      statuses: new Map([["user-1", "In a meeting"]]),
+    });
+    expect(screen.getByRole("listitem")).toHaveTextContent(
+      "Test authorIn a meeting",
+    );
+  });
+
   it("names a deleted author", () => {
     renderList([message({ authorName: null })]);
     expect(screen.getByRole("listitem")).toHaveTextContent(
