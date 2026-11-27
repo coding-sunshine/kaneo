@@ -162,6 +162,16 @@ Name | Description | Default |
 --- | --- | --- |
 | `TRELLO_API_KEY` | API key of a Trello Power-Up you create at [trello.com/power-ups/admin](https://trello.com/power-ups/admin). Enables the one-click **Authorize on Trello** button when importing from Trello. Kaneo only hands it to workspace admins, inside the authorize link, when they start a Trello import. The key identifies the app and grants no access by itself. Without it, users paste their own Trello API key in the import form. See [Import from Trello](/core/migrations/from-trello#set-up-trello-on-a-self-hosted-instance). | Unset |
 
+### AI spending caps
+
+These caps apply once AI is turned on with `OPENROUTER_API_KEY` or `AI_SELF_HOSTED_URL`. They count the usage that Kaneo records for each model call.
+
+Name | Description | Default |
+--- | --- | --- |
+| `EXTRACTION_DAILY_TOKEN_CAP` | Tokens a day that jobs reading documents may spend on the model, for each workspace. The day starts at midnight UTC. Once a workspace reaches the cap, its jobs stop until the next day; other workspaces keep going. `0` stops these jobs. | `300000` |
+| `AI_MONTHLY_USD_CAP` | Dollars all AI calls of the instance may spend in a calendar month (UTC), by the cost the provider reports. At the cap, AI pauses until the 1st of the next month. | `20` |
+| `EXTRACTION_TOTAL_USD_CAP` | No longer read. `AI_MONTHLY_USD_CAP` replaced this total cap; move any value you set to it. | Unset |
+
 ### GitHub SSO
 
 Sign in with GitHub uses a [GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app). Set `GITHUB_OAUTH_CLIENT_ID` and `GITHUB_OAUTH_CLIENT_SECRET` (or rely on the legacy variables below).

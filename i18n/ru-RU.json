@@ -787,7 +787,9 @@
 			"scheduleSave": "Save schedule",
 			"scheduleStart": "Start time",
 			"scheduleTimezone": "Timezone",
-			"scheduleTitle": "Delivery schedule"
+			"scheduleTitle": "Delivery schedule",
+			"eventTopicUpdates": "Followed topics",
+			"eventTopicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision."
 		},
 		"preferencesPage": {
 			"title": "Настройки",
@@ -945,7 +947,15 @@
 				"confirm": "Передать права владельца"
 			},
 			"ownershipSubtitle": "Это видит только владелец.",
-			"ownershipTitle": "Владение"
+			"ownershipTitle": "Владение",
+			"export": {
+				"button": "Export workspace",
+				"description": "Download a zip of tickets, documents, channel messages and members, as JSON and Markdown. It holds what you can open in Kaneo.",
+				"failed": "Could not export the workspace",
+				"pending": "Exporting…",
+				"rowTitle": "Workspace data",
+				"title": "Export"
+			}
 		},
 		"projectGeneral": {
 			"pageTitle": "Настройки проекта",
@@ -3391,6 +3401,41 @@
 			"selfHostedModel": "Self-hosted model name",
 			"selfHostedModelHint": "The model name your self-hosted server serves, for example llama-3.1-8b-instruct.",
 			"title": "AI"
+		},
+		"calendarSync": {
+			"accountsDescription": "A connection belongs to you alone. Nobody else in your workspaces can see your calendar.",
+			"accountsTitle": "Calendars",
+			"connect": "Connect",
+			"connected": "Connected",
+			"connectedNoEmail": "Connected account",
+			"descriptions": {
+				"google": "Syncs with the main calendar of a Google account.",
+				"microsoft": "Syncs with the calendar of a Microsoft 365 or Outlook.com account."
+			},
+			"disconnect": "Disconnect",
+			"disconnected": "Calendar disconnected",
+			"dueDatesTitle": "Due dates",
+			"howItWorks": "Events from your calendar show up on each team's calendar view. Due dates of issues assigned to you go into your calendar as all-day events.",
+			"loadFailed": "Couldn't load your calendar connections.",
+			"navLabel": "Calendar",
+			"needsReconnect": "Reconnect needed",
+			"needsReconnectDescription": "The calendar stopped accepting access. Reconnect to keep syncing.",
+			"notConfigured": "Not set up on this server yet. An administrator has to add the OAuth keys first.",
+			"pageTitle": "Calendar",
+			"providers": {
+				"google": "Google Calendar",
+				"microsoft": "Outlook calendar"
+			},
+			"reconnect": "Reconnect",
+			"subtitle": "Connect your Google or Microsoft calendar.",
+			"synced_few": "{{count}} issues are in your calendar",
+			"synced_many": "{{count}} issues are in your calendar",
+			"synced_one": "{{count}} issue is in your calendar",
+			"synced_other": "{{count}} issues are in your calendar",
+			"syncNow": "Sync due dates",
+			"syncNowAction": "Sync now",
+			"syncNowDescription": "Adds due dates from the past 30 days onward that aren't in your calendar yet.",
+			"title": "Calendar"
 		}
 	},
 	"navigation": {
@@ -4511,6 +4556,12 @@
 				"empty": "No pages yet",
 				"expand": "Show pages inside",
 				"title": "Pages"
+			},
+			"export": {
+				"failed": "Could not export the document",
+				"label": "Export",
+				"markdown": "Markdown",
+				"pdf": "PDF"
 			}
 		},
 		"drafts": {
@@ -5757,7 +5808,33 @@
 			"title": "Календарь",
 			"today": "Сегодня",
 			"loadError": "Не удалось загрузить задачи.",
-			"noTasksThisMonth": "В этом месяце ничего не запланировано"
+			"noTasksThisMonth": "В этом месяце ничего не запланировано",
+			"allDay": "All day",
+			"createEvent": {
+				"addMeeting": {
+					"google": "Add a Google Meet link",
+					"microsoft": "Add a Microsoft Teams meeting"
+				},
+				"allDay": "All day",
+				"calendar": "Calendar",
+				"create": "Create event",
+				"created": "Event added to your calendar",
+				"date": "Date",
+				"endTime": "Ends",
+				"eventTitle": "Title",
+				"invalid": "Give the event a title and an end time after its start.",
+				"meetingUrl": "Or paste a meeting link",
+				"meetingUrlPlaceholder": "https://",
+				"startTime": "Starts",
+				"title": "New calendar event",
+				"titlePlaceholder": "What's it about?"
+			},
+			"eventAriaLabel": "{{title}}, {{time}}: open in your calendar",
+			"eventsUnavailable": "Some calendar events couldn't load. Reconnect the calendar in Settings.",
+			"joinMeeting": "Join meeting",
+			"moreEvents": "+{{count}} more",
+			"newEvent": "New event",
+			"untitledEvent": "Untitled event"
 		},
 		"descriptionSearchLoading": "Searching full descriptions…",
 		"descriptionSearchError": "Description search failed. Results may be incomplete.",
@@ -8033,7 +8110,9 @@
 				"dueDateHint": "Перед сроком задачи, назначенной вам",
 				"remindMe": "Напомнить",
 				"remindBefore": "За {{time}}",
-				"remindPickerTitle": "Напомнить за"
+				"remindPickerTitle": "Напомнить за",
+				"topicUpdates": "Followed topics",
+				"topicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision"
 			},
 			"leadTime": {
 				"minutes15": "15 минут",

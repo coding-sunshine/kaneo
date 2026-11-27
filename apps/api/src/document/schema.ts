@@ -312,6 +312,10 @@ export const documentSummarySchema = z
   .object({
     ...documentFields,
     snoozedUntil,
+    canEdit: z.boolean().openapi({
+      description:
+        "Whether you may edit the document, and so snooze it in the Inbox.",
+    }),
     currentDocumentId: z.string().nullable().openapi({
       description:
         "On a replaced document: the current document of its topic, if you can open it.",

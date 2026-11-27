@@ -208,6 +208,12 @@ export default function NotificationSettingsScreen() {
                   (v) => update({ taskStatusChangeEnabled: v }),
                 )}
                 {toggleRow(
+                  t("mobile:notificationSettings.events.topicUpdates"),
+                  t("mobile:notificationSettings.events.topicUpdatesHint"),
+                  p.topicUpdatesEnabled !== false,
+                  (v) => update({ topicUpdatesEnabled: v }),
+                )}
+                {toggleRow(
                   t("mobile:notificationSettings.events.dueDate"),
                   t("mobile:notificationSettings.events.dueDateHint"),
                   !!p.dueDateReminderEnabled,

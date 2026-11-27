@@ -15,6 +15,7 @@ import { documentTable, userTable } from "../../database/schema";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
 import type { listDocumentsQuery } from "../schema";
 import {
+  documentEditAccess,
   documentParentAccess,
   documentVisibility,
   topicAccess,
@@ -79,6 +80,7 @@ export const documentSummaryColumns = (userId: string) => ({
       THEN ${documentTable.inboxSnoozedUntil}
   END`.mapWith(documentTable.inboxSnoozedUntil),
   approvedAt: documentTable.approvedAt,
+  canEdit: documentEditAccess(userId, documentTable).mapWith(Boolean),
   // Where a replaced document points: the current one of its topic. Null
   // unless the viewer can open the topic and that document.
   currentDocumentId: sql<string | null>`CASE

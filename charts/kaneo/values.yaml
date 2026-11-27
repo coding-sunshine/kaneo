@@ -147,6 +147,12 @@ kaneo:
   #       secretKeyRef:
   #         name: oauth-secret
   #         key: client-id
+  # AI spending caps (see the environment variables docs):
+  #   - name: EXTRACTION_DAILY_TOKEN_CAP  # tokens a day per workspace for document jobs; default 300000, 0 stops them
+  #     value: "300000"
+  #   - name: AI_MONTHLY_USD_CAP          # dollars a calendar month (UTC) for all AI calls; default 20
+  #     value: "20"
+  # EXTRACTION_TOTAL_USD_CAP is no longer read; AI_MONTHLY_USD_CAP replaced it.
   extraEnvFrom: []
   # extraEnvFrom:
   #   - secretRef:

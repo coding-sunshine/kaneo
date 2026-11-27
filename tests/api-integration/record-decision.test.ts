@@ -231,6 +231,39 @@ describe("API integration: recording a decision on a topic", () => {
     expect(await notices(limited)).toHaveLength(1);
   });
 
+  it("tells no follower who turned topic updates off about a decision", async () => {
+    const world = await buildDocumentWorld();
+    const { owner, limited, open } = world;
+    const api = decisions(world);
+    const { topic, id } = await api.withCurrent(owner, open, "The plan.");
+    const followed = await world.as(limited)(
+      `/topic/workspace/${world.ws}/${topic.id}/follow`,
+      json("PUT"),
+    );
+    expect(followed.status).toBe(200);
+    // The owner created the topic, so they follow it too.
+    const off = await world.as(owner)(
+      "/notification-preferences",
+      json("PUT", { topicUpdatesEnabled: false }),
+    );
+    expect(off.status).toBe(200);
+    const notices = (user: Member) =>
+      db
+        .select({ id: schema.notificationTable.id })
+        .from(schema.notificationTable)
+        .where(
+          and(
+            eq(schema.notificationTable.userId, user.id),
+            eq(schema.notificationTable.type, "document_decision"),
+          ),
+        );
+
+    expect((await api.record(open, topic.id)).status).toBe(200);
+    expect((await api.approve(open, topic.id, id)).status).toBe(200);
+    expect(await notices(owner)).toHaveLength(0);
+    expect(await notices(limited)).toHaveLength(1);
+  });
+
   it("takes the line from whoever decides, whatever the document lets them do", async () => {
     const world = await buildDocumentWorld();
     const { owner, limited, open } = world;

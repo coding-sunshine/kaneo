@@ -19,6 +19,8 @@ import { createDocument } from "./controllers/create-document";
 import { deletePage } from "./controllers/delete-page";
 import { movePage } from "./controllers/move-page";
 import { pageTree } from "./controllers/page-tree";
+import { exportDocumentRoute } from "./export-routes";
+import { exportDocument } from "./controllers/export-document";
 import { deletePageRoute, movePageRoute, pageTreeRoute } from "./page-routes";
 import { purgeDocument, restoreDocument } from "./controllers/delete-document";
 import { documentAudience } from "./controllers/document-audience";
@@ -1022,6 +1024,20 @@ const document = apiRouter()
       await takeOverDocument(workspaceId, c.get("userId"), id),
       200,
     );
+  })
+  .openapi(exportDocumentRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    const file = await exportDocument(
+      workspaceId,
+      id,
+      c.get("userId"),
+      c.req.valid("query").format,
+    );
+    c.header("Content-Type", file.contentType);
+    c.header("Content-Disposition", `attachment; filename="${file.filename}"`);
+    c.header("Cache-Control", "private, no-store");
+    c.header("X-Content-Type-Options", "nosniff");
+    return c.body(file.body, 200);
   })
   .openapi(getRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");

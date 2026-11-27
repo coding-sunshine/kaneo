@@ -151,3 +151,32 @@ export function topicAccess(userId: string | SQLWrapper, topicId: SQLWrapper) {
       })}
   )`;
 }
+
+// Who may edit a document: the rule `loadDocument` applies at edit, as SQL,
+// so lists can tell the reader which rows they may change.
+export function documentEditAccess(
+  userId: string | SQLWrapper,
+  doc: DocumentColumns & {
+    generalAccess: SQLWrapper;
+    status: SQLWrapper;
+    topicId: SQLWrapper;
+  },
+) {
+  return sql<boolean>`(
+    ${doc.creatorId} = ${userId}
+    OR EXISTS (
+      SELECT 1 FROM document_share AS edit_share
+      WHERE edit_share.document_id = ${doc.id}
+        AND edit_share.user_id = ${userId}
+        AND edit_share.access = 'edit'
+    )
+    OR (${documentParentAccess(userId, doc)} AND (
+      ${doc.generalAccess} = 'edit'
+      OR (${doc.status} = 'current' AND EXISTS (
+        SELECT 1 FROM topic AS edit_topic
+        WHERE edit_topic.id = ${doc.topicId}
+          AND ${userId} IN (edit_topic.decider_id, edit_topic.backup_decider_id)
+      ))
+    ))
+  )`;
+}

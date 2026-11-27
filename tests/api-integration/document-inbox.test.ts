@@ -10,7 +10,12 @@ import {
 } from "./helpers/document-access/build-document-world";
 
 type Member = DocumentWorld["owner"];
-type Row = { id: string; snoozedUntil: string | null; updatedAt: string };
+type Row = {
+  id: string;
+  snoozedUntil: string | null;
+  updatedAt: string;
+  canEdit: boolean;
+};
 
 // Documents in a shared place, as each member sees them.
 const SHARED: Record<"owner" | "limited" | "open", DocumentPlace[]> = {
@@ -205,5 +210,22 @@ describe("API integration: Not yet filed and the document Inbox", () => {
     const cleared = await snooze(world, owner, teamAlpha, null);
     expect(cleared.status).toBe(200);
     expect((await row(world, owner, teamAlpha))?.snoozedUntil).toBeNull();
+  });
+
+  it("tells each reader which Inbox items they may snooze", async () => {
+    const world = await buildDocumentWorld();
+    const { owner, limited } = world;
+    const { teamAlpha, sharedInBeta } = world.docs;
+
+    // The flag on the list matches what the snooze route decides.
+    for (const [member, id, allowed] of [
+      [limited, sharedInBeta, false],
+      [limited, teamAlpha, true],
+      [owner, sharedInBeta, true],
+    ] as const) {
+      expect((await row(world, member, id))?.canEdit).toBe(allowed);
+      const response = await snooze(world, member, id, NEXT_YEAR);
+      expect(response.status).toBe(allowed ? 200 : 403);
+    }
   });
 });

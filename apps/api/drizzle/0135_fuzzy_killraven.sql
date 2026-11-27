@@ -1,0 +1,1 @@
+ALTER TABLE "user_notification_preference" ADD COLUMN "topic_updates_enabled" boolean DEFAULT true NOT NULL;

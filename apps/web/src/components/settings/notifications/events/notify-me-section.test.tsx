@@ -42,6 +42,7 @@ const preferences = {
   taskStatusChangeEnabled: true,
   dueDateReminderEnabled: true,
   dueDateReminderLeadTimeMinutes: 1440,
+  topicUpdatesEnabled: true,
   workspaces: [],
 } as unknown as NotificationPreferences;
 
@@ -79,6 +80,24 @@ describe("NotifyMeSection", () => {
         name: "settings:notificationsPage.saveEventPreferences",
       }),
     ).toBeNull();
+  });
+
+  it("turns followed topic updates off and on again", () => {
+    render(<NotifyMeSection preferences={preferences} />);
+    const toggle = screen.getByRole("switch", {
+      name: "settings:notificationsPage.eventTopicUpdates",
+    });
+
+    fireEvent.click(toggle);
+    expect(updatePreferences).toHaveBeenLastCalledWith({
+      topicUpdatesEnabled: false,
+    });
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+
+    fireEvent.click(toggle);
+    expect(updatePreferences).toHaveBeenLastCalledWith({
+      topicUpdatesEnabled: true,
+    });
   });
 
   it("restores a switch when saving it fails", async () => {

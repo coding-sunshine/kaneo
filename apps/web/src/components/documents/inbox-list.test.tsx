@@ -33,7 +33,12 @@ vi.mock("@/lib/toast", () => ({
 
 const DAY = 86_400_000;
 const INBOX = "navigation:documents.inbox";
-const doc = (id: string, daysOld: number, snoozedUntil: string | null = null) =>
+const doc = (
+  id: string,
+  daysOld: number,
+  snoozedUntil: string | null = null,
+  canEdit = true,
+) =>
   ({
     id,
     title: id,
@@ -45,6 +50,7 @@ const doc = (id: string, daysOld: number, snoozedUntil: string | null = null) =>
     createdAt: new Date(Date.now() - daysOld * DAY).toISOString(),
     updatedAt: new Date(Date.now() - daysOld * DAY).toISOString(),
     snoozedUntil,
+    canEdit,
   }) as unknown as DocumentSummary;
 const LATER = new Date(Date.now() + 30 * DAY).toISOString();
 
@@ -122,5 +128,26 @@ describe("InboxList", () => {
     await waitFor(() =>
       expect(mocks.snoozeDocument).toHaveBeenCalledWith("ws", "Aside", null),
     );
+  });
+
+  it("offers no snooze to a person who can only view the document", () => {
+    show([
+      doc("Readable", 3, null, false),
+      doc("Editable", 2),
+      doc("Aside", 40, LATER, false),
+    ]);
+
+    expect(
+      rowOf("Readable").queryByRole("button", { name: `${INBOX}.snooze` }),
+    ).toBeNull();
+    expect(
+      rowOf("Editable").getByRole("button", { name: `${INBOX}.snooze` }),
+    ).toBeTruthy();
+    expect(
+      rowOf("Aside").queryByRole("button", { name: `${INBOX}.unsnooze` }),
+    ).toBeNull();
+    expect(
+      rowOf("Aside").getByText(new RegExp(`^${INBOX}\\.snoozedUntil `)),
+    ).toBeTruthy();
   });
 });
