@@ -34942,7 +34942,7 @@
           "Document Templates"
         ],
         "summary": "Save a page as a template",
-        "description": "Copy the title and text of a page you can open into a template every member can start a document from. Later edits to the page leave the template as it is.",
+        "description": "Copy the title and text of a page open to the whole workspace into a template every member can start a document from. Later edits to the page leave the template as it is.",
         "parameters": [
           {
             "schema": {
@@ -34962,7 +34962,7 @@
                 "properties": {
                   "documentId": {
                     "type": "string",
-                    "description": "The page to copy. You must be able to open it."
+                    "description": "The page to copy. It must be open to the whole workspace (scope workspace)."
                   },
                   "name": {
                     "type": "string",
@@ -35000,7 +35000,7 @@
             }
           },
           "403": {
-            "description": "Missing permission for this workspace",
+            "description": "Missing permission, or the page is not open to the whole workspace",
             "content": {
               "application/json": {
                 "schema": {

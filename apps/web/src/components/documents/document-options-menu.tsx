@@ -88,7 +88,9 @@ export function DocumentOptionsMenu({
       toast.error(error.message),
     );
 
-  // Anyone who can open the page may copy it into a template for everybody.
+  // A template is listed to every member, so only a page they can all open
+  // may become one. The API refuses the others.
+  const canSaveTemplate = document.scope === "workspace";
   const onSaveTemplate = () =>
     saveTemplate.mutate(id, {
       onSuccess: () => toast.success(t("navigation:documents.templates.saved")),
@@ -250,10 +252,12 @@ export function DocumentOptionsMenu({
               ? t("navigation:documents.pins.unpin")
               : t("navigation:documents.pins.pin")}
           </MenuItem>
-          <MenuItem onClick={onSaveTemplate}>
-            <LayoutTemplate aria-hidden />
-            {t("navigation:documents.templates.saveAs")}
-          </MenuItem>
+          {canSaveTemplate && (
+            <MenuItem onClick={onSaveTemplate}>
+              <LayoutTemplate aria-hidden />
+              {t("navigation:documents.templates.saveAs")}
+            </MenuItem>
+          )}
           <MenuItem onClick={onToggleHistory}>
             <Clock aria-hidden />
             {historyOpen

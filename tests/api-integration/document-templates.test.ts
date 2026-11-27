@@ -6,6 +6,7 @@ import {
   json,
 } from "./helpers/document-access/build-document-world";
 import { createWorkspaceMember } from "./helpers/fixtures";
+import { restrictToProjects } from "./helpers/project-access/restrict-to-projects";
 
 type Template = {
   id: string;
@@ -40,17 +41,16 @@ describe("Document templates", () => {
     world = await buildDocumentWorld();
   });
 
-  it("saves a page as a template that every member lists", async () => {
-    const saved = await save(world, world.owner, world.docs.teamBeta, "Retro");
+  it("saves a page open to the whole workspace as a template every member lists", async () => {
+    const saved = await save(world, world.open, world.docs.workspace, "Retro");
     expect(saved.status).toBe(200);
     const template = (await saved.json()) as Template;
     expect(template).toMatchObject({
       name: "Retro",
-      content: "<p>teamBeta</p>",
-      creatorId: world.owner.id,
+      content: "<p>workspace</p>",
+      creatorId: world.open.id,
     });
 
-    // `limited` cannot enter team Beta, yet the template is for everyone.
     for (const member of [world.owner, world.limited, world.open]) {
       expect((await list(world, member)).map((row) => row.id)).toEqual([
         template.id,
@@ -59,9 +59,35 @@ describe("Document templates", () => {
   });
 
   it("names the template after the page when no name is given", async () => {
-    const saved = await save(world, world.owner, world.docs.teamAlpha);
+    const saved = await save(world, world.owner, world.docs.workspace);
     expect(saved.status).toBe(200);
-    expect(((await saved.json()) as Template).name).toBe("leakdoc teamAlpha");
+    expect(((await saved.json()) as Template).name).toBe("leakdoc workspace");
+  });
+
+  it("refuses a page not open to the whole workspace", async () => {
+    // Team, issue and project pages, a private draft, and a team page shared
+    // by name: each would show its text to members who cannot open it.
+    for (const place of [
+      "teamAlpha",
+      "teamBeta",
+      "issueBeta",
+      "project",
+      "projectBeta",
+      "private",
+      "sharedInBeta",
+    ] as const) {
+      const response = await save(world, world.owner, world.docs[place]);
+      expect(response.status, place).toBe(403);
+    }
+    expect(await list(world, world.limited)).toEqual([]);
+  });
+
+  it("refuses a private team page also to a member of that team", async () => {
+    // `limited` may enter team Alpha; the rest of the workspace may not.
+    await restrictToProjects(world.ws, world.open.id, [world.beta.id]);
+    const response = await save(world, world.limited, world.docs.teamAlpha);
+    expect(response.status).toBe(403);
+    expect(await list(world, world.open)).toEqual([]);
   });
 
   it("needs a page the person can open", async () => {

@@ -51,7 +51,7 @@ const saveRoute = createRoute({
   tags,
   summary: "Save a page as a template",
   description:
-    "Copy the title and text of a page you can open into a template every member can start a document from. Later edits to the page leave the template as it is.",
+    "Copy the title and text of a page open to the whole workspace into a template every member can start a document from. Later edits to the page leave the template as it is.",
   middleware: [
     workspaceAccess.fromParam(),
     requireWorkspacePermission({ task: ["create"] }),
@@ -59,7 +59,9 @@ const saveRoute = createRoute({
   request: { params: workspaceIdParam, body: body(saveTemplateBody) },
   responses: {
     200: jsonResponse("Template saved", documentTemplateSchema),
-    403: noAccess,
+    403: errorResponse(
+      "Missing permission, or the page is not open to the whole workspace",
+    ),
     404: errorResponse("Document not found"),
   },
 });

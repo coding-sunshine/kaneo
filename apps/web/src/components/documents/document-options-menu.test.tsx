@@ -159,6 +159,19 @@ describe("DocumentOptionsMenu template", () => {
       expect(mocks.saveDocumentTemplate).toHaveBeenCalledWith("ws", "d1"),
     );
   });
+
+  it("does not offer a page that not every member can open", async () => {
+    mocks.getFavorites.mockResolvedValue([]);
+    openMenu({ ...document, scope: "team" } as DocumentDetail);
+    await screen.findByRole("menuitem", {
+      name: "navigation:documents.pins.pin",
+    });
+    expect(
+      screen.queryByRole("menuitem", {
+        name: "navigation:documents.templates.saveAs",
+      }),
+    ).toBeNull();
+  });
 });
 
 describe("DocumentOptionsMenu delete", () => {

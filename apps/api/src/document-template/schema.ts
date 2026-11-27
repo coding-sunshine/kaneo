@@ -9,7 +9,8 @@ export const templateParam = z.object({
 
 export const saveTemplateBody = z.object({
   documentId: z.string().openapi({
-    description: "The page to copy. You must be able to open it.",
+    description:
+      "The page to copy. It must be open to the whole workspace (scope workspace).",
   }),
   name: z.string().trim().min(1).max(200).optional().openapi({
     description: "Shown in the template list. Defaults to the page title.",
