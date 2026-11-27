@@ -15,7 +15,7 @@ import { topicAccess } from "../visibility";
 import { readLineage } from "./lineage";
 import { documentParentName, openParentId } from "./list-documents";
 import { loadDocument } from "./load-document";
-import { sharedTasksOf } from "./share-with-task";
+import { countHiddenSharedTasks, sharedTasksOf } from "./share-with-task";
 
 export async function getDocument(
   workspaceId: string,
@@ -23,67 +23,76 @@ export async function getDocument(
   userId: string,
 ) {
   const doc = await loadDocument(workspaceId, id, userId);
-  const [shares, subscribers, [parent], revisionOf, citedBy, sharedTasks] =
-    await Promise.all([
-      db
-        .select({
-          userId: documentShareTable.userId,
-          name: userTable.name,
-          image: userTable.image,
-          access: documentShareTable.access,
-        })
-        .from(documentShareTable)
-        .innerJoin(userTable, eq(userTable.id, documentShareTable.userId))
-        .where(eq(documentShareTable.documentId, id))
-        .orderBy(documentShareTable.createdAt),
-      db
-        .select({ userId: documentSubscriberTable.userId })
-        .from(documentSubscriberTable)
-        .where(eq(documentSubscriberTable.documentId, id)),
-      // A document shared by name can sit on a topic the viewer cannot open.
-      // That topic stays unnamed, like a team they cannot enter.
-      db
-        .select({
-          name: documentParentName(userId),
-          projectId: openParentId(userId, documentTable.projectId),
-          taskId: openParentId(userId, documentTable.taskId),
-          topicName: topicTable.name,
-        })
-        .from(documentTable)
-        .leftJoin(
-          topicTable,
-          and(
-            eq(topicTable.id, documentTable.topicId),
-            topicAccess(userId, topicTable.id),
-          ),
-        )
-        .where(eq(documentTable.id, id)),
-      readLineage(workspaceId, id, userId),
-      // Each issue once, however many places link it, and only issues of this
-      // workspace the viewer can open.
-      db
-        .selectDistinct({
-          id: taskTable.id,
-          title: taskTable.title,
-          number: taskTable.number,
-          projectId: projectTable.id,
-          projectSlug: projectTable.slug,
-        })
-        .from(taskDocumentTable)
-        .innerJoin(taskTable, eq(taskTable.id, taskDocumentTable.taskId))
-        .innerJoin(projectTable, eq(projectTable.id, taskTable.projectId))
-        .where(
-          and(
-            eq(taskDocumentTable.documentId, id),
-            // Sharing with an issue is not a link in a text.
-            ne(taskDocumentTable.source, "share"),
-            eq(projectTable.workspaceId, workspaceId),
-            projectAccessCondition(userId, projectTable.id),
-          ),
-        )
-        .orderBy(asc(projectTable.slug), asc(taskTable.number)),
-      sharedTasksOf(workspaceId, id, userId),
-    ]);
+  const manages = doc.role === "owner" || doc.role === "edit";
+  const [
+    shares,
+    subscribers,
+    [parent],
+    revisionOf,
+    citedBy,
+    sharedTasks,
+    hiddenSharedTaskCount,
+  ] = await Promise.all([
+    db
+      .select({
+        userId: documentShareTable.userId,
+        name: userTable.name,
+        image: userTable.image,
+        access: documentShareTable.access,
+      })
+      .from(documentShareTable)
+      .innerJoin(userTable, eq(userTable.id, documentShareTable.userId))
+      .where(eq(documentShareTable.documentId, id))
+      .orderBy(documentShareTable.createdAt),
+    db
+      .select({ userId: documentSubscriberTable.userId })
+      .from(documentSubscriberTable)
+      .where(eq(documentSubscriberTable.documentId, id)),
+    // A document shared by name can sit on a topic the viewer cannot open.
+    // That topic stays unnamed, like a team they cannot enter.
+    db
+      .select({
+        name: documentParentName(userId),
+        projectId: openParentId(userId, documentTable.projectId),
+        taskId: openParentId(userId, documentTable.taskId),
+        topicName: topicTable.name,
+      })
+      .from(documentTable)
+      .leftJoin(
+        topicTable,
+        and(
+          eq(topicTable.id, documentTable.topicId),
+          topicAccess(userId, topicTable.id),
+        ),
+      )
+      .where(eq(documentTable.id, id)),
+    readLineage(workspaceId, id, userId),
+    // Each issue once, however many places link it, and only issues of this
+    // workspace the viewer can open.
+    db
+      .selectDistinct({
+        id: taskTable.id,
+        title: taskTable.title,
+        number: taskTable.number,
+        projectId: projectTable.id,
+        projectSlug: projectTable.slug,
+      })
+      .from(taskDocumentTable)
+      .innerJoin(taskTable, eq(taskTable.id, taskDocumentTable.taskId))
+      .innerJoin(projectTable, eq(projectTable.id, taskTable.projectId))
+      .where(
+        and(
+          eq(taskDocumentTable.documentId, id),
+          // Sharing with an issue is not a link in a text.
+          ne(taskDocumentTable.source, "share"),
+          eq(projectTable.workspaceId, workspaceId),
+          projectAccessCondition(userId, projectTable.id),
+        ),
+      )
+      .orderBy(asc(projectTable.slug), asc(taskTable.number)),
+    sharedTasksOf(workspaceId, id, userId),
+    manages ? countHiddenSharedTasks(workspaceId, id, userId) : 0,
+  ]);
   const topicName = parent?.topicName ?? null;
   const personIds = [doc.creatorId, doc.updatedById, doc.approvedBy].filter(
     (value): value is string => value !== null,
@@ -142,6 +151,7 @@ export async function getDocument(
     revisionOf,
     citedBy,
     sharedTasks,
+    hiddenSharedTaskCount,
     shares,
     subscriberIds: subscribers.map((row) => row.userId),
   };

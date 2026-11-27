@@ -389,6 +389,10 @@ export const documentSchema = z
         description:
           "Issues the document is shared with that you can open: everyone who can open one can view the document. An issue you cannot open is left out, also with edit rights.",
       }),
+    hiddenSharedTaskCount: z.number().int().openapi({
+      description:
+        "With edit rights: how many issues you cannot open the document is also shared with. Their ids and names stay hidden. Zero without edit rights.",
+    }),
     shares: z.array(
       z.object({
         userId: z.string(),

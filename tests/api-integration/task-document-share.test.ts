@@ -386,6 +386,46 @@ describe("API integration: sharing a document with the people of an issue", () =
     ]);
   });
 
+  it("tells an editor how many shares sit on issues they cannot open, and lets them stop those", async () => {
+    const world = await buildDocumentWorld();
+    const { owner, limited, alphaTask, betaTask, docs } = world;
+    for (const id of [docs.teamAlpha, docs.sharedByName]) {
+      await share(world, owner, id, alphaTask.id);
+      await share(world, owner, id, betaTask.id);
+    }
+    const hiddenCount = async (user: Member, id: string) =>
+      (
+        (await (await open(world, user, id)).json()) as {
+          hiddenSharedTaskCount: number;
+        }
+      ).hiddenSharedTaskCount;
+    const stopHidden = (user: Member, id: string) =>
+      world.as(user)(`${base(world)}/${id}/task-shares/hidden`, json("DELETE"));
+
+    expect(await hiddenCount(owner, docs.teamAlpha)).toBe(0);
+    expect(await hiddenCount(limited, docs.teamAlpha)).toBe(1);
+    const opened = await (await open(world, limited, docs.teamAlpha)).text();
+    expect(opened).not.toContain(betaTask.id);
+
+    // `limited` may only view this one: no count, and no stopping.
+    expect(await hiddenCount(limited, docs.sharedByName)).toBe(0);
+    expect((await stopHidden(limited, docs.sharedByName)).status).toBe(403);
+    expect(
+      (await sharedTasksOf(world, owner, docs.sharedByName)).map((t) => t.id),
+    ).toHaveLength(2);
+
+    const stopped = await stopHidden(limited, docs.teamAlpha);
+    expect(stopped.status).toBe(200);
+    const body = (await stopped.json()) as Opened & {
+      hiddenSharedTaskCount: number;
+    };
+    expect(body.hiddenSharedTaskCount).toBe(0);
+    expect(body.sharedTasks.map((t) => t.id)).toEqual([alphaTask.id]);
+    expect(
+      (await sharedTasksOf(world, owner, docs.teamAlpha)).map((t) => t.id),
+    ).toEqual([alphaTask.id]);
+  });
+
   it("lets the people of an issue keep a document filed on a topic elsewhere", async () => {
     const world = await buildDocumentWorld();
     const { owner, limited, alphaTask, docs } = world;

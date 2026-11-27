@@ -4144,6 +4144,10 @@
             },
             "description": "Issues the document is shared with that you can open: everyone who can open one can view the document. An issue you cannot open is left out, also with edit rights."
           },
+          "hiddenSharedTaskCount": {
+            "type": "integer",
+            "description": "With edit rights: how many issues you cannot open the document is also shared with. Their ids and names stay hidden. Zero without edit rights."
+          },
           "shares": {
             "type": "array",
             "items": {
@@ -4224,6 +4228,7 @@
           "revisionOf",
           "citedBy",
           "sharedTasks",
+          "hiddenSharedTaskCount",
           "shares",
           "subscriberIds"
         ]
@@ -31884,6 +31889,79 @@
             },
             "required": true,
             "name": "taskId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sharing stopped",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/task-shares/hidden": {
+      "delete": {
+        "operationId": "unshareDocumentFromHiddenTasks",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Stop sharing with issues you cannot open",
+        "description": "Removes every share on an issue in a team you cannot open; those issues no longer let anyone into the document. Needs edit rights on the document.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
             "in": "path"
           }
         ],

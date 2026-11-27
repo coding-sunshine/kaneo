@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, count, eq, inArray, not } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
@@ -137,4 +137,50 @@ export function sharedTasksOf(workspaceId: string, id: string, userId: string) {
       ),
     )
     .orderBy(asc(projectTable.slug), asc(taskTable.number));
+}
+
+// Shares on issues of this workspace the viewer cannot open.
+const hiddenShares = (workspaceId: string, id: string, userId: string) =>
+  and(
+    eq(taskDocumentTable.documentId, id),
+    eq(taskDocumentTable.source, "share"),
+    inArray(
+      taskDocumentTable.taskId,
+      db
+        .select({ id: taskTable.id })
+        .from(taskTable)
+        .innerJoin(projectTable, eq(projectTable.id, taskTable.projectId))
+        .where(
+          and(
+            eq(projectTable.workspaceId, workspaceId),
+            not(projectAccessCondition(userId, projectTable.id)),
+          ),
+        ),
+    ),
+  );
+
+// How many of those there are, never which: someone who manages the document
+// knows people get in through issues they cannot see, and nothing more.
+export async function countHiddenSharedTasks(
+  workspaceId: string,
+  id: string,
+  userId: string,
+) {
+  const [row] = await db
+    .select({ total: count() })
+    .from(taskDocumentTable)
+    .where(hiddenShares(workspaceId, id, userId));
+  return row?.total ?? 0;
+}
+
+export async function unshareHiddenTasks(
+  workspaceId: string,
+  id: string,
+  userId: string,
+) {
+  await loadDocument(workspaceId, id, userId, { need: "edit" });
+  await db
+    .delete(taskDocumentTable)
+    .where(hiddenShares(workspaceId, id, userId));
+  return getDocument(workspaceId, id, userId);
 }

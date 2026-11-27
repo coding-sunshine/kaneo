@@ -3497,7 +3497,12 @@
 				"taskGains": "Sharing gives view access to {{names}}.",
 				"taskShared": "Shared with this issue",
 				"taskUnshared": "Stopped sharing with this issue",
-				"updated": "Access updated"
+				"updated": "Access updated",
+				"hiddenTasks_one": "Also shared with {{count}} issue you cannot open",
+				"hiddenTasks_other": "Also shared with {{count}} issues you cannot open",
+				"hiddenTasksUnshared": "Stopped sharing with issues you cannot open",
+				"stopHiddenTasks": "Stop sharing with them",
+				"unshareHiddenTasksFailed": "Could not stop sharing with those issues"
 			},
 			"shareMenu": "Share…",
 			"showComments": "Show comments",
