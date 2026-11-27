@@ -3612,11 +3612,10 @@ export const statementJudgementTable = pgTable(
     contradicts: boolean("contradicts"),
     // The workspace whose documents were compared, so the day's questions
     // are counted per workspace. Another workspace with the same texts reuses
-    // the answer.
-    workspaceId: text("workspace_id").references(() => workspaceTable.id, {
-      onDelete: "set null",
-      onUpdate: "cascade",
-    }),
+    // the answer. A plain column, no foreign key: the table already holds
+    // rows on live installs, so its upgrade only adds a nullable column. A
+    // deleted workspace's id stays and counts for nobody.
+    workspaceId: text("workspace_id"),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),
