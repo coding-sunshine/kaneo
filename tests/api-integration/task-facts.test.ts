@@ -689,7 +689,7 @@ describe("API integration: facts found in issues", () => {
       expect(record).toMatchObject({ readable: true, reason: null });
     });
 
-    it("goes on with a long text in the next run where it stopped, sending no part twice", async () => {
+    it("reads a text of more than a hundred parts in one run", async () => {
       const { world } = await setup();
       const log = await attach(world, {
         filename: "server.log",
@@ -697,6 +697,32 @@ describe("API integration: facts found in issues", () => {
       });
       const long = Array.from(
         { length: 60_000 },
+        (_, i) => `Line ${i} of the log.`,
+      ).join("\n");
+      readObject.mockImplementation(async () => ({
+        body: new Response(long).body,
+      }));
+      await run();
+      const sent = prompts(fetchMock).filter((prompt) =>
+        prompt.includes("server.log"),
+      );
+      expect(sent.length).toBe(textParts(long, 12_000, 200).length);
+      expect(sent.length).toBeGreaterThan(100);
+      expect(new Set(sent).size).toBe(sent.length);
+      const [record] = (await records()).filter(
+        (row) => row.assetId === log.id,
+      );
+      expect(record).toMatchObject({ readable: true, reason: null });
+    });
+
+    it("goes on with a long text in the next run where it stopped, sending no part twice", async () => {
+      const { world } = await setup();
+      const log = await attach(world, {
+        filename: "server.log",
+        mimeType: "text/plain",
+      });
+      const long = Array.from(
+        { length: 600_000 },
         (_, i) => `Line ${i} of the log.`,
       ).join("\n");
       readObject.mockImplementation(async () => ({
@@ -822,7 +848,7 @@ describe("API integration: facts found in issues", () => {
       });
       const bytes: Record<string, string> = {
         [long.objectKey]: Array.from(
-          { length: 60_000 },
+          { length: 600_000 },
           (_, i) => `Line ${i} of the log.`,
         ).join("\n"),
         [small.objectKey]: `# Small\n\n${PRICE}`,

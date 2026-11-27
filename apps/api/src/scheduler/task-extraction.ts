@@ -44,8 +44,13 @@ import { textParts } from "./text-parts";
 export const PROMPT_VERSION = 2;
 /** Texts the model is asked about in one run. Files that are not read do not count. */
 const PER_TICK = 10;
-/** Questions in one run. A longer text goes on in the next run. */
-const PARTS_PER_RUN = 50;
+/**
+ * Questions in one run. A longer text goes on in the next run. Only the
+ * spending cap limits what is read in a day; runs never overlap.
+ */
+const PARTS_PER_RUN = 1000;
+/** Parts of one text asked about at the same time. */
+const AT_ONCE = 8;
 const MAX_CHARACTERS = 12_000;
 const OVERLAP = 200;
 // A file is held in memory whole while it is read, and the API is one
@@ -99,25 +104,51 @@ async function ask(run: Run, source: Source, outcome: Outcome) {
   const at = `${source.key}:${source.contentHash}:${hashOf(JSON.stringify(run.asked))}`;
   const state = resume.get(at) ?? { next: 0, readable: false };
   resume.delete(at);
-  for (; state.next < parts.length; state.next++) {
-    const part = parts[state.next] ?? "";
+  while (state.next < parts.length) {
     if (outcome.parts <= 0) {
       resume.set(at, state);
       return "stop" as const;
     }
-    try {
-      const answer = await extractJson<unknown>({
-        purpose: "task-facts",
-        system: TASK_SYSTEM,
-        text: taskQuestion(run.asked, source.head + part),
-        schema: taskAnswerSchema(run.asked),
-        reserve: RESERVE,
-      });
+    const batch = parts.slice(
+      state.next,
+      state.next + Math.min(AT_ONCE, outcome.parts),
+    );
+    const answers = await Promise.allSettled(
+      batch.map((part) =>
+        extractJson<unknown>({
+          purpose: "task-facts",
+          system: TASK_SYSTEM,
+          text: taskQuestion(run.asked, source.head + part),
+          schema: taskAnswerSchema(run.asked),
+          reserve: RESERVE,
+        }),
+      ),
+    );
+    // In order: a stop or a failure goes on from the first part it hit, and
+    // the parts after it in the batch are asked again then.
+    for (const [index, settled] of answers.entries()) {
+      const part = batch[index] ?? "";
+      if (settled.status === "rejected") {
+        if (!(settled.reason instanceof UnreadableAnswer)) {
+          resume.set(at, state);
+          taskExtractionRetry.failed(source.key);
+          console.error(
+            `Reading ${source.key} for facts failed`,
+            settled.reason,
+          );
+          return "failed" as const;
+        }
+        outcome.parts -= 1;
+        state.next += 1;
+        continue;
+      }
+      const answer = settled.value;
       if (!answer) {
         resume.set(at, state);
         return "stop" as const;
       }
       outcome.parts -= 1;
+      state.next += 1;
       const found = keptStatements(run.asked, answer, source.quotable ?? part);
       if (!found) continue;
       state.readable = true;
@@ -133,14 +164,6 @@ async function ask(run: Run, source: Source, outcome: Outcome) {
         )
         // A fact that is already there stays as it is, dismissed or not.
         .onConflictDoNothing();
-    } catch (error) {
-      if (!(error instanceof UnreadableAnswer)) {
-        resume.set(at, state);
-        taskExtractionRetry.failed(source.key);
-        console.error(`Reading ${source.key} for facts failed`, error);
-        return "failed" as const;
-      }
-      outcome.parts -= 1;
     }
   }
   return { readable: state.readable };
