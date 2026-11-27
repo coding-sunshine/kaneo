@@ -375,3 +375,76 @@ it("restores, updates, and clears date conditions with other saved filters", asy
   unmount();
   window.localStorage.removeItem(key);
 });
+
+it("hides blocked tickets when workable is enabled and restores them once the blocker closes", () => {
+  window.localStorage.clear();
+  const queryClient = createTestQueryClient();
+  queryClient.setQueryData(
+    ["task-relations", "project", "workable-project"],
+    [
+      {
+        id: "rel-1",
+        sourceTaskId: "task-a",
+        targetTaskId: "task-b",
+        relationType: "blocks",
+        createdAt: "2026-04-16T00:00:00.000Z",
+      },
+    ],
+  );
+
+  const taskA = { id: "task-a", title: "Ticket A", status: "to-do" } as Task;
+  const taskB = { id: "task-b", title: "Ticket B", status: "to-do" } as Task;
+  const openProject = {
+    id: "workable-project",
+    columns: [
+      { id: "to-do", slug: "to-do", isFinal: false, tasks: [taskA, taskB] },
+      { id: "done", slug: "done", isFinal: true, tasks: [] },
+    ],
+    plannedTasks: [],
+    archivedTasks: [],
+  } as unknown as ProjectWithTasks;
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+
+  const { result, rerender, unmount } = renderHook(
+    ({ project }) =>
+      useTaskFiltersWithLabelsSupport(project, "workable-project"),
+    { initialProps: { project: openProject }, wrapper },
+  );
+
+  expect(
+    result.current.filteredProject?.columns[0]?.tasks.map((t) => t.id),
+  ).toEqual(["task-a", "task-b"]);
+
+  act(() => result.current.updateFilter("workable", true));
+
+  expect(result.current.activeFilterCount).toBe(1);
+  expect(
+    result.current.filteredProject?.columns[0]?.tasks.map((t) => t.id),
+  ).toEqual(["task-a"]);
+
+  // Close ticket A by moving it to the final Done column -> ticket B reappears.
+  const closedAProject = {
+    ...openProject,
+    columns: [
+      { id: "to-do", slug: "to-do", isFinal: false, tasks: [taskB] },
+      {
+        id: "done",
+        slug: "done",
+        isFinal: true,
+        tasks: [{ ...taskA, status: "done" }],
+      },
+    ],
+  } as unknown as ProjectWithTasks;
+
+  rerender({ project: closedAProject });
+
+  expect(
+    result.current.filteredProject?.columns[0]?.tasks.map((t) => t.id),
+  ).toEqual(["task-b"]);
+
+  unmount();
+  window.localStorage.clear();
+});

@@ -12,6 +12,7 @@ import { narrowToIssues } from "@/lib/insights/insight-selection";
 import { useInsightsSelectionStore } from "@/store/insights-selection";
 import { ViewInsights } from "@/components/views/view-insights";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
+import useGetProjectTaskRelations from "@/hooks/queries/task-relation/use-get-project-task-relations";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import { useViews } from "@/hooks/queries/view/use-views";
 import { applyViewFilters } from "@/lib/apply-view-filters";
@@ -34,13 +35,19 @@ function TeamIssues({
   filters: Partial<BoardFilters>;
 }) {
   const { data } = useGetTasks(projectId);
+  const { data: relations } = useGetProjectTaskRelations(
+    filters.workable ? projectId : "",
+  );
   const insightIds = useInsightsSelectionStore((state) => state.ids);
   const project = useMemo(
     () =>
       data
-        ? narrowToIssues(applyViewFilters(data, filters), insightIds)
+        ? narrowToIssues(
+            applyViewFilters(data, filters, undefined, relations),
+            insightIds,
+          )
         : undefined,
-    [data, filters, insightIds],
+    [data, filters, relations, insightIds],
   );
   if (!project) return null;
   return <ListView project={project} />;

@@ -83,6 +83,7 @@ function RouteComponent() {
   );
   const view = useProjectTaskView({
     project: scoped,
+    sourceProject: board,
     projectId,
     workspaceId,
     scope: "board",

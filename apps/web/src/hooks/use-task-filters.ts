@@ -14,6 +14,8 @@ export type BoardFilters = {
   workProject?: string[] | null;
   cycle?: string[] | null;
   estimate?: string[] | null;
+  /** Hide tickets blocked by an open "blocks" relation. */
+  workable?: boolean;
   customFields: Record<string, string[]> | null;
   negated?: string[] | null;
   /** Linear's "match any": a task needs to pass one active filter, not all. */
@@ -32,18 +34,19 @@ const DEFAULT_FILTERS: BoardFilters = {
   customFields: null,
 };
 
-const FILTER_KEYS: Array<Exclude<keyof BoardFilters, "matchAny">> = [
-  "status",
-  "priority",
-  "assignee",
-  "dueDate",
-  "startDate",
-  "labels",
-  "workProject",
-  "cycle",
-  "estimate",
-  "customFields",
-];
+const FILTER_KEYS: Array<Exclude<keyof BoardFilters, "matchAny" | "workable">> =
+  [
+    "status",
+    "priority",
+    "assignee",
+    "dueDate",
+    "startDate",
+    "labels",
+    "workProject",
+    "cycle",
+    "estimate",
+    "customFields",
+  ];
 
 function normalizeFilters(raw: unknown): BoardFilters {
   if (!raw || typeof raw !== "object") {
@@ -68,6 +71,7 @@ function normalizeFilters(raw: unknown): BoardFilters {
     }
   }
 
+  if (candidate.workable === true) normalized.workable = true;
   if (candidate.matchAny === true) normalized.matchAny = true;
 
   return normalized;
@@ -129,7 +133,11 @@ export function useTaskFilters(
     : null;
 
   const hasActiveFilters = Object.entries(filters).some(
-    ([key, filter]) => key !== "matchAny" && filter !== null,
+    ([key, filter]) =>
+      key !== "matchAny" &&
+      filter !== null &&
+      filter !== undefined &&
+      filter !== false,
   );
 
   const clearFilters = () => {

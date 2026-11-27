@@ -4917,7 +4917,8 @@
 				"workProject": "Project",
 				"cycle": "Cycle",
 				"estimate": "Estimate",
-				"noEstimate": "No estimate"
+				"noEstimate": "No estimate",
+				"workable": "Workable"
 			},
 			"operators": {
 				"isAnyOf": "is any of",

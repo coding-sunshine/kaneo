@@ -61,6 +61,40 @@ describe("rootFilterEntries", () => {
     values[0].toggle?.();
     expect(priority.onToggle).toHaveBeenCalledWith("low");
   });
+
+  it("renders toggleOnly subjects as direct toggles without duplicating options on search", () => {
+    const onToggle = vi.fn();
+    const workable = subject({
+      id: "workable",
+      label: "Workable",
+      toggleOnly: true,
+      section: "readiness",
+      options: [{ value: "true", label: "Workable" }],
+      selected: [],
+      onToggle,
+    });
+
+    const groups = rootFilterEntries([priority, workable], "", "Custom fields");
+    const workableGroup = groups.find((group) =>
+      group.items.some((item) => item.label === "Workable"),
+    );
+    const entry = workableGroup?.items[0];
+    expect(entry).toMatchObject({
+      label: "Workable",
+      checked: false,
+      closeOnSelect: true,
+    });
+    expect(entry?.opensSubject).toBeUndefined();
+    entry?.toggle?.();
+    expect(onToggle).toHaveBeenCalledWith("true");
+
+    const searched = rootFilterEntries(
+      [priority, workable],
+      "work",
+      "Custom fields",
+    ).flatMap((group) => group.items);
+    expect(searched.map((item) => item.label)).toEqual(["Workable"]);
+  });
 });
 
 it("lists one subject's values with their checked state and counts", () => {

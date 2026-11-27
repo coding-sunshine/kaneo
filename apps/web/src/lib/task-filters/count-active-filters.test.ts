@@ -13,3 +13,17 @@ it("counts each filtered subject once", () => {
     }),
   ).toBe(3);
 });
+
+it("counts workable when enabled", () => {
+  expect(
+    countActiveFilters({
+      status: null,
+      priority: null,
+      assignee: null,
+      dueDate: null,
+      labels: null,
+      customFields: null,
+      workable: true,
+    }),
+  ).toBe(1);
+});

@@ -3,6 +3,7 @@ import { formatDateCondition } from "./format-date-condition";
 import {
   Box,
   CalendarDays,
+  CircleCheck,
   CircleDot,
   CirclePlay,
   Layers,
@@ -301,6 +302,22 @@ export function useFilterSubjects({
       : []),
     dateSubject("startDate"),
     dateSubject("dueDate"),
+    subject("workable", {
+      label: t("tasks:boardFilters.subjects.workable"),
+      icon: <CircleCheck />,
+      toggleOnly: true,
+      section: "readiness",
+      options: [
+        {
+          value: "true",
+          label: t("tasks:boardFilters.subjects.workable"),
+        },
+      ],
+      selected: filters.workable ? ["true"] : [],
+      onToggle: () =>
+        updateFilter("workable", filters.workable ? undefined : true),
+      onClear: () => updateFilter("workable", undefined),
+    }),
   ];
 
   const customFields = options.customFields.map((field) => {

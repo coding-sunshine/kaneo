@@ -17,5 +17,5 @@ export function countActiveFilters(filters: BoardFilters) {
   const customFieldCount = Object.values(filters.customFields ?? {}).filter(
     (values) => values.length > 0,
   ).length;
-  return listCount + customFieldCount;
+  return listCount + customFieldCount + (filters.workable ? 1 : 0);
 }

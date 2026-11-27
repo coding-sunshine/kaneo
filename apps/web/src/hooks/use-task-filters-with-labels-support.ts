@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import { getBlockedTaskIds } from "@/lib/task-filters/blocked-task-ids";
 import { countActiveFilters } from "@/lib/task-filters/count-active-filters";
 import { filterProjectTasks } from "@/lib/task-filters/filter-project-tasks";
 import {
@@ -14,6 +15,7 @@ import type { ProjectWithTasks } from "@/types/project";
 import type Task from "@/types/task";
 import useGetCachedCustomFieldValues from "./queries/custom-field/use-get-all-custom-field-values-by-project";
 import useGetLabelsByWorkspace from "./queries/label/use-get-labels-by-workspace";
+import useGetProjectTaskRelations from "./queries/task-relation/use-get-project-task-relations";
 import type { BoardFilters } from "./use-task-filters";
 import { useStoredState } from "./use-stored-state";
 
@@ -33,19 +35,20 @@ const DEFAULT_FILTERS: BoardFilters = {
 
 const NO_IGNORED_FILTERS: ReadonlyArray<keyof BoardFilters> = [];
 
-const FILTER_KEYS: Array<Exclude<keyof BoardFilters, "matchAny">> = [
-  "status",
-  "priority",
-  "assignee",
-  "dueDate",
-  "startDate",
-  "labels",
-  "workProject",
-  "cycle",
-  "estimate",
-  "customFields",
-  "negated",
-];
+const FILTER_KEYS: Array<Exclude<keyof BoardFilters, "matchAny" | "workable">> =
+  [
+    "status",
+    "priority",
+    "assignee",
+    "dueDate",
+    "startDate",
+    "labels",
+    "workProject",
+    "cycle",
+    "estimate",
+    "customFields",
+    "negated",
+  ];
 
 export function normalizeFilters(raw: unknown): BoardFilters {
   if (!raw || typeof raw !== "object") {
@@ -81,6 +84,7 @@ export function normalizeFilters(raw: unknown): BoardFilters {
     }
   }
 
+  if (candidate.workable === true) normalized.workable = true;
   if (candidate.matchAny === true) normalized.matchAny = true;
 
   return normalized;
@@ -92,6 +96,7 @@ export function useTaskFiltersWithLabelsSupport(
   textQuery?: string,
   descriptionMatches?: ReadonlySet<string>,
   ignore: ReadonlyArray<keyof BoardFilters> = NO_IGNORED_FILTERS,
+  sourceProject?: ProjectWithTasks | null,
 ) {
   const [includeSubtasksOverride, setIncludeSubtasks] = useStoredState<
     boolean | null
@@ -134,7 +139,9 @@ export function useTaskFiltersWithLabelsSupport(
         ? filters
         : ({
             ...filters,
-            ...Object.fromEntries(ignore.map((key) => [key, null])),
+            ...Object.fromEntries(
+              ignore.map((key) => [key, key === "workable" ? undefined : null]),
+            ),
           } as BoardFilters),
     [filters, ignore],
   );
@@ -142,6 +149,19 @@ export function useTaskFiltersWithLabelsSupport(
   const matchingLabelIds = useMemo(
     () => new Set(expandLabelFilter(labels, effectiveFilters.labels)),
     [labels, effectiveFilters.labels],
+  );
+  const { data: projectRelations } = useGetProjectTaskRelations(
+    effectiveFilters.workable && projectId ? projectId : "",
+  );
+  // Use the unscoped board when provided so blockers hidden by a view preset
+  // (e.g. backlog or done columns) still reflect their true open/closed state.
+  const blockerSource = sourceProject ?? project;
+  const blockedTaskIds = useMemo(
+    () =>
+      effectiveFilters.workable
+        ? getBlockedTaskIds(blockerSource, projectRelations)
+        : undefined,
+    [effectiveFilters.workable, blockerSource, projectRelations],
   );
   const customFieldValues = useGetCachedCustomFieldValues(
     effectiveFilters.customFields ? projectId : undefined,
@@ -157,6 +177,7 @@ export function useTaskFiltersWithLabelsSupport(
       today: new Date(),
       getCustomFieldValues: getValuesForTask,
       labelIds: matchingLabelIds,
+      blockedTaskIds,
     };
     // Missing query data is unknown, rather than an empty value on every task.
     const readyFilters = !hasData
@@ -174,6 +195,7 @@ export function useTaskFiltersWithLabelsSupport(
     hasData,
     descriptionMatches,
     matchingLabelIds,
+    blockedTaskIds,
     includeSubtasks,
   ]);
 
@@ -209,13 +231,13 @@ export function useTaskFiltersWithLabelsSupport(
     key: keyof BoardFilters,
     value: BoardFilters[keyof BoardFilters],
   ) => {
+    const cleared = value === null || value === undefined || value === false;
     setFilters((prev) => ({
       ...prev,
-      [key]: value,
-      negated:
-        value === null
-          ? setSubjectNegated(prev.negated, key, false)
-          : prev.negated,
+      [key]: key === "workable" ? (value ? true : undefined) : value,
+      negated: cleared
+        ? setSubjectNegated(prev.negated, key, false)
+        : prev.negated,
     }));
   };
 

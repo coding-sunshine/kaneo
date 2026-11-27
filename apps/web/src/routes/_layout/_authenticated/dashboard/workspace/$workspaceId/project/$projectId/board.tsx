@@ -195,6 +195,7 @@ function RouteComponent() {
   const { background } = useBackgroundStore();
   const view = useProjectTaskView({
     project,
+    sourceProject: fullProject,
     projectId,
     workspaceId,
     scope: "board",
