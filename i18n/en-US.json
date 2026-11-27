@@ -4256,6 +4256,10 @@
 				"title": "{{topicName}} has a new current document",
 				"content": "{{documentTitle}}, approved by {{actorName}}"
 			},
+			"document_decision": {
+				"title": "{{actorName}} recorded a decision on {{topicName}}",
+				"content": "In {{documentTitle}}"
+			},
 			"document_replaced": {
 				"title_one": "A document linked in {{issueKey}} was replaced",
 				"title_other": "A document linked in {{issueKey}} and {{more}} more of your issues was replaced",

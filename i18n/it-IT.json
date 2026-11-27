@@ -4378,6 +4378,10 @@
 			"document_question": {
 				"content": "{{documentTitle}}",
 				"title": "Which holds for {{slotName}} in {{topicName}}?"
+			},
+			"document_decision": {
+				"content": "In {{documentTitle}}",
+				"title": "{{actorName}} recorded a decision on {{topicName}}"
 			}
 		},
 		"newCount_many": "{{count}} nuove",

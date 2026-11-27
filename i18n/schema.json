@@ -17459,6 +17459,19 @@
 							},
 							"required": ["title", "content"]
 						},
+						"document_decision": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"content": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "content"]
+						},
 						"document_replaced": {
 							"type": "object",
 							"additionalProperties": false,
@@ -17643,6 +17656,7 @@
 						"document_comment",
 						"document_proposed",
 						"document_current",
+						"document_decision",
 						"document_replaced",
 						"task_mention",
 						"task_comment",
