@@ -855,6 +855,20 @@
       "when": 1795802061424,
       "tag": "0121_safe_human_torch",
       "breakpoints": true
+    },
+    {
+      "idx": 122,
+      "version": "7",
+      "when": 1795806915269,
+      "tag": "0122_tired_the_hand",
+      "breakpoints": true
+    },
+    {
+      "idx": 123,
+      "version": "7",
+      "when": 1795807883030,
+      "tag": "0123_outstanding_shape",
+      "breakpoints": true
     }
   ]
 }

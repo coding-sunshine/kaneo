@@ -5,6 +5,7 @@ import type { DocumentDetail } from "@/fetchers/document/documents";
 import { DocumentAccessLabel } from "./document-access-label";
 import { DocumentOptionsMenu } from "./document-options-menu";
 import { DocumentParentLink } from "./document-parent-link";
+import { PageAncestorCrumbs } from "./page-tree/page-ancestor-crumbs";
 
 type DocumentCrumbsProps = {
   document: DocumentDetail;
@@ -14,7 +15,7 @@ type DocumentCrumbsProps = {
   onToggleHistory: () => void;
 };
 
-/** Parent › document title, then the star and ··· menu. */
+/** Place › pages above › document title, then the star and ··· menu. */
 export function DocumentCrumbs({
   document,
   historyOpen,
@@ -29,6 +30,10 @@ export function DocumentCrumbs({
       className="flex min-w-0 items-center gap-0.5"
     >
       <DocumentParentLink document={document} />
+      <PageAncestorCrumbs
+        workspaceId={document.workspaceId}
+        ancestors={document.ancestors}
+      />
       <ChevronRight
         aria-hidden
         className="size-3.5 shrink-0 text-muted-foreground"

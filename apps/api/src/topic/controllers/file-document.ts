@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
-import { documentTable } from "../../database/schema";
+import { documentExtractionTable, documentTable } from "../../database/schema";
 import { getDocument } from "../../document/controllers/get-document";
 import { loadDocument } from "../../document/controllers/load-document";
 import { notifyTopicFollowers } from "../../document/controllers/notify";
@@ -65,6 +65,13 @@ export async function fileDocument(
         supersedesDocumentId: replace ? topic.currentDocumentId : null,
       })
       .where(eq(documentTable.id, documentId));
+    // What the text was asked about another topic's slots says nothing about
+    // these: the reading job reads it again in full.
+    if (doc.topicId !== topic.id) {
+      await tx
+        .delete(documentExtractionTable)
+        .where(eq(documentExtractionTable.documentId, documentId));
+    }
   });
   // After the move: a follower is told only about a document they can open.
   // Filing a proposal again on its own topic is not news.

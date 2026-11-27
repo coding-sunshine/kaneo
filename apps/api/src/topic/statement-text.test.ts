@@ -44,7 +44,18 @@ describe("quoteStart", () => {
       textBlocks(
         "<h2>Plan</h2><p>We go <b>live</b>.<br>Soon.</p><ul><li>One</li><li></li></ul>",
       ),
-    ).toEqual(["Plan", "We go live .", "Soon.", "One"]);
+    ).toEqual(["Plan", "We go live.", "Soon.", "One"]);
+  });
+
+  it("reads inline formatting as the page shows it, and finds a quote kept from before", () => {
+    const formatted = documentText(
+      '<p>We go live on <strong>5 March</strong>. Ask <a href="/x">Ops</a>, not <em>Sales</em>.</p>',
+    );
+    expect(formatted).toBe("We go live on 5 March. Ask Ops, not Sales.");
+    expect(quoteStart(formatted, "5 March.")).toBe(14);
+    expect(quoteStart(formatted, "5 March .")).toBe(14);
+    expect(quoteStart(formatted, "Ops , not")).toBe(27);
+    expect(quoteStart(formatted, "5 March (")).toBe(-1);
   });
 
   it("does not find a quote that spans a tag the text does not have", () => {

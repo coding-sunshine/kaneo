@@ -29,6 +29,7 @@ const icons: Record<string, LucideIcon> = {
   document_decision: FileCheck,
   document_replaced: FileSymlink,
   document_question: FileQuestion,
+  document_inbox_waiting: Inbox,
   task_assignee_changed: UserRound,
   task_status_changed: History,
   task_created: SquarePlus,

@@ -1,0 +1,1 @@
+ALTER TABLE "statement_judgement" ADD COLUMN "workspace_id" text;

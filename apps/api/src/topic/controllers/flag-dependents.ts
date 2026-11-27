@@ -7,7 +7,7 @@ import {
 } from "../../database/schema";
 import { currentStatements, type Reader } from "./current-statements";
 
-type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+export type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type Stated = Map<string, string>;
 
 // What a topic states now: for each slot, its value in the compared form.

@@ -24,6 +24,9 @@ const MAX_CHARACTERS = 12_000;
 // characters. Raise it when facts near the end of longer documents go missing.
 const MAX_PARTS = 10;
 const OVERLAP = 200;
+// A document edited this recently is read once its author has stopped, so a
+// run of small edits is not read again after each one.
+const QUIET_MS = 5 * 60_000;
 
 /** A document whose request failed is asked about again after an hour. */
 export const extractionRetry = retryLater(60 * 60_000);
@@ -74,10 +77,12 @@ const isSent = (value: unknown): value is SentStatement =>
 
 /**
  * Asks the model what each filed document states for its topic's slots and
- * stores the answers as proposals, which a person confirms. A document is
- * asked about once per text, set of slots, prompt and model. Drafts that are
- * not on a topic and topics without slots are never sent. Does nothing
- * without a key or once the day's token cap is used up.
+ * stores the answers as proposals, which a person confirms. A text is asked
+ * about each slot once per prompt: a slot made later is asked about alone,
+ * and another model, a renamed or a deleted slot reads nothing again. Drafts that are
+ * not on a topic and topics without slots are never sent, nor a document
+ * edited in the last five minutes. A workspace whose day's token cap is used
+ * up is skipped; the others are still read.
  */
 export async function extractFiledDocuments() {
   if (!isAgentEnabled()) return {};
@@ -89,24 +94,26 @@ export async function extractFiledDocuments() {
   );
 
   // ponytail: reads every filed document on a topic with slots each tick and
-  // filters here, because the slots' hash is computed here. Move the hash to
-  // the topic row when that list is large.
+  // filters here, against the slots' times. Filter in the query when that
+  // list is large.
   const rows = await db
     .select({
       id: documentTable.id,
+      workspaceId: documentTable.workspaceId,
       content: documentTable.content,
       contentHash: documentTable.contentHash,
       topicId: documentTable.topicId,
-      asked: documentExtractionTable.slotsHash,
+      updatedAt: documentTable.updatedAt,
+      since: documentExtractionTable.createdAt,
     })
     .from(documentTable)
+    // Any model's answer counts: another model reads no text again.
     .leftJoin(
       documentExtractionTable,
       and(
         eq(documentExtractionTable.documentId, documentTable.id),
         eq(documentExtractionTable.contentHash, documentTable.contentHash),
         eq(documentExtractionTable.promptVersion, PROMPT_VERSION),
-        eq(documentExtractionTable.model, model),
       ),
     )
     .where(
@@ -118,32 +125,49 @@ export async function extractFiledDocuments() {
       ),
     )
     .orderBy(desc(documentTable.updatedAt));
-  // One row per earlier question about the text, or one with none.
-  const answered = new Set(
-    rows
-      .filter((row) => row.asked === hashes.get(row.topicId ?? ""))
-      .map((row) => row.id),
+  // ponytail: slots are told apart by the time they were made, as in the
+  // issue job: a slot whose insert is still open while a newer one is read is
+  // never asked of that text.
+  // One row per earlier question about the text, or one with none. A text
+  // was asked about every slot made up to its newest record.
+  const since = new Map<string, Date>();
+  for (const row of rows) {
+    const known = since.get(row.id);
+    if (row.since && (!known || row.since > known))
+      since.set(row.id, row.since);
+  }
+  const askedAbout = (row: (typeof rows)[number]) =>
+    (slots.get(row.topicId ?? "") ?? []).filter((slot) => {
+      const asked = since.get(row.id);
+      return !asked || slot.createdAt > asked;
+    });
+  const settled = Date.now() - QUIET_MS;
+  const pending = rows.filter(
+    (row, at) =>
+      askedAbout(row).length > 0 &&
+      !extractionRetry.waiting(row.id) &&
+      row.updatedAt.getTime() <= settled &&
+      rows.findIndex((other) => other.id === row.id) === at,
   );
-  const pending = rows
-    .filter(
-      (row, at) =>
-        !answered.has(row.id) &&
-        !extractionRetry.waiting(row.id) &&
-        rows.findIndex((other) => other.id === row.id) === at,
-    )
-    .slice(0, PER_TICK);
 
   let degraded = false;
+  let read = 0;
+  const capped = new Set<string>();
   for (const doc of pending) {
+    if (read >= PER_TICK) break;
+    if (capped.has(doc.workspaceId)) continue;
+    read += 1;
     const topicSlots = slots.get(doc.topicId ?? "") ?? [];
+    const asked = askedAbout(doc);
     const parts = textParts(
       documentText(doc.content),
       MAX_CHARACTERS,
       OVERLAP,
     ).slice(0, MAX_PARTS);
-    // Each slot keeps the first statement found, so later parts only ask
-    // about the slots that are still empty.
-    let open = topicSlots;
+    // Every part is asked about every slot, so a later part that states
+    // another value is seen too. A free-text slot keeps the first wording
+    // found: later parts are not asked about it.
+    let open = asked;
     let readable = false;
     let failed = false;
     for (const part of parts) {
@@ -151,12 +175,17 @@ export async function extractFiledDocuments() {
       try {
         const answer = await extractJson<{ statements?: unknown }>({
           purpose: "statements",
+          workspaceId: doc.workspaceId,
           system: SYSTEM,
           text: question(open, part),
           schema: answerSchema(open),
         });
-        // No key, or a cap is used up: nothing more this tick.
-        if (!answer) return { degraded };
+        // A cap is used up: nothing more for this workspace this tick.
+        if (!answer) {
+          capped.add(doc.workspaceId);
+          failed = true;
+          break;
+        }
         if (Array.isArray(answer.statements)) {
           sent = answer.statements.filter(isSent);
         }
@@ -177,7 +206,9 @@ export async function extractFiledDocuments() {
             .filter(({ result }) => result === "added" || result === "exists")
             .map(({ slot }) => slot),
         );
-        open = open.filter((slot) => !filled.has(slot.key));
+        open = open.filter(
+          (slot) => slot.type !== "term" || !filled.has(slot.key),
+        );
       }
       if (open.length === 0) break;
     }
@@ -193,6 +224,10 @@ export async function extractFiledDocuments() {
         promptVersion: PROMPT_VERSION,
         model,
         readable,
+        // The newest slot asked about: a slot made later is asked about next.
+        createdAt: new Date(
+          Math.max(...topicSlots.map((slot) => slot.createdAt.getTime())),
+        ),
       })
       .onConflictDoNothing();
   }

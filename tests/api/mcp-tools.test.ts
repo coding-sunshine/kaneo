@@ -336,6 +336,48 @@ describe("MCP tool catalog", () => {
     expect(await agent.call("settle_document", "{}")).toContain("Unknown tool");
   });
 
+  it("cuts a long approved text in get_current for the assistant, says so, and reads on from where it stopped", async () => {
+    const approved = `${"Launch detail. ".repeat(2_000)}The end.`;
+    const asked: string[] = [];
+    const agent = buildAgentTools({
+      json: async <T>(path: string) => {
+        asked.push(path);
+        return {
+          topics: [
+            {
+              id: "t1",
+              name: "Launch plan",
+              current: { id: "d1", title: "Plan", text: approved },
+            },
+          ],
+        } as T;
+      },
+    });
+    type Read = {
+      topics: { current: { text: string; textCut?: string } }[];
+    };
+    const read = async (args: Record<string, unknown>) => {
+      const answer = await agent.call(
+        "get_current",
+        JSON.stringify({ workspaceId: "w1", topic: "t1", ...args }),
+      );
+      expect(answer.length).toBeLessThanOrEqual(20_000);
+      return (JSON.parse(answer) as Read).topics[0]!.current;
+    };
+
+    const first = await read({});
+    expect(approved.startsWith(first.text)).toBe(true);
+    expect(first.text.length).toBeLessThan(approved.length);
+    expect(first.textCut).toContain(`${approved.length} characters`);
+    const next = Number(/textFrom: (\d+)/.exec(first.textCut ?? "")?.[1]);
+    expect(next).toBe(first.text.length);
+
+    const rest = await read({ textFrom: next });
+    expect(first.text + rest.text).toBe(approved);
+    expect(rest.textCut).toBeUndefined();
+    expect(asked).toHaveLength(2);
+  });
+
   it("reads a topic before writing, as the signed-in person", async () => {
     await call("get_current", { workspaceId: "w1", topic: "launch plan" });
     expect(lastRequest()).toMatchObject({

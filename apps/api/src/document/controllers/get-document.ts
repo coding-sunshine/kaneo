@@ -15,6 +15,7 @@ import { topicAccess } from "../visibility";
 import { readLineage } from "./lineage";
 import { documentParentName, openParentId } from "./list-documents";
 import { loadDocument } from "./load-document";
+import { hasChildPages, pageAncestors } from "./page-ancestors";
 import { countHiddenSharedTasks, sharedTasksOf } from "./share-with-task";
 
 export async function getDocument(
@@ -32,6 +33,8 @@ export async function getDocument(
     citedBy,
     sharedTasks,
     hiddenSharedTaskCount,
+    ancestors,
+    hasChildren,
   ] = await Promise.all([
     db
       .select({
@@ -92,6 +95,8 @@ export async function getDocument(
       .orderBy(asc(projectTable.slug), asc(taskTable.number)),
     sharedTasksOf(workspaceId, id, userId),
     manages ? countHiddenSharedTasks(workspaceId, id, userId) : 0,
+    pageAncestors(workspaceId, doc.parentDocumentId, userId),
+    hasChildPages(id),
   ]);
   const topicName = parent?.topicName ?? null;
   const personIds = [doc.creatorId, doc.updatedById, doc.approvedBy].filter(
@@ -154,5 +159,7 @@ export async function getDocument(
     hiddenSharedTaskCount,
     shares,
     subscriberIds: subscribers.map((row) => row.userId),
+    ancestors,
+    hasChildren,
   };
 }

@@ -1,7 +1,13 @@
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 import db from "../database";
 import { aiUsageTable } from "../database/schema";
-import { getBudget, monthTokens, startOfUtcDay, usedTokens } from "./budget";
+import {
+  forPeople,
+  getBudget,
+  monthTokens,
+  startOfUtcDay,
+  usedTokens,
+} from "./budget";
 
 const REPORT_DAYS = 30;
 
@@ -11,6 +17,7 @@ export async function usageReport(workspaceId: string) {
   since.setUTCDate(since.getUTCDate() - (REPORT_DAYS - 1));
   const inWorkspace = and(
     eq(aiUsageTable.workspaceId, workspaceId),
+    forPeople,
     gte(aiUsageTable.createdAt, since),
   );
   // created_at holds UTC wall time, so its date is the UTC day.

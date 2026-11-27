@@ -79,7 +79,47 @@ export const createDocumentBody = z.object({
   icon: z.string().max(100).nullable().optional(),
   color: z.string().max(50).nullable().optional(),
   ...parent,
+  parentDocumentId: z.string().optional().openapi({
+    description:
+      "The page to put the new one under. Needs edit access to it. Without a team, project or issue, the new page lives where that page lives.",
+  }),
 });
+
+export const movePageBody = z.object({
+  parentDocumentId: z.string().nullable().openapi({
+    description:
+      "The page to put this one under, or null for the top of the tree. Needs edit access to both pages.",
+  }),
+});
+
+export const deletePageQuery = z.object({
+  children: z.enum(["lift", "delete"]).optional().openapi({
+    description:
+      "What happens to the pages under this one: lift moves them up to where it was, delete moves them to trash too. Required when it has any. A page you may not delete is lifted instead.",
+  }),
+});
+
+export const deletedPageSchema = z.object({
+  id: z.string(),
+  alsoDeleted: z.array(z.string()).openapi({
+    description:
+      "The pages under it that went to trash with it. Restore each to undo.",
+  }),
+});
+
+export const pageTreeSchema = z
+  .array(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+      icon: z.string().nullable(),
+      parentDocumentId: z.string().nullable().openapi({
+        description:
+          "The page it sits under. Null at the top, and when you cannot open that page.",
+      }),
+    }),
+  )
+  .openapi("DocumentPageTree");
 
 export const updateDocumentBody = z.object({
   title: z.string().max(500).optional(),
@@ -402,6 +442,15 @@ export const documentSchema = z
       }),
     ),
     subscriberIds: z.array(z.string()),
+    ancestors: z
+      .array(z.object({ id: z.string(), title: z.string() }))
+      .openapi({
+        description:
+          "The pages above this one, top first. It starts below the nearest page you cannot open.",
+      }),
+    hasChildren: z.boolean().openapi({
+      description: "Whether any page sits under this one.",
+    }),
   })
   .openapi("Document");
 

@@ -4,6 +4,7 @@ import {
   type ToolRegistrar,
 } from "@kaneo/mcp/tools";
 import { z } from "zod";
+import { cutCurrent } from "./cut-current";
 import {
   applyChangeTask,
   CHANGE_TASK_DESCRIPTION,
@@ -133,12 +134,24 @@ export function buildAgentTools(
     const text = result.content
       .map((part) => (part.type === "text" ? part.text : ""))
       .join("");
+    const isError = Boolean(result.isError);
+    if (text.length <= MAX_RESULT_CHARS) return { text, isError };
+    // An approved text is cut so the answer stays whole and says where to
+    // read on.
+    const from = (args as { textFrom?: unknown } | null)?.textFrom;
+    const cut =
+      name === "get_current"
+        ? cutCurrent(
+            text,
+            MAX_RESULT_CHARS,
+            typeof from === "number" ? from : 0,
+          )
+        : null;
     return {
       text:
-        text.length > MAX_RESULT_CHARS
-          ? `${text.slice(0, MAX_RESULT_CHARS)}\n[truncated]`
-          : text,
-      isError: Boolean(result.isError),
+        cut ??
+        `${text.slice(0, MAX_RESULT_CHARS)}\n[cut: this result has ${text.length} characters and only the first ${MAX_RESULT_CHARS} are shown]`,
+      isError,
     };
   }
 

@@ -3192,7 +3192,8 @@
 			"loops": "Loops",
 			"pulse": "Pulse",
 			"teams": "Teams",
-			"drafts": "Drafts"
+			"drafts": "Drafts",
+			"chat": "Chat"
 		},
 		"projectList": {
 			"viewProject": "View Project",
@@ -3442,6 +3443,77 @@
 			"title": "Documents",
 			"pageTitle": "Documents",
 			"newDocument": "New document",
+			"pageTree": {
+				"title": "Pages",
+				"addPage": "New page",
+				"addChild": "Add a page inside",
+				"expand": "Show pages inside",
+				"collapse": "Hide pages inside",
+				"dropTop": "Drop here to move to the top",
+				"empty": "No pages yet",
+				"delete": {
+					"title": "Delete this page?",
+					"hint": "It has pages inside. Choose what happens to them.",
+					"liftChildren": "Keep them and move them up a level",
+					"deleteChildren": "Delete them too",
+					"confirm": "Delete page"
+				}
+			},
+			"templates": {
+				"blank": "Blank document",
+				"fromTemplate": "From template…",
+				"title": "New document from a template",
+				"hint": "The document gets a copy. Editing it leaves the template as it is.",
+				"builtInHeading": "Templates",
+				"savedHeading": "Saved in this workspace",
+				"noneSaved": "No saved templates yet. Save any page as one from its ··· menu.",
+				"loading": "Loading templates…",
+				"saveAs": "Save as template",
+				"saved": "Saved as a template for everyone in the workspace",
+				"delete": "Delete template",
+				"deleted": "Template deleted",
+				"builtIn": {
+					"meetingNotes": {
+						"name": "Meeting notes",
+						"hint": "Attendees, agenda, decisions and action items"
+					},
+					"runbook": {
+						"name": "Runbook",
+						"hint": "Steps to run a task, and how to roll back"
+					},
+					"postmortem": {
+						"name": "Postmortem",
+						"hint": "What happened, why, and what changes now"
+					},
+					"rfc": {
+						"name": "RFC",
+						"hint": "A proposal for others to review"
+					}
+				},
+				"headings": {
+					"attendees": "Attendees",
+					"agenda": "Agenda",
+					"notes": "Notes",
+					"decisions": "Decisions",
+					"actionItems": "Action items",
+					"overview": "Overview",
+					"whenToUse": "When to use this",
+					"prerequisites": "Before you start",
+					"steps": "Steps",
+					"rollback": "Roll back",
+					"contacts": "Who to ask",
+					"summary": "Summary",
+					"impact": "Impact",
+					"timeline": "Timeline",
+					"rootCause": "Root cause",
+					"wentWell": "What went well",
+					"wentWrong": "What went wrong",
+					"motivation": "Motivation",
+					"proposal": "Proposal",
+					"alternatives": "Alternatives considered",
+					"openQuestions": "Open questions"
+				}
+			},
 			"untitled": "Untitled",
 			"tabs": {
 				"recent": "Recent",
@@ -4437,6 +4509,10 @@
 			"document_question": {
 				"title": "Which holds for {{slotName}} in {{topicName}}?",
 				"content": "{{documentTitle}}"
+			},
+			"document_inbox_waiting": {
+				"title": "Waiting in the Inbox for three days",
+				"content": "{{documentTitle}} has no topic yet"
 			}
 		},
 		"inbox": {
