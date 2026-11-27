@@ -916,6 +916,21 @@ describe("API integration: statement extraction job", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("reads a document filed on another topic about all that topic's slots", async () => {
+    const { api, topicId, docId } = await setup();
+    const other = await api.topic("Seating plan");
+    await api.addSlot(other, { name: "Seats", type: "number" });
+    // The first topic's newest slot is younger than the other topic's.
+    await api.addSlot(topicId, { name: "Region", type: "term" });
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await api.file(other, docId);
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(body(fetchMock, 1).messages[1].content).toContain("- seats (");
+  });
+
   it("reads no document again for another model", async () => {
     await setup();
     await run();
