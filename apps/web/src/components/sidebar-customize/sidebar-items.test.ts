@@ -62,7 +62,7 @@ describe("sidebar items", () => {
   it("keeps the saved order and appends rows added later", () => {
     expect(
       orderSection("workspace", ["teams", "projects", "gone" as never]),
-    ).toEqual(["teams", "projects", "views", "members", "loops"]);
+    ).toEqual(["teams", "projects", "views", "chat", "members", "loops"]);
   });
 
   it("skips rows the person cannot see, such as Agent without an agent", () => {

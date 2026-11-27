@@ -13014,6 +13014,9 @@
 						},
 						"drafts": {
 							"type": "string"
+						},
+						"chat": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -13050,7 +13053,8 @@
 						"loops",
 						"pulse",
 						"teams",
-						"drafts"
+						"drafts",
+						"chat"
 					]
 				},
 				"projectList": {
