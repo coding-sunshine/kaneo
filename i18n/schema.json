@@ -16729,6 +16729,34 @@
 						"toolPending": {
 							"type": "string"
 						},
+						"sources": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"unsourced": {
+									"type": "string"
+								},
+								"unsourcedHint": {
+									"type": "string"
+								},
+								"restricted": {
+									"type": "string"
+								},
+								"commentOn": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"label",
+								"unsourced",
+								"unsourcedHint",
+								"restricted",
+								"commentOn"
+							]
+						},
 						"group": {
 							"type": "object",
 							"additionalProperties": false,
@@ -16817,6 +16845,7 @@
 						"toolInput",
 						"toolResult",
 						"toolPending",
+						"sources",
 						"group",
 						"examples"
 					]

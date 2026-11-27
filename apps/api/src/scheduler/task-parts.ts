@@ -1,10 +1,11 @@
 import { createHash } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { extractJson, UnreadableAnswer } from "../agent/extraction";
 import db from "../database";
 import {
   taskExtractionProgressTable,
   taskStatementTable,
+  topicSlotTable,
 } from "../database/schema";
 import {
   type Asked,
@@ -46,6 +47,42 @@ export const hashOf = (text: string) =>
   createHash("sha256").update(text).digest("hex");
 
 /**
+ * Stores facts as proposals. A slot deleted while its text was read keeps
+ * none: the slots that are left are locked until the facts are in, so a
+ * deletion cannot come in between.
+ */
+const keep = (
+  found: NonNullable<ReturnType<typeof keptStatements>>,
+  source: Source,
+) =>
+  db.transaction(async (tx) => {
+    const live = await tx
+      .select({ id: topicSlotTable.id })
+      .from(topicSlotTable)
+      .where(
+        inArray(
+          topicSlotTable.id,
+          found.map(({ slotId }) => slotId),
+        ),
+      )
+      .for("key share");
+    const ids = new Set(live.map(({ id }) => id));
+    const kept = found.filter(({ slotId }) => ids.has(slotId));
+    if (kept.length === 0) return;
+    await tx
+      .insert(taskStatementTable)
+      .values(
+        kept.map((statement) => ({
+          ...statement,
+          taskId: source.taskId,
+          assetId: source.assetId,
+        })),
+      )
+      // A fact that is already there stays as it is, dismissed or not.
+      .onConflictDoNothing();
+  });
+
+/**
  * Asks about the whole of one text, part by part, and stores what each part
  * states as proposals. After each part, the part to go on with is kept in the
  * database, so a run that stops, or a process that stops, loses no part.
@@ -78,19 +115,7 @@ export async function ask(run: Run, source: Source, outcome: Outcome) {
       if (!answer) return "stop" as const;
       const found = keptStatements(run.asked, answer, source.quotable ?? part);
       if (found) readable = true;
-      if (found?.length) {
-        await db
-          .insert(taskStatementTable)
-          .values(
-            found.map((statement) => ({
-              ...statement,
-              taskId: source.taskId,
-              assetId: source.assetId,
-            })),
-          )
-          // A fact that is already there stays as it is, dismissed or not.
-          .onConflictDoNothing();
-      }
+      if (found?.length) await keep(found, source);
     } catch (error) {
       if (!(error instanceof UnreadableAnswer)) {
         console.error(`Reading ${source.key} for facts failed`, error);

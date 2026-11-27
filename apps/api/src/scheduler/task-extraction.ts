@@ -243,11 +243,17 @@ async function dropStale(source: Source) {
 const newest = <Row extends { id: string }>(rows: Row[]) =>
   rows.filter((row, index) => row.id !== rows[index - 1]?.id);
 
-async function readWorkspace(
+type Queue = (() => Promise<void>)[];
+
+/**
+ * What to read in one workspace: texts with new words, then texts behind a
+ * slot made after they were read.
+ */
+async function workspaceQueue(
   workspaceId: string,
   run: Run,
   outcome: Outcome,
-): Promise<void> {
+): Promise<{ fresh: Queue; behind: Queue }> {
   // The owner's rule: the same words are never asked about the same slot
   // twice. A text with no record for its words is asked about every slot. A
   // text that has one is asked again only about the slots made after it. A
@@ -465,39 +471,37 @@ async function readWorkspace(
   // the next run, and must not hold back every file behind it until it ends.
   const bySize = (a: (typeof files)[number], b: (typeof files)[number]) =>
     a.size - b.size;
-  // Texts with new words go first, so a new comment does not wait behind a
-  // new slot that every old text is asked about.
-  const queue = [
-    ...issues
-      .filter(({ since }) => since === null)
-      .map((issue) => () => readIssue(issue)),
-    ...files
-      .filter(
-        (file) =>
-          file.since === null ||
-          (file.reason === "duplicate" && !holder.has(file.hash ?? "")) ||
-          // Recorded before a reader for its kind shipped: read it once now.
-          (file.reason === "unsupported" &&
-            fileKind(file.filename, file.mimeType) !== null) ||
-          again(file),
-      )
-      .sort(bySize)
-      .map((file) => () => readFile(file, null)),
-    ...issues.filter(behind).map((issue) => () => readIssue(issue)),
-    ...files
-      .filter(
-        (file) =>
-          holder.get(file.hash ?? "") === file.id &&
-          behind(file) &&
-          !again(file),
-      )
-      .sort(bySize)
-      .map((file) => () => readFile(file, file.since)),
-  ];
-  for (const next of queue) {
-    if (outcome.stop || outcome.left <= 0) return;
-    await next();
-  }
+  return {
+    fresh: [
+      ...issues
+        .filter(({ since }) => since === null)
+        .map((issue) => () => readIssue(issue)),
+      ...files
+        .filter(
+          (file) =>
+            file.since === null ||
+            (file.reason === "duplicate" && !holder.has(file.hash ?? "")) ||
+            // Recorded before a reader for its kind shipped: read it once now.
+            (file.reason === "unsupported" &&
+              fileKind(file.filename, file.mimeType) !== null) ||
+            again(file),
+        )
+        .sort(bySize)
+        .map((file) => () => readFile(file, null)),
+    ],
+    behind: [
+      ...issues.filter(behind).map((issue) => () => readIssue(issue)),
+      ...files
+        .filter(
+          (file) =>
+            holder.get(file.hash ?? "") === file.id &&
+            behind(file) &&
+            !again(file),
+        )
+        .sort(bySize)
+        .map((file) => () => readFile(file, file.since)),
+    ],
+  };
 }
 
 /**
@@ -523,10 +527,6 @@ export async function extractTaskFacts() {
     .from(topicTable)
     .where(inArray(topicTable.id, [...slots.keys()]))
     .orderBy(asc(topicTable.name), asc(topicTable.id));
-  // ponytail: workspaces are read one after the other, so one workspace's
-  // catch-up on a new slot goes before the new words of the next. Run every
-  // workspace's new words first when an instance holds more than one busy
-  // workspace.
   // ponytail: every topic of the workspace goes into every question. Pick the
   // topics per issue when a workspace has more than a few dozen.
   const byWorkspace = new Map<string, AskedTopic[]>();
@@ -544,33 +544,49 @@ export async function extractTaskFacts() {
     degraded: false,
     stop: false,
   };
+  const queues: Awaited<ReturnType<typeof workspaceQueue>>[] = [];
   for (const [workspaceId, list] of byWorkspace) {
-    if (outcome.stop || outcome.left <= 0) break;
-    await readWorkspace(
-      workspaceId,
-      {
-        model,
-        topics: list,
-        asked: numbered(list),
-        upTo: new Date(
-          Math.max(
-            ...list.flatMap(({ slots: own }) =>
-              own.map((slot) => slot.createdAt.getTime()),
+    queues.push(
+      await workspaceQueue(
+        workspaceId,
+        {
+          model,
+          topics: list,
+          asked: numbered(list),
+          upTo: new Date(
+            Math.max(
+              ...list.flatMap(({ slots: own }) =>
+                own.map((slot) => slot.createdAt.getTime()),
+              ),
             ),
           ),
-        ),
-        slotsHash: hashOf(
-          JSON.stringify(
-            list.map(({ id, name, slots: own }) => [
-              id,
-              name,
-              own.map((slot) => [slot.id, slot.name, slot.type, slot.options]),
-            ]),
+          slotsHash: hashOf(
+            JSON.stringify(
+              list.map(({ id, name, slots: own }) => [
+                id,
+                name,
+                own.map((slot) => [
+                  slot.id,
+                  slot.name,
+                  slot.type,
+                  slot.options,
+                ]),
+              ]),
+            ),
           ),
-        ),
-      },
-      outcome,
+        },
+        outcome,
+      ),
     );
+  }
+  // Texts with new words go first, in every workspace, so a new comment does
+  // not wait behind a new slot that every old text is asked about.
+  for (const next of [
+    ...queues.flatMap(({ fresh }) => fresh),
+    ...queues.flatMap(({ behind }) => behind),
+  ]) {
+    if (outcome.stop || outcome.left <= 0) break;
+    await next();
   }
   return { degraded: outcome.degraded };
 }

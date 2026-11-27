@@ -115,7 +115,7 @@ export async function sendMessage(
       createSelfClient(forwardedAuthHeaders(requestHeaders)),
       workspaceId,
       onEvent,
-      { meter: { userId, purpose: "assistant" } },
+      { meter: { userId, purpose: "assistant" }, cite: true },
     );
   } catch (error) {
     if (error instanceof HTTPException) throw error;

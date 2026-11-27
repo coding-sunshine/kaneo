@@ -4069,6 +4069,13 @@
 			"toolInput": "Input",
 			"toolResult": "Result",
 			"toolPending": "No result",
+			"sources": {
+				"label": "Sources",
+				"unsourced": "Unsourced",
+				"unsourcedHint": "This answer names no task, document or comment it rests on.",
+				"restricted": "Restricted item",
+				"commentOn": "Comment on {{ticket}}"
+			},
 			"group": {
 				"today": "Today",
 				"yesterday": "Yesterday",

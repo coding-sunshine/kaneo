@@ -7,7 +7,7 @@ import {
   vi,
 } from "vite-plus/test";
 import { createHash } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { strToU8, zipSync } from "fflate";
 import db from "../../apps/api/src/database";
 import {
@@ -501,7 +501,8 @@ describe("API integration: facts found in issues", () => {
         model: "before/model",
         readable: true,
         reason: null,
-        createdAt: new Date(),
+        // The clock the slots are stamped with: the host's may run ahead.
+        createdAt: sql`(now() AT TIME ZONE 'utc')`,
       });
       const [issue] = (await records()).filter(
         (row) => row.taskId === world.betaTask.id && row.assetId === null,
@@ -549,6 +550,41 @@ describe("API integration: facts found in issues", () => {
       expect(sent[1]).toContain(alphaLast ? "Beta issue" : "Alpha issue");
       expect(sent[1]).not.toContain("): Launch date");
       expect(sent[1]).toContain("): State");
+    });
+
+    it("reads the new words of every workspace before any catch-up", async () => {
+      const first = await setup();
+      const second = await setup();
+      // Workspaces go in the order of their topics' names.
+      await db
+        .update(topicTable)
+        .set({ name: "A plan" })
+        .where(eq(topicTable.id, first.topicId));
+      await db
+        .update(topicTable)
+        .set({ name: "B plan" })
+        .where(eq(topicTable.id, second.topicId));
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(4);
+
+      // The first workspace has a new field for both its issues, the second
+      // a new comment.
+      await filing(first.world).addSlot(first.topicId, {
+        name: "State",
+        type: "term",
+      });
+      await comment(second.world, second.world.betaTask.id, PRICE);
+      fetchMock.mockClear();
+      await run();
+
+      const sent = prompts(fetchMock);
+      expect(sent).toHaveLength(3);
+      expect(sent[0]).toContain(PRICE);
+      expect(sent[0]).toContain("Topic t1: B plan");
+      for (const prompt of sent.slice(1)) {
+        expect(prompt).toContain("Topic t1: A plan");
+        expect(prompt).toContain("): State");
+      }
     });
 
     it("asks about a field added while a run was on", async () => {
@@ -600,6 +636,37 @@ describe("API integration: facts found in issues", () => {
       const sent = prompts(fetchMock);
       expect(sent).toHaveLength(2);
       expect(sent[1]).toContain(PRICE);
+    });
+
+    it("writes the record when a slot was deleted while the text was read", async () => {
+      const { world, topicId, price } = await setup();
+      await describeIssue(world.betaTask.id, LAUNCH);
+      await comment(world, world.betaTask.id, PRICE);
+      fetchMock.mockImplementation(
+        async (_url: string, init: { body: string }) => {
+          const prompt = JSON.parse(init.body).messages[1].content as string;
+          if (!prompt.includes("Beta issue")) return answer(NOTHING);
+          // A person deletes the Price field while the model reads.
+          await db
+            .delete(topicSlotTable)
+            .where(eq(topicSlotTable.id, price.id));
+          return answer({ topics: [NAMED], statements: [WHEN, HOW_MUCH] });
+        },
+      );
+      expect(await run()).toMatchObject({ degraded: false });
+
+      expect(
+        (await facts(world, topicId, world.owner)).map((fact) => fact.slot),
+      ).toEqual(["launch_date"]);
+      expect(
+        (await records())
+          .filter((row) => row.taskId === world.betaTask.id)
+          .map((row) => [row.readable, row.reason]),
+      ).toEqual([[true, null]]);
+
+      // Read once: nothing is sent again.
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 
     it("reads an issue again when an edit is undone, so its facts come back", async () => {
@@ -778,6 +845,100 @@ describe("API integration: facts found in issues", () => {
         (row) => row.assetId === log.id,
       );
       expect(record).toMatchObject({ readable: true, reason: null });
+    });
+
+    it("does not send a part again after a later part failed", async () => {
+      const { world, topicId } = await setup();
+      const log = await attach(world, {
+        filename: "server.log",
+        mimeType: "text/plain",
+      });
+      const long = `${PRICE}\n${Array.from(
+        { length: 2_000 },
+        (_, i) => `Line ${i} of the log.`,
+      ).join("\n")}`;
+      const parts = textParts(long, 12_000, 200).length;
+      expect(parts).toBeGreaterThan(3);
+      readObject.mockImplementation(async () => ({
+        body: new Response(long).body,
+      }));
+      const ofLog = () =>
+        prompts(fetchMock).filter((prompt) => prompt.includes("server.log"));
+      // The second part's request fails once.
+      let failed = false;
+      fetchMock.mockImplementation(
+        async (_url: string, init: { body: string }) => {
+          const prompt = JSON.parse(init.body).messages[1].content as string;
+          if (
+            prompt.includes("server.log") &&
+            ofLog().length === 2 &&
+            !failed
+          ) {
+            failed = true;
+            return new Response("down", { status: 500 });
+          }
+          return answer(
+            prompt.includes(PRICE)
+              ? { topics: [NAMED], statements: [HOW_MUCH] }
+              : NOTHING,
+          );
+        },
+      );
+      expect(await run()).toMatchObject({ degraded: true });
+      expect(ofLog()).toHaveLength(2);
+      expect((await records()).filter((row) => row.assetId === log.id)).toEqual(
+        [],
+      );
+
+      // A restart: what was kept in memory is gone. The third part reaches
+      // the day's cap, and the run after the next restart sends the rest.
+      vi.resetModules();
+      const [used] = await db
+        .insert(aiUsageTable)
+        .values({
+          purpose: "statements",
+          model: "m",
+          promptTokens: 0,
+          completionTokens: 0,
+        })
+        .returning();
+      vi.stubEnv("EXTRACTION_DAILY_TOKEN_CAP", "1000000");
+      fetchMock.mockImplementation(async () => {
+        if (ofLog().length === 3) {
+          await db
+            .update(aiUsageTable)
+            .set({ promptTokens: 1_000_000 })
+            .where(eq(aiUsageTable.id, used.id));
+        }
+        // No later part has an answer that can be read: the record's
+        // `readable` comes from the first part, before the restart.
+        return new Response(
+          JSON.stringify({
+            choices: [{ message: { content: "not json" } }],
+            usage: { prompt_tokens: 10, completion_tokens: 2 },
+          }),
+        );
+      });
+      await run();
+      expect(ofLog()).toHaveLength(3);
+
+      vi.resetModules();
+      await db.delete(aiUsageTable).where(eq(aiUsageTable.id, used.id));
+      await run();
+
+      // Only the part whose request failed went twice.
+      const sent = ofLog();
+      expect(sent).toHaveLength(parts + 1);
+      expect(new Set(sent).size).toBe(parts);
+      expect(sent[2]).toBe(sent[1]);
+      const [record] = (await records()).filter(
+        (row) => row.assetId === log.id,
+      );
+      // The fact came from the first part, sent before the failure.
+      expect(record).toMatchObject({ readable: true, reason: null });
+      expect(
+        (await facts(world, topicId, world.owner)).map((fact) => fact.quote),
+      ).toEqual(["40 USD"]);
     });
 
     it("goes on with a long file where it stopped after a restart, sending no part twice", async () => {

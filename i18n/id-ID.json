@@ -3359,7 +3359,14 @@
 			"thinking": "Working on it...",
 			"toolInput": "Input",
 			"toolPending": "No result",
-			"toolResult": "Result"
+			"toolResult": "Result",
+			"sources": {
+				"commentOn": "Comment on {{ticket}}",
+				"label": "Sources",
+				"restricted": "Restricted item",
+				"unsourced": "Unsourced",
+				"unsourcedHint": "This answer names no task, document or comment it rests on."
+			}
 		},
 		"customizeSidebar": {
 			"always": "Always show",
