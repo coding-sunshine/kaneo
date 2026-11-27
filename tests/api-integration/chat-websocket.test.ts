@@ -59,9 +59,14 @@ function session(user: User): { session: Session; user: User } {
   };
 }
 
-async function request(member: Seeded, path: string, body?: unknown) {
+async function request(
+  member: Seeded,
+  path: string,
+  body?: unknown,
+  method = body === undefined ? "GET" : "POST",
+) {
   const response = await fetch(`http://${base}/api${path}`, {
-    method: body === undefined ? "GET" : "POST",
+    method,
     headers: {
       authorization: tokenFor(member),
       "content-type": "application/json",
@@ -225,6 +230,28 @@ describe("API integration: chat over WebSocket", () => {
       expect(reader.socket.readyState).toBe(reader.socket.CLOSED),
     );
     expect(reader.received).toEqual([]);
+  });
+
+  it("tells another reader when a message is edited, pinned or deleted", async () => {
+    const { a, b, channels, pub, post } = await setup();
+    const message = (await post(pub.id, "draft")).json;
+    const reader = await subscribe(b, pub.id);
+    expect(reader.status).toBe(101);
+    const url = `${channels}/${pub.id}/messages/${message.id}`;
+    const changed = { type: "CHAT_MESSAGE_CHANGED", channelId: pub.id };
+
+    expect((await request(a, url, { body: "final" }, "PATCH")).status).toBe(
+      200,
+    );
+    await settleEvents();
+    expect((await request(a, `${url}/pin`, {})).status).toBe(200);
+    await settleEvents();
+    expect((await request(a, url, undefined, "DELETE")).status).toBe(200);
+    await settleEvents();
+
+    await vi.waitFor(() =>
+      expect(reader.received).toEqual([changed, changed, changed]),
+    );
   });
 
   it("serves chat and delivers messages without Redis", async () => {

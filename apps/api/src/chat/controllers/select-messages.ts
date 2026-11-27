@@ -11,6 +11,8 @@ export const selectMessages = () =>
       authorName: userTable.name,
       authorImage: userTable.image,
       body: chatMessageTable.body,
+      editedAt: chatMessageTable.editedAt,
+      pinnedAt: chatMessageTable.pinnedAt,
       createdAt: chatMessageTable.createdAt,
     })
     .from(chatMessageTable)

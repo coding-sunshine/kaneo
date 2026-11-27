@@ -89,6 +89,25 @@ describe("useChatChannelSocket", () => {
     expect(client.invalidateQueries).toHaveBeenCalledWith(messages);
   });
 
+  it("refetches messages and pins when a message is edited, pinned or deleted", () => {
+    render();
+    act(() => latest().open());
+    client.invalidateQueries.mockClear();
+
+    act(() =>
+      latest().onmessage?.({
+        data: JSON.stringify({
+          type: "CHAT_MESSAGE_CHANGED",
+          channelId: "channel-1",
+        }),
+      }),
+    );
+    expect(client.invalidateQueries).toHaveBeenCalledWith(messages);
+    expect(client.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["chat-pins", "ws-1", "channel-1"],
+    });
+  });
+
   it("catches up on messages it missed after reconnecting", () => {
     const { result } = render();
     act(() => latest().open());

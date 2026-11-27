@@ -4360,7 +4360,17 @@
 			"deletedUser": "Deleted user",
 			"messageLabel": "Message",
 			"messagePlaceholder": "Message {{name}}",
-			"send": "Send"
+			"send": "Send",
+			"edited": "(edited)",
+			"messageActions": "Message actions",
+			"editMessage": "Edit message",
+			"deleteMessage": "Delete message",
+			"save": "Save",
+			"cancel": "Cancel",
+			"pin": "Pin to channel",
+			"unpin": "Unpin",
+			"pinned": "Pinned messages",
+			"noPins": "Nothing is pinned yet."
 		}
 	},
 	"notifications": {

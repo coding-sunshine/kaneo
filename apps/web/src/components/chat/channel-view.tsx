@@ -2,6 +2,7 @@ import { ChannelFooter } from "@/components/chat/channel-footer";
 import { ChannelHeader } from "@/components/chat/channel-header";
 import { ChannelNotFound } from "@/components/chat/channel-not-found";
 import { MessageList } from "@/components/chat/message-list";
+import { useAuth } from "@/components/providers/auth-provider/hooks/use-auth";
 import { useChannel } from "@/hooks/queries/chat/use-channel";
 import { useMessages } from "@/hooks/queries/chat/use-messages";
 import { useChatChannelSocket } from "@/hooks/use-chat-channel-socket";
@@ -14,6 +15,7 @@ export function ChannelView({
   workspaceId: string;
   channelId: string;
 }) {
+  const { user } = useAuth();
   const { data: channel, isError } = useChannel(workspaceId, channelId);
   const live = useChatChannelSocket(workspaceId, channelId, Boolean(channel));
   const { data: messages = [] } = useMessages(
@@ -30,7 +32,13 @@ export function ChannelView({
     <div className="flex h-full min-h-0 flex-col">
       <ChannelHeader workspaceId={workspaceId} channel={channel} />
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <MessageList messages={messages} />
+        <MessageList
+          messages={messages}
+          workspaceId={workspaceId}
+          channelId={channelId}
+          currentUserId={user?.id}
+          canWrite={channel.isMember && !channel.archivedAt}
+        />
       </div>
       <ChannelFooter workspaceId={workspaceId} channel={channel} />
     </div>

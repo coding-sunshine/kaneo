@@ -38,6 +38,8 @@ export const postMessageBody = z.object({
   body: z.string().trim().min(1).max(4000),
 });
 
+export const messageParam = channelParam.extend({ messageId: z.string() });
+
 export const channelSchema = z
   .object({
     id: z.string(),
@@ -69,9 +71,16 @@ export const messageSchema = z
     authorName: z.string().nullable(),
     authorImage: z.string().nullable(),
     body: z.string(),
+    editedAt: nullableResponseTimestamp.openapi({
+      description: "When the author last edited the message. Null if never.",
+    }),
+    pinnedAt: nullableResponseTimestamp.openapi({
+      description: "When the message was pinned to its channel. Null if not.",
+    }),
     createdAt: responseTimestamp,
   })
   .openapi("ChatMessage");
 
 export const messageListSchema = z.array(messageSchema);
+export const deletedMessageSchema = z.object({ messageId: z.string() });
 export const leftChannelSchema = z.object({ channelId: z.string() });

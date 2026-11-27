@@ -3323,6 +3323,13 @@ export const chatMessageTable = pgTable(
       onUpdate: "cascade",
     }),
     body: text("body").notNull(),
+    // Set only by the author's edits, so pinning never reads as an edit.
+    editedAt: timestamp("edited_at", { mode: "date" }),
+    pinnedAt: timestamp("pinned_at", { mode: "date" }),
+    pinnedBy: text("pinned_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),

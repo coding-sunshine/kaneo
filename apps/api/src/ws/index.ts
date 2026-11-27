@@ -117,10 +117,16 @@ export function broadcastToUser(userId: string, message: UserBroadcastMessage) {
 
 /**
  * Tells every reader watching a chat channel, on this and other instances,
- * that it has a new message. Local sockets never wait on Redis fan-out.
+ * that it has a new message, or that a message changed. Local sockets never
+ * wait on Redis fan-out.
  */
-export async function broadcastToChatChannel(channelId: string) {
-  const message = { type: "CHAT_MESSAGE_CREATED", channelId };
+export async function broadcastToChatChannel(
+  channelId: string,
+  type:
+    | "CHAT_MESSAGE_CREATED"
+    | "CHAT_MESSAGE_CHANGED" = "CHAT_MESSAGE_CREATED",
+) {
+  const message = { type, channelId };
   await deliverToLocalChatConnections(channelId, message);
   try {
     await adapter?.publishToChat({ channelId, message, origin: INSTANCE_ID });
@@ -1260,3 +1266,10 @@ subscribeToEvent<{ channelId: string }>(
     if (channelId) await broadcastToChatChannel(channelId);
   },
 );
+
+// Edits, pins and deletes: readers refetch the history and the pinned list.
+for (const event of ["chat.message_updated", "chat.message_deleted"])
+  subscribeToEvent<{ channelId: string }>(event, async ({ channelId }) => {
+    if (channelId)
+      await broadcastToChatChannel(channelId, "CHAT_MESSAGE_CHANGED");
+  });
