@@ -11,6 +11,7 @@ import db from "../../apps/api/src/database";
 import {
   aiUsageTable,
   documentExtractionTable,
+  documentTable,
   statementTable,
 } from "../../apps/api/src/database/schema";
 import { resetTestDatabase } from "./helpers/database";
@@ -568,7 +569,14 @@ describe("API integration: statement extraction job", () => {
       }),
     );
   const job = () => import("../../apps/api/src/scheduler/statement-extraction");
-  const run = async () => (await job()).extractFiledDocuments();
+  // A document edited in the last minutes waits, so every text is made older
+  // than that first.
+  const run = async () => {
+    await db
+      .update(documentTable)
+      .set({ updatedAt: sql`${documentTable.updatedAt} - interval '1 hour'` });
+    return (await job()).extractFiledDocuments();
+  };
   const body = (fetchMock: ReturnType<typeof vi.fn>, call = 0) =>
     JSON.parse(
       (fetchMock.mock.calls[call] as unknown as [string, { body: string }])[1]
@@ -710,15 +718,28 @@ describe("API integration: statement extraction job", () => {
     expect(await extractions()).toHaveLength(1);
   });
 
-  it("stops at the daily token cap", async () => {
+  it("stops at the workspace's daily token cap", async () => {
     vi.stubEnv("EXTRACTION_DAILY_TOKEN_CAP", "1000");
+    const { world } = await setup();
+    // Another workspace's tokens leave this one's cap alone.
     await db.insert(aiUsageTable).values({
       purpose: "statements",
       model: "test/model",
       promptTokens: 1000,
       completionTokens: 0,
     });
-    await setup();
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    fetchMock.mockClear();
+    await db.delete(documentExtractionTable);
+    await db.insert(aiUsageTable).values({
+      purpose: "statements",
+      workspaceId: world.ws,
+      model: "test/model",
+      promptTokens: 1000,
+      completionTokens: 0,
+    });
     await run();
     expect(fetchMock).not.toHaveBeenCalled();
   });

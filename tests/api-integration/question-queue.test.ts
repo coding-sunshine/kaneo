@@ -277,15 +277,16 @@ describe("API integration: conflict questions", () => {
     expect((await api.receipt(incomingId)).unjudged).toHaveLength(1);
   });
 
-  it("stops at the daily token cap", async () => {
+  it("stops at the workspace's daily token cap", async () => {
     vi.stubEnv("EXTRACTION_DAILY_TOKEN_CAP", "1000");
+    const { world } = await scene();
     await db.insert(aiUsageTable).values({
       purpose: "statements",
+      workspaceId: world.ws,
       model: "test/model",
       promptTokens: 1000,
       completionTokens: 0,
     });
-    await scene();
     await run();
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -359,6 +360,21 @@ describe("API integration: conflict questions", () => {
       .set({ createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000) });
     await run();
     expect(fetchMock).toHaveBeenCalledTimes(6);
+  });
+
+  it("counts the five questions a day for each workspace", async () => {
+    await scene({ terms: 6 });
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(5);
+
+    // The same wordings in another workspace reuse the five answers; the
+    // sixth is asked there, though the first workspace has had its five.
+    const other = await scene({ terms: 6 });
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(6);
+    expect(
+      (await judgements()).filter((row) => row.workspaceId === other.world.ws),
+    ).toHaveLength(1);
   });
 
   it("asks nothing for a slot that is not a term or a draft off any topic", async () => {

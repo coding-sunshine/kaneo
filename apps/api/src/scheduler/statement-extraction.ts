@@ -24,6 +24,9 @@ const MAX_CHARACTERS = 12_000;
 // characters. Raise it when facts near the end of longer documents go missing.
 const MAX_PARTS = 10;
 const OVERLAP = 200;
+// A document edited this recently is read once its author has stopped, so a
+// run of small edits is not read again after each one.
+const QUIET_MS = 5 * 60_000;
 
 /** A document whose request failed is asked about again after an hour. */
 export const extractionRetry = retryLater(60 * 60_000);
@@ -76,8 +79,9 @@ const isSent = (value: unknown): value is SentStatement =>
  * Asks the model what each filed document states for its topic's slots and
  * stores the answers as proposals, which a person confirms. A document is
  * asked about once per text, set of slots, prompt and model. Drafts that are
- * not on a topic and topics without slots are never sent. Does nothing
- * without a key or once the day's token cap is used up.
+ * not on a topic and topics without slots are never sent, nor a document
+ * edited in the last five minutes. A workspace whose day's token cap is used
+ * up is skipped; the others are still read.
  */
 export async function extractFiledDocuments() {
   if (!isAgentEnabled()) return {};
@@ -94,9 +98,11 @@ export async function extractFiledDocuments() {
   const rows = await db
     .select({
       id: documentTable.id,
+      workspaceId: documentTable.workspaceId,
       content: documentTable.content,
       contentHash: documentTable.contentHash,
       topicId: documentTable.topicId,
+      updatedAt: documentTable.updatedAt,
       asked: documentExtractionTable.slotsHash,
     })
     .from(documentTable)
@@ -124,17 +130,22 @@ export async function extractFiledDocuments() {
       .filter((row) => row.asked === hashes.get(row.topicId ?? ""))
       .map((row) => row.id),
   );
-  const pending = rows
-    .filter(
-      (row, at) =>
-        !answered.has(row.id) &&
-        !extractionRetry.waiting(row.id) &&
-        rows.findIndex((other) => other.id === row.id) === at,
-    )
-    .slice(0, PER_TICK);
+  const settled = Date.now() - QUIET_MS;
+  const pending = rows.filter(
+    (row, at) =>
+      !answered.has(row.id) &&
+      !extractionRetry.waiting(row.id) &&
+      row.updatedAt.getTime() <= settled &&
+      rows.findIndex((other) => other.id === row.id) === at,
+  );
 
   let degraded = false;
+  let read = 0;
+  const capped = new Set<string>();
   for (const doc of pending) {
+    if (read >= PER_TICK) break;
+    if (capped.has(doc.workspaceId)) continue;
+    read += 1;
     const topicSlots = slots.get(doc.topicId ?? "") ?? [];
     const parts = textParts(
       documentText(doc.content),
@@ -151,12 +162,17 @@ export async function extractFiledDocuments() {
       try {
         const answer = await extractJson<{ statements?: unknown }>({
           purpose: "statements",
+          workspaceId: doc.workspaceId,
           system: SYSTEM,
           text: question(open, part),
           schema: answerSchema(open),
         });
-        // No key, or a cap is used up: nothing more this tick.
-        if (!answer) return { degraded };
+        // A cap is used up: nothing more for this workspace this tick.
+        if (!answer) {
+          capped.add(doc.workspaceId);
+          failed = true;
+          break;
+        }
         if (Array.isArray(answer.statements)) {
           sent = answer.statements.filter(isSent);
         }

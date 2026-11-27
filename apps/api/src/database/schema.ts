@@ -3609,6 +3609,13 @@ export const statementJudgementTable = pgTable(
     promptVersion: integer("prompt_version").notNull(),
     model: text("model").notNull(),
     contradicts: boolean("contradicts"),
+    // The workspace whose documents were compared, so the day's questions
+    // are counted per workspace. Another workspace with the same texts reuses
+    // the answer.
+    workspaceId: text("workspace_id").references(() => workspaceTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),

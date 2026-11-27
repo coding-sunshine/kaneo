@@ -49,8 +49,8 @@ function question(pair: Wordings) {
   });
 }
 
-/** Contradictions the model found since the start of the UTC day. */
-async function questionsToday() {
+/** Contradictions the model found in a workspace since the start of the UTC day. */
+async function questionsToday(workspaceId: string) {
   const start = new Date();
   start.setUTCHours(0, 0, 0, 0);
   const [row] = await db
@@ -58,6 +58,7 @@ async function questionsToday() {
     .from(statementJudgementTable)
     .where(
       and(
+        eq(statementJudgementTable.workspaceId, workspaceId),
         eq(statementJudgementTable.contradicts, true),
         gte(statementJudgementTable.createdAt, start),
       ),
@@ -100,13 +101,12 @@ async function askDecider(doc: Asked, statementId: string, slotName: string) {
 /**
  * Asks the model whether a free-text statement of a filed document
  * contradicts what its topic states now. Only pairs on the same topic and
- * slot are asked about, each pair of texts once, and no more after the model
- * found five contradictions in a day. Does nothing without an API key.
+ * slot are asked about, each pair of texts once, and no more in a workspace
+ * after the model found five contradictions there in a day, or its day's
+ * token cap is used up. Does nothing without an API key.
  */
 export async function askConflictQuestions() {
   if (!isAgentEnabled()) return {};
-  let questions = await questionsToday();
-  if (questions >= QUESTIONS_A_DAY) return {};
 
   // ponytail: every filed document with a free-text statement is compared on
   // each tick; keep a cursor when the number of such documents makes that slow.
@@ -137,7 +137,14 @@ export async function askConflictQuestions() {
   const model = extractionModel();
   let calls = 0;
   let degraded = false;
+  const questions = new Map<string, number>();
+  const capped = new Set<string>();
   for (const doc of docs) {
+    if (calls >= PER_TICK) break;
+    if (capped.has(doc.workspaceId)) continue;
+    if (!questions.has(doc.workspaceId)) {
+      questions.set(doc.workspaceId, await questionsToday(doc.workspaceId));
+    }
     // Compared as the author sees it, so the model is never shown a statement
     // of a document the author could not open.
     if (!doc.creatorId) continue;
@@ -147,20 +154,26 @@ export async function askConflictQuestions() {
       const hash = textsHash(pair);
       // Asked before, and the answer could not be read.
       if (asked.has(hash) || conflictRetry.waiting(hash)) continue;
-      if (questions >= QUESTIONS_A_DAY || calls >= PER_TICK) {
-        return { degraded };
+      if (calls >= PER_TICK) return { degraded };
+      if ((questions.get(doc.workspaceId) ?? 0) >= QUESTIONS_A_DAY) {
+        capped.add(doc.workspaceId);
+        break;
       }
       calls += 1;
       let contradicts: boolean | null = null;
       try {
         const answer = await extractJson<{ contradicts?: unknown }>({
           purpose: "contradiction",
+          workspaceId: doc.workspaceId,
           system: SYSTEM,
           text: question(pair),
           schema: ANSWER,
         });
-        // No key, or the day's token cap is used up: nothing more this tick.
-        if (!answer) return { degraded };
+        // The workspace's token cap is used up: nothing more for it this tick.
+        if (!answer) {
+          capped.add(doc.workspaceId);
+          break;
+        }
         if (typeof answer.contradicts === "boolean") {
           contradicts = answer.contradicts;
         }
@@ -181,11 +194,15 @@ export async function askConflictQuestions() {
           promptVersion: JUDGEMENT_PROMPT_VERSION,
           model,
           contradicts,
+          workspaceId: doc.workspaceId,
         })
         .onConflictDoNothing();
       asked.set(hash, contradicts);
       if (contradicts) {
-        questions += 1;
+        questions.set(
+          doc.workspaceId,
+          (questions.get(doc.workspaceId) ?? 0) + 1,
+        );
         await askDecider(doc, pair.statementId, pair.slotName);
       }
     }
