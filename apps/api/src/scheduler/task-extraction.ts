@@ -20,7 +20,7 @@ import { getPrivateObject } from "../storage/s3";
 import { slotsOf } from "../topic/controllers/slots";
 import { collapse, quoteStart } from "../topic/statement-text";
 import { retryLater } from "./retry-later";
-import { fileKind, fileText, pdfText } from "./task-file-text";
+import { fileKind, readFileText } from "./task-file-text";
 import {
   type Asked,
   type AskedTopic,
@@ -386,11 +386,9 @@ async function readWorkspace(
       console.error(`Fetching ${key} to read it for facts failed`, error);
       return;
     }
-    // A PDF that cannot be parsed is recorded as unparsed, not tried again.
-    const text =
-      kind === "pdf"
-        ? await pdfText(bytes).catch(() => "")
-        : fileText(kind, new TextDecoder().decode(bytes));
+    // A file that cannot be parsed, or an archive that passes a cap, is
+    // recorded as unparsed, not tried again.
+    const text = await readFileText(kind, bytes, file.filename).catch(() => "");
     if (!collapse(text)) {
       await record(run, unread, false, "unparsed");
       return;

@@ -268,9 +268,8 @@ describe("API integration: facts found in issues", () => {
       await attach(world, { filename: "notes.md", mimeType: "text/markdown" });
       // Two files that are not read: they stay out of every later run.
       await attach(world, {
-        filename: "brief.docx",
-        mimeType:
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        filename: "photo.heic",
+        mimeType: "image/heic",
       });
       await attach(world, {
         filename: "big.md",
@@ -560,8 +559,8 @@ describe("API integration: facts found in issues", () => {
         mimeType: "text/html",
       });
       const zip = await attach(world, {
-        filename: "bundle.zip",
-        mimeType: "application/zip",
+        filename: "bundle.7z",
+        mimeType: "application/x-7z-compressed",
       });
       const big = await attach(world, {
         filename: "big.txt",
