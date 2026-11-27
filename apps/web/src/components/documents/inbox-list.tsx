@@ -41,12 +41,15 @@ export function InboxList({ workspaceId, documents }: InboxListProps) {
       <DocumentList
         workspaceId={workspaceId}
         documents={waiting}
-        action={(document) => (
-          <SnoozeButton
-            disabled={snooze.isPending}
-            onSnooze={(until) => set(document.id, until)}
-          />
-        )}
+        // Snoozing takes edit access; the API refuses anyone else.
+        action={(document) =>
+          document.canEdit && (
+            <SnoozeButton
+              disabled={snooze.isPending}
+              onSnooze={(until) => set(document.id, until)}
+            />
+          )
+        }
       />
       {snoozed.length > 0 && (
         <section aria-labelledby="inbox-snoozed">
@@ -66,15 +69,17 @@ export function InboxList({ workspaceId, documents }: InboxListProps) {
                     date: formatDateMedium(String(document.snoozedUntil)),
                   })}
                 </span>
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  disabled={snooze.isPending}
-                  onClick={() => set(document.id, null)}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  {t("navigation:documents.inbox.unsnooze")}
-                </Button>
+                {document.canEdit && (
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    disabled={snooze.isPending}
+                    onClick={() => set(document.id, null)}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    {t("navigation:documents.inbox.unsnooze")}
+                  </Button>
+                )}
               </>
             )}
           />
