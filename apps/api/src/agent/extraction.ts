@@ -1,5 +1,5 @@
 import { HTTPException } from "hono/http-exception";
-import { workspaceEndpoint } from "./destination/store";
+import { workspaceDestination, workspaceEndpoint } from "./destination/store";
 import { DEFAULT_AGENT_MODEL, isAgentEnabled } from "./openrouter";
 import { recordUsage, tokensUsedToday, withinMonthlyCap } from "./usage";
 
@@ -101,6 +101,10 @@ export function extractionModel() {
  * OpenRouter account can still allow "safety retention" endpoints; that is
  * an account setting, not a request field.
  */
+/** Whether the workspace's model reads files: only OpenRouter's file parser does. */
+export const readsFiles = async (workspaceId: string) =>
+  (await workspaceDestination(workspaceId)).provider === "openrouter";
+
 export async function extractJson<T>(
   request: ExtractionRequest,
 ): Promise<T | null> {
