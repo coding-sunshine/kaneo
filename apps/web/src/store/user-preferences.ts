@@ -1,4 +1,10 @@
 import { create } from "zustand";
+import {
+  type CodingTool,
+  DEFAULT_CODING_TOOLS,
+  isSafeCodingToolUrl,
+  sanitizeCodingTools,
+} from "@/lib/coding-tools";
 import type { GroupBy } from "@/lib/group-project";
 import type { ReviewsCountOption } from "@/lib/reviews-count";
 import {
@@ -127,6 +133,10 @@ type UserPreferencesStore = {
   /** An opened pull request takes the whole page, hiding the list. */
   reviewsExpanded: boolean;
   setReviewsExpanded: (expanded: boolean) => void;
+  codingTools: CodingTool[];
+  toggleCodingTool: (id: string, enabled: boolean) => void;
+  addCodingTool: (tool: { name: string; urlTemplate: string }) => void;
+  removeCodingTool: (id: string) => void;
 
   sidebar: SidebarPrefs;
   setSidebarVisibility: (id: SidebarItemId, value: SidebarVisibility) => void;
@@ -297,6 +307,43 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
       setReviewsTabOrder: (reviewsTabOrder) => set({ reviewsTabOrder }),
       reviewsExpanded: false,
       setReviewsExpanded: (reviewsExpanded) => set({ reviewsExpanded }),
+      codingTools: DEFAULT_CODING_TOOLS,
+      toggleCodingTool: (id, enabled) =>
+        set(({ codingTools }) => ({
+          codingTools: codingTools.map((tool) =>
+            tool.id === id ? { ...tool, enabled } : tool,
+          ),
+        })),
+      addCodingTool: ({ name, urlTemplate }) =>
+        set(({ codingTools }) => {
+          const cleanName = name.trim();
+          const cleanUrl = urlTemplate.trim();
+          if (!cleanName || !isSafeCodingToolUrl(cleanUrl)) {
+            return { codingTools };
+          }
+          const id =
+            typeof crypto !== "undefined" &&
+            typeof crypto.randomUUID === "function"
+              ? crypto.randomUUID()
+              : `tool-${Date.now()}`;
+          return {
+            codingTools: [
+              ...codingTools,
+              {
+                id,
+                name: cleanName,
+                urlTemplate: cleanUrl,
+                enabled: true,
+              },
+            ],
+          };
+        }),
+      removeCodingTool: (id) =>
+        set(({ codingTools }) => ({
+          codingTools: codingTools.filter(
+            (tool) => tool.builtin || tool.id !== id,
+          ),
+        })),
 
       sidebar: DEFAULT_SIDEBAR_PREFS,
       setSidebarVisibility: (id, value) =>
@@ -340,6 +387,7 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
           sidebar: { ...current.sidebar, ...saved?.sidebar },
           reviewsView: sanitizeReviewsViews(saved?.reviewsView),
           reviewsTabOrder: sanitizeTabOrder(saved?.reviewsTabOrder),
+          codingTools: sanitizeCodingTools(saved?.codingTools),
         };
       },
       onRehydrateStorage: () => (state) => {

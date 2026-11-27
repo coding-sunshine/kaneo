@@ -4843,6 +4843,46 @@
 						"codeReviewsDescription": {
 							"type": "string"
 						},
+						"codingTools": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"addTitle": {
+									"type": "string"
+								},
+								"namePlaceholder": {
+									"type": "string"
+								},
+								"urlPlaceholder": {
+									"type": "string"
+								},
+								"add": {
+									"type": "string"
+								},
+								"remove": {
+									"type": "string"
+								},
+								"invalidUrl": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"description",
+								"addTitle",
+								"namePlaceholder",
+								"urlPlaceholder",
+								"add",
+								"remove",
+								"invalidUrl"
+							]
+						},
 						"displayOptions": {
 							"type": "string"
 						},
@@ -4911,6 +4951,7 @@
 						"sidebarDefaultDescription",
 						"codeReviews",
 						"codeReviewsDescription",
+						"codingTools",
 						"displayOptions",
 						"displayOptionsDescription",
 						"taskNumbers",
@@ -24474,6 +24515,19 @@
 								"tipReview"
 							]
 						},
+						"workMenu": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"openIn": {
+									"type": "string"
+								},
+								"configure": {
+									"type": "string"
+								}
+							},
+							"required": ["openIn", "configure"]
+						},
 						"prActions": {
 							"type": "object",
 							"additionalProperties": false,
@@ -24679,6 +24733,7 @@
 						"diffOptions2",
 						"copyMenu",
 						"snooze",
+						"workMenu",
 						"prActions",
 						"checksPopover"
 					]
