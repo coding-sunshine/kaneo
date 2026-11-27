@@ -3146,7 +3146,8 @@
 			"features": {
 				"assistant": "Assistant",
 				"loop": "Loop runs",
-				"loopDraft": "Loop drafts"
+				"loopDraft": "Loop drafts",
+				"filter": "Plain-English filters"
 			},
 			"invalid": "Enter a whole number of tokens, or leave the field empty.",
 			"loadError": "AI usage could not be loaded.",
@@ -5250,7 +5251,9 @@
 				"estimate": "Estimate",
 				"noEstimate": "No estimate",
 				"workProject": "Project",
-				"workable": "Workable"
+				"workable": "Workable",
+				"blocked": "Blocked",
+				"created": "Created"
 			},
 			"operators": {
 				"isAnyOf": "est l'un des",
@@ -5263,7 +5266,10 @@
 			},
 			"allCustomFieldValues": "Toutes les valeurs",
 			"noCustomFieldValues": "Aucune valeur de champ personnalisé",
-			"noValuesUsedYet": "Aucune valeur utilisée pour le moment"
+			"noValuesUsedYet": "Aucune valeur utilisée pour le moment",
+			"olderThanDays_many": "Older than {{count}} days",
+			"olderThanDays_one": "Older than {{count}} day",
+			"olderThanDays_other": "Older than {{count}} days"
 		},
 		"gantt": {
 			"searchPlaceholder": "Rechercher des tâches planifiées...",
@@ -5565,7 +5571,10 @@
 		"filterMenu": {
 			"addFilter": "Ajouter un filtre…",
 			"searchSubject": "{{name}}…",
-			"noResults": "Aucun résultat"
+			"noResults": "Aucun résultat",
+			"askAi": "Filter with AI: “{{text}}”",
+			"askAiApplied": "Filter applied",
+			"askAiWorking": "Reading your filter…"
 		},
 		"shortcuts": {
 			"assignedToMe": "Assignée à vous",

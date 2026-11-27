@@ -16,6 +16,10 @@ export type BoardFilters = {
   estimate?: string[] | null;
   /** Hide tickets blocked by an open "blocks" relation. */
   workable?: boolean;
+  /** Only tickets blocked by an open "blocks" relation. */
+  blocked?: boolean;
+  /** `olderThan:<days>`: created more than that many days ago. */
+  createdAt?: string[] | null;
   customFields: Record<string, string[]> | null;
   negated?: string[] | null;
   /** Linear's "match any": a task needs to pass one active filter, not all. */
@@ -34,19 +38,21 @@ const DEFAULT_FILTERS: BoardFilters = {
   customFields: null,
 };
 
-const FILTER_KEYS: Array<Exclude<keyof BoardFilters, "matchAny" | "workable">> =
-  [
-    "status",
-    "priority",
-    "assignee",
-    "dueDate",
-    "startDate",
-    "labels",
-    "workProject",
-    "cycle",
-    "estimate",
-    "customFields",
-  ];
+const FILTER_KEYS: Array<
+  Exclude<keyof BoardFilters, "matchAny" | "workable" | "blocked">
+> = [
+  "status",
+  "priority",
+  "assignee",
+  "dueDate",
+  "startDate",
+  "createdAt",
+  "labels",
+  "workProject",
+  "cycle",
+  "estimate",
+  "customFields",
+];
 
 function normalizeFilters(raw: unknown): BoardFilters {
   if (!raw || typeof raw !== "object") {
@@ -72,6 +78,7 @@ function normalizeFilters(raw: unknown): BoardFilters {
   }
 
   if (candidate.workable === true) normalized.workable = true;
+  if (candidate.blocked === true) normalized.blocked = true;
   if (candidate.matchAny === true) normalized.matchAny = true;
 
   return normalized;

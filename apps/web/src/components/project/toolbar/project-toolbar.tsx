@@ -6,6 +6,7 @@ import { DisplaySection } from "@/components/project/display/display-section";
 import { DisplayMenu } from "@/components/project/display/display-menu";
 import { FilterMenu } from "@/components/project/task-filters/filter-menu";
 import { useFilterShortcuts } from "@/components/project/task-filters/use-filter-shortcuts";
+import { useNaturalFilter } from "@/components/project/task-filters/use-natural-filter";
 import { ProjectSearch } from "./project-search";
 import type { ProjectTaskView } from "./use-project-task-view";
 
@@ -23,6 +24,11 @@ export function ProjectToolbar({
   const { t } = useTranslation();
   const includeSubtasksId = useId();
   useFilterShortcuts(view.subjects, view.filters.clearFilters);
+  const onAsk = useNaturalFilter(
+    view.workspaceId,
+    view.projectId,
+    view.filters.setFilters,
+  );
 
   return (
     <>
@@ -36,6 +42,7 @@ export function ProjectToolbar({
       <FilterMenu
         subjects={view.subjects}
         activeCount={view.filters.activeFilterCount}
+        onAsk={onAsk}
       />
       <DisplayMenu>
         <DisplaySection>

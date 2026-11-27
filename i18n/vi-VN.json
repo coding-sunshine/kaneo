@@ -3042,7 +3042,8 @@
 			"features": {
 				"assistant": "Assistant",
 				"loop": "Loop runs",
-				"loopDraft": "Loop drafts"
+				"loopDraft": "Loop drafts",
+				"filter": "Plain-English filters"
 			},
 			"invalid": "Enter a whole number of tokens, or leave the field empty.",
 			"loadError": "AI usage could not be loaded.",
@@ -5081,7 +5082,9 @@
 				"estimate": "Estimate",
 				"noEstimate": "No estimate",
 				"workProject": "Project",
-				"workable": "Workable"
+				"workable": "Workable",
+				"blocked": "Blocked",
+				"created": "Created"
 			},
 			"operators": {
 				"isAnyOf": "là một trong",
@@ -5094,7 +5097,8 @@
 			},
 			"allCustomFieldValues": "All values",
 			"noCustomFieldValues": "No custom field values",
-			"noValuesUsedYet": "No values used yet"
+			"noValuesUsedYet": "No values used yet",
+			"olderThanDays_other": "Older than {{count}} days"
 		},
 		"gantt": {
 			"searchPlaceholder": "Tìm phiếu đã lên lịch...",
@@ -5372,7 +5376,10 @@
 		"filterMenu": {
 			"addFilter": "Thêm bộ lọc…",
 			"searchSubject": "{{name}}…",
-			"noResults": "Không có kết quả"
+			"noResults": "Không có kết quả",
+			"askAi": "Filter with AI: “{{text}}”",
+			"askAiApplied": "Filter applied",
+			"askAiWorking": "Reading your filter…"
 		},
 		"shortcuts": {
 			"assignedToMe": "Đã giao cho bạn",

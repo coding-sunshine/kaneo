@@ -3146,7 +3146,8 @@
 			"features": {
 				"assistant": "Assistant",
 				"loop": "Loop runs",
-				"loopDraft": "Loop drafts"
+				"loopDraft": "Loop drafts",
+				"filter": "Plain-English filters"
 			},
 			"invalid": "Enter a whole number of tokens, or leave the field empty.",
 			"loadError": "AI usage could not be loaded.",
@@ -5250,7 +5251,9 @@
 				"estimate": "Estimate",
 				"noEstimate": "No estimate",
 				"workProject": "Project",
-				"workable": "Workable"
+				"workable": "Workable",
+				"blocked": "Blocked",
+				"created": "Created"
 			},
 			"operators": {
 				"isAnyOf": "è uno di",
@@ -5263,7 +5266,10 @@
 			},
 			"allCustomFieldValues": "All values",
 			"noCustomFieldValues": "No custom field values",
-			"noValuesUsedYet": "No values used yet"
+			"noValuesUsedYet": "No values used yet",
+			"olderThanDays_many": "Older than {{count}} days",
+			"olderThanDays_one": "Older than {{count}} day",
+			"olderThanDays_other": "Older than {{count}} days"
 		},
 		"gantt": {
 			"searchPlaceholder": "Cerca ticket programmati...",
@@ -5565,7 +5571,10 @@
 		"filterMenu": {
 			"addFilter": "Aggiungi filtro…",
 			"searchSubject": "{{name}}…",
-			"noResults": "Nessun risultato"
+			"noResults": "Nessun risultato",
+			"askAi": "Filter with AI: “{{text}}”",
+			"askAiApplied": "Filter applied",
+			"askAiWorking": "Reading your filter…"
 		},
 		"shortcuts": {
 			"assignedToMe": "Assegnata a te",

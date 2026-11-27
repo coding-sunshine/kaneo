@@ -3042,7 +3042,8 @@
 			"features": {
 				"assistant": "Assistant",
 				"loop": "Loop runs",
-				"loopDraft": "Loop drafts"
+				"loopDraft": "Loop drafts",
+				"filter": "Plain-English filters"
 			},
 			"invalid": "Enter a whole number of tokens, or leave the field empty.",
 			"loadError": "AI usage could not be loaded.",
@@ -5080,7 +5081,9 @@
 				"estimate": "Estimate",
 				"noEstimate": "No estimate",
 				"workProject": "Project",
-				"workable": "Workable"
+				"workable": "Workable",
+				"blocked": "Blocked",
+				"created": "Created"
 			},
 			"operators": {
 				"isAnyOf": "为以下任一",
@@ -5093,7 +5096,8 @@
 			},
 			"allCustomFieldValues": "所有值",
 			"noCustomFieldValues": "没有自定义字段的值",
-			"noValuesUsedYet": "还没有使用过任何值"
+			"noValuesUsedYet": "还没有使用过任何值",
+			"olderThanDays_other": "Older than {{count}} days"
 		},
 		"calendar": {
 			"pageTitle": "{{name}} / 日历",
@@ -5371,7 +5375,10 @@
 		"filterMenu": {
 			"addFilter": "添加筛选…",
 			"searchSubject": "{{name}}…",
-			"noResults": "无结果"
+			"noResults": "无结果",
+			"askAi": "Filter with AI: “{{text}}”",
+			"askAiApplied": "Filter applied",
+			"askAiWorking": "Reading your filter…"
 		},
 		"shortcuts": {
 			"assignedToMe": "已分配给你",

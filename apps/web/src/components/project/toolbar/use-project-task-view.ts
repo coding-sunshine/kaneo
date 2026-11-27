@@ -56,5 +56,13 @@ export function useProjectTaskView({
     showStatus: scope !== "backlog",
   });
 
-  return { search, setSearch, descriptionSearch, filters, subjects };
+  return {
+    workspaceId,
+    projectId,
+    search,
+    setSearch,
+    descriptionSearch,
+    filters,
+    subjects,
+  };
 }

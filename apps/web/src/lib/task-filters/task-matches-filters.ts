@@ -9,6 +9,7 @@ import type { BoardFilters } from "@/hooks/use-task-filters";
 import { DUE_DATE_FILTER_VALUES } from "./due-date-filter-values";
 import type Task from "@/types/task";
 import { matchesDateCondition, parseDateCondition } from "./date-condition";
+import { matchesCreated } from "./created-filter";
 import { customFieldSubjectId } from "./filter-subject-id";
 
 export type TaskFilterContext = {
@@ -131,6 +132,14 @@ export function taskMatchesFilters(
         }) ?? false,
     ],
     [
+      "createdAt",
+      filters.createdAt,
+      () =>
+        filters.createdAt?.some((value) =>
+          matchesCreated(task.createdAt, value, context.today),
+        ) ?? false,
+    ],
+    [
       "cycle",
       filters.cycle,
       () => filters.cycle?.includes(task.cycleId ?? "") ?? false,
@@ -166,6 +175,12 @@ export function taskMatchesFilters(
   if (filters.workable) {
     results.push(
       passes("workable", !(context.blockedTaskIds?.has(task.id) ?? false)),
+    );
+  }
+
+  if (filters.blocked) {
+    results.push(
+      passes("blocked", context.blockedTaskIds?.has(task.id) ?? false),
     );
   }
 

@@ -4099,6 +4099,92 @@
           }
         ]
       },
+      "ParsedFilter": {
+        "type": "object",
+        "properties": {
+          "filters": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "assignee": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "User ids."
+              },
+              "labels": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Label ids."
+              },
+              "status": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Column ids of the team."
+              },
+              "priority": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "blocked": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ],
+                "description": "Only tickets blocked by an open blocking relation."
+              },
+              "createdAt": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "`olderThan:<days>`: created more than that many days ago."
+              }
+            },
+            "description": "The board filter, or null when a question comes back."
+          },
+          "question": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "One question back when the sentence was unclear; nothing is applied."
+          }
+        },
+        "required": [
+          "filters",
+          "question"
+        ]
+      },
+      "ParseFilterRequest": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The team whose board the filter is for."
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "The filter in plain English, e.g. 'my blocked bugs older than 2 weeks'."
+          }
+        },
+        "required": [
+          "projectId",
+          "text"
+        ]
+      },
       "Loop": {
         "type": "object",
         "properties": {
@@ -30465,6 +30551,81 @@
           },
           "404": {
             "description": "Agent is disabled or workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/filters/parse": {
+      "post": {
+        "operationId": "parseAgentFilter",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Turn a sentence into a board filter",
+        "description": "Reads a plain-English sentence as a filter on one team's board and returns the filter in ids, or one question when the sentence is unclear. Only teams you can open; answers 429 when an AI budget is used up.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParseFilterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The filter, or a question",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParsedFilter"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or team not found",
             "content": {
               "application/json": {
                 "schema": {

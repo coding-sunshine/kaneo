@@ -3206,7 +3206,8 @@
 			"features": {
 				"assistant": "Assistant",
 				"loop": "Loop runs",
-				"loopDraft": "Loop drafts"
+				"loopDraft": "Loop drafts",
+				"filter": "Plain-English filters"
 			},
 			"invalid": "Enter a whole number of tokens, or leave the field empty.",
 			"loadError": "AI usage could not be loaded.",
@@ -5350,7 +5351,9 @@
 				"estimate": "Estimate",
 				"noEstimate": "No estimate",
 				"workProject": "Project",
-				"workable": "Workable"
+				"workable": "Workable",
+				"blocked": "Blocked",
+				"created": "Created"
 			},
 			"operators": {
 				"isAnyOf": "любой из",
@@ -5364,7 +5367,11 @@
 			"selectedCount": "{{count}} выбрано",
 			"allCustomFieldValues": "All values",
 			"noCustomFieldValues": "No custom field values",
-			"noValuesUsedYet": "No values used yet"
+			"noValuesUsedYet": "No values used yet",
+			"olderThanDays_few": "Older than {{count}} days",
+			"olderThanDays_many": "Older than {{count}} days",
+			"olderThanDays_one": "Older than {{count}} day",
+			"olderThanDays_other": "Older than {{count}} days"
 		},
 		"gantt": {
 			"searchPlaceholder": "Поиск запланированных задач...",
@@ -5714,7 +5721,10 @@
 		"filterMenu": {
 			"addFilter": "Добавить фильтр…",
 			"searchSubject": "{{name}}…",
-			"noResults": "Ничего не найдено"
+			"noResults": "Ничего не найдено",
+			"askAi": "Filter with AI: “{{text}}”",
+			"askAiApplied": "Filter applied",
+			"askAiWorking": "Reading your filter…"
 		},
 		"shortcuts": {
 			"assignedToMe": "Назначено на вас",

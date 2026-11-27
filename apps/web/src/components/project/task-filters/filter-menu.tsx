@@ -23,12 +23,14 @@ type FilterMenuProps = {
   subjects: FilterSubject[];
   activeCount: number;
   actions?: FilterEntry[];
+  onAsk?: (text: string) => void;
 };
 
 export function FilterMenu({
   subjects,
   activeCount,
   actions,
+  onAsk,
 }: FilterMenuProps) {
   const { t } = useTranslation();
   const label = t("common:actions.filter");
@@ -70,6 +72,7 @@ export function FilterMenu({
         <FilterRootPanel
           subjects={subjects}
           actions={actions}
+          onAsk={onAsk}
           onApplied={() => setOpen(false)}
         />
       </PopoverContent>

@@ -2995,7 +2995,8 @@
 			"features": {
 				"assistant": "Assistant",
 				"loop": "Loop runs",
-				"loopDraft": "Loop drafts"
+				"loopDraft": "Loop drafts",
+				"filter": "Plain-English filters"
 			}
 		},
 		"aiAudit": {
@@ -5182,8 +5183,12 @@
 				"cycle": "Cycle",
 				"estimate": "Estimate",
 				"noEstimate": "No estimate",
-				"workable": "Workable"
+				"workable": "Workable",
+				"created": "Created",
+				"blocked": "Blocked"
 			},
+			"olderThanDays_one": "Older than {{count}} day",
+			"olderThanDays_other": "Older than {{count}} days",
 			"operators": {
 				"isAnyOf": "is any of",
 				"includeAnyOf": "include any of",
@@ -5520,7 +5525,10 @@
 		"filterMenu": {
 			"addFilter": "Add filter…",
 			"searchSubject": "{{name}}…",
-			"noResults": "No results"
+			"noResults": "No results",
+			"askAi": "Filter with AI: “{{text}}”",
+			"askAiWorking": "Reading your filter…",
+			"askAiApplied": "Filter applied"
 		},
 		"shortcuts": {
 			"assignedToMe": "Assigned to you",
