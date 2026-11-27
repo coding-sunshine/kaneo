@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test";
 
 const authMocks = vi.hoisted(() => ({
-  getSession: vi.fn(async () => ({ user: { id: "test-user" } })),
+  getSession: vi.fn(async () => ({ user: { id: "test-user" }, session: {} })),
 }));
 
 vi.mock("../../apps/api/src/auth", () => ({
@@ -41,9 +41,10 @@ function toolRequest() {
   });
 }
 
-async function loadMcpRoutes(internalApiUrl?: string) {
+async function loadMcpRoutes(internalApiUrl?: string, port = "1337") {
   vi.stubEnv("KANEO_API_URL", "http://public.test:5273/api");
   vi.stubEnv("KANEO_INTERNAL_API_URL", internalApiUrl);
+  vi.stubEnv("PORT", port);
   vi.resetModules();
   return (await import("../../apps/api/src/mcp")).default;
 }
@@ -94,6 +95,27 @@ describe("MCP API URLs", () => {
     expect(apiFetch).toHaveBeenCalledOnce();
     expect(String(apiFetch.mock.calls[0]?.[0])).toBe(
       "http://127.0.0.1:1337/api/auth/get-session",
+    );
+  });
+
+  it("follows PORT when no internal URL is set", async () => {
+    const apiFetch = vi.fn(async () =>
+      Response.json({
+        user: {
+          id: "test-user",
+          name: "Test User",
+          email: "test@example.com",
+        },
+      }),
+    );
+    vi.stubGlobal("fetch", apiFetch);
+    const mcpRoutes = await loadMcpRoutes(undefined, "4321");
+
+    const toolResponse = await mcpRoutes.request(toolRequest());
+
+    expect(toolResponse.status).toBe(200);
+    expect(String(apiFetch.mock.calls[0]?.[0])).toBe(
+      "http://127.0.0.1:4321/api/auth/get-session",
     );
   });
 

@@ -33,16 +33,21 @@ import {
   clientRegistrationSchema,
   oauthErrorSchema,
 } from "./schemas";
+import { listenPort } from "../utils/listen-port";
 import { createMcpServerForUser } from "./legacy-server";
 
 const publicApiUrl = (process.env.KANEO_API_URL || "http://localhost:1337")
   .replace(/\/api\/?$/, "")
   .replace(/\/+$/, "");
-const internalApiUrl = (
-  process.env.KANEO_INTERNAL_API_URL || "http://127.0.0.1:1337"
-)
-  .replace(/\/api\/?$/, "")
-  .replace(/\/+$/, "");
+// Tools call this API back over loopback on the port it listens on, so the
+// default follows PORT. Read per request: PORT may be set after this loads.
+function internalApiUrl() {
+  return (
+    process.env.KANEO_INTERNAL_API_URL || `http://127.0.0.1:${listenPort()}`
+  )
+    .replace(/\/api\/?$/, "")
+    .replace(/\/+$/, "");
+}
 
 async function validateBearerToken(
   req: Request,
@@ -335,7 +340,7 @@ mcp.all("/mcp", async (c) => {
       maxRequestBodySize: MCP_BODY_BYTES,
     }))
   ) {
-    const modern = createModernMcpHandler(authResult.token, internalApiUrl);
+    const modern = createModernMcpHandler(authResult.token, internalApiUrl());
     return modern.fetch(c.req.raw);
   }
 
@@ -345,7 +350,7 @@ mcp.all("/mcp", async (c) => {
     sessionIdGenerator: undefined,
     maxRequestBodySize: MCP_BODY_BYTES,
   });
-  const server = createMcpServerForUser(authResult.token, internalApiUrl);
+  const server = createMcpServerForUser(authResult.token, internalApiUrl());
   await server.connect(transport);
   return transport.handleRequest(c.req.raw);
 });

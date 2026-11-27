@@ -1,3 +1,4 @@
+import enUS from "@i18n/en-US.json";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ComponentType } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
@@ -55,7 +56,7 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-it("shows who is asking, where it returns, which account it gets and what it may do", () => {
+it("shows who is asking, where it returns, which account it gets, how long and what it may do", () => {
   render(<Page />);
   expect(
     screen.getByText("auth:mcp.authorize.accessFullDescription"),
@@ -71,6 +72,9 @@ it("shows who is asking, where it returns, which account it gets and what it may
     screen.getByText("http://127.0.0.1:53682/callback"),
   ).toBeInTheDocument();
   expect(screen.getByText("person@example.com")).toBeInTheDocument();
+  expect(
+    screen.getByText("auth:mcp.authorize.durationValue"),
+  ).toBeInTheDocument();
 });
 
 it.each([
@@ -108,4 +112,22 @@ it.each([
   render(<Page />);
   expect(screen.getByText("auth:mcp.expired.title")).toBeInTheDocument();
   expect(screen.queryByRole("button")).toBeNull();
+});
+
+it("titles the page with a plain name for the assistant, not protocol jargon", () => {
+  render(<Page />);
+  expect(
+    screen.getByRole("heading", { name: "auth:mcp.authorize.title" }),
+  ).toBeInTheDocument();
+  const { authorize, signIn, expired } = enUS.auth.mcp;
+  expect(authorize.title).toMatch(/assistant/i);
+  for (const copy of [
+    authorize.title,
+    authorize.client,
+    authorize.unknownClient,
+    signIn.title,
+    expired.description,
+  ]) {
+    expect(copy).not.toMatch(/\bMCP\b/);
+  }
 });

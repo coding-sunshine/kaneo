@@ -552,13 +552,15 @@
 		},
 		"mcp": {
 			"authorize": {
-				"title": "Authorize an MCP client",
+				"title": "Connect an AI assistant",
 				"description": "It can act as you in every workspace you can access. Only continue if you started this connection.",
-				"client": "Client",
-				"unknownClient": "MCP client",
+				"client": "Assistant",
+				"unknownClient": "Unnamed assistant",
 				"selfReported": "Self-reported",
 				"redirect": "Sends you back to",
 				"signedInAs": "Signed in as",
+				"duration": "Stays connected",
+				"durationValue": "30 days, then renews for 7 days at a time while in use",
 				"access": "Access",
 				"accessFull": "Full access",
 				"accessFullDescription": "It can read and change everything you can, including issues and documents.",
@@ -569,10 +571,10 @@
 			},
 			"expired": {
 				"title": "This request has expired",
-				"description": "Go back to your MCP client and connect again."
+				"description": "Go back to your assistant and connect again."
 			},
 			"signIn": {
-				"title": "Sign in to authorize this client",
+				"title": "Sign in to connect this assistant",
 				"description": "You'll come right back here to review it.",
 				"submit": "Sign in"
 			}
@@ -2464,6 +2466,7 @@
 			"open": "Open",
 			"addResource": "Add resource",
 			"addLink": "Add link…",
+			"addLinkTitle": "Add link",
 			"addDocument": "Add document",
 			"url": "URL",
 			"titleOptional": "Title (optional)",

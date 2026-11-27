@@ -1,3 +1,4 @@
+import enUS from "@i18n/en-US.json";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   cleanup,
@@ -92,7 +93,7 @@ describe("work project link dialog", () => {
   it("disables submit and sends nothing while the address is empty", async () => {
     renderDialog();
     const submit = await screen.findByRole("button", {
-      name: "settings:externalLinks.addResource",
+      name: "settings:externalLinks.addLinkTitle",
     });
     expect(submit).toBeDisabled();
     await fill("   ");
@@ -107,6 +108,23 @@ describe("work project link dialog", () => {
       expect(toast.error).toHaveBeenCalledWith("Bad address"),
     );
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("names the dialog and its submit button without trailing dots, even while saving", async () => {
+    vi.mocked(addWorkProjectLink).mockReturnValue(new Promise(() => {}));
+    renderDialog();
+    await fill("https://example.com");
+    const title = screen.getByRole("heading").textContent ?? "";
+    const submit = document.querySelector(
+      'button[type="submit"]',
+    ) as HTMLButtonElement;
+    await waitFor(() => expect(submit).toBeDisabled());
+    const strings = enUS.settings.externalLinks as Record<string, string>;
+    for (const key of [title, submit.textContent ?? ""]) {
+      const copy = strings[key.replace("settings:externalLinks.", "")];
+      expect(copy).toBeTruthy();
+      expect(copy).not.toMatch(/(\.\.\.|…)$/);
+    }
   });
 
   it("closes on cancel", async () => {

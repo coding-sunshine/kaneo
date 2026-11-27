@@ -43,7 +43,9 @@ export function WorkProjectLinkDialog({ workProjectId, onClose }: Props) {
       <DialogContent>
         <form onSubmit={submit}>
           <DialogHeader>
-            <DialogTitle>{t("settings:externalLinks.addResource")}</DialogTitle>
+            <DialogTitle>
+              {t("settings:externalLinks.addLinkTitle")}
+            </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 px-6 py-4">
             <div className="grid gap-2">
@@ -79,10 +81,12 @@ export function WorkProjectLinkDialog({ workProjectId, onClose }: Props) {
             >
               {t("settings:externalLinks.cancel")}
             </Button>
-            <Button type="submit" disabled={add.isPending || !url.trim()}>
-              {add.isPending
-                ? t("settings:externalLinks.adding")
-                : t("settings:externalLinks.addResource")}
+            <Button
+              type="submit"
+              loading={add.isPending}
+              disabled={!url.trim()}
+            >
+              {t("settings:externalLinks.addLinkTitle")}
             </Button>
           </DialogFooter>
         </form>

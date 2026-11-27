@@ -565,7 +565,9 @@
 				"accessDocuments": "Documents only",
 				"accessDocumentsDescription": "It can read everything you can, issues included. It can change only documents and topics.",
 				"accessFull": "Full access",
-				"accessFullDescription": "It can read and change everything you can, including issues and documents."
+				"accessFullDescription": "It can read and change everything you can, including issues and documents.",
+				"duration": "Stays connected",
+				"durationValue": "30 days, then renews for 7 days at a time while in use"
 			},
 			"expired": {
 				"title": "Bu isteğin süresi doldu",
@@ -1357,7 +1359,8 @@
 			"remove": "Remove {{title}}",
 			"removeError": "Failed to remove the resource link.",
 			"addDocument": "Add document",
-			"addLink": "Add link…"
+			"addLink": "Add link…",
+			"addLinkTitle": "Add link"
 		},
 		"workspaceRoles": {
 			"pageTitle": "Roller",
