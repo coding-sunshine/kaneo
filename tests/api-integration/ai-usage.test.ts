@@ -248,6 +248,40 @@ describe("API integration: AI usage and budgets", () => {
     expect(usage.monthTokens).toBe(0);
   });
 
+  it("sums more tokens than a 32-bit integer holds", async () => {
+    const owner = await createWorkspaceMember({ role: "owner" });
+    mockAuthenticatedSession(owner.user);
+    const { app } = createApp();
+    const ws = owner.workspace.id;
+    const big = {
+      purpose: "assistant",
+      model: "test-model",
+      workspaceId: ws,
+      userId: owner.user.id,
+      promptTokens: 2_000_000_000,
+      completionTokens: 0,
+    };
+    await db.insert(aiUsageTable).values([big, big]);
+
+    const usage = await (
+      await app.request(`/api/agent/workspace/${ws}/usage`)
+    ).json();
+    expect(usage.monthTokens).toBe(4_000_000_000);
+    expect(usage.byFeature[0].tokens).toBe(4_000_000_000);
+  });
+
+  it("keeps usage rows of a person or workspace no longer present", async () => {
+    await db.insert(aiUsageTable).values({
+      purpose: "assistant",
+      model: "test-model",
+      workspaceId: "gone-workspace",
+      userId: "gone-user",
+      promptTokens: 1,
+      completionTokens: 1,
+    });
+    expect(await usageRows()).toHaveLength(1);
+  });
+
   it("rejects negative budgets", async () => {
     const owner = await createWorkspaceMember({ role: "owner" });
     mockAuthenticatedSession(owner.user);

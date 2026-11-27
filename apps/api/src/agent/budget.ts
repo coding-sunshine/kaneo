@@ -14,7 +14,11 @@ export const startOfUtcDay = (now = new Date()) =>
 export const startOfUtcMonth = (now = new Date()) =>
   new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
-export const usedTokens = sql<number>`coalesce(sum(${aiUsageTable.promptTokens} + ${aiUsageTable.completionTokens}), 0)::int`;
+// bigint, since a workspace's sum can pass 2^31; the driver returns it as text.
+export const usedTokens =
+  sql<number>`coalesce(sum(${aiUsageTable.promptTokens}::bigint + ${aiUsageTable.completionTokens}), 0)::bigint`.mapWith(
+    Number,
+  );
 
 export async function getBudget(workspaceId: string): Promise<AiBudget> {
   const [row] = await db

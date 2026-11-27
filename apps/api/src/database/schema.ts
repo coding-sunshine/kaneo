@@ -3227,14 +3227,10 @@ export const aiUsageTable = pgTable(
       .primaryKey(),
     purpose: text("purpose").notNull(),
     model: text("model").notNull(),
-    workspaceId: text("workspace_id").references(() => workspaceTable.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
-    userId: text("user_id").references(() => userTable.id, {
-      onDelete: "set null",
-      onUpdate: "cascade",
-    }),
+    // Plain columns, no foreign keys: ai_usage already holds rows on live
+    // installs, so its upgrade only adds nullable columns and an index.
+    workspaceId: text("workspace_id"),
+    userId: text("user_id"),
     promptTokens: integer("prompt_tokens").notNull(),
     completionTokens: integer("completion_tokens").notNull(),
     cost: doublePrecision("cost"),
