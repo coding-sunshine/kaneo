@@ -115,7 +115,8 @@ export const callSessionSchema = z
       .openapi({ description: "The LiveKit server to join." }),
     roomName: z.string(),
     token: z.string().openapi({
-      description: "A short-lived LiveKit access token for this room only.",
+      description:
+        "A LiveKit access token for this room only, valid for one minute. LiveKit renews it once connected.",
     }),
   })
   .openapi("ChatCallSession");

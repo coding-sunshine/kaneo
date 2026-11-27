@@ -3463,7 +3463,7 @@
           },
           "token": {
             "type": "string",
-            "description": "A short-lived LiveKit access token for this room only."
+            "description": "A LiveKit access token for this room only, valid for one minute. LiveKit renews it once connected."
           }
         },
         "required": [

@@ -76,6 +76,17 @@ function verifiedClaims(token: string, secret: string) {
   return JSON.parse(Buffer.from(payload ?? "", "base64url").toString());
 }
 
+// What a LiveKit server checks before letting a token join: the signature,
+// then that the token is valid at that moment.
+function tokenAcceptedAt(token: string, secret: string, atSeconds: number) {
+  try {
+    const claims = verifiedClaims(token, secret);
+    return claims.nbf <= atSeconds && atSeconds < claims.exp;
+  } catch {
+    return false;
+  }
+}
+
 type Seeded = Awaited<ReturnType<typeof createWorkspaceMember>>;
 
 function enableCalls() {
@@ -369,5 +380,43 @@ describe("API integration: chat calls", () => {
     expect(
       (await as(teammate)(`${base}/${dm.id}/call`, json("POST"))).status,
     ).toBe(200);
+  });
+
+  it("stops a join token fetched before removal from working after it", async () => {
+    enableCalls();
+    const livekit = await startFakeLiveKit();
+    try {
+      const { owner, teammate, base, as, dm } = await setup();
+      await as(owner)(`${base}/${dm.id}/call`, json("POST"));
+      const joined = await as(teammate)(
+        `${base}/${dm.id}/call/join`,
+        json("POST"),
+      );
+      expect(joined.status).toBe(200);
+      const { token } = await joined.json();
+      const issuedAt = Math.floor(Date.now() / 1000);
+      expect(tokenAcceptedAt(token, FAKE_SECRET, issuedAt)).toBe(true);
+
+      // An admin takes them out of the channel.
+      const removed = await as(owner)(
+        `${base}/${dm.id}/members/${teammate.user.id}`,
+        { method: "DELETE" },
+      );
+      expect(removed.status).toBe(200);
+      await settleEvents();
+
+      // LiveKit drops them now, and the token they hold expires within a
+      // minute, so they cannot use it to come back.
+      expect(livekit.calls.map((call) => call.body)).toEqual([
+        { room: `chat-${dm.id}`, identity: teammate.user.id },
+      ]);
+      expect(tokenAcceptedAt(token, FAKE_SECRET, issuedAt + 61)).toBe(false);
+      // Nor can they fetch a new one.
+      expect(
+        (await as(teammate)(`${base}/${dm.id}/call/join`, json("POST"))).status,
+      ).toBe(404);
+    } finally {
+      await livekit.close();
+    }
   });
 });

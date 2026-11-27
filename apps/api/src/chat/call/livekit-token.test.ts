@@ -27,13 +27,13 @@ describe("createLiveKitToken", () => {
     );
   });
 
-  it("grants joining one room as one identity for a short time", () => {
+  it("grants joining one room as one identity for one minute", () => {
     expect(decode(payload)).toEqual({
       iss: "fake-key",
       sub: "user-1",
       name: "Test caller",
       nbf: 1_000_000 - 30,
-      exp: 1_000_000 + 15 * 60,
+      exp: 1_000_000 + 60,
       video: {
         room: "chat-1",
         roomJoin: true,
@@ -54,7 +54,7 @@ describe("createLiveKitToken", () => {
     expect(decode(claims)).toEqual({
       iss: "fake-key",
       nbf: 1_000_000 - 30,
-      exp: 1_000_000 + 15 * 60,
+      exp: 1_000_000 + 60,
       video: { room: "chat-1", roomAdmin: true },
     });
   });

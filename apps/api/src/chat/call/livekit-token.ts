@@ -1,8 +1,9 @@
 import { createHmac } from "node:crypto";
 import type { CallConfig } from "./call-config";
 
-// Long enough to connect; LiveKit refreshes the token once in the room.
-const TTL_SECONDS = 15 * 60;
+// Long enough to connect. Once in the room, LiveKit renews the token itself,
+// so a token fetched before its holder left the channel dies within a minute.
+const TTL_SECONDS = 60;
 // Valid slightly early, in case the LiveKit server's clock runs behind.
 const CLOCK_SKEW_SECONDS = 30;
 
