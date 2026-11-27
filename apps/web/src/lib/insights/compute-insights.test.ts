@@ -211,4 +211,33 @@ describe("computeInsights", () => {
       { percent: 95, days: 10 },
     ]);
   });
+
+  it("measures time in the current status, leaving out unknown starts", () => {
+    const source = {
+      columns: [
+        column("review", "In Review", [
+          task("old", { statusSince: new Date(now - 9 * DAY).toISOString() }),
+          task("new", { statusSince: new Date(now - DAY).toISOString() }),
+          task("public", { statusSince: null }),
+        ]),
+      ],
+    } as unknown as ProjectWithTasks;
+
+    const result = computeInsights(
+      source,
+      "timeInStatus",
+      "status",
+      "none",
+      group,
+      now,
+    );
+
+    expect(result.issueCount).toBe(2);
+    expect(
+      result.slices[0]?.points.map((point) => [point.task.id, point.days]),
+    ).toEqual([
+      ["old", 9],
+      ["new", 1],
+    ]);
+  });
 });

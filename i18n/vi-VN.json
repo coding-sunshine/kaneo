@@ -5220,7 +5220,8 @@
 				"workProject": "Project",
 				"workable": "Workable",
 				"blocked": "Blocked",
-				"created": "Created"
+				"created": "Created",
+				"statusAge": "Time in status"
 			},
 			"operators": {
 				"isAnyOf": "là một trong",
@@ -5234,7 +5235,8 @@
 			"allCustomFieldValues": "All values",
 			"noCustomFieldValues": "No custom field values",
 			"noValuesUsedYet": "No values used yet",
-			"olderThanDays_other": "Older than {{count}} days"
+			"olderThanDays_other": "Older than {{count}} days",
+			"statusAgeOption_other": "{{status}} for more than {{count}} days"
 		},
 		"gantt": {
 			"searchPlaceholder": "Tìm phiếu đã lên lịch...",
@@ -5589,7 +5591,8 @@
 				"cycleTime": "Cycle time",
 				"effort": "Effort",
 				"leadTime": "Lead time",
-				"triageTime": "Triage time"
+				"triageTime": "Triage time",
+				"timeInStatus": "Time in status"
 			},
 			"median": "Median",
 			"noSegment": "No segment",
@@ -5647,6 +5650,11 @@
 			"sources": "Based on",
 			"title": "Summary",
 			"working": "Summarising…"
+		},
+		"statusTime": {
+			"current": "current",
+			"error": "Could not load time in status",
+			"title": "Time in status"
 		}
 	},
 	"invitations": {

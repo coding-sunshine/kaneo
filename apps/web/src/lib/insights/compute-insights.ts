@@ -9,6 +9,7 @@ export type InsightMeasure =
   | "cycleTime"
   | "leadTime"
   | "triageTime"
+  | "timeInStatus"
   | "age";
 export const INSIGHT_MEASURES: InsightMeasure[] = [
   "count",
@@ -16,6 +17,7 @@ export const INSIGHT_MEASURES: InsightMeasure[] = [
   "cycleTime",
   "leadTime",
   "triageTime",
+  "timeInStatus",
   "age",
 ];
 
@@ -69,6 +71,10 @@ function measureDays(measure: InsightMeasure, task: Task, now: number) {
       return span(task.createdAt, task.completedAt);
     case "triageTime":
       return span(task.startedTriageAt, task.triagedAt);
+    case "timeInStatus":
+      return task.statusSince
+        ? Math.max(0, (now - Date.parse(task.statusSince)) / DAY)
+        : null;
     default:
       return Math.max(0, (now - Date.parse(task.createdAt)) / DAY);
   }

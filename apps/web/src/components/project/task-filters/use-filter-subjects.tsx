@@ -13,6 +13,7 @@ import {
   Clock,
   CircleDot,
   CirclePlay,
+  Hourglass,
   Layers,
   Tag,
   UserRound,
@@ -25,6 +26,12 @@ import { getPriorityLabel } from "@/lib/i18n/domain";
 import { getPriorityIcon } from "@/lib/priority";
 import { countValues } from "@/lib/task-filters/count-values";
 import { DUE_DATE_OPTIONS } from "@/lib/task-filters/due-date-options";
+import {
+  matchesStatusAge,
+  parseStatusAge,
+  STATUS_AGE_DAYS,
+  serializeStatusAge,
+} from "@/lib/task-filters/status-age";
 import { customFieldSubjectId } from "@/lib/task-filters/filter-subject-id";
 import {
   groupLabels,
@@ -173,6 +180,53 @@ export function useFilterSubjects({
     updateFilter("labels", next && next.length > 0 ? next : null);
   };
 
+  const statusAgeSubject = () => {
+    const now = new Date();
+    const selected = filters.statusAge ?? [];
+    // Each option only counts tasks in its own status.
+    const tasksByStatus = new Map<string, Task[]>();
+    for (const task of tasks) {
+      const group = tasksByStatus.get(task.status);
+      if (group) group.push(task);
+      else tasksByStatus.set(task.status, [task]);
+    }
+    const option = (value: string) => {
+      const parsed = parseStatusAge(value);
+      const column = columns.find((item) => item.id === parsed?.status);
+      return {
+        value,
+        label: parsed
+          ? t("tasks:boardFilters.statusAgeOption", {
+              status: column?.name ?? parsed.status,
+              count: parsed.days,
+            })
+          : value,
+        icon: column
+          ? getColumnIcon(column.id, column.isFinal, column.icon)
+          : undefined,
+        count: (tasksByStatus.get(parsed?.status ?? "") ?? []).filter((task) =>
+          matchesStatusAge(task, value, now),
+        ).length,
+      };
+    };
+    const presets = columns.flatMap((column) =>
+      STATUS_AGE_DAYS.map((days) =>
+        serializeStatusAge({ status: column.id, days }),
+      ),
+    );
+    return subject("statusAge", {
+      label: t("tasks:boardFilters.subjects.statusAge"),
+      icon: <Hourglass />,
+      options: [
+        ...presets,
+        ...selected.filter((value) => !presets.includes(value)),
+      ].map(option),
+      selected,
+      onToggle: (value) => toggleFilter("statusAge", value),
+      onClear: () => updateFilter("statusAge", null),
+    });
+  };
+
   const core = [
     ...(showStatus
       ? [
@@ -186,6 +240,7 @@ export function useFilterSubjects({
               count: counts.status[column.id],
             })),
           }),
+          statusAgeSubject(),
         ]
       : []),
     listSubject("assignee", {

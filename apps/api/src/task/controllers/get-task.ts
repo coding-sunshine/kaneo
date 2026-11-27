@@ -3,6 +3,7 @@ import { alias } from "drizzle-orm/pg-core";
 import { boardDescription, descriptionDeferred } from "../description-pages";
 import { isSubtask } from "../is-subtask";
 import { getSubtaskCounts } from "../get-subtask-counts";
+import { getStatusSince } from "../get-status-since";
 import { and, eq, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
@@ -65,7 +66,12 @@ async function getTask(taskId: string, board = false, userId?: string) {
   }
 
   if (!board) return task[0];
-  const { workspaceId, ...result } = task[0];
+  const { workspaceId, ...fields } = task[0];
+  const since = await boundedTaskRead((tx) => getStatusSince(tx, [taskId]));
+  const result = {
+    ...fields,
+    statusSince: since.get(taskId) ?? fields.createdAt,
+  };
   if (!workspaceId) return result;
   const parent = alias(taskTable, "parent");
   const parents = await db

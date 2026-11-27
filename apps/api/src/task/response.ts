@@ -85,6 +85,10 @@ export const taskWithAssigneeSchema = taskSchema
     isSubscribed: z.boolean().optional().openapi({
       description: "Whether the caller follows the task. Detail view only.",
     }),
+    statusSince: nullableResponseTimestamp.optional().openapi({
+      description:
+        "When the task entered its current status: its latest status change, or its creation if it never moved. Board view only.",
+    }),
     canceledAt: nullableResponseTimestamp.optional().openapi({
       description:
         "When the task entered a canceled status; null unless canceled. Detail view only.",
@@ -166,6 +170,10 @@ export const boardTaskSchema = z
     }),
     triagedAt: nullableResponseTimestamp.openapi({
       description: "When the task last left triage; null while in triage.",
+    }),
+    statusSince: nullableResponseTimestamp.openapi({
+      description:
+        "When the task entered its current status: its latest status change, or its creation if it never moved. Null on public boards.",
     }),
     userId: z.string().nullable(),
     assigneeName: z.string().nullable(),
@@ -428,3 +436,28 @@ export const taskAttachmentsSchema = z.array(
     createdAt: z.coerce.date(),
   }),
 );
+
+export const taskStatusSpansSchema = z
+  .object({
+    spans: z.array(
+      z
+        .object({
+          status: z.string().openapi({
+            description:
+              "Status slug as recorded when the task held it. A renamed or removed column keeps its old slug.",
+          }),
+          name: z.string().nullable().openapi({
+            description:
+              "Current name of the project column with this slug; null when no single column matches.",
+          }),
+          totalMs: z.number().openapi({
+            description: "Total milliseconds spent in this status.",
+          }),
+          current: z.boolean().openapi({
+            description: "True for the task's current status.",
+          }),
+        })
+        .openapi("TaskStatusSpan"),
+    ),
+  })
+  .openapi("TaskStatusSpans");

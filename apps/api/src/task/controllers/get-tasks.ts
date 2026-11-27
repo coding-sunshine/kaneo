@@ -34,6 +34,7 @@ import {
 import { taskIsCompleted } from "../task-is-completed";
 import { isSubtask } from "../is-subtask";
 import { getSubtaskCounts } from "../get-subtask-counts";
+import { getStatusSince } from "../get-status-since";
 
 export type GetTasksOptions = {
   publicOnly?: boolean;
@@ -223,9 +224,20 @@ async function getTasksPage(
     .where(whereClause)
     .orderBy(orderByClause, asc(taskTable.id));
 
-  const paginatedTasks = await query.limit(pageSize).offset(offset);
+  const pageRows = await query.limit(pageSize).offset(offset);
 
-  const taskIds = paginatedTasks.map((task) => task.id);
+  const taskIds = pageRows.map((task) => task.id);
+
+  // Status history comes from activity, which public boards do not expose.
+  const statusSince = options.publicOnly
+    ? new Map<string, Date>()
+    : await getStatusSince(db, taskIds);
+  const paginatedTasks = pageRows.map((task) => ({
+    ...task,
+    statusSince: options.publicOnly
+      ? null
+      : (statusSince.get(task.id) ?? task.createdAt),
+  }));
 
   const subtaskCounts = await getSubtaskCounts(
     db,

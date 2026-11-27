@@ -366,4 +366,32 @@ describe("workable filter", () => {
       ),
     ).toBe(true);
   });
+
+  it("filters by time in the current status", () => {
+    const since = (days: number) =>
+      new Date(context.today.getTime() - days * 86_400_000).toISOString();
+    const filters = { ...noFilters, statusAge: ["in-review:7"] };
+
+    expect(
+      taskMatchesFilters(
+        task({ status: "in-review", statusSince: since(10) }),
+        filters,
+        context,
+      ),
+    ).toBe(true);
+    expect(
+      taskMatchesFilters(
+        task({ status: "in-review", statusSince: since(2) }),
+        filters,
+        context,
+      ),
+    ).toBe(false);
+    expect(
+      taskMatchesFilters(
+        task({ status: "in-review", statusSince: since(2) }),
+        { ...filters, negated: ["statusAge"] },
+        context,
+      ),
+    ).toBe(true);
+  });
 });

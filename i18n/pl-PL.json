@@ -6096,7 +6096,8 @@
 				"workProject": "Project",
 				"workable": "Workable",
 				"blocked": "Blocked",
-				"created": "Created"
+				"created": "Created",
+				"statusAge": "Time in status"
 			},
 			"allCustomFieldValues": "All values",
 			"noCustomFieldValues": "No custom field values",
@@ -6104,7 +6105,11 @@
 			"olderThanDays_few": "Older than {{count}} days",
 			"olderThanDays_many": "Older than {{count}} days",
 			"olderThanDays_one": "Older than {{count}} day",
-			"olderThanDays_other": "Older than {{count}} days"
+			"olderThanDays_other": "Older than {{count}} days",
+			"statusAgeOption_few": "{{status}} for more than {{count}} days",
+			"statusAgeOption_many": "{{status}} for more than {{count}} days",
+			"statusAgeOption_one": "{{status}} for more than {{count}} day",
+			"statusAgeOption_other": "{{status}} for more than {{count}} days"
 		},
 		"bulk": {
 			"actions": "Akcje",
@@ -6850,7 +6855,8 @@
 				"cycleTime": "Cycle time",
 				"effort": "Effort",
 				"leadTime": "Lead time",
-				"triageTime": "Triage time"
+				"triageTime": "Triage time",
+				"timeInStatus": "Time in status"
 			},
 			"median": "Median",
 			"noSegment": "No segment",
@@ -6911,6 +6917,11 @@
 			"sources": "Based on",
 			"title": "Summary",
 			"working": "Summarising…"
+		},
+		"statusTime": {
+			"current": "current",
+			"error": "Could not load time in status",
+			"title": "Time in status"
 		}
 	},
 	"press": {

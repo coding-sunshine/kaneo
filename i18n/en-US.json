@@ -4916,6 +4916,11 @@
 			"archived": "Archived",
 			"planned": "Planned"
 		},
+		"statusTime": {
+			"title": "Time in status",
+			"current": "current",
+			"error": "Could not load time in status"
+		},
 		"priority": {
 			"label": "Priority",
 			"no-priority": "No priority",
@@ -5322,10 +5327,13 @@
 				"noEstimate": "No estimate",
 				"workable": "Workable",
 				"created": "Created",
-				"blocked": "Blocked"
+				"blocked": "Blocked",
+				"statusAge": "Time in status"
 			},
 			"olderThanDays_one": "Older than {{count}} day",
 			"olderThanDays_other": "Older than {{count}} days",
+			"statusAgeOption_one": "{{status}} for more than {{count}} day",
+			"statusAgeOption_other": "{{status}} for more than {{count}} days",
 			"operators": {
 				"isAnyOf": "is any of",
 				"includeAnyOf": "include any of",
@@ -5622,6 +5630,7 @@
 				"cycleTime": "Cycle time",
 				"leadTime": "Lead time",
 				"triageTime": "Triage time",
+				"timeInStatus": "Time in status",
 				"age": "Issue age"
 			},
 			"issues": "Issues",

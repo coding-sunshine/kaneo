@@ -8,7 +8,10 @@ import type { ProjectWithTasks } from "@/types/project";
 import { scopeTasks } from "./scope-tasks";
 
 const NO_IGNORED_FILTERS: ReadonlyArray<keyof BoardFilters> = [];
-const BACKLOG_IGNORED_FILTERS: ReadonlyArray<keyof BoardFilters> = ["status"];
+const BACKLOG_IGNORED_FILTERS: ReadonlyArray<keyof BoardFilters> = [
+  "status",
+  "statusAge",
+];
 
 export type TaskViewScope = "board" | "backlog" | "schedule";
 

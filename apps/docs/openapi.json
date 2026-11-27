@@ -340,6 +340,14 @@
             "format": "date-time",
             "description": "When the task last left triage; null while in triage."
           },
+          "statusSince": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the task entered its current status: its latest status change, or its creation if it never moved. Null on public boards."
+          },
           "userId": {
             "type": [
               "string",
@@ -424,6 +432,7 @@
           "slaDueAt",
           "startedTriageAt",
           "triagedAt",
+          "statusSince",
           "userId",
           "assigneeName",
           "assigneeId",
@@ -1869,6 +1878,14 @@
                 "type": "boolean",
                 "description": "Whether the caller follows the task. Detail view only."
               },
+              "statusSince": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "description": "When the task entered its current status: its latest status change, or its creation if it never moved. Board view only."
+              },
               "canceledAt": {
                 "type": [
                   "string",
@@ -1884,6 +1901,50 @@
               "assigneeId"
             ]
           }
+        ]
+      },
+      "TaskStatusSpans": {
+        "type": "object",
+        "properties": {
+          "spans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaskStatusSpan"
+            }
+          }
+        },
+        "required": [
+          "spans"
+        ]
+      },
+      "TaskStatusSpan": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status slug as recorded when the task held it. A renamed or removed column keeps its old slug."
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Current name of the project column with this slug; null when no single column matches."
+          },
+          "totalMs": {
+            "type": "number",
+            "description": "Total milliseconds spent in this status."
+          },
+          "current": {
+            "type": "boolean",
+            "description": "True for the task's current status."
+          }
+        },
+        "required": [
+          "status",
+          "name",
+          "totalMs",
+          "current"
         ]
       },
       "MoveTaskResult": {
@@ -19978,6 +20039,71 @@
           },
           "409": {
             "description": "Task changed projects; retry the operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/task/{id}/status-spans": {
+      "get": {
+        "operationId": "getTaskStatusSpans",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Get time in status",
+        "description": "Cumulative time the task has spent in each status, computed from its status-change activity, in order of first entry. The current status includes time up to now.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Time per status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskStatusSpans"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing read permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
             "content": {
               "application/json": {
                 "schema": {

@@ -59,6 +59,7 @@ describe("plain-English filters", () => {
       workProject: null,
       cycle: null,
       estimate: null,
+      statusAge: null,
       customFields: null,
       negated: null,
       blocked: true,

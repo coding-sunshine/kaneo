@@ -11,6 +11,7 @@ import type Task from "@/types/task";
 import { matchesDateCondition, parseDateCondition } from "./date-condition";
 import { matchesCreated } from "./created-filter";
 import { customFieldSubjectId } from "./filter-subject-id";
+import { matchesStatusAge } from "./status-age";
 
 export type TaskFilterContext = {
   query?: string;
@@ -154,6 +155,14 @@ export function taskMatchesFilters(
       "workProject",
       filters.workProject,
       () => filters.workProject?.includes(task.workProjectId ?? "") ?? false,
+    ],
+    [
+      "statusAge",
+      filters.statusAge,
+      () =>
+        filters.statusAge?.some((value) =>
+          matchesStatusAge(task, value, context.today),
+        ) ?? false,
     ],
     [
       "labels",
