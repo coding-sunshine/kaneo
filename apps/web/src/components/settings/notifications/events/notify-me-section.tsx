@@ -63,6 +63,12 @@ export function NotifyMeSection({ preferences }: NotifyMeSectionProps) {
             setSwitch("topicUpdatesEnabled", checked)
           }
         />
+        <EventSwitchRow
+          title={t("settings:notificationsPage.eventStaleItems")}
+          description={t("settings:notificationsPage.eventStaleItemsHint")}
+          checked={state.staleItemsEnabled}
+          onCheckedChange={(checked) => setSwitch("staleItemsEnabled", checked)}
+        />
       </SettingsCard>
     </SettingsSection>
   );

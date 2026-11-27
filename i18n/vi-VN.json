@@ -773,7 +773,9 @@
 			"eventTopicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision.",
 			"reminderLeadTimeUnitHoursBefore_one": "giờ trước",
 			"reminderLeadTimeUnitDaysBefore_one": "ngày trước",
-			"projectCount_one": "{{count}} dự án"
+			"projectCount_one": "{{count}} dự án",
+			"eventStaleItems": "Stale issues",
+			"eventStaleItemsHint": "One weekday line a week listing your issues that have stayed in the same status for over a week."
 		},
 		"preferencesPage": {
 			"title": "Tùy chọn",
@@ -4762,6 +4764,10 @@
 			"document_inbox_waiting": {
 				"content": "{{documentTitle}} has no topic yet",
 				"title": "Waiting in the Inbox for three days"
+			},
+			"stale_items": {
+				"content": "Still in the same status: {{issueList}}",
+				"title": "Issues stuck for over a week"
 			}
 		},
 		"inbox": {
@@ -7819,7 +7825,9 @@
 				"remindBefore": "Trước {{time}}",
 				"remindPickerTitle": "Nhắc tôi trước",
 				"topicUpdates": "Followed topics",
-				"topicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision"
+				"topicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision",
+				"staleItems": "Stale issues",
+				"staleItemsHint": "One weekday line a week listing your issues that have stayed in the same status for over a week"
 			},
 			"leadTime": {
 				"minutes15": "15 phút",

@@ -4446,6 +4446,12 @@
 						"eventTopicUpdatesHint": {
 							"type": "string"
 						},
+						"eventStaleItems": {
+							"type": "string"
+						},
+						"eventStaleItemsHint": {
+							"type": "string"
+						},
 						"eventDueDateReminders": {
 							"type": "string"
 						},
@@ -4790,6 +4796,8 @@
 						"eventStatusChanges",
 						"eventTopicUpdates",
 						"eventTopicUpdatesHint",
+						"eventStaleItems",
+						"eventStaleItemsHint",
 						"eventDueDateReminders",
 						"reminderLeadTimeLabel",
 						"reminderLeadTimeInvalid",
@@ -19408,6 +19416,19 @@
 							},
 							"required": ["title", "content"]
 						},
+						"stale_items": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"content": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "content"]
+						},
 						"task_overdue": {
 							"type": "object",
 							"additionalProperties": false,
@@ -19519,6 +19540,7 @@
 						"due_date_reminder",
 						"sla_warning",
 						"sla_breach",
+						"stale_items",
 						"task_overdue",
 						"time_entry_created",
 						"team_issue_added",
@@ -32439,6 +32461,12 @@
 								"topicUpdatesHint": {
 									"type": "string"
 								},
+								"staleItems": {
+									"type": "string"
+								},
+								"staleItemsHint": {
+									"type": "string"
+								},
 								"dueDate": {
 									"type": "string"
 								},
@@ -32465,6 +32493,8 @@
 								"statusChangesHint",
 								"topicUpdates",
 								"topicUpdatesHint",
+								"staleItems",
+								"staleItemsHint",
 								"dueDate",
 								"dueDateHint",
 								"remindMe",

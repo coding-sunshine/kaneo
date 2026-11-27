@@ -8286,6 +8286,10 @@
             "type": "boolean",
             "description": "Hear about new proposals, new current documents and approved decisions on followed topics."
           },
+          "staleItemsEnabled": {
+            "type": "boolean",
+            "description": "A weekly inbox line on weekdays listing your issues that have sat in one started status for over a week."
+          },
           "scheduleEnabled": {
             "type": "boolean"
           },
@@ -8351,6 +8355,7 @@
           "dueDateReminderEnabled",
           "dueDateReminderLeadTimeMinutes",
           "topicUpdatesEnabled",
+          "staleItemsEnabled",
           "scheduleEnabled",
           "scheduleTimezone",
           "scheduleDays",
@@ -43888,6 +43893,10 @@
                   "topicUpdatesEnabled": {
                     "type": "boolean",
                     "description": "Hear about new proposals, new current documents and approved decisions on followed topics."
+                  },
+                  "staleItemsEnabled": {
+                    "type": "boolean",
+                    "description": "A weekly inbox line on weekdays listing your issues that have sat in one started status for over a week."
                   },
                   "scheduleEnabled": {
                     "type": "boolean",

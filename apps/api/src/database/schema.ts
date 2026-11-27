@@ -1756,6 +1756,40 @@ export const taskReminderSentTable = pgTable(
   ],
 );
 
+// One weekly stale-item line per owner and workspace; week is the owner's
+// local Monday, YYYY-MM-DD. The unique key lets one run send it.
+export const staleItemNudgeTable = pgTable(
+  "stale_item_nudge",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    week: text("week").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    unique("stale_item_nudge_user_workspace_week_unique").on(
+      table.userId,
+      table.workspaceId,
+      table.week,
+    ),
+  ],
+);
+
 export const timeEntryTable = pgTable(
   "time_entry",
   {
@@ -2139,6 +2173,7 @@ export const userNotificationPreferenceTable = pgTable(
     topicUpdatesEnabled: boolean("topic_updates_enabled")
       .default(true)
       .notNull(),
+    staleItemsEnabled: boolean("stale_items_enabled").default(true).notNull(),
     scheduleEnabled: boolean("schedule_enabled").default(false).notNull(),
     scheduleTimezone: text("schedule_timezone").default("UTC").notNull(),
     // Delivery window: weekdays 0 (Sunday) to 6, local "HH:MM" start and end.

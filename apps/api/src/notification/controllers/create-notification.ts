@@ -54,7 +54,9 @@ export async function persistNotification(
                 type === "document_current" ||
                 type === "document_decision"
               ? "topicUpdatesEnabled"
-              : null;
+              : type === "stale_items"
+                ? "staleItemsEnabled"
+                : null;
 
   if (preferenceKey) {
     const preference =
