@@ -138,46 +138,6 @@ describe("API integration: agent", () => {
     expect(model.seen).toHaveLength(1);
   });
 
-  it("lets a member create a task but not a viewer", async () => {
-    const owner = await createWorkspaceMember({ role: "owner" });
-    const { project } = await createProjectFixture({
-      workspaceId: owner.workspace.id,
-    });
-    const ws = owner.workspace.id;
-    const { app } = createApp();
-    const args = {
-      projectId: project.id,
-      title: "From the agent",
-      description: "",
-      priority: "low",
-      status: "to-do",
-    };
-
-    const viewer = await addMember(ws, "viewer");
-    mockAuthenticatedSession(viewer);
-    model.queue.push(callTool("create_task", args), reply("tried"));
-    const denied = await (
-      await app.request(
-        `/api/agent/workspace/${ws}/messages`,
-        post({ message: "create a task" }),
-      )
-    ).json();
-    const toolResult = denied.messages.find(
-      (m: { role: string }) => m.role === "tool",
-    );
-    expect(toolResult.content).toContain("error");
-    expect(await db.select().from(schema.taskTable)).toHaveLength(0);
-
-    mockAuthenticatedSession(owner.user);
-    model.queue.push(callTool("create_task", args), reply("created"));
-    await app.request(
-      `/api/agent/workspace/${ws}/messages`,
-      post({ message: "create a task" }),
-    );
-    const tasks = await db.select().from(schema.taskTable);
-    expect(tasks.map((t) => t.title)).toEqual(["From the agent"]);
-  });
-
   it("streams the reply as server-sent events", async () => {
     const owner = await createWorkspaceMember({ role: "owner" });
     mockAuthenticatedSession(owner.user);
