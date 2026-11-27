@@ -1,4 +1,6 @@
+import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
+import db, { schema } from "../../apps/api/src/database";
 import { resetTestDatabase } from "./helpers/database";
 import { createWorkspaceMember } from "./helpers/fixtures";
 import {
@@ -232,5 +234,81 @@ describe("Page tree", () => {
     );
     expect([403, 404]).toContain(moved.status);
     expect((await world.as(world.owner)(`${base()}/tree`)).status).toBe(200);
+  });
+
+  describe("when the page above is deleted for good", () => {
+    const storedParent = async (id: string) => {
+      const [row] = await db
+        .select({ parent: schema.documentTable.parentDocumentId })
+        .from(schema.documentTable)
+        .where(eq(schema.documentTable.id, id));
+      return row?.parent;
+    };
+    const childUnder = async (parentDocumentId: string) => {
+      const child = await shared(world.owner, "Child");
+      expect((await move(world.owner, child.id, parentDocumentId)).status).toBe(
+        200,
+      );
+      expect(await storedParent(child.id)).toBe(parentDocumentId);
+      return child.id;
+    };
+
+    it("clears the parent of a page whose parent is purged", async () => {
+      const handbook = await shared(world.owner, "Handbook");
+      const child = await create(world.owner, "Onboarding", {
+        parentDocumentId: handbook.id,
+      });
+      expect((await remove(world.owner, handbook.id, "delete")).status).toBe(
+        200,
+      );
+      const purged = await world.as(world.owner)(
+        `${base()}/${handbook.id}/permanent`,
+        json("DELETE"),
+      );
+      expect(purged.status).toBe(200);
+      expect(await storedParent(child.id)).toBeNull();
+    });
+
+    it("clears it when the parent's team is deleted", async () => {
+      const child = await childUnder(world.docs.teamBeta);
+      const issueChild = await childUnder(world.docs.issueBeta);
+      const response = await world.as(world.owner)(
+        `/project/${world.beta.id}`,
+        json("DELETE"),
+      );
+      expect(response.status).toBe(200);
+      expect(await storedParent(child)).toBeNull();
+      expect(await storedParent(issueChild)).toBeNull();
+    });
+
+    it("clears it when the parent's issue is deleted", async () => {
+      const child = await childUnder(world.docs.issueAlpha);
+      const response = await world.as(world.owner)(
+        `/task/${world.alphaTask.id}`,
+        json("DELETE"),
+      );
+      expect(response.status).toBe(200);
+      expect(await storedParent(child)).toBeNull();
+    });
+
+    it("clears it when the parent's issue is deleted in bulk", async () => {
+      const child = await childUnder(world.docs.issueBeta);
+      const response = await world.as(world.owner)(
+        "/task/bulk",
+        json("PATCH", { taskIds: [world.betaTask.id], operation: "delete" }),
+      );
+      expect(response.status).toBe(200);
+      expect(await storedParent(child)).toBeNull();
+    });
+
+    it("clears it when the parent's project is deleted", async () => {
+      const child = await childUnder(world.docs.project);
+      const response = await world.as(world.owner)(
+        `/work-project/${world.workProject.id}`,
+        json("DELETE"),
+      );
+      expect(response.status).toBe(200);
+      expect(await storedParent(child)).toBeNull();
+    });
   });
 });

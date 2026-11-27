@@ -1,7 +1,8 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { projectTable, assetTable } from "../../database/schema";
+import { releaseChildPages } from "../../document/release-child-pages";
 import { publishEvent } from "../../events";
 import { queueStorageCleanup } from "../../storage/cleanup-queue";
 import { getProjectSubtaskParentProjects } from "../../task/get-subtask-parent-projects";
@@ -31,6 +32,13 @@ async function deleteProject(id: string, workspaceId: string) {
       ...assets.map((asset) => asset.objectKey),
       ...(project.backgroundObjectKey ? [project.backgroundObjectKey] : []),
     ]);
+    // The team's documents and its issues' documents go with it.
+    await releaseChildPages(
+      tx,
+      sql`doomed.project_id = ${id} OR doomed.task_id IN (
+        SELECT task.id FROM task WHERE task.project_id = ${id}
+      )`,
+    );
     const [deleted] = await tx
       .delete(projectTable)
       .where(

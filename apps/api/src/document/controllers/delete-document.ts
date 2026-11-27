@@ -1,7 +1,8 @@
-import { and, eq, isNotNull } from "drizzle-orm";
+import { and, eq, isNotNull, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { documentTable } from "../../database/schema";
+import { releaseChildPages } from "../release-child-pages";
 import { getDocument } from "./get-document";
 import { loadDocument } from "./load-document";
 import { keepFilesLinkedElsewhere } from "./purge-document-files";
@@ -42,6 +43,7 @@ export async function purgeDocument(
   }
   await db.transaction(async (tx) => {
     await keepFilesLinkedElsewhere(tx, doc);
+    await releaseChildPages(tx, sql`doomed.id = ${id}`);
     await tx
       .delete(documentTable)
       .where(and(eq(documentTable.id, id), isNotNull(documentTable.deletedAt)));

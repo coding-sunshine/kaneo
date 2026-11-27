@@ -1,4 +1,4 @@
-import { eq, or } from "drizzle-orm";
+import { eq, or, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
@@ -6,6 +6,7 @@ import {
   taskRelationTable,
   taskTable,
 } from "../../database/schema";
+import { releaseChildPages } from "../../document/release-child-pages";
 import { publishEvent } from "../../events";
 import { captureOrphanedSubtasks } from "../publish-orphaned-subtasks";
 import { queueStorageCleanup } from "../../storage/cleanup-queue";
@@ -45,6 +46,7 @@ async function deleteTask(taskId: string, currentUserId: string) {
       tx,
       assets.map((asset) => asset.objectKey),
     );
+    await releaseChildPages(tx, sql`doomed.task_id = ${taskId}`);
     const [deleted] = await tx
       .delete(taskTable)
       .where(eq(taskTable.id, taskId))

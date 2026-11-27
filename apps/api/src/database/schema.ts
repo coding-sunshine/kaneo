@@ -2740,11 +2740,10 @@ export const documentTable = pgTable(
     sourceClient: text("source_client").$type<DocumentSourceClient>(),
     // The page this one sits under in the page tree. Each page keeps its own
     // place and access: a reader who cannot open the parent sees the child at
-    // the top of the tree.
-    parentDocumentId: text("parent_document_id").references(
-      (): AnyPgColumn => documentTable.id,
-      { onDelete: "set null", onUpdate: "cascade" },
-    ),
+    // the top of the tree. No foreign key: an existing table gets none, so
+    // code that deletes documents for good clears this on the pages under
+    // them (`document/release-child-pages.ts`).
+    parentDocumentId: text("parent_document_id"),
     // The topic the document is filed on. A filed document lives in the
     // topic's place.
     topicId: text("topic_id").references(() => topicTable.id, {

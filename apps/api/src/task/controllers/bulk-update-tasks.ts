@@ -1,5 +1,5 @@
 import { queueStorageCleanup } from "../../storage/cleanup-queue";
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
@@ -24,6 +24,7 @@ import {
   assertValidPriority,
   assertValidTaskStatus,
 } from "../validate-task-fields";
+import { releaseChildPages } from "../../document/release-child-pages";
 
 type BulkOperation =
   | "updateStatus"
@@ -346,6 +347,13 @@ async function bulkUpdateTasks({
         await queueStorageCleanup(
           tx,
           assets.map((asset) => asset.objectKey),
+        );
+        await releaseChildPages(
+          tx,
+          sql`doomed.task_id IN (${sql.join(
+            foundIds.map((taskId) => sql`${taskId}`),
+            sql`, `,
+          )})`,
         );
         return tx.delete(taskTable).where(inArray(taskTable.id, foundIds));
       });
