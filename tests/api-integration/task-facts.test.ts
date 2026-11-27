@@ -491,6 +491,41 @@ describe("API integration: facts found in issues", () => {
       expect(sent[1]).toContain("): State");
     });
 
+    it("reads the new words of every workspace before any catch-up", async () => {
+      const first = await setup();
+      const second = await setup();
+      // Workspaces go in the order of their topics' names.
+      await db
+        .update(topicTable)
+        .set({ name: "A plan" })
+        .where(eq(topicTable.id, first.topicId));
+      await db
+        .update(topicTable)
+        .set({ name: "B plan" })
+        .where(eq(topicTable.id, second.topicId));
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(4);
+
+      // The first workspace has a new field for both its issues, the second
+      // a new comment.
+      await filing(first.world).addSlot(first.topicId, {
+        name: "State",
+        type: "term",
+      });
+      await comment(second.world, second.world.betaTask.id, PRICE);
+      fetchMock.mockClear();
+      await run();
+
+      const sent = prompts(fetchMock);
+      expect(sent).toHaveLength(3);
+      expect(sent[0]).toContain(PRICE);
+      expect(sent[0]).toContain("Topic t1: B plan");
+      for (const prompt of sent.slice(1)) {
+        expect(prompt).toContain("Topic t1: A plan");
+        expect(prompt).toContain("): State");
+      }
+    });
+
     it("asks about a field added while a run was on", async () => {
       const { topicId } = await setup();
       let added = false;
