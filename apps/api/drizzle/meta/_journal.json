@@ -960,6 +960,13 @@
       "when": 1795818672655,
       "tag": "0136_chunky_namorita",
       "breakpoints": true
+    },
+    {
+      "idx": 137,
+      "version": "7",
+      "when": 1795819463856,
+      "tag": "0137_fearless_pandemic",
+      "breakpoints": true
     }
   ]
 }
