@@ -8,6 +8,7 @@ import {
   setValueAtKey,
   writeJson,
 } from "./shared.mjs";
+import { pluralCategories } from "./plural-categories.mjs";
 
 function pluralBase(key) {
   for (const category of PLURAL_CATEGORIES) {
@@ -17,23 +18,6 @@ function pluralBase(key) {
     }
   }
   return null;
-}
-
-function categoriesFor(locale) {
-  let categories;
-  try {
-    categories = new Intl.PluralRules(locale).resolvedOptions()
-      .pluralCategories;
-  } catch (error) {
-    throw new Error(
-      `Unknown locale "${locale}": Intl.PluralRules rejected it`,
-      {
-        cause: error,
-      },
-    );
-  }
-
-  return new Set(categories);
 }
 
 function isCountBearing(referenceData, key) {
@@ -111,7 +95,7 @@ const families = pluralFamilies(referenceKeys);
 
 for (const locale of filteredLocales) {
   const localeKeys = flattenLocale(locale.data);
-  const required = categoriesFor(locale.locale);
+  const required = pluralCategories(locale.locale);
   // i18next selects _zero for an exact count of 0 even where CLDR omits it, so
   // it is accepted without being demanded.
   const allowed = new Set([...required, "zero"]);
