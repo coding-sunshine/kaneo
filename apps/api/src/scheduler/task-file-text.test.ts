@@ -1,5 +1,8 @@
 import { gzipSync, strToU8, zipSync } from "fflate";
 import { expect, it } from "vite-plus/test";
+import { ARCHIVE_CAPS, archiveText } from "./archive-text";
+import { inflateCapped } from "./capped-inflate";
+import { ReadLater } from "./read-later";
 import { fileKind, fileText, pdfText, readFileText } from "./task-file-text";
 
 it("reads text, HTML, PDF, Word and archive files, and nothing else", () => {
@@ -24,6 +27,9 @@ it("reads text, HTML, PDF, Word and archive files, and nothing else", () => {
   expect(fileKind("bundle", "application/gzip")).toBe("archive");
   expect(fileKind("bundle.7z", "application/x-7z-compressed")).toBeNull();
   expect(fileKind("photo.heic", "image/heic")).toBeNull();
+  // A picture is read by the model when one is set.
+  expect(fileKind("scan.PNG", "application/octet-stream")).toBe("image");
+  expect(fileKind("scan", "image/jpeg")).toBe("image");
 });
 
 it("leaves scripts, styles and tags out of an HTML file", () => {
@@ -76,11 +82,90 @@ it("reads the text of a PDF", async () => {
   expect(text).toContain("Lease ends in May");
 });
 
-it("reads a capped number of PDF pages", async () => {
-  const pages = Array.from({ length: 60 }, (_, i) => `Page ${i + 1} here`);
+it("reads every page of a long PDF, to its last word", async () => {
+  const pages = Array.from({ length: 300 }, (_, i) => `Page ${i + 1} here`);
   const text = await pdfText(pdf(pages));
-  expect(text).toContain("Page 50 here");
-  expect(text).not.toContain("Page 51 here");
+  expect(text).toContain("Page 51 here");
+  expect(text.endsWith("Page 300 here")).toBe(true);
+});
+
+/** The model, as the job hands it to a reader: it writes out what it sees. */
+const sees = (said: string) => {
+  const seen: { mimeType: string; filename: string }[] = [];
+  const see = async (file: {
+    bytes: Uint8Array;
+    mimeType: string;
+    filename: string;
+  }) => {
+    seen.push({ mimeType: file.mimeType, filename: file.filename });
+    return said;
+  };
+  return { see, seen };
+};
+
+it("hands a PDF with a page without text, and a picture, to the model", async () => {
+  const { see, seen } = sees("Rent is 4200 a month");
+  const scanned = pdf(["Cover page", ""]);
+  expect(await readFileText("pdf", scanned, "lease.pdf", see)).toBe(
+    "Rent is 4200 a month",
+  );
+  expect(await readFileText("pdf", pdf(["Cover page"]), "a.pdf", see)).toBe(
+    "Cover page",
+  );
+  const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
+  expect(await readFileText("image", png, "photo.png", see)).toBe(
+    "Rent is 4200 a month",
+  );
+  expect(seen).toEqual([
+    { mimeType: "application/pdf", filename: "lease.pdf" },
+    { mimeType: "image/png", filename: "photo.png" },
+  ]);
+  // Without a model, a picture has no text and a scan only its text layer.
+  expect(await readFileText("image", png, "photo.png")).toBe("");
+  expect(await readFileText("pdf", scanned, "lease.pdf")).toContain("Cover");
+});
+
+it("keeps the text a file has when the model cannot write it out, and reads it later when the model cannot answer now", async () => {
+  const refused = async () => {
+    throw new Error("HTTP 413");
+  };
+  const scanned = pdf(["Cover page", ""]);
+  expect(await readFileText("pdf", scanned, "lease.pdf", refused)).toContain(
+    "Cover page",
+  );
+  const word = zip({
+    "word/document.xml": `<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>Lease</w:t></w:r></w:p></w:body></w:document>`,
+    "word/media/image1.png": new Uint8Array([0x89, 0x50]),
+  });
+  expect(await readFileText("docx", word, "lease.docx", refused)).toBe("Lease");
+  const later = async () => {
+    throw new ReadLater(false);
+  };
+  await expect(
+    readFileText("pdf", scanned, "lease.pdf", later),
+  ).rejects.toBeInstanceOf(ReadLater);
+  await expect(
+    readFileText("archive", zip({ "scan.png": "x" }), "b.zip", later),
+  ).rejects.toBeInstanceOf(ReadLater);
+});
+
+it("hands the pictures in a Word file and in an archive to the model", async () => {
+  const { see, seen } = sees("Signed on 1 May");
+  const word = zip({
+    "word/document.xml": `<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>Lease</w:t></w:r></w:p></w:body></w:document>`,
+    "word/media/image1.jpeg": new Uint8Array([0xff, 0xd8, 0xff]),
+  });
+  const text = await readFileText("docx", word, "lease.docx", see);
+  expect(text).toContain("Lease");
+  expect(text).toContain("Picture word/media/image1.jpeg:\nSigned on 1 May");
+  const archive = zip({ "scan.png": new Uint8Array([0x89, 0x50]) });
+  expect(await readFileText("archive", archive, "b.zip", see)).toBe(
+    "File scan.png:\nSigned on 1 May",
+  );
+  expect(seen.map(({ mimeType }) => mimeType)).toEqual([
+    "image/jpeg",
+    "image/png",
+  ]);
 });
 
 it("refuses bytes that are not a PDF", async () => {
@@ -166,47 +251,101 @@ it("finds no text in an archive with nothing readable", async () => {
   ).toBe("");
 });
 
-it("refuses an archive with too many entries", async () => {
-  const files = Object.fromEntries(
-    Array.from({ length: 201 }, (_, i) => [`f${i}.txt`, "x"]),
-  );
-  await expect(
-    readFileText("archive", zip(files), "bundle.zip"),
-  ).rejects.toThrow();
+it("unpacks archives up to 5000 entries, 500 MB and 3 levels deep", () => {
+  expect(ARCHIVE_CAPS).toEqual({
+    entries: 5000,
+    bytes: 500_000_000,
+    depth: 3,
+  });
 });
 
-it("refuses an archive that unpacks past the cap", async () => {
-  const big = new Uint8Array(51_000_000);
+it("reads every member of a large archive, and refuses one with too many entries", async () => {
+  const files = (count: number) =>
+    Object.fromEntries(
+      Array.from({ length: count }, (_, i) => [`f${i}.txt`, `member ${i} `]),
+    );
+  const text = await readFileText("archive", zip(files(5000)), "bundle.zip");
+  expect(text).toContain("File f0.txt:");
+  expect(text).toContain("File f4999.txt:\nmember 4999");
   await expect(
-    readFileText("archive", zip({ "big.txt": big }), "bundle.zip"),
-  ).rejects.toThrow();
-  await expect(
-    readFileText("archive", gzipSync(big), "big.txt.gz"),
-  ).rejects.toThrow();
+    readFileText("archive", zip(files(5001)), "bundle.zip"),
+  ).rejects.toThrow("too many entries");
+});
+
+it("reads the whole text of an archive, however long", async () => {
+  const long = `${"word ".repeat(100_000)}the last words`;
+  const text = await readFileText(
+    "archive",
+    zip({ "a.txt": long, "b.txt": long, "c.txt": long }),
+    "bundle.zip",
+  );
+  expect(text.length).toBeGreaterThan(1_500_000);
+  expect(text.endsWith("the last words")).toBe(true);
+});
+
+/** Bytes that do not compress: a zip or gzip of them is as large as they are. */
+const noise = (length: number) => {
+  const out = new Uint8Array(length);
+  let seed = 7;
+  for (let at = 0; at < length; at++) {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    out[at] = seed >> 16;
+  }
+  return out;
+};
+
+it("refuses an archive that says it unpacks past the cap, before unpacking", async () => {
+  const big = understated(zip({ "big.txt": noise(600_000) }), 501_000_000);
+  await expect(readFileText("archive", big, "bundle.zip")).rejects.toThrow(
+    "size cap",
+  );
+  const gzipped = gzipSync(noise(600_000));
+  new DataView(gzipped.buffer).setUint32(gzipped.length - 4, 501_000_000, true);
+  await expect(readFileText("archive", gzipped, "big.txt.gz")).rejects.toThrow(
+    "size cap",
+  );
   // The cap is for the whole archive, nested ones included.
   // Members with no reader count too.
-  const half = zip({ "half.bin": new Uint8Array(30_000_000) });
+  const half = understated(zip({ "half.bin": noise(300_000) }), 260_000_000);
   await expect(
     readFileText(
       "archive",
       zip({ "a.zip": half, "b.zip": half }),
       "bundle.zip",
     ),
-  ).rejects.toThrow();
-}, 20_000);
+  ).rejects.toThrow("size cap");
+});
+
+it("refuses data that says it unpacks more than deflate can, before unpacking", () => {
+  const packed = zip({ "notes.txt": "Rent is 4200 a month. ".repeat(500) });
+  const bomb = understated(packed, 400_000_000);
+  return expect(readFileText("archive", bomb, "bundle.zip")).rejects.toThrow(
+    "more than",
+  );
+});
+
+it("refuses deflate data whose header claims more than deflate can hold", () => {
+  expect(() => inflateCapped(new Uint8Array(1000), 2_000_000)).toThrow(
+    "more than",
+  );
+});
 
 it("refuses an archive nested too deep", async () => {
   const inner = zip({ "notes.txt": "Rent is 4200 a month" });
   expect(
-    await readFileText("archive", zip({ "inner.zip": inner }), "bundle.zip"),
-  ).toContain("Rent is 4200 a month");
-  await expect(
-    readFileText(
+    await readFileText(
       "archive",
       zip({ "middle.zip": zip({ "inner.zip": inner }) }),
       "bundle.zip",
     ),
-  ).rejects.toThrow();
+  ).toContain("Rent is 4200 a month");
+  await expect(
+    readFileText(
+      "archive",
+      zip({ "outer.zip": zip({ "middle.zip": zip({ "inner.zip": inner }) }) }),
+      "bundle.zip",
+    ),
+  ).rejects.toThrow("nested too deep");
 });
 
 /** The zip with every central directory entry's unpacked size set to `size`. */
@@ -243,9 +382,13 @@ it("counts the stored size of an entry that says it is empty", async () => {
     ]),
   );
   const archive = understated(zipSync(files, { level: 0 }), 0);
+  const reader = { readable: () => true, read: async () => "" };
   await expect(
-    readFileText("archive", archive, "bundle.zip"),
-  ).rejects.toThrow();
+    archiveText("bundle.zip", archive, reader, {
+      ...ARCHIVE_CAPS,
+      bytes: 50_000_000,
+    }),
+  ).rejects.toThrow("size cap");
 });
 
 it("skips the files macOS adds to an archive", async () => {

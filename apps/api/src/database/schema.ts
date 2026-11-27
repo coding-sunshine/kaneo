@@ -3550,8 +3550,8 @@ export const taskExtractionTable = pgTable(
     model: text("model").notNull(),
     readable: boolean("readable").notNull(),
     // Why not: unsupported, too_large, unparsed, no_answer, or duplicate for
-    // a file whose text another file holds. `truncated` on a text that was
-    // read only in part.
+    // a file whose text another file holds. `truncated` only on records
+    // from before every text was read whole; those are read once again.
     reason: text("reason"),
     // When the newest slot the text was asked about was made, not when the
     // row was written: the job sets it.

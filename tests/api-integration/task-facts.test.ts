@@ -6,7 +6,9 @@ import {
   it,
   vi,
 } from "vite-plus/test";
+import { createHash } from "node:crypto";
 import { eq } from "drizzle-orm";
+import { strToU8, zipSync } from "fflate";
 import db from "../../apps/api/src/database";
 import {
   activityTable,
@@ -18,6 +20,8 @@ import {
   topicSlotTable,
   topicTable,
 } from "../../apps/api/src/database/schema";
+import { pdfText } from "../../apps/api/src/scheduler/task-file-text";
+import { textParts } from "../../apps/api/src/scheduler/text-parts";
 import { resetTestDatabase } from "./helpers/database";
 import {
   type DocumentWorld,
@@ -104,6 +108,33 @@ const tells = (
         : NOTHING,
     ),
   );
+
+/** A PDF with one line of text on each page, built by hand. "" is a page with no text. */
+function pdf(pages: string[]) {
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    `<< /Type /Pages /Kids [${pages.map((_, i) => `${4 + i * 2} 0 R`).join(" ")}] /Count ${pages.length} >>`,
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ...pages.flatMap((line, i) => {
+      const stream = line ? `BT /F1 12 Tf 72 720 Td (${line}) Tj ET` : "";
+      return [
+        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents ${5 + i * 2} 0 R >>`,
+        `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
+      ];
+    }),
+  ];
+  let out = "%PDF-1.4\n";
+  const offsets = objects.map((body, i) => {
+    const at = out.length;
+    out += `${i + 1} 0 obj\n${body}\nendobj\n`;
+    return at;
+  });
+  const xref = out.length;
+  out += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  for (const at of offsets) out += `${String(at).padStart(10, "0")} 00000 n \n`;
+  out += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  return new TextEncoder().encode(out);
+}
 
 const describeIssue = (taskId: string, description: string) =>
   db.update(taskTable).set({ description }).where(eq(taskTable.id, taskId));
@@ -274,7 +305,7 @@ describe("API integration: facts found in issues", () => {
       await attach(world, {
         filename: "big.md",
         mimeType: "text/markdown",
-        size: 6_000_000,
+        size: 150_000_000,
       });
       readObject.mockImplementation(async () => ({
         body: new Response(PRICE).body,
@@ -565,7 +596,7 @@ describe("API integration: facts found in issues", () => {
       const big = await attach(world, {
         filename: "big.txt",
         mimeType: "text/plain",
-        size: 50_000_000,
+        size: 150_000_000,
       });
       const texts: Record<string, string> = {
         [notes.objectKey]: `# Notes\n\n${PRICE}`,
@@ -619,6 +650,246 @@ describe("API integration: facts found in issues", () => {
       await run();
       expect(fetchMock).toHaveBeenCalledTimes(4);
       expect(readObject).toHaveBeenCalledTimes(2);
+    });
+
+    it("sends the whole of a long file to the model, part by part, and keeps a fact from its end", async () => {
+      const { world, topicId } = await setup();
+      const notes = await attach(world, {
+        filename: "notes.md",
+        mimeType: "text/markdown",
+      });
+      const long = `${Array.from({ length: 12_000 }, (_, i) => `Line ${i} says nothing.`).join("\n")}\n${PRICE}`;
+      readObject.mockImplementation(async () => ({
+        body: new Response(long).body,
+      }));
+      tells(fetchMock, PRICE, { topics: [NAMED], statements: [HOW_MUCH] });
+      await run();
+
+      const sent = prompts(fetchMock).filter((prompt) =>
+        prompt.includes("notes.md"),
+      );
+      // Far more than the 10 parts a text was cut at before.
+      expect(sent.length).toBe(textParts(long, 12_000, 200).length);
+      expect(sent.length).toBeGreaterThan(20);
+      expect(new Set(sent).size).toBe(sent.length);
+      expect(sent.at(-1)).toContain(PRICE);
+      const listed = await facts(world, topicId, world.owner);
+      expect(listed).toMatchObject([
+        { quote: "40 USD", file: { id: notes.id } },
+      ]);
+      const [record] = (await records()).filter(
+        (row) => row.assetId === notes.id,
+      );
+      expect(record).toMatchObject({ readable: true, reason: null });
+    });
+
+    it("goes on with a long text in the next run where it stopped, sending no part twice", async () => {
+      const { world } = await setup();
+      const log = await attach(world, {
+        filename: "server.log",
+        mimeType: "text/plain",
+      });
+      const long = Array.from(
+        { length: 60_000 },
+        (_, i) => `Line ${i} of the log.`,
+      ).join("\n");
+      readObject.mockImplementation(async () => ({
+        body: new Response(long).body,
+      }));
+      const ofLog = () =>
+        prompts(fetchMock).filter((prompt) => prompt.includes("server.log"));
+      await run();
+      const first = ofLog().length;
+      expect(first).toBeGreaterThan(0);
+      expect(await records()).toHaveLength(2);
+      for (let runs = 0; runs < 10; runs++) await run();
+
+      const sent = ofLog();
+      expect(first).toBeLessThan(sent.length);
+      expect(sent.length).toBe(textParts(long, 12_000, 200).length);
+      expect(new Set(sent).size).toBe(sent.length);
+      const [record] = (await records()).filter(
+        (row) => row.assetId === log.id,
+      );
+      expect(record).toMatchObject({ readable: true, reason: null });
+    });
+
+    it("reads once more each file the readers before this change cut short, found too large or could not read, and only once", async () => {
+      const { world } = await setup();
+      const cut = await attach(world, {
+        filename: "cut.md",
+        mimeType: "text/markdown",
+      });
+      const large = await attach(world, {
+        filename: "large.zip",
+        mimeType: "application/zip",
+        size: 9_000_000,
+      });
+      const broken = await attach(world, {
+        filename: "broken.zip",
+        mimeType: "application/zip",
+      });
+      const huge = await attach(world, {
+        filename: "huge.txt",
+        mimeType: "text/plain",
+        size: 150_000_000,
+      });
+      // A PDF read before, whose pages past the 50th were left out with no
+      // reason given; this one has fewer, so its text is the same.
+      const short = await attach(world, {
+        filename: "short.pdf",
+        mimeType: "application/pdf",
+      });
+      const shortPdf = pdf(["Launch notes"]);
+      const bytes: Record<string, Uint8Array> = {
+        [cut.objectKey]: strToU8(`# Cut\n\n${PRICE}`),
+        [large.objectKey]: zipSync({ "notes.txt": strToU8(LAUNCH) }),
+        [broken.objectKey]: strToU8("not a zip"),
+        [short.objectKey]: shortPdf,
+      };
+      readObject.mockImplementation(async (key: string) => ({
+        body: new Response(bytes[key]).body,
+      }));
+      const before = (assetId: string, reason: string | null, hash = "") =>
+        db.insert(taskExtractionTable).values({
+          taskId: world.betaTask.id,
+          assetId,
+          contentHash: hash,
+          slotsHash: "before",
+          promptVersion: 1,
+          model: "before/model",
+          readable: reason === "truncated" || reason === null,
+          reason,
+          createdAt: new Date(),
+        });
+      await before(cut.id, "truncated", "cut-before");
+      await before(large.id, "too_large");
+      await before(broken.id, "unparsed");
+      await before(huge.id, "too_large");
+      await before(
+        short.id,
+        null,
+        createHash("sha256")
+          .update(await pdfText(shortPdf))
+          .digest("hex"),
+      );
+      await run();
+
+      const sent = prompts(fetchMock);
+      // Two issues, the cut file and the archive; the PDF's text is the same.
+      expect(sent).toHaveLength(4);
+      expect(sent.some((prompt) => prompt.includes(PRICE))).toBe(true);
+      expect(sent.some((prompt) => prompt.includes(LAUNCH))).toBe(true);
+      expect(readObject).toHaveBeenCalledTimes(4);
+      const byFile = new Map(
+        (await records()).map((row) => [row.assetId, row]),
+      );
+      expect(byFile.get(cut.id)).toMatchObject({ reason: null });
+      expect(byFile.get(large.id)).toMatchObject({ reason: null });
+      expect(byFile.get(broken.id)).toMatchObject({ reason: "unparsed" });
+      expect(byFile.get(huge.id)).toMatchObject({ reason: "too_large" });
+      expect(byFile.get(short.id)).toMatchObject({ reason: null });
+      for (const row of byFile.values()) expect(row.promptVersion).toBe(2);
+
+      // Read once: a file that is still not read is not tried again.
+      await run();
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(4);
+      expect(readObject).toHaveBeenCalledTimes(4);
+    });
+
+    it("has the model write out a scanned PDF and a picture, and keeps the facts they state", async () => {
+      const { world, topicId } = await setup();
+      const scan = await attach(world, {
+        filename: "scan.pdf",
+        mimeType: "application/pdf",
+      });
+      const photo = await attach(world, {
+        filename: "board.png",
+        mimeType: "image/png",
+      });
+      const bytes: Record<string, Uint8Array> = {
+        [scan.objectKey]: pdf(["", ""]),
+        [photo.objectKey]: new Uint8Array([0x89, 0x50, 0x4e, 0x47]),
+      };
+      readObject.mockImplementation(async (key: string) => ({
+        body: new Response(bytes[key]).body,
+      }));
+      type Part = {
+        type: string;
+        text?: string;
+        file?: { filename: string; file_data: string };
+        image_url?: { url: string };
+      };
+      const seen: { body: Record<string, unknown>; parts: Part[] }[] = [];
+      fetchMock.mockImplementation(
+        async (_url: string, init: { body: string }) => {
+          const body = JSON.parse(init.body);
+          const content = body.messages[1].content as string | Part[];
+          if (typeof content === "string") {
+            if (content.includes(PRICE)) {
+              return answer({ topics: [NAMED], statements: [HOW_MUCH] });
+            }
+            if (content.includes(LAUNCH)) {
+              return answer({ topics: [NAMED], statements: [WHEN] });
+            }
+            return answer(NOTHING);
+          }
+          seen.push({ body, parts: content });
+          const said = (text: string, more: boolean) =>
+            new Response(
+              JSON.stringify({
+                choices: [
+                  { message: { content: JSON.stringify({ text, more }) } },
+                ],
+                usage: { prompt_tokens: 900, completion_tokens: 40 },
+              }),
+            );
+          if (content.some((part) => part.type === "image_url")) {
+            return said(LAUNCH, false);
+          }
+          // A scan written out in two answers: the second goes on after the first.
+          return content.some((part) => part.text?.includes("Cover words."))
+            ? said(PRICE, false)
+            : said("Cover words.", true);
+        },
+      );
+      await run();
+
+      const pdfCalls = seen.filter(({ parts }) =>
+        parts.some((part) => part.type === "file"),
+      );
+      expect(pdfCalls).toHaveLength(2);
+      const file = pdfCalls[0].parts.find((part) => part.type === "file");
+      expect(file?.file?.filename).toBe("scan.pdf");
+      expect(file?.file?.file_data).toMatch(/^data:application\/pdf;base64,/);
+      // Read by the model itself, not sent on to an OCR service.
+      expect(pdfCalls[0].body.plugins).toEqual([
+        { id: "file-parser", pdf: { engine: "native" } },
+      ]);
+      const image = seen
+        .flatMap(({ parts }) => parts)
+        .find((part) => part.type === "image_url");
+      expect(image?.image_url?.url).toMatch(/^data:image\/png;base64,/);
+
+      const listed = await facts(world, topicId, world.owner);
+      expect(
+        listed.map((fact) => [fact.slot, fact.quote, fact.file?.id]).sort(),
+      ).toEqual([
+        ["launch_date", "5 March 2027", photo.id],
+        ["price", "40 USD", scan.id],
+      ]);
+      const byFile = new Map(
+        (await records()).map((row) => [row.assetId, row]),
+      );
+      expect(byFile.get(scan.id)).toMatchObject({
+        readable: true,
+        reason: null,
+      });
+      expect(byFile.get(photo.id)).toMatchObject({
+        readable: true,
+        reason: null,
+      });
     });
 
     it("keeps a record of an answer nobody could read, and none of a request that failed", async () => {

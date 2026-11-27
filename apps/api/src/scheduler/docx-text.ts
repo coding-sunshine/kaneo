@@ -2,10 +2,9 @@ import { strFromU8 } from "fflate";
 import { zipEntries } from "./zip-entries";
 
 const DOCUMENT = "word/document.xml";
-// The body of a Word file is unpacked up to this size, and read up to this
-// many characters.
-const MAX_DOCX_XML_BYTES = 20_000_000;
-const MAX_DOCX_CHARS = 200_000;
+// The body of a Word file is unpacked up to this size, and read whole. Its
+// text is a few times smaller than its XML.
+const MAX_DOCX_XML_BYTES = 200_000_000;
 
 // A run of text, a paragraph end, a tab or a line break. `<w:t` followed by a
 // space or `>` only: `<w:tbl>`, `<w:tab/>` and `<w:tr>` are not text.
@@ -49,7 +48,6 @@ export function docxText(bytes: Uint8Array) {
     if (words !== undefined) text += decode(words);
     else if (mark === "tab") text += "\t";
     else text += "\n";
-    if (text.length >= MAX_DOCX_CHARS) break;
   }
-  return text.trim().slice(0, MAX_DOCX_CHARS);
+  return text.trim();
 }

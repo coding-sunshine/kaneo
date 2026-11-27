@@ -1,15 +1,20 @@
 import { inflateCapped } from "./capped-inflate";
+import { ReadLater } from "./read-later";
 import { isTar, tarEntries } from "./tar-entries";
 import { zipEntries } from "./zip-entries";
 
-// An archive is refused whole when it has more entries than this, unpacks to
-// more bytes than this, or holds archives nested deeper than this. The counts
-// are for the archive and every archive inside it together.
-const MAX_ARCHIVE_ENTRIES = 200;
-const MAX_ARCHIVE_BYTES = 50_000_000;
-const MAX_ARCHIVE_DEPTH = 2;
-// The text of an archive's members is read up to this many characters.
-const MAX_ARCHIVE_CHARS = 200_000;
+/**
+ * An archive is refused whole when it has more entries than this, unpacks to
+ * more bytes than this, or holds archives nested deeper than this. The counts
+ * are for the archive and every archive inside it together. Its text is never
+ * cut: every member with a reader is read whole.
+ */
+export const ARCHIVE_CAPS = {
+  entries: 5000,
+  bytes: 500_000_000,
+  depth: 3,
+};
+type Caps = typeof ARCHIVE_CAPS;
 
 export const ARCHIVE = /\.(zip|tar|tgz|gz)$/i;
 
@@ -22,7 +27,7 @@ export type MemberReader = {
   read: (path: string, bytes: Uint8Array) => Promise<string>;
 };
 
-type Budget = { entries: number; bytes: number };
+type Budget = { entries: number; bytes: number; caps: Caps };
 // Unpacked only when it is read. Throws when it unpacks past its size.
 type Member = { path: string; open: () => Uint8Array };
 // macOS adds these to zips and tars: resource forks, not files.
@@ -31,10 +36,10 @@ const JUNK = /(^|\/)(__MACOSX\/|\._)/;
 const spend = (budget: Budget, entries: number, bytes: number) => {
   budget.entries += entries;
   budget.bytes += bytes;
-  if (budget.entries > MAX_ARCHIVE_ENTRIES) {
+  if (budget.entries > budget.caps.entries) {
     throw new ArchiveRefused("The archive has too many entries");
   }
-  if (budget.bytes > MAX_ARCHIVE_BYTES) {
+  if (budget.bytes > budget.caps.bytes) {
     throw new ArchiveRefused("The archive unpacks past the size cap");
   }
 };
@@ -94,8 +99,6 @@ function tarMembers(
   return members;
 }
 
-type Found = { texts: string[]; length: number };
-
 async function collect(
   name: string,
   prefix: string,
@@ -103,18 +106,17 @@ async function collect(
   reader: MemberReader,
   budget: Budget,
   depth: number,
-  found: Found,
+  found: string[],
 ) {
   const isArchive = (path: string) => ARCHIVE.test(path);
   const wanted = (path: string) => isArchive(path) || reader.readable(path);
   for (const member of unpack(name, bytes, wanted, budget)) {
-    if (found.length >= MAX_ARCHIVE_CHARS) return;
     const path = `${prefix}${member.path}`;
     // Outside skipBroken: a member that unpacks past its stated size refuses
     // the archive it is in.
     const data = member.open();
     if (isArchive(member.path)) {
-      if (depth >= MAX_ARCHIVE_DEPTH) {
+      if (depth >= budget.caps.depth) {
         throw new ArchiveRefused("The archive is nested too deep");
       }
       await skipBroken(() =>
@@ -132,18 +134,21 @@ async function collect(
     }
     const text = await skipBroken(() => reader.read(member.path, data));
     if (!text?.trim()) continue;
-    const entry = `File ${path}:\n${text}`;
-    found.texts.push(entry);
-    found.length += entry.length + 2;
+    found.push(`File ${path}:\n${text}`);
   }
 }
 
-/** A member that cannot be read is skipped; a passed cap refuses the archive. */
+/**
+ * A member that cannot be read is skipped; a passed cap refuses the archive,
+ * and a model that cannot answer now leaves the archive to be read later.
+ */
 async function skipBroken<T>(next: () => Promise<T>) {
   try {
     return await next();
   } catch (error) {
-    if (error instanceof ArchiveRefused) throw error;
+    if (error instanceof ArchiveRefused || error instanceof ReadLater) {
+      throw error;
+    }
     return undefined;
   }
 }
@@ -151,15 +156,25 @@ async function skipBroken<T>(next: () => Promise<T>) {
 /**
  * The words of every member of a zip, gzip or tar archive that has a reader,
  * each under a line with its path. Archives inside are read too, up to the
- * nesting cap. Reads the bytes only. Throws on bytes that are not an archive,
- * or an archive that passes a cap.
+ * nesting cap. Reads the bytes in memory only: nothing is written to disk,
+ * and each member is unpacked when it is read and let go after. Throws on
+ * bytes that are not an archive, or an archive that passes a cap.
  */
 export async function archiveText(
   name: string,
   bytes: Uint8Array,
   reader: MemberReader,
+  caps: Caps = ARCHIVE_CAPS,
 ) {
-  const found: Found = { texts: [], length: 0 };
-  await collect(name, "", bytes, reader, { entries: 0, bytes: 0 }, 1, found);
-  return found.texts.join("\n\n").slice(0, MAX_ARCHIVE_CHARS);
+  const found: string[] = [];
+  await collect(
+    name,
+    "",
+    bytes,
+    reader,
+    { entries: 0, bytes: 0, caps },
+    1,
+    found,
+  );
+  return found.join("\n\n");
 }

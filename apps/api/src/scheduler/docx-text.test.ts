@@ -47,9 +47,22 @@ it("decodes the XML entities of a Word file once", () => {
   ).toBe(`Q&A <b> "x' AB &lt;`);
 });
 
-it("refuses a Word file whose text unpacks past the cap", () => {
-  const huge = paragraph("a".repeat(21_000_000));
-  expect(() => docxText(docx(huge))).toThrow();
+it("reads the whole text of a long Word file", () => {
+  const long = `${"word ".repeat(100_000)}the last words`;
+  const text = docxText(docx(paragraph(long) + paragraph(long)));
+  expect(text.length).toBeGreaterThan(1_000_000);
+  expect(text.endsWith("the last words")).toBe(true);
+});
+
+it("refuses a Word file whose text says it unpacks past 200 MB", () => {
+  const file = docx(paragraph("a".repeat(1_000)));
+  const view = new DataView(file.buffer);
+  for (let at = 0; at < file.length - 4; at++) {
+    if (view.getUint32(at, true) === 0x02014b50) {
+      view.setUint32(at + 24, 201_000_000, true);
+    }
+  }
+  expect(() => docxText(file)).toThrow("too large");
 });
 
 it("refuses a Word file whose text unpacks past its stated size", () => {

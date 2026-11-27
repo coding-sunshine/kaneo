@@ -19,6 +19,8 @@ import {
 import { getPrivateObject } from "../storage/s3";
 import { slotsOf } from "../topic/controllers/slots";
 import { collapse, quoteStart } from "../topic/statement-text";
+import { seeWith } from "./file-vision";
+import { ReadLater } from "./read-later";
 import { retryLater } from "./retry-later";
 import { fileKind, readFileText } from "./task-file-text";
 import {
@@ -33,19 +35,24 @@ import {
 import { textParts } from "./text-parts";
 
 /**
- * Kept on each record. Raising it reads nothing again: a text is asked about
- * once. To read texts again on purpose, delete their records.
+ * Kept on each record. Raising it reads no text again that was read whole: a
+ * text is asked about once. It reads once more, and only once, each file whose
+ * record says it was cut short, too large or not parsed, and each PDF read
+ * before every page was read: raise it when a reader reads more. To read
+ * texts again on purpose, delete their records.
  */
-export const PROMPT_VERSION = 1;
+export const PROMPT_VERSION = 2;
 /** Texts the model is asked about in one run. Files that are not read do not count. */
 const PER_TICK = 10;
+/** Questions in one run. A longer text goes on in the next run. */
+const PARTS_PER_RUN = 50;
 const MAX_CHARACTERS = 12_000;
-// ponytail: a text is read in at most 10 parts, so about 120,000 characters.
-// The record says `truncated` when a text was longer.
-const MAX_PARTS = 10;
 const OVERLAP = 200;
-// A file is held in memory whole, and the API is one process.
-const MAX_FILE_BYTES = 5_000_000;
+// A file is held in memory whole while it is read, and the API is one
+// process. Nothing of it is written to disk.
+const MAX_FILE_BYTES = 100_000_000;
+// Records that a reader before this version left short: read once again.
+const AGAIN = new Set(["truncated", "too_large", "unparsed"]);
 // Issues are many and documents are few, so this job leaves a share of the
 // day's tokens and of the spending cap to the job that reads documents.
 const RESERVE = 0.3;
@@ -61,8 +68,8 @@ type Source = {
   /** What every part of the question starts with. */
   head: string;
   body: string;
-  /** The text a quote must be found in. */
-  quotable: string;
+  /** The text a quote must be found in. Without it: the part asked about. */
+  quotable?: string;
 };
 type Run = {
   model: string;
@@ -76,16 +83,28 @@ type Run = {
 const hashOf = (text: string) =>
   createHash("sha256").update(text).digest("hex");
 
+// Where a text that stopped part way goes on, and whether a part of it had
+// an answer. In memory only: after a restart the text is asked about from its
+// start, and the facts found before are not stored twice.
+const resume = new Map<string, { next: number; readable: boolean }>();
+
 /**
- * Asks about one text, part by part. `stop` when a cap is used up, `failed`
- * when a request failed; nothing is recorded then and the text is asked about
- * again. Else the statements to keep, and null when no answer could be read.
+ * Asks about the whole of one text, part by part, and stores what each part
+ * states as proposals. `stop` when a cap or the run's questions are used up,
+ * `failed` when a request failed; nothing is recorded then, and the text goes
+ * on from that part later. Else whether any part had an answer.
  */
-async function ask(run: Run, source: Source) {
+async function ask(run: Run, source: Source, outcome: Outcome) {
   const parts = textParts(source.body, MAX_CHARACTERS, OVERLAP);
-  const kept: NonNullable<ReturnType<typeof keptStatements>> = [];
-  let readable = false;
-  for (const part of parts.slice(0, MAX_PARTS)) {
+  const at = `${source.key}:${source.contentHash}:${hashOf(JSON.stringify(run.asked))}`;
+  const state = resume.get(at) ?? { next: 0, readable: false };
+  resume.delete(at);
+  for (; state.next < parts.length; state.next++) {
+    const part = parts[state.next] ?? "";
+    if (outcome.parts <= 0) {
+      resume.set(at, state);
+      return "stop" as const;
+    }
     try {
       const answer = await extractJson<unknown>({
         purpose: "task-facts",
@@ -94,21 +113,37 @@ async function ask(run: Run, source: Source) {
         schema: taskAnswerSchema(run.asked),
         reserve: RESERVE,
       });
-      if (!answer) return "stop" as const;
-      const found = keptStatements(run.asked, answer, source.quotable);
-      if (found) {
-        readable = true;
-        kept.push(...found);
+      if (!answer) {
+        resume.set(at, state);
+        return "stop" as const;
       }
+      outcome.parts -= 1;
+      const found = keptStatements(run.asked, answer, source.quotable ?? part);
+      if (!found) continue;
+      state.readable = true;
+      if (found.length === 0) continue;
+      await db
+        .insert(taskStatementTable)
+        .values(
+          found.map((statement) => ({
+            ...statement,
+            taskId: source.taskId,
+            assetId: source.assetId,
+          })),
+        )
+        // A fact that is already there stays as it is, dismissed or not.
+        .onConflictDoNothing();
     } catch (error) {
       if (!(error instanceof UnreadableAnswer)) {
+        resume.set(at, state);
         taskExtractionRetry.failed(source.key);
         console.error(`Reading ${source.key} for facts failed`, error);
         return "failed" as const;
       }
+      outcome.parts -= 1;
     }
   }
-  return { kept: readable ? kept : null, truncated: parts.length > MAX_PARTS };
+  return { readable: state.readable };
 }
 
 // One record for each text: the one before it goes. Its time is not when it
@@ -166,27 +201,14 @@ const later = (run: Run, since: Date): Run => ({
 });
 
 /** Asks, stores what was found as proposals and records that the text was read. */
-async function read(run: Run, source: Source) {
-  const answer = await ask(run, source);
+async function read(run: Run, source: Source, outcome: Outcome) {
+  const answer = await ask(run, source, outcome);
   if (answer === "stop" || answer === "failed") return answer;
-  if (answer.kept?.length) {
-    await db
-      .insert(taskStatementTable)
-      .values(
-        answer.kept.map((statement) => ({
-          ...statement,
-          taskId: source.taskId,
-          assetId: source.assetId,
-        })),
-      )
-      // A fact that is already there stays as it is, dismissed or not.
-      .onConflictDoNothing();
-  }
   await record(
     run,
     source,
-    answer.kept !== null,
-    answer.kept === null ? "no_answer" : answer.truncated ? "truncated" : null,
+    answer.readable,
+    answer.readable ? null : "no_answer",
   );
   return "read" as const;
 }
@@ -248,7 +270,7 @@ async function issueSource(taskId: string) {
 // The words of an issue can change. A proposal whose quote is no longer in
 // them goes, except one a person dismissed: that decision is kept.
 async function dropStale(source: Source) {
-  const text = collapse(source.quotable);
+  const text = collapse(source.quotable ?? source.body);
   const facts = await db
     .select({ id: taskStatementTable.id, quote: taskStatementTable.quote })
     .from(taskStatementTable)
@@ -269,7 +291,13 @@ async function dropStale(source: Source) {
   );
 }
 
-type Outcome = { left: number; degraded: boolean; stop: boolean };
+type Outcome = {
+  left: number;
+  /** Questions left in this run. */
+  parts: number;
+  degraded: boolean;
+  stop: boolean;
+};
 
 // The newest of each id's rows, which come newest first.
 const newest = <Row extends { id: string }>(rows: Row[]) =>
@@ -318,10 +346,10 @@ async function readWorkspace(
     if (since) {
       // New words since the list was made: the next run reads them in full.
       if (source.contentHash !== hash) return;
-      return handle(await read(later(run, since), source));
+      return handle(await read(later(run, since), source, outcome));
     }
     await dropStale(source);
-    handle(await read(run, source));
+    handle(await read(run, source, outcome));
   };
 
   const files = newest(
@@ -337,6 +365,7 @@ async function readWorkspace(
         since: taskExtractionTable.createdAt,
         hash: taskExtractionTable.contentHash,
         reason: taskExtractionTable.reason,
+        version: taskExtractionTable.promptVersion,
       })
       .from(assetTable)
       .innerJoin(taskTable, eq(taskTable.id, assetTable.taskId))
@@ -364,6 +393,19 @@ async function readWorkspace(
       holder.set(hash, id);
     }
   }
+  // Read once more, and only once, after a reader that reads more shipped.
+  const again = ({
+    since,
+    reason,
+    version,
+    filename,
+    mimeType,
+  }: (typeof files)[number]) =>
+    since !== null &&
+    (version ?? PROMPT_VERSION) < PROMPT_VERSION &&
+    (AGAIN.has(reason ?? "") ||
+      (reason === null && fileKind(filename, mimeType) === "pdf"));
+  const see = seeWith(RESERVE, outcome);
   const readFile = async (file: (typeof files)[number], since: Date | null) => {
     const key = `file:${file.id}`;
     if (taskExtractionRetry.waiting(key)) return;
@@ -387,9 +429,25 @@ async function readWorkspace(
       return;
     }
     // A file that cannot be parsed, or an archive that passes a cap, is
-    // recorded as unparsed, not tried again.
-    const text = await readFileText(kind, bytes, file.filename).catch(() => "");
-    if (!collapse(text)) {
+    // recorded as unparsed, not tried again. A text too long for one string
+    // is too large.
+    let text = "";
+    try {
+      text = await readFileText(kind, bytes, file.filename, see);
+    } catch (error) {
+      if (error instanceof ReadLater) {
+        if (error.failed) {
+          taskExtractionRetry.failed(key);
+          outcome.degraded = true;
+        } else outcome.stop = true;
+        return;
+      }
+      if (error instanceof RangeError) {
+        await record(run, unread, false, "too_large");
+        return;
+      }
+    }
+    if (!/\S/.test(text)) {
       await record(run, unread, false, "unparsed");
       return;
     }
@@ -398,16 +456,31 @@ async function readWorkspace(
       await record(run, { ...unread, contentHash }, false, "duplicate");
       return;
     }
-    const result = await read(since ? later(run, since) : run, {
-      key,
-      taskId: file.taskId,
-      assetId: file.id,
-      contentHash,
-      head: `Title: ${collapse(file.title)}\n\nAttached file ${collapse(file.filename)}:\n`,
-      body: text,
-      // The title is not the file: a quote from it does not count.
-      quotable: text,
-    });
+    // A PDF read again whose text is the same was read whole: its record is
+    // renewed, and nothing is asked twice.
+    if (again(file) && contentHash === file.hash && file.reason === null) {
+      await record(
+        { ...run, upTo: file.since ?? run.upTo },
+        { ...unread, contentHash },
+        true,
+        null,
+      );
+      return;
+    }
+    const result = await read(
+      since ? later(run, since) : run,
+      {
+        key,
+        taskId: file.taskId,
+        assetId: file.id,
+        contentHash,
+        // The title is not the file: a quote from it does not count, so a
+        // quote is looked for in the part asked about.
+        head: `Title: ${collapse(file.title)}\n\nAttached file ${collapse(file.filename)}:\n`,
+        body: text,
+      },
+      outcome,
+    );
     if (result === "read") holder.set(contentHash, file.id);
     handle(result);
   };
@@ -422,16 +495,23 @@ async function readWorkspace(
       .map((issue) => () => readIssue(issue)),
     ...files
       .filter(
-        ({ since, hash, reason, filename, mimeType }) =>
-          since === null ||
-          (reason === "duplicate" && !holder.has(hash ?? "")) ||
+        (file) =>
+          file.since === null ||
+          (file.reason === "duplicate" && !holder.has(file.hash ?? "")) ||
           // Recorded before a reader for its kind shipped: read it once now.
-          (reason === "unsupported" && fileKind(filename, mimeType) !== null),
+          (file.reason === "unsupported" &&
+            fileKind(file.filename, file.mimeType) !== null) ||
+          again(file),
       )
       .map((file) => () => readFile(file, null)),
     ...issues.filter(behind).map((issue) => () => readIssue(issue)),
     ...files
-      .filter((file) => holder.get(file.hash ?? "") === file.id && behind(file))
+      .filter(
+        (file) =>
+          holder.get(file.hash ?? "") === file.id &&
+          behind(file) &&
+          !again(file),
+      )
       .map((file) => () => readFile(file, file.since)),
   ];
   for (const next of queue) {
@@ -478,7 +558,12 @@ export async function extractTaskFacts() {
   }
 
   const model = extractionModel();
-  const outcome: Outcome = { left: PER_TICK, degraded: false, stop: false };
+  const outcome: Outcome = {
+    left: PER_TICK,
+    parts: PARTS_PER_RUN,
+    degraded: false,
+    stop: false,
+  };
   for (const [workspaceId, list] of byWorkspace) {
     if (outcome.stop || outcome.left <= 0) break;
     await readWorkspace(
