@@ -131,6 +131,24 @@ describe("notification display content", () => {
     }
   });
 
+  it("names a topic the reader cannot open with a placeholder", () => {
+    const say = (key: string, options?: Record<string, unknown>) =>
+      `${key} ${JSON.stringify(options)}`;
+    for (const type of [
+      "document_proposed",
+      "document_current",
+      "document_decision",
+    ]) {
+      const item = notification(type, {
+        actorName: "Mina",
+        documentTitle: "Pricing",
+      });
+      expect(getNotificationTitle(item, say)).toContain(
+        '"topicName":"notifications:privateTopic ',
+      );
+    }
+  });
+
   it("names the first issue and counts the rest when a linked document was replaced", () => {
     const say = (key: string, options?: Record<string, unknown>) =>
       `${key} ${JSON.stringify(options)}`;

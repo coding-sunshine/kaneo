@@ -4727,7 +4727,8 @@
 			"openDocument": "Open document",
 			"unreadCount_one": "{{count}} unread notification",
 			"unreadCount_other": "{{count}} unread notifications"
-		}
+		},
+		"privateTopic": "Private topic"
 	},
 	"activity": {
 		"assignedToSelf": "ανέθεσε την εργασία στον εαυτό του/της",

@@ -4648,7 +4648,8 @@
 			"documentUnavailable": "This document is no longer available.",
 			"openDocument": "Open document",
 			"unreadCount_other": "{{count}} unread notifications"
-		}
+		},
+		"privateTopic": "Private topic"
 	},
 	"activity": {
 		"assignedToSelf": "がタスクを自分に割り当てました",

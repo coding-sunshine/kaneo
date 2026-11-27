@@ -4648,7 +4648,8 @@
 			"documentUnavailable": "This document is no longer available.",
 			"openDocument": "Open document",
 			"unreadCount_other": "{{count}} unread notifications"
-		}
+		},
+		"privateTopic": "Private topic"
 	},
 	"activity": {
 		"assignedToSelf": "将任务指派给了自己",

@@ -13,6 +13,7 @@ import createNotification from "../../notification/controllers/create-notificati
 import { projectAccessCondition } from "../../project-access/project-access-condition";
 import { commentPreview } from "../../utils/comment-preview";
 import { parseMentionIds } from "../../utils/parse-mentions";
+import { topicAccess } from "../visibility";
 
 type NotifiedDocument = { id: string; workspaceId: string; title: string };
 
@@ -115,7 +116,8 @@ export async function notifyComment(
 
 // A new proposal on a topic, or a new current document, for the people who
 // follow the topic. Not for whoever did it, and not for anyone in `told`, who
-// heard of it another way.
+// heard of it another way. A follower who can open the document but not the
+// topic's place hears of the document with the topic unnamed.
 export async function notifyTopicFollowers(
   doc: NotifiedDocument,
   topicId: string,
@@ -127,6 +129,10 @@ export async function notifyTopicFollowers(
     .select({
       userId: topicSubscriberTable.userId,
       topicName: topicTable.name,
+      opensTopic: topicAccess(
+        topicSubscriberTable.userId,
+        topicSubscriberTable.topicId,
+      ),
     })
     .from(topicSubscriberTable)
     .innerJoin(topicTable, eq(topicTable.id, topicSubscriberTable.topicId))
@@ -138,13 +144,17 @@ export async function notifyTopicFollowers(
     );
   const [first] = followers;
   if (!first) return;
-  await send(
-    doc,
-    followers.map((row) => row.userId).filter((id) => !told.includes(id)),
-    type,
-    await userName(actorId),
-    { topicId, topicName: first.topicName },
-  );
+  const recipients = followers.filter((row) => !told.includes(row.userId));
+  const ids = (opensTopic: boolean) =>
+    recipients
+      .filter((row) => row.opensTopic === opensTopic)
+      .map((row) => row.userId);
+  const actorName = await userName(actorId);
+  await send(doc, ids(true), type, actorName, {
+    topicId,
+    topicName: first.topicName,
+  });
+  await send(doc, ids(false), type, actorName);
 }
 
 // `doc` and the current document of its topic may disagree on one fact. The

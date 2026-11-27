@@ -4893,7 +4893,8 @@
 			"unreadCount_many": "{{count}} unread notifications",
 			"unreadCount_one": "{{count}} unread notification",
 			"unreadCount_other": "{{count}} unread notifications"
-		}
+		},
+		"privateTopic": "Private topic"
 	},
 	"activity": {
 		"assignedToSelf": "назначил задачу себе",
