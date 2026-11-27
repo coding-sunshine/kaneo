@@ -79,3 +79,25 @@ describe("a shared document in a place the reader cannot open", () => {
     expect(seen.get).toEqual(issue);
   });
 });
+
+describe("filtering the document list by a place the reader cannot open", () => {
+  const listed = async (query: string) =>
+    (
+      (await (
+        await world.as(world.limited)(
+          `/document/workspace/${world.ws}?${query}`,
+        )
+      ).json()) as Ids[]
+    ).map((row) => row.id);
+
+  it("answers a closed team and a hidden issue like unknown ids", async () => {
+    const unknown = await listed("projectId=no-such-team");
+    expect(unknown).toEqual([]);
+    expect(await listed(`projectId=${world.beta.id}`)).toEqual(unknown);
+    expect(await listed("taskId=no-such-issue")).toEqual([]);
+    expect(await listed(`taskId=${world.betaTask.id}`)).toEqual([]);
+    expect(await listed(`projectId=${world.alpha.id}`)).toContain(
+      world.docs.teamAlpha,
+    );
+  });
+});

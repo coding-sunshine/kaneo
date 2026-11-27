@@ -129,6 +129,8 @@ function filterCondition(
     return and(
       eq(documentTable.scope, "team"),
       eq(documentTable.projectId, query.projectId),
+      // A team the reader cannot open matches nothing, like an unknown one.
+      documentParentAccess(userId, documentTable),
     );
   }
   if (query.workProjectId) {
@@ -141,6 +143,7 @@ function filterCondition(
     return and(
       eq(documentTable.scope, "issue"),
       eq(documentTable.taskId, query.taskId),
+      documentParentAccess(userId, documentTable),
     );
   }
   if (query.topicId) {
