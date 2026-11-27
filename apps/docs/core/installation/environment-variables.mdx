@@ -131,7 +131,7 @@ Name | Description | Default |
 
 ### Calls
 
-Voice and video calls in chat run on a [LiveKit](https://livekit.io) server you provide, self-hosted or LiveKit Cloud. A self-hosted server needs its media ports open and a TURN server for people behind strict firewalls. Kaneo only signs short-lived room tokens; media never passes through the Kaneo API. Without all three values, calls are off: the API logs that once, and chat shows no call button. Links to other meeting tools still post as clickable links.
+Voice and video calls in chat run on a [LiveKit](https://livekit.io) server you provide, self-hosted or LiveKit Cloud. A self-hosted server needs its media ports open and a TURN server for people behind strict firewalls. Kaneo only signs short-lived room tokens; media never passes through the Kaneo API. Without all three values, calls are off: the API logs that once, and chat shows no call button. Links to other meeting tools still post as clickable links. When someone leaves a channel or is removed from the workspace, Kaneo removes them from its calls through the LiveKit server API.
 
 Name | Description | Default |
 --- | --- | --- |

@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vite-plus/test";
-import { createLiveKitToken } from "./livekit-token";
+import { createLiveKitToken, createRoomAdminToken } from "./livekit-token";
 
 const SECRET = "fake-secret-for-tests";
 const decode = (part: string) =>
@@ -41,6 +41,21 @@ describe("createLiveKitToken", () => {
         canSubscribe: true,
         canPublishData: true,
       },
+    });
+  });
+
+  it("gives the API admin rights over one room only", () => {
+    const admin = createRoomAdminToken(
+      { apiKey: "fake-key", apiSecret: SECRET },
+      "chat-1",
+      1_000_000,
+    );
+    const [, claims] = admin.split(".") as [string, string];
+    expect(decode(claims)).toEqual({
+      iss: "fake-key",
+      nbf: 1_000_000 - 30,
+      exp: 1_000_000 + 15 * 60,
+      video: { room: "chat-1", roomAdmin: true },
     });
   });
 });

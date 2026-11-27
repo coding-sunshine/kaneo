@@ -54,6 +54,7 @@ describe("call ringing", () => {
       workspaceId: "workspace-1",
       channelId: "channel-1",
       channelName: "pair",
+      isDirect: false,
       callerId: "user-a",
       callerName: "Test caller",
       recipientIds: ["user-b"],
@@ -65,6 +66,7 @@ describe("call ringing", () => {
         workspaceId: "workspace-1",
         channelId: "channel-1",
         channelName: "pair",
+        isDirect: false,
         callerName: "Test caller",
       },
     ]);

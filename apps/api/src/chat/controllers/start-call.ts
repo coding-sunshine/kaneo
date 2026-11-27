@@ -3,6 +3,7 @@ import db from "../../database";
 import { chatChannelMemberTable } from "../../database/schema";
 import { publishEvent } from "../../events";
 import { createCallSession } from "../call/call-session";
+import { assertCanStartCall } from "../call/start-call-limit";
 import { loadChannel } from "./load-channel";
 
 export async function startCall(
@@ -11,6 +12,7 @@ export async function startCall(
   userId: string,
 ) {
   const channel = await loadChannel(workspaceId, channelId, userId, "post");
+  assertCanStartCall(userId);
   const { name, session } = await createCallSession(channelId, userId);
   const recipients = await db
     .select({ userId: chatChannelMemberTable.userId })
@@ -25,6 +27,7 @@ export async function startCall(
     workspaceId,
     channelId,
     channelName: channel.name,
+    isDirect: channel.isDirect,
     callerId: userId,
     callerName: name,
     recipientIds: recipients.map((row) => row.userId),

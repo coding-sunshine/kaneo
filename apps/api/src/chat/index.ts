@@ -41,6 +41,7 @@ import {
   updateChannelBody,
   workspaceIdParam,
 } from "./schema";
+import "./call/subscribe";
 import "./link-preview/subscribe";
 
 const body = <T extends z.ZodType>(schema: T) => ({
@@ -282,7 +283,7 @@ const startCallRoute = createRoute({
   tags,
   summary: "Start call",
   description:
-    "Start a voice or video call in a channel you belong to. Rings the other channel members. Needs LiveKit configured on the server.",
+    "Start a voice or video call in a channel or direct message you belong to. Rings the other members, at most 10 starts a minute per person. Needs LiveKit configured on the server.",
   middleware: [requireCalls, ...write] as const,
   request: { params: channelParam },
   responses: {
@@ -290,6 +291,7 @@ const startCallRoute = createRoute({
     403: notMember,
     404: callsOff,
     409: archived,
+    429: errorResponse("Too many calls started; see the Retry-After header"),
   },
 });
 

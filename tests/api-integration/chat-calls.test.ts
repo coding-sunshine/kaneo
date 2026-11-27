@@ -1,4 +1,6 @@
 import { createHmac } from "node:crypto";
+import { createServer, type Server } from "node:http";
+import type { AddressInfo } from "node:net";
 import {
   afterEach,
   beforeEach,
@@ -10,6 +12,7 @@ import {
 import db, { schema } from "../../apps/api/src/database";
 import { settleEvents, subscribeToEvent } from "../../apps/api/src/events";
 import { createApp } from "../../apps/api/src/index";
+import { revokeWorkspaceConnections } from "../../apps/api/src/ws";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
 import { createWorkspaceMember } from "./helpers/fixtures";
@@ -20,12 +23,43 @@ const FAKE_KEY = "fake-livekit-key";
 const FAKE_SECRET = "fake-livekit-secret-that-is-long-enough";
 
 const rings: { callerId: string; recipientIds: string[] }[] = [];
-subscribeToEvent<{ callerId: string; recipientIds: string[] }>(
-  "chat.call_started",
-  async (data) => {
-    rings.push({ callerId: data.callerId, recipientIds: data.recipientIds });
-  },
-);
+const ringsInDirect: boolean[] = [];
+subscribeToEvent<{
+  callerId: string;
+  recipientIds: string[];
+  isDirect: boolean;
+}>("chat.call_started", async (data) => {
+  rings.push({ callerId: data.callerId, recipientIds: data.recipientIds });
+  ringsInDirect.push(data.isDirect);
+});
+
+// A fake LiveKit room service that records what the API asks of it.
+type ServiceCall = { path: string; auth: string; body: unknown };
+async function startFakeLiveKit() {
+  const calls: ServiceCall[] = [];
+  const server: Server = createServer((req, res) => {
+    let raw = "";
+    req.on("data", (chunk) => {
+      raw += chunk;
+    });
+    req.on("end", () => {
+      calls.push({
+        path: req.url ?? "",
+        auth: req.headers.authorization ?? "",
+        body: JSON.parse(raw || "null"),
+      });
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end("{}");
+    });
+  });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const { port } = server.address() as AddressInfo;
+  process.env.LIVEKIT_URL = `ws://127.0.0.1:${port}`;
+  return {
+    calls,
+    close: () => new Promise<void>((resolve) => server.close(() => resolve())),
+  };
+}
 
 const json = (method: string, body?: unknown) => ({
   method,
@@ -93,6 +127,7 @@ async function setup() {
     bystander,
     viewer,
     outsider,
+    ws,
     base,
     as,
     dm,
@@ -104,6 +139,7 @@ describe("API integration: chat calls", () => {
   beforeEach(async () => {
     await resetTestDatabase();
     rings.length = 0;
+    ringsInDirect.length = 0;
   });
 
   afterEach(() => {
@@ -233,5 +269,105 @@ describe("API integration: chat calls", () => {
     ).toBe(409);
     await settleEvents();
     expect(rings).toEqual([]);
+  });
+
+  it("calls in a direct message through the same channel call routes", async () => {
+    enableCalls();
+    const { owner, teammate, bystander, base, as } = await setup();
+    const opened = await as(owner)(
+      base.replace("/channels", "/direct-messages"),
+      json("POST", { userIds: [teammate.user.id] }),
+    );
+    expect(opened.status).toBe(200);
+    const direct = await opened.json();
+    expect(direct.isDirect).toBe(true);
+
+    expect(
+      (await as(owner)(`${base}/${direct.id}/call`, json("POST"))).status,
+    ).toBe(200);
+    await settleEvents();
+    expect(rings).toEqual([
+      { callerId: owner.user.id, recipientIds: [teammate.user.id] },
+    ]);
+    expect(ringsInDirect).toEqual([true]);
+    expect(
+      (await as(teammate)(`${base}/${direct.id}/call/join`, json("POST")))
+        .status,
+    ).toBe(200);
+    expect(
+      (await as(bystander)(`${base}/${direct.id}/call/join`, json("POST")))
+        .status,
+    ).toBe(404);
+  });
+
+  it("removes someone who leaves a channel from its call at once", async () => {
+    enableCalls();
+    const livekit = await startFakeLiveKit();
+    try {
+      const { owner, teammate, base, as, pub } = await setup();
+      await as(teammate)(`${base}/${pub.id}/join`, json("POST"));
+      await as(owner)(`${base}/${pub.id}/call`, json("POST"));
+      await as(teammate)(`${base}/${pub.id}/call/join`, json("POST"));
+
+      expect(
+        (await as(teammate)(`${base}/${pub.id}/leave`, json("POST"))).status,
+      ).toBe(200);
+      await settleEvents();
+
+      expect(livekit.calls).toHaveLength(1);
+      const [call] = livekit.calls;
+      expect(call?.path).toBe("/twirp/livekit.RoomService/RemoveParticipant");
+      expect(call?.body).toEqual({
+        room: `chat-${pub.id}`,
+        identity: teammate.user.id,
+      });
+      const claims = verifiedClaims(
+        call?.auth.replace(/^Bearer /, "") ?? "",
+        FAKE_SECRET,
+      );
+      expect(claims.video).toEqual({ room: `chat-${pub.id}`, roomAdmin: true });
+    } finally {
+      await livekit.close();
+    }
+  });
+
+  it("removes someone taken out of the workspace from its calls", async () => {
+    enableCalls();
+    const livekit = await startFakeLiveKit();
+    try {
+      const { teammate, ws, base, as, dm, pub } = await setup();
+      await as(teammate)(`${base}/${pub.id}/join`, json("POST"));
+
+      await revokeWorkspaceConnections(teammate.user.id, ws, {
+        role: "member",
+      });
+      await settleEvents();
+
+      expect(
+        livekit.calls
+          .map((call) => (call.body as { room: string }).room)
+          .sort(),
+      ).toEqual([`chat-${dm.id}`, `chat-${pub.id}`].sort());
+      for (const call of livekit.calls)
+        expect(call.body).toMatchObject({ identity: teammate.user.id });
+    } finally {
+      await livekit.close();
+    }
+  });
+
+  it("limits how often one person starts calls", async () => {
+    enableCalls();
+    const { owner, teammate, base, as, dm } = await setup();
+    for (let i = 0; i < 10; i++)
+      expect(
+        (await as(owner)(`${base}/${dm.id}/call`, json("POST"))).status,
+      ).toBe(200);
+    const limited = await as(owner)(`${base}/${dm.id}/call`, json("POST"));
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get("retry-after")).toMatch(/^\d+$/);
+    // Joining is not limited, and others keep their own budget.
+    expect(
+      (await as(teammate)(`${base}/${dm.id}/call`, json("POST"))).status,
+    ).toBe(200);
   });
 });

@@ -29021,7 +29021,7 @@
           "Chat"
         ],
         "summary": "Start call",
-        "description": "Start a voice or video call in a channel you belong to. Rings the other channel members. Needs LiveKit configured on the server.",
+        "description": "Start a voice or video call in a channel or direct message you belong to. Rings the other members, at most 10 starts a minute per person. Needs LiveKit configured on the server.",
         "parameters": [
           {
             "schema": {
@@ -29092,7 +29092,14 @@
             }
           },
           "429": {
-            "$ref": "#/components/responses/ApiKeyRateLimited"
+            "description": "Too many calls started; see the Retry-After header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }

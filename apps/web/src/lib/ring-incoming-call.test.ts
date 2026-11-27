@@ -19,6 +19,7 @@ describe("ringIncomingCall", () => {
         workspaceId: "workspace-1",
         channelId: "channel-1",
         channelName: "pair",
+        isDirect: false,
         callerName: "Test caller",
       },
       join,
@@ -34,5 +35,22 @@ describe("ringIncomingCall", () => {
       channelId: "channel-1",
       channelName: "pair",
     });
+  });
+
+  it("names only the caller for a direct message", () => {
+    info.mockClear();
+    ringIncomingCall(
+      {
+        workspaceId: "workspace-1",
+        channelId: "channel-2",
+        channelName: "",
+        isDirect: true,
+        callerName: "Test caller",
+      },
+      vi.fn(),
+    );
+    const [title, options] = info.mock.calls[0] ?? [];
+    expect(title).toContain("Test caller");
+    expect(options.description).toBeUndefined();
   });
 });

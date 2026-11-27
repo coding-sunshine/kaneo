@@ -166,6 +166,7 @@ describe("user WebSocket lifecycle", () => {
       workspaceId: "workspace",
       channelId: "channel-1",
       channelName: "pair",
+      isDirect: false,
       callerName: "Test caller",
     };
     act(() =>

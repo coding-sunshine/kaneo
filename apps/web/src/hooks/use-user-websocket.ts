@@ -210,6 +210,7 @@ export function useUserWebSocket() {
                   workspaceId: ring.workspaceId,
                   channelId: ring.channelId,
                   channelName: ring.channelName,
+                  isDirect: ring.isDirect === true,
                   callerName: ring.callerName,
                 },
                 answerCall,
