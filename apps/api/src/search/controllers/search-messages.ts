@@ -6,6 +6,7 @@ import {
   userTable,
 } from "../../database/schema";
 import { readableChannel } from "../../chat/readable-channel";
+import { isWorkspaceGuest } from "../../guest/is-workspace-guest";
 import { bodyVector, type FtsQuery, ftsMatch } from "../fts";
 import { escapeLikePattern } from "../like-pattern";
 import type { SearchResult } from "../search-result";
@@ -22,6 +23,7 @@ export async function searchMessages(params: {
   const { query, fts, userId, workspaceId, limit } = params;
   const bodyFts = fts ? ftsMatch(bodyVector(chatMessageTable.body), fts) : null;
   const score = bodyFts ? bodyFts.score(2) : sql<number>`2`;
+  const guest = await isWorkspaceGuest(workspaceId, userId);
 
   const rows = await db
     .select({
@@ -44,7 +46,7 @@ export async function searchMessages(params: {
     .where(
       and(
         eq(chatChannelTable.workspaceId, workspaceId),
-        readableChannel(userId),
+        readableChannel(userId, workspaceId, guest),
         bodyFts?.match ??
           ilike(chatMessageTable.body, `%${escapeLikePattern(query)}%`),
       ),

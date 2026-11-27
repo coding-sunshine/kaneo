@@ -1,10 +1,13 @@
+import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import {
+  chatChannelMemberTable,
   chatChannelTable,
   chatMessageTable,
 } from "../../apps/api/src/database/schema";
 import { createApp } from "../../apps/api/src/index";
+import { restrictToProjects } from "./helpers/project-access/restrict-to-projects";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
 import {
@@ -24,6 +27,7 @@ type Result = {
   type: string;
   title: string;
   content?: string;
+  description?: string;
   channelId?: string;
   isDirect?: boolean;
 };
@@ -275,6 +279,117 @@ describe("API integration: unified search", () => {
     expect(ctx.ids(await ctx.search(ctx.b, "alpha")).has(ctx.a.user.id)).toBe(
       true,
     );
+  });
+
+  it("never matches people by email", async () => {
+    const ctx = await setup();
+    for (const searcher of [ctx.b, ctx.owner])
+      expect(await ctx.search(searcher, ctx.a.user.email, "people")).toEqual(
+        [],
+      );
+    expect(await ctx.search(ctx.b, "example.com", "people")).toEqual([]);
+  });
+});
+
+async function setupGuest() {
+  const ctx = await setup();
+  const { ws, project, createChannel, post, openDm } = ctx;
+  const other = await createProjectFixture({ workspaceId: ws, name: "Other" });
+  const guest = await createWorkspaceMember({ userName: "Guest Person" });
+  const outOfReach = await createWorkspaceMember({ userName: "Delta Person" });
+  for (const member of [guest, outOfReach])
+    await db.insert(schema.workspaceUserTable).values({
+      workspaceId: ws,
+      userId: member.user.id,
+      role: "member",
+      joinedAt: new Date(),
+    });
+  await restrictToProjects(ws, outOfReach.user.id, [other.project.id]);
+  await restrictToProjects(ws, guest.user.id, [project.id]);
+  await db
+    .update(schema.workspaceMemberAccessTable)
+    .set({ guest: true })
+    .where(eq(schema.workspaceMemberAccessTable.userId, guest.user.id));
+
+  const general = await createChannel(ctx.a, "general", false);
+  const client = await createChannel(ctx.a, "client", true);
+  // A workspace admin adds a guest to a channel; seeded directly here.
+  await db
+    .insert(chatChannelMemberTable)
+    .values({ channelId: client, userId: guest.user.id });
+  const inGeneral = await post(ctx.a, general, "zebra-launch for staff");
+  const inClient = await post(ctx.a, client, "zebra-launch for the client");
+  const dm = await openDm(ctx.a, guest);
+  const inDm = await post(ctx.a, dm, "zebra-launch just for you");
+  // A direct message with someone the guest no longer works with.
+  const [hiddenDm] = await db
+    .insert(chatChannelTable)
+    .values({
+      workspaceId: ws,
+      name: "",
+      isPrivate: true,
+      directKey: [guest.user.id, outOfReach.user.id].sort().join(","),
+    })
+    .returning();
+  await db.insert(chatChannelMemberTable).values([
+    { channelId: hiddenDm!.id, userId: guest.user.id },
+    { channelId: hiddenDm!.id, userId: outOfReach.user.id },
+  ]);
+  await db.insert(chatMessageTable).values({
+    channelId: hiddenDm!.id,
+    userId: outOfReach.user.id,
+    body: "zebra-launch out of reach",
+  });
+  return {
+    ...ctx,
+    guest,
+    outOfReach,
+    general,
+    client,
+    inGeneral,
+    inClient,
+    inDm,
+  };
+}
+
+describe("API integration: unified search for a guest", () => {
+  beforeEach(async () => {
+    await resetTestDatabase();
+  });
+
+  it("shows a guest only messages from channels they joined and direct messages in reach", async () => {
+    const ctx = await setupGuest();
+    for (const type of ["messages", "all"])
+      expect(
+        ctx.ids(
+          (await ctx.search(ctx.guest, "zebra-launch", type)).filter(
+            (r) => r.type === "message",
+          ),
+        ),
+      ).toEqual(new Set([ctx.inClient, ctx.inDm]));
+    const around = await ctx.as(ctx.guest)(
+      `${ctx.channels}/${ctx.general}/messages?around=${ctx.inGeneral}`,
+    );
+    expect(around.status).toBe(404);
+    // A member still sees the public channel's message.
+    expect(
+      ctx.ids(await ctx.search(ctx.b, "zebra-launch", "messages")),
+    ).toEqual(new Set([ctx.inGeneral]));
+  });
+
+  it("shows a guest only people in reach and no email addresses", async () => {
+    const ctx = await setupGuest();
+    const results = await ctx.search(ctx.guest, "person", "people");
+    expect(ctx.ids(results)).toEqual(
+      new Set([ctx.a.user.id, ctx.b.user.id, ctx.c.user.id, ctx.guest.user.id]),
+    );
+    for (const result of results)
+      if (result.id !== ctx.guest.user.id)
+        expect(result.description).toBeFalsy();
+    const body = JSON.stringify(await ctx.search(ctx.guest, "person", "all"));
+    for (const member of [ctx.a, ctx.b, ctx.c, ctx.outOfReach])
+      expect(body).not.toContain(member.user.email);
+    expect(body).not.toContain("Delta Person");
   });
 });
 

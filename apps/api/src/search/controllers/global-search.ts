@@ -612,7 +612,14 @@ async function globalSearch(params: SearchParams): Promise<{
         })),
       );
     if (type === "all" || type === "people")
-      results.push(...(await searchPeople({ query, workspaceId, limit })));
+      results.push(
+        ...(await searchPeople({
+          query,
+          userId: resolvedUserId,
+          workspaceId,
+          limit,
+        })),
+      );
   }
 
   results.sort((a, b) => {

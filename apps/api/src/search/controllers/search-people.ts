@@ -1,22 +1,26 @@
-import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, sql } from "drizzle-orm";
 import db from "../../database";
 import { userTable, workspaceUserTable } from "../../database/schema";
+import { isWorkspaceGuest } from "../../guest/is-workspace-guest";
+import { sharesProjectCondition } from "../../guest/shares-project-condition";
 import { escapeLikePattern } from "../like-pattern";
 import type { SearchResult } from "../search-result";
 
-// Members of one workspace by name or email: what its member list already
-// shows to anyone who can read the workspace.
+// Members of one workspace by name. Email addresses are never matched, so a
+// search cannot confirm who holds one. A guest finds only the people of their
+// own projects, without their email addresses, as on the member list.
 export async function searchPeople(params: {
   query: string;
+  userId: string;
   workspaceId: string;
   limit: number;
 }): Promise<SearchResult[]> {
-  const { query, workspaceId, limit } = params;
+  const { query, userId, workspaceId, limit } = params;
+  const guest = await isWorkspaceGuest(workspaceId, userId);
   const pattern = `%${escapeLikePattern(query.trim())}%`;
   const score = sql<number>`CASE
     WHEN LOWER(${userTable.name}) = LOWER(${query.trim()}) THEN 5
-    WHEN ${userTable.name} ILIKE ${pattern} THEN 3
-    ELSE 2
+    ELSE 3
   END`;
 
   const rows = await db
@@ -32,7 +36,14 @@ export async function searchPeople(params: {
     .where(
       and(
         eq(workspaceUserTable.workspaceId, workspaceId),
-        or(ilike(userTable.name, pattern), ilike(userTable.email, pattern)),
+        ilike(userTable.name, pattern),
+        guest
+          ? sharesProjectCondition(
+              userId,
+              workspaceUserTable.userId,
+              workspaceId,
+            )
+          : undefined,
       ),
     )
     .orderBy(desc(score), userTable.name)
@@ -42,7 +53,7 @@ export async function searchPeople(params: {
     id: row.id,
     type: "person",
     title: row.name,
-    description: row.email,
+    description: guest && row.id !== userId ? undefined : row.email,
     userId: row.id,
     workspaceId,
     createdAt: row.joinedAt,
