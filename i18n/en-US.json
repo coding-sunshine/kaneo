@@ -3177,7 +3177,8 @@
 			"loops": "Loops",
 			"pulse": "Pulse",
 			"teams": "Teams",
-			"drafts": "Drafts"
+			"drafts": "Drafts",
+			"chat": "Chat"
 		},
 		"projectList": {
 			"viewProject": "View Project",
