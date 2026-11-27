@@ -4433,7 +4433,16 @@
 			"topic": "Topic",
 			"topicPlaceholder": "What is this channel about?",
 			"unarchive": "Unarchive channel",
-			"removePreview": "Remove preview"
+			"removePreview": "Remove preview",
+			"answerCall": "Answer",
+			"callFailed": "Could not join the call",
+			"callTitle": "Call in",
+			"camera": "Camera",
+			"incomingCall": "{{name}} is calling",
+			"incomingCallIn": "In {{channel}}",
+			"leaveCall": "Leave call",
+			"microphone": "Microphone",
+			"startCall": "Start call"
 		}
 	},
 	"notifications": {

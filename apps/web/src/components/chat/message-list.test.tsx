@@ -99,6 +99,23 @@ describe("MessageList", () => {
     expect(onRemovePreview).toHaveBeenCalledWith("message-1");
   });
 
+  it("turns a pasted meeting link into a link that opens in a new tab", () => {
+    render(
+      <MessageList
+        messages={[
+          message({ body: "call: https://meet.example.test/abc-defg" }),
+        ]}
+      />,
+    );
+    const link = screen.getByRole("link", {
+      name: "https://meet.example.test/abc-defg",
+    });
+    expect(link).toHaveAttribute("href", "https://meet.example.test/abc-defg");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    expect(screen.getByRole("listitem")).toHaveTextContent("call:");
+  });
+
   it("invites the first message in an empty channel", () => {
     render(<MessageList messages={[]} />);
     expect(screen.getByText("navigation:chat.noMessages")).toBeTruthy();

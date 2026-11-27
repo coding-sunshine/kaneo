@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { LinkPreviewCard } from "@/components/chat/link-preview-card";
+import { MessageBody } from "@/components/chat/message-body";
 import type { ChatMessage } from "@/components/chat/types";
 
 export function MessageList({
@@ -49,9 +50,7 @@ export function MessageList({
               })}
             </time>
           </span>
-          <p className="whitespace-pre-wrap break-words text-sm">
-            {message.body}
-          </p>
+          <MessageBody body={message.body} />
           {message.linkPreview && (
             <LinkPreviewCard
               preview={message.linkPreview}

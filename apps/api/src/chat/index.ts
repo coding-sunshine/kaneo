@@ -9,15 +9,19 @@ import { requireWorkspacePermission } from "../utils/require-workspace-permissio
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import { createChannel } from "./controllers/create-channel";
 import { getChannel } from "./controllers/get-channel";
+import { requireCalls } from "./call/require-calls";
 import { inviteMember } from "./controllers/invite-member";
+import { joinCall } from "./controllers/join-call";
 import { joinChannel } from "./controllers/join-channel";
 import { leaveChannel } from "./controllers/leave-channel";
 import { listChannels } from "./controllers/list-channels";
 import { listMessages } from "./controllers/list-messages";
 import { postMessage } from "./controllers/post-message";
 import { removeLinkPreview } from "./controllers/remove-link-preview";
+import { startCall } from "./controllers/start-call";
 import { updateChannel } from "./controllers/update-channel";
 import {
+  callSessionSchema,
   channelDetailSchema,
   channelListSchema,
   channelParam,
@@ -221,6 +225,45 @@ const removePreviewRoute = createRoute({
   },
 });
 
+const callsOff = errorResponse(
+  "Calls are off on this server, or channel not found",
+);
+
+const startCallRoute = createRoute({
+  method: "post",
+  operationId: "startChatCall",
+  path: `${channelPath}/call`,
+  tags,
+  summary: "Start call",
+  description:
+    "Start a voice or video call in a channel you belong to. Rings the other channel members. Needs LiveKit configured on the server.",
+  middleware: [requireCalls, ...write] as const,
+  request: { params: channelParam },
+  responses: {
+    200: jsonResponse("Call started", callSessionSchema),
+    403: notMember,
+    404: callsOff,
+    409: archived,
+  },
+});
+
+const joinCallRoute = createRoute({
+  method: "post",
+  operationId: "joinChatCall",
+  path: `${channelPath}/call/join`,
+  tags,
+  summary: "Join call",
+  description: "Join the call in a channel you belong to.",
+  middleware: [requireCalls, ...write] as const,
+  request: { params: channelParam },
+  responses: {
+    200: jsonResponse("Call session", callSessionSchema),
+    403: notMember,
+    404: callsOff,
+    409: archived,
+  },
+});
+
 const chat = apiRouter()
   .openapi(listRoute, async (c) =>
     c.json(
@@ -306,6 +349,17 @@ const chat = apiRouter()
       ),
       200,
     );
+  })
+  .openapi(startCallRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(
+      await startCall(workspaceId, channelId, c.get("userId")),
+      200,
+    );
+  })
+  .openapi(joinCallRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(await joinCall(workspaceId, channelId, c.get("userId")), 200);
   })
   .openapi(removePreviewRoute, async (c) => {
     const { workspaceId, channelId, messageId } = c.req.valid("param");

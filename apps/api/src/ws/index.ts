@@ -1266,6 +1266,24 @@ subscribeToEvent<{ channelId: string }>(
   },
 );
 
+// Rings each channel member on every device; the caller is already in.
+subscribeToEvent<{
+  workspaceId: string;
+  channelId: string;
+  channelName: string;
+  callerName: string;
+  recipientIds: string[];
+}>("chat.call_started", async (data) => {
+  for (const userId of data.recipientIds)
+    broadcastToUser(userId, {
+      type: "CALL_RINGING",
+      workspaceId: data.workspaceId,
+      channelId: data.channelId,
+      channelName: data.channelName,
+      callerName: data.callerName,
+    });
+});
+
 subscribeToEvent<{ channelId: string }>(
   "chat.message_updated",
   async ({ channelId }) => {

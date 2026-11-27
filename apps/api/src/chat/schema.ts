@@ -90,3 +90,15 @@ export const messageSchema = z
 
 export const messageListSchema = z.array(messageSchema);
 export const leftChannelSchema = z.object({ channelId: z.string() });
+
+export const callSessionSchema = z
+  .object({
+    serverUrl: z
+      .string()
+      .openapi({ description: "The LiveKit server to join." }),
+    roomName: z.string(),
+    token: z.string().openapi({
+      description: "A short-lived LiveKit access token for this room only.",
+    }),
+  })
+  .openapi("ChatCallSession");

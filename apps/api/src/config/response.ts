@@ -49,5 +49,9 @@ export const configSchema = z
       description:
         "Whether the agent and loops are available (an OpenRouter API key is configured).",
     }),
+    hasCalls: z.boolean().openapi({
+      description:
+        "Whether voice and video calls are available (a LiveKit server is configured).",
+    }),
   })
   .openapi("Config");

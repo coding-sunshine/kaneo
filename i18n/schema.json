@@ -17834,6 +17834,33 @@
 						},
 						"removePreview": {
 							"type": "string"
+						},
+						"startCall": {
+							"type": "string"
+						},
+						"incomingCall": {
+							"type": "string"
+						},
+						"incomingCallIn": {
+							"type": "string"
+						},
+						"answerCall": {
+							"type": "string"
+						},
+						"callTitle": {
+							"type": "string"
+						},
+						"callFailed": {
+							"type": "string"
+						},
+						"microphone": {
+							"type": "string"
+						},
+						"camera": {
+							"type": "string"
+						},
+						"leaveCall": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -17873,7 +17900,16 @@
 						"messageLabel",
 						"messagePlaceholder",
 						"send",
-						"removePreview"
+						"removePreview",
+						"startCall",
+						"incomingCall",
+						"incomingCallIn",
+						"answerCall",
+						"callTitle",
+						"callFailed",
+						"microphone",
+						"camera",
+						"leaveCall"
 					]
 				}
 			},

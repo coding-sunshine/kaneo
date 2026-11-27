@@ -4361,7 +4361,16 @@
 			"messageLabel": "Message",
 			"messagePlaceholder": "Message {{name}}",
 			"send": "Send",
-			"removePreview": "Remove preview"
+			"removePreview": "Remove preview",
+			"startCall": "Start call",
+			"incomingCall": "{{name}} is calling",
+			"incomingCallIn": "In {{channel}}",
+			"answerCall": "Answer",
+			"callTitle": "Call in",
+			"callFailed": "Could not join the call",
+			"microphone": "Microphone",
+			"camera": "Camera",
+			"leaveCall": "Leave call"
 		}
 	},
 	"notifications": {
