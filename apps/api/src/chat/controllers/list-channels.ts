@@ -1,4 +1,4 @@
-import { and, asc, eq, isNotNull, or } from "drizzle-orm";
+import { and, asc, eq, isNotNull, isNull, or } from "drizzle-orm";
 import {
   chatChannelMemberTable,
   chatChannelTable,
@@ -8,13 +8,20 @@ import { selectChannels } from "./select-channels";
 
 // The channel directory: every public channel plus the private ones the
 // caller belongs to. A guest gets only the channels they were added to. The
-// sidebar shows the joined, unarchived subset.
+// sidebar shows the joined, unarchived subset. Direct messages have their own
+// list.
 export async function listChannels(workspaceId: string, userId: string) {
   const joined = isNotNull(chatChannelMemberTable.userId);
   const visible = (await isWorkspaceGuest(workspaceId, userId))
     ? joined
     : or(eq(chatChannelTable.isPrivate, false), joined);
   return selectChannels(userId)
-    .where(and(eq(chatChannelTable.workspaceId, workspaceId), visible))
+    .where(
+      and(
+        eq(chatChannelTable.workspaceId, workspaceId),
+        isNull(chatChannelTable.directKey),
+        visible,
+      ),
+    )
     .orderBy(asc(chatChannelTable.name));
 }

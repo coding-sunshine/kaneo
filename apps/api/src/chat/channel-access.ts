@@ -6,13 +6,28 @@ export type ChannelState = {
   archived: boolean;
   // A workspace guest: sees only the channels they were added to.
   guest?: boolean;
+  isDirect: boolean;
 };
 
-export type ChannelAction = "read" | "join" | "post" | "manage" | "invite";
+export type ChannelAction =
+  | "read"
+  | "join"
+  | "post"
+  | "manage"
+  | "invite"
+  | "leave";
 
 const MEMBER_ONLY = new Set<ChannelAction>(["post", "manage", "invite"]);
 const CLOSED_WHEN_ARCHIVED = new Set<ChannelAction>(["join", "post", "invite"]);
 const CLOSED_TO_GUESTS = new Set<ChannelAction>(["manage", "invite"]);
+// A direct message is one conversation per set of people, so its members,
+// name and archive state never change.
+const FIXED_WHEN_DIRECT = new Set<ChannelAction>([
+  "join",
+  "manage",
+  "invite",
+  "leave",
+]);
 
 // One rule set for every channel route. A private channel answers like a
 // missing one to non-members, so its name and existence never leak. To a
@@ -24,6 +39,10 @@ export function assertChannelAccess(
 ): asserts channel is ChannelState {
   if (!channel || ((channel.isPrivate || channel.guest) && !channel.isMember))
     throw new HTTPException(404, { message: "Channel not found" });
+  if (channel.isDirect && FIXED_WHEN_DIRECT.has(action))
+    throw new HTTPException(403, {
+      message: "Direct message members are fixed",
+    });
   if (MEMBER_ONLY.has(action) && !channel.isMember)
     throw new HTTPException(403, { message: "Join the channel first" });
   if (channel.guest && CLOSED_TO_GUESTS.has(action))

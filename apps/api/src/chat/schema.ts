@@ -39,6 +39,13 @@ export const listMessagesQuery = z.object({
   }),
 });
 
+export const openDirectMessageBody = z.object({
+  userIds: z.array(z.string()).min(1).max(8).openapi({
+    description:
+      "The workspace members to talk with. You are always included; one person makes a direct message, more make a group.",
+  }),
+});
+
 export const postMessageBody = z.object({
   body: z.string().trim().min(1).max(4000),
 });
@@ -50,6 +57,10 @@ export const channelSchema = z
     name: z.string(),
     topic: z.string().nullable(),
     isPrivate: z.boolean(),
+    isDirect: z.boolean().openapi({
+      description:
+        "True for a direct message: private to its members, whose list never changes.",
+    }),
     isMember: z.boolean().openapi({
       description: "True when the caller has joined the channel.",
     }),
@@ -65,6 +76,7 @@ export const channelDetailSchema = channelSchema
   .openapi("ChatChannelDetail");
 
 export const channelListSchema = z.array(channelSchema);
+export const directMessageListSchema = z.array(channelDetailSchema);
 
 export const messageSchema = z
   .object({

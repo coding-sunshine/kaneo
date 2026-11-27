@@ -3209,6 +3209,21 @@
 			},
 			"retry": "Retry",
 			"title": "Backups"
+		},
+		"aiAudit": {
+			"acceptedBy": "Accepted by {{name}}",
+			"askedBy": "(asked by {{name}})",
+			"change": "Change",
+			"description": "Every change the agent proposed and someone accepted: the prompt, the tool calls, the sources, who accepted it and what the API answered.",
+			"empty": "No accepted AI changes yet.",
+			"failed": "Failed",
+			"loadError": "The AI audit could not be loaded.",
+			"prompt": "Prompt",
+			"result": "Result",
+			"sources": "Sources",
+			"title": "AI audit",
+			"toolCalls": "Tool calls",
+			"unknownUser": "a removed user"
 		}
 	},
 	"navigation": {
@@ -3520,6 +3535,35 @@
 				"restricted": "Restricted item",
 				"unsourced": "Unsourced",
 				"unsourcedHint": "This answer names no task, document or comment it rests on."
+			},
+			"proposal": {
+				"accept": "Accept",
+				"changesTo": "changes to",
+				"decline": "Decline",
+				"empty": "None",
+				"failed": "The change could not be applied.",
+				"fields": {
+					"assignee": "Assignee",
+					"comment": "Comment",
+					"description": "Description",
+					"dueDate": "Due date",
+					"labels": "Labels",
+					"priority": "Priority",
+					"startDate": "Start date",
+					"status": "Status",
+					"team": "Team",
+					"title": "Title",
+					"position": "Position",
+					"topic": "Topic"
+				},
+				"label": "Proposed change",
+				"reason": "Why:",
+				"status": {
+					"accepted": "Accepted",
+					"declined": "Declined",
+					"failed": "Could not be applied",
+					"pending": "Waiting for you"
+				}
 			}
 		},
 		"customizeSidebar": {
@@ -4464,7 +4508,13 @@
 			"manageMembersTitle": "People in #{{name}}",
 			"onlyYou": "Only you are in this channel.",
 			"remove": "Remove",
-			"removeMemberAria": "Remove {{name}} from the channel"
+			"removeMemberAria": "Remove {{name}} from the channel",
+			"directHint": "Pick one person, or several for a group conversation.",
+			"directMessages": "Direct messages",
+			"directTitle": "New message",
+			"newDirectMessage": "New message",
+			"noOneElse": "Nobody else is in this workspace yet.",
+			"openDirect": "Open conversation"
 		}
 	},
 	"notifications": {

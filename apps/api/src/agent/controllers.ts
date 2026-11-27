@@ -5,7 +5,9 @@ import { agentChatTable, agentMessageTable } from "../database/schema";
 import { assertWithinBudget } from "./budget";
 import { type ChatMessage } from "./openrouter";
 import { type AgentEvent, runAgent } from "./run-agent";
+import { proposer } from "./proposals/create-proposal";
 import { createSelfClient, forwardedAuthHeaders } from "./self-client";
+import { CHAT_WRITE_TOOLS } from "./tools";
 
 export const listChats = (userId: string, workspaceId: string) =>
   db
@@ -108,14 +110,26 @@ export async function sendMessage(
   // Saved before the model runs so a failed run keeps the question.
   await saveMessages(chat.id, [userMessage]);
 
+  const client = createSelfClient(forwardedAuthHeaders(requestHeaders));
   let added: ChatMessage[];
   try {
     added = await runAgent(
       [...history, userMessage],
-      createSelfClient(forwardedAuthHeaders(requestHeaders)),
+      client,
       workspaceId,
       onEvent,
-      { meter: { userId, purpose: "assistant" }, cite: true },
+      {
+        meter: { userId, purpose: "assistant" },
+        cite: true,
+        writes: CHAT_WRITE_TOOLS,
+        propose: proposer({
+          userId,
+          workspaceId,
+          chatId: chat.id,
+          prompt: body.message,
+          client,
+        }),
+      },
     );
   } catch (error) {
     if (error instanceof HTTPException) throw error;

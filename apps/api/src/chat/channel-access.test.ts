@@ -2,7 +2,12 @@ import { HTTPException } from "hono/http-exception";
 import { describe, expect, it } from "vite-plus/test";
 import { assertChannelAccess, type ChannelAction } from "./channel-access";
 
-const publicChannel = { isPrivate: false, isMember: false, archived: false };
+const publicChannel = {
+  isPrivate: false,
+  isMember: false,
+  archived: false,
+  isDirect: false,
+};
 const statusOf = (run: () => void) => {
   try {
     run();
@@ -17,7 +22,14 @@ const check = (
   action: ChannelAction,
 ) => statusOf(() => assertChannelAccess(channel, action));
 
-const actions: ChannelAction[] = ["read", "join", "post", "manage", "invite"];
+const actions: ChannelAction[] = [
+  "read",
+  "join",
+  "post",
+  "manage",
+  "invite",
+  "leave",
+];
 
 describe("chat channel access", () => {
   it("answers 404 for a channel that is not in the workspace", () => {
@@ -45,12 +57,12 @@ describe("chat channel access", () => {
   });
 
   it("lets members of a private channel use it", () => {
-    const member = { isPrivate: true, isMember: true, archived: false };
+    const member = { ...publicChannel, isPrivate: true, isMember: true };
     for (const action of actions) expect(check(member, action)).toBe(200);
   });
 
   it("keeps an archived channel readable but closed to posts, joins and invites", () => {
-    const archived = { isPrivate: false, isMember: true, archived: true };
+    const archived = { ...publicChannel, isMember: true, archived: true };
     expect(check(archived, "read")).toBe(200);
     expect(check(archived, "manage")).toBe(200);
     expect(check(archived, "post")).toBe(409);
@@ -66,5 +78,27 @@ describe("chat channel access", () => {
     expect(check(added, "post")).toBe(200);
     expect(check(added, "manage")).toBe(403);
     expect(check(added, "invite")).toBe(403);
+  });
+
+  it("lets any workspace member leave a public channel", () => {
+    expect(check(publicChannel, "leave")).toBe(200);
+  });
+
+  it("hides a direct message from everyone outside it", () => {
+    const direct = { ...publicChannel, isPrivate: true, isDirect: true };
+    for (const action of actions) expect(check(direct, action)).toBe(404);
+  });
+
+  it("lets direct message members read and post but keeps the members fixed", () => {
+    const direct = {
+      ...publicChannel,
+      isPrivate: true,
+      isDirect: true,
+      isMember: true,
+    };
+    expect(check(direct, "read")).toBe(200);
+    expect(check(direct, "post")).toBe(200);
+    for (const action of ["join", "manage", "invite", "leave"] as const)
+      expect(check(direct, action)).toBe(403);
   });
 });

@@ -16,7 +16,9 @@ import { inviteMember } from "./controllers/invite-member";
 import { joinChannel } from "./controllers/join-channel";
 import { leaveChannel } from "./controllers/leave-channel";
 import { listChannels } from "./controllers/list-channels";
+import { listDirectMessages } from "./controllers/list-direct-messages";
 import { listMessages } from "./controllers/list-messages";
+import { openDirectMessage } from "./controllers/open-direct-message";
 import { postMessage } from "./controllers/post-message";
 import { removeMember } from "./controllers/remove-member";
 import { updateChannel } from "./controllers/update-channel";
@@ -27,11 +29,13 @@ import {
   channelParam,
   channelSchema,
   createChannelBody,
+  directMessageListSchema,
   inviteMemberBody,
   leftChannelSchema,
   listMessagesQuery,
   messageListSchema,
   messageSchema,
+  openDirectMessageBody,
   postMessageBody,
   removedMemberSchema,
   updateChannelBody,
@@ -47,6 +51,9 @@ const noAccess = errorResponse("Missing permission for this workspace");
 const notFound = errorResponse("Channel not found");
 const notMember = errorResponse("Join the channel first");
 const archived = errorResponse("Channel is archived");
+const fixed = errorResponse(
+  "Not a channel member, or a direct message, whose members are fixed",
+);
 // Channel rules (private, member-only, archived) live in channel-access.ts.
 const access = [
   workspaceAccess.fromParam(),
@@ -61,6 +68,7 @@ const write = [
 const channelPath = "/workspace/{workspaceId}/channels/{channelId}";
 // Who manages the workspace's people: adds guests to channels, removes anyone.
 const manageMembers = { member: ["update"] };
+const directPath = "/workspace/{workspaceId}/direct-messages";
 
 const listRoute = createRoute({
   method: "get",
@@ -120,7 +128,7 @@ const updateRoute = createRoute({
   request: { params: channelParam, body: body(updateChannelBody) },
   responses: {
     200: jsonResponse("Channel updated", channelDetailSchema),
-    403: notMember,
+    403: fixed,
     404: notFound,
   },
 });
@@ -136,7 +144,9 @@ const joinRoute = createRoute({
   request: { params: channelParam },
   responses: {
     200: jsonResponse("Joined", channelDetailSchema),
-    403: noAccess,
+    403: errorResponse(
+      "Missing permission for this workspace, or a direct message, whose members are fixed",
+    ),
     404: notFound,
     409: archived,
   },
@@ -154,7 +164,9 @@ const leaveRoute = createRoute({
   request: { params: channelParam },
   responses: {
     200: jsonResponse("Left", leftChannelSchema),
-    403: noAccess,
+    403: errorResponse(
+      "Missing permission for this workspace, or a direct message, whose members are fixed",
+    ),
     404: notFound,
     409: errorResponse("The last member cannot leave a private channel"),
   },
@@ -171,7 +183,7 @@ const inviteRoute = createRoute({
   request: { params: channelParam, body: body(inviteMemberBody) },
   responses: {
     200: jsonResponse("Member added", channelDetailSchema),
-    403: notMember,
+    403: fixed,
     404: errorResponse("Channel or member not found"),
     409: archived,
   },
@@ -195,6 +207,40 @@ const removeMemberRoute = createRoute({
     403: noAccess,
     404: errorResponse("Channel or member not found"),
     409: errorResponse("The last member cannot leave a private channel"),
+  },
+});
+
+const listDirectRoute = createRoute({
+  method: "get",
+  operationId: "listChatDirectMessages",
+  path: directPath,
+  tags,
+  summary: "List direct messages",
+  description:
+    "Your direct messages and group direct messages, newest first. Read and post through the channel routes.",
+  middleware: [...access] as const,
+  request: { params: workspaceIdParam },
+  responses: {
+    200: jsonResponse("Direct messages", directMessageListSchema),
+    403: noAccess,
+  },
+});
+
+const openDirectRoute = createRoute({
+  method: "post",
+  operationId: "openChatDirectMessage",
+  path: directPath,
+  tags,
+  summary: "Open direct message",
+  description:
+    "Open the direct message with these workspace members, creating it the first time. The same people always get the same conversation.",
+  middleware: [...write] as const,
+  request: { params: workspaceIdParam, body: body(openDirectMessageBody) },
+  responses: {
+    200: jsonResponse("Direct message", channelDetailSchema),
+    400: errorResponse("No member other than yourself"),
+    403: noAccess,
+    404: errorResponse("Member not found"),
   },
 });
 
@@ -244,6 +290,25 @@ const chat = apiRouter()
         c.req.valid("param").workspaceId,
         c.get("userId"),
         c.req.valid("json"),
+      ),
+      200,
+    ),
+  )
+  .openapi(listDirectRoute, async (c) =>
+    c.json(
+      await listDirectMessages(
+        c.req.valid("param").workspaceId,
+        c.get("userId"),
+      ),
+      200,
+    ),
+  )
+  .openapi(openDirectRoute, async (c) =>
+    c.json(
+      await openDirectMessage(
+        c.req.valid("param").workspaceId,
+        c.get("userId"),
+        c.req.valid("json").userIds,
       ),
       200,
     ),

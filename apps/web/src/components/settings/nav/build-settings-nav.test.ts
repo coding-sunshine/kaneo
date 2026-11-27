@@ -66,6 +66,18 @@ describe("buildSettingsNav", () => {
     );
   });
 
+  it("offers the AI audit only with AI usage", () => {
+    const links = (nav: ReturnType<typeof build>) =>
+      nav.workspace.links.map((link) => link.to);
+
+    expect(links(build())).not.toContain(
+      "/dashboard/settings/workspace/ai-audit",
+    );
+    expect(links(build({ canManageAiUsage: true }))).toContain(
+      "/dashboard/settings/workspace/ai-audit",
+    );
+  });
+
   it("shows each administration page only with its permission", () => {
     expect(build().admin).toBeNull();
     expect(

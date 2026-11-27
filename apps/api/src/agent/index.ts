@@ -22,6 +22,8 @@ import {
   sentMessageSchema,
   workspaceParam,
 } from "./schema";
+import { chatProposals } from "./proposals/proposal-view";
+import proposalRoutes from "./proposals/proposal-routes";
 import usageRoutes from "./usage-routes";
 
 const noAccess = errorResponse("Missing permission for this workspace");
@@ -88,7 +90,7 @@ const sendRoute = createRoute({
   path: "/workspace/{workspaceId}/messages",
   tags,
   summary: "Send a message to the agent",
-  description: `Send a message and wait for the agent to finish. The agent calls ${brand.name} tools with your own permissions and returns the full transcript of this turn. Answers 429 when the person's daily or the workspace's monthly AI budget is used up.`,
+  description: `Send a message and wait for the agent to finish. The agent reads ${brand.name} with your own permissions; a write becomes a proposal you accept or decline, and nothing changes before you accept it. Returns the full transcript of this turn. Answers 429 when the person's daily or the workspace's monthly AI budget is used up.`,
   middleware: [...read] as const,
   request: {
     params: workspaceParam,
@@ -149,11 +151,12 @@ const routes = agent
   .openapi(getRoute, async (c) => {
     const { workspaceId, chatId } = c.req.valid("param");
     const chat = await getChat(c.get("userId"), workspaceId, chatId);
-    const messages = await withCitations(
-      await readerOf(c, workspaceId),
-      chat.messages,
-    );
-    return c.json({ ...chat, messages }, 200);
+    const reader = await readerOf(c, workspaceId);
+    const [messages, proposals] = await Promise.all([
+      withCitations(reader, chat.messages),
+      chatProposals(reader, chat.id),
+    ]);
+    return c.json({ ...chat, messages, proposals }, 200);
   })
   .openapi(deleteRoute, async (c) => {
     const { workspaceId, chatId } = c.req.valid("param");
@@ -194,6 +197,7 @@ const routes = agent
       }
     }) as never;
   })
-  .route("/", usageRoutes);
+  .route("/", usageRoutes)
+  .route("/", proposalRoutes);
 
 export default routes;

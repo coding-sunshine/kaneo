@@ -6,6 +6,7 @@ import {
   Code,
   CreditCard,
   DatabaseBackup,
+  History,
   Import,
   KeyRound,
   LayoutDashboard,
@@ -249,6 +250,12 @@ export function buildSettingsNav({
                 label: t("settings:aiUsage.title"),
                 to: "/dashboard/settings/workspace/ai-usage",
                 icon: ChartColumn,
+              },
+              {
+                id: "workspace-ai-audit",
+                label: t("settings:aiAudit.title"),
+                to: "/dashboard/settings/workspace/ai-audit",
+                icon: History,
               },
             ]
           : []),
