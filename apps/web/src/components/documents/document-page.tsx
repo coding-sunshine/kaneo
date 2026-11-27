@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import WorkspaceLayout from "@/components/common/workspace-layout";
+import { FigmaLinkCards } from "@/components/figma/figma-link-cards";
 import PageTitle from "@/components/page-title";
 import { MentionedIn } from "@/components/references/mentioned-in";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -198,6 +199,10 @@ export function DocumentPage({
                       document={document}
                       readOnly={!canEdit}
                       titleRef={titleRef}
+                    />
+                    <FigmaLinkCards
+                      content={document.content ?? ""}
+                      className="mx-auto w-full max-w-[55rem] px-6 pb-6 sm:px-10"
                     />
                     <MentionedIn
                       workspaceId={workspaceId}

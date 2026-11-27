@@ -53,5 +53,9 @@ export const configSchema = z
       description:
         "Whether voice and video calls are available (a LiveKit server is configured).",
     }),
+    hasFigmaPreviews: z.boolean().openapi({
+      description:
+        "Whether Figma links show as cards with a thumbnail (a Figma access token is configured). Without it they stay plain links.",
+    }),
   })
   .openapi("Config");

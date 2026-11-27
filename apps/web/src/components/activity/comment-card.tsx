@@ -4,6 +4,7 @@ import { ExternalLink, FolderGit, MessageSquareIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import CommentEditor from "@/components/activity/comment-editor";
+import { FigmaLinkCards } from "@/components/figma/figma-link-cards";
 import { GithubIcon } from "@/components/icons/github-icon";
 import { GitlabIcon } from "@/components/icons/gitlab-icon";
 import { useAuth } from "@/components/providers/auth-provider/hooks/use-auth";
@@ -337,6 +338,13 @@ export default function CommentCard({
             onCancelShortcut={isEditing ? handleCancel : undefined}
           />
         </div>
+
+        {!isEditing && (
+          <FigmaLinkCards
+            content={content}
+            className={cn("pr-3 pb-3", variant === "reply" ? "pl-10" : "pl-3")}
+          />
+        )}
 
         {createdIssues.length > 0 && !isEditing && (
           <CommentCreatedIssues

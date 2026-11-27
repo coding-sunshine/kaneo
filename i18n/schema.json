@@ -24404,6 +24404,25 @@
 						"approveError",
 						"withdrawError"
 					]
+				},
+				"figma": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"open": {
+							"type": "string"
+						},
+						"fetchedAt": {
+							"type": "string"
+						},
+						"refresh": {
+							"type": "string"
+						},
+						"refreshError": {
+							"type": "string"
+						}
+					},
+					"required": ["open", "fetchedAt", "refresh", "refreshError"]
 				}
 			},
 			"required": [
@@ -24463,7 +24482,8 @@
 				"timeTracking",
 				"createModal",
 				"sla",
-				"designReview"
+				"designReview",
+				"figma"
 			]
 		},
 		"invitations": {

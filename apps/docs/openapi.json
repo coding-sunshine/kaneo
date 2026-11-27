@@ -810,6 +810,10 @@
           "hasCalls": {
             "type": "boolean",
             "description": "Whether voice and video calls are available (a LiveKit server is configured)."
+          },
+          "hasFigmaPreviews": {
+            "type": "boolean",
+            "description": "Whether Figma links show as cards with a thumbnail (a Figma access token is configured). Without it they stay plain links."
           }
         },
         "required": [
@@ -836,7 +840,8 @@
           "customOAuthAccountUrl",
           "billingEnabled",
           "hasAgent",
-          "hasCalls"
+          "hasCalls",
+          "hasFigmaPreviews"
         ]
       },
       "McpClientRegistration": {
@@ -8921,6 +8926,53 @@
           "requestedAt",
           "resolvedAt",
           "slaDueAt"
+        ]
+      },
+      "FigmaPreview": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "fileKey": {
+            "type": "string"
+          },
+          "nodeId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "frameName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "thumbnailUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A signed image URL from Figma. It expires after a while; refresh the card for a new one."
+          },
+          "fetchedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When Kaneo last read this file from Figma."
+          }
+        },
+        "required": [
+          "url",
+          "fileKey",
+          "nodeId",
+          "fileName",
+          "frameName",
+          "thumbnailUrl",
+          "fetchedAt"
         ]
       },
       "GitHubAppInfo": {
@@ -49905,6 +49957,205 @@
           },
           "429": {
             "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/figma/preview": {
+      "get": {
+        "operationId": "getFigmaPreview",
+        "tags": [
+          "Figma"
+        ],
+        "summary": "Get a Figma link card",
+        "description": "Get the card for a Figma link: file name, frame name, thumbnail and when it was fetched. The first request for a link in a workspace reads Figma; later ones get the stored card until someone refreshes it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048,
+              "description": "A figma.com file, design, prototype or board link, optionally with a `node-id` for one frame."
+            },
+            "required": true,
+            "description": "A figma.com file, design, prototype or board link, optionally with a `node-id` for one frame.",
+            "name": "url",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The Figma link card",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FigmaPreview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not a figma.com file link",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing workspace:read permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found, Figma previews are off (no access token configured), or the file is not shared with the token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "502": {
+            "description": "Figma did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/figma/preview/refresh": {
+      "post": {
+        "operationId": "refreshFigmaPreview",
+        "tags": [
+          "Figma"
+        ],
+        "summary": "Refresh a Figma link card",
+        "description": "Read the Figma file again and store the new card. A failed read keeps the stored card.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "url": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048,
+                    "description": "A figma.com file, design, prototype or board link, optionally with a `node-id` for one frame."
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "url"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The Figma link card",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FigmaPreview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not a figma.com file link",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing workspace:read permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found, Figma previews are off (no access token configured), or the file is not shared with the token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "502": {
+            "description": "Figma did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }

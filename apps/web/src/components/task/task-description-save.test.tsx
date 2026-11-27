@@ -32,6 +32,10 @@ const mocks = vi.hoisted(() => ({
   editors: [] as unknown[],
 }));
 
+// Figma cards read the config and workspace queries; not under test here.
+vi.mock("@/components/figma/figma-link-cards", () => ({
+  FigmaLinkCards: () => null,
+}));
 vi.mock("@tiptap/react", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@tiptap/react")>();
   return {

@@ -10,6 +10,10 @@ afterEach(() => {
   auth.user = null;
 });
 
+// Figma cards read the config and workspace queries; not under test here.
+vi.mock("@/components/figma/figma-link-cards", () => ({
+  FigmaLinkCards: () => null,
+}));
 vi.mock("./emoji-picker/add-emoji-dialog", () => ({ default: () => null }));
 vi.mock("@/hooks/queries/task/use-get-task", () => ({
   default: () => ({ data: undefined }),

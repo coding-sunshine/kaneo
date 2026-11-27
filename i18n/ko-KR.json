@@ -5769,6 +5769,12 @@
 			"waitingTitle": "Waiting for {{age}}",
 			"withdraw": "Withdraw the review request from {{name}}",
 			"withdrawError": "Could not withdraw the design review request."
+		},
+		"figma": {
+			"open": "Figma에서 {{name}} 열기",
+			"fetchedAt": "{{time}} 가져옴",
+			"refresh": "Figma 미리보기 새로고침",
+			"refreshError": "Figma 미리보기를 새로고침하지 못했습니다."
 		}
 	},
 	"invitations": {
