@@ -16,6 +16,7 @@ import {
   Shield,
   ShieldCheck,
   SlidersHorizontal,
+  Sparkles,
   Tag,
   User,
   Users,
@@ -40,6 +41,8 @@ type BuildSettingsNavInput = {
   billingEnabled: boolean;
   canImport: boolean;
   canManageWebhooks?: boolean;
+  /** The server has AI (a model key or a self-hosted model). */
+  hasAgent?: boolean;
   /** An admin on a server with a model key. */
   canManageAiUsage?: boolean;
   /** The signed-in user's instance permissions. */
@@ -144,6 +147,7 @@ export function buildSettingsNav({
   billingEnabled,
   canImport,
   canManageWebhooks = false,
+  hasAgent = false,
   canManageAiUsage = false,
   adminPermissions,
   projects,
@@ -233,6 +237,16 @@ export function buildSettingsNav({
                 label: t("settings:workspaceWebhooks.title"),
                 to: "/dashboard/settings/workspace/webhooks",
                 icon: Webhook,
+              },
+            ]
+          : []),
+        ...(hasAgent
+          ? [
+              {
+                id: "workspace-ai",
+                label: t("settings:aiDestination.title"),
+                to: "/dashboard/settings/workspace/ai",
+                icon: Sparkles,
               },
             ]
           : []),

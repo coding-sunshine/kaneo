@@ -17,6 +17,18 @@ const usage = vi.hoisted(() => ({
 
 vi.mock("./usage", () => usage);
 
+// The workspace's AI data destination, without a database.
+const destination = vi.hoisted(() => ({
+  current: { provider: "openrouter", model: null } as {
+    provider: "openrouter" | "self-hosted";
+    model: string | null;
+  },
+}));
+vi.mock("./destination/store", async () => {
+  const { endpointFor } = await import("./destination/endpoint");
+  return { workspaceEndpoint: async () => endpointFor(destination.current) };
+});
+
 const schema = {
   type: "object",
   additionalProperties: false,
@@ -59,6 +71,7 @@ beforeEach(() => {
   usage.tokensUsedToday.mockReset().mockResolvedValue(0);
   usage.recordUsage.mockReset().mockResolvedValue(undefined);
   usage.withinMonthlyCap.mockReset().mockResolvedValue(true);
+  destination.current = { provider: "openrouter", model: null };
 });
 
 afterEach(() => {
@@ -67,6 +80,42 @@ afterEach(() => {
 });
 
 describe("extractJson", () => {
+  it("reads a self-hosted workspace's text only on its own model server, without OpenRouter fields", async () => {
+    vi.stubEnv("AI_SELF_HOSTED_URL", "http://models.internal/v1");
+    destination.current = { provider: "self-hosted", model: "local-llm" };
+    const fetchMock = vi.fn(async () => answer('{"statements":[]}'));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await extractJson(request);
+
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      { headers: Record<string, string> },
+    ];
+    expect(url).toBe("http://models.internal/v1/chat/completions");
+    expect(JSON.stringify(init.headers)).not.toContain("test-key");
+    const body = sent(fetchMock);
+    expect(body.model).toBe("local-llm");
+    expect(body.provider).toBeUndefined();
+    expect(body.plugins).toBeUndefined();
+  });
+
+  it("skips a self-hosted workspace's files, and a destination the server cannot serve", async () => {
+    vi.stubEnv("AI_SELF_HOSTED_URL", "http://models.internal/v1");
+    destination.current = { provider: "self-hosted", model: "local-llm" };
+    const fetchMock = vi.fn(async () => answer('{"statements":[]}'));
+    vi.stubGlobal("fetch", fetchMock);
+    const file = {
+      bytes: new Uint8Array([1]),
+      mimeType: "application/pdf",
+      filename: "a.pdf",
+    };
+    expect(await extractJson({ ...request, file })).toBeNull();
+    vi.stubEnv("AI_SELF_HOSTED_URL", "");
+    expect(await extractJson(request)).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("asks once, without streaming, with zero data retention and a strict schema", async () => {
     const fetchMock = vi.fn(async () =>
       answer('{"statements":["Go-live is 14 March."]}'),

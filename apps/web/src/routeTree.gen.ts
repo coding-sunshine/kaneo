@@ -54,6 +54,7 @@ import { Route as LayoutAuthenticatedDashboardSettingsAdminSystemRouteImport } f
 import { Route as LayoutAuthenticatedDashboardSettingsAdminUsersRouteImport } from './routes/_layout/_authenticated/dashboard/settings/admin/users'
 import { Route as LayoutAuthenticatedDashboardSettingsAdminWebhooksRouteImport } from './routes/_layout/_authenticated/dashboard/settings/admin/webhooks'
 import { Route as LayoutAuthenticatedDashboardSettingsAdminWorkspacesRouteImport } from './routes/_layout/_authenticated/dashboard/settings/admin/workspaces'
+import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceAiRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/ai'
 import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceAiAuditRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/ai-audit'
 import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceAiUsageRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/ai-usage'
 import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceBillingRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/billing'
@@ -364,6 +365,12 @@ const LayoutAuthenticatedDashboardSettingsAdminWorkspacesRoute =
     id: '/workspaces',
     path: '/workspaces',
     getParentRoute: () => LayoutAuthenticatedDashboardSettingsAdminRoute,
+  } as any)
+const LayoutAuthenticatedDashboardSettingsWorkspaceAiRoute =
+  LayoutAuthenticatedDashboardSettingsWorkspaceAiRouteImport.update({
+    id: '/ai',
+    path: '/ai',
+    getParentRoute: () => LayoutAuthenticatedDashboardSettingsWorkspaceRoute,
   } as any)
 const LayoutAuthenticatedDashboardSettingsWorkspaceAiAuditRoute =
   LayoutAuthenticatedDashboardSettingsWorkspaceAiAuditRouteImport.update({
@@ -836,6 +843,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/admin/users': typeof LayoutAuthenticatedDashboardSettingsAdminUsersRoute
   '/dashboard/settings/admin/webhooks': typeof LayoutAuthenticatedDashboardSettingsAdminWebhooksRoute
   '/dashboard/settings/admin/workspaces': typeof LayoutAuthenticatedDashboardSettingsAdminWorkspacesRoute
+  '/dashboard/settings/workspace/ai': typeof LayoutAuthenticatedDashboardSettingsWorkspaceAiRoute
   '/dashboard/settings/workspace/ai-audit': typeof LayoutAuthenticatedDashboardSettingsWorkspaceAiAuditRoute
   '/dashboard/settings/workspace/ai-usage': typeof LayoutAuthenticatedDashboardSettingsWorkspaceAiUsageRoute
   '/dashboard/settings/workspace/billing': typeof LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute
@@ -933,6 +941,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings/admin/users': typeof LayoutAuthenticatedDashboardSettingsAdminUsersRoute
   '/dashboard/settings/admin/webhooks': typeof LayoutAuthenticatedDashboardSettingsAdminWebhooksRoute
   '/dashboard/settings/admin/workspaces': typeof LayoutAuthenticatedDashboardSettingsAdminWorkspacesRoute
+  '/dashboard/settings/workspace/ai': typeof LayoutAuthenticatedDashboardSettingsWorkspaceAiRoute
   '/dashboard/settings/workspace/ai-audit': typeof LayoutAuthenticatedDashboardSettingsWorkspaceAiAuditRoute
   '/dashboard/settings/workspace/ai-usage': typeof LayoutAuthenticatedDashboardSettingsWorkspaceAiUsageRoute
   '/dashboard/settings/workspace/billing': typeof LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute
@@ -1037,6 +1046,7 @@ export interface FileRoutesById {
   '/_layout/_authenticated/dashboard/settings/admin/users': typeof LayoutAuthenticatedDashboardSettingsAdminUsersRoute
   '/_layout/_authenticated/dashboard/settings/admin/webhooks': typeof LayoutAuthenticatedDashboardSettingsAdminWebhooksRoute
   '/_layout/_authenticated/dashboard/settings/admin/workspaces': typeof LayoutAuthenticatedDashboardSettingsAdminWorkspacesRoute
+  '/_layout/_authenticated/dashboard/settings/workspace/ai': typeof LayoutAuthenticatedDashboardSettingsWorkspaceAiRoute
   '/_layout/_authenticated/dashboard/settings/workspace/ai-audit': typeof LayoutAuthenticatedDashboardSettingsWorkspaceAiAuditRoute
   '/_layout/_authenticated/dashboard/settings/workspace/ai-usage': typeof LayoutAuthenticatedDashboardSettingsWorkspaceAiUsageRoute
   '/_layout/_authenticated/dashboard/settings/workspace/billing': typeof LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute
@@ -1140,6 +1150,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/admin/users'
     | '/dashboard/settings/admin/webhooks'
     | '/dashboard/settings/admin/workspaces'
+    | '/dashboard/settings/workspace/ai'
     | '/dashboard/settings/workspace/ai-audit'
     | '/dashboard/settings/workspace/ai-usage'
     | '/dashboard/settings/workspace/billing'
@@ -1237,6 +1248,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/admin/users'
     | '/dashboard/settings/admin/webhooks'
     | '/dashboard/settings/admin/workspaces'
+    | '/dashboard/settings/workspace/ai'
     | '/dashboard/settings/workspace/ai-audit'
     | '/dashboard/settings/workspace/ai-usage'
     | '/dashboard/settings/workspace/billing'
@@ -1340,6 +1352,7 @@ export interface FileRouteTypes {
     | '/_layout/_authenticated/dashboard/settings/admin/users'
     | '/_layout/_authenticated/dashboard/settings/admin/webhooks'
     | '/_layout/_authenticated/dashboard/settings/admin/workspaces'
+    | '/_layout/_authenticated/dashboard/settings/workspace/ai'
     | '/_layout/_authenticated/dashboard/settings/workspace/ai-audit'
     | '/_layout/_authenticated/dashboard/settings/workspace/ai-usage'
     | '/_layout/_authenticated/dashboard/settings/workspace/billing'
@@ -1726,6 +1739,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/settings/admin/workspaces'
       preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsAdminWorkspacesRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardSettingsAdminRoute
+    }
+    '/_layout/_authenticated/dashboard/settings/workspace/ai': {
+      id: '/_layout/_authenticated/dashboard/settings/workspace/ai'
+      path: '/ai'
+      fullPath: '/dashboard/settings/workspace/ai'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceAiRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceRoute
     }
     '/_layout/_authenticated/dashboard/settings/workspace/ai-audit': {
       id: '/_layout/_authenticated/dashboard/settings/workspace/ai-audit'
@@ -2237,6 +2257,7 @@ const LayoutAuthenticatedDashboardSettingsProjectsRouteWithChildren =
   )
 
 interface LayoutAuthenticatedDashboardSettingsWorkspaceRouteChildren {
+  LayoutAuthenticatedDashboardSettingsWorkspaceAiRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceAiRoute
   LayoutAuthenticatedDashboardSettingsWorkspaceAiAuditRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceAiAuditRoute
   LayoutAuthenticatedDashboardSettingsWorkspaceAiUsageRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceAiUsageRoute
   LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute
@@ -2250,6 +2271,8 @@ interface LayoutAuthenticatedDashboardSettingsWorkspaceRouteChildren {
 
 const LayoutAuthenticatedDashboardSettingsWorkspaceRouteChildren: LayoutAuthenticatedDashboardSettingsWorkspaceRouteChildren =
   {
+    LayoutAuthenticatedDashboardSettingsWorkspaceAiRoute:
+      LayoutAuthenticatedDashboardSettingsWorkspaceAiRoute,
     LayoutAuthenticatedDashboardSettingsWorkspaceAiAuditRoute:
       LayoutAuthenticatedDashboardSettingsWorkspaceAiAuditRoute,
     LayoutAuthenticatedDashboardSettingsWorkspaceAiUsageRoute:

@@ -25,6 +25,7 @@ import {
 import { chatProposals } from "./proposals/proposal-view";
 import proposalRoutes from "./proposals/proposal-routes";
 import usageRoutes from "./usage-routes";
+import destinationRoutes from "./destination/destination-routes";
 
 const noAccess = errorResponse("Missing permission for this workspace");
 const notFound = errorResponse("Agent is disabled or chat not found");
@@ -198,6 +199,7 @@ const routes = agent
     }) as never;
   })
   .route("/", usageRoutes)
-  .route("/", proposalRoutes);
+  .route("/", proposalRoutes)
+  .route("/", destinationRoutes);
 
 export default routes;

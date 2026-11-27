@@ -64,7 +64,7 @@ const auditRoute = createRoute({
   tags,
   summary: "Get the AI audit",
   description:
-    "The agent writes people accepted in this workspace, newest first, with the prompt, the tool call, sources, the accepting person and the result. A write is left out unless you can open its team and, for a move, the team it goes to. Admins and owners only.",
+    "The agent writes people accepted in this workspace, and admins' changes of the AI data destination, newest first, with the prompt, the tool call, sources, the accepting person and the result. A write is left out unless you can open its team and, for a move, the team it goes to. Admins and owners only.",
   middleware: [...admin] as const,
   request: { params: workspaceParam },
   responses: {

@@ -796,7 +796,7 @@
           },
           "hasAgent": {
             "type": "boolean",
-            "description": "Whether the agent and loops are available (an OpenRouter API key is configured)."
+            "description": "Whether the agent and loops are available (an OpenRouter API key or a self-hosted model URL is configured)."
           }
         },
         "required": [
@@ -3829,6 +3829,14 @@
           "id": {
             "type": "string"
           },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "write",
+              "setting"
+            ],
+            "description": "`write` is an agent write someone accepted; `setting` is an admin's change of the AI data destination (tool `set_ai_destination`)."
+          },
           "tool": {
             "type": "string"
           },
@@ -3946,6 +3954,7 @@
         },
         "required": [
           "id",
+          "kind",
           "tool",
           "taskId",
           "status",
@@ -3959,6 +3968,135 @@
           "result",
           "createdAt",
           "decidedAt"
+        ]
+      },
+      "AiDestination": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "openrouter",
+              "self-hosted"
+            ],
+            "description": "`openrouter` sends the workspace's text to OpenRouter; `self-hosted` sends it only to the model server this instance's owner configured."
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The model that receives the text."
+          },
+          "host": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The OpenRouter host the model is pinned to, if any."
+          },
+          "openRouter": {
+            "type": "object",
+            "properties": {
+              "configured": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "configured"
+            ]
+          },
+          "selfHosted": {
+            "type": "object",
+            "properties": {
+              "configured": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "configured"
+            ],
+            "description": "Whether the server has a self-hosted model URL (`AI_SELF_HOSTED_URL`)."
+          },
+          "canChange": {
+            "type": "boolean",
+            "description": "Whether you may change the destination (admins only)."
+          },
+          "changedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "changedBy": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ]
+          }
+        },
+        "required": [
+          "provider",
+          "model",
+          "host",
+          "openRouter",
+          "selfHosted",
+          "canChange",
+          "changedAt",
+          "changedBy"
+        ]
+      },
+      "SetAiDestination": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string",
+                "enum": [
+                  "openrouter"
+                ]
+              }
+            },
+            "required": [
+              "provider"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string",
+                "enum": [
+                  "self-hosted"
+                ]
+              },
+              "model": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "pattern": "^[\\w.:/@-]+$",
+                "description": "The self-hosted model's name."
+              }
+            },
+            "required": [
+              "provider",
+              "model"
+            ]
+          }
         ]
       },
       "Loop": {
@@ -30132,7 +30270,7 @@
           "Agent"
         ],
         "summary": "Get the AI audit",
-        "description": "The agent writes people accepted in this workspace, newest first, with the prompt, the tool call, sources, the accepting person and the result. A write is left out unless you can open its team and, for a move, the team it goes to. Admins and owners only.",
+        "description": "The agent writes people accepted in this workspace, and admins' changes of the AI data destination, newest first, with the prompt, the tool call, sources, the accepting person and the result. A write is left out unless you can open its team and, for a move, the team it goes to. Admins and owners only.",
         "parameters": [
           {
             "schema": {
@@ -30179,6 +30317,154 @@
           },
           "404": {
             "description": "Agent is disabled or proposal not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/ai-destination": {
+      "get": {
+        "operationId": "getAiDestination",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Get the AI data destination",
+        "description": "Which provider receives this workspace's text when AI runs, and which model.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AI data destination",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiDestination"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "put": {
+        "operationId": "setAiDestination",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Set the AI data destination",
+        "description": "Choose OpenRouter or the server's self-hosted model, by name. The change is listed in the AI audit. A provider the server has not configured answers 400. Admins and owners only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetAiDestination"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AI data destination",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiDestination"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The provider is not configured on this server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or workspace not found",
             "content": {
               "application/json": {
                 "schema": {

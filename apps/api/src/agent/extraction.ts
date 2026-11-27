@@ -1,3 +1,5 @@
+import { HTTPException } from "hono/http-exception";
+import { workspaceEndpoint } from "./destination/store";
 import { DEFAULT_AGENT_MODEL, isAgentEnabled } from "./openrouter";
 import { recordUsage, tokensUsedToday, withinMonthlyCap } from "./usage";
 
@@ -108,44 +110,54 @@ export async function extractJson<T>(
     return null;
   if (!(await withinMonthlyCap(share))) return null;
 
-  const model = extractionModel();
-  const { content: user, plugins } = withFile(request);
-  const response = await fetch(
-    "https://openrouter.ai/api/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        stream: false,
-        max_tokens: request.maxTokens ?? MAX_OUTPUT_TOKENS,
-        reasoning: { effort: "low" },
-        provider: {
-          data_collection: "deny",
-          zdr: true,
-          require_parameters: true,
-        },
-        response_format: {
-          type: "json_schema",
-          json_schema: {
-            name: request.purpose,
-            strict: true,
-            schema: request.schema,
-          },
-        },
-        messages: [
-          { role: "system", content: request.system },
-          { role: "user", content: user },
-        ],
-        plugins,
-      }),
-      // Writing out a long file takes longer than answering about a text.
-      signal: AbortSignal.timeout(request.file ? 300_000 : 90_000),
+  // The workspace's AI data destination decides who reads its documents. A
+  // destination the server cannot serve skips the call; a self-hosted model
+  // gets no files, since only OpenRouter's file parser reads them.
+  const endpoint = await workspaceEndpoint(request.workspaceId).catch(
+    (error: unknown) => {
+      if (error instanceof HTTPException) return null;
+      throw error;
     },
   );
+  if (!endpoint) return null;
+  const openRouter = endpoint.provider === "openrouter";
+  if (!openRouter && request.file) return null;
+  const model = openRouter ? extractionModel() : endpoint.model;
+  const { content: user, plugins } = withFile(request);
+  const response = await fetch(endpoint.url, {
+    method: "POST",
+    headers: { ...endpoint.headers, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model,
+      stream: false,
+      max_tokens: request.maxTokens ?? MAX_OUTPUT_TOKENS,
+      ...(openRouter
+        ? {
+            reasoning: { effort: "low" },
+            provider: {
+              data_collection: "deny",
+              zdr: true,
+              require_parameters: true,
+            },
+            plugins,
+          }
+        : {}),
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: request.purpose,
+          strict: true,
+          schema: request.schema,
+        },
+      },
+      messages: [
+        { role: "system", content: request.system },
+        { role: "user", content: user },
+      ],
+    }),
+    // Writing out a long file takes longer than answering about a text.
+    signal: AbortSignal.timeout(request.file ? 300_000 : 90_000),
+  });
   if (!response.ok) {
     const message = `The extraction request failed (HTTP ${response.status})`;
     const { status } = response;

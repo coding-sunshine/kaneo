@@ -66,6 +66,16 @@ describe("buildSettingsNav", () => {
     );
   });
 
+  it("offers the AI data destination to every member when the server has AI", () => {
+    const links = (nav: ReturnType<typeof build>) =>
+      nav.workspace.links.map((link) => link.to);
+
+    expect(links(build())).not.toContain("/dashboard/settings/workspace/ai");
+    expect(links(build({ hasAgent: true }))).toContain(
+      "/dashboard/settings/workspace/ai",
+    );
+  });
+
   it("offers the AI audit only with AI usage", () => {
     const links = (nav: ReturnType<typeof build>) =>
       nav.workspace.links.map((link) => link.to);

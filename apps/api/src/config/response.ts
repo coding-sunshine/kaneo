@@ -47,7 +47,7 @@ export const configSchema = z
     billingEnabled: z.boolean(),
     hasAgent: z.boolean().openapi({
       description:
-        "Whether the agent and loops are available (an OpenRouter API key is configured).",
+        "Whether the agent and loops are available (an OpenRouter API key or a self-hosted model URL is configured).",
     }),
   })
   .openapi("Config");

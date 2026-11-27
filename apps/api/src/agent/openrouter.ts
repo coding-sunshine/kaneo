@@ -16,18 +16,43 @@ export const DEFAULT_AGENT_MODEL = "z-ai/glm-5.3-flash";
 // one that passed the synthetic check (scripts/assistant-host-check.ts).
 export const DEFAULT_AGENT_HOST = "z-ai/fp8";
 
+/** The OpenRouter host a model is pinned to, or "" for any host. */
+export const agentHost = (model: string) =>
+  process.env.AGENT_HOST ||
+  (model === DEFAULT_AGENT_MODEL ? DEFAULT_AGENT_HOST : "");
+
 function agentProvider(model: string) {
-  const host =
-    process.env.AGENT_HOST ||
-    (model === DEFAULT_AGENT_MODEL ? DEFAULT_AGENT_HOST : "");
+  const host = agentHost(model);
   return {
     data_collection: "deny",
     ...(host ? { order: [host], allow_fallbacks: false } : {}),
   };
 }
 
+export const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+
+/** Where a model call goes, with what credentials, for which model. */
+export type ModelEndpoint = {
+  provider: "openrouter" | "self-hosted";
+  url: string;
+  headers: Record<string, string>;
+  model: string;
+};
+
+export function openRouterEndpoint(): ModelEndpoint {
+  return {
+    provider: "openrouter",
+    url: OPENROUTER_URL,
+    headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}` },
+    model: process.env.AGENT_MODEL || DEFAULT_AGENT_MODEL,
+  };
+}
+
+/** AI is on when the server has an OpenRouter key or a self-hosted model. */
 export function isAgentEnabled(): boolean {
-  return Boolean(process.env.OPENROUTER_API_KEY);
+  return Boolean(
+    process.env.OPENROUTER_API_KEY || process.env.AI_SELF_HOSTED_URL?.trim(),
+  );
 }
 
 export type CompletionUsage = {
@@ -57,33 +82,30 @@ type StreamChunk = {
 
 // Streams the completion (SSE) and folds the deltas into one message. Text
 // deltas go to `onText` as they arrive; tool calls are only used once whole.
-// The tokens the provider reports in its last chunk go to `onUsage`.
+// The tokens the provider reports in its last chunk go to `onUsage`. A
+// self-hosted endpoint gets neither the OpenRouter key nor its routing fields.
 export async function createCompletion(
   messages: ChatMessage[],
   tools: unknown[],
   onText?: (delta: string) => void,
   onUsage?: (usage: CompletionUsage) => void,
+  endpoint: ModelEndpoint = openRouterEndpoint(),
 ): Promise<ChatMessage> {
-  const model = process.env.AGENT_MODEL || DEFAULT_AGENT_MODEL;
-  const response = await fetch(
-    "https://openrouter.ai/api/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        ...(tools.length ? { tools } : {}),
-        stream: true,
-        usage: { include: true },
-        provider: agentProvider(model),
-      }),
-      signal: AbortSignal.timeout(90_000),
-    },
-  );
+  const { model } = endpoint;
+  const response = await fetch(endpoint.url, {
+    method: "POST",
+    headers: { ...endpoint.headers, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model,
+      messages,
+      ...(tools.length ? { tools } : {}),
+      stream: true,
+      ...(endpoint.provider === "openrouter"
+        ? { usage: { include: true }, provider: agentProvider(model) }
+        : { stream_options: { include_usage: true } }),
+    }),
+    signal: AbortSignal.timeout(90_000),
+  });
   if (!response.ok || !response.body) {
     throw new Error(`The model request failed (HTTP ${response.status})`);
   }

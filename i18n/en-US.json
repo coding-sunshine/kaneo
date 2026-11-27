@@ -3011,7 +3011,35 @@
 			"change": "Change",
 			"toolCalls": "Tool calls",
 			"sources": "Sources",
-			"result": "Result"
+			"result": "Result",
+			"destinationChangedBy": "{{name}} changed the AI data destination"
+		},
+		"aiDestination": {
+			"title": "AI",
+			"description": "Where this workspace's text goes when the assistant, loops and summaries run.",
+			"loadError": "The AI settings could not be loaded.",
+			"current": "Data destination",
+			"receiver": "Receives your content",
+			"receiverHint": {
+				"openrouter": "Ticket text, comments and documents the AI reads are sent to OpenRouter, which passes them to the model below. Providers that keep data for training are excluded.",
+				"selfHosted": "Ticket text, comments and documents the AI reads go only to the model server your administrator runs."
+			},
+			"providers": {
+				"openrouter": "OpenRouter",
+				"selfHosted": "Self-hosted model"
+			},
+			"model": "Model",
+			"host": "Served by {{host}}",
+			"noModel": "No model set",
+			"change": "Change destination",
+			"changeHint": "Each change is recorded in the AI audit.",
+			"adminsOnly": "Only workspace admins can change where AI text goes.",
+			"provider": "Provider",
+			"notConfigured": "Not configured on this server",
+			"selfHostedModel": "Self-hosted model name",
+			"selfHostedModelHint": "The model name your self-hosted server serves, for example llama-3.1-8b-instruct.",
+			"save": "Save destination",
+			"saved": "AI data destination saved"
 		},
 		"workspaceWebhooks": {
 			"title": "Webhooks",
@@ -4222,7 +4250,9 @@
 					"dueDate": "Due date",
 					"comment": "Comment",
 					"topic": "Topic",
-					"position": "Position"
+					"position": "Position",
+					"provider": "Provider",
+					"model": "Model"
 				}
 			}
 		},
