@@ -683,6 +683,7 @@ const updateTaskAssigneeRoute = createRoute({
     404: errorResponse(
       "Task not found, or assignee is not a member of the workspace",
     ),
+    409: errorResponse("The task moved to another team while it was assigned"),
   },
 });
 

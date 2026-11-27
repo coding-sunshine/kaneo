@@ -19246,6 +19246,16 @@
               }
             }
           },
+          "409": {
+            "description": "The task moved to another team while it was assigned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "429": {
             "$ref": "#/components/responses/ApiKeyRateLimited"
           }
