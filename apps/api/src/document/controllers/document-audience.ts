@@ -45,6 +45,7 @@ export async function audienceOf(workspaceId: string, place: Place) {
           notBannedCondition(),
           documentVisibility(userTable.id, {
             id: sql`${place.id}::text`,
+            workspaceId: sql`${workspaceId}::text`,
             creatorId: sql`${place.creatorId}::text`,
             scope: sql`${place.scope}::text`,
             projectId: sql`${place.projectId}::text`,

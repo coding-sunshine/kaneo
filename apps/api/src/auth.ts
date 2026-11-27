@@ -43,6 +43,7 @@ import {
   magicLink,
   openAPI,
   organization,
+  twoFactor,
 } from "better-auth/plugins";
 import type { AccessControl } from "better-auth/plugins/access";
 import type { UserWithAnonymous } from "better-auth/plugins/anonymous";
@@ -65,6 +66,18 @@ import {
 import { getInstanceSettings } from "./instance-settings/get-instance-settings";
 import { readStoredSettings } from "./instance-settings/read-stored-settings";
 import { lockedSessionRevocation } from "./utils/locked-session-revocation";
+import { createAuthRateLimit } from "./auth-rate-limit/auth-rate-limit";
+import { challengeEverySignIn } from "./two-factor/challenge-every-sign-in";
+import { assertPasskeyIsSecondFactor } from "./two-factor/passkey-second-factor";
+import {
+  FRESH_CODE_PATHS,
+  requireFreshCode,
+  verifyOwnCode,
+} from "./two-factor/require-fresh-code";
+import {
+  needsTwoFactorSetup,
+  requiresTwoFactor,
+} from "./two-factor/requires-two-factor";
 import { publishEvent } from "./events";
 import { applyInvitationProjectAccess } from "./project-access/apply-invitation-project-access";
 import { resolveInvitationProjectAccess } from "./project-access/resolve-invitation-project-access";
@@ -106,6 +119,11 @@ import {
   checkRegistrationAllowed,
   userExistsByEmail,
 } from "./utils/check-registration-allowed";
+import { addGuestToChannels } from "./guest/add-guest-to-channels";
+import { assertGuestOrganizationWrite } from "./guest/assert-guest-organization-write";
+import { hideMembersFromGuest } from "./guest/hide-members-from-guest";
+import { isWorkspaceGuest } from "./guest/is-workspace-guest";
+import { resolveGuestInvitation } from "./guest/resolve-guest-invitation";
 import { checkWorkspaceName } from "./utils/check-workspace-name";
 import {
   assertCustomOAuthEnv,
@@ -309,6 +327,10 @@ function getDeviceAuthVerificationUri(): string {
   return `${base}/device`;
 }
 
+const twoFactorPlugin = twoFactor({ issuer: brand.name });
+const authRateLimitEnabled = process.env.DISABLE_AUTH_RATE_LIMIT !== "true";
+const authRateLimit = createAuthRateLimit();
+
 export const auth = betterAuth({
   baseURL: baseURLWithoutPath,
   trustedOrigins,
@@ -330,6 +352,7 @@ export const auth = betterAuth({
       teamMember: schema.teamMemberTable,
       apikey: schema.apikeyTable,
       passkey: schema.passkeyTable,
+      twoFactor: schema.twoFactorTable,
       deviceCode: schema.deviceCodeTable,
     },
   }),
@@ -416,7 +439,14 @@ export const auth = betterAuth({
     },
   },
   plugins: [
+    authRateLimit.plugin,
     lockedSessionRevocation,
+    // Before `anonymous`, so a guest session is never linked before the code.
+    twoFactorPlugin,
+    challengeEverySignIn(
+      twoFactorPlugin,
+      `${clientUrl.replace(/\/$/, "")}/auth/two-factor`,
+    ),
     ...(process.env.DISABLE_GUEST_ACCESS !== "true"
       ? [
           anonymous({
@@ -539,6 +569,18 @@ export const auth = betterAuth({
               required: false,
               defaultValue: [],
             },
+            guest: {
+              type: "boolean",
+              input: true,
+              required: false,
+              defaultValue: false,
+            },
+            channelIds: {
+              type: "string[]",
+              input: true,
+              required: false,
+              defaultValue: [],
+            },
           },
         },
         organizationRole: {
@@ -638,23 +680,37 @@ export const auth = betterAuth({
           const role =
             normalizeInvitationRole(invitation.role) ?? invitation.role;
           await assertInvitationOwnerAllowed({ ...invitation, role });
+          const guest = await resolveGuestInvitation({ ...invitation, role });
           const access = await resolveInvitationProjectAccess({
             ...invitation,
+            ...guest,
             role,
           });
-          return { data: { ...access, role } };
+          return { data: { ...access, role, ...guest } };
         },
         beforeAcceptInvitation: async ({ invitation, user }) => {
           assertStoredOwnerRoleSafe(invitation.role);
           await applyInvitationProjectAccess(invitation, user.id);
         },
-        afterAcceptInvitation: async ({ member }) => {
+        afterAcceptInvitation: async ({ invitation, member }) => {
+          await addGuestToChannels(invitation, member.userId);
           await publishMemberProjects(
             member.organizationId,
             member.userId,
           ).catch((error) => {
             console.error("Project member refresh failed:", error);
           });
+        },
+        beforeUpdateMemberRole: async ({ member }) => {
+          // A guest's limits come with the invitation. Widening them means
+          // removing the guest and inviting them again as a member.
+          if (await isWorkspaceGuest(member.organizationId, member.userId)) {
+            throw new APIError("CONFLICT", {
+              code: "GUEST_ROLE_LOCKED",
+              message:
+                "A guest keeps their role. Remove them and invite them again as a member.",
+            });
+          }
         },
         afterUpdateMemberRole: async ({ member }) => {
           if (isOwnerRole(member.role)) {
@@ -761,6 +817,7 @@ export const auth = betterAuth({
       rpID: clientHostname,
       rpName: brand.name,
       origin: clientUrl,
+      authentication: { afterVerification: assertPasskeyIsSecondFactor },
     }),
     deviceAuthorization({
       verificationUri: getDeviceAuthVerificationUri(),
@@ -783,6 +840,12 @@ export const auth = betterAuth({
       },
       // Returned, so every place that resolves a session sees the limit.
       mcpScope: { type: "string", required: false, input: false },
+      twoFactorSetupRequired: {
+        type: "boolean",
+        required: false,
+        input: false,
+        defaultValue: false,
+      },
     },
     cookieCache: {
       // Consult the session store on every request so password recovery
@@ -791,17 +854,16 @@ export const auth = betterAuth({
     },
   },
   rateLimit: {
-    // Enable in cloud; self-hosted instances opt in by setting KANEO_CLOUD.
-    // Default better-auth rate-limit only kicks in for production; we keep the
-    // global limits conservative and tighten signup/invite via customRules.
-    enabled: isCloud(),
+    // On for every instance, cloud or self-hosted. Better Auth's default
+    // rules cap sign-in and password flows; customRules tighten signup/invite.
+    enabled: authRateLimitEnabled,
     window: 10,
     max: 100,
-    customRules: {
+    customRules: authRateLimit.customRules({
       "/sign-up/email": { window: 60, max: 3 },
       "/sign-in/anonymous": { window: 60, max: 3 },
       "/organization/invite-member": { window: 60, max: 5 },
-    },
+    }),
   },
   databaseHooks: {
     user: {
@@ -889,9 +951,19 @@ export const auth = betterAuth({
     },
     session: {
       create: {
-        before: async (_session, ctx) => {
+        before: async (session, ctx) => {
           const oidcSid = takeSignInSessionId(ctx);
-          if (oidcSid) return { data: { oidcSid } };
+          const twoFactorSetupRequired = await needsTwoFactorSetup(
+            session.userId,
+          );
+          if (oidcSid || twoFactorSetupRequired) {
+            return {
+              data: {
+                ...(oidcSid ? { oidcSid } : {}),
+                ...(twoFactorSetupRequired ? { twoFactorSetupRequired } : {}),
+              },
+            };
+          }
         },
       },
       delete: {
@@ -932,6 +1004,7 @@ export const auth = betterAuth({
           // First, so members of an archived workspace get its stable code.
           await assertNativeOrganizationActive(ctx, organizationViewer);
           await assertNativeOrganizationReadAllowed(ctx, organizationViewer);
+          await assertGuestOrganizationWrite(ctx, organizationViewer);
         }
         if (ctx.path === "/organization/delete") {
           // This short-circuits the provider endpoint; retain its key usage check.
@@ -1040,6 +1113,33 @@ export const auth = betterAuth({
         }
         if (ctx.path === "/sign-in/anonymous") {
           await assertGuestRegistrationAllowed();
+        }
+        if (ctx.path === "/two-factor/disable") {
+          const viewer = await getSessionFromCtx(ctx, {
+            disableRefresh: true,
+          }).catch(() => null);
+          if (viewer && (await requiresTwoFactor(viewer.user.id))) {
+            throw new APIError("FORBIDDEN", {
+              code: "TWO_FACTOR_REQUIRED",
+              message: "This instance requires two-factor sign-in.",
+            });
+          }
+        }
+
+        if (FRESH_CODE_PATHS.has(ctx.path)) {
+          const viewer = await getSessionFromCtx(ctx, {
+            disableRefresh: true,
+          }).catch(() => null);
+          if (
+            viewer &&
+            (viewer.user as { twoFactorEnabled?: boolean }).twoFactorEnabled
+          ) {
+            await requireFreshCode(
+              viewer.user.id,
+              ctx.body?.code,
+              verifyOwnCode(auth.api, ctx.headers ?? new Headers()),
+            );
+          }
         }
 
         if (authCaptchaPaths.has(ctx.path)) {
@@ -1246,6 +1346,15 @@ export const auth = betterAuth({
         }
       }
 
+      if (
+        ctx.path === "/organization/list-members" ||
+        ctx.path === "/organization/get-full-organization"
+      ) {
+        const viewer = await getSessionFromCtx(ctx);
+        if (viewer)
+          await hideMembersFromGuest(viewer.user.id, ctx.context.returned);
+      }
+
       if (ctx.path === "/organization/leave") {
         // The successful endpoint returns the removed member. No post-delete
         // query may prevent revocation after membership has already committed.
@@ -1273,7 +1382,11 @@ export const auth = betterAuth({
         }
       }
 
-      if (ctx.path.startsWith("/sign-up") || ctx.path.startsWith("/sign-in")) {
+      if (
+        ctx.path.startsWith("/sign-up") ||
+        ctx.path.startsWith("/sign-in") ||
+        ctx.path.startsWith("/two-factor/verify")
+      ) {
         const newSession = ctx.context.newSession;
         if (newSession) {
           const workspaceMember = await db
@@ -1329,3 +1442,7 @@ export const auth = betterAuth({
     }),
   },
 });
+
+/** Serves one HTTP auth request; use instead of calling `auth.handler`. */
+export const handleAuthRequest = (request: Request) =>
+  authRateLimit.track(() => auth.handler(request));

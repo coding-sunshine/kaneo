@@ -95,6 +95,10 @@ spec:
               value: {{ .Values.kaneo.env.disablePasswordRegistration | quote }}
             - name: DISABLE_EMAIL_OTP_SIGN_IN
               value: {{ .Values.kaneo.env.disableEmailOtpSignIn | quote }}
+            {{- with .Values.kaneo.env.trustedProxies }}
+            - name: TRUSTED_PROXIES
+              value: {{ . | trim | quote }}
+            {{- end }}
             {{- with .Values.kaneo.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}

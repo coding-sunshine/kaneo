@@ -1,6 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
+import { assertNotGuest } from "../../guest/assert-not-guest";
 import { workspaceUserTable } from "../../database/schema";
 import { publishEvent } from "../../events";
 import { clearMemberProjectAccess } from "../../project-access/clear-member-project-access";
@@ -25,6 +26,7 @@ async function transferWorkspaceOwnership(
     if (!target) {
       throw new HTTPException(404, { message: "Member not found" });
     }
+    await assertNotGuest(workspaceId, userId, tx);
     const otherOwners = members
       .filter((candidate) => isOwnerRole(candidate.role))
       .map((owner) => owner.userId)

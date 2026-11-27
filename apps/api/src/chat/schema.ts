@@ -27,6 +27,11 @@ export const updateChannelBody = z.object({
 });
 
 export const inviteMemberBody = z.object({ userId: z.string() });
+export const channelMemberParam = channelParam.extend({ userId: z.string() });
+export const removedMemberSchema = z.object({
+  channelId: z.string(),
+  userId: z.string(),
+});
 
 export const messageParam = channelParam.extend({ messageId: z.string() });
 

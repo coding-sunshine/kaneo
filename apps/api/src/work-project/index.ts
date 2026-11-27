@@ -5,6 +5,8 @@ import {
   jsonResponse,
 } from "../openapi";
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
+import { isWorkspaceGuest } from "../guest/is-workspace-guest";
+import { refuseGuests } from "../guest/refuse-guests";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import {
   loadWorkProjectDetail,
@@ -100,6 +102,7 @@ const getRoute = createRoute({
   description: "Get a project with its milestones and their progress.",
   middleware: [
     workspaceAccess.fromWorkProject(),
+    refuseGuests(),
     requireWorkspacePermission({ project: ["read"] }),
   ] as const,
   request: { params: workProjectParam },
@@ -120,6 +123,7 @@ const createProjectRoute = createRoute({
   description: "Create a Linear-style project in a workspace.",
   middleware: [
     workspaceAccess.fromBody(),
+    refuseGuests(),
     requireWorkspacePermission({ project: ["create"] }),
   ] as const,
   request: { body: body(createWorkProjectBody) },
@@ -141,6 +145,7 @@ const updateProjectRoute = createRoute({
     "Update any subset of a project's properties; teamIds and memberIds replace the full set.",
   middleware: [
     workspaceAccess.fromWorkProject(),
+    refuseGuests(),
     requireWorkspacePermission({ project: ["update"] }),
   ] as const,
   request: { params: workProjectParam, body: body(updateWorkProjectBody) },
@@ -162,6 +167,7 @@ const deleteProjectRoute = createRoute({
     "Delete a project and its milestones. Its issues stay and lose the project. Its topics and documents go with it, so it is refused while other work relies on one of their facts.",
   middleware: [
     workspaceAccess.fromWorkProject(),
+    refuseGuests(),
     requireWorkspacePermission({ project: ["delete"] }),
   ] as const,
   request: { params: workProjectParam },
@@ -184,6 +190,7 @@ const createMilestoneRoute = createRoute({
   description: "Add a milestone at the end of the project's milestone order.",
   middleware: [
     workspaceAccess.fromWorkProject(),
+    refuseGuests(),
     requireWorkspacePermission({ project: ["update"] }),
   ] as const,
   request: { params: workProjectParam, body: body(createMilestoneBody) },
@@ -204,6 +211,7 @@ const updateMilestoneRoute = createRoute({
   description: "Rename, re-date or reorder a milestone.",
   middleware: [
     workspaceAccess.fromWorkProjectMilestone(),
+    refuseGuests(),
     requireWorkspacePermission({ project: ["update"] }),
   ] as const,
   request: { params: milestoneParam, body: body(updateMilestoneBody) },
@@ -224,6 +232,7 @@ const deleteMilestoneRoute = createRoute({
   description: "Delete a milestone. Its issues stay in the project.",
   middleware: [
     workspaceAccess.fromWorkProjectMilestone(),
+    refuseGuests(),
     requireWorkspacePermission({ project: ["update"] }),
   ] as const,
   request: { params: milestoneParam },
@@ -243,6 +252,7 @@ const listUpdatesRoute = createRoute({
   description: "Health updates posted on a project, newest first.",
   middleware: [
     workspaceAccess.fromWorkProject(),
+    refuseGuests(),
     requireWorkspacePermission({ project: ["read"] }),
   ] as const,
   request: { params: workProjectParam },
@@ -263,6 +273,7 @@ const createUpdateRoute = createRoute({
     "Post an update with a health value; the project's health follows its latest update.",
   middleware: [
     workspaceAccess.fromWorkProject(),
+    refuseGuests(),
     requireWorkspacePermission({ task: ["update"] }),
   ] as const,
   request: { params: workProjectParam, body: body(createUpdateBody) },
@@ -283,6 +294,7 @@ const editUpdateRoute = createRoute({
     "Edit the health or text of an update. Only its author can; the project's health follows the latest update.",
   middleware: [
     workspaceAccess.fromWorkProjectUpdate(),
+    refuseGuests(),
     requireWorkspacePermission({ task: ["update"] }),
   ] as const,
   request: { params: updateParam, body: body(updateUpdateBody) },
@@ -303,6 +315,7 @@ const deleteUpdateRoute = createRoute({
     "Delete an update. Its author or a workspace admin can; the project's health falls back to the previous update, or clears.",
   middleware: [
     workspaceAccess.fromWorkProjectUpdate(),
+    refuseGuests(),
     requireWorkspacePermission({ task: ["update"] }),
   ] as const,
   request: { params: updateParam },
@@ -322,6 +335,7 @@ const listCommentsRoute = createRoute({
   description: "Comments on a project's activity feed, oldest first.",
   middleware: [
     workspaceAccess.fromWorkProject(),
+    refuseGuests(),
     requireWorkspacePermission({ project: ["read"] }),
   ] as const,
   request: { params: workProjectParam },
@@ -341,6 +355,7 @@ const createCommentRoute = createRoute({
   description: "Add a comment to a project's activity feed.",
   middleware: [
     workspaceAccess.fromWorkProject(),
+    refuseGuests(),
     requireWorkspacePermission({ task: ["update"] }),
   ] as const,
   request: { params: workProjectParam, body: body(commentBody) },
@@ -360,6 +375,7 @@ const editCommentRoute = createRoute({
   description: "Edit a project comment. Only its author can.",
   middleware: [
     workspaceAccess.fromWorkProjectComment(),
+    refuseGuests(),
     requireWorkspacePermission({ task: ["update"] }),
   ] as const,
   request: { params: updateParam, body: body(commentBody) },
@@ -379,6 +395,7 @@ const deleteCommentRoute = createRoute({
   description: "Delete a project comment. Its author or a workspace admin can.",
   middleware: [
     workspaceAccess.fromWorkProjectComment(),
+    refuseGuests(),
     requireWorkspacePermission({ task: ["update"] }),
   ] as const,
   request: { params: updateParam },
@@ -412,6 +429,9 @@ const workProject = apiRouter()
   .openapi(listRoute, async (c) => {
     const { workspaceId } = c.req.valid("param");
     const { teamId } = c.req.valid("query");
+    // Projects span the workspace; a guest has none of them.
+    if (await isWorkspaceGuest(workspaceId, c.get("userId")))
+      return c.json([], 200);
     return c.json(
       await loadWorkProjects(
         eq(workProjectTable.workspaceId, workspaceId),
@@ -421,9 +441,12 @@ const workProject = apiRouter()
       200,
     );
   })
-  .openapi(pulseRoute, async (c) =>
-    c.json(await listWorkspaceUpdates(c.req.valid("param").workspaceId), 200),
-  )
+  .openapi(pulseRoute, async (c) => {
+    const { workspaceId } = c.req.valid("param");
+    if (await isWorkspaceGuest(workspaceId, c.get("userId")))
+      return c.json([], 200);
+    return c.json(await listWorkspaceUpdates(workspaceId), 200);
+  })
   .openapi(listUpdatesRoute, async (c) =>
     c.json(await listProjectUpdates(c.req.valid("param").id), 200),
   )

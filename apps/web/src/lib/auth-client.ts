@@ -10,6 +10,7 @@ import {
   lastLoginMethodClient,
   magicLinkClient,
   organizationClient,
+  twoFactorClient,
 } from "better-auth/client/plugins";
 import type { AccessControl } from "better-auth/plugins/access";
 import { createAuthClient } from "better-auth/react";
@@ -60,6 +61,16 @@ export const authClient = createAuthClient({
               input: true,
               required: false,
             },
+            guest: {
+              type: "boolean",
+              input: true,
+              required: false,
+            },
+            channelIds: {
+              type: "string[]",
+              input: true,
+              required: false,
+            },
           },
         },
       }),
@@ -67,6 +78,8 @@ export const authClient = createAuthClient({
     deviceAuthorizationClient(),
     apiKeyClient(),
     passkeyClient(),
+    // Sign-in forms route a twoFactorRedirect themselves.
+    twoFactorClient(),
     adminClient(),
     inferAdditionalFields({
       user: {
@@ -74,6 +87,13 @@ export const authClient = createAuthClient({
           type: "string",
           required: false,
           input: true,
+        },
+      },
+      session: {
+        twoFactorSetupRequired: {
+          type: "boolean",
+          required: false,
+          input: false,
         },
       },
     }),

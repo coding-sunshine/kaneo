@@ -7,6 +7,7 @@ export type AdminSettingsChange = Partial<{
   registrationEnabled: boolean;
   passwordRegistrationEnabled: boolean;
   requireEmailVerification: boolean;
+  requireTwoFactor: boolean;
   defaultRole: string;
   workspaceCreationRestricted: boolean;
   disabledIntegrations: string[];

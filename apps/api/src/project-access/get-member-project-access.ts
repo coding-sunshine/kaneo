@@ -9,7 +9,10 @@ export async function getMemberProjectAccess(
   database: DbOrTx = db,
 ): Promise<MemberProjectAccess> {
   const [rule] = await database
-    .select({ projectAccess: schema.workspaceMemberAccessTable.projectAccess })
+    .select({
+      projectAccess: schema.workspaceMemberAccessTable.projectAccess,
+      guest: schema.workspaceMemberAccessTable.guest,
+    })
     .from(schema.workspaceMemberAccessTable)
     .where(
       and(
@@ -37,5 +40,6 @@ export async function getMemberProjectAccess(
     userId,
     projectAccess: "selected",
     projectIds: grants.map((grant) => grant.projectId),
+    ...(rule.guest ? { guest: true } : {}),
   };
 }

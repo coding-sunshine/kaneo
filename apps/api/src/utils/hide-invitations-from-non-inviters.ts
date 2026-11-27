@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import db, { schema } from "../database";
+import { isWorkspaceGuest } from "../guest/is-workspace-guest";
 import { isOwnerRole } from "../project-access/is-owner-role";
 import { normalizeInvitationRole } from "../workspace-members/normalize-invitation-role";
 import { hasInstanceAdminRole } from "./instance-admin-role";
@@ -28,12 +29,14 @@ export async function hideInvitationsFromNonInviters(
         ),
       )
       .limit(1);
+    const canInvite = member
+      ? await roleHasWorkspacePermission(workspaceId, member.role, {
+          invitation: ["create"],
+        })
+      : false;
     allowed.set(workspaceId, {
-      canInvite: member
-        ? await roleHasWorkspacePermission(workspaceId, member.role, {
-            invitation: ["create"],
-          })
-        : false,
+      // A guest never invites, whatever their role would allow.
+      canInvite: canInvite && !(await isWorkspaceGuest(workspaceId, viewer.id)),
       owner: isOwnerRole(member?.role),
     });
   }

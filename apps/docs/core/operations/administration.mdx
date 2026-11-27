@@ -68,7 +68,7 @@ Kaneo has two built-in roles: **Admin** has every permission and **User** has no
 | `users:update` | Editing a user's name, email, role, and profile picture |
 | `users:disable` | Deactivating and reactivating users |
 | `users:delete` | Deleting users |
-| `users:credentials` | Sending password reset and verification emails, and marking an email verified |
+| `users:credentials` | Sending password reset and verification emails, marking an email verified, and resetting two-factor sign-in |
 | `users:sessions` | Seeing and ending a user's sessions |
 | `users:api_keys` | Seeing and revoking a user's API keys |
 | `workspaces:read` | Seeing every workspace and its members |
@@ -147,6 +147,11 @@ Open **Settings → Administration → Settings** to change how the instance beh
 - **Open registration**: when off, only people with a valid invitation can create an account, the same as `DISABLE_REGISTRATION=true`.
 - **Email and password sign-up**: when off, new accounts must use GitHub, Google, Discord, or your OIDC provider, the same as `DISABLE_PASSWORD_REGISTRATION=true`. Guest access is off while either registration setting is off.
 - **Require email verification**: new password sign-ups are emailed a confirmation link and can't sign in with their password until they confirm. Signing in before then sends a new link. Accounts that existed before you turned it on, administrator-created accounts, and accounts from email codes, magic links, or single sign-on are not affected. Needs SMTP.
+- **Require two-factor sign-in**: anyone can turn on two-factor sign-in under **Settings → Account → Security**; this makes it mandatory for everyone with a password. Each one is sent to setup at their next sign-in and can't use the app or API until it is done; sessions from before you turned it on keep working until they end. People who only sign in with email codes, magic links, or single sign-on are not affected. While it is on, people can't turn their own two-factor off.
+
+  Once two-factor is on, showing the authenticator key again, making new recovery codes, or turning two-factor off needs a current code from the authenticator app as well as the password. Ten wrong codes in a row, counted together with wrong codes at sign-in, lock code entry for that account for 15 minutes. A passkey sign-in counts as both steps only when the passkey checked the person's PIN, fingerprint, or face; a passkey that didn't is refused for anyone who has two-factor on or is required to have it.
+
+  If someone loses their authenticator app and their recovery codes, choose **Reset two-factor sign-in** on their row in the user directory (needs `users:credentials`). It removes their authenticator key, recovery codes, and remembered devices, keeps their sessions, and is recorded in the audit log. You need two-factor on for your own account, and the dialog asks for a current code from your authenticator app or one of your recovery codes: a signed-in admin session alone can't reset anyone. You can't reset your own this way. Confirm who is asking first: afterwards their password alone signs them in until they turn two-factor on again, which this setting makes them do at their next sign-in.
 - **Default role for new users**: the instance role every new account gets, whether it signs up with a password, an email code, or single sign-on, or is created by an administrator without a role. It can be **User** or a custom role, never **Admin**, and you can only choose a role whose permissions you have. A role can't be deleted while it is the default. Guests and the first account on a new instance are not affected.
 - **Only administrators can create workspaces**: the same as `DISABLE_WORKSPACE_CREATION=true`.
 - **Integrations**: turning a provider off stops its connected projects from syncing, delivering, and handling webhooks, and stops projects from connecting, changing, or importing through it. Projects still show saved connections with a Disconnect action while the provider is off. Turning it back on resumes the saved connections.
