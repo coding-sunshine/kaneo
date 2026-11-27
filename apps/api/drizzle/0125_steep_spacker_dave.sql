@@ -1,0 +1,2 @@
+ALTER TABLE "chat_channel" ADD COLUMN "direct_key" text;--> statement-breakpoint
+CREATE UNIQUE INDEX "chat_channel_workspace_direct_key_idx" ON "chat_channel" USING btree ("workspace_id","direct_key");
