@@ -277,7 +277,8 @@ const listMessagesRoute = createRoute({
   path: `${channelPath}/messages`,
   tags,
   summary: "List messages",
-  description: "The newest 50 messages, oldest first.",
+  description:
+    "The newest 50 messages, oldest first. Pass `before` to page back, or `around` to open the page that holds one message.",
   middleware: [...access] as const,
   request: { params: channelParam, query: listMessagesQuery },
   responses: {
@@ -651,7 +652,7 @@ const chat = apiRouter()
         workspaceId,
         channelId,
         c.get("userId"),
-        c.req.valid("query").before,
+        c.req.valid("query"),
       ),
       200,
     );

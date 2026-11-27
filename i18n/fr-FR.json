@@ -3386,7 +3386,9 @@
 				"comment": "Commentaires",
 				"activity": "Activités",
 				"fallback": "Résultats",
-				"document": "Documents"
+				"document": "Documents",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -5886,7 +5888,8 @@
 			"suggestionFeature": "Fonctionnalité",
 			"suggestionInProgress": "En cours",
 			"suggestionCompleted": "Terminé",
-			"resultsFound_many": "{{count}} résultats trouvés"
+			"resultsFound_many": "{{count}} résultats trouvés",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "Créer un workspace",

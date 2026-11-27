@@ -59,6 +59,22 @@ const searchResults = {
       scope: "team",
       parentName: null,
     },
+    {
+      id: "message-1",
+      type: "message",
+      title: "launch-room",
+      content: "the rollout starts at noon",
+      channelId: "channel-1",
+      isDirect: false,
+    },
+    {
+      id: "message-2",
+      type: "message",
+      title: "",
+      content: "can you check the rollout",
+      channelId: "channel-2",
+      isDirect: true,
+    },
   ],
 };
 
@@ -170,6 +186,28 @@ describe("SearchCommandMenu", () => {
         projectId: "project-1",
         taskId: "task-99",
       },
+    });
+  });
+
+  it("names a message by its channel and opens the channel at that message", async () => {
+    render(<SearchCommandMenu open setOpen={vi.fn()} />);
+    fireEvent.change(
+      screen.getByPlaceholderText("navigation:search.inputPlaceholder"),
+      { target: { value: "rollout" } },
+    );
+    expect(
+      await screen.findByText("navigation:search.groups.message"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("workspace:search.directMessage"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("can you check the rollout")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("#launch-room"));
+    expect(navigate).toHaveBeenCalledWith({
+      to: "/dashboard/workspace/$workspaceId/channels/$channelId",
+      params: { workspaceId: "workspace-1", channelId: "channel-1" },
+      search: { messageId: "message-1" },
     });
   });
 });

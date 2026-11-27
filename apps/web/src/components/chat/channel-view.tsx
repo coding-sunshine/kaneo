@@ -14,13 +14,20 @@ import { usePresenceHeartbeat } from "@/hooks/use-presence-heartbeat";
 import { useDirectMessageTitle } from "@/hooks/use-direct-message-title";
 import { toast } from "@/lib/toast";
 
-/** One channel: header with topic, history, then the composer. */
+/**
+ * One channel: header with topic, history, then the composer. `messageId`
+ * opens the history around that message; posting returns to the newest.
+ */
 export function ChannelView({
   workspaceId,
   channelId,
+  messageId,
+  onPosted,
 }: {
   workspaceId: string;
   channelId: string;
+  messageId?: string;
+  onPosted?: () => void;
 }) {
   const { user } = useAuth();
   const { data: channel, isError } = useChannel(workspaceId, channelId);
@@ -35,6 +42,7 @@ export function ChannelView({
     channelId,
     Boolean(channel),
     live,
+    messageId,
   );
   useMarkChannelRead(
     workspaceId,
@@ -57,13 +65,14 @@ export function ChannelView({
       <div className="min-h-0 flex-1 overflow-y-auto">
         <MessageList
           messages={messages}
+          focusId={messageId}
           workspaceId={workspaceId}
           channelId={channelId}
           currentUserId={user?.id}
           canWrite={channel.isMember && !channel.archivedAt}
           online={presenceOn ? online : undefined}
-          onRemovePreview={(messageId) =>
-            removePreview.mutate(messageId, {
+          onRemovePreview={(id) =>
+            removePreview.mutate(id, {
               onError: (error) => toast.error(error.message),
             })
           }
@@ -73,6 +82,7 @@ export function ChannelView({
         workspaceId={workspaceId}
         channel={channel}
         title={title}
+        onPosted={onPosted}
       />
     </div>
   );

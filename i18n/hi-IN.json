@@ -3333,7 +3333,9 @@
 				"comment": "टिप्पणियाँ",
 				"activity": "गतिविधियाँ",
 				"fallback": "परिणाम",
-				"document": "Documents"
+				"document": "Documents",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -5781,7 +5783,8 @@
 			"suggestionBug": "बग",
 			"suggestionFeature": "फ़ीचर",
 			"suggestionInProgress": "प्रगति में",
-			"suggestionCompleted": "पूर्ण"
+			"suggestionCompleted": "पूर्ण",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "वर्कस्पेस बनाएँ",

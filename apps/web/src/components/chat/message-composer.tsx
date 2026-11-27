@@ -9,12 +9,14 @@ type MessageComposerProps = {
   workspaceId: string;
   channelId: string;
   channelName: string;
+  onPosted?: () => void;
 };
 
 export function MessageComposer({
   workspaceId,
   channelId,
   channelName,
+  onPosted,
 }: MessageComposerProps) {
   const { t } = useTranslation();
   const [body, setBody] = useState("");
@@ -24,7 +26,10 @@ export function MessageComposer({
     const text = body.trim();
     if (!text || post.isPending) return;
     post.mutate(text, {
-      onSuccess: () => setBody(""),
+      onSuccess: () => {
+        setBody("");
+        onPosted?.();
+      },
       onError: (error) => toast.error(error.message),
     });
   };

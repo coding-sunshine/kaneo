@@ -708,7 +708,9 @@
 				"comment": "Komentarze",
 				"activity": "Aktywności",
 				"fallback": "Wyniki",
-				"document": "Documents"
+				"document": "Documents",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -2152,7 +2154,8 @@
 			"suggestionBug": "Błąd",
 			"suggestionFeature": "Funkcja",
 			"suggestionInProgress": "W trakcie",
-			"suggestionCompleted": "Ukończone"
+			"suggestionCompleted": "Ukończone",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "Utwórz obszar roboczy",

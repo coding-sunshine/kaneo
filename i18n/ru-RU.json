@@ -3447,7 +3447,9 @@
 				"comment": "Комментарии",
 				"activity": "Активности",
 				"fallback": "Результаты",
-				"document": "Documents"
+				"document": "Documents",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -6043,7 +6045,8 @@
 			"suggestionBug": "Баг",
 			"suggestionFeature": "Фича",
 			"suggestionInProgress": "В работе",
-			"suggestionCompleted": "Завершённые"
+			"suggestionCompleted": "Завершённые",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "Создание рабочей области",

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LinkPreviewCard } from "@/components/chat/link-preview-card";
 import { MessageActions } from "@/components/chat/message-actions";
@@ -14,6 +14,8 @@ type MessageItemProps = {
   currentUserId: string | undefined;
   canWrite: boolean;
   online: boolean;
+  /** Opened from a search result: scrolled into view and marked. */
+  focused?: boolean;
   onRemovePreview?: (messageId: string) => void;
 };
 
@@ -24,10 +26,15 @@ export function MessageItem({
   currentUserId,
   canWrite,
   online,
+  focused = false,
   onRemovePreview,
 }: MessageItemProps) {
   const { t, i18n } = useTranslation();
   const [editing, setEditing] = useState(false);
+  const item = useRef<HTMLLIElement>(null);
+  useEffect(() => {
+    if (focused) item.current?.scrollIntoView({ block: "center" });
+  }, [focused]);
   const formatTime = (value: string | Date) =>
     new Date(value).toLocaleString(i18n.language, {
       dateStyle: "short",
@@ -35,7 +42,11 @@ export function MessageItem({
     });
 
   return (
-    <li className="group flex flex-col gap-0.5">
+    <li
+      ref={item}
+      aria-current={focused ? true : undefined}
+      className="group flex flex-col gap-0.5 rounded-md aria-[current=true]:bg-accent aria-[current=true]:px-2 aria-[current=true]:py-1"
+    >
       <span className="flex items-baseline gap-2 text-xs">
         <span className="flex items-center gap-1.5 font-medium">
           {message.authorName ?? t("navigation:chat.deletedUser")}

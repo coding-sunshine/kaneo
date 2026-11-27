@@ -3333,7 +3333,9 @@
 				"comment": "Şərhlər",
 				"activity": "Fəaliyyətlər",
 				"fallback": "Nəticələr",
-				"document": "Documents"
+				"document": "Documents",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -5781,7 +5783,8 @@
 			"suggestionBug": "Xəta",
 			"suggestionFeature": "İmkan",
 			"suggestionInProgress": "İcra olunur",
-			"suggestionCompleted": "Tamamlanıb"
+			"suggestionCompleted": "Tamamlanıb",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "İş sahəsi yarat",

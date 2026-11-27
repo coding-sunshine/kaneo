@@ -5,6 +5,8 @@ import type { ChatMessage } from "@/components/chat/types";
 
 type MessageListProps = {
   messages: ChatMessage[];
+  /** A message opened from search: shown in place, not followed. */
+  focusId?: string;
   workspaceId: string;
   channelId: string;
   currentUserId: string | undefined;
@@ -15,15 +17,23 @@ type MessageListProps = {
   onRemovePreview?: (messageId: string) => void;
 };
 
-export function MessageList({ messages, online, ...item }: MessageListProps) {
+export function MessageList({
+  messages,
+  online,
+  focusId,
+  ...item
+}: MessageListProps) {
   const { t } = useTranslation();
   const end = useRef<HTMLDivElement>(null);
   const last = messages.at(-1)?.id;
+  const hasFocus = messages.some((message) => message.id === focusId);
 
-  // Follow the conversation when a new message arrives.
+  // Follow the conversation when a new message arrives, unless a search
+  // result is open: then keep that message in view.
   useEffect(() => {
+    if (hasFocus) return;
     if (last) end.current?.scrollIntoView({ block: "end" });
-  }, [last]);
+  }, [last, hasFocus]);
 
   if (messages.length === 0)
     return (
@@ -42,6 +52,7 @@ export function MessageList({ messages, online, ...item }: MessageListProps) {
           key={message.id}
           message={message}
           online={Boolean(message.userId && online?.has(message.userId))}
+          focused={message.id === focusId}
           {...item}
         />
       ))}

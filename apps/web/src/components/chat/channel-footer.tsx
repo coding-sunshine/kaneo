@@ -10,10 +10,12 @@ export function ChannelFooter({
   workspaceId,
   channel,
   title,
+  onPosted,
 }: {
   workspaceId: string;
   channel: ChatChannelDetail;
   title: string;
+  onPosted?: () => void;
 }) {
   const { t } = useTranslation();
   const join = useJoinChannel(workspaceId, channel.id);
@@ -48,6 +50,7 @@ export function ChannelFooter({
       workspaceId={workspaceId}
       channelId={channel.id}
       channelName={title}
+      onPosted={onPosted}
     />
   );
 }

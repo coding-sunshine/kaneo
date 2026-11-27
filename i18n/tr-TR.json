@@ -3333,7 +3333,9 @@
 				"comment": "Yorumlar",
 				"activity": "Aktiviteler",
 				"fallback": "Sonuçlar",
-				"document": "Documents"
+				"document": "Documents",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -5781,7 +5783,8 @@
 			"suggestionBug": "Hata",
 			"suggestionFeature": "Özellik",
 			"suggestionInProgress": "Devam ediyor",
-			"suggestionCompleted": "Tamamlandı"
+			"suggestionCompleted": "Tamamlandı",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "Çalışma Alanı Oluştur",

@@ -151,6 +151,26 @@ describe("MessageList", () => {
     expect(screen.getByText("navigation:chat.noMessages")).toBeTruthy();
   });
 
+  it("scrolls to and marks the message a search result opened", () => {
+    const scroll = vi.mocked(Element.prototype.scrollIntoView);
+    scroll.mockClear();
+    renderList(
+      [
+        message({ id: "older", body: "older" }),
+        message({ id: "target", body: "target" }),
+        message({ id: "newer", body: "newer" }),
+      ],
+      { focusId: "target" },
+    );
+    const target = screen.getByText("target").closest("li");
+    expect(target).toHaveAttribute("aria-current", "true");
+    expect(screen.getByText("newer").closest("li")).not.toHaveAttribute(
+      "aria-current",
+    );
+    expect(scroll).toHaveBeenCalledTimes(1);
+    expect(scroll.mock.contexts[0]).toBe(target);
+  });
+
   it("marks an edited message", () => {
     renderList([message({ editedAt: "2026-01-02T04:00:00.000Z" })]);
     expect(screen.getByRole("listitem")).toHaveTextContent(

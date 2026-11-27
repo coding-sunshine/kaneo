@@ -3386,7 +3386,9 @@
 				"comment": "Comentários",
 				"activity": "Atividades",
 				"fallback": "Resultados",
-				"document": "Documents"
+				"document": "Documents",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -5886,7 +5888,8 @@
 			"suggestionFeature": "Funcionalidade",
 			"suggestionInProgress": "Em andamento",
 			"suggestionCompleted": "Concluído",
-			"resultsFound_many": "{{count}} resultados encontrados"
+			"resultsFound_many": "{{count}} resultados encontrados",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "Criar espaço de trabalho",

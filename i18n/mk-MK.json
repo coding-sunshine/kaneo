@@ -3333,7 +3333,9 @@
 				"comment": "Коментари",
 				"activity": "Активности",
 				"fallback": "Резултати",
-				"document": "Documents"
+				"document": "Documents",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -5781,7 +5783,8 @@
 			"suggestionBug": "Грешка",
 			"suggestionFeature": "Функционалност",
 			"suggestionInProgress": "Во тек",
-			"suggestionCompleted": "Завршено"
+			"suggestionCompleted": "Завршено",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "Креирај работен простор",

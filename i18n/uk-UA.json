@@ -3439,7 +3439,9 @@
 				"comment": "Коментарі",
 				"activity": "Активність",
 				"fallback": "Результати",
-				"document": "Documents"
+				"document": "Documents",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -5991,7 +5993,8 @@
 			"suggestionBug": "Помилка",
 			"suggestionFeature": "Функція",
 			"suggestionInProgress": "В роботі",
-			"suggestionCompleted": "Завершено"
+			"suggestionCompleted": "Завершено",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "Створення робочого простору",

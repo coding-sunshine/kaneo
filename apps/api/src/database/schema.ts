@@ -3457,6 +3457,7 @@ export const chatMessageTable = pgTable(
       table.channelId,
       table.createdAt,
     ),
+    index("chat_message_search_idx").using("gin", bodyVector(table.body)),
   ],
 );
 

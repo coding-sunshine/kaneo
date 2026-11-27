@@ -7717,18 +7717,21 @@
               "workspace",
               "comment",
               "activity",
-              "document"
+              "document",
+              "message",
+              "person"
             ]
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "What to show for the result. A message's channel name, empty for a direct message; a person's name."
           },
           "description": {
             "type": "string"
           },
           "content": {
             "type": "string",
-            "description": "Matched body text, for comment and activity results. Activities get a rendered summary such as `changed status from Todo to In Progress`."
+            "description": "Matched body text, for comment, activity and message results. Activities get a rendered summary such as `changed status from Todo to In Progress`."
           },
           "projectId": {
             "type": "string"
@@ -7801,6 +7804,14 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "channelId": {
+            "type": "string",
+            "description": "The channel a message was posted in."
+          },
+          "isDirect": {
+            "type": "boolean",
+            "description": "True when a message is in a direct message."
           }
         },
         "required": [
@@ -29510,7 +29521,7 @@
           "Chat"
         ],
         "summary": "List messages",
-        "description": "The newest 50 messages, oldest first.",
+        "description": "The newest 50 messages, oldest first. Pass `before` to page back, or `around` to open the page that holds one message.",
         "parameters": [
           {
             "schema": {
@@ -29537,6 +29548,16 @@
             "required": false,
             "description": "Return messages posted before this time.",
             "name": "before",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "A message id in this channel: return the page that holds it, with up to 25 older messages before it. Takes precedence over `before`."
+            },
+            "required": false,
+            "description": "A message id in this channel: return the page that holds it, with up to 25 older messages before it. Takes precedence over `before`.",
+            "name": "around",
             "in": "query"
           }
         ],
@@ -41031,7 +41052,7 @@
           "Search"
         ],
         "summary": "Global search",
-        "description": "Search across tasks, projects, workspaces, comments, and activities in one workspace. Results are ranked by relevance and returned as a single flat list, each entry tagged with its `type`.",
+        "description": "Search across tasks, projects, workspaces, comments, activities, documents, chat messages and people in one workspace. Messages come only from channels and direct messages the caller can read, archived channels included. Results are ranked by relevance and returned as a single flat list, each entry tagged with its `type`.",
         "parameters": [
           {
             "schema": {
@@ -41053,7 +41074,9 @@
                 "workspaces",
                 "comments",
                 "activities",
-                "documents"
+                "documents",
+                "messages",
+                "people"
               ],
               "default": "all"
             },

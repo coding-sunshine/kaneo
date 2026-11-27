@@ -3333,7 +3333,9 @@
 				"comment": "Kommentare",
 				"activity": "Aktivitäten",
 				"fallback": "Ergebnisse",
-				"document": "Documents"
+				"document": "Documents",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -5781,7 +5783,8 @@
 			"suggestionBug": "Fehler",
 			"suggestionFeature": "Funktion",
 			"suggestionInProgress": "In Bearbeitung",
-			"suggestionCompleted": "Abgeschlossen"
+			"suggestionCompleted": "Abgeschlossen",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "Workspace erstellen",

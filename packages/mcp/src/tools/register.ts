@@ -682,7 +682,7 @@ export function registerTools(
     "search",
     {
       description:
-        "Search across tasks, projects, workspaces, comments, activities, and documents.",
+        "Search across tasks, projects, workspaces, comments, activities, documents, chat messages the caller can read (direct messages included), and workspace members.",
       inputSchema: z.object({
         q: nonEmptyString.describe("Search query"),
         type: z
@@ -694,6 +694,8 @@ export function registerTools(
             "comments",
             "activities",
             "documents",
+            "messages",
+            "people",
           ])
           .optional()
           .describe("Restrict results to one kind. Defaults to all."),

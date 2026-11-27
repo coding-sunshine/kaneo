@@ -3281,7 +3281,9 @@
 				"comment": "Bình luận",
 				"activity": "Hoạt động",
 				"fallback": "Kết quả",
-				"document": "Documents"
+				"document": "Documents",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -5677,7 +5679,8 @@
 			"suggestionBug": "Lỗi",
 			"suggestionFeature": "Tính năng",
 			"suggestionInProgress": "Đang thực hiện",
-			"suggestionCompleted": "Đã hoàn thành"
+			"suggestionCompleted": "Đã hoàn thành",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "Tạo không gian làm việc",
