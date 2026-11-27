@@ -14,6 +14,7 @@ import {
   workspaceUserTable,
 } from "../database/schema";
 import { publishEvent, subscribeToEvent } from "../events";
+import type { LinkChange } from "../task-document/sync-links";
 import { findInaccessibleProjectIds } from "../project-access/find-inaccessible-project-ids";
 import { filterUsersWithProjectAccess } from "../project-access/filter-users-with-project-access";
 import { listWorkspaceProjectIds } from "../project-access/list-workspace-project-ids";
@@ -40,6 +41,11 @@ import {
   listChatConnections,
 } from "./chat-connections";
 import { findUnreadRecipients } from "./chat-unread-recipients";
+import {
+  findDocumentReaders,
+  findLinkedDocumentIds,
+  findTaskProjects,
+} from "./link-change-recipients";
 import { InMemoryBroadcastAdapter } from "./in-memory-broadcast-adapter";
 import { RedisBroadcastAdapter } from "./redis-broadcast-adapter";
 import { getProjectReadAccess } from "./project-read-access";
@@ -1258,6 +1264,42 @@ for (const eventName of taskUpdateEvents) {
     }
   });
 }
+
+// A link between an issue and a document changed. Each side hears only its
+// own id, and only from people who can open that side: a document's readers
+// may not see the issue, and the issue's team may not see the document.
+async function announceLinkChange({
+  workspaceId,
+  taskIds,
+  documentIds,
+}: LinkChange) {
+  const [readers, tasks] = await Promise.all([
+    findDocumentReaders(workspaceId, documentIds),
+    findTaskProjects(workspaceId, taskIds),
+  ]);
+  for (const { documentId, userIds } of readers)
+    for (const userId of userIds)
+      broadcastToUser(userId, {
+        type: "DOCUMENT_LINKS_CHANGED",
+        workspaceId,
+        documentId,
+      });
+  for (const { taskId, projectId } of tasks)
+    broadcastToProject(projectId, {
+      type: "TASK_DOCUMENTS_UPDATED",
+      projectId,
+      taskId,
+    });
+}
+
+subscribeToEvent<LinkChange>("task_document.links_changed", announceLinkChange);
+
+// A new issue writes its links inside its own transaction, which has
+// committed by the time this event is out.
+subscribeToEvent<{ taskId?: string }>("task.created", async ({ taskId }) => {
+  const linked = taskId ? await findLinkedDocumentIds(taskId) : null;
+  if (linked) await announceLinkChange({ ...linked, taskIds: [] });
+});
 
 subscribeToEvent<{
   projectId: string;

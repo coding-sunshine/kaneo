@@ -237,6 +237,12 @@ export function useProjectWebSocket(projectId: string) {
             });
             return;
           }
+          // A document's text started or stopped naming an issue.
+          if (message.type === "TASK_DOCUMENTS_UPDATED") {
+            if (message.taskId)
+              void invalidateLinkedDocuments(queryClient, message.taskId);
+            return;
+          }
           if (
             message.taskId &&
             [
