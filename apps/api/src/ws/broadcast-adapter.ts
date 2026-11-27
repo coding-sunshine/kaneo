@@ -27,6 +27,13 @@ export type UserBroadcast = {
   origin?: string;
 };
 
+/** Only says that a channel changed; clients refetch what they may read. */
+export type ChatBroadcast = {
+  channelId: string;
+  message: { type: string; channelId: string };
+  origin?: string;
+};
+
 export type BroadcastAdapter = {
   /** Publish a message to all instances watching this project */
   publish(msg: BroadcastMessage): Promise<void>;
@@ -41,6 +48,12 @@ export type BroadcastAdapter = {
   subscribeToUser(
     handler: (msg: UserBroadcast) => void | Promise<void>,
     onRecovery?: () => Promise<void>,
+  ): Promise<void>;
+
+  publishToChat(msg: ChatBroadcast): Promise<void>;
+
+  subscribeToChat(
+    handler: (msg: ChatBroadcast) => void | Promise<void>,
   ): Promise<void>;
 
   /** Cleanup on shutdown */
