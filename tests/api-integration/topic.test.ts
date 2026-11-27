@@ -634,10 +634,24 @@ describe("API integration: topics and the current document", () => {
     await api.file(owner, topic.id, id);
     const write = (user: Member) =>
       statusOf(api.edit(user, id, { content: `<p>${user.id}</p>` }));
+    // Lists tell each reader the same thing the edit route decides.
+    const listedCanEdit = async (user: Member) => {
+      const response = await world.as(user)(
+        `/document/workspace/${world.ws}?topicId=${topic.id}`,
+      );
+      const rows = (await response.json()) as {
+        id: string;
+        canEdit: boolean;
+      }[];
+      return rows.find((row) => row.id === id)?.canEdit;
+    };
 
     expect(await write(open)).toBe(403);
+    expect(await listedCanEdit(open)).toBe(false);
     await api.current(open, topic.id, id);
+    expect(await listedCanEdit(limited)).toBe(false);
     expect(await write(limited)).toBe(403);
+    expect(await listedCanEdit(open)).toBe(true);
     expect(await write(open)).toBe(200);
     expect((await api.document(owner, id)).content).toBe(`<p>${open.id}</p>`);
   });

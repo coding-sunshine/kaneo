@@ -5089,6 +5089,10 @@
             "format": "date-time",
             "description": "The Inbox hides the document until this time. Null when it is not set aside."
           },
+          "canEdit": {
+            "type": "boolean",
+            "description": "Whether you may edit the document, and so snooze it in the Inbox."
+          },
           "currentDocumentId": {
             "type": [
               "string",
@@ -5127,6 +5131,7 @@
           "createdAt",
           "updatedAt",
           "snoozedUntil",
+          "canEdit",
           "currentDocumentId",
           "replacesDocumentId"
         ]
