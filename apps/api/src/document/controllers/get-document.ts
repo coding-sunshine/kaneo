@@ -13,7 +13,7 @@ import {
 import { projectAccessCondition } from "../../project-access/project-access-condition";
 import { topicAccess } from "../visibility";
 import { readLineage } from "./lineage";
-import { documentParentName } from "./list-documents";
+import { documentParentName, openParentId } from "./list-documents";
 import { loadDocument } from "./load-document";
 import { sharedTasksOf } from "./share-with-task";
 
@@ -45,6 +45,8 @@ export async function getDocument(
       db
         .select({
           name: documentParentName(userId),
+          projectId: openParentId(userId, documentTable.projectId),
+          taskId: openParentId(userId, documentTable.taskId),
           topicName: topicTable.name,
         })
         .from(documentTable)
@@ -112,9 +114,9 @@ export async function getDocument(
     color: doc.color,
     content: doc.content,
     scope: doc.scope,
-    projectId: doc.projectId,
+    projectId: parent?.projectId ?? null,
     workProjectId: doc.workProjectId,
-    taskId: doc.taskId,
+    taskId: parent?.taskId ?? null,
     parentName: parent?.name ?? null,
     kind: doc.kind,
     status: doc.status,

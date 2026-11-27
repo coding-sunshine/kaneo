@@ -1,4 +1,14 @@
-import { and, desc, eq, gt, isNull, ne, or, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  gt,
+  isNull,
+  ne,
+  or,
+  type SQLWrapper,
+  sql,
+} from "drizzle-orm";
 import type { z } from "zod";
 import db from "../../database";
 import { documentTable, userTable } from "../../database/schema";
@@ -30,6 +40,13 @@ export const documentParentName = (userId: string) =>
     )
   END`;
 
+// A document shared by name keeps the ids of a team or issue the viewer
+// cannot open to itself, like the name above.
+export const openParentId = (userId: string, id: SQLWrapper) =>
+  sql<string | null>`CASE
+    WHEN ${documentParentAccess(userId, documentTable)} THEN ${id}
+  END`;
+
 export const documentSummaryColumns = (userId: string) => ({
   id: documentTable.id,
   workspaceId: documentTable.workspaceId,
@@ -37,9 +54,9 @@ export const documentSummaryColumns = (userId: string) => ({
   icon: documentTable.icon,
   color: documentTable.color,
   scope: documentTable.scope,
-  projectId: documentTable.projectId,
+  projectId: openParentId(userId, documentTable.projectId),
   workProjectId: documentTable.workProjectId,
-  taskId: documentTable.taskId,
+  taskId: openParentId(userId, documentTable.taskId),
   parentName: documentParentName(userId),
   kind: documentTable.kind,
   status: documentTable.status,

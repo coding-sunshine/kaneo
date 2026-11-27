@@ -237,9 +237,13 @@ const documentFields = {
   icon: z.string().nullable(),
   color: z.string().nullable(),
   scope: z.enum(DOCUMENT_SCOPES),
-  projectId: z.string().nullable(),
+  projectId: z.string().nullable().openapi({
+    description: "The parent team. Null when the viewer cannot open it.",
+  }),
   workProjectId: z.string().nullable(),
-  taskId: z.string().nullable(),
+  taskId: z.string().nullable().openapi({
+    description: "The parent issue. Null when the viewer cannot open its team.",
+  }),
   parentName: z.string().nullable().openapi({
     description: "Team name, project name or issue key of the parent.",
   }),

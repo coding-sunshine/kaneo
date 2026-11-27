@@ -531,7 +531,7 @@ async function globalSearch(params: SearchParams): Promise<{
       .select({
         id: documentTable.id,
         title: documentTable.title,
-        projectId: documentTable.projectId,
+        projectId: projectTable.id,
         projectName: projectTable.name,
         workspaceId: documentTable.workspaceId,
         workspaceName: workspaceTable.name,
@@ -577,7 +577,7 @@ async function globalSearch(params: SearchParams): Promise<{
             workProjectId: documentTable.workProjectId,
             taskId: documentTable.taskId,
           }),
-          projectId ? eq(documentTable.projectId, projectId) : undefined,
+          projectId ? eq(projectTable.id, projectId) : undefined,
           docFts?.match ??
             or(
               ilike(documentTable.title, searchPattern),

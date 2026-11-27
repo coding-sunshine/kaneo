@@ -3661,7 +3661,8 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "The parent team. Null when the viewer cannot open it."
           },
           "workProjectId": {
             "type": [
@@ -3673,7 +3674,8 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "The parent issue. Null when the viewer cannot open its team."
           },
           "parentName": {
             "type": [
@@ -3849,7 +3851,8 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "The parent team. Null when the viewer cannot open it."
           },
           "workProjectId": {
             "type": [
@@ -3861,7 +3864,8 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "The parent issue. Null when the viewer cannot open its team."
           },
           "parentName": {
             "type": [
