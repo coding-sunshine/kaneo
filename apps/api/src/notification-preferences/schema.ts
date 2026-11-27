@@ -29,7 +29,7 @@ export const updatePreferencesBody = z.object({
     .openapi({ description: "Between 5 minutes and 30 days." }),
   topicUpdatesEnabled: z.boolean().optional().openapi({
     description:
-      "Hear about new proposals and new current documents on followed topics.",
+      "Hear about new proposals, new current documents and approved decisions on followed topics.",
   }),
   scheduleEnabled: z.boolean().optional().openapi({
     description:

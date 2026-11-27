@@ -773,7 +773,7 @@
 			"scheduleTimezone": "Timezone",
 			"scheduleTitle": "Delivery schedule",
 			"eventTopicUpdates": "Followed topics",
-			"eventTopicUpdatesHint": "When a document is proposed or made current on a topic you follow."
+			"eventTopicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision."
 		},
 		"preferencesPage": {
 			"title": "Преференции",
@@ -7707,7 +7707,7 @@
 				"remindBefore": "{{time}} пред тоа",
 				"remindPickerTitle": "Потсети ме пред",
 				"topicUpdates": "Followed topics",
-				"topicUpdatesHint": "When a document is proposed or made current on a topic you follow"
+				"topicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision"
 			},
 			"leadTime": {
 				"minutes15": "15 минути",

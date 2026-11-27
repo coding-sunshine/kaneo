@@ -52,7 +52,7 @@ export const notificationPreferenceSchema = z
     }),
     topicUpdatesEnabled: z.boolean().openapi({
       description:
-        "Hear about new proposals and new current documents on followed topics.",
+        "Hear about new proposals, new current documents and approved decisions on followed topics.",
     }),
     scheduleEnabled: z.boolean(),
     scheduleTimezone: z.string(),

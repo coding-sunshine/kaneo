@@ -50,7 +50,9 @@ export async function persistNotification(
           ? "taskStatusChangeEnabled"
           : type === "due_date_reminder" || type === "task_overdue"
             ? "dueDateReminderEnabled"
-            : type === "document_proposed" || type === "document_current"
+            : type === "document_proposed" ||
+                type === "document_current" ||
+                type === "document_decision"
               ? "topicUpdatesEnabled"
               : null;
 

@@ -765,7 +765,7 @@
 			"scheduleTimezone": "Timezone",
 			"scheduleTitle": "Delivery schedule",
 			"eventTopicUpdates": "Followed topics",
-			"eventTopicUpdatesHint": "When a document is proposed or made current on a topic you follow."
+			"eventTopicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision."
 		},
 		"preferencesPage": {
 			"title": "환경설정",
@@ -7275,7 +7275,7 @@
 				"statusChangesHint": "내 작업이 컬럼 간에 이동할 때",
 				"title": "알림 받을 항목",
 				"topicUpdates": "Followed topics",
-				"topicUpdatesHint": "When a document is proposed or made current on a topic you follow"
+				"topicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision"
 			},
 			"leadTime": {
 				"day1": "1일",
