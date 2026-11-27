@@ -4,6 +4,7 @@ import { closeRedis, getRedisPub, getRedisSub } from "../redis";
 import type {
   BroadcastAdapter,
   BroadcastMessage,
+  ChatBroadcast,
   UserBroadcast,
 } from "./broadcast-adapter";
 
@@ -13,6 +14,9 @@ const CHANNEL_PATTERN = `${CHANNEL_PREFIX}*${CHANNEL_SUFFIX}`;
 
 const USER_CHANNEL_PREFIX = "kaneo:ws-user:";
 const USER_CHANNEL_PATTERN = `${USER_CHANNEL_PREFIX}*${CHANNEL_SUFFIX}`;
+
+const CHAT_CHANNEL_PREFIX = "kaneo:ws-chat:";
+const CHAT_CHANNEL_PATTERN = `${CHAT_CHANNEL_PREFIX}*${CHANNEL_SUFFIX}`;
 
 const broadcastMessageSchema = v.object({
   projectId: v.string(),
@@ -44,14 +48,24 @@ const userBroadcastSchema = v.object({
   origin: v.optional(v.string()),
 });
 
+const chatBroadcastSchema = v.object({
+  channelId: v.string(),
+  message: v.object({ type: v.string(), channelId: v.string() }),
+  origin: v.optional(v.string()),
+});
+
 export class RedisBroadcastAdapter implements BroadcastAdapter {
   private recoveryHandler: (() => void) | null = null;
   private subscribed = false;
   private userSubscribed = false;
+  private chatSubscribed = false;
   private _pmessageHandler:
     | ((pattern: string, channel: string, data: string) => void)
     | null = null;
   private _userPmessageHandler:
+    | ((pattern: string, channel: string, data: string) => void)
+    | null = null;
+  private _chatPmessageHandler:
     | ((pattern: string, channel: string, data: string) => void)
     | null = null;
 
@@ -65,6 +79,13 @@ export class RedisBroadcastAdapter implements BroadcastAdapter {
   async publishToUser(msg: UserBroadcast): Promise<void> {
     await getRedisPub().publish(
       this.channelForUser(msg.userId),
+      JSON.stringify(msg),
+    );
+  }
+
+  async publishToChat(msg: ChatBroadcast): Promise<void> {
+    await getRedisPub().publish(
+      this.channelForChat(msg.channelId),
       JSON.stringify(msg),
     );
   }
@@ -155,6 +176,42 @@ export class RedisBroadcastAdapter implements BroadcastAdapter {
     await getRedisSub().psubscribe(USER_CHANNEL_PATTERN);
   }
 
+  async subscribeToChat(
+    handler: (msg: ChatBroadcast) => void | Promise<void>,
+  ): Promise<void> {
+    if (this.chatSubscribed) return;
+    this.chatSubscribed = true;
+
+    this._chatPmessageHandler = (
+      pattern: string,
+      channel: string,
+      data: string,
+    ) => {
+      if (pattern !== CHAT_CHANNEL_PATTERN) return;
+      try {
+        const parsed = v.safeParse(chatBroadcastSchema, JSON.parse(data));
+        if (!parsed.success) {
+          console.error("Invalid chat broadcast message:", parsed.issues);
+          return;
+        }
+        if (
+          channel !== this.channelForChat(parsed.output.channelId) ||
+          parsed.output.message.channelId !== parsed.output.channelId
+        ) {
+          console.error("Chat broadcast channel and payload disagree");
+          return;
+        }
+        void Promise.resolve(handler(parsed.output)).catch((error) => {
+          console.error("Failed to deliver chat broadcast:", error);
+        });
+      } catch (err) {
+        console.error("Failed to parse chat broadcast message:", err);
+      }
+    };
+    (getRedisSub() as Redis).on("pmessage", this._chatPmessageHandler);
+    await getRedisSub().psubscribe(CHAT_CHANNEL_PATTERN);
+  }
+
   async shutdown(): Promise<void> {
     const sub = getRedisSub() as Redis;
     this.userSubscribed = false;
@@ -171,12 +228,18 @@ export class RedisBroadcastAdapter implements BroadcastAdapter {
       sub.off("pmessage", this._userPmessageHandler);
       this._userPmessageHandler = null;
     }
+    if (this._chatPmessageHandler) {
+      sub.off("pmessage", this._chatPmessageHandler);
+      this._chatPmessageHandler = null;
+    }
 
     // Unsubscribe from the pattern, which covers all project channels
     await getRedisSub().punsubscribe(CHANNEL_PATTERN);
     await getRedisSub().punsubscribe(USER_CHANNEL_PATTERN);
+    await getRedisSub().punsubscribe(CHAT_CHANNEL_PATTERN);
     this.subscribed = false;
     this.userSubscribed = false;
+    this.chatSubscribed = false;
     await closeRedis();
   }
 
@@ -186,5 +249,9 @@ export class RedisBroadcastAdapter implements BroadcastAdapter {
 
   private channelForUser(userId: string): string {
     return `${USER_CHANNEL_PREFIX}${userId}${CHANNEL_SUFFIX}`;
+  }
+
+  private channelForChat(channelId: string): string {
+    return `${CHAT_CHANNEL_PREFIX}${channelId}${CHANNEL_SUFFIX}`;
   }
 }

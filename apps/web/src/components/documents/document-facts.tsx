@@ -44,8 +44,9 @@ export function DocumentFacts({
   const [rejecting, setRejecting] = useState<StatedFact | null>(null);
 
   const isCurrent = document.status === "current";
+  const isProposal = document.status === "in_review";
   const decider = topic?.canDecide ?? false;
-  const canConfirm = canEdit && (!isCurrent || decider);
+  const canConfirm = canEdit && (decider || (!isCurrent && !isProposal));
   const groups = receipt.data ? factGroups(receipt.data, isCurrent) : [];
   const all = facts.data ?? [];
   const rejectedFor = (slot: string) =>
@@ -101,9 +102,13 @@ export function DocumentFacts({
               : "navigation:documents.facts.intro.proposal",
           )}
         </p>
-        {canEdit && isCurrent && !decider && (
+        {canEdit && (isCurrent || isProposal) && !decider && (
           <p className="text-muted-foreground text-xs">
-            {t("navigation:documents.facts.deciderOnly")}
+            {t(
+              isCurrent
+                ? "navigation:documents.facts.deciderOnly"
+                : "navigation:documents.facts.deciderOnlyProposal",
+            )}
           </p>
         )}
         {groups.map((group) => (
@@ -128,6 +133,9 @@ export function DocumentFacts({
                   conflict={conflict}
                   canDecide={decider}
                   deciderName={topic.deciderName}
+                  canConfirm={canConfirm}
+                  confirmPending={confirm.isPending}
+                  onConfirm={() => confirmFact(conflict.statementId)}
                 />
               ))}
             {group.key === "notChecked" &&
@@ -137,7 +145,7 @@ export function DocumentFacts({
                   document={document}
                   fact={fact}
                   rejected={rejectedFor(fact.slot)}
-                  canEdit={canEdit}
+                  canEdit={canEdit && (!isCurrent || decider)}
                 />
               ))}
             {group.key !== "conflicts" &&

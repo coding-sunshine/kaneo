@@ -2,6 +2,7 @@ import { and, eq, gte, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../database";
 import { aiBudgetTable, aiUsageTable } from "../database/schema";
+import { withinMonthlyCap } from "./usage";
 
 export type AiBudget = {
   userDailyTokens: number | null;
@@ -57,11 +58,16 @@ async function tokensSince(since: Date, workspaceId: string, userId?: string) {
 }
 
 /**
- * Throws 429 when the person's daily budget or the workspace's monthly budget
- * is used up. Runs before every model call made for a person, so a spent
- * budget never reaches the model.
+ * Throws 429 when the app's AI spending of this month, the person's daily
+ * budget or the workspace's monthly budget is used up. Runs before every model
+ * call made for a person, so a spent budget never reaches the model.
  */
 export async function assertWithinBudget(workspaceId: string, userId: string) {
+  if (!(await withinMonthlyCap()))
+    throw new HTTPException(429, {
+      message:
+        "AI is paused: monthly AI spending limit reached. It resets on the 1st (UTC).",
+    });
   const budget = await getBudget(workspaceId);
   if (
     budget.userDailyTokens !== null &&

@@ -3826,6 +3826,7 @@
 				},
 				"currentValue": "Current: {{value}}",
 				"deciderOnly": "Only the topic's decider confirms or rejects facts on the current document.",
+				"deciderOnlyProposal": "Only the topic's decider confirms or rejects facts on a proposal.",
 				"groupHints": {
 					"conflicts": "This document and the current document say different things.",
 					"new": "The topic states no value for these yet.",
@@ -4168,6 +4169,45 @@
 			"title": "Views",
 			"toggleDetails": "Toggle details panel",
 			"visibility": "Visibility"
+		},
+		"chat": {
+			"actions": "Channel actions",
+			"add": "Add",
+			"addMember": "Add people",
+			"addMemberTitle": "Add people to {{name}}",
+			"archive": "Archive channel",
+			"archived": "Archived",
+			"archivedNotice": "This channel is archived. Its history stays readable.",
+			"browse": "Browse channels",
+			"channels": "Channels",
+			"create": "Create channel",
+			"createTitle": "Create channel",
+			"deletedUser": "Deleted user",
+			"directoryTitle": "Channels",
+			"empty": "No channels yet",
+			"emptyHint": "Create a channel to talk with your workspace.",
+			"everyoneIsIn": "Everyone in this workspace is already here.",
+			"join": "Join",
+			"joined": "Joined",
+			"joinToPost": "Join this channel to post.",
+			"leave": "Leave channel",
+			"memberCount_other": "{{count}} members",
+			"messageLabel": "Message",
+			"messagePlaceholder": "Message {{name}}",
+			"messages": "Messages",
+			"name": "Channel name",
+			"namePlaceholder": "e.g. design",
+			"newChannel": "New channel",
+			"noMessages": "No messages yet. Say hello.",
+			"notFound": "Channel not found",
+			"private": "Private",
+			"privateHint": "Only people you add can find and read it.",
+			"saveTopic": "Save topic",
+			"send": "Send",
+			"setTopic": "Set topic",
+			"topic": "Topic",
+			"topicPlaceholder": "What is this channel about?",
+			"unarchive": "Unarchive channel"
 		}
 	},
 	"notifications": {
@@ -4263,6 +4303,10 @@
 			"document_question": {
 				"content": "{{documentTitle}}",
 				"title": "Which holds for {{slotName}} in {{topicName}}?"
+			},
+			"document_decision": {
+				"content": "In {{documentTitle}}",
+				"title": "{{actorName}} recorded a decision on {{topicName}}"
 			}
 		},
 		"inbox": {
@@ -6110,7 +6154,8 @@
 			"takeOverSuccess": "You are now the author of this document",
 			"handOverDone_other": "{{count}} documents are now {{name}}'s",
 			"handOverGive": "Give their documents",
-			"ownerlessFrom": "Left by {{name}}"
+			"ownerlessFrom": "Left by {{name}}",
+			"ownerlessInTrash": "In the trash"
 		},
 		"projectAccess": {
 			"allProjects": "所有项目",

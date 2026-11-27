@@ -1,4 +1,6 @@
+import { and, eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
+import db, { schema } from "../../apps/api/src/database";
 import { resetTestDatabase } from "./helpers/database";
 import {
   buildDocumentWorld,
@@ -184,6 +186,49 @@ describe("API integration: recording a decision on a topic", () => {
     const approved = await api.document(owner, id);
     expect(approved.approvedHash).toBe(approved.contentHash);
     expect(approved.statusReason).toBe(why);
+  });
+
+  it("tells the topic's followers once, when a recorded line is approved", async () => {
+    const world = await buildDocumentWorld();
+    const { owner, limited, open } = world;
+    const api = decisions(world);
+    const { topic, id } = await api.withCurrent(owner, open, "The plan.");
+    const followed = await world.as(limited)(
+      `/topic/workspace/${world.ws}/${topic.id}/follow`,
+      json("PUT"),
+    );
+    expect(followed.status).toBe(200);
+    const notices = async (user: Member) =>
+      db
+        .select({
+          title: schema.notificationTable.title,
+          resourceId: schema.notificationTable.resourceId,
+        })
+        .from(schema.notificationTable)
+        .where(
+          and(
+            eq(schema.notificationTable.userId, user.id),
+            eq(schema.notificationTable.type, "document_decision"),
+          ),
+        );
+
+    // Only added: nobody hears of it yet.
+    expect((await api.record(open, topic.id)).status).toBe(200);
+    expect(await notices(limited)).toHaveLength(0);
+
+    expect((await api.approve(open, topic.id, id)).status).toBe(200);
+    expect(await notices(limited)).toEqual([
+      { title: expect.stringContaining("recorded a decision"), resourceId: id },
+    ]);
+    // Not the decider who approved it.
+    expect(await notices(open)).toHaveLength(0);
+
+    // An edit with no new decision, approved again, tells nobody.
+    await api.edit(owner, id, {
+      content: `${(await api.document(owner, id)).content}\n\nMore.`,
+    });
+    expect((await api.approve(open, topic.id, id)).status).toBe(200);
+    expect(await notices(limited)).toHaveLength(1);
   });
 
   it("takes the line from whoever decides, whatever the document lets them do", async () => {

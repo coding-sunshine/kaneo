@@ -2745,6 +2745,11 @@ export const documentTable = pgTable(
       onUpdate: "cascade",
     }),
     filedAt: timestamp("filed_at", { mode: "date" }),
+    // Who filed it on the topic, who need not be its author. Null on a
+    // document filed before this was recorded: its author stands in. No
+    // foreign key: an existing table gets none. A filer whose account is
+    // gone keeps their id here, which still reads as somebody else.
+    filedById: text("filed_by_id"),
     // Set aside in the Inbox until this time. One date for everybody who sees
     // the item: one person triages the Inbox.
     inboxSnoozedUntil: timestamp("inbox_snoozed_until", { mode: "date" }),
@@ -3201,6 +3206,89 @@ export const agentMessageTable = pgTable(
       .notNull(),
   },
   (table) => [index("agent_message_chat_idx").on(table.chatId)],
+);
+
+// Team chat. A public channel is open to every workspace member; a private
+// one only to its members. Archiving keeps the history readable.
+export const chatChannelTable = pgTable(
+  "chat_channel",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    topic: text("topic"),
+    isPrivate: boolean("is_private").default(false).notNull(),
+    createdBy: text("created_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    archivedAt: timestamp("archived_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [index("chat_channel_workspace_idx").on(table.workspaceId)],
+);
+
+export const chatChannelMemberTable = pgTable(
+  "chat_channel_member",
+  {
+    channelId: text("channel_id")
+      .notNull()
+      .references(() => chatChannelTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    joinedAt: timestamp("joined_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.channelId, table.userId] }),
+    index("chat_channel_member_user_idx").on(table.userId),
+  ],
+);
+
+export const chatMessageTable = pgTable(
+  "chat_message",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    channelId: text("channel_id")
+      .notNull()
+      .references(() => chatChannelTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("chat_message_channel_created_idx").on(
+      table.channelId,
+      table.createdAt,
+    ),
+  ],
 );
 
 // A loop runs its instructions as the agent on a schedule, with the creator's
@@ -3670,32 +3758,27 @@ export const taskExtractionTable = pgTable(
   ],
 );
 
-// Where the reading of a text that stopped part way goes on: a cap, the
-// run's questions or a failed request. Kept until the text gets its record,
-// so a restart sends no part twice.
-export const taskExtractionProgressTable = pgTable(
-  "task_extraction_progress",
-  {
-    // The text, its words and the slots it is asked about.
-    key: text("key").primaryKey(),
-    taskId: text("task_id")
-      .notNull()
-      .references(() => taskTable.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
-    assetId: text("asset_id").references(() => assetTable.id, {
+// How far a text that stopped part way was read, and whether a part of it
+// had an answer, so the next run goes on with the parts that are left, after
+// a restart too. One row for each text and question; it goes once the text
+// is read to its end or recorded.
+export const taskExtractionProgressTable = pgTable("task_extraction_progress", {
+  // The issue or file, the hash of its text and the hash of the question.
+  key: text("key").primaryKey(),
+  taskId: text("task_id")
+    .notNull()
+    .references(() => taskTable.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
-    nextPart: integer("next_part").notNull(),
-    // Whether a part read so far had an answer.
-    readable: boolean("readable").notNull(),
-  },
-  (table) => [
-    index("task_extraction_progress_task_idx").on(table.taskId, table.assetId),
-  ],
-);
+  // Empty for the issue's title, description and comments.
+  assetId: text("asset_id").references(() => assetTable.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
+  next: integer("next").notNull(),
+  readable: boolean("readable").notNull(),
+});
 
 // A fact the model found in an issue or in a file on it, for a slot of a
 // topic. It is a proposal only: it never changes what the topic states. A

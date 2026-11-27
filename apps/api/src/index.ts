@@ -73,6 +73,9 @@ import workProject from "./work-project";
 import agent from "./agent";
 import { setSelfFetch } from "./agent/self-client";
 import loop from "./loop";
+import chat from "./chat";
+import { findChannelWorkspace } from "./chat/controllers/find-channel-workspace";
+import { loadChannel } from "./chat/controllers/load-channel";
 import savedView from "./saved-view";
 import taskDraft from "./task-draft";
 import document from "./document";
@@ -144,6 +147,7 @@ import {
   removeUserConnection,
   shutdownWebSocketAdapter,
 } from "./ws";
+import { addChatConnection, removeChatConnection } from "./ws/chat-connections";
 import {
   assertWebSocketOrigin,
   handleWebSocketMessage,
@@ -860,6 +864,7 @@ export function createApp() {
   const teamAutomationApi = api.route("/team-automation", teamAutomation);
   const workProjectApi = api.route("/work-project", workProject);
   const savedViewApi = api.route("/view", savedView);
+  const chatApi = api.route("/chat", chat);
   const taskDraftApi = api.route("/task-draft", taskDraft);
   const agentApi = api.route("/agent", agent);
   const loopApi = api.route("/loop", loop);
@@ -964,6 +969,49 @@ export function createApp() {
     }),
   );
 
+  // A refused upgrade is a refused subscription: the same rules as reading
+  // the channel's messages, and the same 404 for missing and private channels.
+  api.get(
+    "/ws/chat/:channelId",
+    upgradeWebSocket(async (c) => {
+      assertWebSocketOrigin(c.req.raw.headers);
+      const channelId = c.req.param("channelId") ?? "";
+      const userId = c.get("userId");
+      const apiKeyId = c.get("apiKey")?.id;
+
+      const workspaceId = await findChannelWorkspace(channelId);
+      await validateWorkspaceAccess(userId, workspaceId, apiKeyId, {
+        notFoundMessage: "Channel not found",
+      });
+      c.set("workspaceId", workspaceId);
+      await requireWorkspacePermission({ workspace: ["read"] })(
+        c,
+        async () => {},
+      );
+      await loadChannel(workspaceId, channelId, userId, "read");
+
+      const sessionId = c.get("session")?.id ?? null;
+      let conn: ReturnType<typeof addChatConnection> | null = null;
+
+      return {
+        onOpen(_evt, ws) {
+          conn = addChatConnection(
+            channelId,
+            ws,
+            userId,
+            workspaceId,
+            sessionId,
+            apiKeyId,
+          );
+        },
+        onMessage: handleWebSocketMessage,
+        onClose() {
+          if (conn) removeChatConnection(channelId, conn);
+        },
+      };
+    }),
+  );
+
   api.get(
     "/ws/:projectId",
     upgradeWebSocket(async (c) => {
@@ -1054,6 +1102,7 @@ export function createApp() {
     teamAutomationApi,
     workProjectApi,
     savedViewApi,
+    chatApi,
     taskDraftApi,
     agentApi,
     loopApi,
@@ -1207,6 +1256,7 @@ const {
   teamAutomationApi,
   workProjectApi,
   savedViewApi,
+  chatApi,
   taskDraftApi,
   agentApi,
   loopApi,
@@ -1264,6 +1314,7 @@ export type AppType =
   | typeof teamAutomationApi
   | typeof workProjectApi
   | typeof savedViewApi
+  | typeof chatApi
   | typeof taskDraftApi
   | typeof agentApi
   | typeof loopApi
