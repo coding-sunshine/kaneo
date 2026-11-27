@@ -81,7 +81,7 @@ export function inlineText(source: string): string {
     .replace(/<kaneo-mention\b[^>]*>(?:<\/kaneo-mention>)?/giu, (tag) =>
       keep(`@${decodeEntities(attribute(tag, "label"))}`),
     )
-    .replace(/<kaneo-issue-link\b[^>]*>/giu, (tag) =>
+    .replace(/<kaneo-issue-link\b[^>]*>(?:<\/kaneo-issue-link>)?/giu, (tag) =>
       keep(
         decodeEntities(attribute(tag, "issue-key") || attribute(tag, "url")),
       ),

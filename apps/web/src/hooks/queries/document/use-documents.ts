@@ -14,17 +14,9 @@ import {
   getOwnerlessDocuments,
 } from "@/fetchers/document/documents";
 
-/** Every document query in a workspace shares this prefix. */
-export const documentsKey = (workspaceId: string) => ["documents", workspaceId];
-export const documentListKey = (
-  workspaceId: string,
-  query: DocumentListQuery = {},
-) => [...documentsKey(workspaceId), "list", query];
-export const documentKey = (workspaceId: string, id: string) => [
-  ...documentsKey(workspaceId),
-  "one",
-  id,
-];
+import { documentKey, documentListKey, documentsKey } from "./document-keys";
+
+export { documentKey, documentListKey, documentsKey };
 
 export function useDocuments(
   workspaceId: string,

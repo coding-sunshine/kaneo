@@ -1,4 +1,5 @@
 import { workspaceStatusQueryKey } from "@/hooks/queries/workspace/use-workspace-archived";
+import { documentKey } from "@/hooks/queries/document/document-keys";
 import { windowId } from "@kaneo/libs";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "@tanstack/react-router";
@@ -119,6 +120,7 @@ export function useUserWebSocket() {
             workspaceId?: string;
             workspaceIds?: string[] | null;
             reason?: string;
+            documentId?: string;
           };
           if (message.type === "USER_ACCESS_REVOKED") {
             leaveSession();
@@ -194,6 +196,16 @@ export function useUserWebSocket() {
               void queryClient.invalidateQueries({ queryKey });
             reconcileProjectAccess(queryClient, workspaceId, () => !disposed);
           }
+          // An issue's text gained or dropped a link: Cited by is stale.
+          if (
+            message.type === "DOCUMENT_LINKS_CHANGED" &&
+            message.workspaceId &&
+            message.documentId
+          )
+            void queryClient.invalidateQueries({
+              queryKey: documentKey(message.workspaceId, message.documentId),
+              exact: true,
+            });
           if (message.type === "CHAT_UNREAD_CHANGED" && message.workspaceId) {
             void queryClient.invalidateQueries({
               queryKey: ["chat-channels", message.workspaceId],

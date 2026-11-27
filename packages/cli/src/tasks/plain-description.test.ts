@@ -78,6 +78,11 @@ describe("inlineText", () => {
       ),
     ).toBe("KAN-3");
     expect(
+      inlineText(
+        '- <kaneo-issue-link url="https://app/task/1" issue-key="KAN-3" task-id="1"></kaneo-issue-link> next',
+      ),
+    ).toBe("- KAN-3 next");
+    expect(
       inlineText('<kaneo-embed url="https://youtu.be/x" mode="embed" />'),
     ).toBe("https://youtu.be/x");
     expect(

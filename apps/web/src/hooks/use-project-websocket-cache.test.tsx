@@ -204,7 +204,7 @@ describe("board realtime races", () => {
     });
   });
 
-  it.each(["TASK_UPDATED", "COMMENT_UPDATED"])(
+  it.each(["TASK_UPDATED", "COMMENT_UPDATED", "TASK_DOCUMENTS_UPDATED"])(
     "reads the documents linked with an issue again after %s",
     (type) => {
       renderHook(() => useProjectWebSocket("p"));

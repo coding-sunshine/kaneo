@@ -1,5 +1,5 @@
 import { and, eq, inArray, like, notInArray } from "drizzle-orm";
-import type db from "../database";
+import db from "../database";
 import {
   activityTable,
   documentTable,
@@ -9,17 +9,29 @@ import {
   taskTable,
 } from "../database/schema";
 import { documentTeamAccess } from "../document/visibility";
+import { publishEvent } from "../events";
 import { findDocumentIds, findTaskReferences } from "./find-links";
 import { resolveTaskReferences } from "./resolve-tasks";
 
 type Database = Pick<typeof db, "select" | "insert" | "delete">;
 
+/** The links of `taskIds` to `documentIds` were added or dropped. */
+export type LinkChange = {
+  workspaceId: string;
+  taskIds: string[];
+  documentIds: string[];
+};
+
 // Makes the rows of one place match its text. A link that is gone loses its
 // row, a new link gets one, and a row that stays keeps who made it and what
 // it grants. Whoever saves the text need not be able to open the other side:
 // a row lets nobody into anything.
+// Open pages hear of a change, but only outside a transaction: inside one
+// they would read the rows before they are committed. A new issue is
+// announced by its own event once its transaction commits.
 async function reconcile(
   database: Database,
+  workspaceId: string,
   source: TaskDocumentSource,
   anchor: { taskId: string } | { documentId: string },
   others: string[],
@@ -34,29 +46,40 @@ async function reconcile(
           taskDocumentTable.taskId,
           anchor.documentId,
         ];
-  if (prune)
-    await database
-      .delete(taskDocumentTable)
-      .where(
-        and(
-          eq(own, id),
-          eq(taskDocumentTable.source, source),
-          others.length ? notInArray(other, others) : undefined,
-        ),
-      );
-  if (!others.length) return;
-  await database
-    .insert(taskDocumentTable)
-    .values(
-      others.map((otherId) => ({
-        ...("taskId" in anchor
-          ? { taskId: id, documentId: otherId }
-          : { taskId: otherId, documentId: id }),
-        source,
-        createdBy: userId,
-      })),
-    )
-    .onConflictDoNothing();
+  const dropped = prune
+    ? await database
+        .delete(taskDocumentTable)
+        .where(
+          and(
+            eq(own, id),
+            eq(taskDocumentTable.source, source),
+            others.length ? notInArray(other, others) : undefined,
+          ),
+        )
+        .returning({ id: other })
+    : [];
+  const added = others.length
+    ? await database
+        .insert(taskDocumentTable)
+        .values(
+          others.map((otherId) => ({
+            ...("taskId" in anchor
+              ? { taskId: id, documentId: otherId }
+              : { taskId: otherId, documentId: id }),
+            source,
+            createdBy: userId,
+          })),
+        )
+        .onConflictDoNothing()
+        .returning({ id: other })
+    : [];
+  const changed = [...new Set([...dropped, ...added].map((row) => row.id))];
+  if (!changed.length || database !== db) return;
+  const change: LinkChange =
+    "taskId" in anchor
+      ? { workspaceId, taskIds: [id], documentIds: changed }
+      : { workspaceId, taskIds: changed, documentIds: [id] };
+  await publishEvent("task_document.links_changed", change);
 }
 
 async function syncTask(
@@ -75,33 +98,32 @@ async function syncTask(
     .from(taskTable)
     .innerJoin(projectTable, eq(projectTable.id, taskTable.projectId))
     .where(eq(taskTable.id, taskId));
-  const candidates = task
-    ? [
-        ...new Set(
-          texts.flatMap((text) => findDocumentIds(text, task.workspaceId)),
-        ),
-      ]
-    : [];
+  if (!task) return;
+  const candidates = [
+    ...new Set(
+      texts.flatMap((text) => findDocumentIds(text, task.workspaceId)),
+    ),
+  ];
   // An address is a link only if the document is in the issue's workspace.
   // Text with no author, such as an integration's, links only what the
   // issue's team can open, so it never records a closed team's document.
-  const documents =
-    task && candidates.length
-      ? await database
-          .select({ id: documentTable.id })
-          .from(documentTable)
-          .where(
-            and(
-              eq(documentTable.workspaceId, task.workspaceId),
-              inArray(documentTable.id, candidates),
-              userId === null
-                ? documentTeamAccess(task.teamId, documentTable)
-                : undefined,
-            ),
-          )
-      : [];
+  const documents = candidates.length
+    ? await database
+        .select({ id: documentTable.id })
+        .from(documentTable)
+        .where(
+          and(
+            eq(documentTable.workspaceId, task.workspaceId),
+            inArray(documentTable.id, candidates),
+            userId === null
+              ? documentTeamAccess(task.teamId, documentTable)
+              : undefined,
+          ),
+        )
+    : [];
   await reconcile(
     database,
+    task.workspaceId,
     source,
     { taskId },
     documents.map((document) => document.id),
@@ -160,6 +182,7 @@ export async function syncDocumentTaskLinks(
   );
   await reconcile(
     database,
+    document.workspaceId,
     "document",
     { documentId: document.id },
     tasks,

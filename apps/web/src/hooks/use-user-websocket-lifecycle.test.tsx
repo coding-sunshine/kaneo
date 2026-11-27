@@ -409,6 +409,23 @@ describe("user WebSocket lifecycle", () => {
     });
   });
 
+  it("reads an open document again when a link to it changes", () => {
+    renderHook(useUserWebSocket);
+    act(() =>
+      TestSocket.instances[0]?.onmessage?.({
+        data: JSON.stringify({
+          type: "DOCUMENT_LINKS_CHANGED",
+          workspaceId: "workspace",
+          documentId: "doc-1",
+        }),
+      }),
+    );
+    expect(client.invalidateQueries).toHaveBeenCalledExactlyOnceWith({
+      queryKey: ["documents", "workspace", "one", "doc-1"],
+      exact: true,
+    });
+  });
+
   it("evicts cached data for projects that left the refreshed list", async () => {
     cachedProjects.mockReturnValueOnce([{ id: "kept" }, { id: "removed" }]);
     client.fetchQuery.mockResolvedValueOnce([{ id: "kept" }, { id: "added" }]);
