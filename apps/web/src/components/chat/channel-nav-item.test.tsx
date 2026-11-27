@@ -48,6 +48,19 @@ describe("ChannelNavItem", () => {
     );
   });
 
+  it("names a direct message by its people", () => {
+    render(
+      <ChannelNavItem
+        workspaceId="ws"
+        channel={{ ...channel(1), isDirect: true }}
+        title="Second person"
+      />,
+    );
+    expect(screen.getByText("Second person")).toHaveClass("font-semibold");
+    expect(screen.queryByText("general")).toBeNull();
+    expect(screen.getByTestId("badge")).toHaveTextContent("1");
+  });
+
   it("shows a plain name when everything is read", () => {
     render(<ChannelNavItem workspaceId="ws" channel={channel(0)} />);
     expect(screen.getByText("general")).not.toHaveClass("font-semibold");

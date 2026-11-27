@@ -77,17 +77,18 @@ export const channelDetailSchema = channelSchema
   })
   .openapi("ChatChannelDetail");
 
+const unreadCount = z.number().int().openapi({
+  description:
+    "Messages from others since you last read the channel. 0 for channels you have not joined.",
+});
 export const channelListSchema = z.array(
-  channelSchema
-    .extend({
-      unreadCount: z.number().int().openapi({
-        description:
-          "Messages from others since you last read the channel. 0 for channels you have not joined.",
-      }),
-    })
-    .openapi("ChatChannelListItem"),
+  channelSchema.extend({ unreadCount }).openapi("ChatChannelListItem"),
 );
-export const directMessageListSchema = z.array(channelDetailSchema);
+export const directMessageListSchema = z.array(
+  channelDetailSchema
+    .extend({ unreadCount })
+    .openapi("ChatDirectMessageListItem"),
+);
 
 export const messageSchema = z
   .object({

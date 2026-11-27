@@ -385,6 +385,9 @@ describe("user WebSocket lifecycle", () => {
     expect(client.invalidateQueries).toHaveBeenCalledWith({
       queryKey: ["chat-channels", "workspace"],
     });
+    expect(client.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["chat-direct-messages", "workspace"],
+    });
   });
 
   it("evicts cached data for projects that left the refreshed list", async () => {

@@ -3392,6 +3392,25 @@
           "createdAt"
         ]
       },
+      "ChatDirectMessageListItem": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ChatChannelDetail"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "unreadCount": {
+                "type": "integer",
+                "description": "Messages from others since you last read the channel. 0 for channels you have not joined."
+              }
+            },
+            "required": [
+              "unreadCount"
+            ]
+          }
+        ]
+      },
       "ChatChannelDetail": {
         "allOf": [
           {
@@ -28454,7 +28473,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ChatChannelDetail"
+                    "$ref": "#/components/schemas/ChatDirectMessageListItem"
                   }
                 }
               }

@@ -77,6 +77,12 @@ vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => ({
 vi.mock("@/hooks/queries/agent/use-agent", () => ({
   useHasAgent: () => false,
 }));
+const directMessages = vi.hoisted(() => ({
+  list: [] as { unreadCount: number }[],
+}));
+vi.mock("@/hooks/queries/chat/use-direct-messages", () => ({
+  useDirectMessages: () => ({ data: directMessages.list }),
+}));
 const drafts = vi.hoisted(() => ({ list: [] as unknown[] }));
 vi.mock("@/hooks/queries/task-draft/use-task-drafts", () => ({
   useTaskDrafts: () => ({ data: drafts.list }),
@@ -87,6 +93,7 @@ beforeEach(() => {
   reviews.state = "connected";
   reviews.toReview = [];
   drafts.list = [];
+  directMessages.list = [];
   useUserPreferencesStore.setState({
     codeReviewsEnabled: true,
     sidebar: defaultSidebar,
@@ -122,6 +129,12 @@ describe("NavMain reviews row", () => {
     expect(
       screen.queryByText("navigation:sidebar.reviews"),
     ).not.toBeInTheDocument();
+  });
+
+  it("badges Inbox with unread direct messages", () => {
+    directMessages.list = [{ unreadCount: 2 }, { unreadCount: 0 }];
+    render(<NavMain />);
+    expect(buttonLabels()).toContain("navigation:sidebar.inbox2");
   });
 
   it("shows Drafts with its count only once a draft exists", () => {

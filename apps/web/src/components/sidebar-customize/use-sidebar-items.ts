@@ -16,6 +16,7 @@ import {
   Workflow,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useDirectMessages } from "@/hooks/queries/chat/use-direct-messages";
 import { inboxCount } from "@/components/sidebar-customize/inbox-count";
 import type { SidebarItemId } from "@/components/sidebar-customize/sidebar-items";
 import { useTaskDrafts } from "@/hooks/queries/task-draft/use-task-drafts";
@@ -50,6 +51,7 @@ export function useSidebarItems() {
   const { data: workspace } = useActiveWorkspace();
   const { data: invitations = [] } = usePendingInvitations();
   const { data: notifications = [] } = useGetNotifications(workspace?.id);
+  const { data: directMessages = [] } = useDirectMessages(workspace?.id ?? "");
   const hasAgent = useHasAgent();
   const inboxCountMode = useUserPreferencesStore(
     (state) => state.sidebar.inboxCount,
@@ -87,7 +89,11 @@ export function useSidebarItems() {
       t("navigation:sidebar.inbox"),
       Inbox,
       `${homeUrl}/inbox`,
-      inboxCount(notifications, inboxCountMode),
+      inboxCount(
+        notifications,
+        inboxCountMode,
+        directMessages.reduce((total, dm) => total + dm.unreadCount, 0),
+      ),
     ),
     item(
       "myTasks",

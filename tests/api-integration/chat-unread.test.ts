@@ -112,4 +112,27 @@ describe("API integration: chat unread state", () => {
       ).status,
     ).toBe(404);
   });
+
+  it("counts unread messages in a direct message for its other member only", async () => {
+    const { a, b, c, ws, as, post, markRead } = await setup();
+    const directs = `/api/chat/workspace/${ws}/direct-messages`;
+    const direct = await (
+      await as(a)(directs, json("POST", { userIds: [b.user.id] }))
+    ).json();
+    await post(direct.id, "hello there");
+    const dmUnread = async (member: Seeded) =>
+      (await (await as(member)(directs)).json()).map(
+        (dm: { id: string; unreadCount: number }) => [dm.id, dm.unreadCount],
+      );
+
+    expect(await dmUnread(b)).toEqual([[direct.id, 1]]);
+    expect(await dmUnread(a)).toEqual([[direct.id, 0]]);
+    expect(await dmUnread(c)).toEqual([]);
+    expect((await markRead(c, direct.id)).status).toBe(404);
+
+    const before = await (await as(a)(directs)).json();
+    expect((await markRead(b, direct.id)).status).toBe(200);
+    expect(await dmUnread(b)).toEqual([[direct.id, 0]]);
+    expect(await (await as(a)(directs)).json()).toEqual(before);
+  });
 });
