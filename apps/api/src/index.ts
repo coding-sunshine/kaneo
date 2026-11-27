@@ -74,6 +74,8 @@ import agent from "./agent";
 import { setSelfFetch } from "./agent/self-client";
 import loop from "./loop";
 import chat from "./chat";
+import { findChannelWorkspace } from "./chat/controllers/find-channel-workspace";
+import { loadChannel } from "./chat/controllers/load-channel";
 import savedView from "./saved-view";
 import taskDraft from "./task-draft";
 import document from "./document";
@@ -145,6 +147,7 @@ import {
   removeUserConnection,
   shutdownWebSocketAdapter,
 } from "./ws";
+import { addChatConnection, removeChatConnection } from "./ws/chat-connections";
 import {
   assertWebSocketOrigin,
   handleWebSocketMessage,
@@ -961,6 +964,49 @@ export function createApp() {
           if (conn && userId) {
             removeUserConnection(userId, conn);
           }
+        },
+      };
+    }),
+  );
+
+  // A refused upgrade is a refused subscription: the same rules as reading
+  // the channel's messages, and the same 404 for missing and private channels.
+  api.get(
+    "/ws/chat/:channelId",
+    upgradeWebSocket(async (c) => {
+      assertWebSocketOrigin(c.req.raw.headers);
+      const channelId = c.req.param("channelId") ?? "";
+      const userId = c.get("userId");
+      const apiKeyId = c.get("apiKey")?.id;
+
+      const workspaceId = await findChannelWorkspace(channelId);
+      await validateWorkspaceAccess(userId, workspaceId, apiKeyId, {
+        notFoundMessage: "Channel not found",
+      });
+      c.set("workspaceId", workspaceId);
+      await requireWorkspacePermission({ workspace: ["read"] })(
+        c,
+        async () => {},
+      );
+      await loadChannel(workspaceId, channelId, userId, "read");
+
+      const sessionId = c.get("session")?.id ?? null;
+      let conn: ReturnType<typeof addChatConnection> | null = null;
+
+      return {
+        onOpen(_evt, ws) {
+          conn = addChatConnection(
+            channelId,
+            ws,
+            userId,
+            workspaceId,
+            sessionId,
+            apiKeyId,
+          );
+        },
+        onMessage: handleWebSocketMessage,
+        onClose() {
+          if (conn) removeChatConnection(channelId, conn);
         },
       };
     }),
