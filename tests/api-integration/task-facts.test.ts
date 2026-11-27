@@ -542,6 +542,37 @@ describe("API integration: facts found in issues", () => {
       expect(sent[1]).toContain(PRICE);
     });
 
+    it("writes the record when a slot was deleted while the text was read", async () => {
+      const { world, topicId, price } = await setup();
+      await describeIssue(world.betaTask.id, LAUNCH);
+      await comment(world, world.betaTask.id, PRICE);
+      fetchMock.mockImplementation(
+        async (_url: string, init: { body: string }) => {
+          const prompt = JSON.parse(init.body).messages[1].content as string;
+          if (!prompt.includes("Beta issue")) return answer(NOTHING);
+          // A person deletes the Price field while the model reads.
+          await db
+            .delete(topicSlotTable)
+            .where(eq(topicSlotTable.id, price.id));
+          return answer({ topics: [NAMED], statements: [WHEN, HOW_MUCH] });
+        },
+      );
+      expect(await run()).toMatchObject({ degraded: false });
+
+      expect(
+        (await facts(world, topicId, world.owner)).map((fact) => fact.slot),
+      ).toEqual(["launch_date"]);
+      expect(
+        (await records())
+          .filter((row) => row.taskId === world.betaTask.id)
+          .map((row) => [row.readable, row.reason]),
+      ).toEqual([[true, null]]);
+
+      // Read once: nothing is sent again.
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
     it("reads an issue again when an edit is undone, so its facts come back", async () => {
       const { world, topicId, fact } = await found();
       await describeIssue(world.betaTask.id, "Nothing is settled yet.");

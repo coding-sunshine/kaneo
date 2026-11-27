@@ -15,6 +15,7 @@ import {
   taskExtractionTable,
   taskStatementTable,
   taskTable,
+  topicSlotTable,
   topicTable,
 } from "../database/schema";
 import { getPrivateObject } from "../storage/s3";
@@ -147,17 +148,7 @@ async function ask(run: Run, source: Source, outcome: Outcome) {
       if (!found) continue;
       state.readable = true;
       if (found.length === 0) continue;
-      await db
-        .insert(taskStatementTable)
-        .values(
-          found.map((statement) => ({
-            ...statement,
-            taskId: source.taskId,
-            assetId: source.assetId,
-          })),
-        )
-        // A fact that is already there stays as it is, dismissed or not.
-        .onConflictDoNothing();
+      await keep(found, source);
     } catch (error) {
       if (!(error instanceof UnreadableAnswer)) {
         await keepProgress(at, source, state);
@@ -234,6 +225,42 @@ const later = (run: Run, since: Date): Run => ({
       .filter((topic) => topic.slots.length > 0),
   ),
 });
+
+/**
+ * Stores facts as proposals. A slot deleted while its text was read keeps
+ * none: the slots that are left are locked until the facts are in, so a
+ * deletion cannot come in between.
+ */
+const keep = (
+  found: NonNullable<ReturnType<typeof keptStatements>>,
+  source: Source,
+) =>
+  db.transaction(async (tx) => {
+    const live = await tx
+      .select({ id: topicSlotTable.id })
+      .from(topicSlotTable)
+      .where(
+        inArray(
+          topicSlotTable.id,
+          found.map(({ slotId }) => slotId),
+        ),
+      )
+      .for("key share");
+    const ids = new Set(live.map(({ id }) => id));
+    const kept = found.filter(({ slotId }) => ids.has(slotId));
+    if (kept.length === 0) return;
+    await tx
+      .insert(taskStatementTable)
+      .values(
+        kept.map((statement) => ({
+          ...statement,
+          taskId: source.taskId,
+          assetId: source.assetId,
+        })),
+      )
+      // A fact that is already there stays as it is, dismissed or not.
+      .onConflictDoNothing();
+  });
 
 /** Asks, stores what was found as proposals and records that the text was read. */
 async function read(run: Run, source: Source, outcome: Outcome) {
