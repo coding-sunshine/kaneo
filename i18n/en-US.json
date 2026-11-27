@@ -3973,6 +3973,40 @@
 					"causeHidden": "What changed is in a document you cannot open.",
 					"replaced": "Replaced {{date}}"
 				}
+			},
+			"pageOptions": "Documents options",
+			"outline": "Outline",
+			"editedOn": "Edited on {{date}}",
+			"columns": {
+				"name": "Name",
+				"visibility": "Visibility",
+				"lastActivity": "Last activity"
+			},
+			"groups": {
+				"thisWeek": "This week",
+				"lastWeek": "Last week",
+				"thisMonth": "Earlier this month",
+				"older": "Older"
+			},
+			"filter": {
+				"label": "Filter",
+				"clear": "Clear filter",
+				"noMatch": "No documents match the filter."
+			},
+			"pins": {
+				"title": "Pinned documents",
+				"emptyTitle": "Pinned documents will show up here",
+				"emptyHint": "Keep the documents you go back to most at the top",
+				"pinMostRecent": "Pin most recent",
+				"choose": "Choose documents",
+				"pin": "Pin",
+				"unpin": "Unpin",
+				"pinned": "Pinned",
+				"selected": "{{count}} selected",
+				"clearSelection": "Clear",
+				"selectRow": "Select {{title}}",
+				"search": "Search documents",
+				"done": "Done"
 			}
 		},
 		"agent": {

@@ -1,4 +1,4 @@
-import { and, asc, eq, ne, or, sql } from "drizzle-orm";
+import { and, asc, eq, notInArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import db from "../database";
 import { favoriteTable } from "../database/schema";
@@ -16,7 +16,7 @@ import { workspaceAccess } from "../utils/workspace-access-middleware";
 const tags = ["Favorites"];
 const params = z.object({ workspaceId: z.string() });
 const favoriteBody = z.object({
-  type: z.enum(["project", "view", "document", "pullRequest"]),
+  type: z.enum(["project", "view", "document", "pullRequest", "documentPin"]),
   targetId: z.string().min(1),
 });
 const favoriteSchema = favoriteBody.extend({ id: z.string() });
@@ -25,6 +25,12 @@ const middleware = [
   requireWorkspacePermission({ project: ["read"] }),
 ] as const;
 const noAccess = errorResponse("Missing permission for this workspace");
+
+// A pin on the Documents page is a favorite of its own type, so a document can
+// be starred and pinned apart. Both point at a document.
+const documentTypes = ["document", "documentPin"] as const;
+const isDocument = (type: string) =>
+  (documentTypes as readonly string[]).includes(type);
 
 // A favorite can outlive the access that allowed it. The list keeps a
 // document only while the user can still open it.
@@ -55,7 +61,7 @@ const listRoute = createRoute({
   tags,
   summary: "List favorites",
   description:
-    "The signed-in user's favorite teams, views, documents and pull requests, oldest first. A document the user can no longer open is left out. A pull request's targetId is owner/repo#number.",
+    "The signed-in user's favorite teams, views, documents and pull requests, and the documents they pinned on the Documents page (type documentPin), oldest first. A document the user can no longer open is left out. A pull request's targetId is owner/repo#number.",
   middleware: [...middleware] as const,
   request: { params },
   responses: {
@@ -71,7 +77,7 @@ const addRoute = createRoute({
   tags,
   summary: "Add favorite",
   description:
-    "Favorite a team, view, document or pull request. Repeating the call is a no-op. A document the user cannot open is refused like one that does not exist.",
+    "Favorite a team, view, document or pull request, or pin a document (documentPin). Repeating the call is a no-op. A document the user cannot open is refused like one that does not exist.",
   middleware: [...middleware] as const,
   request: { params, body: json(favoriteBody) },
   responses: {
@@ -87,7 +93,8 @@ const removeRoute = createRoute({
   path: "/workspace/{workspaceId}",
   tags,
   summary: "Remove favorite",
-  description: "Unfavorite a team, view, document or pull request.",
+  description:
+    "Unfavorite a team, view, document or pull request, or unpin a document.",
   middleware: [...middleware] as const,
   request: { params, query: favoriteBody },
   responses: {
@@ -113,7 +120,7 @@ const favorite = apiRouter()
             eq(favoriteTable.userId, userId),
             eq(favoriteTable.workspaceId, workspaceId),
             or(
-              ne(favoriteTable.type, "document"),
+              notInArray(favoriteTable.type, [...documentTypes]),
               openDocument(userId, workspaceId),
             ),
           ),
@@ -126,7 +133,7 @@ const favorite = apiRouter()
     const { workspaceId } = c.req.valid("param");
     const data = c.req.valid("json");
     const userId = c.get("userId");
-    if (data.type === "document") {
+    if (isDocument(data.type)) {
       await loadDocument(workspaceId, data.targetId, userId);
     }
     await db

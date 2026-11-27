@@ -16280,6 +16280,143 @@
 								"reliesOn",
 								"needsReview"
 							]
+						},
+						"pageOptions": {
+							"type": "string"
+						},
+						"outline": {
+							"type": "string"
+						},
+						"editedOn": {
+							"type": "string"
+						},
+						"columns": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"name": {
+									"type": "string"
+								},
+								"visibility": {
+									"type": "string"
+								},
+								"lastActivity": {
+									"type": "string"
+								}
+							},
+							"required": ["name", "visibility", "lastActivity"]
+						},
+						"groups": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"thisWeek": {
+									"type": "string"
+								},
+								"lastWeek": {
+									"type": "string"
+								},
+								"thisMonth": {
+									"type": "string"
+								},
+								"older": {
+									"type": "string"
+								}
+							},
+							"required": ["thisWeek", "lastWeek", "thisMonth", "older"]
+						},
+						"filter": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"clear": {
+									"type": "string"
+								},
+								"noMatch": {
+									"type": "string"
+								}
+							},
+							"required": ["label", "clear", "noMatch"]
+						},
+						"pins": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"emptyTitle": {
+									"type": "string"
+								},
+								"emptyHint": {
+									"type": "string"
+								},
+								"pinMostRecent": {
+									"type": "string"
+								},
+								"choose": {
+									"type": "string"
+								},
+								"pin": {
+									"type": "string"
+								},
+								"unpin": {
+									"type": "string"
+								},
+								"pinned": {
+									"type": "string"
+								},
+								"selected": {
+									"type": "string"
+								},
+								"selected_zero": {
+									"type": "string"
+								},
+								"selected_one": {
+									"type": "string"
+								},
+								"selected_two": {
+									"type": "string"
+								},
+								"selected_few": {
+									"type": "string"
+								},
+								"selected_many": {
+									"type": "string"
+								},
+								"selected_other": {
+									"type": "string"
+								},
+								"clearSelection": {
+									"type": "string"
+								},
+								"selectRow": {
+									"type": "string"
+								},
+								"search": {
+									"type": "string"
+								},
+								"done": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"emptyTitle",
+								"emptyHint",
+								"pinMostRecent",
+								"choose",
+								"pin",
+								"unpin",
+								"pinned",
+								"clearSelection",
+								"selectRow",
+								"search",
+								"done"
+							]
 						}
 					},
 					"required": [
@@ -16351,7 +16488,14 @@
 						"decision",
 						"usage",
 						"checklist",
-						"facts"
+						"facts",
+						"pageOptions",
+						"outline",
+						"editedOn",
+						"columns",
+						"groups",
+						"filter",
+						"pins"
 					]
 				},
 				"agent": {

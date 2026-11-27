@@ -3990,6 +3990,40 @@
 				"hidden": "a document you cannot open",
 				"lead": "Filed to replace",
 				"stale": "That document is no longer current."
+			},
+			"columns": {
+				"lastActivity": "Last activity",
+				"name": "Name",
+				"visibility": "Visibility"
+			},
+			"editedOn": "Edited on {{date}}",
+			"filter": {
+				"clear": "Clear filter",
+				"label": "Filter",
+				"noMatch": "No documents match the filter."
+			},
+			"groups": {
+				"lastWeek": "Last week",
+				"older": "Older",
+				"thisMonth": "Earlier this month",
+				"thisWeek": "This week"
+			},
+			"outline": "Outline",
+			"pageOptions": "Documents options",
+			"pins": {
+				"choose": "Choose documents",
+				"clearSelection": "Clear",
+				"done": "Done",
+				"emptyHint": "Keep the documents you go back to most at the top",
+				"emptyTitle": "Pinned documents will show up here",
+				"pin": "Pin",
+				"pinMostRecent": "Pin most recent",
+				"pinned": "Pinned",
+				"search": "Search documents",
+				"selected": "{{count}} selected",
+				"selectRow": "Select {{title}}",
+				"title": "Pinned documents",
+				"unpin": "Unpin"
 			}
 		},
 		"drafts": {

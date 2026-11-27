@@ -910,7 +910,7 @@ export const favoriteTable = pgTable(
         onUpdate: "cascade",
       }),
     type: text("type")
-      .$type<"project" | "view" | "document" | "pullRequest">()
+      .$type<"project" | "view" | "document" | "pullRequest" | "documentPin">()
       .notNull(),
     targetId: text("target_id").notNull(),
     createdAt: timestamp("created_at", { mode: "date" })

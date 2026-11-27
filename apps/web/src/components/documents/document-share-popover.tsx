@@ -56,6 +56,7 @@ export function DocumentSharePopover({
       <PopoverTrigger
         render={<Button variant="ghost" size="xs" className="gap-1.5" />}
       >
+        <Building2 aria-hidden />
         {t("navigation:documents.share.title")}
       </PopoverTrigger>
       <PopoverPopup align="end" className="w-80 p-0">

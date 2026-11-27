@@ -481,48 +481,54 @@ describe("API integration: document access leaks", () => {
     }
   });
 
-  it("refuses and hides a favourite of a document the member cannot open", async () => {
-    const world = await buildDocumentWorld();
-    const { limited } = world;
-    const favorites = `/favorite/workspace/${world.ws}`;
-    const favorite = (targetId: string) =>
-      world.as(limited)(favorites, json("PUT", { type: "document", targetId }));
-    const unknown = await favorite("no-such-document");
-    expect(unknown.status).toBe(404);
-    const unknownBody = await unknown.json();
-    const hidden = hiddenFrom(world, "limited");
-    for (const place of hidden) {
-      const response = await favorite(world.docs[place]);
-      expect({ place, status: response.status }).toEqual({
-        place,
-        status: 404,
-      });
-      expect(await response.json()).toEqual(unknownBody);
-    }
+  // A pin on the Documents page is a favorite of its own type, with the same rule.
+  it.each(["document", "documentPin"] as const)(
+    "refuses and hides a %s favorite of a document the member cannot open",
+    async (type) => {
+      const world = await buildDocumentWorld();
+      const { limited } = world;
+      const favorites = `/favorite/workspace/${world.ws}`;
+      const favorite = (targetId: string) =>
+        world.as(limited)(favorites, json("PUT", { type, targetId }));
+      const unknown = await favorite("no-such-document");
+      expect(unknown.status).toBe(404);
+      const unknownBody = await unknown.json();
+      const hidden = hiddenFrom(world, "limited");
+      for (const place of hidden) {
+        const response = await favorite(world.docs[place]);
+        expect({ place, status: response.status }).toEqual({
+          place,
+          status: 404,
+        });
+        expect(await response.json()).toEqual(unknownBody);
+      }
 
-    // Favourited while they could still open it.
-    await db.insert(favoriteTable).values(
-      ids(world, hidden).map((targetId) => ({
-        userId: limited.id,
-        workspaceId: world.ws,
-        type: "document" as const,
-        targetId,
-      })),
-    );
-    expect((await favorite(world.docs.teamAlpha)).status).toBe(200);
-    expect((await favorite(world.docs.sharedInBeta)).status).toBe(200);
-    expect((await favorite(world.docs.sharedInProjectBeta)).status).toBe(200);
-    const rows = (await (await world.as(limited)(favorites)).json()) as {
-      type: string;
-      targetId: string;
-    }[];
-    expect(
-      rows
-        .filter((row) => row.type === "document")
-        .map((row) => row.targetId)
-        .sort(),
-    ).toEqual(ids(world, ["teamAlpha", "sharedInBeta", "sharedInProjectBeta"]));
-  });
+      // Favourited while they could still open it.
+      await db.insert(favoriteTable).values(
+        ids(world, hidden).map((targetId) => ({
+          userId: limited.id,
+          workspaceId: world.ws,
+          type,
+          targetId,
+        })),
+      );
+      expect((await favorite(world.docs.teamAlpha)).status).toBe(200);
+      expect((await favorite(world.docs.sharedInBeta)).status).toBe(200);
+      expect((await favorite(world.docs.sharedInProjectBeta)).status).toBe(200);
+      const rows = (await (await world.as(limited)(favorites)).json()) as {
+        type: string;
+        targetId: string;
+      }[];
+      expect(
+        rows
+          .filter((row) => row.type === type)
+          .map((row) => row.targetId)
+          .sort(),
+      ).toEqual(
+        ids(world, ["teamAlpha", "sharedInBeta", "sharedInProjectBeta"]),
+      );
+    },
+  );
 
   it("does not name a team the member cannot enter", async () => {
     const world = await buildDocumentWorld();

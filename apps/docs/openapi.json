@@ -35163,7 +35163,7 @@
           "Favorites"
         ],
         "summary": "List favorites",
-        "description": "The signed-in user's favorite teams, views, documents and pull requests, oldest first. A document the user can no longer open is left out. A pull request's targetId is owner/repo#number.",
+        "description": "The signed-in user's favorite teams, views, documents and pull requests, and the documents they pinned on the Documents page (type documentPin), oldest first. A document the user can no longer open is left out. A pull request's targetId is owner/repo#number.",
         "parameters": [
           {
             "schema": {
@@ -35190,7 +35190,8 @@
                           "project",
                           "view",
                           "document",
-                          "pullRequest"
+                          "pullRequest",
+                          "documentPin"
                         ]
                       },
                       "targetId": {
@@ -35242,7 +35243,7 @@
           "Favorites"
         ],
         "summary": "Add favorite",
-        "description": "Favorite a team, view, document or pull request. Repeating the call is a no-op. A document the user cannot open is refused like one that does not exist.",
+        "description": "Favorite a team, view, document or pull request, or pin a document (documentPin). Repeating the call is a no-op. A document the user cannot open is refused like one that does not exist.",
         "parameters": [
           {
             "schema": {
@@ -35266,7 +35267,8 @@
                       "project",
                       "view",
                       "document",
-                      "pullRequest"
+                      "pullRequest",
+                      "documentPin"
                     ]
                   },
                   "targetId": {
@@ -35296,7 +35298,8 @@
                         "project",
                         "view",
                         "document",
-                        "pullRequest"
+                        "pullRequest",
+                        "documentPin"
                       ]
                     },
                     "targetId": {
@@ -35353,7 +35356,7 @@
           "Favorites"
         ],
         "summary": "Remove favorite",
-        "description": "Unfavorite a team, view, document or pull request.",
+        "description": "Unfavorite a team, view, document or pull request, or unpin a document.",
         "parameters": [
           {
             "schema": {
@@ -35370,7 +35373,8 @@
                 "project",
                 "view",
                 "document",
-                "pullRequest"
+                "pullRequest",
+                "documentPin"
               ]
             },
             "required": true,
@@ -35401,7 +35405,8 @@
                         "project",
                         "view",
                         "document",
-                        "pullRequest"
+                        "pullRequest",
+                        "documentPin"
                       ]
                     },
                     "targetId": {

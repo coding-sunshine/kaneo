@@ -2,7 +2,7 @@ import { client } from "@kaneo/libs";
 import { HttpError } from "@/lib/http-error";
 
 export type FavoriteTarget = {
-  type: "project" | "view" | "document" | "pullRequest";
+  type: "project" | "view" | "document" | "pullRequest" | "documentPin";
   targetId: string;
 };
 

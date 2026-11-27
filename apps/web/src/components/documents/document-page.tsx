@@ -16,6 +16,7 @@ import { DocumentCrumbs } from "./document-crumbs";
 import { DocumentEditor } from "./document-editor";
 import { DocumentHeaderActions } from "./document-header-actions";
 import { DocumentHistory } from "./document-history";
+import { DocumentOutline } from "./document-outline";
 import { DocumentRevisionHint } from "./document-revision-hint";
 import { DocumentCitedBy } from "./document-cited-by";
 import { DocumentFacts } from "./document-facts";
@@ -51,6 +52,7 @@ export function DocumentPage({
   const [loadCount, setLoadCount] = useState(0);
   const [shareOpen, setShareOpen] = useState(false);
   const titleRef = useRef<HTMLTextAreaElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const toggle = (next: Exclude<Panel, null>) => {
     setPanel((current) => (current === next ? null : next));
@@ -178,21 +180,30 @@ export function DocumentPage({
               />
             )}
             <DocumentCitedBy document={document} />
-            <div className="min-h-0 flex-1 overflow-y-auto">
-              {version ? (
-                <DocumentVersionPreview
-                  version={version}
-                  canRestore={canEdit}
-                  restoring={restore.isPending}
-                  onRestore={onRestore}
-                  onBack={() => setVersion(null)}
-                />
-              ) : (
-                <DocumentEditor
+            <div className="relative min-h-0 flex-1">
+              <div ref={scrollRef} className="h-full overflow-y-auto">
+                {version ? (
+                  <DocumentVersionPreview
+                    version={version}
+                    canRestore={canEdit}
+                    restoring={restore.isPending}
+                    onRestore={onRestore}
+                    onBack={() => setVersion(null)}
+                  />
+                ) : (
+                  <DocumentEditor
+                    key={`${document.id}:${loadCount}`}
+                    document={document}
+                    readOnly={!canEdit}
+                    titleRef={titleRef}
+                  />
+                )}
+              </div>
+              {/* Re-keyed with the editor so it reads the headings of what shows. */}
+              {!version && (
+                <DocumentOutline
                   key={`${document.id}:${loadCount}`}
-                  document={document}
-                  readOnly={!canEdit}
-                  titleRef={titleRef}
+                  scrollRef={scrollRef}
                 />
               )}
             </div>

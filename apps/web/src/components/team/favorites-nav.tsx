@@ -45,6 +45,8 @@ export function FavoritesNav({ workspaceId }: { workspaceId: string }) {
   const setNavOpen = useUserPreferencesStore((s) => s.setNavOpen);
 
   const rows = favorites.flatMap((favorite) => {
+    // A pin belongs to the Documents page, not the sidebar.
+    if (favorite.type === "documentPin") return [];
     if (favorite.type === "project") {
       const project = projects.find((item) => item.id === favorite.targetId);
       if (!project) return [];
