@@ -286,4 +286,29 @@ describe("API integration: following a topic", () => {
     await file(world, owner, topic.id, fourth);
     expect(await freshIds(world, limited)).toEqual([fourth]);
   });
+
+  it("counts a proposal as news for its author when somebody else filed it", async () => {
+    const world = await buildDocumentWorld();
+    const { owner, limited } = world;
+    const topic = await createTopic(world, owner, {
+      name: "Launch plan",
+      projectId: world.alpha.id,
+    });
+    expect((await follow(world, limited, topic.id)).status).toBe(200);
+    // Written by the owner in team Alpha, where everyone may edit it.
+    const response = await world.as(owner)(
+      "/document",
+      json("POST", {
+        workspaceId: world.ws,
+        title: "Owner's draft",
+        content: "<p>Owner's draft</p>",
+        projectId: world.alpha.id,
+      }),
+    );
+    const { id: draft } = (await response.json()) as { id: string };
+
+    await file(world, limited, topic.id, draft);
+    expect(await freshIds(world, owner)).toEqual([draft]);
+    expect(await freshIds(world, limited)).toEqual([]);
+  });
 });
