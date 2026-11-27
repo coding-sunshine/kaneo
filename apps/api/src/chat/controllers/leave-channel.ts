@@ -1,4 +1,5 @@
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
+import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { chatChannelMemberTable } from "../../database/schema";
 import { loadChannel } from "./load-channel";
@@ -8,7 +9,18 @@ export async function leaveChannel(
   channelId: string,
   userId: string,
 ) {
-  await loadChannel(workspaceId, channelId, userId, "read");
+  const channel = await loadChannel(workspaceId, channelId, userId, "read");
+  // Nobody could see or reopen a private channel without members.
+  if (channel.isPrivate) {
+    const [members] = await db
+      .select({ total: count() })
+      .from(chatChannelMemberTable)
+      .where(eq(chatChannelMemberTable.channelId, channelId));
+    if ((members?.total ?? 0) <= 1)
+      throw new HTTPException(409, {
+        message: "The last member cannot leave a private channel",
+      });
+  }
   await db
     .delete(chatChannelMemberTable)
     .where(

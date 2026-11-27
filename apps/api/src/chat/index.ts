@@ -46,6 +46,12 @@ const access = [
   workspaceAccess.fromParam(),
   requireWorkspacePermission({ workspace: ["read"] }),
 ] as const;
+// Writing to chat is changing workspace content, so read-only viewers can
+// read channels but not create, join or post.
+const write = [
+  workspaceAccess.fromParam(),
+  requireWorkspacePermission({ task: ["update"] }),
+] as const;
 const channelPath = "/workspace/{workspaceId}/channels/{channelId}";
 
 const listRoute = createRoute({
@@ -71,7 +77,7 @@ const createChannelRoute = createRoute({
   tags,
   summary: "Create channel",
   description: "Create a public or private channel. You join it.",
-  middleware: [...access] as const,
+  middleware: [...write] as const,
   request: { params: workspaceIdParam, body: body(createChannelBody) },
   responses: {
     200: jsonResponse("Channel created", channelSchema),
@@ -102,7 +108,7 @@ const updateRoute = createRoute({
   tags,
   summary: "Update channel",
   description: "Rename, set the topic, or archive and unarchive. Members only.",
-  middleware: [...access] as const,
+  middleware: [...write] as const,
   request: { params: channelParam, body: body(updateChannelBody) },
   responses: {
     200: jsonResponse("Channel updated", channelDetailSchema),
@@ -118,7 +124,7 @@ const joinRoute = createRoute({
   tags,
   summary: "Join channel",
   description: "Join a public channel.",
-  middleware: [...access] as const,
+  middleware: [...write] as const,
   request: { params: channelParam },
   responses: {
     200: jsonResponse("Joined", channelDetailSchema),
@@ -134,13 +140,15 @@ const leaveRoute = createRoute({
   path: `${channelPath}/leave`,
   tags,
   summary: "Leave channel",
-  description: "Leave a channel. A private channel then disappears for you.",
-  middleware: [...access] as const,
+  description:
+    "Leave a channel. A private channel then disappears for you; its last member cannot leave.",
+  middleware: [...write] as const,
   request: { params: channelParam },
   responses: {
     200: jsonResponse("Left", leftChannelSchema),
     403: noAccess,
     404: notFound,
+    409: errorResponse("The last member cannot leave a private channel"),
   },
 });
 
@@ -151,7 +159,7 @@ const inviteRoute = createRoute({
   tags,
   summary: "Add member",
   description: "Add a workspace member to a channel you belong to.",
-  middleware: [...access] as const,
+  middleware: [...write] as const,
   request: { params: channelParam, body: body(inviteMemberBody) },
   responses: {
     200: jsonResponse("Member added", channelDetailSchema),
@@ -184,7 +192,7 @@ const postMessageRoute = createRoute({
   tags,
   summary: "Post message",
   description: "Post to a channel you belong to.",
-  middleware: [...access] as const,
+  middleware: [...write] as const,
   request: { params: channelParam, body: body(postMessageBody) },
   responses: {
     200: jsonResponse("Message posted", messageSchema),

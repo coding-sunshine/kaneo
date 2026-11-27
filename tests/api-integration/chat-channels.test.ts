@@ -13,11 +13,15 @@ const json = (method: string, body?: unknown) => ({
 
 type Seeded = Awaited<ReturnType<typeof createWorkspaceMember>>;
 
-async function addToWorkspace(workspaceId: string, member: Seeded) {
+async function addToWorkspace(
+  workspaceId: string,
+  member: Seeded,
+  role = "member",
+) {
   await db.insert(schema.workspaceUserTable).values({
     workspaceId,
     userId: member.user.id,
-    role: "member",
+    role,
     joinedAt: new Date(),
   });
 }
@@ -26,8 +30,10 @@ async function setup() {
   const owner = await createWorkspaceMember({ role: "owner" });
   const teammate = await createWorkspaceMember();
   const outsider = await createWorkspaceMember();
+  const viewer = await createWorkspaceMember();
   const ws = owner.workspace.id;
   await addToWorkspace(ws, teammate);
+  await addToWorkspace(ws, viewer, "viewer");
   const { app } = createApp();
   const base = `/api/chat/workspace/${ws}/channels`;
   const as = (member: Seeded) => {
@@ -52,7 +58,7 @@ async function setup() {
       ).status,
     ).toBe(200);
 
-  return { owner, teammate, outsider, ws, base, as, pub, priv };
+  return { owner, teammate, outsider, viewer, ws, base, as, pub, priv };
 }
 
 describe("API integration: chat channels", () => {
@@ -216,5 +222,107 @@ describe("API integration: chat channels", () => {
     expect(
       (await asOutsider(`${foreignBase}/${pub.id}/join`, json("POST"))).status,
     ).toBe(404);
+  });
+
+  it("lets a viewer read channels but not write to them", async () => {
+    const { owner, viewer, base, as, pub } = await setup();
+    await as(owner)(
+      `${base}/${pub.id}/members`,
+      json("POST", { userId: viewer.user.id }),
+    );
+    const asViewer = as(viewer);
+
+    expect((await asViewer(base)).status).toBe(200);
+    expect((await asViewer(`${base}/${pub.id}/messages`)).status).toBe(200);
+    for (const [method, path, body] of [
+      ["POST", base, { name: "viewer-room" }],
+      ["PATCH", `${base}/${pub.id}`, { topic: "x" }],
+      ["PATCH", `${base}/${pub.id}`, { archived: true }],
+      ["POST", `${base}/${pub.id}/join`, undefined],
+      ["POST", `${base}/${pub.id}/leave`, undefined],
+      ["POST", `${base}/${pub.id}/members`, { userId: owner.user.id }],
+      ["POST", `${base}/${pub.id}/messages`, { body: "hi" }],
+    ] as const)
+      expect((await asViewer(path, json(method, body))).status).toBe(403);
+  });
+
+  it("keeps adding members and archiving to channel members", async () => {
+    const { owner, teammate, base, as, pub } = await setup();
+    const asTeammate = as(teammate);
+
+    expect(
+      (
+        await asTeammate(
+          `${base}/${pub.id}/members`,
+          json("POST", { userId: owner.user.id }),
+        )
+      ).status,
+    ).toBe(403);
+    expect(
+      (await asTeammate(`${base}/${pub.id}`, json("PATCH", { archived: true })))
+        .status,
+    ).toBe(403);
+    const channel = await (await as(owner)(`${base}/${pub.id}`)).json();
+    expect(channel.archivedAt).toBeNull();
+  });
+
+  it("refuses to add a member to an archived channel", async () => {
+    const { owner, teammate, base, as, pub } = await setup();
+    const asOwner = as(owner);
+    await asOwner(`${base}/${pub.id}`, json("PATCH", { archived: true }));
+
+    expect(
+      (
+        await asOwner(
+          `${base}/${pub.id}/members`,
+          json("POST", { userId: teammate.user.id }),
+        )
+      ).status,
+    ).toBe(409);
+  });
+
+  it("refuses writes to a channel through another workspace's URL", async () => {
+    const { owner, outsider, as, pub, priv } = await setup();
+    // The outsider owns their own workspace, so the workspace check passes and
+    // only the channel lookup can refuse.
+    const foreignBase = `/api/chat/workspace/${outsider.workspace.id}/channels`;
+    const asOutsider = as(outsider);
+
+    for (const channel of [pub, priv])
+      for (const [method, path, body] of [
+        ["POST", `${foreignBase}/${channel.id}/messages`, { body: "hi" }],
+        ["PATCH", `${foreignBase}/${channel.id}`, { archived: true }],
+        [
+          "POST",
+          `${foreignBase}/${channel.id}/members`,
+          { userId: outsider.user.id },
+        ],
+      ] as const)
+        expect((await asOutsider(path, json(method, body))).status).toBe(404);
+
+    const messages = await (
+      await as(owner)(
+        `/api/chat/workspace/${owner.workspace.id}/channels/${pub.id}/messages`,
+      )
+    ).json();
+    expect(messages).toHaveLength(1);
+  });
+
+  it("keeps the last member of a private channel from leaving", async () => {
+    const { owner, teammate, base, as, priv } = await setup();
+    const asOwner = as(owner);
+    const leave = () => asOwner(`${base}/${priv.id}/leave`, json("POST"));
+
+    expect((await leave()).status).toBe(409);
+    expect((await asOwner(`${base}/${priv.id}`)).status).toBe(200);
+
+    await asOwner(
+      `${base}/${priv.id}/members`,
+      json("POST", { userId: teammate.user.id }),
+    );
+    expect((await leave()).status).toBe(200);
+    expect(
+      (await as(teammate)(`${base}/${priv.id}/leave`, json("POST"))).status,
+    ).toBe(409);
   });
 });
