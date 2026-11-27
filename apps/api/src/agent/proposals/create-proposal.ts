@@ -11,6 +11,7 @@ import { projectAccessCondition } from "../../project-access/project-access-cond
 import type { ChatMessage } from "../openrouter";
 import { type Cited, grounded, splitSources } from "../sources";
 import type { ProposeRequest } from "../tools";
+import { canPostProjectUpdate } from "./can-post-project-update";
 import { type ChangeTaskArgs, unknownLabels } from "./change-task-tool";
 import { type FieldChange, fieldDiff } from "./field-diff";
 import { PROJECT_UPDATE_TOOL } from "./project-update-tool";
@@ -143,7 +144,9 @@ export function proposer(turn: ProposalTurn) {
       // A project belongs to the workspace, not to a team; its id stands in
       // the team column, which has no team for it to name.
       projectId = String(args.workProjectId ?? "");
-      projectName = await workProjectName(turn.workspaceId, projectId);
+      projectName = (await canPostProjectUpdate(turn.workspaceId, turn.userId))
+        ? await workProjectName(turn.workspaceId, projectId)
+        : null;
       if (!projectName) return refuse("Project not found");
     } else {
       projectId = String(args.projectId ?? "");

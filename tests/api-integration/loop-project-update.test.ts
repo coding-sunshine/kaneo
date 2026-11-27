@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
@@ -72,8 +73,8 @@ describe("API integration: loop drafts a project update", () => {
     workProjectId = project?.id ?? "";
   });
 
-  async function runLoop() {
-    const created = await as(owner).request(
+  async function runLoop(creator: User = owner) {
+    const created = await as(creator).request(
       "/api/loop",
       json("POST", {
         workspaceId: ws,
@@ -95,7 +96,7 @@ describe("API integration: loop drafts a project update", () => {
       }),
       reply("Drafted the update for you to accept on Pulse."),
     );
-    const run = await as(owner).request(
+    const run = await as(creator).request(
       `/api/loop/workspace/${ws}/${loop.id}/run`,
       json("POST"),
     );
@@ -179,6 +180,28 @@ describe("API integration: loop drafts a project update", () => {
     const [draft] = await drafts(owner);
     expect(await drafts(member)).toEqual([]);
     expect((await accept(member, draft?.id ?? "")).status).toBe(404);
+    expect(await updates()).toEqual([]);
+  });
+
+  it("drafts nothing for a viewer, who cannot post an update", async () => {
+    await db
+      .update(schema.workspaceUserTable)
+      .set({ role: "viewer" })
+      .where(eq(schema.workspaceUserTable.userId, member.id));
+    await runLoop(member);
+    expect(await drafts(member)).toEqual([]);
+    expect(await updates()).toEqual([]);
+  });
+
+  it("drafts nothing for a guest, who never sees the workspace's projects", async () => {
+    await db.insert(schema.workspaceMemberAccessTable).values({
+      workspaceId: ws,
+      userId: member.id,
+      projectAccess: "selected",
+      guest: true,
+    });
+    await runLoop(member);
+    expect(await drafts(member)).toEqual([]);
     expect(await updates()).toEqual([]);
   });
 
