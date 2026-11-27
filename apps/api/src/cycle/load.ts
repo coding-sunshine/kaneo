@@ -35,17 +35,34 @@ export async function loadCycles(where: ReturnType<typeof eq>) {
     )
     .groupBy(taskTable.cycleId);
   const byId = new Map(counts.map((c) => [c.id, c]));
-  return rows.map((row) => {
-    const c = byId.get(row.id);
-    return {
-      ...row,
-      progress: {
-        total: c?.total ?? 0,
-        started: c?.started ?? 0,
-        done: c?.done ?? 0,
-      },
-    };
-  });
+  return rows.map(
+    ({
+      summaryCompleted,
+      summaryAddedAfterStart,
+      summaryCarriedOver,
+      ...row
+    }) => {
+      const c = byId.get(row.id);
+      return {
+        ...row,
+        progress: {
+          total: c?.total ?? 0,
+          started: c?.started ?? 0,
+          done: c?.done ?? 0,
+        },
+        summary:
+          summaryCompleted === null ||
+          summaryAddedAfterStart === null ||
+          summaryCarriedOver === null
+            ? null
+            : {
+                completed: summaryCompleted,
+                addedAfterStart: summaryAddedAfterStart,
+                carriedOver: summaryCarriedOver,
+              },
+      };
+    },
+  );
 }
 
 export async function loadCycle(id: string) {

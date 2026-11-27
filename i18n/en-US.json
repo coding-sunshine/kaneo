@@ -6648,6 +6648,12 @@
 			"percentSuccess": "{{percent}}% success",
 			"completedCount": "{{count}} completed",
 			"scopeCount": "{{count}} scope",
+			"summary": {
+				"title": "Cycle summary",
+				"completed": "Completed",
+				"addedAfterStart": "Added after start",
+				"carriedOver": "Carried over"
+			},
 			"state": {
 				"current": "Current",
 				"upcoming": "Upcoming",

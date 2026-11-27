@@ -48,7 +48,11 @@ async function updateTaskCycle({
   await assertCycleInProject(current.projectId, cycleId);
   const [task] = await db
     .update(taskTable)
-    .set({ cycleId })
+    .set(
+      current.cycleId === cycleId
+        ? { cycleId }
+        : { cycleId, cycleAddedAt: cycleId ? new Date() : null },
+    )
     .where(eq(taskTable.id, id))
     .returning();
   if (!task) throw new HTTPException(404, { message: "Task not found" });

@@ -6170,6 +6170,12 @@
 				"current": "Current",
 				"planned": "Planned",
 				"upcoming": "Upcoming"
+			},
+			"summary": {
+				"addedAfterStart": "Added after start",
+				"carriedOver": "Carried over",
+				"completed": "Completed",
+				"title": "Cycle summary"
 			}
 		},
 		"reviews": {

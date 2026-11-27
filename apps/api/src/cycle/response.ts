@@ -17,6 +17,23 @@ export const cycleSchema = z
       started: z.number().int(),
       done: z.number().int(),
     }),
+    summary: z
+      .object({
+        completed: z.number().int().openapi({
+          description: "Issues finished when the cycle ended.",
+        }),
+        addedAfterStart: z.number().int().openapi({
+          description: "Issues that joined the cycle after it started.",
+        }),
+        carriedOver: z.number().int().openapi({
+          description: "Issues still open when the cycle ended.",
+        }),
+      })
+      .nullable()
+      .openapi({
+        description:
+          "Team totals snapshotted when the cycle completes; null until then. Canceled and archived issues are excluded.",
+      }),
   })
   .openapi("Cycle");
 
