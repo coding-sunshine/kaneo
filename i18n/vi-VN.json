@@ -3043,7 +3043,8 @@
 				"assistant": "Assistant",
 				"loop": "Loop runs",
 				"loopDraft": "Loop drafts",
-				"filter": "Plain-English filters"
+				"filter": "Plain-English filters",
+				"summary": "Ticket summaries"
 			},
 			"invalid": "Enter a whole number of tokens, or leave the field empty.",
 			"loadError": "AI usage could not be loaded.",
@@ -5502,6 +5503,15 @@
 			},
 			"title": "Triage",
 			"toTriage_other": "{{count}} issues to triage"
+		},
+		"summary": {
+			"action": "Summarise",
+			"again": "Summarise again",
+			"blockers": "Blockers",
+			"noBlockers": "Nothing is blocking this ticket.",
+			"sources": "Based on",
+			"title": "Summary",
+			"working": "Summarising…"
 		}
 	},
 	"invitations": {

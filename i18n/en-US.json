@@ -2996,7 +2996,8 @@
 				"assistant": "Assistant",
 				"loop": "Loop runs",
 				"loopDraft": "Loop drafts",
-				"filter": "Plain-English filters"
+				"filter": "Plain-English filters",
+				"summary": "Ticket summaries"
 			}
 		},
 		"aiAudit": {
@@ -5521,6 +5522,15 @@
 			"matchAll": "all filters",
 			"matchAny": "any filter",
 			"noMatches": "No issues match your search or filters."
+		},
+		"summary": {
+			"title": "Summary",
+			"action": "Summarise",
+			"again": "Summarise again",
+			"working": "Summarising…",
+			"blockers": "Blockers",
+			"noBlockers": "Nothing is blocking this ticket.",
+			"sources": "Based on"
 		},
 		"filterMenu": {
 			"addFilter": "Add filter…",
