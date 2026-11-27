@@ -194,6 +194,7 @@ const removeMemberRoute = createRoute({
     200: jsonResponse("Member removed", removedMemberSchema),
     403: noAccess,
     404: errorResponse("Channel or member not found"),
+    409: errorResponse("The last member cannot leave a private channel"),
   },
 });
 

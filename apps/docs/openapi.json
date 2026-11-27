@@ -28463,6 +28463,16 @@
               }
             }
           },
+          "409": {
+            "description": "The last member cannot leave a private channel",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "429": {
             "$ref": "#/components/responses/ApiKeyRateLimited"
           }

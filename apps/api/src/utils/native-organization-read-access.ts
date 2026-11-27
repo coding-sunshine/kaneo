@@ -7,11 +7,9 @@ import { splitRoles } from "./split-roles";
 
 type AuthContext = Parameters<typeof getSessionFromCtx>[0];
 
-// Reads that list the workspace's people. A guest gets the people of their
-// projects from the Kaneo members route instead.
+// Team reads a guest has no use for. Member lists are trimmed for guests in
+// the after hook instead (see guest/hide-members-from-guest.ts).
 const CLOSED_TO_GUESTS = new Set([
-  "/organization/get-full-organization",
-  "/organization/list-members",
   "/organization/list-teams",
   "/organization/list-team-members",
   "/organization/get-active-member-role",

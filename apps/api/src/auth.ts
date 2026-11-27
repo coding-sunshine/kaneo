@@ -113,6 +113,8 @@ import {
   userExistsByEmail,
 } from "./utils/check-registration-allowed";
 import { addGuestToChannels } from "./guest/add-guest-to-channels";
+import { assertGuestOrganizationWrite } from "./guest/assert-guest-organization-write";
+import { hideMembersFromGuest } from "./guest/hide-members-from-guest";
 import { isWorkspaceGuest } from "./guest/is-workspace-guest";
 import { resolveGuestInvitation } from "./guest/resolve-guest-invitation";
 import { checkWorkspaceName } from "./utils/check-workspace-name";
@@ -991,6 +993,7 @@ export const auth = betterAuth({
           // First, so members of an archived workspace get its stable code.
           await assertNativeOrganizationActive(ctx, organizationViewer);
           await assertNativeOrganizationReadAllowed(ctx, organizationViewer);
+          await assertGuestOrganizationWrite(ctx, organizationViewer);
         }
         if (ctx.path === "/organization/delete") {
           // This short-circuits the provider endpoint; retain its key usage check.
@@ -1314,6 +1317,15 @@ export const auth = betterAuth({
           }
           await hideInaccessibleInvitationProjects(viewer.user.id, invitations);
         }
+      }
+
+      if (
+        ctx.path === "/organization/list-members" ||
+        ctx.path === "/organization/get-full-organization"
+      ) {
+        const viewer = await getSessionFromCtx(ctx);
+        if (viewer)
+          await hideMembersFromGuest(viewer.user.id, ctx.context.returned);
       }
 
       if (ctx.path === "/organization/leave") {

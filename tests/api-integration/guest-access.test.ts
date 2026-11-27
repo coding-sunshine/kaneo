@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
-import { eq } from "drizzle-orm";
+import { defaultRolePayloads } from "@kaneo/permissions";
+import { and, eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import {
@@ -7,6 +8,7 @@ import {
   chatChannelTable,
   chatMessageTable,
   savedViewTable,
+  topicTable,
 } from "../../apps/api/src/database/schema";
 import { markInternalRequest } from "../../apps/api/src/agent/internal-auth";
 import { createApp } from "../../apps/api/src/index";
@@ -75,21 +77,40 @@ async function setUp() {
     .insert(schema.workProjectTable)
     .values({ workspaceId, name: "Canary roadmap" })
     .returning();
-  await db.insert(schema.documentTable).values({
-    workspaceId,
-    title: "Canary launch plan",
-    scope: "project",
-    workProjectId: roadmap.id,
-    creatorId: owner.userId,
-  });
-  await db.insert(savedViewTable).values({
-    workspaceId,
-    ownerId: owner.userId,
-    visibility: "shared",
-    name: "Canary board",
-    filters: {},
-    display: {},
-  });
+  const [planDoc] = await db
+    .insert(schema.documentTable)
+    .values({
+      workspaceId,
+      title: "Canary launch plan",
+      scope: "project",
+      workProjectId: roadmap.id,
+      creatorId: owner.userId,
+    })
+    .returning();
+  const [loop] = await db
+    .insert(schema.loopTable)
+    .values({
+      workspaceId,
+      creatorId: owner.userId,
+      name: "Canary weekly digest",
+      instructions: "Summarise canary salaries",
+    })
+    .returning();
+  const [topic] = await db
+    .insert(topicTable)
+    .values({ workspaceId, name: "Canary pricing", creatorId: owner.userId })
+    .returning();
+  const [view] = await db
+    .insert(savedViewTable)
+    .values({
+      workspaceId,
+      ownerId: owner.userId,
+      visibility: "shared",
+      name: "Canary board",
+      filters: {},
+      display: {},
+    })
+    .returning();
   await db.insert(schema.activityTable).values({
     taskId: qTask.id,
     type: "comment",
@@ -157,7 +178,11 @@ async function setUp() {
     pTask,
     qTask,
     workspaceDoc,
+    planDoc,
     roadmap,
+    loop,
+    topic,
+    view,
     x,
     y,
   };
@@ -191,15 +216,31 @@ function sweepPaths(world: World) {
     userId: world.teammate.userId,
     workProjectId: world.roadmap.id,
   };
+  // What `{id}` names, by the route it appears in.
+  const ids: [string, string[]][] = [
+    ["/project/", [world.q.id]],
+    ["/task/", [world.qTask.id]],
+    ["/work-project/", [world.roadmap.id]],
+    ["/view/", [world.view.id]],
+    ["/loop/", [world.loop.id]],
+    ["/document/", [world.workspaceDoc.id, world.planDoc.id]],
+    ["/topic/", [world.topic.id]],
+  ];
   const paths: string[] = [];
   for (const [path, operations] of Object.entries(openapi.paths)) {
     if (!operations.get) continue;
     if (SKIPPED_PREFIXES.some((prefix) => path.startsWith(prefix))) continue;
     const params = [...path.matchAll(/\{(\w+)\}/g)].map((match) => match[1]);
-    if (params.some((param) => !values[param])) continue;
-    paths.push(
-      path.replace(/\{(\w+)\}/g, (_, param: string) => values[param] ?? ""),
-    );
+    const idValues = params.includes("id")
+      ? (ids.find(([prefix]) => path.startsWith(prefix))?.[1] ?? [])
+      : [""];
+    for (const id of idValues) {
+      const known = { ...values, ...(id ? { id } : {}) };
+      if (params.some((param) => !known[param])) continue;
+      paths.push(
+        path.replace(/\{(\w+)\}/g, (_, param: string) => known[param] ?? ""),
+      );
+    }
   }
   return paths;
 }
@@ -240,6 +281,18 @@ describe("guest access", () => {
     );
     expect(messages.status).toBe(200);
     expect(messages.text).toContain("Welcome aboard");
+
+    // Pickers still list the people of P, and only them.
+    for (const path of [
+      `/auth/organization/list-members?organizationId=${workspaceId}`,
+      `/auth/organization/get-full-organization?organizationId=${workspaceId}`,
+      `/workspace/${workspaceId}/members`,
+    ]) {
+      const people = await bodyOf(guestRequest, path);
+      expect(people.status, path).toBe(200);
+      expect(people.text, path).toContain("owner@example.test");
+      expect(people.text, path).not.toMatch(CANARY);
+    }
   });
 
   it("leaks nothing outside P and X through any read", async () => {
@@ -362,6 +415,61 @@ describe("guest access", () => {
       },
     );
     expect(promoted.status).toBeGreaterThanOrEqual(400);
+  });
+
+  it("keeps a guest out of people and role changes on every path", async () => {
+    const world = await setUp();
+    const { workspaceId, guest } = world;
+    // Even a workspace that lets members invite does not let its guests.
+    await db
+      .update(schema.workspaceRoleTable)
+      .set({
+        permission: JSON.stringify({
+          ...defaultRolePayloads.member,
+          invitation: ["create"],
+        }),
+      })
+      .where(
+        and(
+          eq(schema.workspaceRoleTable.workspaceId, workspaceId),
+          eq(schema.workspaceRoleTable.role, "member"),
+        ),
+      );
+    const invited = await world.guestRequest(
+      "/auth/organization/invite-member",
+      {
+        method: "POST",
+        body: {
+          organizationId: workspaceId,
+          email: "friend@example.test",
+          role: "member",
+          projectAccess: "selected",
+          projectIds: [world.p.id],
+        },
+      },
+    );
+    expect(invited.status).toBe(403);
+    expect(await invited.text()).toContain("GUEST_LIMIT");
+
+    const operator = await signUpWithSession(app, {
+      email: "operator@example.test",
+      name: "Operator",
+      role: "admin",
+    });
+    const operatorRequest = projectAccessApi({ cookie: operator.cookies });
+    const promoted = await operatorRequest(
+      `/admin/workspaces/${workspaceId}/members/${guest.userId}/role`,
+      { method: "PUT", body: { role: "admin" } },
+    );
+    expect(promoted.status).toBe(409);
+    const owned = await operatorRequest(
+      `/admin/workspaces/${workspaceId}/owner`,
+      {
+        method: "PUT",
+        body: { userId: guest.userId },
+      },
+    );
+    expect(owned.status).toBe(409);
   });
 
   it("holds the guest's AI to the guest's reach", async () => {

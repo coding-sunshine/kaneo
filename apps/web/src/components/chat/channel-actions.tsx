@@ -45,7 +45,9 @@ export function ChannelActions({
   const onError = (error: Error) => toast.error(error.message);
   const archived = Boolean(channel.archivedAt);
 
-  if (!channel.isMember) return null;
+  // Admins manage who is in a channel they have not joined, too.
+  if (!channel.isMember && !canManageMembers) return null;
+  const memberActions = channel.isMember && !isGuest;
 
   return (
     <>
@@ -57,7 +59,12 @@ export function ChannelActions({
           <MoreHorizontal />
         </MenuTrigger>
         <MenuPopup align="end" className="min-w-48">
-          {!isGuest && (
+          {canManageMembers && (
+            <MenuItem onClick={() => setDialog("manage")}>
+              {t("navigation:chat.manageMembers")}
+            </MenuItem>
+          )}
+          {memberActions && (
             <>
               <MenuItem onClick={() => setDialog("topic")}>
                 {t("navigation:chat.setTopic")}
@@ -65,11 +72,6 @@ export function ChannelActions({
               {!archived && (
                 <MenuItem onClick={() => setDialog("members")}>
                   {t("navigation:chat.addMember")}
-                </MenuItem>
-              )}
-              {canManageMembers && (
-                <MenuItem onClick={() => setDialog("manage")}>
-                  {t("navigation:chat.manageMembers")}
                 </MenuItem>
               )}
               <MenuItem
@@ -84,20 +86,22 @@ export function ChannelActions({
               <MenuSeparator />
             </>
           )}
-          <MenuItem
-            onClick={() =>
-              leave.mutate(undefined, {
-                onError,
-                onSuccess: () =>
-                  navigate({
-                    to: "/dashboard/workspace/$workspaceId/channels",
-                    params: { workspaceId },
-                  }),
-              })
-            }
-          >
-            {t("navigation:chat.leave")}
-          </MenuItem>
+          {channel.isMember && (
+            <MenuItem
+              onClick={() =>
+                leave.mutate(undefined, {
+                  onError,
+                  onSuccess: () =>
+                    navigate({
+                      to: "/dashboard/workspace/$workspaceId/channels",
+                      params: { workspaceId },
+                    }),
+                })
+              }
+            >
+              {t("navigation:chat.leave")}
+            </MenuItem>
+          )}
         </MenuPopup>
       </Menu>
       {dialog === "topic" && (

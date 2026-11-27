@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
@@ -14,7 +14,7 @@ export async function removeMember(
   memberId: string,
 ) {
   const [channel] = await db
-    .select({ id: chatChannelTable.id })
+    .select({ id: chatChannelTable.id, isPrivate: chatChannelTable.isPrivate })
     .from(chatChannelTable)
     .where(
       and(
@@ -23,6 +23,17 @@ export async function removeMember(
       ),
     );
   if (!channel) throw new HTTPException(404, { message: "Channel not found" });
+  // Nobody could see or reopen a private channel without members.
+  if (channel.isPrivate) {
+    const [members] = await db
+      .select({ total: count() })
+      .from(chatChannelMemberTable)
+      .where(eq(chatChannelMemberTable.channelId, channelId));
+    if ((members?.total ?? 0) <= 1)
+      throw new HTTPException(409, {
+        message: "The last member cannot leave a private channel",
+      });
+  }
   const removed = await db
     .delete(chatChannelMemberTable)
     .where(
