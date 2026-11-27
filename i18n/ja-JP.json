@@ -3107,7 +3107,8 @@
 				"project": "Teams and projects",
 				"task": "Issues"
 			},
-			"url": "URL"
+			"url": "URL",
+			"hiddenTeams_other": "{{count}} teams you cannot open"
 		},
 		"aiUsage": {
 			"budgets": "Budgets",

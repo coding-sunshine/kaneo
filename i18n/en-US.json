@@ -3116,6 +3116,8 @@
 			"teams": "Teams",
 			"teamsHint": "Leave empty to receive events from every team.",
 			"allTeams": "All teams",
+			"hiddenTeams_one": "{{count}} team you cannot open",
+			"hiddenTeams_other": "{{count}} teams you cannot open",
 			"enabled": "Enabled",
 			"disabled": "Disabled",
 			"toggle": "Enable {{label}}",

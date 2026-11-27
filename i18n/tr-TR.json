@@ -3159,7 +3159,9 @@
 				"project": "Teams and projects",
 				"task": "Issues"
 			},
-			"url": "URL"
+			"url": "URL",
+			"hiddenTeams_one": "{{count}} team you cannot open",
+			"hiddenTeams_other": "{{count}} teams you cannot open"
 		},
 		"aiUsage": {
 			"budgets": "Budgets",
