@@ -1431,6 +1431,22 @@
               "null"
             ]
           },
+          "reviewRequestedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the caller was asked to review the task's design. Set on the review tab only."
+          },
+          "reviewSlaDueAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the caller's design review is due: two days after the request. Set on the review tab only."
+          },
           "workProjectId": {
             "type": [
               "string",
@@ -1474,6 +1490,8 @@
           "dueDate",
           "lastActivityAt",
           "lastActivityType",
+          "reviewRequestedAt",
+          "reviewSlaDueAt",
           "workProjectId",
           "workProjectMilestoneId",
           "projectName",
@@ -8836,6 +8854,63 @@
           "local",
           "remote",
           "token"
+        ]
+      },
+      "DesignReview": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "reviewerId": {
+            "type": "string"
+          },
+          "reviewerName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requesterId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved"
+            ],
+            "description": "`pending` until the reviewer approves it, then `approved`."
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resolvedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "slaDueAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the review should be answered: two days after the request."
+          }
+        },
+        "required": [
+          "taskId",
+          "reviewerId",
+          "reviewerName",
+          "requesterId",
+          "status",
+          "requestedAt",
+          "resolvedAt",
+          "slaDueAt"
         ]
       },
       "GitHubAppInfo": {
@@ -18859,12 +18934,13 @@
                 "assigned",
                 "created",
                 "subscribed",
-                "activity"
+                "activity",
+                "review"
               ],
-              "description": "Which of the caller's tasks to list: assigned to them (default), created by them, or followed by them, or ones they recently acted on (activity, includes completed)."
+              "description": "Which of the caller's tasks to list: assigned to them (default), created by them, or followed by them, ones they recently acted on (activity, includes completed), or ones waiting on their design review (review, oldest request first)."
             },
             "required": false,
-            "description": "Which of the caller's tasks to list: assigned to them (default), created by them, or followed by them, or ones they recently acted on (activity, includes completed).",
+            "description": "Which of the caller's tasks to list: assigned to them (default), created by them, or followed by them, ones they recently acted on (activity, includes completed), or ones waiting on their design review (review, oldest request first).",
             "name": "tab",
             "in": "query"
           },
@@ -49318,6 +49394,317 @@
           },
           "403": {
             "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/design-review/task/{taskId}": {
+      "get": {
+        "operationId": "listDesignReviews",
+        "tags": [
+          "Design Reviews"
+        ],
+        "summary": "List a task's design reviews",
+        "description": "Get everyone asked to review the task's design, oldest request first, with each review's state and SLA due time.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "taskId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Design reviews on the task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DesignReview"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing task:read permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "post": {
+        "operationId": "requestDesignReview",
+        "tags": [
+          "Design Reviews"
+        ],
+        "summary": "Request a design review",
+        "description": "Ask a workspace member to review the task's design. The task then shows in their Needs my review list. Asking the same person again restarts the review as pending.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "taskId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reviewerId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "The workspace member asked to review. They must be able to open the task's team."
+                  }
+                },
+                "required": [
+                  "reviewerId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The pending design review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DesignReview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The reviewer is not a workspace member who can open the team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing task:update permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/design-review/task/{taskId}/approve": {
+      "post": {
+        "operationId": "approveDesignReview",
+        "tags": [
+          "Design Reviews"
+        ],
+        "summary": "Approve a design review",
+        "description": "Approve the caller's own pending design review on the task, which removes the task from their Needs my review list.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "taskId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The approved design review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DesignReview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing task:read permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found, or no pending review for the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/design-review/task/{taskId}/reviewer/{reviewerId}": {
+      "delete": {
+        "operationId": "withdrawDesignReview",
+        "tags": [
+          "Design Reviews"
+        ],
+        "summary": "Withdraw a design review request",
+        "description": "Remove a reviewer's design review from the task.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "taskId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "reviewerId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The withdrawn review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "taskId": {
+                      "type": "string"
+                    },
+                    "reviewerId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "taskId",
+                    "reviewerId"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the project, or missing task:update permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task or design review not found",
             "content": {
               "application/json": {
                 "schema": {

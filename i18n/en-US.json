@@ -5847,6 +5847,20 @@
 			"label": "SLA",
 			"ageTitle": "Open for {{age}}",
 			"none": "No SLA"
+		},
+		"designReview": {
+			"title": "Design review",
+			"request": "Request design review",
+			"reviewer": "Reviewer",
+			"reviewerPlaceholder": "Choose a reviewer...",
+			"approve": "Approve",
+			"approved": "Approved",
+			"withdraw": "Withdraw the review request from {{name}}",
+			"waitingTitle": "Waiting for {{age}}",
+			"unknownReviewer": "Former member",
+			"requestError": "Could not request the design review.",
+			"approveError": "Could not approve the design review.",
+			"withdrawError": "Could not withdraw the design review request."
 		}
 	},
 	"invitations": {
@@ -6451,10 +6465,12 @@
 		"myTasks": {
 			"pageTitle": "My issues",
 			"emptyDescription": "Issues assigned to you across this workspace show up here.",
+			"reviewEmptyDescription": "Issues someone asked you to review show up here, oldest request first.",
 			"tabs": {
 				"assigned": "Assigned",
 				"created": "Created",
-				"subscribed": "Subscribed"
+				"subscribed": "Subscribed",
+				"review": "Needs my review"
 			},
 			"groupBy": {
 				"label": "Group by",

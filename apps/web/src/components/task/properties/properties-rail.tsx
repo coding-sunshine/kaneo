@@ -11,6 +11,7 @@ import {
 import { getPriorityLabel } from "@/lib/i18n/domain";
 import { getPriorityIcon } from "@/lib/priority";
 import { TaskCustomFieldRows } from "../custom-fields/task-custom-field-rows";
+import { DesignReviewSection } from "../design-review/design-review-section";
 import TaskAssigneePopover from "../task-assignee-popover";
 import TaskDueDatePopover from "../task-due-date-popover";
 import TaskLabelsPopover from "../task-labels-popover";
@@ -208,6 +209,8 @@ export function PropertiesRail({
       <RailSection title={t("tasks:properties.workProject")}>
         <WorkProjectRows task={task} workspaceId={workspaceId} />
       </RailSection>
+
+      <DesignReviewSection task={task} workspaceId={workspaceId} />
 
       <TaskRelations
         taskId={taskId}

@@ -1610,6 +1610,45 @@ export const taskSubscriberTable = pgTable(
   ],
 );
 
+export const DESIGN_REVIEW_STATUSES = ["pending", "approved"] as const;
+
+// One row per reviewer on a task. Asking again resets it to pending.
+export const taskDesignReviewTable = pgTable(
+  "task_design_review",
+  {
+    taskId: text("task_id")
+      .notNull()
+      .references(() => taskTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    reviewerId: text("reviewer_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    requesterId: text("requester_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    status: text("status", { enum: DESIGN_REVIEW_STATUSES })
+      .default("pending")
+      .notNull(),
+    requestedAt: timestamp("requested_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    resolvedAt: timestamp("resolved_at", { mode: "date" }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.taskId, table.reviewerId] }),
+    index("task_design_review_reviewer_status_idx").on(
+      table.reviewerId,
+      table.status,
+    ),
+  ],
+);
+
 export const billingReminderSentTable = pgTable(
   "billing_reminder_sent",
   {
