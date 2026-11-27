@@ -33,6 +33,7 @@ import {
 } from "./backchannel-logout";
 import billing from "./billing";
 import calendarFeed, { publicCalendarFeed } from "./calendar-feed";
+import calendarSync from "./calendar-sync";
 import column from "./column";
 import comment from "./comment";
 import config from "./config";
@@ -910,6 +911,7 @@ export function createApp() {
   api.use("/integration-sync/project/:projectId/:provider/*", syncProvider);
   const integrationSyncApi = api.route("/integration-sync", integrationSync);
   const githubReviewsApi = api.route("/github-reviews", githubReviews);
+  const calendarSyncApi = api.route("/calendar-sync", calendarSync);
   const githubIntegrationApi = api.route(
     "/github-integration",
     githubIntegration,
@@ -1113,6 +1115,7 @@ export function createApp() {
     genericWebhookIntegrationApi,
     integrationSyncApi,
     githubReviewsApi,
+    calendarSyncApi,
     githubIntegrationApi,
     giteaIntegrationApi,
     gitlabIntegrationApi,
@@ -1277,6 +1280,7 @@ const {
   genericWebhookIntegrationApi,
   integrationSyncApi,
   githubReviewsApi,
+  calendarSyncApi,
   githubIntegrationApi,
   giteaIntegrationApi,
   gitlabIntegrationApi,
@@ -1367,6 +1371,7 @@ export type AppType =
   | typeof searchApi
   | typeof integrationSyncApi
   | typeof githubReviewsApi
+  | typeof calendarSyncApi
   | typeof githubIntegrationApi
   | typeof giteaIntegrationApi
   | typeof gitlabIntegrationApi

@@ -934,6 +934,70 @@ export const calendarFeedTable = pgTable(
   (table) => [index("calendar_feed_project_id_idx").on(table.projectId)],
 );
 
+// A person's own Google or Microsoft calendar, connected for two-way sync.
+// Separate from `account` so the sign-in providers never see these rows.
+export const calendarConnectionTable = pgTable(
+  "calendar_connection",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    provider: text("provider").$type<"google" | "microsoft">().notNull(),
+    accountEmail: text("account_email"),
+    // Null once the provider rejects the token: the page offers "Reconnect".
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    accessTokenExpiresAt: timestamp("access_token_expires_at", {
+      mode: "date",
+    }),
+    // Task due dates are stored as instants; this picks the calendar day.
+    timeZone: text("time_zone").notNull().default("UTC"),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    unique("calendar_connection_user_provider_unique").on(
+      table.userId,
+      table.provider,
+    ),
+  ],
+);
+
+// The event a task's due date was written to in a connected calendar. No
+// foreign key on the task: the row must outlive it so the event can be removed.
+export const calendarTaskEventTable = pgTable(
+  "calendar_task_event",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    connectionId: text("connection_id")
+      .notNull()
+      .references(() => calendarConnectionTable.id, { onDelete: "cascade" }),
+    taskId: text("task_id").notNull(),
+    externalEventId: text("external_event_id").notNull(),
+    // What was last written, so an unrelated task change sends nothing.
+    fingerprint: text("fingerprint").notNull().default(""),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    unique("calendar_task_event_connection_task_unique").on(
+      table.connectionId,
+      table.taskId,
+    ),
+    index("calendar_task_event_task_id_idx").on(table.taskId),
+  ],
+);
+
 // Saved custom views: a named set of filters plus display options. A null
 // `projectId` makes it a workspace view; otherwise it belongs to that team.
 export const savedViewTable = pgTable(
@@ -1998,6 +2062,9 @@ export const userNotificationPreferenceTable = pgTable(
       .default(true)
       .notNull(),
     dueDateReminderEnabled: boolean("due_date_reminder_enabled")
+      .default(true)
+      .notNull(),
+    topicUpdatesEnabled: boolean("topic_updates_enabled")
       .default(true)
       .notNull(),
     scheduleEnabled: boolean("schedule_enabled").default(false).notNull(),

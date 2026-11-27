@@ -7,6 +7,7 @@ import { loadDocument } from "../../document/controllers/load-document";
 import { writeDocument } from "../../document/controllers/update-document";
 import { addDecisionLine } from "../decision-line";
 import type { recordDecisionBody } from "../schema";
+import { currentDocumentId } from "./current-document-id";
 import { makeCurrent, notDecider } from "./decide";
 import { filedOn } from "./file-document";
 import { getTopic } from "./get-topic";
@@ -26,14 +27,11 @@ export async function recordDecision(
   const day = body.date ?? new Date().toISOString().slice(0, 10);
   const line = `- ${day}: ${body.text.replace(/\s+/g, " ")}`;
 
-  if (topic.currentDocumentId) {
+  const currentId = await currentDocumentId(topic.id);
+  if (currentId) {
     // Deciding on the topic is the right to add this one line, whatever the
     // document lets the person edit. They must still be able to open it.
-    const doc = await loadDocument(
-      workspaceId,
-      topic.currentDocumentId,
-      userId,
-    );
+    const doc = await loadDocument(workspaceId, currentId, userId);
     // ponytail: the last write wins, as for every edit of a document.
     return writeDocument(doc, userId, {
       content: addDecisionLine(doc.content, line),

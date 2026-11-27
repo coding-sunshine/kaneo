@@ -763,7 +763,9 @@
 			"scheduleSave": "Save schedule",
 			"scheduleStart": "Start time",
 			"scheduleTimezone": "Timezone",
-			"scheduleTitle": "Delivery schedule"
+			"scheduleTitle": "Delivery schedule",
+			"eventTopicUpdates": "Followed topics",
+			"eventTopicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision."
 		},
 		"preferencesPage": {
 			"title": "Preferensi",
@@ -3118,7 +3120,8 @@
 				"project": "Teams and projects",
 				"task": "Issues"
 			},
-			"url": "URL"
+			"url": "URL",
+			"hiddenTeams_other": "{{count}} teams you cannot open"
 		},
 		"aiUsage": {
 			"budgets": "Budgets",
@@ -4665,7 +4668,8 @@
 			"documentUnavailable": "This document is no longer available.",
 			"openDocument": "Open document",
 			"unreadCount_other": "{{count}} unread notifications"
-		}
+		},
+		"privateTopic": "Private topic"
 	},
 	"activity": {
 		"assignedToSelf": "menugaskan tugas kepada dirinya sendiri",
@@ -7576,7 +7580,9 @@
 				"dueDateHint": "Sebelum tenggat tugas yang ditugaskan kepada Anda",
 				"remindMe": "Ingatkan saya",
 				"remindBefore": "{{time}} sebelumnya",
-				"remindPickerTitle": "Ingatkan saya sebelumnya"
+				"remindPickerTitle": "Ingatkan saya sebelumnya",
+				"topicUpdates": "Followed topics",
+				"topicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision"
 			},
 			"leadTime": {
 				"minutes15": "15 menit",

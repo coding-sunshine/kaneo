@@ -763,7 +763,9 @@
 			"scheduleSave": "Save schedule",
 			"scheduleStart": "Start time",
 			"scheduleTimezone": "Timezone",
-			"scheduleTitle": "Delivery schedule"
+			"scheduleTitle": "Delivery schedule",
+			"eventTopicUpdates": "Followed topics",
+			"eventTopicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision."
 		},
 		"preferencesPage": {
 			"title": "環境設定",
@@ -3118,7 +3120,8 @@
 				"project": "Teams and projects",
 				"task": "Issues"
 			},
-			"url": "URL"
+			"url": "URL",
+			"hiddenTeams_other": "{{count}} teams you cannot open"
 		},
 		"aiUsage": {
 			"budgets": "Budgets",
@@ -4665,7 +4668,8 @@
 			"documentUnavailable": "This document is no longer available.",
 			"openDocument": "Open document",
 			"unreadCount_other": "{{count}} unread notifications"
-		}
+		},
+		"privateTopic": "Private topic"
 	},
 	"activity": {
 		"assignedToSelf": "がタスクを自分に割り当てました",
@@ -7283,7 +7287,9 @@
 				"remindPickerTitle": "期限前に通知",
 				"statusChanges": "ステータスの変更",
 				"statusChangesHint": "自分のタスクがカラム間で移動したとき",
-				"title": "通知を受け取るイベント"
+				"title": "通知を受け取るイベント",
+				"topicUpdates": "Followed topics",
+				"topicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision"
 			},
 			"leadTime": {
 				"day1": "1日",

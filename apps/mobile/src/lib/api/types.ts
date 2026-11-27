@@ -392,6 +392,7 @@ export type NotificationPreferences = {
   taskStatusChangeEnabled?: boolean;
   dueDateReminderEnabled?: boolean;
   dueDateReminderLeadTimeMinutes?: number;
+  topicUpdatesEnabled?: boolean;
 };
 
 /** Fields left undefined are omitted from the request, which keeps the server value. */
@@ -412,6 +413,7 @@ export type UpdateNotificationPreferences = Partial<{
   taskStatusChangeEnabled: boolean;
   dueDateReminderEnabled: boolean;
   dueDateReminderLeadTimeMinutes: number;
+  topicUpdatesEnabled: boolean;
 }>;
 
 export type SearchResult = {

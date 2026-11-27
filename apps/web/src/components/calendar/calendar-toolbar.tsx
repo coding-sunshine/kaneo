@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { JSX } from "react";
+import type { JSX, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
@@ -9,6 +9,8 @@ type CalendarToolbarProps = {
   onPreviousMonth: () => void;
   onNextMonth: () => void;
   onToday: () => void;
+  /** Extra controls before the month navigation, such as "New event". */
+  actions?: ReactNode;
 };
 
 export default function CalendarToolbar({
@@ -16,6 +18,7 @@ export default function CalendarToolbar({
   onPreviousMonth,
   onNextMonth,
   onToday,
+  actions,
 }: CalendarToolbarProps): JSX.Element {
   const { t } = useTranslation();
 
@@ -33,6 +36,7 @@ export default function CalendarToolbar({
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
+          {actions}
           <Button
             variant="outline"
             size="icon-xs"

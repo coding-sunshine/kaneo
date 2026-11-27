@@ -787,7 +787,9 @@
 			"scheduleSave": "Save schedule",
 			"scheduleStart": "Start time",
 			"scheduleTimezone": "Timezone",
-			"scheduleTitle": "Delivery schedule"
+			"scheduleTitle": "Delivery schedule",
+			"eventTopicUpdates": "Followed topics",
+			"eventTopicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision."
 		},
 		"preferencesPage": {
 			"title": "Настройки",
@@ -3282,7 +3284,11 @@
 				"project": "Teams and projects",
 				"task": "Issues"
 			},
-			"url": "URL"
+			"url": "URL",
+			"hiddenTeams_few": "{{count}} teams you cannot open",
+			"hiddenTeams_many": "{{count}} teams you cannot open",
+			"hiddenTeams_one": "{{count}} team you cannot open",
+			"hiddenTeams_other": "{{count}} teams you cannot open"
 		},
 		"aiUsage": {
 			"budgets": "Budgets",
@@ -4910,7 +4916,8 @@
 			"unreadCount_many": "{{count}} unread notifications",
 			"unreadCount_one": "{{count}} unread notification",
 			"unreadCount_other": "{{count}} unread notifications"
-		}
+		},
+		"privateTopic": "Private topic"
 	},
 	"activity": {
 		"assignedToSelf": "назначил задачу себе",
@@ -8042,7 +8049,9 @@
 				"dueDateHint": "Перед сроком задачи, назначенной вам",
 				"remindMe": "Напомнить",
 				"remindBefore": "За {{time}}",
-				"remindPickerTitle": "Напомнить за"
+				"remindPickerTitle": "Напомнить за",
+				"topicUpdates": "Followed topics",
+				"topicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision"
 			},
 			"leadTime": {
 				"minutes15": "15 минут",

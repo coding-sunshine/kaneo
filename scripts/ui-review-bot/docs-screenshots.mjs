@@ -144,6 +144,7 @@ try {
             taskStatusChangeEnabled: true,
             dueDateReminderEnabled: true,
             dueDateReminderLeadTimeMinutes: 1440,
+            topicUpdatesEnabled: true,
             workspaces: [],
             createdAt: date,
             updatedAt: date,

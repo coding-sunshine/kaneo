@@ -14,13 +14,14 @@ export type AgendaDay<TTask extends PackableTask> = {
 };
 
 /**
- * Days of `visibleMonth` that have at least one task scheduled on them, in
- * order. A multi-day task appears under every day it spans, like a schedule
+ * Days of `visibleMonth` that have at least one task scheduled on them, or a
+ * calendar event, in order. A multi-day task appears under every day it spans, like a schedule
  * view, so each day reads on its own.
  */
 export function buildMonthAgenda<TTask extends PackableTask>(
   visibleMonth: Date,
   tasks: TTask[],
+  hasEvents: (day: Date) => boolean = () => false,
 ): Array<AgendaDay<TTask>> {
   const days = eachDayOfInterval({
     start: startOfMonth(visibleMonth),
@@ -36,5 +37,5 @@ export function buildMonthAgenda<TTask extends PackableTask>(
           !isBefore(startOfDay(task.scheduleEnd), day),
       ),
     }))
-    .filter((entry) => entry.tasks.length > 0);
+    .filter((entry) => entry.tasks.length > 0 || hasEvents(entry.day));
 }

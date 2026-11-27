@@ -2,12 +2,15 @@ import CalendarSubtasks from "./calendar-subtasks";
 import { isBefore, isToday, startOfToday } from "date-fns";
 import { type JSX, useLayoutEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import type { ExternalCalendarEvent } from "@/fetchers/calendar-sync/calendar-sync";
 import { cn } from "@/lib/cn";
+import { dayKey } from "@/lib/external-events-by-day";
 import { formatDate, formatDateShort } from "@/lib/format";
 import {
   type CalendarTask,
   getCalendarTaskStatusClass,
 } from "./calendar-task-bar";
+import CalendarDayEvents from "./calendar-day-events";
 import { buildMonthAgenda } from "./month-agenda-model";
 
 type MonthAgendaProps = {
@@ -15,6 +18,7 @@ type MonthAgendaProps = {
   visibleMonth: Date;
   projectSlug?: string;
   onOpenTask: (taskId: string) => void;
+  eventsByDay?: ReadonlyMap<string, readonly ExternalCalendarEvent[]>;
 };
 
 // Phone layout for the calendar: a seven-column month grid leaves bars a few
@@ -24,11 +28,15 @@ export default function MonthAgenda({
   visibleMonth,
   projectSlug,
   onOpenTask,
+  eventsByDay,
 }: MonthAgendaProps): JSX.Element {
   const { t } = useTranslation();
   const agenda = useMemo(
-    () => buildMonthAgenda(visibleMonth, tasks),
-    [visibleMonth, tasks],
+    () =>
+      buildMonthAgenda(visibleMonth, tasks, (day) =>
+        Boolean(eventsByDay?.has(dayKey(day))),
+      ),
+    [visibleMonth, tasks, eventsByDay],
   );
   // Open at today (or the next scheduled day) rather than the 1st.
   const today = startOfToday();
@@ -78,6 +86,13 @@ export default function MonthAgenda({
                   : formatDate(day, { weekday: "long" })}
               </span>
             </h3>
+            {eventsByDay?.has(dayKey(day)) && (
+              <div className="px-3 pb-1.5">
+                <CalendarDayEvents
+                  events={eventsByDay.get(dayKey(day)) ?? []}
+                />
+              </div>
+            )}
             <ul className="flex flex-col gap-1.5 px-3 pb-3">
               {dayTasks.map((task) => {
                 const taskKey =

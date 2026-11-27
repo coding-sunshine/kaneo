@@ -65,6 +65,8 @@ it.each([
   // or return a credential.
   ["GET", "/api/github-reviews/connect"],
   ["GET", "/api/github-reviews/callback"],
+  ["GET", "/api/calendar-sync/connect/google"],
+  ["GET", "/api/calendar-sync/events"],
   ["GET", "/api/oauth/id-token"],
   ["GET", "/api/cycle/project/p1"],
   ["GET", "/api/billing/w1"],

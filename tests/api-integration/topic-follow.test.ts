@@ -226,6 +226,73 @@ describe("API integration: following a topic", () => {
     expect(await told(open, "document_current")).toHaveLength(1);
   });
 
+  it("tells no follower who turned topic updates off", async () => {
+    const world = await buildDocumentWorld();
+    const { owner, limited, open } = world;
+    const topic = await createTopic(world, owner, {
+      name: "Launch plan",
+      projectId: world.alpha.id,
+    });
+    const off = await world.as(open)(
+      "/notification-preferences",
+      json("PUT", { topicUpdatesEnabled: false }),
+    );
+    expect(off.status).toBe(200);
+    expect(await off.json()).toMatchObject({ topicUpdatesEnabled: false });
+    expect((await follow(world, open, topic.id)).status).toBe(200);
+    expect((await follow(world, limited, topic.id)).status).toBe(200);
+
+    const proposal = await write(world, owner, "Launch in spring");
+    await file(world, owner, topic.id, proposal);
+    expect(await told(open, "document_proposed")).toEqual([]);
+    expect(await told(limited, "document_proposed")).toHaveLength(1);
+
+    await makeCurrent(world, owner, topic.id, proposal);
+    expect(await told(open, "document_current")).toEqual([]);
+    expect(await told(limited, "document_current")).toHaveLength(1);
+
+    // Turning it back on lets the next one through.
+    const on = await world.as(open)(
+      "/notification-preferences",
+      json("PUT", { topicUpdatesEnabled: true }),
+    );
+    expect(on.status).toBe(200);
+    const second = await write(world, owner, "Launch in summer");
+    await file(world, owner, topic.id, second);
+    expect(await told(open, "document_proposed")).toHaveLength(1);
+  });
+
+  it("leaves the topic unnamed for a follower who cannot open its place", async () => {
+    const world = await buildDocumentWorld();
+    const { owner, limited, open } = world;
+    // Team Beta: `limited` cannot open it, but the document is shared with
+    // them by name.
+    const topic = await createTopic(world, owner, {
+      name: "Pricing",
+      projectId: world.beta.id,
+    });
+    expect((await follow(world, open, topic.id)).status).toBe(200);
+    await forceFollow(topic.id, limited);
+
+    await file(world, owner, topic.id, world.docs.sharedInBeta);
+
+    const [hidden, ...more] = await told(limited, "document_proposed");
+    expect(more).toEqual([]);
+    expect(hidden?.resourceId).toBe(world.docs.sharedInBeta);
+    expect(hidden?.eventData).not.toHaveProperty("topicName");
+    expect(hidden?.eventData).not.toHaveProperty("topicId");
+    const [named] = await told(open, "document_proposed");
+    expect(named?.eventData).toMatchObject({
+      topicId: topic.id,
+      topicName: "Pricing",
+    });
+
+    await makeCurrent(world, owner, topic.id, world.docs.sharedInBeta);
+    const [current, ...moreCurrent] = await told(limited, "document_current");
+    expect(moreCurrent).toEqual([]);
+    expect(current?.eventData).not.toHaveProperty("topicName");
+  });
+
   it("lists what is new on followed topics since the last visit", async () => {
     const world = await buildDocumentWorld();
     const { owner, limited, open } = world;

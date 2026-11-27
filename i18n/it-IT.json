@@ -779,7 +779,9 @@
 			"scheduleSave": "Save schedule",
 			"scheduleStart": "Start time",
 			"scheduleTimezone": "Timezone",
-			"scheduleTitle": "Delivery schedule"
+			"scheduleTitle": "Delivery schedule",
+			"eventTopicUpdates": "Followed topics",
+			"eventTopicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision."
 		},
 		"preferencesPage": {
 			"title": "Preferenze",
@@ -3222,7 +3224,10 @@
 				"project": "Teams and projects",
 				"task": "Issues"
 			},
-			"url": "URL"
+			"url": "URL",
+			"hiddenTeams_many": "{{count}} teams you cannot open",
+			"hiddenTeams_one": "{{count}} team you cannot open",
+			"hiddenTeams_other": "{{count}} teams you cannot open"
 		},
 		"aiUsage": {
 			"budgets": "Budgets",
@@ -4823,7 +4828,8 @@
 			"unreadCount_many": "{{count}} unread notifications",
 			"unreadCount_one": "{{count}} unread notification",
 			"unreadCount_other": "{{count}} unread notifications"
-		}
+		},
+		"privateTopic": "Private topic"
 	},
 	"activity": {
 		"assignedToSelf": "ha assegnato l'attività a sé stesso",
@@ -7852,7 +7858,9 @@
 				"dueDateHint": "Prima della scadenza di un'attività assegnata a te",
 				"remindMe": "Ricordamelo",
 				"remindBefore": "{{time}} prima",
-				"remindPickerTitle": "Ricordamelo prima"
+				"remindPickerTitle": "Ricordamelo prima",
+				"topicUpdates": "Followed topics",
+				"topicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision"
 			},
 			"leadTime": {
 				"minutes15": "15 minuti",

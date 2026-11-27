@@ -55,6 +55,14 @@ export function NotifyMeSection({ preferences }: NotifyMeSectionProps) {
           }
           onLeadTimeChange={setLeadTime}
         />
+        <EventSwitchRow
+          title={t("settings:notificationsPage.eventTopicUpdates")}
+          description={t("settings:notificationsPage.eventTopicUpdatesHint")}
+          checked={state.topicUpdatesEnabled}
+          onCheckedChange={(checked) =>
+            setSwitch("topicUpdatesEnabled", checked)
+          }
+        />
       </SettingsCard>
     </SettingsSection>
   );
