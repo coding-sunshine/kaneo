@@ -3411,6 +3411,10 @@ export const chatChannelMemberTable = pgTable(
     joinedAt: timestamp("joined_at", { mode: "date" })
       .default(utcNow)
       .notNull(),
+    // Private to the member: no response shows it to anyone else.
+    lastReadAt: timestamp("last_read_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
   },
   (table) => [
     primaryKey({ columns: [table.channelId, table.userId] }),
@@ -3435,6 +3439,13 @@ export const chatMessageTable = pgTable(
       onUpdate: "cascade",
     }),
     body: text("body").notNull(),
+    // Set only by the author's edits, so pinning never reads as an edit.
+    editedAt: timestamp("edited_at", { mode: "date" }),
+    pinnedAt: timestamp("pinned_at", { mode: "date" }),
+    pinnedBy: text("pinned_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
     // Filled after posting from the first web link; the author can remove it.
     linkPreview: jsonb("link_preview").$type<LinkPreview>(),
     createdAt: timestamp("created_at", { mode: "date" })
@@ -3448,6 +3459,45 @@ export const chatMessageTable = pgTable(
     ),
   ],
 );
+
+// One row per user and emoji on a chat message, like comment_reaction.
+export const chatMessageReactionTable = pgTable(
+  "chat_message_reaction",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    messageId: text("message_id")
+      .notNull()
+      .references(() => chatMessageTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    emoji: text("emoji").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("chat_message_reaction_message_id_idx").on(table.messageId),
+    unique("chat_message_reaction_message_user_emoji_unique").on(
+      table.messageId,
+      table.userId,
+      table.emoji,
+    ),
+  ],
+);
+
+// Chat presence is opt-in: a row exists only while the user has it on, so
+// turning it off deletes the row and the dot is gone at once.
+export const chatPresenceTable = pgTable("chat_presence", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => userTable.id, { onDelete: "cascade" }),
+  lastSeenAt: timestamp("last_seen_at", { mode: "date" })
+    .default(utcNow)
+    .notNull(),
+});
 
 // A loop runs its instructions as the agent on a schedule, with the creator's
 // permissions at run time. Disabled loops keep their `nextRunAt` but never run.

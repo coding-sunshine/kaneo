@@ -61,3 +61,9 @@ export async function addChannelMember(param: ChannelParam, userId: string) {
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }
+
+export async function markChannelRead(param: ChannelParam) {
+  const response = await channel.read.$post({ param });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}

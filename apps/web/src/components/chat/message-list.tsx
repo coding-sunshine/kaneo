@@ -1,19 +1,22 @@
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { LinkPreviewCard } from "@/components/chat/link-preview-card";
-import { MessageBody } from "@/components/chat/message-body";
+import { MessageItem } from "@/components/chat/message-item";
 import type { ChatMessage } from "@/components/chat/types";
 
-export function MessageList({
-  messages,
-  currentUserId,
-  onRemovePreview,
-}: {
+type MessageListProps = {
   messages: ChatMessage[];
-  currentUserId?: string;
+  workspaceId: string;
+  channelId: string;
+  currentUserId: string | undefined;
+  /** Whether the reader may change messages here: a member of an open channel. */
+  canWrite: boolean;
+  /** Authors to mark online; only set while the reader's presence is on. */
+  online?: Set<string>;
   onRemovePreview?: (messageId: string) => void;
-}) {
-  const { t, i18n } = useTranslation();
+};
+
+export function MessageList({ messages, online, ...item }: MessageListProps) {
+  const { t } = useTranslation();
   const end = useRef<HTMLDivElement>(null);
   const last = messages.at(-1)?.id;
 
@@ -35,33 +38,12 @@ export function MessageList({
       aria-label={t("navigation:chat.messages")}
     >
       {messages.map((message) => (
-        <li key={message.id} className="flex flex-col gap-0.5">
-          <span className="flex items-baseline gap-2 text-xs">
-            <span className="font-medium">
-              {message.authorName ?? t("navigation:chat.deletedUser")}
-            </span>
-            <time
-              dateTime={new Date(message.createdAt).toISOString()}
-              className="text-muted-foreground"
-            >
-              {new Date(message.createdAt).toLocaleString(i18n.language, {
-                dateStyle: "short",
-                timeStyle: "short",
-              })}
-            </time>
-          </span>
-          <MessageBody body={message.body} />
-          {message.linkPreview && (
-            <LinkPreviewCard
-              preview={message.linkPreview}
-              onRemove={
-                onRemovePreview && message.userId === currentUserId
-                  ? () => onRemovePreview(message.id)
-                  : undefined
-              }
-            />
-          )}
-        </li>
+        <MessageItem
+          key={message.id}
+          message={message}
+          online={Boolean(message.userId && online?.has(message.userId))}
+          {...item}
+        />
       ))}
       <div ref={end} />
     </ol>

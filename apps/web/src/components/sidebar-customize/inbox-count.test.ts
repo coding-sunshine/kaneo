@@ -20,4 +20,10 @@ describe("inboxCount", () => {
   it("is 0 for none", () => {
     expect(inboxCount(list, "none")).toBe(0);
   });
+  // A direct message is written to you, so it counts like a mention.
+  it("adds unread direct messages in every mode but none", () => {
+    expect(inboxCount(list, "all", 3)).toBe(5);
+    expect(inboxCount(list, "priority", 3)).toBe(4);
+    expect(inboxCount(list, "none", 3)).toBe(0);
+  });
 });

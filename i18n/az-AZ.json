@@ -823,7 +823,10 @@
 				"remove": "Remove {{tool}}",
 				"title": "Coding tools",
 				"urlPlaceholder": "cursor://vscode.git/clone?url=https://github.com/{owner}/{repo}.git"
-			}
+			},
+			"chatPresence": "Show when I'm online",
+			"chatPresenceDescription": "Others see a dot by your name in chat, but only people who turned this on too. Off by default.",
+			"chatTitle": "Chat"
 		},
 		"managedProfile": {
 			"note": "Təşkilatınız tərəfindən idarə olunur.",
@@ -4504,6 +4507,19 @@
 			"topic": "Topic",
 			"topicPlaceholder": "What is this channel about?",
 			"unarchive": "Unarchive channel",
+			"cancel": "Cancel",
+			"deleteMessage": "Delete message",
+			"edited": "(edited)",
+			"editMessage": "Edit message",
+			"messageActions": "Message actions",
+			"noPins": "Nothing is pinned yet.",
+			"pin": "Pin to channel",
+			"pinned": "Pinned messages",
+			"save": "Save",
+			"unpin": "Unpin",
+			"online": "Online",
+			"unread_one": "{{count}} unread message",
+			"unread_other": "{{count}} unread messages",
 			"removePreview": "Remove preview",
 			"answerCall": "Answer",
 			"callFailed": "Could not join the call",

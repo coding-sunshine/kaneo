@@ -59,9 +59,14 @@ function session(user: User): { session: Session; user: User } {
   };
 }
 
-async function request(member: Seeded, path: string, body?: unknown) {
+async function request(
+  member: Seeded,
+  path: string,
+  body?: unknown,
+  method = body === undefined ? "GET" : "POST",
+) {
   const response = await fetch(`http://${base}/api${path}`, {
-    method: body === undefined ? "GET" : "POST",
+    method,
     headers: {
       authorization: tokenFor(member),
       "content-type": "application/json",
@@ -71,9 +76,9 @@ async function request(member: Seeded, path: string, body?: unknown) {
   return { status: response.status, json: await response.json() };
 }
 
-/** Opens a chat socket and collects what it receives. */
-async function subscribe(member: Seeded, channelId: string) {
-  const socket = new WebSocket(`ws://${base}/api/ws/chat/${channelId}`, {
+/** Opens a chat socket (or the user socket) and collects what it receives. */
+async function subscribe(member: Seeded, channelId: string, path = "chat/") {
+  const socket = new WebSocket(`ws://${base}/api/ws/${path}${channelId}`, {
     headers: { authorization: tokenFor(member) },
   });
   sockets.push(socket);
@@ -225,6 +230,67 @@ describe("API integration: chat over WebSocket", () => {
       expect(reader.socket.readyState).toBe(reader.socket.CLOSED),
     );
     expect(reader.received).toEqual([]);
+  });
+
+  it("tells another reader when a message is edited, pinned or deleted", async () => {
+    const { a, b, channels, pub, post } = await setup();
+    const message = (await post(pub.id, "draft")).json;
+    const reader = await subscribe(b, pub.id);
+    expect(reader.status).toBe(101);
+    const url = `${channels}/${pub.id}/messages/${message.id}`;
+    const changed = { type: "CHAT_MESSAGE_UPDATED", channelId: pub.id };
+
+    expect((await request(a, url, { body: "final" }, "PATCH")).status).toBe(
+      200,
+    );
+    await settleEvents();
+    expect((await request(a, `${url}/pin`, {})).status).toBe(200);
+    await settleEvents();
+    expect((await request(a, url, undefined, "DELETE")).status).toBe(200);
+    await settleEvents();
+
+    await vi.waitFor(() =>
+      expect(reader.received).toEqual([changed, changed, changed]),
+    );
+  });
+
+  it("hints unread changes only to the channel's other members", async () => {
+    const { a, b, c, workspaceId, priv, post } = await setup();
+    const userSocket = (member: Seeded) => subscribe(member, "user", "");
+    const [forA, forB, forC] = await Promise.all([a, b, c].map(userSocket));
+    for (const socket of [forA, forB, forC]) expect(socket.status).toBe(101);
+    const hint = { type: "CHAT_UNREAD_CHANGED", workspaceId };
+    const hints = (socket: { received: unknown[] }) =>
+      socket.received.filter(
+        (message) => (message as { type?: string }).type === hint.type,
+      );
+
+    await post(priv.id, "for leads");
+    await vi.waitFor(() => expect(hints(forB)).toEqual([hint]));
+    expect(hints(forA)).toEqual([]);
+    expect(hints(forC)).toEqual([]);
+    expect(JSON.stringify(forB.received)).not.toContain(priv.id);
+  });
+
+  it("tells nobody else when a member reads a channel", async () => {
+    const { a, b, channels, pub, post } = await setup();
+    await request(b, `${channels}/${pub.id}/join`, {});
+    await post(pub.id, "hello");
+    const reader = await subscribe(a, pub.id);
+    const aUser = await subscribe(a, "user", "");
+
+    expect((await request(b, `${channels}/${pub.id}/read`, {})).status).toBe(
+      200,
+    );
+    await settleEvents();
+    await post(pub.id, "marker");
+    await vi.waitFor(() => expect(reader.received).toEqual([created(pub.id)]));
+    expect(
+      aUser.received.filter(
+        (message) =>
+          (message as { type?: string }).type === "CHAT_UNREAD_CHANGED",
+      ),
+    ).toEqual([]);
   });
 
   it("serves chat and delivers messages without Redis", async () => {

@@ -17,6 +17,11 @@ vi.mock("../../../apps/api/src/ws/chat-channel-readers", () => ({
   findChannelReaders: readers.lookup,
 }));
 
+// Unread hints have their own integration test; here they reach nobody.
+vi.mock("../../../apps/api/src/ws/chat-unread-recipients", () => ({
+  findUnreadRecipients: vi.fn(async () => []),
+}));
+
 import { subscribeToEvent } from "../../../apps/api/src/events";
 import {
   broadcastToChatChannel,

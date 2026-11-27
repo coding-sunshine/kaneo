@@ -1,7 +1,7 @@
-import { Link } from "@tanstack/react-router";
-import { ChevronRight, MessageCircle, Plus } from "lucide-react";
+import { ChevronRight, Plus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ChannelNavItem } from "@/components/chat/channel-nav-item";
 import { StartDirectMessageDialog } from "@/components/chat/start-direct-message-dialog";
 import {
   Collapsible,
@@ -14,8 +14,6 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useDirectMessages } from "@/hooks/queries/chat/use-direct-messages";
 import { useDirectMessageTitle } from "@/hooks/use-direct-message-title";
@@ -60,21 +58,12 @@ export function DirectMessagesNav({ workspaceId }: { workspaceId: string }) {
           <SidebarGroupContent>
             <SidebarMenu className="gap-px">
               {directMessages.map((directMessage) => (
-                <SidebarMenuItem key={directMessage.id}>
-                  <SidebarMenuButton
-                    render={
-                      <Link
-                        to="/dashboard/workspace/$workspaceId/channels/$channelId"
-                        params={{ workspaceId, channelId: directMessage.id }}
-                      />
-                    }
-                  >
-                    <MessageCircle />
-                    <span className="min-w-0 truncate">
-                      {titleOf(directMessage.memberIds)}
-                    </span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                <ChannelNavItem
+                  key={directMessage.id}
+                  workspaceId={workspaceId}
+                  channel={directMessage}
+                  title={titleOf(directMessage.memberIds)}
+                />
               ))}
             </SidebarMenu>
           </SidebarGroupContent>

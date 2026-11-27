@@ -5024,6 +5024,15 @@
 						"projectBackgroundsDescription": {
 							"type": "string"
 						},
+						"chatTitle": {
+							"type": "string"
+						},
+						"chatPresence": {
+							"type": "string"
+						},
+						"chatPresenceDescription": {
+							"type": "string"
+						},
 						"advancedTitle": {
 							"type": "string"
 						}
@@ -5071,6 +5080,9 @@
 						"priority",
 						"projectBackgrounds",
 						"projectBackgroundsDescription",
+						"chatTitle",
+						"chatPresence",
+						"chatPresenceDescription",
 						"advancedTitle"
 					]
 				},
@@ -18415,6 +18427,57 @@
 						"send": {
 							"type": "string"
 						},
+						"edited": {
+							"type": "string"
+						},
+						"messageActions": {
+							"type": "string"
+						},
+						"editMessage": {
+							"type": "string"
+						},
+						"deleteMessage": {
+							"type": "string"
+						},
+						"save": {
+							"type": "string"
+						},
+						"cancel": {
+							"type": "string"
+						},
+						"pin": {
+							"type": "string"
+						},
+						"unpin": {
+							"type": "string"
+						},
+						"pinned": {
+							"type": "string"
+						},
+						"noPins": {
+							"type": "string"
+						},
+						"online": {
+							"type": "string"
+						},
+						"unread_one": {
+							"type": "string"
+						},
+						"unread_zero": {
+							"type": "string"
+						},
+						"unread_two": {
+							"type": "string"
+						},
+						"unread_few": {
+							"type": "string"
+						},
+						"unread_many": {
+							"type": "string"
+						},
+						"unread_other": {
+							"type": "string"
+						},
 						"removePreview": {
 							"type": "string"
 						},
@@ -18506,6 +18569,17 @@
 						"messageLabel",
 						"messagePlaceholder",
 						"send",
+						"edited",
+						"messageActions",
+						"editMessage",
+						"deleteMessage",
+						"save",
+						"cancel",
+						"pin",
+						"unpin",
+						"pinned",
+						"noPins",
+						"online",
 						"removePreview",
 						"startCall",
 						"incomingCall",
