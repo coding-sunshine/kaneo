@@ -8219,6 +8219,10 @@
             "type": "number",
             "description": "How long before a due date the reminder fires, in minutes."
           },
+          "topicUpdatesEnabled": {
+            "type": "boolean",
+            "description": "Hear about new proposals, new current documents and approved decisions on followed topics."
+          },
           "scheduleEnabled": {
             "type": "boolean"
           },
@@ -8283,6 +8287,7 @@
           "taskStatusChangeEnabled",
           "dueDateReminderEnabled",
           "dueDateReminderLeadTimeMinutes",
+          "topicUpdatesEnabled",
           "scheduleEnabled",
           "scheduleTimezone",
           "scheduleDays",
@@ -43429,6 +43434,10 @@
                     "minimum": 5,
                     "maximum": 43200,
                     "description": "Between 5 minutes and 30 days."
+                  },
+                  "topicUpdatesEnabled": {
+                    "type": "boolean",
+                    "description": "Hear about new proposals, new current documents and approved decisions on followed topics."
                   },
                   "scheduleEnabled": {
                     "type": "boolean",

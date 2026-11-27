@@ -226,6 +226,42 @@ describe("API integration: following a topic", () => {
     expect(await told(open, "document_current")).toHaveLength(1);
   });
 
+  it("tells no follower who turned topic updates off", async () => {
+    const world = await buildDocumentWorld();
+    const { owner, limited, open } = world;
+    const topic = await createTopic(world, owner, {
+      name: "Launch plan",
+      projectId: world.alpha.id,
+    });
+    const off = await world.as(open)(
+      "/notification-preferences",
+      json("PUT", { topicUpdatesEnabled: false }),
+    );
+    expect(off.status).toBe(200);
+    expect(await off.json()).toMatchObject({ topicUpdatesEnabled: false });
+    expect((await follow(world, open, topic.id)).status).toBe(200);
+    expect((await follow(world, limited, topic.id)).status).toBe(200);
+
+    const proposal = await write(world, owner, "Launch in spring");
+    await file(world, owner, topic.id, proposal);
+    expect(await told(open, "document_proposed")).toEqual([]);
+    expect(await told(limited, "document_proposed")).toHaveLength(1);
+
+    await makeCurrent(world, owner, topic.id, proposal);
+    expect(await told(open, "document_current")).toEqual([]);
+    expect(await told(limited, "document_current")).toHaveLength(1);
+
+    // Turning it back on lets the next one through.
+    const on = await world.as(open)(
+      "/notification-preferences",
+      json("PUT", { topicUpdatesEnabled: true }),
+    );
+    expect(on.status).toBe(200);
+    const second = await write(world, owner, "Launch in summer");
+    await file(world, owner, topic.id, second);
+    expect(await told(open, "document_proposed")).toHaveLength(1);
+  });
+
   it("leaves the topic unnamed for a follower who cannot open its place", async () => {
     const world = await buildDocumentWorld();
     const { owner, limited, open } = world;

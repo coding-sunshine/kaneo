@@ -762,7 +762,9 @@
 			"scheduleSave": "Save schedule",
 			"scheduleStart": "Start time",
 			"scheduleTimezone": "Timezone",
-			"scheduleTitle": "Delivery schedule"
+			"scheduleTitle": "Delivery schedule",
+			"eventTopicUpdates": "Followed topics",
+			"eventTopicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision."
 		},
 		"preferencesPage": {
 			"title": "偏好設定",
@@ -7271,7 +7273,9 @@
 				"remindPickerTitle": "提前提醒我",
 				"statusChanges": "狀態變更",
 				"statusChangesHint": "你的任務在欄位之間移動時",
-				"title": "通知我以下事項"
+				"title": "通知我以下事項",
+				"topicUpdates": "Followed topics",
+				"topicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision"
 			},
 			"leadTime": {
 				"day1": "1 天",

@@ -50,6 +50,10 @@ export const notificationPreferenceSchema = z
     dueDateReminderLeadTimeMinutes: z.number().openapi({
       description: "How long before a due date the reminder fires, in minutes.",
     }),
+    topicUpdatesEnabled: z.boolean().openapi({
+      description:
+        "Hear about new proposals, new current documents and approved decisions on followed topics.",
+    }),
     scheduleEnabled: z.boolean(),
     scheduleTimezone: z.string(),
     scheduleDays: z.array(z.number().int()),

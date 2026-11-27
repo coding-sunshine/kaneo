@@ -2064,6 +2064,9 @@ export const userNotificationPreferenceTable = pgTable(
     dueDateReminderEnabled: boolean("due_date_reminder_enabled")
       .default(true)
       .notNull(),
+    topicUpdatesEnabled: boolean("topic_updates_enabled")
+      .default(true)
+      .notNull(),
     scheduleEnabled: boolean("schedule_enabled").default(false).notNull(),
     scheduleTimezone: text("schedule_timezone").default("UTC").notNull(),
     // Delivery window: weekdays 0 (Sunday) to 6, local "HH:MM" start and end.
