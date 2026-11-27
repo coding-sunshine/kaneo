@@ -7,7 +7,7 @@ import {
   vi,
 } from "vite-plus/test";
 import { createHash } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { strToU8, zipSync } from "fflate";
 import db from "../../apps/api/src/database";
 import {
@@ -441,7 +441,8 @@ describe("API integration: facts found in issues", () => {
         model: "before/model",
         readable: true,
         reason: null,
-        createdAt: new Date(),
+        // The clock the slots are stamped with: the host's may run ahead.
+        createdAt: sql`(now() AT TIME ZONE 'utc')`,
       });
       const [issue] = (await records()).filter(
         (row) => row.taskId === world.betaTask.id && row.assetId === null,
