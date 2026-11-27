@@ -144,7 +144,13 @@ const comment = (world: DocumentWorld, taskId: string, content: string) =>
     .values({ taskId, type: "comment", content, userId: world.owner.id });
 const attach = async (
   world: DocumentWorld,
-  file: { filename: string; mimeType: string; size?: number; kind?: string },
+  file: {
+    id?: string;
+    filename: string;
+    mimeType: string;
+    size?: number;
+    kind?: string;
+  },
 ) =>
   (
     await db
@@ -796,6 +802,57 @@ describe("API integration: facts found in issues", () => {
       await run();
       expect(fetchMock).toHaveBeenCalledTimes(4);
       expect(readObject).toHaveBeenCalledTimes(4);
+    });
+
+    it("reads the smaller files first, so one file longer than a run does not hold back the rest", async () => {
+      const { world } = await setup();
+      // Ids sort the long file first, as on the server where it held the
+      // whole run day after day.
+      const long = await attach(world, {
+        id: "a-long",
+        filename: "long.log",
+        mimeType: "text/plain",
+        size: 1_200_000,
+      });
+      const small = await attach(world, {
+        id: "z-small",
+        filename: "small.md",
+        mimeType: "text/markdown",
+        size: 100,
+      });
+      const bytes: Record<string, string> = {
+        [long.objectKey]: Array.from(
+          { length: 60_000 },
+          (_, i) => `Line ${i} of the log.`,
+        ).join("\n"),
+        [small.objectKey]: `# Small\n\n${PRICE}`,
+      };
+      readObject.mockImplementation(async (key: string) => ({
+        body: new Response(bytes[key]).body,
+      }));
+      for (const assetId of [long.id, small.id]) {
+        await db.insert(taskExtractionTable).values({
+          taskId: world.betaTask.id,
+          assetId,
+          contentHash: `cut-${assetId}`,
+          slotsHash: "before",
+          promptVersion: 1,
+          model: "before/model",
+          readable: true,
+          reason: "truncated",
+          createdAt: new Date(),
+        });
+      }
+      await run();
+
+      const byFile = new Map(
+        (await records()).map((row) => [row.assetId, row]),
+      );
+      expect(byFile.get(small.id)).toMatchObject({
+        promptVersion: 2,
+        reason: null,
+      });
+      expect(byFile.get(long.id)).toMatchObject({ promptVersion: 1 });
     });
 
     it("has the model write out a scanned PDF and a picture, and keeps the facts they state", async () => {

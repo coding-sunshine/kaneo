@@ -487,6 +487,10 @@ async function readWorkspace(
 
   const behind = ({ since }: { since: Date | null }) =>
     since !== null && since < run.upTo;
+  // Smaller files first: a file longer than a run goes on where it stopped in
+  // the next run, and must not hold back every file behind it until it ends.
+  const bySize = (a: (typeof files)[number], b: (typeof files)[number]) =>
+    a.size - b.size;
   // Texts with new words go first, so a new comment does not wait behind a
   // new slot that every old text is asked about.
   const queue = [
@@ -503,6 +507,7 @@ async function readWorkspace(
             fileKind(file.filename, file.mimeType) !== null) ||
           again(file),
       )
+      .sort(bySize)
       .map((file) => () => readFile(file, null)),
     ...issues.filter(behind).map((issue) => () => readIssue(issue)),
     ...files
@@ -512,6 +517,7 @@ async function readWorkspace(
           behind(file) &&
           !again(file),
       )
+      .sort(bySize)
       .map((file) => () => readFile(file, file.since)),
   ];
   for (const next of queue) {
