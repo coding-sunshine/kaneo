@@ -55862,7 +55862,14 @@
             }
           },
           "429": {
-            "$ref": "#/components/responses/ApiKeyRateLimited"
+            "description": "Too many wrong codes from the caller; code entry is locked for 15 minutes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }

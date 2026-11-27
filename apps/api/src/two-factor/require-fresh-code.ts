@@ -1,4 +1,9 @@
 import { APIError } from "better-auth/api";
+import {
+  clearWrongCodes,
+  isCodeEntryLocked,
+  recordWrongCode,
+} from "./fresh-code-lockout";
 
 /**
  * Routes that hand out the authenticator secret or new recovery codes, or
@@ -11,7 +16,11 @@ export const FRESH_CODE_PATHS = new Set([
 ]);
 
 export type FreshCodeRefusal = {
-  code: "TWO_FACTOR_CODE_REQUIRED" | "INVALID_TWO_FACTOR_CODE";
+  status: 403 | 429;
+  code:
+    | "TWO_FACTOR_CODE_REQUIRED"
+    | "INVALID_TWO_FACTOR_CODE"
+    | "TWO_FACTOR_CODE_LOCKED";
   message: string;
 };
 
@@ -35,29 +44,44 @@ export function verifyOwnCode(
       : api.verifyBackupCode({ body: { code }, headers });
 }
 
+const refuseForAuth = ({ status, ...body }: FreshCodeRefusal) =>
+  new APIError(status === 429 ? "TOO_MANY_REQUESTS" : "FORBIDDEN", body);
+
 /**
  * Once two-factor is on, the password or session alone must not reveal its
  * secret, mint recovery codes, turn it off, or reset someone else's: the
- * request also carries a current code, checked by `verify`.
+ * request also carries a current code of `userId`, checked by `verify`.
+ * Wrong codes count toward the same lockout as sign-in codes.
  */
 export async function requireFreshCode(
+  userId: string,
   code: unknown,
   verify: (code: string) => Promise<unknown>,
-  refuse: (refusal: FreshCodeRefusal) => Error = (refusal) =>
-    new APIError("FORBIDDEN", refusal),
+  refuse: (refusal: FreshCodeRefusal) => Error = refuseForAuth,
 ) {
   if (typeof code !== "string" || !code.trim()) {
     throw refuse({
+      status: 403,
       code: "TWO_FACTOR_CODE_REQUIRED",
       message: "Enter a code from your authenticator app or a recovery code.",
+    });
+  }
+  if (await isCodeEntryLocked(userId)) {
+    throw refuse({
+      status: 429,
+      code: "TWO_FACTOR_CODE_LOCKED",
+      message: "Too many wrong codes. Try again in 15 minutes.",
     });
   }
   try {
     await verify(code.trim());
   } catch {
+    await recordWrongCode(userId);
     throw refuse({
+      status: 403,
       code: "INVALID_TWO_FACTOR_CODE",
       message: "That code is not valid. Try the current one.",
     });
   }
+  await clearWrongCodes(userId);
 }

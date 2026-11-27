@@ -457,6 +457,7 @@ async function adminWithTwoFactor() {
   return {
     userId: admin.userId,
     ...secrets,
+    cookie: jar.header(),
     api: adminApi(app, { cookie: jar.header() }),
   };
 }
@@ -641,6 +642,42 @@ describe("API integration: two-factor secrets, passkeys and resets", () => {
       .from(schema.userTable)
       .where(eq(schema.userTable.id, user.userId));
     expect(row?.enabled).toBe(true);
+  });
+
+  it("locks code entry after ten wrong codes, across reset and account routes", async () => {
+    const user = await userWithTwoFactor();
+    const admin = await adminWithTwoFactor();
+    const path = `/users/${user.userId}/two-factor/reset`;
+    const wrong = wrongCode(admin.totpURI);
+    for (let i = 0; i < 10; i++) {
+      const response = await admin.api(path, {
+        method: "POST",
+        body: { code: wrong },
+      });
+      expect(response.status).toBe(403);
+    }
+    const locked = await admin.api(path, {
+      method: "POST",
+      body: { code: totpCode(admin.totpURI) },
+    });
+    expect(locked.status).toBe(429);
+    expect(await locked.json()).toMatchObject({
+      code: "TWO_FACTOR_CODE_LOCKED",
+    });
+    // The same budget covers the account's own two-factor routes.
+    const secret = await app.request("/api/auth/two-factor/get-totp-uri", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        origin: CLIENT_URL,
+        cookie: admin.cookie,
+      },
+      body: JSON.stringify({
+        password: PASSWORD,
+        code: totpCode(admin.totpURI),
+      }),
+    });
+    expect(secret.status).toBe(429);
   });
 
   it("refuses a reset from an administrator without two-factor", async () => {

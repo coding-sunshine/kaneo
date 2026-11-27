@@ -168,6 +168,9 @@ const resetTwoFactorRoute = createRoute({
     ),
     404: errorResponse("User not found"),
     409: errorResponse("The user is the caller"),
+    429: errorResponse(
+      "Too many wrong codes from the caller; code entry is locked for 15 minutes",
+    ),
   },
 });
 

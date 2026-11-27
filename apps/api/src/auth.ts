@@ -1136,10 +1136,11 @@ export const auth = betterAuth({
             disableRefresh: true,
           }).catch(() => null);
           if (
-            (viewer?.user as { twoFactorEnabled?: boolean } | undefined)
-              ?.twoFactorEnabled
+            viewer &&
+            (viewer.user as { twoFactorEnabled?: boolean }).twoFactorEnabled
           ) {
             await requireFreshCode(
+              viewer.user.id,
               ctx.body?.code,
               verifyOwnCode(auth.api, ctx.headers ?? new Headers()),
             );

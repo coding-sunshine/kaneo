@@ -14,10 +14,11 @@ import {
  * and send a current authenticator or recovery code.
  */
 export async function requireOwnTwoFactorCode(c: Context, code: string) {
+  const actorId: string = c.get("user").id;
   const [actor] = await db
     .select({ twoFactorEnabled: schema.userTable.twoFactorEnabled })
     .from(schema.userTable)
-    .where(eq(schema.userTable.id, c.get("user").id));
+    .where(eq(schema.userTable.id, actorId));
   if (!actor?.twoFactorEnabled) {
     throw new ApiError(403, {
       code: "OWN_TWO_FACTOR_REQUIRED",
@@ -26,8 +27,9 @@ export async function requireOwnTwoFactorCode(c: Context, code: string) {
     });
   }
   await requireFreshCode(
+    actorId,
     code,
     verifyOwnCode(auth.api, c.req.raw.headers),
-    (refusal) => new ApiError(403, refusal),
+    ({ status, ...body }) => new ApiError(status, body),
   );
 }
