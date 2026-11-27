@@ -5,10 +5,12 @@ import { projectTable, assetTable } from "../../database/schema";
 import { publishEvent } from "../../events";
 import { queueStorageCleanup } from "../../storage/cleanup-queue";
 import { getProjectSubtaskParentProjects } from "../../task/get-subtask-parent-projects";
+import { assertUnrelied } from "../../topic/controllers/assert-unrelied";
 import getProject from "./get-project";
 
 async function deleteProject(id: string, workspaceId: string) {
   const existingProject = await getProject(id, workspaceId);
+  await assertUnrelied({ projectId: id });
 
   const parents = await getProjectSubtaskParentProjects(id);
 

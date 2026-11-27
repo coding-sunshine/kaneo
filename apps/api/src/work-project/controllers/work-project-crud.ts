@@ -6,11 +6,13 @@ import {
   workProjectMilestoneTable,
   workProjectTable,
 } from "../../database/schema";
+import { assertUnrelied } from "../../topic/controllers/assert-unrelied";
 import { validateAndParseDate } from "../../utils/validate-dates";
 import type { createMilestoneBody, updateMilestoneBody } from "../schema";
 import { loadMilestone } from "./load-work-projects";
 
 export async function deleteWorkProject(id: string) {
+  await assertUnrelied({ workProjectId: id });
   await db.delete(workProjectTable).where(eq(workProjectTable.id, id));
   return { id };
 }

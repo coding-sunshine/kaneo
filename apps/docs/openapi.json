@@ -15915,7 +15915,7 @@
           "Projects"
         ],
         "summary": "Delete project",
-        "description": "Permanently delete a project and everything in it. Archive it instead to keep the data.",
+        "description": "Permanently delete a project and everything in it. Archive it instead to keep the data. Refused while work outside the project relies on a fact of its topics or documents.",
         "parameters": [
           {
             "schema": {
@@ -15959,6 +15959,16 @@
           },
           "404": {
             "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Work outside the project relies on facts of its topics or documents",
             "content": {
               "application/json": {
                 "schema": {
@@ -26491,7 +26501,7 @@
           "Work projects"
         ],
         "summary": "Delete project",
-        "description": "Delete a project and its milestones. Its issues stay and lose the project.",
+        "description": "Delete a project and its milestones. Its issues stay and lose the project. Its topics and documents go with it, so it is refused while other work relies on one of their facts.",
         "parameters": [
           {
             "schema": {
@@ -26543,6 +26553,16 @@
           },
           "404": {
             "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Other work relies on facts of the project's topics or documents",
             "content": {
               "application/json": {
                 "schema": {

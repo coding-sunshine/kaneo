@@ -1,6 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
+import { topicTable } from "../../apps/api/src/database/schema";
 import { resetTestDatabase } from "./helpers/database";
 import {
   buildDocumentWorld,
@@ -612,6 +613,67 @@ describe("API integration: ripple flags", () => {
     expect(((await again.json()) as Dependency).id).toBe(link.id);
 
     await expectStatus(await r.remove(docId, cost.id, link.id), 200);
+    await expectStatus(await drop(), 200);
+  });
+
+  it("refuses a team delete while work outside the team relies on its facts", async () => {
+    const s = await setup();
+    const { world, r, topicId, docId, cost } = s;
+    // The issue and the memo of the team go with it.
+    await dependOnPrice(s);
+    const outside = await r.depend(docId, cost.id, {
+      taskId: world.betaTask.id,
+    });
+    await expectStatus(outside, 200);
+    const drop = () =>
+      world.as(world.owner)(`/project/${world.alpha.id}`, json("DELETE"));
+
+    // The issue in team Beta would lose its link unflagged.
+    await expectStatus(await drop(), 409);
+    const [topic] = await db
+      .select({ id: topicTable.id })
+      .from(topicTable)
+      .where(eq(topicTable.id, topicId));
+    expect(topic?.id).toBe(topicId);
+
+    const link = (await outside.json()) as Dependency;
+    await expectStatus(await r.remove(docId, cost.id, link.id), 200);
+    await expectStatus(await drop(), 200);
+  });
+
+  it("refuses to delete a work project while other work relies on its topics' facts", async () => {
+    const world = await buildDocumentWorld();
+    const api = filing(world);
+    const r = routes(world);
+    const created = await world.as(world.owner)(
+      "/topic",
+      json("POST", {
+        workspaceId: world.ws,
+        name: "Launch plan",
+        workProjectId: world.workProject.id,
+      }),
+    );
+    await expectStatus(created, 200);
+    const { id: topicId } = (await created.json()) as { id: string };
+    await api.addSlot(topicId, { name: "Price", type: "number" });
+    const docId = await api.filed(topicId, "Launch plan", textOf([price(40)]));
+    const [cost] = await confirmAll(api, docId, [price(40)]);
+    await expectStatus(await api.approve(topicId, docId), 200);
+    const made = await r.depend(docId, cost!.id, {
+      taskId: world.alphaTask.id,
+    });
+    await expectStatus(made, 200);
+    const drop = () =>
+      world.as(world.owner)(
+        `/work-project/${world.workProject.id}`,
+        json("DELETE"),
+      );
+
+    await expectStatus(await drop(), 409);
+    await expectStatus(
+      await r.remove(docId, cost!.id, ((await made.json()) as Dependency).id),
+      200,
+    );
     await expectStatus(await drop(), 200);
   });
 
