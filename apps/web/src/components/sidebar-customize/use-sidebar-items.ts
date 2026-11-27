@@ -14,6 +14,7 @@ import {
   SquareUser,
   Users,
   Workflow,
+  Contact,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useDirectMessages } from "@/hooks/queries/chat/use-direct-messages";
@@ -77,7 +78,7 @@ export function useSidebarItems() {
   if (!workspace) return null;
   // The API gives a guest no workspace-wide projects, pulse or directory.
   const guestHidden = new Set<SidebarItemId>(
-    myAccess?.guest ? ["pulse", "projects", "members"] : [],
+    myAccess?.guest ? ["pulse", "projects", "members", "people"] : [],
   );
 
   const homeUrl = `/dashboard/workspace/${workspace.id}`;
@@ -166,6 +167,12 @@ export function useSidebarItems() {
       t("navigation:sidebar.chat"),
       MessagesSquare,
       `${homeUrl}/channels`,
+    ),
+    item(
+      "people",
+      t("navigation:sidebar.people"),
+      Contact,
+      `${homeUrl}/people`,
     ),
     item(
       "members",

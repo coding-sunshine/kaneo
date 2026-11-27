@@ -52,6 +52,12 @@ vi.mock("@/hooks/mutations/use-remove-user-avatar", () => ({
 vi.mock("@/components/settings/profile/delete-account-section", () => ({
   DeleteAccountSection: () => null,
 }));
+vi.mock("@/components/settings/profile/status-section", () => ({
+  StatusSection: () => null,
+}));
+vi.mock("@/components/settings/profile/work-profile-section", () => ({
+  WorkProfileSection: () => null,
+}));
 vi.mock("@/lib/toast", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));

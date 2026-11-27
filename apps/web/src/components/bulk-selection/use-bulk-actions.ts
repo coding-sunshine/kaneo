@@ -17,6 +17,7 @@ import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import useGetProjectMembers from "@/hooks/queries/workspace-users/use-get-project-members";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { PriorityGlyph } from "@/components/task-chips/priority-glyph";
+import { warnOutOfOffice } from "@/lib/people/warn-out-of-office";
 import { type ToastIcon, toast } from "@/lib/toast";
 import useProjectStore from "@/store/project";
 
@@ -97,7 +98,11 @@ export function useBulkActions(
       ),
     assign: (userId: string) =>
       run(
-        () => operations.bulkAssign({ taskIds: taskIds(), userId }),
+        async () => {
+          await operations.bulkAssign({ taskIds: taskIds(), userId });
+          const assignee = members.find((member) => member.id === userId);
+          if (assignee) warnOutOfOffice(assignee, null);
+        },
         t("tasks:bulk.assignSuccess", { count }),
         UserRoundIcon,
         t("tasks:bulk.assignError"),

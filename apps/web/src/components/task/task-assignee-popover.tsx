@@ -59,6 +59,7 @@ export default function TaskAssigneePopover({
             members,
             task.userId ?? null,
             t("tasks:popover.assignee.unassigned"),
+            t("team:people.outOfOffice"),
           )}
           onSelect={changeAssignee}
         />

@@ -10842,6 +10842,9 @@
             "type": "string",
             "description": "The member's workspace role: a built-in role (owner, admin, member, viewer) or the name of a custom role defined in the workspace. Several roles are comma-separated, for example owner,viewer."
           },
+          "profile": {
+            "$ref": "#/components/schemas/PersonProfile"
+          },
           "joinedTeam": {
             "type": "boolean",
             "description": "Only when projectId is passed: false once the member left that project's team. They keep access to it."
@@ -10852,8 +10855,88 @@
           "name",
           "email",
           "image",
-          "role"
+          "role",
+          "profile"
         ]
+      },
+      "PersonProfile": {
+        "type": "object",
+        "properties": {
+          "jobTitle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "department": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "timeZone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "clearsAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "text",
+              "clearsAt"
+            ],
+            "description": "Null once the status has cleared."
+          },
+          "outOfOffice": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "until": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "from",
+              "until"
+            ],
+            "description": "Null once the range has ended."
+          }
+        },
+        "required": [
+          "jobTitle",
+          "department",
+          "location",
+          "timeZone",
+          "status",
+          "outOfOffice"
+        ],
+        "description": "Profile fields, status, and out-of-office range the member set. Empty fields are null."
       },
       "MemberProjectAccess": {
         "type": "object",
@@ -11759,6 +11842,84 @@
           "role",
           "managedProfileFields"
         ]
+      },
+      "UpdateProfileBody": {
+        "type": "object",
+        "properties": {
+          "jobTitle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 100
+          },
+          "department": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 100
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 100
+          },
+          "timeZone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 100,
+            "description": "An IANA time zone, such as Europe/Berlin."
+          },
+          "status": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "clearsAt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "description": "When the status clears itself. Left out, it clears when the out-of-office range sent with it ends, or never."
+              }
+            },
+            "required": [
+              "text"
+            ]
+          },
+          "outOfOffice": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "from": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "until": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "from",
+              "until"
+            ]
+          }
+        }
       },
       "UserAvatar": {
         "type": "object",
@@ -58123,6 +58284,104 @@
           },
           "404": {
             "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/user/profile": {
+      "get": {
+        "operationId": "getOwnProfile",
+        "tags": [
+          "User"
+        ],
+        "summary": "Get your profile",
+        "description": "Return the current user's profile fields, status, and out-of-office range. A status or range that has ended reads as null.",
+        "responses": {
+          "200": {
+            "description": "Your profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateOwnProfile",
+        "tags": [
+          "User"
+        ],
+        "summary": "Update your profile",
+        "description": "Change the current user's profile fields, status, or out-of-office range. Keys left out stay as they are; null or a blank string clears one. Members of your workspaces see these on the member list. Requires a user session; API keys are rejected.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Your profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown time zone, or a range that ends before it starts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated with an API key",
             "content": {
               "application/json": {
                 "schema": {

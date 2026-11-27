@@ -94,6 +94,8 @@ import { CreateTaskCyclePicker } from "@/components/cycle/create-task-cycle-pick
 import { useGetCycles } from "@/hooks/queries/cycle/use-get-cycles";
 import { CreateTaskWorkProjectPicker } from "@/components/work-project/create-task-work-project-picker";
 import { getPriorityIcon } from "@/lib/priority";
+import { memberStatusHint } from "@/lib/people/member-status-hint";
+import { warnOutOfOffice } from "@/lib/people/warn-out-of-office";
 import { toast } from "@/lib/toast";
 import { useAutoGrowTextarea } from "@/hooks/use-auto-grow-textarea";
 import { stripLineBreaks } from "@/lib/strip-line-breaks";
@@ -323,6 +325,7 @@ function CreateTaskModalContent({
         id: member.userId,
         name: member.user?.name ?? "",
         image: member.user?.image ?? null,
+        profile: undefined,
       })),
     [workspaceUsers?.members],
   );
@@ -336,6 +339,7 @@ function CreateTaskModalContent({
             id: member.id,
             name: member.name,
             image: member.image,
+            profile: member.profile,
           }))
         : workspaceAssigneeOptions,
     [resolvedProjectId, projectMembers, workspaceAssigneeOptions],
@@ -793,6 +797,7 @@ function CreateTaskModalContent({
       toast.success(t("common:modals.createTask.successCreated"), {
         icon: SquarePlusIcon,
       });
+      if (selectedUser) warnOutOfOffice(selectedUser, savedTask.dueDate);
 
       if (createMore) {
         setTitle("");
@@ -1288,6 +1293,14 @@ function CreateTaskModalContent({
                           </AvatarFallback>
                         </Avatar>
                         <span className="text-sm">{member.name}</span>
+                        {member.profile && (
+                          <span className="min-w-0 truncate text-muted-foreground text-xs">
+                            {memberStatusHint(
+                              member.profile,
+                              t("team:people.outOfOffice"),
+                            )}
+                          </span>
+                        )}
                         {selectedUser?.id === member.id && (
                           <Check className="ml-auto h-4 w-4" />
                         )}
