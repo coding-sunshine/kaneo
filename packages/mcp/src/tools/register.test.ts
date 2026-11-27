@@ -807,6 +807,53 @@ describe("registerTools", () => {
     expect(client.json).toHaveBeenCalledTimes(1);
   });
 
+  it("sends a file from the chat into a document, and refuses one too big before it sends anything", async () => {
+    const { server, tools } = createServerMock();
+    const client = { json: vi.fn().mockResolvedValue({ id: "file-1" }) };
+    registerTools(server as never, { client: client as never });
+    const attach = (contentBase64: string) =>
+      tools.get("attach_document_file")?.handler({
+        workspaceId: "ws 1",
+        documentId: "doc/1",
+        filename: "Plan.pdf",
+        contentBase64,
+        sourceClient: "chatgpt",
+      });
+
+    const sent = await attach("JVBERg==");
+    expect(sent?.isError).toBe(false);
+    expect(client.json).toHaveBeenLastCalledWith(
+      "/api/document/workspace/ws%201/doc%2F1/files",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          filename: "Plan.pdf",
+          contentBase64: "JVBERg==",
+          sourceClient: "chatgpt",
+        }),
+      },
+    );
+
+    const refused = await attach("A".repeat(933_340));
+    expect(refused?.isError).toBe(true);
+    expect(refused?.content[0]?.text).toContain("700,000");
+    expect(client.json).toHaveBeenCalledTimes(1);
+
+    const schema = tools.get("attach_document_file")?.config.inputSchema;
+    const file = {
+      workspaceId: "ws-1",
+      documentId: "doc-1",
+      filename: "a.pdf",
+      contentBase64: "JVBERg==",
+    };
+    expect(() => schema?.parse(file)).not.toThrow();
+    expect(() => schema?.parse({ ...file, sourceClient: "web" })).toThrow();
+    expect(() => schema?.parse({ ...file, filename: "" })).toThrow();
+    expect(tools.get("attach_document_file")?.config.description).toContain(
+      "edit",
+    );
+  });
+
   it("returns resumable progress when a cascade exceeds one tool call", async () => {
     const { server, tools } = createServerMock();
     const client = {

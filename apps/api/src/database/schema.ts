@@ -4015,6 +4015,35 @@ export const statementConflictTable = pgTable(
   ],
 );
 
+// A ticket a document's change receipt suggested and a person accepted. The
+// row is written before the ticket, so a second accept of the same suggestion
+// is refused; it goes with the ticket, and the suggestion comes back.
+export const receiptTicketTable = pgTable(
+  "receipt_ticket",
+  {
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documentTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    // Names the slot, the document and the value the suggestion is for.
+    suggestionKey: text("suggestion_key").notNull(),
+    taskId: text("task_id").references(() => taskTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    acceptedBy: text("accepted_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    acceptedAt: timestamp("accepted_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.documentId, table.suggestionKey] })],
+);
+
 // What the model said about two wordings of one fact: whether both can hold.
 // Keyed by the texts it was shown, the prompt and the model, so that the same
 // question is asked once. `contradicts` is null when the answer could not be

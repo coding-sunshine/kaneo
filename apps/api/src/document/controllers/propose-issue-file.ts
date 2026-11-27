@@ -17,6 +17,7 @@ import { filedOn } from "../../topic/controllers/file-document";
 import { documentFileContentType, fileTypeRefused } from "../file-types";
 import { fingerprint } from "../fingerprint";
 import { audienceOf } from "./document-audience";
+import { documentFileLine } from "./file-line";
 import { getDocument } from "./get-document";
 import {
   issueFileSource,
@@ -26,13 +27,6 @@ import {
 } from "./issue-files";
 import { notifyTopicFollowers } from "./notify";
 import { recordVersion } from "./record-version";
-
-const attribute = (value: string) =>
-  value
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
 
 /**
  * Who can open the file now, on its issue, and who could open the document it
@@ -118,11 +112,12 @@ export async function proposeIssueFile(
 
   const image = isImageContentType(contentType);
   const title = file.filename.slice(0, 500);
-  const url = `${apiBaseUrl}/asset/${copyId}`;
-  // The lines the editor writes for a picture and for a file card.
-  const content = image
-    ? `![${file.filename.replace(/[[\]\\\r\n]/g, "")}](${url})`
-    : `<kaneo-attachment url="${url}" filename="${attribute(file.filename)}" mime-type="${contentType}" size="${file.size}" />`;
+  const content = documentFileLine({
+    url: `${apiBaseUrl}/asset/${copyId}`,
+    filename: file.filename,
+    contentType,
+    size: file.size,
+  });
   try {
     await db.transaction(async (tx) => {
       await tx.insert(documentTable).values({

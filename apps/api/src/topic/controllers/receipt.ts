@@ -12,6 +12,7 @@ import { currentStatements, type Reader } from "./current-statements";
 import { judgementsOf, textsHash } from "./judgement";
 import { openTopic } from "./statements";
 import { forText } from "../statement-hash";
+import { suggestedTickets } from "./suggested-tickets";
 
 type Text = { id: string; contentHash: string | null };
 type Decision = typeof statementConflictTable.$inferSelect;
@@ -211,7 +212,12 @@ export async function getReceipt(
       conflicts: [],
       unjudged: [],
       notChecked: [],
+      suggestedTickets: [],
     };
   }
-  return receiptOf(db, doc, topicId, userId);
+  const receipt = await receiptOf(db, doc, topicId, userId);
+  return {
+    ...receipt,
+    suggestedTickets: await suggestedTickets(db, doc, receipt, userId),
+  };
 }

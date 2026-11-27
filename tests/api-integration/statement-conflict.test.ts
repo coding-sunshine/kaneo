@@ -7,11 +7,15 @@ import {
   it,
   vi,
 } from "vite-plus/test";
+import { auth } from "../../apps/api/src/auth";
 import db from "../../apps/api/src/database";
 import {
   notificationTable,
   statementConflictTable,
+  taskTable,
+  taskTopicTable,
 } from "../../apps/api/src/database/schema";
+import { mockAnonymousSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
 import {
   buildDocumentWorld,
@@ -458,5 +462,246 @@ describe("API integration: conflict question access", () => {
         ),
       );
     expect(asked).toEqual([]);
+  });
+});
+
+type SuggestedTicket = {
+  key: string;
+  kind: "change" | "new";
+  slot: string;
+  slotName: string;
+  value: string;
+  previousValue: string | null;
+  title: string;
+  accepted: boolean;
+  ticket: { id: string; number: number | null; projectId: string } | null;
+};
+
+describe("API integration: suggested tickets from a change receipt", () => {
+  beforeEach(async () => {
+    await resetTestDatabase();
+  });
+
+  const suggestedTickets = async (
+    api: ReturnType<typeof filing>,
+    id: string,
+    user?: Parameters<ReturnType<typeof filing>["receipt"]>[1],
+  ) =>
+    (
+      (await api.receipt(id, user)) as unknown as {
+        suggestedTickets: SuggestedTicket[];
+      }
+    ).suggestedTickets;
+  const accept = (
+    world: Awaited<ReturnType<typeof buildDocumentWorld>>,
+    id: string,
+    key: string,
+    body: Record<string, unknown> = {},
+    user = world.owner,
+  ) =>
+    world.as(user)(
+      `/document/workspace/${world.ws}/${id}/receipt/tickets/${encodeURIComponent(key)}/accept`,
+      json("POST", body),
+    );
+  const taskRow = async (id: string) =>
+    (await db.select().from(taskTable).where(eq(taskTable.id, id)))[0];
+  // Tickets made from suggestions: each one is on the topic.
+  const taskCount = async () => (await db.select().from(taskTopicTable)).length;
+
+  it("suggested tickets: the receipt suggests one per change, and a person accepts each one", async () => {
+    const { world, api, topicId, incomingId } = await setup();
+
+    const suggested = await suggestedTickets(api, incomingId);
+    // The changed price and the new owner; a repeat and an unjudged
+    // wording are no change to act on.
+    expect(suggested.map((s) => [s.kind, s.slot])).toEqual([
+      ["new", "owner"],
+      ["change", "price"],
+    ]);
+    const price = suggested.find((s) => s.slot === "price")!;
+    expect(price).toMatchObject({
+      value: "45",
+      previousValue: "40",
+      accepted: false,
+      ticket: null,
+    });
+    expect(price.title).toContain("Price");
+    expect(price.title).toContain("45");
+
+    const accepted = await accept(world, incomingId, price.key);
+    await expectStatus(accepted, 200);
+    const { taskId } = (await accepted.json()) as { taskId: string };
+    const task = await taskRow(taskId);
+    expect(task).toMatchObject({
+      projectId: world.alpha.id,
+      title: price.title,
+    });
+    expect(task?.description).toContain("45 USD");
+    const onTopic = await db
+      .select()
+      .from(taskTopicTable)
+      .where(eq(taskTopicTable.taskId, taskId));
+    expect(onTopic.map((row) => row.topicId)).toEqual([topicId]);
+
+    const after = await suggestedTickets(api, incomingId);
+    expect(after.find((s) => s.slot === "price")).toMatchObject({
+      accepted: true,
+      ticket: { id: taskId, projectId: world.alpha.id },
+    });
+    expect(after.find((s) => s.slot === "owner")?.accepted).toBe(false);
+
+    // Each suggestion is accepted once.
+    await expectStatus(await accept(world, incomingId, price.key), 409);
+    expect(await taskCount()).toBe(1);
+    const owner = after.find((s) => s.slot === "owner")!;
+    await expectStatus(await accept(world, incomingId, owner.key), 200);
+    expect(await taskCount()).toBe(2);
+  });
+
+  it("suggested tickets stay accepted after an edit elsewhere in the text, and leave out a pair that is no conflict", async () => {
+    const { world, api, incomingId } = await setup();
+    const price = (await suggestedTickets(api, incomingId)).find(
+      (s) => s.slot === "price",
+    )!;
+    await expectStatus(await accept(world, incomingId, price.key), 200);
+
+    await api.edit(
+      incomingId,
+      INCOMING_TEXT.replace("Priya owns", "Priya leads and owns"),
+    );
+    const edited = await suggestedTickets(api, incomingId);
+    expect(edited.find((s) => s.slot === "price")).toMatchObject({
+      key: price.key,
+      accepted: true,
+    });
+
+    const conflictId = (await api.receipt(incomingId)).conflicts[0].id;
+    await expectStatus(
+      await api.settleConflict(incomingId, conflictId, {
+        decision: "dismiss",
+        reason: "Same thing in other words",
+      }),
+      200,
+    );
+    expect(
+      (await suggestedTickets(api, incomingId)).map((s) => s.slot),
+    ).toEqual(["owner"]);
+  });
+
+  it("suggested tickets: who may see and accept them", async () => {
+    const { world, api, incomingId } = await setup();
+    const price = (await suggestedTickets(api, incomingId)).find(
+      (s) => s.slot === "price",
+    )!;
+
+    // The topic lives in team Alpha; a member kept out of it sees nothing
+    // and gets the answer an invented suggestion gets.
+    const outsider = await addWorkspaceMember(world.ws);
+    await restrictToProjects(world.ws, outsider.id, [world.beta.id]);
+    await expectStatus(
+      await world.as(world.owner)(
+        `/document/workspace/${world.ws}/${incomingId}/share/${outsider.id}`,
+        json("PUT", { access: "view" }),
+      ),
+      200,
+    );
+    expect(await suggestedTickets(api, incomingId, outsider)).toEqual([]);
+    const hidden = await accept(world, incomingId, price.key, {}, outsider);
+    const invented = await accept(
+      world,
+      incomingId,
+      "no-such-key",
+      {},
+      outsider,
+    );
+    expect(hidden.status).toBe(404);
+    expect(await hidden.json()).toEqual(await invented.json());
+    await expectStatus(await accept(world, incomingId, "no-such-key"), 404);
+
+    // An API key that can only read makes no ticket.
+    const { key } = await auth.api.createApiKey({
+      body: {
+        userId: world.owner.id,
+        name: "Receipt reader",
+        permissions: { task: ["read"] },
+      },
+    });
+    const asOwner = world.as(world.owner);
+    mockAnonymousSession();
+    const byKey = await asOwner(
+      `/document/workspace/${world.ws}/${incomingId}/receipt/tickets/${price.key}/accept`,
+      {
+        ...json("POST", {}),
+        headers: { "content-type": "application/json", "x-api-key": key },
+      } as never,
+    );
+    expect(byKey.status).toBe(403);
+    expect(await taskCount()).toBe(0);
+  });
+
+  it("suggested tickets of a workspace topic go to a team the person names, and hide a ticket in a team the reader cannot enter", async () => {
+    const world = await buildDocumentWorld();
+    const api = filing(world);
+    const made = await world.as(world.owner)(
+      "/topic",
+      json("POST", { workspaceId: world.ws, name: "Pricing" }),
+    );
+    await expectStatus(made, 200);
+    const { id: topicId } = (await made.json()) as { id: string };
+    await api.addSlot(topicId, { name: "Price", type: "number" });
+    const current = await api.filed(
+      topicId,
+      "Price list",
+      "<p>The price is 40 USD per seat.</p>",
+    );
+    const forty = await api.add(current, price(40));
+    await expectStatus(await api.decide(current, forty.id, "confirm"), 200);
+    await expectStatus(await api.approve(topicId, current), 200);
+    const incoming = await api.filed(
+      topicId,
+      "Price list v2",
+      "<p>The price is 45 USD per seat.</p>",
+    );
+    await api.add(incoming, price(45));
+    const [change] = await suggestedTickets(api, incoming);
+    expect(change).toMatchObject({ kind: "change", slot: "price" });
+
+    // No team of its own: the person says where the ticket goes.
+    await expectStatus(await accept(world, incoming, change!.key), 400);
+    const shut = await accept(
+      world,
+      incoming,
+      change!.key,
+      { projectId: world.beta.id },
+      world.limited,
+    );
+    const nowhere = await accept(
+      world,
+      incoming,
+      change!.key,
+      { projectId: "no-such-team" },
+      world.limited,
+    );
+    expect(shut.status).toBe(404);
+    expect(await shut.json()).toEqual(await nowhere.json());
+    expect(await taskCount()).toBe(0);
+
+    const accepted = await accept(world, incoming, change!.key, {
+      projectId: world.beta.id,
+    });
+    await expectStatus(accepted, 200);
+    const { taskId } = (await accepted.json()) as { taskId: string };
+    expect((await taskRow(taskId))?.projectId).toBe(world.beta.id);
+
+    // `limited` cannot enter team Beta: the suggestion reads as taken, and
+    // says nothing of the ticket.
+    const seen = await suggestedTickets(api, incoming, world.limited);
+    expect(seen).toEqual([
+      expect.objectContaining({
+        key: change!.key,
+        accepted: true,
+        ticket: null,
+      }),
+    ]);
   });
 });
