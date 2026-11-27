@@ -3217,6 +3217,19 @@
 				"action": "Set up IT intake",
 				"done": "IT intake is ready",
 				"failed": "Could not set up IT intake"
+			},
+			"emailIntake": {
+				"title": "Email intake",
+				"description": "Mail sent to the team's address becomes a Triage ticket. Replies from the ticket go back to the sender by email.",
+				"enable": "Turn on",
+				"disable": "Turn off",
+				"off": "Email intake is off on this instance. An administrator needs to add the intake mailbox settings on the server.",
+				"address": "Address",
+				"copy": "Copy",
+				"copied": "Address copied",
+				"copyFailed": "Could not copy the address",
+				"repliesOff": "This instance cannot send email yet, so replies from tickets will not be delivered until SMTP is set up.",
+				"failed": "Could not change email intake"
 			}
 		},
 		"adminBackups": {
@@ -5103,6 +5116,15 @@
 				"saving": "Saving…",
 				"saveFailed": "Changes could not be saved",
 				"retrySave": "Retry"
+			},
+			"emailReply": {
+				"title": "Email",
+				"from": "Emailed in by {{requester}}",
+				"label": "Reply to {{address}}",
+				"placeholder": "Write a reply…",
+				"send": "Send reply",
+				"sent": "Reply sent",
+				"failed": "Could not send the reply"
 			}
 		},
 		"entity": {

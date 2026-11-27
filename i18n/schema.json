@@ -13015,6 +13015,58 @@
 								}
 							},
 							"required": ["title", "description", "action", "done", "failed"]
+						},
+						"emailIntake": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"enable": {
+									"type": "string"
+								},
+								"disable": {
+									"type": "string"
+								},
+								"off": {
+									"type": "string"
+								},
+								"address": {
+									"type": "string"
+								},
+								"copy": {
+									"type": "string"
+								},
+								"copied": {
+									"type": "string"
+								},
+								"copyFailed": {
+									"type": "string"
+								},
+								"repliesOff": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"description",
+								"enable",
+								"disable",
+								"off",
+								"address",
+								"copy",
+								"copied",
+								"copyFailed",
+								"repliesOff",
+								"failed"
+							]
 						}
 					},
 					"required": [
@@ -13025,7 +13077,8 @@
 						"notify",
 						"assign",
 						"saveFailed",
-						"itIntake"
+						"itIntake",
+						"emailIntake"
 					]
 				},
 				"adminBackups": {
@@ -20743,6 +20796,42 @@
 								"saveFailed",
 								"retrySave"
 							]
+						},
+						"emailReply": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"from": {
+									"type": "string"
+								},
+								"label": {
+									"type": "string"
+								},
+								"placeholder": {
+									"type": "string"
+								},
+								"send": {
+									"type": "string"
+								},
+								"sent": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"from",
+								"label",
+								"placeholder",
+								"send",
+								"sent",
+								"failed"
+							]
 						}
 					},
 					"required": [
@@ -20754,7 +20843,8 @@
 						"addDescription",
 						"archived",
 						"attachments",
-						"editor"
+						"editor",
+						"emailReply"
 					]
 				},
 				"entity": {

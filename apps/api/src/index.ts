@@ -70,6 +70,7 @@ import label from "./label";
 import projectLabel from "./project-label";
 import cycle from "./cycle";
 import teamAutomation from "./team-automation";
+import emailIntake from "./email-intake";
 import workProject from "./work-project";
 import agent from "./agent";
 import { isAgentEnabled } from "./agent/openrouter";
@@ -873,6 +874,7 @@ export function createApp() {
   const workspaceWebhookApi = api.route("/workspace-webhook", workspaceWebhook);
   const cycleApi = api.route("/cycle", cycle);
   const teamAutomationApi = api.route("/team-automation", teamAutomation);
+  const emailIntakeApi = api.route("/email-intake", emailIntake);
   const workProjectApi = api.route("/work-project", workProject);
   const savedViewApi = api.route("/view", savedView);
   const chatApi = api.route("/chat", chat);
@@ -1116,6 +1118,7 @@ export function createApp() {
     workspaceWebhookApi,
     cycleApi,
     teamAutomationApi,
+    emailIntakeApi,
     workProjectApi,
     savedViewApi,
     chatApi,
@@ -1277,6 +1280,7 @@ const {
   workspaceWebhookApi,
   cycleApi,
   teamAutomationApi,
+  emailIntakeApi,
   workProjectApi,
   savedViewApi,
   chatApi,
@@ -1336,6 +1340,7 @@ export type AppType =
   | typeof workspaceWebhookApi
   | typeof cycleApi
   | typeof teamAutomationApi
+  | typeof emailIntakeApi
   | typeof workProjectApi
   | typeof savedViewApi
   | typeof chatApi

@@ -271,6 +271,21 @@ Name | Description |
 
 When upgrading, remove `SMTP_IGNORE_TLS=true` and verify delivery with the corrected certificate trust configuration before rollout. Fix invalid certificates instead of disabling validation. [Nodemailer documents the difference between STARTTLS and certificate validation](https://nodemailer.com/smtp#tls-options).
 
+### Email intake
+
+Email intake turns mail sent to a team's address into a Triage ticket. The API reads one mailbox over POP3 every 30 seconds. Each team that turns intake on (team settings, **Triage**) gets the address `<mailbox>+<team token>@<domain>`, so the mailbox must accept plus addressing or catch all mail for the domain. Replies written on the ticket go to the sender through SMTP with the team address as Reply-To, and their answers come back to the same ticket. Intake stays off, and the API logs that once at startup, until all four required variables are set.
+
+Name | Description |
+--- | --- |
+| `EMAIL_INTAKE_ADDRESS` | The intake mailbox address, for example `help@intake.example.com`. Required.
+| `EMAIL_INTAKE_POP3_HOST` | The POP3 server of that mailbox. Required.
+| `EMAIL_INTAKE_POP3_USER` | The POP3 login. Required.
+| `EMAIL_INTAKE_POP3_PASSWORD` | The POP3 password. Required.
+| `EMAIL_INTAKE_POP3_TLS` | Connect with TLS (default: `true`). Set to `false` only for a local mail catcher.
+| `EMAIL_INTAKE_POP3_PORT` | The POP3 port (default: `995` with TLS, `110` without).
+
+The API deletes every message addressed to a team address once it has read it, including auto-replies, bounces and mail to a turned-off team, and leaves all other mail in the mailbox. Messages over 5 MB are deleted unread, with a log line. A message that fails to file five times stays in the mailbox and is no longer retried. Team addresses carry a random 128-bit token, and only people who can change the team see them.
+
 ## Key points
 
 - If you enable GitHub SSO, create a GitHub OAuth App in [GitHub Developer Settings](https://github.com/settings/developers) and set `GITHUB_OAUTH_CLIENT_ID` / `GITHUB_OAUTH_CLIENT_SECRET` (or the legacy `GITHUB_CLIENT_*` variables). See the [GitHub SSO guide](/core/social-providers/github).

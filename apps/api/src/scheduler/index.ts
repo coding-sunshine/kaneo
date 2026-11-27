@@ -17,6 +17,10 @@ import { askConflictQuestions } from "./conflict-questions";
 import { checkTrialReminders } from "./trial-reminders";
 import { runBackupIfDue } from "../backup/run-backup-if-due";
 import { checkInboxReminders } from "./inbox-reminders";
+import {
+  pollIntakeMailbox,
+  reportEmailIntakeStatus,
+} from "../email-intake/poll-intake-mailbox";
 
 const jobs: Cron[] = [];
 
@@ -146,6 +150,15 @@ export function initializeScheduler(): void {
     ),
   );
   jobs.push(new Cron("* * * * *", withCheckIn("loops", runDueLoops)));
+  // Every 30 seconds, so an emailed ticket shows up while the sender waits.
+  reportEmailIntakeStatus();
+  jobs.push(
+    new Cron(
+      "*/30 * * * * *",
+      { protect: true },
+      withCheckIn("email-intake", pollIntakeMailbox),
+    ),
+  );
   jobs.push(
     new Cron(
       "*/5 * * * *",
