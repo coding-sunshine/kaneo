@@ -14,6 +14,8 @@ type Props = {
   workspaceId: string;
   workProjectId: string;
   editable: boolean;
+  /** False when the project's teams are all closed to this person. */
+  canAddDocument: boolean;
   links: WorkProjectLink[];
 };
 
@@ -22,6 +24,7 @@ export function WorkProjectResources({
   workspaceId,
   workProjectId,
   editable,
+  canAddDocument,
   links,
 }: Props) {
   const { t } = useTranslation();
@@ -79,13 +82,15 @@ export function WorkProjectResources({
               <Link2 aria-hidden="true" />
               {t("settings:externalLinks.addLink")}
             </MenuItem>
-            <MenuItem
-              disabled={newDocument.isPending}
-              onClick={() => newDocument.create({ workProjectId })}
-            >
-              <FileText aria-hidden="true" />
-              {t("settings:externalLinks.addDocument")}
-            </MenuItem>
+            {canAddDocument && (
+              <MenuItem
+                disabled={newDocument.isPending}
+                onClick={() => newDocument.create({ workProjectId })}
+              >
+                <FileText aria-hidden="true" />
+                {t("settings:externalLinks.addDocument")}
+              </MenuItem>
+            )}
           </MenuPopup>
         </Menu>
       )}

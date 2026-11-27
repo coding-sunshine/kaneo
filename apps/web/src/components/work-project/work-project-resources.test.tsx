@@ -64,13 +64,18 @@ async function openMenu(item: string) {
   fireEvent.click(await screen.findByRole("menuitem", { name: item }));
 }
 
-function renderResources(editable: boolean, links: WorkProjectLink[] = []) {
+function renderResources(
+  editable: boolean,
+  links: WorkProjectLink[] = [],
+  canAddDocument = true,
+) {
   render(
     <QueryClientProvider client={new QueryClient()}>
       <WorkProjectResources
         workspaceId="ws-1"
         workProjectId="wp-1"
         editable={editable}
+        canAddDocument={canAddDocument}
         links={links}
       />
     </QueryClientProvider>,
@@ -93,6 +98,26 @@ describe("work project resources", () => {
     });
     await openMenu("settings:externalLinks.addDocument");
     expect(create).toHaveBeenCalledWith({ workProjectId: "wp-1" });
+  });
+
+  it("offers no new document in a project whose teams the member cannot enter", async () => {
+    getDocuments.mockResolvedValue([]);
+    renderResources(true, [], false);
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "settings:externalLinks.addResource",
+      }),
+    );
+    expect(
+      await screen.findByRole("menuitem", {
+        name: "settings:externalLinks.addLink",
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole("menuitem", {
+        name: "settings:externalLinks.addDocument",
+      }),
+    ).toBeNull();
   });
 
   it("hides the empty row from people who cannot add documents", async () => {
