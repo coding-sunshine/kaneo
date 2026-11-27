@@ -133,12 +133,16 @@ export function proposer(turn: ProposalTurn) {
       );
     }
 
+    // Only this proposal's own call: other calls of the turn may read teams
+    // an audit reader of this ticket cannot open.
     const toolCalls = context.added.flatMap((message) =>
-      (message.tool_calls ?? []).map((call) => ({
-        id: call.id,
-        name: call.function.name,
-        arguments: call.function.arguments,
-      })),
+      (message.tool_calls ?? [])
+        .filter((call) => call.id === context.toolCallId)
+        .map((call) => ({
+          id: call.id,
+          name: call.function.name,
+          arguments: call.function.arguments,
+        })),
     );
     const shown = await withTeamNames(diff, turn);
     const [row] = await db

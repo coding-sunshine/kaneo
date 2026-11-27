@@ -444,7 +444,7 @@ describe("API integration: agent proposals", () => {
     expect(rows[0]).toMatchObject({
       status: "accepted",
       prompt: "Set ticket priority to high and add the bug label",
-      toolCalls: [{ name: "get_task" }, { name: "change_task" }],
+      toolCalls: [{ name: "change_task" }],
       sources: [expect.objectContaining({ id: task.id, restricted: false })],
       acceptedBy: { id: owner.id, name: owner.name },
       requestedBy: { id: owner.id },
@@ -461,6 +461,102 @@ describe("API integration: agent proposals", () => {
     expect(
       (await as(member).request(`/api/agent/workspace/${ws}/audit`)).status,
     ).toBe(403);
+  });
+
+  const addAdmin = async () => {
+    const admin = (await createWorkspaceMember()).user;
+    await db.insert(schema.workspaceUserTable).values({
+      workspaceId: ws,
+      userId: admin.id,
+      role: "admin",
+      joinedAt: new Date(),
+    });
+    return admin;
+  };
+  const auditOf = async (user: User) => {
+    const res = await as(user).request(`/api/agent/workspace/${ws}/audit`);
+    expect(res.status).toBe(200);
+    return (await res.json()) as Record<string, unknown>[];
+  };
+
+  it("keeps another team's tool calls of the same turn out of the audit", async () => {
+    const teamB = await createProjectFixture({ workspaceId: ws });
+    const secret = await createTaskFixture(teamB, "Secret roadmap", owner.id);
+    model.queue.push(
+      step(["get_task", { taskId: secret.id }]),
+      step(["change_task", { ...change, taskId: task.id }]),
+      reply("Proposed."),
+    );
+    const { chatId } = await ask(owner, "Set priority to high, add bug");
+    const [card] = await proposalsOf(owner, chatId);
+    await decide(owner, card?.id ?? "", "accept");
+
+    const admin = await addAdmin();
+    await restrictToProjects(ws, admin.id, [project.project.id]);
+    const rows = await auditOf(admin);
+    expect(rows).toHaveLength(1);
+    const seen = JSON.stringify(rows);
+    expect(seen).not.toContain(secret.id);
+    expect(seen).not.toContain("Secret roadmap");
+  });
+
+  it("shows a team move only to someone who can open both teams", async () => {
+    const teamB = await createProjectFixture({
+      workspaceId: ws,
+      name: "Hidden team",
+    });
+    model.queue.push(
+      step([
+        "update_task",
+        { taskId: task.id, projectId: teamB.project.id, reason: "Asked for" },
+      ]),
+      reply("Proposed."),
+    );
+    const { chatId } = await ask(
+      owner,
+      "Move the login ticket to the other team",
+    );
+    const [card] = await proposalsOf(owner, chatId);
+    expect(card?.diff).toContainEqual({
+      field: "team",
+      from: project.project.name,
+      to: "Hidden team",
+    });
+    await decide(owner, card?.id ?? "", "accept");
+    expect(await auditOf(owner)).toHaveLength(1);
+
+    const sourceOnly = await addAdmin();
+    await restrictToProjects(ws, sourceOnly.id, [project.project.id]);
+    expect(await auditOf(sourceOnly)).toEqual([]);
+    const targetOnly = await addAdmin();
+    await restrictToProjects(ws, targetOnly.id, [teamB.project.id]);
+    expect(await auditOf(targetOnly)).toEqual([]);
+  });
+
+  it("refuses an accept after the ticket moved to a team the person cannot open", async () => {
+    const member = (await createWorkspaceMember()).user;
+    await db.insert(schema.workspaceUserTable).values({
+      workspaceId: ws,
+      userId: member.id,
+      role: "member",
+      joinedAt: new Date(),
+    });
+    await restrictToProjects(ws, member.id, [project.project.id]);
+    const { chatId } = await proposeChange(member);
+    const [card] = await proposalsOf(member, chatId);
+
+    const teamB = await createProjectFixture({ workspaceId: ws });
+    await db
+      .update(schema.taskTable)
+      .set({ projectId: teamB.project.id, columnId: teamB.columns.todo.id })
+      .where(eq(schema.taskTable.id, task.id));
+    const before = await ticket();
+    const res = await decide(member, card?.id ?? "", "accept");
+    expect(res.status).toBe(404);
+    expect(await res.text()).not.toContain("Login fails");
+    expect(await ticket()).toEqual(before);
+    const [row] = await db.select().from(schema.agentProposalTable);
+    expect(row?.status).toBe("pending");
   });
 
   it("leaves out audit rows on teams the admin cannot open", async () => {

@@ -3254,7 +3254,7 @@ export const agentMessageTable = pgTable(
 
 // A write the agent proposed in a chat. Nothing changes until the person who
 // asked accepts it; the row then is the audit record: the prompt, the tool
-// calls of the turn, the sources, who accepted and what came back. Task and
+// call that proposed it, the sources, who accepted and what came back. Task and
 // project ids are kept without a foreign key so the record outlives them.
 export const agentProposalTable = pgTable(
   "agent_proposal",

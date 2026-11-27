@@ -3867,7 +3867,7 @@
                 "arguments"
               ]
             },
-            "description": "Every tool call of the turn up to the write."
+            "description": "The tool call that proposed the write."
           },
           "diff": {
             "type": "array",
@@ -29972,7 +29972,7 @@
           "Agent"
         ],
         "summary": "Get the AI audit",
-        "description": "The agent writes people accepted in this workspace, newest first, with the prompt, tool calls, sources, the accepting person and the result. Writes on teams you cannot open are left out. Admins and owners only.",
+        "description": "The agent writes people accepted in this workspace, newest first, with the prompt, the tool call, sources, the accepting person and the result. A write is left out unless you can open its team and, for a move, the team it goes to. Admins and owners only.",
         "parameters": [
           {
             "schema": {

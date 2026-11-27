@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import db from "../../database";
 import { agentProposalTable, userTable } from "../../database/schema";
@@ -12,8 +12,8 @@ const accepter = alias(userTable, "accepter");
 
 /**
  * The AI writes someone accepted in the workspace, newest first: prompt, tool
- * calls, sources, who accepted and what came back. A write on a team the
- * reader cannot open is left out.
+ * call, sources, who accepted and what came back. A write is left out unless
+ * the reader can open its team and, for a move, the team it goes to.
  */
 export async function listAudit(reader: Reader) {
   const rows = await db
@@ -30,6 +30,11 @@ export async function listAudit(reader: Reader) {
         eq(agentProposalTable.workspaceId, reader.workspaceId),
         inArray(agentProposalTable.status, ["accepted", "failed"]),
         projectAccessCondition(reader.userId, agentProposalTable.projectId),
+        // A move also shows the team it goes to.
+        projectAccessCondition(
+          reader.userId,
+          sql`coalesce(${agentProposalTable.arguments}->>'projectId', ${agentProposalTable.projectId})`,
+        ),
       ),
     )
     .orderBy(desc(agentProposalTable.decidedAt))

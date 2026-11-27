@@ -56,7 +56,7 @@ export const auditRowSchema = z
       .array(
         z.object({ id: z.string(), name: z.string(), arguments: z.string() }),
       )
-      .openapi({ description: "Every tool call of the turn up to the write." }),
+      .openapi({ description: "The tool call that proposed the write." }),
     diff: z.array(fieldChangeSchema),
     reason: z.string(),
     sources: z.array(citationSchema),
