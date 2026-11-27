@@ -43,6 +43,7 @@ import exportTasks from "./controllers/export-tasks";
 import getAssignedTasks from "./controllers/get-assigned-tasks";
 import getDoneTasks from "./controllers/get-done-tasks";
 import getTaskByTicketId from "./controllers/get-task-by-ticket-id";
+import getTaskStatusSpans from "./controllers/get-task-status-spans";
 import getTask from "./controllers/get-task";
 import getTasks from "./controllers/get-tasks";
 import importTasks from "./controllers/import-tasks";
@@ -98,6 +99,7 @@ import {
   taskExportSchema,
   taskImportResultSchema,
   taskSchema,
+  taskStatusSpansSchema,
   taskWithAssigneeSchema,
 } from "./response";
 import {
@@ -406,6 +408,26 @@ const getTaskRoute = createRoute({
   },
   responses: {
     200: jsonResponse("Task details", taskWithAssigneeSchema),
+    403: errorResponse("No access to the project, or missing read permission"),
+    404: errorResponse("Task not found"),
+  },
+});
+
+const getTaskStatusSpansRoute = createRoute({
+  method: "get",
+  operationId: "getTaskStatusSpans",
+  path: "/{id}/status-spans",
+  tags: ["Tasks"],
+  summary: "Get time in status",
+  description:
+    "Cumulative time the task has spent in each status, computed from its status-change activity, in order of first entry. The current status includes time up to now.",
+  middleware: [
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["read"] }),
+  ] as const,
+  request: { params: taskParam },
+  responses: {
+    200: jsonResponse("Time per status", taskStatusSpansSchema),
     403: errorResponse("No access to the project, or missing read permission"),
     404: errorResponse("Task not found"),
   },
@@ -1310,6 +1332,10 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
     );
 
     return c.json(task, 200);
+  })
+  .openapi(getTaskStatusSpansRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    return c.json(await getTaskStatusSpans(id), 200);
   })
   .openapi(moveTaskRoute, async (c) => {
     const { id } = c.req.valid("param");
