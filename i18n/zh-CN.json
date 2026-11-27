@@ -1614,7 +1614,8 @@
 			"remove": "移除 {{title}}",
 			"removeError": "移除资源链接失败。",
 			"addDocument": "Add document",
-			"addLink": "Add link…"
+			"addLink": "Add link…",
+			"addLinkTitle": "Add link"
 		},
 		"customFields": {
 			"createError": "创建自定义字段失败。",

@@ -1613,7 +1613,8 @@
 			"remove": "移除 {{title}}",
 			"removeError": "無法移除資源連結。",
 			"addDocument": "Add document",
-			"addLink": "Add link…"
+			"addLink": "Add link…",
+			"addLinkTitle": "Add link"
 		},
 		"customFields": {
 			"createError": "無法建立自訂欄位。",

@@ -1528,7 +1528,8 @@
 			"remove": "{{title}} entfernen",
 			"removeError": "Ressourcenlink konnte nicht entfernt werden.",
 			"addDocument": "Add document",
-			"addLink": "Add link…"
+			"addLink": "Add link…",
+			"addLinkTitle": "Add link"
 		},
 		"workspaceRoles": {
 			"pageTitle": "Rollen",

@@ -1365,7 +1365,8 @@
 			"remove": "Supprimer {{title}}",
 			"removeError": "Échec de la suppression du lien de la ressource.",
 			"addDocument": "Add document",
-			"addLink": "Add link…"
+			"addLink": "Add link…",
+			"addLinkTitle": "Add link"
 		},
 		"workspaceRoles": {
 			"pageTitle": "Rôles",

@@ -1349,7 +1349,8 @@
 			"remove": "Remove {{title}}",
 			"removeError": "Failed to remove the resource link.",
 			"addDocument": "Add document",
-			"addLink": "Add link…"
+			"addLink": "Add link…",
+			"addLinkTitle": "Add link"
 		},
 		"workspaceRoles": {
 			"pageTitle": "Peran",

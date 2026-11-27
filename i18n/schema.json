@@ -10033,6 +10033,9 @@
 						"addLink": {
 							"type": "string"
 						},
+						"addLinkTitle": {
+							"type": "string"
+						},
 						"addDocument": {
 							"type": "string"
 						},
@@ -10067,6 +10070,7 @@
 						"open",
 						"addResource",
 						"addLink",
+						"addLinkTitle",
 						"addDocument",
 						"url",
 						"titleOptional",
