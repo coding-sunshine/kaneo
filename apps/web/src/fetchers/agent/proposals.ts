@@ -26,3 +26,11 @@ export async function getAiAudit(workspaceId: string) {
 
 export type AgentProposal = Awaited<ReturnType<typeof decideProposal>>;
 export type AiAuditRow = Awaited<ReturnType<typeof getAiAudit>>[number];
+
+export async function getAgentDrafts(workspaceId: string) {
+  const response = await client.agent.workspace[
+    ":workspaceId"
+  ].proposals.drafts.$get({ param: { workspaceId } });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}

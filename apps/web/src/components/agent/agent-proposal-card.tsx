@@ -24,7 +24,8 @@ export function AgentProposalCard({
   proposal,
 }: {
   workspaceId: string;
-  chatId: string;
+  /** The chat it came from; none for a loop's draft. */
+  chatId?: string;
   proposal: AgentProposal;
 }) {
   const { t } = useTranslation();

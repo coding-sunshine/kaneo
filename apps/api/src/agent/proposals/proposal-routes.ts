@@ -15,7 +15,8 @@ import {
   proposalParam,
   proposalSchema,
 } from "./proposal-schema";
-import { proposalView } from "./proposal-view";
+import { z } from "../../openapi";
+import { pendingDrafts, proposalView } from "./proposal-view";
 
 const tags = ["Agent"];
 const noAccess = errorResponse("Missing permission for this workspace");
@@ -74,7 +75,30 @@ const auditRoute = createRoute({
   },
 });
 
+const draftsRoute = createRoute({
+  method: "get",
+  operationId: "listAgentDrafts",
+  path: "/workspace/{workspaceId}/proposals/drafts",
+  tags,
+  summary: "List your drafted project updates",
+  description:
+    "Project updates your loops drafted that you have not accepted or declined yet, newest first. Accepting one posts it as you.",
+  middleware: [...read] as const,
+  request: { params: workspaceParam },
+  responses: {
+    200: jsonResponse("Drafts", z.array(proposalSchema)),
+    403: noAccess,
+    404: notFound,
+  },
+});
+
 const proposalRoutes = apiRouter()
+  .openapi(draftsRoute, async (c) =>
+    c.json(
+      await pendingDrafts(await readerOf(c, c.req.valid("param").workspaceId)),
+      200,
+    ),
+  )
   .openapi(decideRoute("accept"), async (c) => {
     const { workspaceId, proposalId } = c.req.valid("param");
     const row = await acceptProposal(

@@ -1,7 +1,8 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import db from "../../database";
 import { agentProposalTable } from "../../database/schema";
 import { resolveCitations } from "../resolve-citations";
+import { PROJECT_UPDATE_TOOL } from "./project-update-tool";
 
 type Row = typeof agentProposalTable.$inferSelect;
 type Reader = Parameters<typeof resolveCitations>[0];
@@ -34,5 +35,23 @@ export async function chatProposals(reader: Reader, chatId: string) {
       ),
     )
     .orderBy(asc(agentProposalTable.createdAt));
+  return Promise.all(rows.map((row) => proposalView(reader, row)));
+}
+
+/** The reader's project updates that loops drafted and nobody decided yet. */
+export async function pendingDrafts(reader: Reader) {
+  const rows = await db
+    .select()
+    .from(agentProposalTable)
+    .where(
+      and(
+        eq(agentProposalTable.workspaceId, reader.workspaceId),
+        eq(agentProposalTable.userId, reader.userId),
+        eq(agentProposalTable.tool, PROJECT_UPDATE_TOOL),
+        eq(agentProposalTable.status, "pending"),
+      ),
+    )
+    .orderBy(desc(agentProposalTable.createdAt))
+    .limit(50);
   return Promise.all(rows.map((row) => proposalView(reader, row)));
 }

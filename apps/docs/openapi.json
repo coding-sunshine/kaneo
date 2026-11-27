@@ -4244,10 +4244,11 @@
                 "update_task",
                 "update_task_status",
                 "update_task_assignee",
-                "create_task_comment"
+                "create_task_comment",
+                "create_project_update"
               ]
             },
-            "maxItems": 5
+            "maxItems": 6
           },
           "trigger": {
             "type": "string",
@@ -4362,10 +4363,11 @@
                 "update_task",
                 "update_task_status",
                 "update_task_assignee",
-                "create_task_comment"
+                "create_task_comment",
+                "create_project_update"
               ]
             },
-            "maxItems": 5,
+            "maxItems": 6,
             "default": []
           }
         },
@@ -30209,6 +30211,74 @@
         }
       }
     },
+    "/agent/workspace/{workspaceId}/proposals/drafts": {
+      "get": {
+        "operationId": "listAgentDrafts",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "List your drafted project updates",
+        "description": "Project updates your loops drafted that you have not accepted or declined yet, newest first. Accepting one posts it as you.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Drafts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AgentProposal"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or proposal not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/agent/workspace/{workspaceId}/proposals/{proposalId}/accept": {
       "post": {
         "operationId": "acceptAgentProposal",
@@ -30982,10 +31052,11 @@
                         "update_task",
                         "update_task_status",
                         "update_task_assignee",
-                        "create_task_comment"
+                        "create_task_comment",
+                        "create_project_update"
                       ]
                     },
-                    "maxItems": 5
+                    "maxItems": 6
                   },
                   "enabled": {
                     "type": "boolean"
@@ -31188,10 +31259,11 @@
                         "update_task",
                         "update_task_status",
                         "update_task_assignee",
-                        "create_task_comment"
+                        "create_task_comment",
+                        "create_project_update"
                       ]
                     },
-                    "maxItems": 5,
+                    "maxItems": 6,
                     "default": []
                   }
                 },

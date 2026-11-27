@@ -1,27 +1,47 @@
 import type { ToolClient } from "@kaneo/mcp/tools";
 import { and, eq, inArray } from "drizzle-orm";
 import db from "../../database";
-import { agentProposalTable, projectTable } from "../../database/schema";
+import {
+  agentProposalTable,
+  projectTable,
+  workProjectTable,
+} from "../../database/schema";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
 import type { ChatMessage } from "../openrouter";
 import { type Cited, grounded, splitSources } from "../sources";
 import type { ProposeRequest } from "../tools";
 import { type ChangeTaskArgs, unknownLabels } from "./change-task-tool";
 import { type FieldChange, fieldDiff } from "./field-diff";
+import { PROJECT_UPDATE_TOOL } from "./project-update-tool";
 import { asksForStatus } from "./status-guard";
 import { readTaskState } from "./task-state";
 
 export type ProposalTurn = {
   userId: string;
   workspaceId: string;
-  chatId: string;
-  /** The person's own message that started this turn. */
+  /** Null for a loop run, which has no chat. */
+  chatId: string | null;
+  /** The person's own message, or the loop's instructions. */
   prompt: string;
   /** Reads as the person who asked. */
   client: ToolClient;
 };
 
 const refuse = (message: string) => JSON.stringify({ error: message });
+
+/** The name of a project (not a team) in the workspace, or null. */
+export async function workProjectName(workspaceId: string, id: string) {
+  const [row] = await db
+    .select({ name: workProjectTable.name })
+    .from(workProjectTable)
+    .where(
+      and(
+        eq(workProjectTable.id, id),
+        eq(workProjectTable.workspaceId, workspaceId),
+      ),
+    );
+  return row?.name ?? null;
+}
 
 async function projectWorkspace(projectId: string) {
   const [project] = await db
@@ -91,6 +111,7 @@ export function proposer(turn: ProposalTurn) {
     const taskId = typeof args.taskId === "string" ? args.taskId : null;
     const slot = `${tool === "create_task_comment" ? "comment" : "change"}:${taskId}`;
     let projectId: string;
+    let projectName: string | null = null;
     let current = null;
     if (taskId) {
       if (proposedFor.has(slot)) {
@@ -117,6 +138,12 @@ export function proposer(turn: ProposalTurn) {
       }
       projectId = read.task.projectId;
       current = read.state;
+    } else if (tool === PROJECT_UPDATE_TOOL) {
+      // A project belongs to the workspace, not to a team; its id stands in
+      // the team column, which has no team for it to name.
+      projectId = String(args.workProjectId ?? "");
+      projectName = await workProjectName(turn.workspaceId, projectId);
+      if (!projectName) return refuse("Project not found");
     } else {
       projectId = String(args.projectId ?? "");
       if ((await projectWorkspace(projectId)) !== turn.workspaceId) {
@@ -124,7 +151,9 @@ export function proposer(turn: ProposalTurn) {
       }
     }
 
-    const diff = fieldDiff(tool, args, current);
+    const diff = fieldDiff(tool, args, current).map((change) =>
+      change.field === "project" ? { ...change, to: projectName } : change,
+    );
     if (diff.length === 0) return refuse("Nothing would change.");
     const status = diff.find((change) => change.field === "status");
     if (current && status?.to && !asksForStatus(turn.prompt, status.to)) {

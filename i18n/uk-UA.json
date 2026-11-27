@@ -3595,7 +3595,10 @@
 					"position": "Position",
 					"topic": "Topic",
 					"model": "Model",
-					"provider": "Provider"
+					"provider": "Provider",
+					"health": "Health",
+					"project": "Project",
+					"update": "Update"
 				},
 				"label": "Proposed change",
 				"reason": "Why:",
@@ -4394,7 +4397,8 @@
 				"create_task_comment": "Comment",
 				"update_task": "Edit issue",
 				"update_task_assignee": "Assign",
-				"update_task_status": "Change status"
+				"update_task_status": "Change status",
+				"create_project_update": "Draft project update"
 			},
 			"actions": "Allowed changes",
 			"all": "All",
@@ -6624,7 +6628,9 @@
 				"postError": "Could not post the update",
 				"pulseEmpty": "No project updates yet.",
 				"save": "Save",
-				"title": "Project updates"
+				"title": "Project updates",
+				"drafts": "Drafts waiting for you",
+				"draftsHint": "Your loops drafted these updates. Nothing is posted until you accept one; it is then posted as you."
 			}
 		}
 	},

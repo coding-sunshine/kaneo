@@ -4254,7 +4254,10 @@
 					"topic": "Topic",
 					"position": "Position",
 					"provider": "Provider",
-					"model": "Model"
+					"model": "Model",
+					"project": "Project",
+					"health": "Health",
+					"update": "Update"
 				}
 			}
 		},
@@ -4282,7 +4285,8 @@
 				"update_task": "Edit issue",
 				"update_task_status": "Change status",
 				"update_task_assignee": "Assign",
-				"create_task": "Create issue"
+				"create_task": "Create issue",
+				"create_project_update": "Draft project update"
 			},
 			"permissionNote": "Each run uses your permissions at the time it runs, limited to the changes above.",
 			"save": "Save loop",
@@ -6271,7 +6275,9 @@
 				"save": "Save",
 				"cancel": "Cancel",
 				"deleteConfirm": "Delete this update?",
-				"pulseEmpty": "No project updates yet."
+				"pulseEmpty": "No project updates yet.",
+				"drafts": "Drafts waiting for you",
+				"draftsHint": "Your loops drafted these updates. Nothing is posted until you accept one; it is then posted as you."
 			},
 			"comments": {
 				"title": "Comments",
