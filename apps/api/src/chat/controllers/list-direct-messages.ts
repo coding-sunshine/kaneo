@@ -4,17 +4,23 @@ import {
   chatChannelMemberTable,
   chatChannelTable,
 } from "../../database/schema";
+import { directMessageOpenToGuest } from "../../guest/direct-message-open-to-guest";
+import { isWorkspaceGuest } from "../../guest/is-workspace-guest";
 import { selectChannels } from "./select-channels";
 
 // The caller's direct messages, newest first, each with its member ids so the
-// sidebar can name it.
+// sidebar can name it. A guest gets only those with people they work with.
 export async function listDirectMessages(workspaceId: string, userId: string) {
+  const guest = await isWorkspaceGuest(workspaceId, userId);
   const channels = await selectChannels(userId)
     .where(
       and(
         eq(chatChannelTable.workspaceId, workspaceId),
         isNotNull(chatChannelTable.directKey),
         isNotNull(chatChannelMemberTable.userId),
+        guest
+          ? directMessageOpenToGuest(userId, chatChannelTable.id, workspaceId)
+          : undefined,
       ),
     )
     .orderBy(desc(chatChannelTable.createdAt));

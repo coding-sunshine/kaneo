@@ -8,6 +8,7 @@ import WorkspaceLayout from "@/components/common/workspace-layout";
 import PageTitle from "@/components/page-title";
 import { Button } from "@/components/ui/button";
 import { useChannels } from "@/hooks/queries/chat/use-channels";
+import useGetMyProjectAccess from "@/hooks/queries/workspace-users/use-get-my-project-access";
 
 export const Route = createFileRoute(
   "/_layout/_authenticated/dashboard/workspace/$workspaceId/channels/",
@@ -20,6 +21,8 @@ function RouteComponent() {
   const { workspaceId } = Route.useParams();
   const { data: channels = [] } = useChannels(workspaceId);
   const [creating, setCreating] = useState(false);
+  // The API refuses new channels from guests.
+  const isGuest = useGetMyProjectAccess(workspaceId).data?.guest ?? false;
 
   return (
     <>
@@ -27,10 +30,16 @@ function RouteComponent() {
       <WorkspaceLayout
         title={t("navigation:chat.directoryTitle")}
         headerActions={
-          <Button size="sm" variant="outline" onClick={() => setCreating(true)}>
-            <Plus />
-            {t("navigation:chat.newChannel")}
-          </Button>
+          isGuest ? undefined : (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setCreating(true)}
+            >
+              <Plus />
+              {t("navigation:chat.newChannel")}
+            </Button>
+          )
         }
       >
         <ChannelDirectory workspaceId={workspaceId} channels={channels} />

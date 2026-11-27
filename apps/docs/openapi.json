@@ -797,6 +797,10 @@
           "hasAgent": {
             "type": "boolean",
             "description": "Whether the agent and loops are available (an OpenRouter API key is configured)."
+          },
+          "hasCalls": {
+            "type": "boolean",
+            "description": "Whether voice and video calls are available (a LiveKit server is configured)."
           }
         },
         "required": [
@@ -822,7 +826,8 @@
           "customOAuthManagedProfileFields",
           "customOAuthAccountUrl",
           "billingEnabled",
-          "hasAgent"
+          "hasAgent",
+          "hasCalls"
         ]
       },
       "McpClientRegistration": {
@@ -3397,6 +3402,9 @@
           "body": {
             "type": "string"
           },
+          "linkPreview": {
+            "$ref": "#/components/schemas/ChatLinkPreview"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -3409,7 +3417,59 @@
           "authorName",
           "authorImage",
           "body",
+          "linkPreview",
           "createdAt"
+        ]
+      },
+      "ChatLinkPreview": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "siteName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "title",
+          "description",
+          "siteName"
+        ],
+        "description": "A card for the first web link, added shortly after posting. Links inside code get none."
+      },
+      "ChatCallSession": {
+        "type": "object",
+        "properties": {
+          "serverUrl": {
+            "type": "string",
+            "description": "The LiveKit server to join."
+          },
+          "roomName": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string",
+            "description": "A LiveKit access token for this room only, valid for one minute. LiveKit renews it once connected."
+          }
+        },
+        "required": [
+          "serverUrl",
+          "roomName",
+          "token"
         ]
       },
       "AgentChatSummary": {
@@ -9811,7 +9871,8 @@
             "type": "string"
           },
           "email": {
-            "type": "string"
+            "type": "string",
+            "description": "Empty when a workspace guest reads the list, except for their own row."
           },
           "image": {
             "type": [
@@ -9854,6 +9915,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "guest": {
+            "type": "boolean",
+            "description": "A guest: selected projects, only the channels they were added to, and no workspace directory."
           }
         },
         "required": [
@@ -11168,6 +11233,9 @@
           "emailVerified": {
             "type": "boolean"
           },
+          "twoFactorEnabled": {
+            "type": "boolean"
+          },
           "isAnonymous": {
             "type": "boolean"
           },
@@ -11228,6 +11296,7 @@
           "name",
           "email",
           "emailVerified",
+          "twoFactorEnabled",
           "isAnonymous",
           "image",
           "createdAt",
@@ -12081,6 +12150,9 @@
           "requireEmailVerification": {
             "type": "boolean"
           },
+          "requireTwoFactor": {
+            "type": "boolean"
+          },
           "defaultRole": {
             "type": "string"
           },
@@ -12140,6 +12212,7 @@
           "registrationEnabled",
           "passwordRegistrationEnabled",
           "requireEmailVerification",
+          "requireTwoFactor",
           "defaultRole",
           "workspaceCreationRestricted",
           "disabledIntegrations",
@@ -12147,6 +12220,256 @@
           "emailDeliveryConfigured",
           "roles",
           "integrationProviders"
+        ]
+      },
+      "BackupStatus": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "False until the offsite bucket and its keys are set on the server."
+          },
+          "missingEnv": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Names of the server settings to set to turn backups on."
+          },
+          "lastRun": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "running",
+                  "succeeded",
+                  "failed"
+                ]
+              },
+              "startedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "finishedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "sizeBytes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "offsiteStatus": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "ok",
+                  "failed",
+                  null
+                ]
+              },
+              "errorCode": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Short failure category such as ECONNREFUSED, InternalError or COUNT_MISMATCH. Never contains hosts, credentials or server messages."
+              }
+            },
+            "required": [
+              "id",
+              "status",
+              "startedAt",
+              "finishedAt",
+              "sizeBytes",
+              "offsiteStatus",
+              "errorCode"
+            ]
+          },
+          "lastSuccess": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "running",
+                  "succeeded",
+                  "failed"
+                ]
+              },
+              "startedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "finishedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "sizeBytes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "offsiteStatus": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "ok",
+                  "failed",
+                  null
+                ]
+              },
+              "errorCode": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Short failure category such as ECONNREFUSED, InternalError or COUNT_MISMATCH. Never contains hosts, credentials or server messages."
+              }
+            },
+            "required": [
+              "id",
+              "status",
+              "startedAt",
+              "finishedAt",
+              "sizeBytes",
+              "offsiteStatus",
+              "errorCode"
+            ]
+          }
+        },
+        "required": [
+          "enabled",
+          "missingEnv",
+          "lastRun",
+          "lastSuccess"
+        ]
+      },
+      "BackupRestoreTest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "passed",
+              "failed"
+            ]
+          },
+          "errorCode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Short failure category such as ECONNREFUSED, InternalError or COUNT_MISMATCH. Never contains hosts, credentials or server messages."
+          },
+          "backupId": {
+            "type": "string"
+          },
+          "backupStartedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "restored": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "tickets": {
+                "type": "integer"
+              },
+              "documents": {
+                "type": "integer"
+              },
+              "chatMessages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "tickets",
+              "documents",
+              "chatMessages"
+            ]
+          },
+          "atBackup": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "tickets": {
+                "type": "integer"
+              },
+              "documents": {
+                "type": "integer"
+              },
+              "chatMessages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "tickets",
+              "documents",
+              "chatMessages"
+            ]
+          },
+          "live": {
+            "type": "object",
+            "properties": {
+              "tickets": {
+                "type": "integer"
+              },
+              "documents": {
+                "type": "integer"
+              },
+              "chatMessages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "tickets",
+              "documents",
+              "chatMessages"
+            ]
+          },
+          "durationMs": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "status",
+          "errorCode",
+          "backupId",
+          "backupStartedAt",
+          "restored",
+          "atBackup",
+          "live",
+          "durationMs"
         ]
       },
       "InstanceWebhookList": {
@@ -12363,6 +12686,34 @@
         },
         "required": [
           "revoked"
+        ]
+      },
+      "AdminTwoFactorReset": {
+        "type": "object",
+        "properties": {
+          "twoFactorEnabled": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          }
+        },
+        "required": [
+          "twoFactorEnabled"
+        ]
+      },
+      "AdminTwoFactorResetBody": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "A current code from the caller's own authenticator app, or one of their recovery codes (used up)."
+          }
+        },
+        "required": [
+          "code"
         ]
       }
     },
@@ -28777,6 +29128,109 @@
         }
       }
     },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/members/{userId}": {
+      "delete": {
+        "operationId": "removeChatChannelMember",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Remove member",
+        "description": "Take a member out of a channel. They lose it with their next request. Workspace admins only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "userId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "channelId": {
+                      "type": "string"
+                    },
+                    "userId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "channelId",
+                    "userId"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or member not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The last member cannot leave a private channel",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/chat/workspace/{workspaceId}/channels/{channelId}/messages": {
       "get": {
         "operationId": "listChatMessages",
@@ -28961,6 +29415,260 @@
           },
           "409": {
             "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/call": {
+      "post": {
+        "operationId": "startChatCall",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Start call",
+        "description": "Start a voice or video call in a channel or direct message you belong to. Rings the other members, at most 10 starts a minute per person. Needs LiveKit configured on the server.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Call started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatCallSession"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Calls are off on this server, or channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many calls started; see the Retry-After header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/call/join": {
+      "post": {
+        "operationId": "joinChatCall",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Join call",
+        "description": "Join the call in a channel you belong to.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Call session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatCallSession"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Calls are off on this server, or channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/messages/{messageId}/preview": {
+      "delete": {
+        "operationId": "removeChatLinkPreview",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Remove link preview",
+        "description": "Remove the link preview from your own message.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Preview removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only the author can remove the preview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or message not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -54925,6 +55633,10 @@
                     "type": "boolean",
                     "description": "New password sign-ups must confirm their email before they can sign in. Requires email delivery."
                   },
+                  "requireTwoFactor": {
+                    "type": "boolean",
+                    "description": "Password users must set up two-factor sign-in. Each one is held to setting it up at their next sign-in."
+                  },
                   "defaultRole": {
                     "type": "string",
                     "minLength": 1,
@@ -54991,6 +55703,106 @@
           },
           "409": {
             "description": "An environment variable locks the setting (code SETTING_LOCKED_BY_ENV)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/admin/backups": {
+      "get": {
+        "operationId": "getAdminBackupStatus",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Get backup status",
+        "description": "Whether scheduled backups are on, the latest backup run and the latest successful one with its size and offsite copy state. Requires the `system:read` instance permission; API keys are rejected.",
+        "responses": {
+          "200": {
+            "description": "Backup status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the instance permission or used an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/admin/backups/test-restore": {
+      "post": {
+        "operationId": "testAdminBackupRestore",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Test restoring the latest backup",
+        "description": "Download the latest offsite backup, restore it into a scratch database, compare ticket, document and chat message counts, then drop the scratch database. Requires the `instance:settings` instance permission; API keys are rejected.",
+        "responses": {
+          "200": {
+            "description": "The restore test result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupRestoreTest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the instance permission or used an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Backups are off, there is no backup yet, or a restore test is already running",
             "content": {
               "application/json": {
                 "schema": {
@@ -55939,6 +56751,100 @@
           },
           "429": {
             "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/admin/users/{userId}/two-factor/reset": {
+      "post": {
+        "operationId": "resetAdminUserTwoFactor",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Reset a user's two-factor",
+        "description": "Turn off another user's two-factor sign-in, for example after they lost their device: their authenticator secret, recovery codes and remembered devices are removed, and the reset is recorded in the audit log. Sessions are kept. If the instance requires two-factor, the next sign-in asks them to set it up again. You must have two-factor on yourself and send a current code from your authenticator app or one of your recovery codes; a session alone is refused. Your own two-factor can't be reset here. Requires the `users:credentials` instance permission; API keys are rejected.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "required": true,
+            "name": "userId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminTwoFactorResetBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Two-factor is off",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminTwoFactorReset"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the instance permission, uses an API key, has no two-factor of their own, or sent a missing or wrong code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The user is the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many wrong codes from the caller; code entry is locked for 15 minutes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }

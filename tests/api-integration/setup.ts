@@ -38,6 +38,8 @@ process.env.DISABLE_PASSWORD_REGISTRATION = "false";
 process.env.DISABLE_EMAIL_OTP_SIGN_IN = "false";
 process.env.DISABLE_LOGIN_FORM = "";
 process.env.DEMO_MODE = "false";
+// app.request() has no client IP, so every test would share one bucket.
+process.env.DISABLE_AUTH_RATE_LIMIT = "true";
 process.env.SMTP_HOST = "";
 process.env.SMTP_PORT = "";
 process.env.SMTP_SECURE = "";

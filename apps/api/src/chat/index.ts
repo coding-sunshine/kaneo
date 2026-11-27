@@ -5,11 +5,16 @@ import {
   errorResponse,
   jsonResponse,
 } from "../openapi";
-import { requireWorkspacePermission } from "../utils/require-workspace-permission";
+import {
+  hasWorkspacePermission,
+  requireWorkspacePermission,
+} from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import { createChannel } from "./controllers/create-channel";
 import { getChannel } from "./controllers/get-channel";
+import { requireCalls } from "./call/require-calls";
 import { inviteMember } from "./controllers/invite-member";
+import { joinCall } from "./controllers/join-call";
 import { joinChannel } from "./controllers/join-channel";
 import { leaveChannel } from "./controllers/leave-channel";
 import { listChannels } from "./controllers/list-channels";
@@ -17,10 +22,15 @@ import { listDirectMessages } from "./controllers/list-direct-messages";
 import { listMessages } from "./controllers/list-messages";
 import { openDirectMessage } from "./controllers/open-direct-message";
 import { postMessage } from "./controllers/post-message";
+import { removeLinkPreview } from "./controllers/remove-link-preview";
+import { removeMember } from "./controllers/remove-member";
+import { startCall } from "./controllers/start-call";
 import { updateChannel } from "./controllers/update-channel";
 import {
+  callSessionSchema,
   channelDetailSchema,
   channelListSchema,
+  channelMemberParam,
   channelParam,
   channelSchema,
   createChannelBody,
@@ -29,12 +39,16 @@ import {
   leftChannelSchema,
   listMessagesQuery,
   messageListSchema,
+  messageParam,
   messageSchema,
   openDirectMessageBody,
   postMessageBody,
+  removedMemberSchema,
   updateChannelBody,
   workspaceIdParam,
 } from "./schema";
+import "./call/subscribe";
+import "./link-preview/subscribe";
 
 const body = <T extends z.ZodType>(schema: T) => ({
   required: true as const,
@@ -60,6 +74,8 @@ const write = [
   requireWorkspacePermission({ task: ["update"] }),
 ] as const;
 const channelPath = "/workspace/{workspaceId}/channels/{channelId}";
+// Who manages the workspace's people: adds guests to channels, removes anyone.
+const manageMembers = { member: ["update"] };
 const directPath = "/workspace/{workspaceId}/direct-messages";
 
 const listRoute = createRoute({
@@ -181,6 +197,27 @@ const inviteRoute = createRoute({
   },
 });
 
+const removeMemberRoute = createRoute({
+  method: "delete",
+  operationId: "removeChatChannelMember",
+  path: `${channelPath}/members/{userId}`,
+  tags,
+  summary: "Remove member",
+  description:
+    "Take a member out of a channel. They lose it with their next request. Workspace admins only.",
+  middleware: [
+    workspaceAccess.fromParam(),
+    requireWorkspacePermission(manageMembers),
+  ] as const,
+  request: { params: channelMemberParam },
+  responses: {
+    200: jsonResponse("Member removed", removedMemberSchema),
+    403: noAccess,
+    404: errorResponse("Channel or member not found"),
+    409: errorResponse("The last member cannot leave a private channel"),
+  },
+});
+
 const listDirectRoute = createRoute({
   method: "get",
   operationId: "listChatDirectMessages",
@@ -245,6 +282,62 @@ const postMessageRoute = createRoute({
     200: jsonResponse("Message posted", messageSchema),
     403: notMember,
     404: notFound,
+    409: archived,
+  },
+});
+
+const removePreviewRoute = createRoute({
+  method: "delete",
+  operationId: "removeChatLinkPreview",
+  path: `${channelPath}/messages/{messageId}/preview`,
+  tags,
+  summary: "Remove link preview",
+  description: "Remove the link preview from your own message.",
+  middleware: [...write] as const,
+  request: { params: messageParam },
+  responses: {
+    200: jsonResponse("Preview removed", messageSchema),
+    403: errorResponse("Only the author can remove the preview"),
+    404: errorResponse("Channel or message not found"),
+  },
+});
+
+const callsOff = errorResponse(
+  "Calls are off on this server, or channel not found",
+);
+
+const startCallRoute = createRoute({
+  method: "post",
+  operationId: "startChatCall",
+  path: `${channelPath}/call`,
+  tags,
+  summary: "Start call",
+  description:
+    "Start a voice or video call in a channel or direct message you belong to. Rings the other members, at most 10 starts a minute per person. Needs LiveKit configured on the server.",
+  middleware: [requireCalls, ...write] as const,
+  request: { params: channelParam },
+  responses: {
+    200: jsonResponse("Call started", callSessionSchema),
+    403: notMember,
+    404: callsOff,
+    409: archived,
+    429: errorResponse("Too many calls started; see the Retry-After header"),
+  },
+});
+
+const joinCallRoute = createRoute({
+  method: "post",
+  operationId: "joinChatCall",
+  path: `${channelPath}/call/join`,
+  tags,
+  summary: "Join call",
+  description: "Join the call in a channel you belong to.",
+  middleware: [requireCalls, ...write] as const,
+  request: { params: channelParam },
+  responses: {
+    200: jsonResponse("Call session", callSessionSchema),
+    403: notMember,
+    404: callsOff,
     409: archived,
   },
 });
@@ -326,9 +419,14 @@ const chat = apiRouter()
         channelId,
         c.get("userId"),
         c.req.valid("json").userId,
+        await hasWorkspacePermission(c, manageMembers),
       ),
       200,
     );
+  })
+  .openapi(removeMemberRoute, async (c) => {
+    const { workspaceId, channelId, userId } = c.req.valid("param");
+    return c.json(await removeMember(workspaceId, channelId, userId), 200);
   })
   .openapi(listMessagesRoute, async (c) => {
     const { workspaceId, channelId } = c.req.valid("param");
@@ -350,6 +448,29 @@ const chat = apiRouter()
         channelId,
         c.get("userId"),
         c.req.valid("json").body,
+      ),
+      200,
+    );
+  })
+  .openapi(startCallRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(
+      await startCall(workspaceId, channelId, c.get("userId")),
+      200,
+    );
+  })
+  .openapi(joinCallRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(await joinCall(workspaceId, channelId, c.get("userId")), 200);
+  })
+  .openapi(removePreviewRoute, async (c) => {
+    const { workspaceId, channelId, messageId } = c.req.valid("param");
+    return c.json(
+      await removeLinkPreview(
+        workspaceId,
+        channelId,
+        messageId,
+        c.get("userId"),
       ),
       200,
     );

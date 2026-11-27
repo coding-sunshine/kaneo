@@ -60,7 +60,7 @@ following [Keep secrets in files](/core/installation/docker-compose#keep-secrets
 
 For the supported `_FILE` variables, a non-empty direct value takes precedence. Kaneo removes trailing line endings from secret files but keeps other whitespace. Missing, unreadable, or empty files are an error instead of silently using a fallback. The database and authentication secrets are read at startup. Restart Kaneo after rotating any secret file; API secrets are cached after the first successful read. `DATABASE_URL` takes precedence over both PostgreSQL password variables.
 
-The same `_FILE` form works for these secrets: `SMTP_PASSWORD`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `GITHUB_PRIVATE_KEY`, `GITHUB_PRIVATE_KEY_BASE64`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_OAUTH_CLIENT_SECRET`, `GITHUB_CLIENT_SECRET`, `TURNSTILE_SECRET_KEY`, `NOTIFICATION_SECRET_ENCRYPTION_KEY`, `CREEM_API_KEY`, and `CREEM_WEBHOOK_SECRET`. For example, set `SMTP_PASSWORD_FILE=/run/secrets/smtp_password`. SMTP password files are read at startup only when `SMTP_HOST`, `SMTP_FROM`, and `SMTP_USER` are set. The GitHub sign-in secrets are read at startup when their client IDs are set, and so are the GitHub App secrets when `GITHUB_APP_ID` is set. The S3, Turnstile, notification, and billing secrets are read when that feature is first used, so a bad file for one of those shows up as an error from that feature instead of at startup.
+The same `_FILE` form works for these secrets: `SMTP_PASSWORD`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `GITHUB_PRIVATE_KEY`, `GITHUB_PRIVATE_KEY_BASE64`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_OAUTH_CLIENT_SECRET`, `GITHUB_CLIENT_SECRET`, `TURNSTILE_SECRET_KEY`, `NOTIFICATION_SECRET_ENCRYPTION_KEY`, `CREEM_API_KEY`, `CREEM_WEBHOOK_SECRET`, and `LIVEKIT_API_SECRET`. For example, set `SMTP_PASSWORD_FILE=/run/secrets/smtp_password`. SMTP password files are read at startup only when `SMTP_HOST`, `SMTP_FROM`, and `SMTP_USER` are set. The GitHub sign-in secrets are read at startup when their client IDs are set, and so are the GitHub App secrets when `GITHUB_APP_ID` is set. The S3, Turnstile, notification, billing, and LiveKit secrets are read when that feature is first used, so a bad file for one of those shows up as an error from that feature instead of at startup.
 
 ## Optional variables
 
@@ -89,6 +89,20 @@ Name | Description | Default |
 | `S3_KEY_PREFIX` | Optional prefix prepended to all S3 object keys. Useful for sharing a single bucket across multiple environments (e.g. `staging/`, `prod/kaneo/`). Trailing slashes are trimmed automatically. |  |
 | `S3_PRESIGN_TTL_SECONDS` | How long presigned upload URLs remain valid. | `300` |
 
+### Backups
+
+Kaneo backs up its database once a day and copies each backup to an offsite S3-compatible bucket. Backups stay off until the bucket and its keys are set; the API logs that once at startup, and **Settings → Backups** lists the missing variables. Use a bucket separate from uploads, and set a lifecycle rule on it to delete old backups. **Test restore** on that page restores the latest backup into a scratch database next to the live one, so the database user needs the `CREATEDB` privilege for it.
+
+Name | Description | Default |
+--- | --- | --- |
+| `BACKUP_S3_BUCKET` | The bucket that receives the daily backups. Required to turn backups on. |  |
+| `BACKUP_S3_ACCESS_KEY_ID` | Access key for the backup bucket. Required. Also read from `BACKUP_S3_ACCESS_KEY_ID_FILE`. |  |
+| `BACKUP_S3_SECRET_ACCESS_KEY` | Secret key for the backup bucket. Required. Also read from `BACKUP_S3_SECRET_ACCESS_KEY_FILE`. |  |
+| `BACKUP_S3_ENDPOINT` | S3-compatible endpoint. Leave unset for AWS S3. |  |
+| `BACKUP_S3_REGION` | Region used for request signing. | `us-east-1` |
+| `BACKUP_S3_KEY_PREFIX` | Optional folder inside the bucket for backup files. |  |
+| `BACKUP_S3_FORCE_PATH_STYLE` | Use path-style URLs. Set to `false` for providers that need virtual-hosted URLs. | `true` |
+
 ### Access Control
 
 Browser WebSocket connections require an exact origin matching `KANEO_CLIENT_URL`,
@@ -116,7 +130,8 @@ Name | Description | Default |
 
 Name | Description | Default |
 --- | --- | --- |
-| `TRUSTED_PROXIES` | Comma-separated IPs or CIDR ranges of trusted reverse proxies. Kaneo first checks the actual TCP peer, then walks `X-Forwarded-For` right to left only through trusted hops. Defaults trust the bundled loopback nginx only. For a separate Docker/ingress proxy, explicitly add its IP or dedicated proxy subnet; avoid shared private-network ranges. Use `none` for direct API access without trusted proxies. Invalid entries prevent startup. `CF-Connecting-IP` and client-supplied `X-Kaneo-Client-IP` are never used. | `127.0.0.0/8, ::1/128` |
+| `TRUSTED_PROXIES` | Comma-separated IPs or CIDR ranges of trusted reverse proxies. Kaneo first checks the actual TCP peer, then walks `X-Forwarded-For` right to left only through trusted hops. Setting it is what keeps one person from blocking another. When unset, Kaneo trusts the bundled loopback nginx only, and because it cannot tell a proxy from a client it limits sign-in, password and two-factor requests per address and account, so one person behind a shared proxy cannot lock everyone out. Only failed password and code checks fill an account's limit, and a full limit refuses even the right password, so anyone behind the same proxy can still keep one account locked by failing its sign-in. Requests that send mail count every time. Requests that name no account (social and anonymous sign-in) and sign-ups still share one limit per address. Kaneo logs a warning when the first request arrives through a proxy in that mode. Set it, even to the default, to limit per client address instead. For a separate Docker/ingress proxy, add its IP or dedicated proxy subnet; avoid shared private-network ranges. Use `none` for direct API access without trusted proxies. The Helm chart sets it with `kaneo.env.trustedProxies`. Invalid entries prevent startup. `CF-Connecting-IP` and client-supplied `X-Kaneo-Client-IP` are never used. | unset (trusts `127.0.0.0/8, ::1/128`) |
+| `DISABLE_AUTH_RATE_LIMIT` | Turn off rate limiting of sign-in, sign-up, password reset and invitation requests. With `TRUSTED_PROXIES` set, limits count requests per client IP; without it, per IP and account. Set `TRUSTED_PROXIES` correctly instead of turning them off. | `false` |
 
 <Warning>
   Only list addresses you control. Any host in this range can set `X-Forwarded-For` and have it believed, so do not include a range that clients can reach Kaneo from directly. The client IP is used for rate limiting and session records.
@@ -128,6 +143,16 @@ Name | Description | Default |
 --- | --- | --- |
 | `NOTIFICATION_SECRET_ENCRYPTION_KEY` | Required to store personal notification tokens and webhook signing secrets. Generate a random value, keep it stable, and include it in protected configuration backups. Changing or losing it prevents decryption of existing secrets. | Unset |
 | `KANEO_ALLOW_PRIVATE_WEBHOOK_DESTINATIONS` | Allow outbound notification destinations (ntfy, Gotify, generic webhooks), self-managed Gitea or GitLab instances, and [import sources](/core/migrations) that resolve to private or non-routable addresses. Off by default to prevent SSRF; the `http`/`https` requirement still applies. Only enable on a trusted, isolated deployment. | `false` |
+
+### Calls
+
+Voice and video calls in chat run on a [LiveKit](https://livekit.io) server you provide, self-hosted or LiveKit Cloud. A self-hosted server needs its media ports open and a TURN server for people behind strict firewalls. Kaneo only signs room tokens that expire after a minute (LiveKit renews them once someone is connected); media never passes through the Kaneo API. Without all three values, calls are off: the API logs that once, and chat shows no call button. Links to other meeting tools still post as clickable links. When someone leaves or is removed from a channel, or is removed from the workspace, Kaneo removes them from its calls through the LiveKit server API.
+
+Name | Description | Default |
+--- | --- | --- |
+| `LIVEKIT_URL` | WebSocket URL of your LiveKit server, as browsers reach it. Example: `wss://livekit.example.com`. | Unset |
+| `LIVEKIT_API_KEY` | API key from your LiveKit server or project. | Unset |
+| `LIVEKIT_API_SECRET` | API secret paired with the key. Also read from `LIVEKIT_API_SECRET_FILE`. Keep it on the server; it never reaches browsers. | Unset |
 
 ### Imports
 

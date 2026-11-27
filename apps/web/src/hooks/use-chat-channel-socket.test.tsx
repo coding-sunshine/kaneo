@@ -89,6 +89,22 @@ describe("useChatChannelSocket", () => {
     expect(client.invalidateQueries).toHaveBeenCalledWith(messages);
   });
 
+  it("refetches messages when one changes, such as a new link preview", () => {
+    render();
+    act(() => latest().open());
+    client.invalidateQueries.mockClear();
+
+    act(() =>
+      latest().onmessage?.({
+        data: JSON.stringify({
+          type: "CHAT_MESSAGE_UPDATED",
+          channelId: "channel-1",
+        }),
+      }),
+    );
+    expect(client.invalidateQueries).toHaveBeenCalledWith(messages);
+  });
+
   it("catches up on messages it missed after reconnecting", () => {
     const { result } = render();
     act(() => latest().open());

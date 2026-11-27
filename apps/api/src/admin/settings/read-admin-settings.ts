@@ -26,6 +26,7 @@ export async function readAdminSettings() {
     registrationEnabled: effective.registrationEnabled,
     passwordRegistrationEnabled: effective.passwordRegistrationEnabled,
     requireEmailVerification: effective.requireEmailVerification,
+    requireTwoFactor: effective.requireTwoFactor,
     defaultRole: effective.defaultRole,
     workspaceCreationRestricted: effective.workspaceCreationRestricted,
     disabledIntegrations: effective.disabledIntegrations,

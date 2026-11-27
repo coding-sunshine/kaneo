@@ -5,6 +5,7 @@ import {
   ChartColumn,
   Code,
   CreditCard,
+  DatabaseBackup,
   History,
   Import,
   KeyRound,
@@ -83,6 +84,12 @@ const ADMIN_LINKS = [
     labelKey: "settings:adminSystem.title",
     to: "/dashboard/settings/admin/system",
     icon: Activity,
+  },
+  {
+    id: "admin-backups",
+    labelKey: "settings:adminBackups.title",
+    to: "/dashboard/settings/admin/backups",
+    icon: DatabaseBackup,
   },
   {
     id: "admin-settings",

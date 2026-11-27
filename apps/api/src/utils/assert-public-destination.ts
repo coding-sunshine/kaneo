@@ -20,7 +20,11 @@ function isDisallowedIpv4(ip: string): boolean {
     (a === 100 && b >= 64 && b <= 127) ||
     (a === 169 && b === 254) ||
     (a === 172 && b >= 16 && b <= 31) ||
-    (a === 192 && b === 168)
+    // 198.18.0.0/15, RFC 2544 benchmarking; some networks use it internally.
+    (a === 198 && (b === 18 || b === 19)) ||
+    (a === 192 && b === 168) ||
+    // 224.0.0.0/4 multicast and 240.0.0.0/4 reserved, broadcast included.
+    a >= 224
   );
 }
 

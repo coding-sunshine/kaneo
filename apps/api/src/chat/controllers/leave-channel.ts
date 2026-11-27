@@ -2,6 +2,7 @@ import { and, count, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { chatChannelMemberTable } from "../../database/schema";
+import { publishEvent } from "../../events";
 import { loadChannel } from "./load-channel";
 
 export async function leaveChannel(
@@ -29,5 +30,6 @@ export async function leaveChannel(
         eq(chatChannelMemberTable.userId, userId),
       ),
     );
+  await publishEvent("chat.member_left", { workspaceId, channelId, userId });
   return { channelId };
 }

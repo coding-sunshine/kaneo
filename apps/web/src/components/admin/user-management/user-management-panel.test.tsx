@@ -105,6 +105,9 @@ vi.mock("@/hooks/mutations/admin/use-mark-admin-user-email-verified", () => ({
     isPending: false,
   }),
 }));
+vi.mock("@/hooks/mutations/admin/use-reset-admin-user-two-factor", () => ({
+  default: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}));
 vi.mock("@/hooks/mutations/admin/use-create-admin-user", () => ({
   default: () => ({
     mutateAsync: credentialMocks.createUser,
@@ -134,6 +137,7 @@ function user(overrides: Partial<AdminUser> = {}): AdminUser {
     name: "Ada Lovelace",
     email: "ada@example.com",
     emailVerified: true,
+    twoFactorEnabled: false,
     isAnonymous: false,
     image: null,
     createdAt: "2026-01-01T00:00:00.000Z",

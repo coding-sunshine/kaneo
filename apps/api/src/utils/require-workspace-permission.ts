@@ -3,6 +3,8 @@ import type { Context, Next } from "hono";
 import { HTTPException } from "hono/http-exception";
 import db, { schema } from "../database";
 import { ApiError } from "../errors/api-error";
+import { guestAllows } from "../guest/guest-permissions";
+import { isWorkspaceGuest } from "../guest/is-workspace-guest";
 import { isInstanceAdmin } from "./is-instance-admin";
 import { missingPermissions } from "./missing-permissions";
 import {
@@ -86,8 +88,8 @@ export async function hasWorkspacePermission(
     return true;
   }
 
-  const { roles, stored } = await memberRoles(c, workspaceId);
-  return rolesAllow(roles, stored, permissions);
+  const member = await memberRoles(c, workspaceId);
+  return memberAllows(member, permissions);
 }
 
 // Same rules as `hasWorkspacePermission`, but resolves the caller's roles once
@@ -100,22 +102,34 @@ export async function workspacePermissionChecker(
 
   const scope = apiKeyPermissions(c);
   const isAdmin = await isInstanceAdmin(c);
-  const { roles, stored } = isAdmin
-    ? { roles: [], stored: [] }
-    : await memberRoles(c, workspaceId);
+  const member = isAdmin ? null : await memberRoles(c, workspaceId);
 
   return (permissions) => {
     if (scope && !satisfies(scope, permissions)) return false;
-    return isAdmin || rolesAllow(roles, stored, permissions);
+    return member === null || memberAllows(member, permissions);
   };
+}
+
+type MemberRoles = {
+  roles: string[];
+  stored: StoredRolePermission[];
+  guest: boolean;
+};
+
+// A guest's role never lifts them past the guest limits.
+function memberAllows(member: MemberRoles, permissions: PermissionMap) {
+  return (
+    rolesAllow(member.roles, member.stored, permissions) &&
+    (!member.guest || guestAllows(permissions))
+  );
 }
 
 async function memberRoles(
   c: Context,
   workspaceId: string,
-): Promise<{ roles: string[]; stored: StoredRolePermission[] }> {
+): Promise<MemberRoles> {
   const userId = c.get("userId");
-  if (!userId) return { roles: [], stored: [] };
+  if (!userId) return { roles: [], stored: [], guest: false };
 
   const [member] = await db
     .select({ role: schema.workspaceUserTable.role })
@@ -138,6 +152,7 @@ async function memberRoles(
   return {
     roles,
     stored: await storedRolePermissions(workspaceId, roles, db),
+    guest: await isWorkspaceGuest(workspaceId, userId),
   };
 }
 
@@ -167,12 +182,16 @@ export function requireWorkspacePermission(permissions: PermissionMap) {
       throw new HTTPException(401, { message: "Unauthorized" });
     }
 
-    const { roles, stored } = await memberRoles(c, workspaceId);
-    if (!rolesAllow(roles, stored, permissions)) {
+    const member = await memberRoles(c, workspaceId);
+    if (!memberAllows(member, permissions)) {
       throw new ApiError(403, {
         message: "Insufficient permissions",
-        code: "MISSING_PERMISSION",
-        missingPermissions: rolesMissingPermissions(roles, stored, permissions),
+        code: member.guest ? "GUEST_LIMIT" : "MISSING_PERMISSION",
+        missingPermissions: rolesMissingPermissions(
+          member.roles,
+          member.stored,
+          permissions,
+        ),
       });
     }
 

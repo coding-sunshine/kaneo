@@ -1,14 +1,20 @@
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { LinkPreviewCard } from "@/components/chat/link-preview-card";
+import { MessageBody } from "@/components/chat/message-body";
 import type { ChatMessage } from "@/components/chat/types";
 
 /** `focusId` is a message opened from search: shown in place, not followed. */
 export function MessageList({
   messages,
   focusId,
+  currentUserId,
+  onRemovePreview,
 }: {
   messages: ChatMessage[];
   focusId?: string;
+  currentUserId?: string;
+  onRemovePreview?: (messageId: string) => void;
 }) {
   const { t, i18n } = useTranslation();
   const end = useRef<HTMLDivElement>(null);
@@ -60,9 +66,17 @@ export function MessageList({
               })}
             </time>
           </span>
-          <p className="whitespace-pre-wrap break-words text-sm">
-            {message.body}
-          </p>
+          <MessageBody body={message.body} />
+          {message.linkPreview && (
+            <LinkPreviewCard
+              preview={message.linkPreview}
+              onRemove={
+                onRemovePreview && message.userId === currentUserId
+                  ? () => onRemovePreview(message.id)
+                  : undefined
+              }
+            />
+          )}
         </li>
       ))}
       <div ref={end} />

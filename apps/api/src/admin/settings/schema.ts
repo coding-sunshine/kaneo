@@ -30,6 +30,10 @@ export const updateInstanceSettingsBody = z
       description:
         "New password sign-ups must confirm their email before they can sign in. Requires email delivery.",
     }),
+    requireTwoFactor: z.boolean().optional().openapi({
+      description:
+        "Password users must set up two-factor sign-in. Each one is held to setting it up at their next sign-in.",
+    }),
     defaultRole: z.string().min(1).max(64).optional().openapi({
       description:
         "Instance role for new users: `user` or a custom role name, never `admin`. You can only choose a role whose permissions you have.",
@@ -65,6 +69,7 @@ export const instanceSettingsSchema = z
     registrationEnabled: z.boolean(),
     passwordRegistrationEnabled: z.boolean(),
     requireEmailVerification: z.boolean(),
+    requireTwoFactor: z.boolean(),
     defaultRole: z.string(),
     workspaceCreationRestricted: z.boolean(),
     disabledIntegrations: z.array(z.string()),

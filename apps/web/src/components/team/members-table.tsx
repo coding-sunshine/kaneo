@@ -283,8 +283,13 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
         <TableBody>
           {sortedUsers.map((member) => {
             const isSelf = currentUser?.id === member.userId;
+            const isGuest =
+              projectAccessEntries?.some(
+                (entry) => entry.userId === member.userId && entry.guest,
+              ) ?? false;
+            // A guest keeps their role; widening it means a new invitation.
             const showRoleSelect =
-              canChangeRoles && !isSelf && member.role !== "owner";
+              canChangeRoles && !isSelf && member.role !== "owner" && !isGuest;
             const access =
               member.role === "owner"
                 ? ALL_PROJECTS_ACCESS
@@ -296,9 +301,10 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
               !(managerLimited && access.projectAccess === "all");
             const accessLabel = describeAccess(access);
             const memberName = member.user.name || member.user.email;
-            const tone = toneFor(member.user.email);
+            // A guest reads members without email addresses.
+            const tone = toneFor(member.user.email || member.userId);
             return (
-              <TableRow key={member.user.email}>
+              <TableRow key={member.id}>
                 <TableCell className="ps-6 py-3">
                   <div className="flex items-center gap-3">
                     <Avatar className={cn("size-8", tone)}>
@@ -321,6 +327,11 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
                           <span className="text-xs text-muted-foreground">
                             ({t("team:members.you", { defaultValue: "You" })})
                           </span>
+                        ) : null}
+                        {isGuest ? (
+                          <Badge variant="outline">
+                            {t("team:guest.badge")}
+                          </Badge>
                         ) : null}
                       </div>
                       <div className="truncate text-xs text-muted-foreground">

@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, or } from "drizzle-orm";
+import { and, asc, eq, isNotNull, isNull, not, or } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
 import db from "../database";
@@ -8,6 +8,7 @@ import {
   savedViewTable,
   userTable,
 } from "../database/schema";
+import { isGuestCondition } from "../guest/guest-condition";
 import { projectAccessCondition } from "../project-access/project-access-condition";
 import type { createViewBody, updateViewBody } from "./schema";
 
@@ -32,7 +33,8 @@ const selectView = () =>
 
 // Personal views exist only for their owner; everything else is shared. A
 // view on a team is open to whoever can open that team, its owner included:
-// its name and filters describe the team's issues.
+// its name and filters describe the team's issues. A guest sees no other
+// person's workspace-wide view.
 const visibleTo = (userId: string) =>
   and(
     or(
@@ -40,8 +42,17 @@ const visibleTo = (userId: string) =>
       eq(savedViewTable.ownerId, userId),
     ),
     or(
-      isNull(savedViewTable.projectId),
-      projectAccessCondition(userId, savedViewTable.projectId),
+      and(
+        isNull(savedViewTable.projectId),
+        or(
+          eq(savedViewTable.ownerId, userId),
+          not(isGuestCondition(userId, savedViewTable.workspaceId)),
+        ),
+      ),
+      and(
+        isNotNull(savedViewTable.projectId),
+        projectAccessCondition(userId, savedViewTable.projectId),
+      ),
     ),
   );
 

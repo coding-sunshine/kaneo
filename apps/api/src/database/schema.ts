@@ -2,6 +2,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { relations, sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
+  bigint,
   boolean,
   check,
   customType,
@@ -25,6 +26,7 @@ import type { AuditWebhookPayload } from "../admin/webhooks/audit-webhook-payloa
 import type { GitHubImportState } from "../github-integration/import-state";
 import type { ImportRunProject } from "../import/import-run-project";
 import type { TaskRecurrence } from "../task/recurrence/schema";
+import type { LinkPreview } from "../chat/link-preview/link-preview-type";
 
 // Timestamp columns without a time zone hold UTC (Drizzle reads and writes
 // them as UTC). A bare now() default would be cast through the session time
@@ -64,6 +66,7 @@ export const userTable = pgTable("user", {
   emailVerificationRequired: boolean("email_verification_required")
     .default(false)
     .notNull(),
+  twoFactorEnabled: boolean("two_factor_enabled").default(false).notNull(),
 });
 
 export const sessionTable = pgTable(
@@ -90,6 +93,11 @@ export const sessionTable = pgTable(
     // Set on an assistant token the person limited to documents. Null means
     // the session may do everything its person may.
     mcpScope: text("mcp_scope"),
+    // Set when the instance requires two-factor and this password user had
+    // none at sign-in. Such a session can only set two-factor up.
+    twoFactorSetupRequired: boolean("two_factor_setup_required")
+      .default(false)
+      .notNull(),
   },
   (table) => [
     index("session_userId_idx").on(table.userId),
@@ -349,6 +357,7 @@ export const instanceSettingsTable = pgTable("instance_settings", {
   workspaceCreationRestricted: boolean("workspace_creation_restricted")
     .default(false)
     .notNull(),
+  requireTwoFactor: boolean("require_two_factor").default(false).notNull(),
   disabledIntegrations: text("disabled_integrations")
     .array()
     .notNull()
@@ -537,6 +546,13 @@ export const invitationTable = pgTable(
       .array()
       .default(sql`'{}'::text[]`)
       .notNull(),
+    // A guest invitation: the person joins with selected project access, the
+    // guest limits, and the chat channels in `channelIds`.
+    guest: boolean("guest").default(false).notNull(),
+    channelIds: text("channel_ids")
+      .array()
+      .default(sql`'{}'::text[]`)
+      .notNull(),
   },
   (table) => [
     index("invitation_workspaceId_idx").on(table.workspaceId),
@@ -712,6 +728,9 @@ export const workspaceMemberAccessTable = pgTable(
       .notNull()
       .references(() => userTable.id, { onDelete: "cascade" }),
     projectAccess: text("project_access").default("all").notNull(),
+    // An outside person: always "selected" access, only the channels they were
+    // added to, and no directory or workspace-wide documents. See guest/.
+    guest: boolean("guest").default(false).notNull(),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),
@@ -2262,6 +2281,27 @@ export const passkeyTable = pgTable(
   ],
 );
 
+export const twoFactorTable = pgTable(
+  "two_factor",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    secret: text("secret").notNull(),
+    backupCodes: text("backup_codes").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    verified: boolean("verified").default(true),
+    failedVerificationCount: integer("failed_verification_count").default(0),
+    lockedUntil: timestamp("locked_until", { mode: "date" }),
+  },
+  (table) => [
+    index("two_factor_userId_idx").on(table.userId),
+    index("two_factor_secret_idx").on(table.secret),
+  ],
+);
+
 export const deviceCodeTable = pgTable(
   "device_code",
   {
@@ -3395,6 +3435,8 @@ export const chatMessageTable = pgTable(
       onUpdate: "cascade",
     }),
     body: text("body").notNull(),
+    // Filled after posting from the first web link; the author can remove it.
+    linkPreview: jsonb("link_preview").$type<LinkPreview>(),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),
@@ -3950,4 +3992,28 @@ export const taskStatementTable = pgTable(
       .nullsNotDistinct(),
     index("task_statement_task_idx").on(table.taskId),
   ],
+);
+
+// One row per scheduled or manual database backup. `counts` holds the row
+// counts of the tables a restore test compares, taken in the dump's snapshot.
+export const backupRunTable = pgTable(
+  "backup_run",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    status: text("status")
+      .$type<"running" | "succeeded" | "failed">()
+      .notNull(),
+    objectKey: text("object_key"),
+    sizeBytes: bigint("size_bytes", { mode: "number" }),
+    offsiteStatus: text("offsite_status").$type<"ok" | "failed">(),
+    errorCode: text("error_code"),
+    counts: jsonb("counts").$type<Record<string, number>>(),
+    startedAt: timestamp("started_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    finishedAt: timestamp("finished_at", { mode: "date" }),
+  },
+  (table) => [index("backup_run_started_idx").on(table.startedAt)],
 );

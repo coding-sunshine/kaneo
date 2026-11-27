@@ -66,6 +66,7 @@ export function notificationResourceAccess(
         AND notification_document.deleted_at IS NULL
         AND ${documentVisibility(userId, {
           id: sql`notification_document.id`,
+          workspaceId: sql`notification_document.workspace_id`,
           creatorId: sql`notification_document.creator_id`,
           scope: sql`notification_document.scope`,
           projectId: sql`notification_document.project_id`,
