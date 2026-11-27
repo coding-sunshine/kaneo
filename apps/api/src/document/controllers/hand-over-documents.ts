@@ -52,8 +52,8 @@ const ownerless = (workspaceId: string) =>
   );
 
 // Makes `toUserId` the author of the ownerless documents the filter picks,
-// and records each one. The entry carries no title: the log is read by
-// instance administrators, and the documents are private.
+// out of the trash, and records each one. The entry carries no title: the log
+// is read by instance administrators, and the documents are private.
 async function move(
   workspaceId: string,
   actorUserId: string,
@@ -65,7 +65,9 @@ async function move(
   return db.transaction(async (tx) => {
     const moved = await tx
       .update(documentTable)
-      .set({ creatorId: toUserId })
+      // There is no trash to look in: a document that stayed there would be
+      // lost to its new author.
+      .set({ creatorId: toUserId, deletedAt: null })
       .where(and(ownerless(workspaceId), filter))
       .returning({ id: documentTable.id });
     if (moved.length === 0) return moved;
@@ -91,7 +93,8 @@ async function move(
 }
 
 // Gives the private documents of somebody who left to a member. A person who
-// is still a member keeps theirs: remove them first.
+// is still a member keeps theirs: remove them first. What they threw away
+// stays in the owner's list, for the owner to take over if it matters.
 export async function handOverDocuments(
   workspaceId: string,
   userId: string,
@@ -106,15 +109,19 @@ export async function handOverDocuments(
     workspaceId,
     userId,
     toUserId,
-    eq(documentTable.creatorId, fromUserId),
+    and(
+      eq(documentTable.creatorId, fromUserId),
+      isNull(documentTable.deletedAt),
+    ),
     "document.handed_over",
     fromUserId,
   );
   return { moved: moved.length };
 }
 
-// Title, date and the author who left: the owner decides whether to take a
-// draft over, or give one person's drafts to a colleague, without reading it.
+// Title, date, the author who left and whether they threw it away: the owner
+// decides whether to take a draft over, or give one person's drafts to a
+// colleague, without reading it.
 export async function listOwnerlessDocuments(
   workspaceId: string,
   userId: string,
@@ -127,10 +134,11 @@ export async function listOwnerlessDocuments(
       updatedAt: documentTable.updatedAt,
       creatorId: documentTable.creatorId,
       creatorName: userTable.name,
+      deletedAt: documentTable.deletedAt,
     })
     .from(documentTable)
     .leftJoin(userTable, eq(userTable.id, documentTable.creatorId))
-    .where(and(ownerless(workspaceId), isNull(documentTable.deletedAt)))
+    .where(ownerless(workspaceId))
     .orderBy(desc(documentTable.updatedAt));
 }
 
@@ -144,7 +152,7 @@ export async function takeOverDocument(
     workspaceId,
     userId,
     userId,
-    and(eq(documentTable.id, id), isNull(documentTable.deletedAt)),
+    eq(documentTable.id, id),
     "document.taken_over",
   );
   // A document that still has its author answers like an unknown one.

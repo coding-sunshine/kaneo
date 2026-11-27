@@ -4322,6 +4322,10 @@
 				"title": "{{topicName}} has a new current document",
 				"content": "{{documentTitle}}, approved by {{actorName}}"
 			},
+			"document_decision": {
+				"title": "{{actorName}} recorded a decision on {{topicName}}",
+				"content": "In {{documentTitle}}"
+			},
 			"document_replaced": {
 				"title_one": "A document linked in {{issueKey}} was replaced",
 				"title_other": "A document linked in {{issueKey}} and {{more}} more of your issues was replaced",
@@ -6246,6 +6250,7 @@
 			"ownerlessTitle": "Private documents with no author",
 			"ownerlessDescription": "The author left the workspace or deleted their account. Nobody can open these until an owner takes them over.",
 			"takeOver": "Take over",
+			"ownerlessInTrash": "In the trash",
 			"takeOverSuccess": "You are now the author of this document",
 			"takeOverError": "Could not take over the document",
 			"ownerlessFrom": "Left by {{name}}",

@@ -131,7 +131,7 @@ export async function proposeIssueFile(
         title,
         content,
         fingerprint: fingerprint(content),
-        ...filedOn(topic),
+        ...filedOn(topic, userId),
         creatorId: userId,
         updatedById: userId,
       });

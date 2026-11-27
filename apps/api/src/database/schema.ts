@@ -2745,6 +2745,11 @@ export const documentTable = pgTable(
       onUpdate: "cascade",
     }),
     filedAt: timestamp("filed_at", { mode: "date" }),
+    // Who filed it on the topic, who need not be its author. Null on a
+    // document filed before this was recorded: its author stands in. No
+    // foreign key: an existing table gets none. A filer whose account is
+    // gone keeps their id here, which still reads as somebody else.
+    filedById: text("filed_by_id"),
     // Set aside in the Inbox until this time. One date for everybody who sees
     // the item: one person triages the Inbox.
     inboxSnoozedUntil: timestamp("inbox_snoozed_until", { mode: "date" }),

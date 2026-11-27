@@ -162,6 +162,7 @@ describe("API integration: handing over a leaving member's drafts", () => {
         updatedAt: expect.any(String),
         creatorId: open.id,
         creatorName: open.name,
+        deletedAt: null,
       },
     ]);
 
@@ -214,5 +215,49 @@ describe("API integration: handing over a leaving member's drafts", () => {
       targetId: left,
     });
     expect(JSON.stringify(entries[0])).not.toContain("Left behind");
+  });
+
+  it("shows the owner a trashed draft of somebody who left, and lets them take it over", async () => {
+    const world = await buildDocumentWorld();
+    const { owner, open, limited } = world;
+    const live = await write(world, open, "Live draft");
+    const trashed = await write(world, open, "Thrown away");
+    expect(
+      (await world.as(open)(`${base(world)}/${trashed}`, json("DELETE")))
+        .status,
+    ).toBe(200);
+    await leave(world, open);
+
+    const listed = (await (await ownerless(world, owner)).json()) as {
+      id: string;
+      deletedAt: string | null;
+    }[];
+    expect(
+      listed.map(({ id, deletedAt }) => ({ id, trashed: deletedAt !== null })),
+    ).toEqual(
+      expect.arrayContaining([
+        { id: live, trashed: false },
+        { id: trashed, trashed: true },
+      ]),
+    );
+    expect(listed).toHaveLength(2);
+
+    // A hand-over gives a colleague the drafts they can use, not the trash.
+    expect(
+      await (await handOver(world, owner, open.id, limited.id)).json(),
+    ).toEqual({ moved: 1 });
+    expect(await creatorOf(trashed)).toBe(open.id);
+    expect(
+      ((await (await ownerless(world, owner)).json()) as { id: string }[]).map(
+        (doc) => doc.id,
+      ),
+    ).toEqual([trashed]);
+
+    // Taken over, it is the owner's and out of the trash, where they see it.
+    expect((await takeOver(world, owner, trashed)).status).toBe(200);
+    expect(await creatorOf(trashed)).toBe(owner.id);
+    expect(await opens(world, owner, trashed)).toBe(200);
+    expect(await opens(world, limited, trashed)).toBe(404);
+    expect(await (await ownerless(world, owner)).json()).toEqual([]);
   });
 });

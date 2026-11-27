@@ -167,12 +167,34 @@ describe("API integration: draft lineage", () => {
     expect((await edit(world, owner, typed, OTHER_TEXT)).revisionOf?.id).toBe(
       other,
     );
-    expect(
-      (await edit(world, owner, typed, REWORDED.join(" "))).revisionOf,
-    ).toBeNull();
+    // Not the six rewritten sentences alone: those are most of OTHER_TEXT.
+    const unrelated =
+      "<p>Lunch orders for the offsite go to the front desk by Friday noon.</p>";
+    expect((await edit(world, owner, typed, unrelated)).revisionOf).toBeNull();
     expect(await rows()).toEqual([
       { documentId: copy, sourceDocumentId: plan },
     ]);
+  });
+
+  // The threshold is 0.30 of all five-word runs. Of ten sentences, three
+  // rewritten share 0.45 and five rewritten 0.20.
+  it("proposes a text with three of ten sentences rewritten, not five", async () => {
+    const world = await buildDocumentWorld();
+    const { owner } = world;
+    const team = { projectId: world.alpha.id };
+    const plan = await write(world, owner, "Launch plan", PLAN, team);
+
+    const draft = await write(
+      world,
+      owner,
+      "Rewritten",
+      revised(0, 2, 4, 6, 8),
+      team,
+    );
+    expect(await link(world, owner, draft)).toBeNull();
+    expect(
+      (await edit(world, owner, draft, revised(0, 2, 4))).revisionOf,
+    ).toMatchObject({ id: plan, overlap: 44 });
   });
 
   it("names the document in the receipt of a saved draft", async () => {
@@ -223,6 +245,36 @@ describe("API integration: draft lineage", () => {
     });
     const second = await write(world, limited, "My second plan", revised(5));
     expect((await link(world, limited, second))?.id).toBe(visible);
+  });
+
+  it("keeps an undecided link when somebody who cannot see its source saves", async () => {
+    const world = await buildDocumentWorld();
+    const { owner, limited } = world;
+    // Team Beta: `limited` cannot open it.
+    const plan = await write(world, owner, "Secret plan", PLAN, {
+      projectId: world.beta.id,
+    });
+    // Team Alpha, which everyone in the team may edit.
+    const copy = await write(world, owner, "Launch plan v2", ONE_CHANGE, {
+      projectId: world.alpha.id,
+    });
+    expect((await link(world, owner, copy))?.id).toBe(plan);
+
+    // They see no link, and their save leaves the author's in place.
+    expect(
+      (await edit(world, limited, copy, revised(3, 5))).revisionOf,
+    ).toBeNull();
+    expect(await link(world, owner, copy)).toMatchObject({
+      id: plan,
+      status: "proposed",
+    });
+    expect(await rows()).toEqual([
+      { documentId: copy, sourceDocumentId: plan },
+    ]);
+
+    // A save by somebody who can see the source still moves it along.
+    expect((await edit(world, owner, copy, OTHER_TEXT)).revisionOf).toBeNull();
+    expect(await rows()).toEqual([]);
   });
 
   it("shows the link only to a reader who can open the other document", async () => {

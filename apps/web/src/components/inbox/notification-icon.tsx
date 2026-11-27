@@ -26,6 +26,7 @@ const icons: Record<string, LucideIcon> = {
   document_comment: MessageSquare,
   document_proposed: FilePlus,
   document_current: FileCheck,
+  document_decision: FileCheck,
   document_replaced: FileSymlink,
   document_question: FileQuestion,
   task_assignee_changed: UserRound,

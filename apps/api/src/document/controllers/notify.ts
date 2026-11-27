@@ -39,6 +39,7 @@ const TITLES = {
   document_comment: (actor: string) => `${actor} commented`,
   document_proposed: (actor: string) => `${actor} proposed a document`,
   document_current: (actor: string) => `${actor} made a document current`,
+  document_decision: (actor: string) => `${actor} recorded a decision`,
   document_replaced: (actor: string) =>
     `${actor} replaced a document your issue links to`,
   document_question: () => "A document may contradict what is approved",
@@ -119,7 +120,7 @@ export async function notifyTopicFollowers(
   doc: NotifiedDocument,
   topicId: string,
   actorId: string,
-  type: "document_proposed" | "document_current",
+  type: "document_proposed" | "document_current" | "document_decision",
   told: string[] = [],
 ) {
   const followers = await db

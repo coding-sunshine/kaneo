@@ -49,7 +49,7 @@ export async function recordDecision(
   // followers hear of it once, when it is current.
   await db
     .update(documentTable)
-    .set({ ...filedOn(topic), kind: "decision" })
+    .set({ ...filedOn(topic, userId), kind: "decision" })
     .where(eq(documentTable.id, note.id));
   // ponytail: two first decisions at the same moment make two notes, and the
   // later one replaces the earlier. Lock the topic row if that ever happens.
