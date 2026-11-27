@@ -72,4 +72,27 @@ describe("createCompletion", () => {
       provider: { data_collection: "deny" },
     });
   });
+
+  it("reports the tokens of the final usage chunk", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        sse(
+          { choices: [{ delta: { content: "Hi" } }] },
+          {
+            choices: [],
+            usage: { prompt_tokens: 12, completion_tokens: 3, cost: 0.0002 },
+          },
+        ),
+      ),
+    );
+    const onUsage = vi.fn();
+    await createCompletion([], [], undefined, onUsage);
+    expect(onUsage).toHaveBeenCalledWith({
+      model: expect.any(String),
+      promptTokens: 12,
+      completionTokens: 3,
+      cost: 0.0002,
+    });
+  });
 });

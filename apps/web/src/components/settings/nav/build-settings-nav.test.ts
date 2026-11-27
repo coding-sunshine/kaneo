@@ -54,6 +54,18 @@ describe("buildSettingsNav", () => {
     ]);
   });
 
+  it("offers AI usage only to admins when the server has a model key", () => {
+    const links = (nav: ReturnType<typeof build>) =>
+      nav.workspace.links.map((link) => link.to);
+
+    expect(links(build())).not.toContain(
+      "/dashboard/settings/workspace/ai-usage",
+    );
+    expect(links(build({ canManageAiUsage: true }))).toContain(
+      "/dashboard/settings/workspace/ai-usage",
+    );
+  });
+
   it("shows each administration page only with its permission", () => {
     expect(build().admin).toBeNull();
     expect(

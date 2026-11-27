@@ -43,7 +43,11 @@ export async function executeLoop(
           createSelfClient(new Headers(), loop.creatorId),
           loop.workspaceId,
           undefined,
-          { writes: loop.actions, unattended: true },
+          {
+            writes: loop.actions,
+            unattended: true,
+            meter: { userId: loop.creatorId, purpose: "loop" },
+          },
         ),
       )),
     ];

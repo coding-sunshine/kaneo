@@ -3287,8 +3287,9 @@ export const loopRunTable = pgTable(
   (table) => [index("loop_run_loop_idx").on(table.loopId, table.startedAt)],
 );
 
-// One row for each model call a job made to read documents. The daily cap of
-// extraction is the sum of a day's rows.
+// One row for each model call. Calls for a person (assistant, loops) name the
+// workspace and person and count against that workspace's budgets; jobs that
+// read documents name neither and count against the instance extraction caps.
 export const aiUsageTable = pgTable(
   "ai_usage",
   {
@@ -3297,6 +3298,10 @@ export const aiUsageTable = pgTable(
       .primaryKey(),
     purpose: text("purpose").notNull(),
     model: text("model").notNull(),
+    // Plain columns, no foreign keys: ai_usage already holds rows on live
+    // installs, so its upgrade only adds nullable columns and an index.
+    workspaceId: text("workspace_id"),
+    userId: text("user_id"),
     promptTokens: integer("prompt_tokens").notNull(),
     completionTokens: integer("completion_tokens").notNull(),
     cost: doublePrecision("cost"),
@@ -3304,8 +3309,29 @@ export const aiUsageTable = pgTable(
       .default(utcNow)
       .notNull(),
   },
-  (table) => [index("ai_usage_created_at_idx").on(table.createdAt)],
+  (table) => [
+    index("ai_usage_created_at_idx").on(table.createdAt),
+    index("ai_usage_workspace_created_at_idx").on(
+      table.workspaceId,
+      table.createdAt,
+    ),
+  ],
 );
+
+// A workspace's AI token budgets. Null means no limit; 0 stops every call.
+export const aiBudgetTable = pgTable("ai_budget", {
+  workspaceId: text("workspace_id")
+    .primaryKey()
+    .references(() => workspaceTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  userDailyTokens: integer("user_daily_tokens"),
+  workspaceMonthlyTokens: integer("workspace_monthly_tokens"),
+  updatedAt: timestamp("updated_at", { mode: "date" })
+    .default(utcNow)
+    .notNull(),
+});
 
 export const SLOT_TYPES = [
   "date",

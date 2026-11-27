@@ -1,4 +1,5 @@
 import { HTTPException } from "hono/http-exception";
+import { assertWithinBudget } from "../agent/budget";
 import { isAgentEnabled } from "../agent/openrouter";
 import {
   apiRouter,
@@ -141,7 +142,7 @@ const runNowRoute = createRoute({
   tags,
   summary: "Run loop now",
   description:
-    "Run the loop immediately and wait for it to finish. Only the creator can.",
+    "Run the loop immediately and wait for it to finish. Only the creator can. Answers 429 when the person's daily or the workspace's monthly AI budget is used up.",
   middleware: [...read] as const,
   request: { params: loopParam },
   responses: {
@@ -190,7 +191,7 @@ const draftRoute = createRoute({
   tags,
   summary: "Draft a loop from a description",
   description:
-    "One model call turns a plain-language description into a loop draft (name, instructions, trigger or schedule). Nothing is saved.",
+    "One model call turns a plain-language description into a loop draft (name, instructions, trigger or schedule). Nothing is saved. Answers 429 when the person's daily or the workspace's monthly AI budget is used up.",
   middleware: [
     workspaceAccess.fromBody(),
     requireWorkspacePermission({ project: ["read"] }),
@@ -229,7 +230,14 @@ const routes = loop
     c.json(await createLoop(c.get("userId"), c.req.valid("json")), 200),
   )
   .openapi(draftRoute, async (c) =>
-    c.json(await draftLoop(c.req.valid("json").description), 200),
+    c.json(
+      await draftLoop(
+        c.req.valid("json").workspaceId,
+        c.get("userId"),
+        c.req.valid("json").description,
+      ),
+      200,
+    ),
   )
   .openapi(updateRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");
@@ -245,6 +253,8 @@ const routes = loop
   .openapi(runNowRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");
     const own = await getOwnLoop(workspaceId, id, c.get("userId"));
+    // Refused here so a spent budget answers as an error, not a failed run.
+    await assertWithinBudget(workspaceId, own.creatorId);
     return c.json(await executeLoop(own, "manual"), 200);
   })
   .openapi(listRunsRoute, async (c) => {

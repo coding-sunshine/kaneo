@@ -3032,6 +3032,31 @@
 				"task": "Issues"
 			},
 			"url": "URL"
+		},
+		"aiUsage": {
+			"budgets": "Budgets",
+			"byDay": "By day",
+			"byFeature": "By feature",
+			"description": "Tokens the assistant and loops used in this workspace, and the budgets that stop them.",
+			"empty": "No AI use yet.",
+			"features": {
+				"assistant": "Assistant",
+				"loop": "Loop runs",
+				"loopDraft": "Loop drafts"
+			},
+			"invalid": "Enter a whole number of tokens, or leave the field empty.",
+			"loadError": "AI usage could not be loaded.",
+			"monthUsed": "Used this month: {{used}}.",
+			"noLimit": "No limit",
+			"period": "Last {{days}} days.",
+			"save": "Save budgets",
+			"saved": "Budgets saved",
+			"title": "AI usage",
+			"tokens_other": "{{formatted}} tokens",
+			"userDaily": "Daily budget per person",
+			"userDailyHint": "Tokens each person may use per day. Resets at 00:00 UTC. Leave empty for no limit.",
+			"workspaceMonthly": "Monthly budget for the workspace",
+			"workspaceMonthlyHint": "Tokens everyone may use together per calendar month (UTC). 0 turns AI off. Leave empty for no limit."
 		}
 	},
 	"navigation": {
