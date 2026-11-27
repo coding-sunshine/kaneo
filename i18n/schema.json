@@ -12470,9 +12470,21 @@
 								},
 								"loopDraft": {
 									"type": "string"
+								},
+								"filter": {
+									"type": "string"
+								},
+								"summary": {
+									"type": "string"
 								}
 							},
-							"required": ["assistant", "loop", "loopDraft"]
+							"required": [
+								"assistant",
+								"loop",
+								"loopDraft",
+								"filter",
+								"summary"
+							]
 						}
 					},
 					"required": [
@@ -12538,6 +12550,9 @@
 						},
 						"result": {
 							"type": "string"
+						},
+						"destinationChangedBy": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -12553,7 +12568,112 @@
 						"change",
 						"toolCalls",
 						"sources",
-						"result"
+						"result",
+						"destinationChangedBy"
+					]
+				},
+				"aiDestination": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"description": {
+							"type": "string"
+						},
+						"loadError": {
+							"type": "string"
+						},
+						"current": {
+							"type": "string"
+						},
+						"receiver": {
+							"type": "string"
+						},
+						"receiverHint": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"openrouter": {
+									"type": "string"
+								},
+								"selfHosted": {
+									"type": "string"
+								}
+							},
+							"required": ["openrouter", "selfHosted"]
+						},
+						"providers": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"openrouter": {
+									"type": "string"
+								},
+								"selfHosted": {
+									"type": "string"
+								}
+							},
+							"required": ["openrouter", "selfHosted"]
+						},
+						"model": {
+							"type": "string"
+						},
+						"host": {
+							"type": "string"
+						},
+						"noModel": {
+							"type": "string"
+						},
+						"change": {
+							"type": "string"
+						},
+						"changeHint": {
+							"type": "string"
+						},
+						"adminsOnly": {
+							"type": "string"
+						},
+						"provider": {
+							"type": "string"
+						},
+						"notConfigured": {
+							"type": "string"
+						},
+						"selfHostedModel": {
+							"type": "string"
+						},
+						"selfHostedModelHint": {
+							"type": "string"
+						},
+						"save": {
+							"type": "string"
+						},
+						"saved": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"title",
+						"description",
+						"loadError",
+						"current",
+						"receiver",
+						"receiverHint",
+						"providers",
+						"model",
+						"host",
+						"noModel",
+						"change",
+						"changeHint",
+						"adminsOnly",
+						"provider",
+						"notConfigured",
+						"selfHostedModel",
+						"selfHostedModelHint",
+						"save",
+						"saved"
 					]
 				},
 				"workspaceWebhooks": {
@@ -13298,6 +13418,7 @@
 				"adminWebhooks",
 				"aiUsage",
 				"aiAudit",
+				"aiDestination",
 				"workspaceWebhooks",
 				"projectCycles",
 				"issueTemplates",
@@ -17767,6 +17888,21 @@
 										},
 										"position": {
 											"type": "string"
+										},
+										"provider": {
+											"type": "string"
+										},
+										"model": {
+											"type": "string"
+										},
+										"project": {
+											"type": "string"
+										},
+										"health": {
+											"type": "string"
+										},
+										"update": {
+											"type": "string"
 										}
 									},
 									"required": [
@@ -17781,7 +17917,12 @@
 										"dueDate",
 										"comment",
 										"topic",
-										"position"
+										"position",
+										"provider",
+										"model",
+										"project",
+										"health",
+										"update"
 									]
 								}
 							},
@@ -17893,6 +18034,9 @@
 								},
 								"create_task": {
 									"type": "string"
+								},
+								"create_project_update": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -17900,7 +18044,8 @@
 								"update_task",
 								"update_task_status",
 								"update_task_assignee",
-								"create_task"
+								"create_task",
+								"create_project_update"
 							]
 						},
 						"permissionNote": {
@@ -20086,6 +20231,22 @@
 						"planned"
 					]
 				},
+				"statusTime": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"current": {
+							"type": "string"
+						},
+						"error": {
+							"type": "string"
+						}
+					},
+					"required": ["title", "current", "error"]
+				},
 				"priority": {
 					"type": "object",
 					"additionalProperties": false,
@@ -21780,6 +21941,15 @@
 								},
 								"workable": {
 									"type": "string"
+								},
+								"created": {
+									"type": "string"
+								},
+								"blocked": {
+									"type": "string"
+								},
+								"statusAge": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -21793,8 +21963,47 @@
 								"cycle",
 								"estimate",
 								"noEstimate",
-								"workable"
+								"workable",
+								"created",
+								"blocked",
+								"statusAge"
 							]
+						},
+						"olderThanDays_one": {
+							"type": "string"
+						},
+						"olderThanDays_zero": {
+							"type": "string"
+						},
+						"olderThanDays_two": {
+							"type": "string"
+						},
+						"olderThanDays_few": {
+							"type": "string"
+						},
+						"olderThanDays_many": {
+							"type": "string"
+						},
+						"olderThanDays_other": {
+							"type": "string"
+						},
+						"statusAgeOption_one": {
+							"type": "string"
+						},
+						"statusAgeOption_zero": {
+							"type": "string"
+						},
+						"statusAgeOption_two": {
+							"type": "string"
+						},
+						"statusAgeOption_few": {
+							"type": "string"
+						},
+						"statusAgeOption_many": {
+							"type": "string"
+						},
+						"statusAgeOption_other": {
+							"type": "string"
 						},
 						"operators": {
 							"type": "object",
@@ -23213,6 +23422,9 @@
 								"triageTime": {
 									"type": "string"
 								},
+								"timeInStatus": {
+									"type": "string"
+								},
 								"age": {
 									"type": "string"
 								}
@@ -23223,6 +23435,7 @@
 								"cycleTime",
 								"leadTime",
 								"triageTime",
+								"timeInStatus",
 								"age"
 							]
 						},
@@ -23388,6 +23601,42 @@
 						"noMatches"
 					]
 				},
+				"summary": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"action": {
+							"type": "string"
+						},
+						"again": {
+							"type": "string"
+						},
+						"working": {
+							"type": "string"
+						},
+						"blockers": {
+							"type": "string"
+						},
+						"noBlockers": {
+							"type": "string"
+						},
+						"sources": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"title",
+						"action",
+						"again",
+						"working",
+						"blockers",
+						"noBlockers",
+						"sources"
+					]
+				},
 				"filterMenu": {
 					"type": "object",
 					"additionalProperties": false,
@@ -23400,9 +23649,25 @@
 						},
 						"noResults": {
 							"type": "string"
+						},
+						"askAi": {
+							"type": "string"
+						},
+						"askAiWorking": {
+							"type": "string"
+						},
+						"askAiApplied": {
+							"type": "string"
 						}
 					},
-					"required": ["addFilter", "searchSubject", "noResults"]
+					"required": [
+						"addFilter",
+						"searchSubject",
+						"noResults",
+						"askAi",
+						"askAiWorking",
+						"askAiApplied"
+					]
 				},
 				"shortcuts": {
 					"type": "object",
@@ -23735,6 +24000,7 @@
 				"checklistProgress",
 				"title",
 				"status",
+				"statusTime",
 				"priority",
 				"subscription",
 				"triage",
@@ -23778,6 +24044,7 @@
 				"display",
 				"insights",
 				"filterBar",
+				"summary",
 				"filterMenu",
 				"shortcuts",
 				"due",
@@ -26470,6 +26737,12 @@
 								},
 								"pulseEmpty": {
 									"type": "string"
+								},
+								"drafts": {
+									"type": "string"
+								},
+								"draftsHint": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -26483,7 +26756,9 @@
 								"save",
 								"cancel",
 								"deleteConfirm",
-								"pulseEmpty"
+								"pulseEmpty",
+								"drafts",
+								"draftsHint"
 							]
 						},
 						"comments": {
@@ -26847,6 +27122,68 @@
 								"error",
 								"noDate"
 							]
+						},
+						"views": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"list": {
+									"type": "string"
+								},
+								"timeline": {
+									"type": "string"
+								}
+							},
+							"required": ["list", "timeline"]
+						},
+						"timeline": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"conflict": {
+									"type": "string"
+								},
+								"noDates": {
+									"type": "string"
+								}
+							},
+							"required": ["conflict", "noDates"]
+						},
+						"dependencies": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"add": {
+									"type": "string"
+								},
+								"dependsOn": {
+									"type": "string"
+								},
+								"dependents": {
+									"type": "string"
+								},
+								"none": {
+									"type": "string"
+								},
+								"remove": {
+									"type": "string"
+								},
+								"error": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"add",
+								"dependsOn",
+								"dependents",
+								"none",
+								"remove",
+								"error"
+							]
 						}
 					},
 					"required": [
@@ -26871,7 +27208,10 @@
 						"tabs",
 						"detail",
 						"issues",
-						"milestones"
+						"milestones",
+						"views",
+						"timeline",
+						"dependencies"
 					]
 				},
 				"cycles": {
@@ -27016,6 +27356,220 @@
 						"percentSuccess",
 						"state"
 					]
+				},
+				"initiative": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"pageTitle": {
+							"type": "string"
+						},
+						"newInitiative": {
+							"type": "string"
+						},
+						"loadError": {
+							"type": "string"
+						},
+						"notFound": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "string"
+						},
+						"emptyDescription": {
+							"type": "string"
+						},
+						"list": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"projects_one": {
+									"type": "string"
+								},
+								"projects_zero": {
+									"type": "string"
+								},
+								"projects_two": {
+									"type": "string"
+								},
+								"projects_few": {
+									"type": "string"
+								},
+								"projects_many": {
+									"type": "string"
+								},
+								"projects_other": {
+									"type": "string"
+								}
+							},
+							"required": []
+						},
+						"fields": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"owner": {
+									"type": "string"
+								},
+								"noOwner": {
+									"type": "string"
+								},
+								"targetDate": {
+									"type": "string"
+								}
+							},
+							"required": ["owner", "noOwner", "targetDate"]
+						},
+						"create": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"name": {
+									"type": "string"
+								},
+								"submit": {
+									"type": "string"
+								},
+								"cancel": {
+									"type": "string"
+								},
+								"error": {
+									"type": "string"
+								},
+								"created": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"name",
+								"submit",
+								"cancel",
+								"error",
+								"created"
+							]
+						},
+						"detail": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"titleLabel": {
+									"type": "string"
+								},
+								"properties": {
+									"type": "string"
+								},
+								"rolledUpHealth": {
+									"type": "string"
+								},
+								"progressLabel": {
+									"type": "string"
+								},
+								"progress": {
+									"type": "string"
+								},
+								"descriptionPlaceholder": {
+									"type": "string"
+								},
+								"updateError": {
+									"type": "string"
+								},
+								"delete": {
+									"type": "string"
+								},
+								"deleteConfirm": {
+									"type": "string"
+								},
+								"deleted": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"titleLabel",
+								"properties",
+								"rolledUpHealth",
+								"progressLabel",
+								"progress",
+								"descriptionPlaceholder",
+								"updateError",
+								"delete",
+								"deleteConfirm",
+								"deleted"
+							]
+						},
+						"projects": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"add": {
+									"type": "string"
+								},
+								"remove": {
+									"type": "string"
+								},
+								"empty": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "add", "remove", "empty"]
+						},
+						"updates": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"placeholder": {
+									"type": "string"
+								},
+								"post": {
+									"type": "string"
+								},
+								"empty": {
+									"type": "string"
+								},
+								"postError": {
+									"type": "string"
+								},
+								"delete": {
+									"type": "string"
+								},
+								"deleteConfirm": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"placeholder",
+								"post",
+								"empty",
+								"postError",
+								"delete",
+								"deleteConfirm"
+							]
+						}
+					},
+					"required": [
+						"pageTitle",
+						"newInitiative",
+						"loadError",
+						"notFound",
+						"empty",
+						"emptyDescription",
+						"list",
+						"fields",
+						"create",
+						"detail",
+						"projects",
+						"updates"
+					]
 				}
 			},
 			"required": [
@@ -27028,7 +27582,8 @@
 				"myTasks",
 				"archived",
 				"workProject",
-				"cycles"
+				"cycles",
+				"initiative"
 			]
 		},
 		"team": {

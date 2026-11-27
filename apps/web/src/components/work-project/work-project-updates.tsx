@@ -4,10 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateWorkProjectUpdate } from "@/hooks/mutations/work-project/use-work-project-mutations";
 import { useWorkProjectUpdates } from "@/hooks/queries/work-project/use-work-project-updates";
-import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
-import { WORK_PROJECT_HEALTHS } from "@/lib/work-project/status";
-import { WorkProjectHealth } from "./work-project-health";
+import { type Health, HealthPicker } from "./health-picker";
 import { WorkProjectUpdateItem } from "./work-project-update-item";
 
 type Props = {
@@ -25,8 +23,7 @@ export function WorkProjectUpdates({
   const { data: updates } = useWorkProjectUpdates(workProjectId);
   const { mutateAsync: post, isPending } =
     useCreateWorkProjectUpdate(workProjectId);
-  const [health, setHealth] =
-    useState<(typeof WORK_PROJECT_HEALTHS)[number]>("onTrack");
+  const [health, setHealth] = useState<Health>("onTrack");
   const [body, setBody] = useState("");
 
   const submit = async (e: React.FormEvent) => {
@@ -50,23 +47,7 @@ export function WorkProjectUpdates({
       </h2>
       {editable && (
         <form onSubmit={submit} className="space-y-2 rounded-lg border p-3">
-          <div role="radiogroup" className="flex gap-1">
-            {WORK_PROJECT_HEALTHS.map((value) => (
-              <button
-                key={value}
-                type="button"
-                role="radio"
-                aria-checked={health === value}
-                onClick={() => setHealth(value)}
-                className={cn(
-                  "rounded-md px-2 py-1 hover:bg-accent",
-                  health === value && "bg-accent",
-                )}
-              >
-                <WorkProjectHealth health={value} />
-              </button>
-            ))}
-          </div>
+          <HealthPicker value={health} onChange={setHealth} />
           <Textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}

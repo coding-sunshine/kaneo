@@ -72,6 +72,7 @@ import cycle from "./cycle";
 import teamAutomation from "./team-automation";
 import emailIntake from "./email-intake";
 import workProject from "./work-project";
+import initiative from "./initiative";
 import agent from "./agent";
 import { isAgentEnabled } from "./agent/openrouter";
 import { setSelfFetch } from "./agent/self-client";
@@ -876,6 +877,7 @@ export function createApp() {
   const teamAutomationApi = api.route("/team-automation", teamAutomation);
   const emailIntakeApi = api.route("/email-intake", emailIntake);
   const workProjectApi = api.route("/work-project", workProject);
+  const initiativeApi = api.route("/initiative", initiative);
   const savedViewApi = api.route("/view", savedView);
   const chatApi = api.route("/chat", chat);
   const taskDraftApi = api.route("/task-draft", taskDraft);
@@ -1120,6 +1122,7 @@ export function createApp() {
     teamAutomationApi,
     emailIntakeApi,
     workProjectApi,
+    initiativeApi,
     savedViewApi,
     chatApi,
     taskDraftApi,
@@ -1282,6 +1285,7 @@ const {
   teamAutomationApi,
   emailIntakeApi,
   workProjectApi,
+  initiativeApi,
   savedViewApi,
   chatApi,
   taskDraftApi,
@@ -1342,6 +1346,7 @@ export type AppType =
   | typeof teamAutomationApi
   | typeof emailIntakeApi
   | typeof workProjectApi
+  | typeof initiativeApi
   | typeof savedViewApi
   | typeof chatApi
   | typeof taskDraftApi

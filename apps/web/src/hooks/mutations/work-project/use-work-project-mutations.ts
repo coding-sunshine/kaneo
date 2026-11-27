@@ -22,6 +22,10 @@ import {
   editWorkProjectUpdate,
 } from "@/fetchers/work-project/updates";
 import updateWorkProject from "@/fetchers/work-project/update-work-project";
+import {
+  addWorkProjectDependency,
+  removeWorkProjectDependency,
+} from "@/fetchers/work-project/dependencies";
 import { invalidateWorkProjects } from "./invalidate-work-projects";
 
 export function useCreateWorkProject() {
@@ -116,5 +120,26 @@ export function useDeleteWorkProjectUpdate(workProjectId: string) {
   return useMutation({
     mutationFn: deleteWorkProjectUpdate,
     onSuccess: () => invalidateWorkProjects(queryClient, workProjectId),
+  });
+}
+
+type Dependency = { id: string; dependsOnId: string };
+
+// Both ends of a dependency show it, so every project is refreshed.
+export function useAddWorkProjectDependency() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, dependsOnId }: Dependency) =>
+      addWorkProjectDependency(id, dependsOnId),
+    onSuccess: () => invalidateWorkProjects(queryClient),
+  });
+}
+
+export function useRemoveWorkProjectDependency() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, dependsOnId }: Dependency) =>
+      removeWorkProjectDependency(id, dependsOnId),
+    onSuccess: () => invalidateWorkProjects(queryClient),
   });
 }

@@ -71,6 +71,7 @@ import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRouteImpo
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/agent'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/drafts'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/inbox'
+import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/initiatives'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/loops'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/members'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMyTasksRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/my-tasks'
@@ -96,6 +97,7 @@ import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdChannelsChanne
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentDocumentIdRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/document.$documentId'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsIndexRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/documents.index'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsTabRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/documents.$tab'
+import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesInitiativeIdRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/initiatives.$initiativeId'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdTopicTopicIdRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/topic.$topicId'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsIndexRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/views.index'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsViewIdRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/views.$viewId'
@@ -469,6 +471,15 @@ const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute =
     path: '/inbox',
     getParentRoute: () => LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
   } as any)
+const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRoute =
+  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteImport.update(
+    {
+      id: '/initiatives',
+      path: '/initiatives',
+      getParentRoute: () =>
+        LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
+    } as any,
+  )
 const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute =
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRouteImport.update({
     id: '/loops',
@@ -657,6 +668,15 @@ const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsTabRoute =
       path: '/documents/$tab',
       getParentRoute: () =>
         LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
+    } as any,
+  )
+const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesInitiativeIdRoute =
+  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesInitiativeIdRouteImport.update(
+    {
+      id: '/$initiativeId',
+      path: '/$initiativeId',
+      getParentRoute: () =>
+        LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRoute,
     } as any,
   )
 const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdTopicTopicIdRoute =
@@ -878,6 +898,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/workspace/$workspaceId/agent': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute
   '/dashboard/workspace/$workspaceId/drafts': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRoute
   '/dashboard/workspace/$workspaceId/inbox': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute
+  '/dashboard/workspace/$workspaceId/initiatives': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteWithChildren
   '/dashboard/workspace/$workspaceId/loops': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute
   '/dashboard/workspace/$workspaceId/members': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute
   '/dashboard/workspace/$workspaceId/my-tasks': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMyTasksRoute
@@ -903,6 +924,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/workspace/$workspaceId/channels/$channelId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdChannelsChannelIdRoute
   '/dashboard/workspace/$workspaceId/document/$documentId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentDocumentIdRoute
   '/dashboard/workspace/$workspaceId/documents/$tab': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsTabRoute
+  '/dashboard/workspace/$workspaceId/initiatives/$initiativeId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesInitiativeIdRoute
   '/dashboard/workspace/$workspaceId/topic/$topicId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdTopicTopicIdRoute
   '/dashboard/workspace/$workspaceId/views/$viewId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsViewIdRoute
   '/dashboard/workspace/$workspaceId/work-projects/$workProjectId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdWorkProjectsWorkProjectIdRoute
@@ -979,6 +1001,7 @@ export interface FileRoutesByTo {
   '/dashboard/workspace/$workspaceId/agent': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute
   '/dashboard/workspace/$workspaceId/drafts': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRoute
   '/dashboard/workspace/$workspaceId/inbox': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute
+  '/dashboard/workspace/$workspaceId/initiatives': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteWithChildren
   '/dashboard/workspace/$workspaceId/loops': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute
   '/dashboard/workspace/$workspaceId/members': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute
   '/dashboard/workspace/$workspaceId/my-tasks': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMyTasksRoute
@@ -1004,6 +1027,7 @@ export interface FileRoutesByTo {
   '/dashboard/workspace/$workspaceId/channels/$channelId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdChannelsChannelIdRoute
   '/dashboard/workspace/$workspaceId/document/$documentId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentDocumentIdRoute
   '/dashboard/workspace/$workspaceId/documents/$tab': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsTabRoute
+  '/dashboard/workspace/$workspaceId/initiatives/$initiativeId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesInitiativeIdRoute
   '/dashboard/workspace/$workspaceId/topic/$topicId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdTopicTopicIdRoute
   '/dashboard/workspace/$workspaceId/views/$viewId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsViewIdRoute
   '/dashboard/workspace/$workspaceId/work-projects/$workProjectId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdWorkProjectsWorkProjectIdRoute
@@ -1087,6 +1111,7 @@ export interface FileRoutesById {
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/agent': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/drafts': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/inbox': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute
+  '/_layout/_authenticated/dashboard/workspace/$workspaceId/initiatives': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteWithChildren
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/loops': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/members': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/my-tasks': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMyTasksRoute
@@ -1112,6 +1137,7 @@ export interface FileRoutesById {
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/channels/$channelId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdChannelsChannelIdRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/document/$documentId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentDocumentIdRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/documents/$tab': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsTabRoute
+  '/_layout/_authenticated/dashboard/workspace/$workspaceId/initiatives/$initiativeId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesInitiativeIdRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/topic/$topicId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdTopicTopicIdRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/views/$viewId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdViewsViewIdRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/work-projects/$workProjectId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdWorkProjectsWorkProjectIdRoute
@@ -1194,6 +1220,7 @@ export interface FileRouteTypes {
     | '/dashboard/workspace/$workspaceId/agent'
     | '/dashboard/workspace/$workspaceId/drafts'
     | '/dashboard/workspace/$workspaceId/inbox'
+    | '/dashboard/workspace/$workspaceId/initiatives'
     | '/dashboard/workspace/$workspaceId/loops'
     | '/dashboard/workspace/$workspaceId/members'
     | '/dashboard/workspace/$workspaceId/my-tasks'
@@ -1219,6 +1246,7 @@ export interface FileRouteTypes {
     | '/dashboard/workspace/$workspaceId/channels/$channelId'
     | '/dashboard/workspace/$workspaceId/document/$documentId'
     | '/dashboard/workspace/$workspaceId/documents/$tab'
+    | '/dashboard/workspace/$workspaceId/initiatives/$initiativeId'
     | '/dashboard/workspace/$workspaceId/topic/$topicId'
     | '/dashboard/workspace/$workspaceId/views/$viewId'
     | '/dashboard/workspace/$workspaceId/work-projects/$workProjectId'
@@ -1295,6 +1323,7 @@ export interface FileRouteTypes {
     | '/dashboard/workspace/$workspaceId/agent'
     | '/dashboard/workspace/$workspaceId/drafts'
     | '/dashboard/workspace/$workspaceId/inbox'
+    | '/dashboard/workspace/$workspaceId/initiatives'
     | '/dashboard/workspace/$workspaceId/loops'
     | '/dashboard/workspace/$workspaceId/members'
     | '/dashboard/workspace/$workspaceId/my-tasks'
@@ -1320,6 +1349,7 @@ export interface FileRouteTypes {
     | '/dashboard/workspace/$workspaceId/channels/$channelId'
     | '/dashboard/workspace/$workspaceId/document/$documentId'
     | '/dashboard/workspace/$workspaceId/documents/$tab'
+    | '/dashboard/workspace/$workspaceId/initiatives/$initiativeId'
     | '/dashboard/workspace/$workspaceId/topic/$topicId'
     | '/dashboard/workspace/$workspaceId/views/$viewId'
     | '/dashboard/workspace/$workspaceId/work-projects/$workProjectId'
@@ -1402,6 +1432,7 @@ export interface FileRouteTypes {
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/agent'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/drafts'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/inbox'
+    | '/_layout/_authenticated/dashboard/workspace/$workspaceId/initiatives'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/loops'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/members'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/my-tasks'
@@ -1427,6 +1458,7 @@ export interface FileRouteTypes {
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/channels/$channelId'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/document/$documentId'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/documents/$tab'
+    | '/_layout/_authenticated/dashboard/workspace/$workspaceId/initiatives/$initiativeId'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/topic/$topicId'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/views/$viewId'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/work-projects/$workProjectId'
@@ -1896,6 +1928,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
     }
+    '/_layout/_authenticated/dashboard/workspace/$workspaceId/initiatives': {
+      id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/initiatives'
+      path: '/initiatives'
+      fullPath: '/dashboard/workspace/$workspaceId/initiatives'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
+    }
     '/_layout/_authenticated/dashboard/workspace/$workspaceId/loops': {
       id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/loops'
       path: '/loops'
@@ -2070,6 +2109,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/workspace/$workspaceId/documents/$tab'
       preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDocumentsTabRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
+    }
+    '/_layout/_authenticated/dashboard/workspace/$workspaceId/initiatives/$initiativeId': {
+      id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/initiatives/$initiativeId'
+      path: '/$initiativeId'
+      fullPath: '/dashboard/workspace/$workspaceId/initiatives/$initiativeId'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesInitiativeIdRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRoute
     }
     '/_layout/_authenticated/dashboard/workspace/$workspaceId/topic/$topicId': {
       id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/topic/$topicId'
@@ -2383,6 +2429,21 @@ const LayoutAuthenticatedDashboardSettingsRouteWithChildren =
     LayoutAuthenticatedDashboardSettingsRouteChildren,
   )
 
+interface LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteChildren {
+  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesInitiativeIdRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesInitiativeIdRoute
+}
+
+const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteChildren: LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteChildren =
+  {
+    LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesInitiativeIdRoute:
+      LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesInitiativeIdRoute,
+  }
+
+const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteWithChildren =
+  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRoute._addFileChildren(
+    LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteChildren,
+  )
+
 interface LayoutAuthenticatedDashboardWorkspaceWorkspaceIdReviewsRouteChildren {
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdReviewsOwnerRepoNumberRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdReviewsOwnerRepoNumberRoute
 }
@@ -2417,6 +2478,7 @@ interface LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteChildren {
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRoute
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute
+  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteWithChildren
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMyTasksRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMyTasksRoute
@@ -2457,6 +2519,8 @@ const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteChildren: LayoutAuthe
       LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRoute,
     LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute:
       LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute,
+    LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRoute:
+      LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteWithChildren,
     LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute:
       LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute,
     LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute:

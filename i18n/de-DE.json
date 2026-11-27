@@ -5326,9 +5326,9 @@
 				"noEstimate": "No estimate",
 				"workProject": "Project",
 				"workable": "Workable",
+				"statusAge": "Time in status",
 				"blocked": "Blocked",
-				"created": "Created",
-				"statusAge": "Time in status"
+				"created": "Created"
 			},
 			"operators": {
 				"isAnyOf": "ist einer von",
@@ -5342,10 +5342,10 @@
 			"allCustomFieldValues": "Alle Werte",
 			"noCustomFieldValues": "Keine Werte für benutzerdefinierte Felder",
 			"noValuesUsedYet": "Noch keine Werte verwendet",
-			"olderThanDays_one": "Older than {{count}} day",
-			"olderThanDays_other": "Older than {{count}} days",
 			"statusAgeOption_one": "{{status}} for more than {{count}} day",
-			"statusAgeOption_other": "{{status}} for more than {{count}} days"
+			"statusAgeOption_other": "{{status}} for more than {{count}} days",
+			"olderThanDays_one": "Older than {{count}} day",
+			"olderThanDays_other": "Older than {{count}} days"
 		},
 		"gantt": {
 			"searchPlaceholder": "Geplante Tickets suchen...",
@@ -5769,6 +5769,11 @@
 			"toTriage_one": "{{count}} issue to triage",
 			"toTriage_other": "{{count}} issues to triage"
 		},
+		"statusTime": {
+			"current": "current",
+			"error": "Could not load time in status",
+			"title": "Time in status"
+		},
 		"summary": {
 			"action": "Summarise",
 			"again": "Summarise again",
@@ -5777,11 +5782,6 @@
 			"sources": "Based on",
 			"title": "Summary",
 			"working": "Summarising…"
-		},
-		"statusTime": {
-			"current": "current",
-			"error": "Could not load time in status",
-			"title": "Time in status"
 		}
 	},
 	"invitations": {
@@ -6555,6 +6555,75 @@
 				"title": "Project updates",
 				"drafts": "Drafts waiting for you",
 				"draftsHint": "Your loops drafted these updates. Nothing is posted until you accept one; it is then posted as you."
+			},
+			"dependencies": {
+				"add": "Add dependency",
+				"dependents": "Blocks",
+				"dependsOn": "Waits on",
+				"error": "Could not change the dependency",
+				"none": "None",
+				"remove": "Remove dependency on {{name}}",
+				"title": "Dependencies"
+			},
+			"timeline": {
+				"conflict": "Starts before {{names}} ends",
+				"noDates": "No dates"
+			},
+			"views": {
+				"list": "List",
+				"timeline": "Timeline"
+			}
+		},
+		"initiative": {
+			"create": {
+				"cancel": "Cancel",
+				"created": "Initiative created",
+				"error": "Could not create the initiative",
+				"name": "Initiative name",
+				"submit": "Create initiative",
+				"title": "New initiative"
+			},
+			"detail": {
+				"delete": "Delete initiative",
+				"deleteConfirm": "Delete this initiative? Its projects stay.",
+				"deleted": "Initiative deleted",
+				"descriptionPlaceholder": "Describe the goal and why it matters...",
+				"progress": "{{done}} of {{total}} issues done",
+				"progressLabel": "Progress",
+				"properties": "Properties",
+				"rolledUpHealth": "Health",
+				"titleLabel": "Initiative name",
+				"updateError": "Could not save the initiative"
+			},
+			"empty": "No initiatives yet",
+			"emptyDescription": "Initiatives group projects toward a company goal and roll up their health and progress.",
+			"fields": {
+				"noOwner": "No owner",
+				"owner": "Owner",
+				"targetDate": "Target date"
+			},
+			"list": {
+				"projects_one": "{{count}} project",
+				"projects_other": "{{count}} projects"
+			},
+			"loadError": "Could not load initiatives.",
+			"newInitiative": "New initiative",
+			"notFound": "Initiative not found.",
+			"pageTitle": "Initiatives",
+			"projects": {
+				"add": "Add project",
+				"empty": "No projects in this initiative yet.",
+				"remove": "Remove {{name}}",
+				"title": "Projects"
+			},
+			"updates": {
+				"delete": "Delete update",
+				"deleteConfirm": "Delete this update?",
+				"empty": "No updates yet.",
+				"placeholder": "Write an initiative update...",
+				"post": "Post update",
+				"postError": "Could not save the update",
+				"title": "Initiative updates"
 			}
 		}
 	},

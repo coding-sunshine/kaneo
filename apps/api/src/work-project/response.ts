@@ -44,6 +44,12 @@ export const workProjectSchema = z
     }),
     memberIds: z.array(z.string()),
     labelIds: z.array(z.string()),
+    dependsOnIds: z.array(z.string()).openapi({
+      description: "Projects this project waits on.",
+    }),
+    dependentIds: z.array(z.string()).openapi({
+      description: "Projects that wait on this project.",
+    }),
     progress,
   })
   .openapi("WorkProject");

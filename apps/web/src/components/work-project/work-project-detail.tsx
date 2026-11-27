@@ -22,6 +22,7 @@ import { WorkProjectMilestones } from "./work-project-milestones";
 import { WorkProjectComments } from "./work-project-comments";
 import { WorkProjectUpdates } from "./work-project-updates";
 import { WorkProjectResources } from "./work-project-resources";
+import { WorkProjectDependencies } from "./work-project-dependencies";
 
 type Tab = "overview" | "issues";
 
@@ -176,6 +177,12 @@ export function WorkProjectDetail({ workspaceId, workProjectId }: Props) {
                 ({percent}%)
               </p>
             </section>
+
+            <WorkProjectDependencies
+              workspaceId={workspaceId}
+              project={project}
+              editable={canUpdateProjects()}
+            />
 
             <WorkProjectResources
               workspaceId={workspaceId}

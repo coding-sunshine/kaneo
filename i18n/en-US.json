@@ -6531,6 +6531,23 @@
 				"cancel": "Cancel",
 				"error": "Could not save the milestone",
 				"noDate": "No target date"
+			},
+			"views": {
+				"list": "List",
+				"timeline": "Timeline"
+			},
+			"timeline": {
+				"conflict": "Starts before {{names}} ends",
+				"noDates": "No dates"
+			},
+			"dependencies": {
+				"title": "Dependencies",
+				"add": "Add dependency",
+				"dependsOn": "Waits on",
+				"dependents": "Blocks",
+				"none": "None",
+				"remove": "Remove dependency on {{name}}",
+				"error": "Could not change the dependency"
 			}
 		},
 		"cycles": {
@@ -6555,6 +6572,58 @@
 				"upcoming": "Upcoming",
 				"completed": "Completed",
 				"planned": "Planned"
+			}
+		},
+		"initiative": {
+			"pageTitle": "Initiatives",
+			"newInitiative": "New initiative",
+			"loadError": "Could not load initiatives.",
+			"notFound": "Initiative not found.",
+			"empty": "No initiatives yet",
+			"emptyDescription": "Initiatives group projects toward a company goal and roll up their health and progress.",
+			"list": {
+				"projects_one": "{{count}} project",
+				"projects_other": "{{count}} projects"
+			},
+			"fields": {
+				"owner": "Owner",
+				"noOwner": "No owner",
+				"targetDate": "Target date"
+			},
+			"create": {
+				"title": "New initiative",
+				"name": "Initiative name",
+				"submit": "Create initiative",
+				"cancel": "Cancel",
+				"error": "Could not create the initiative",
+				"created": "Initiative created"
+			},
+			"detail": {
+				"titleLabel": "Initiative name",
+				"properties": "Properties",
+				"rolledUpHealth": "Health",
+				"progressLabel": "Progress",
+				"progress": "{{done}} of {{total}} issues done",
+				"descriptionPlaceholder": "Describe the goal and why it matters...",
+				"updateError": "Could not save the initiative",
+				"delete": "Delete initiative",
+				"deleteConfirm": "Delete this initiative? Its projects stay.",
+				"deleted": "Initiative deleted"
+			},
+			"projects": {
+				"title": "Projects",
+				"add": "Add project",
+				"remove": "Remove {{name}}",
+				"empty": "No projects in this initiative yet."
+			},
+			"updates": {
+				"title": "Initiative updates",
+				"placeholder": "Write an initiative update...",
+				"post": "Post update",
+				"empty": "No updates yet.",
+				"postError": "Could not save the update",
+				"delete": "Delete update",
+				"deleteConfirm": "Delete this update?"
 			}
 		}
 	},

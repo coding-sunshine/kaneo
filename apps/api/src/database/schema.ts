@@ -1324,6 +1324,104 @@ export const workProjectLinkTable = pgTable(
   ],
 );
 
+// A project waits on another: `workProjectId` cannot finish before `dependsOnId`.
+export const workProjectDependencyTable = pgTable(
+  "work_project_dependency",
+  {
+    workProjectId: text("work_project_id")
+      .notNull()
+      .references(() => workProjectTable.id, { onDelete: "cascade" }),
+    dependsOnId: text("depends_on_id")
+      .notNull()
+      .references(() => workProjectTable.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.workProjectId, table.dependsOnId] }),
+    index("work_project_dependency_dependsOnId_idx").on(table.dependsOnId),
+    check(
+      "work_project_dependency_not_self",
+      sql`${table.workProjectId} <> ${table.dependsOnId}`,
+    ),
+  ],
+);
+
+// Linear-style initiatives: a workspace-level goal one level above projects.
+export const initiativeTable = pgTable(
+  "initiative",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    description: text("description"),
+    ownerId: text("owner_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    targetDate: timestamp("target_date", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("initiative_workspaceId_idx").on(table.workspaceId)],
+);
+
+export const initiativeWorkProjectTable = pgTable(
+  "initiative_work_project",
+  {
+    initiativeId: text("initiative_id")
+      .notNull()
+      .references(() => initiativeTable.id, { onDelete: "cascade" }),
+    workProjectId: text("work_project_id")
+      .notNull()
+      .references(() => workProjectTable.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.initiativeId, table.workProjectId] }),
+    index("initiative_work_project_workProjectId_idx").on(table.workProjectId),
+  ],
+);
+
+export const initiativeUpdateTable = pgTable(
+  "initiative_update",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    initiativeId: text("initiative_id")
+      .notNull()
+      .references(() => initiativeTable.id, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => userTable.id, {
+      onDelete: "set null",
+    }),
+    // onTrack | atRisk | offTrack
+    health: text("health").notNull(),
+    body: text("body").notNull().default(""),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("initiative_update_initiativeId_idx").on(
+      table.initiativeId,
+      table.createdAt,
+    ),
+  ],
+);
+
 export const taskTable = pgTable(
   "task",
   {

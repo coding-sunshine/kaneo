@@ -9,6 +9,12 @@ vi.mock("@/fetchers/work-project/updates", () => ({
   editWorkProjectUpdate: vi.fn(),
   deleteWorkProjectUpdate: vi.fn(),
 }));
+const getInitiativeUpdates = vi.fn();
+vi.mock("@/fetchers/initiative/updates", () => ({
+  getWorkspaceInitiativeUpdates: (...a: unknown[]) =>
+    getInitiativeUpdates(...a),
+  deleteInitiativeUpdate: vi.fn(),
+}));
 const getDrafts = vi.fn();
 vi.mock("@/fetchers/agent/proposals", () => ({
   getAgentDrafts: (...a: unknown[]) => getDrafts(...a),
@@ -42,9 +48,11 @@ vi.mock("react-i18next", () => ({
 afterEach(() => {
   cleanup();
   getDrafts.mockReset().mockResolvedValue([]);
+  getInitiativeUpdates.mockReset().mockResolvedValue([]);
   agent.on = true;
 });
 getDrafts.mockResolvedValue([]);
+getInitiativeUpdates.mockResolvedValue([]);
 
 const renderPage = () =>
   render(
@@ -55,6 +63,7 @@ const renderPage = () =>
 
 describe("PulsePage", () => {
   it("lists updates with their project and no edit controls", async () => {
+    getInitiativeUpdates.mockResolvedValue([]);
     getUpdates.mockResolvedValue([
       {
         id: "u1",
@@ -110,9 +119,44 @@ describe("PulsePage", () => {
 
   it("shows the empty state", async () => {
     getUpdates.mockResolvedValue([]);
+    getInitiativeUpdates.mockResolvedValue([]);
     renderPage();
     expect(
       await screen.findByText("workspace:workProject.updates.pulseEmpty"),
     ).toBeTruthy();
+  });
+
+  it("puts initiative updates in date order with project updates", async () => {
+    getUpdates.mockResolvedValue([
+      {
+        id: "u1",
+        workProjectId: "p1",
+        workProjectName: "Roadmap",
+        userId: "me",
+        userName: "Ann",
+        health: "onTrack",
+        body: "Older",
+        createdAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+    getInitiativeUpdates.mockResolvedValue([
+      {
+        id: "i1",
+        initiativeId: "n1",
+        initiativeName: "Grow",
+        userId: "me",
+        userName: "Ann",
+        userImage: null,
+        health: "atRisk",
+        body: "Newer",
+        createdAt: "2026-02-01T00:00:00.000Z",
+      },
+    ]);
+    renderPage();
+    expect(await screen.findByText("Grow")).toBeTruthy();
+    const items = screen.getAllByRole("listitem").map((li) => li.textContent);
+    expect(items[0]).toContain("Newer");
+    expect(items[1]).toContain("Older");
+    expect(getInitiativeUpdates).toHaveBeenCalledWith("w1");
   });
 });

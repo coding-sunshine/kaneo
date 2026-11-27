@@ -30,6 +30,11 @@ import {
   removeProjectLink,
 } from "./controllers/work-project-links";
 import { addLinkRoute, removeLinkRoute } from "./link-routes";
+import { addDependencyRoute, removeDependencyRoute } from "./dependency-routes";
+import {
+  addProjectDependency,
+  removeProjectDependency,
+} from "./controllers/work-project-dependencies";
 import { saveWorkProject } from "./controllers/save-work-project";
 import {
   createMilestone,
@@ -568,6 +573,23 @@ const workProject = apiRouter()
   .openapi(removeLinkRoute, async (c) => {
     const { id, linkId } = c.req.valid("param");
     return c.json(await removeProjectLink(id, linkId), 200);
+  })
+  .openapi(addDependencyRoute, async (c) =>
+    c.json(
+      await addProjectDependency(
+        c.req.valid("param").id,
+        c.req.valid("json").dependsOnId,
+        c.get("userId"),
+      ),
+      200,
+    ),
+  )
+  .openapi(removeDependencyRoute, async (c) => {
+    const { id, dependsOnId } = c.req.valid("param");
+    return c.json(
+      await removeProjectDependency(id, dependsOnId, c.get("userId")),
+      200,
+    );
   });
 
 export default workProject;
