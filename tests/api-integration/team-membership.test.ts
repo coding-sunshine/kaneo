@@ -157,7 +157,7 @@ describe("API integration: team membership", () => {
       userId: alice.id,
       projectAccess: "selected",
     });
-    expect((await membership(alice, { joined: true })).status).toBe(403);
+    expect((await membership(alice, { joined: true })).status).toBe(404);
   });
 
   it("notifies subscribers once per event, never the actor or the assignee twice", async () => {

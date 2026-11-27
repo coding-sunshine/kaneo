@@ -58,7 +58,7 @@ describe("managing member project access", () => {
 
     mockAuthenticatedSession(member);
     expect((await projectAccessApi()(`/project/${ctx.alpha.id}`)).status).toBe(
-      403,
+      404,
     );
     expect((await projectAccessApi()(`/project/${ctx.beta.id}`)).status).toBe(
       200,

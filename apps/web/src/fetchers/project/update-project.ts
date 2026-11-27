@@ -15,6 +15,7 @@ async function updateProject({
   description,
   isPublic,
   isPrivate,
+  confirmPrivate,
   includeSubtasks,
   autoArchiveMonths,
   ...estimation
@@ -28,6 +29,7 @@ async function updateProject({
       description,
       isPublic,
       isPrivate,
+      confirmPrivate,
       includeSubtasks,
       autoArchiveMonths,
       ...estimation,

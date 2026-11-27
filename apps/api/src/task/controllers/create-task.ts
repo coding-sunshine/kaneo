@@ -201,6 +201,16 @@ async function createTask({
 
   const createdTask = await db.transaction(async (tx) => {
     const taskNumber = await claimTaskNumber(projectId, tx);
+    // claimTaskNumber holds the team row now, so this sees any privacy change
+    // that committed since the check above.
+    if (normalizedUserId) {
+      await assertAssignableUser(
+        normalizedUserId,
+        await getProjectWorkspaceId(projectId, tx),
+        projectId,
+        tx,
+      );
+    }
     const nextPosition = await nextTaskPosition(
       tx,
       projectId,

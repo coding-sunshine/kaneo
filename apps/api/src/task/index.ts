@@ -457,7 +457,9 @@ const moveTaskRoute = createRoute({
     403: errorResponse(
       "No access to the project, or missing task:update permission",
     ),
-    404: errorResponse("Task or destination project not found"),
+    404: errorResponse(
+      "Task or destination project not found, or a destination you cannot open",
+    ),
     409: errorResponse("Task or project moved concurrently; retry the move"),
   },
 });
@@ -683,6 +685,7 @@ const updateTaskAssigneeRoute = createRoute({
     404: errorResponse(
       "Task not found, or assignee is not a member of the workspace",
     ),
+    409: errorResponse("The task moved to another team while it was assigned"),
   },
 });
 

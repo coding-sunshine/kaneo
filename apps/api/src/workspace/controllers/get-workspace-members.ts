@@ -6,7 +6,7 @@ import {
   userTable,
   workspaceUserTable,
 } from "../../database/schema";
-import { assertProjectAccess } from "../../project-access/assert-project-access";
+import { hideClosedTeams } from "../../project-access/hide-closed-teams";
 import { findWorkspaceProjectIds } from "../../project-access/find-workspace-project-ids";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
 
@@ -22,7 +22,11 @@ async function getWorkspaceMembers(request: {
     if (!known) {
       throw new HTTPException(404, { message: "Project not found" });
     }
-    await assertProjectAccess(request.userId, projectId);
+    await hideClosedTeams(
+      request.userId,
+      projectId,
+      () => new HTTPException(404, { message: "Project not found" }),
+    );
   }
 
   const members = await db

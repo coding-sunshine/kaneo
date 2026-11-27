@@ -360,13 +360,6 @@ describe("API integration: sharing a document with the people of an issue", () =
       projectId: world.beta.id,
       projectSlug: "beta",
     };
-    const hiddenBeta = {
-      id: betaTask.id,
-      title: null,
-      number: null,
-      projectId: null,
-      projectSlug: null,
-    };
     const byId = (rows: Opened["sharedTasks"]) =>
       [...rows].sort((a, b) => a.id.localeCompare(b.id));
 
@@ -376,17 +369,61 @@ describe("API integration: sharing a document with the people of an issue", () =
     await share(world, owner, docs.sharedByName, alphaTask.id);
     await share(world, owner, docs.sharedByName, betaTask.id);
 
-    // An editor sees every grant; an issue they cannot open is only an id.
+    // An editor sees the grants on issues they can open, and no entry, not
+    // even an id, for an issue they cannot open.
     expect(byId(await sharedTasksOf(world, owner, docs.teamAlpha))).toEqual(
       byId([alphaEntry, betaEntry]),
     );
-    expect(byId(await sharedTasksOf(world, limited, docs.teamAlpha))).toEqual(
-      byId([alphaEntry, hiddenBeta]),
-    );
+    const editor = await open(world, limited, docs.teamAlpha);
+    expect(((await editor.clone().json()) as Opened).role).toBe("edit");
+    expect(await sharedTasksOf(world, limited, docs.teamAlpha)).toEqual([
+      alphaEntry,
+    ]);
+    expect(await editor.text()).not.toContain(betaTask.id);
     // Someone who may only view sees the issues they can open.
     expect(await sharedTasksOf(world, limited, docs.sharedByName)).toEqual([
       alphaEntry,
     ]);
+  });
+
+  it("tells an editor how many shares sit on issues they cannot open, and lets them stop those", async () => {
+    const world = await buildDocumentWorld();
+    const { owner, limited, alphaTask, betaTask, docs } = world;
+    for (const id of [docs.teamAlpha, docs.sharedByName]) {
+      await share(world, owner, id, alphaTask.id);
+      await share(world, owner, id, betaTask.id);
+    }
+    const hiddenCount = async (user: Member, id: string) =>
+      (
+        (await (await open(world, user, id)).json()) as {
+          hiddenSharedTaskCount: number;
+        }
+      ).hiddenSharedTaskCount;
+    const stopHidden = (user: Member, id: string) =>
+      world.as(user)(`${base(world)}/${id}/task-shares/hidden`, json("DELETE"));
+
+    expect(await hiddenCount(owner, docs.teamAlpha)).toBe(0);
+    expect(await hiddenCount(limited, docs.teamAlpha)).toBe(1);
+    const opened = await (await open(world, limited, docs.teamAlpha)).text();
+    expect(opened).not.toContain(betaTask.id);
+
+    // `limited` may only view this one: no count, and no stopping.
+    expect(await hiddenCount(limited, docs.sharedByName)).toBe(0);
+    expect((await stopHidden(limited, docs.sharedByName)).status).toBe(403);
+    expect(
+      (await sharedTasksOf(world, owner, docs.sharedByName)).map((t) => t.id),
+    ).toHaveLength(2);
+
+    const stopped = await stopHidden(limited, docs.teamAlpha);
+    expect(stopped.status).toBe(200);
+    const body = (await stopped.json()) as Opened & {
+      hiddenSharedTaskCount: number;
+    };
+    expect(body.hiddenSharedTaskCount).toBe(0);
+    expect(body.sharedTasks.map((t) => t.id)).toEqual([alphaTask.id]);
+    expect(
+      (await sharedTasksOf(world, owner, docs.teamAlpha)).map((t) => t.id),
+    ).toEqual([alphaTask.id]);
   });
 
   it("lets the people of an issue keep a document filed on a topic elsewhere", async () => {

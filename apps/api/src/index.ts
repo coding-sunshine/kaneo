@@ -90,7 +90,7 @@ import { createRoute, errorResponse, jsonResponse, z } from "./openapi";
 import { initializePlugins, integrationPlugins } from "./plugins";
 import { migrateGitHubIntegration } from "./plugins/github/migration";
 import project from "./project";
-import { assertProjectAccess } from "./project-access/assert-project-access";
+import { hideClosedTeams } from "./project-access/hide-closed-teams";
 import { getPublicProject } from "./project/controllers/get-public-project";
 import { initializeScheduler, shutdownScheduler } from "./scheduler";
 import search from "./search";
@@ -562,9 +562,11 @@ export function createApp() {
         },
         304: { description: "Not modified" },
         403: errorResponse(
-          "Staged upload owned by another user, or no access to the asset's project",
+          "Staged upload owned by another user, or a role without permission to read issues",
         ),
-        404: errorResponse("Asset not found"),
+        404: errorResponse(
+          "Asset not found, or it sits in a team the caller cannot open",
+        ),
         429: apiKeyRateLimited.ref,
       },
     }),
@@ -1035,7 +1037,11 @@ export function createApp() {
         await validateWorkspaceAccess(userId, project.workspaceId, undefined, {
           notFoundMessage: "Project not found",
         });
-        await assertProjectAccess(userId, projectId);
+        await hideClosedTeams(
+          userId,
+          projectId,
+          () => new HTTPException(404, { message: "Project not found" }),
+        );
         workspaceId = project.workspaceId;
         c.set("workspaceId", workspaceId);
         await requireWorkspacePermission(PROJECT_READ_PERMISSIONS)(

@@ -17,6 +17,11 @@ import { loadDocument } from "./load-document";
 // 0.28-0.31, five 0.20 and six 0.16. So a revision with up to three of ten
 // sentences new is named, and at four it depends on the words.
 const THRESHOLD = 0.3;
+// A text with fewer five-word runs than this, about two sentences, is not
+// compared, as the new text or as the older one. A line like a heading, a
+// greeting or a template's first sentence turns up in many unrelated
+// documents, and at 0.30 a run of eight shared words would name one of them.
+const MIN_RUNS = 25;
 // Documents that nobody edited for this long are not compared.
 const WINDOW_MS = 90 * 86_400_000;
 
@@ -56,7 +61,7 @@ export async function proposeLineage(
   // this team's volume. Move the comparison into SQL (intarray) when a save
   // gets slow.
   const candidates =
-    prints.length === 0
+    prints.length < MIN_RUNS
       ? []
       : await db
           .select({
@@ -82,7 +87,7 @@ export async function proposeLineage(
               // more than 1 / THRESHOLD times as long as the other.
               or(
                 isNull(documentTable.fingerprint),
-                sql`cardinality(${documentTable.fingerprint}) BETWEEN ${Math.ceil(prints.length * THRESHOLD)} AND ${Math.floor(prints.length / THRESHOLD)}`,
+                sql`cardinality(${documentTable.fingerprint}) BETWEEN ${Math.max(MIN_RUNS, Math.ceil(prints.length * THRESHOLD))} AND ${Math.floor(prints.length / THRESHOLD)}`,
               ),
             ),
           )
@@ -108,6 +113,7 @@ export async function proposeLineage(
           ),
         );
     }
+    if (theirs.length < MIN_RUNS) continue;
     const overlap = resemblance(prints, theirs);
     if (overlap >= THRESHOLD && overlap > (best?.overlap ?? 0)) {
       best = { id: candidate.id, overlap };

@@ -28,7 +28,12 @@ vi.mock("@/hooks/queries/project/use-get-projects", () => ({
   default: () => ({ data: [] }),
 }));
 vi.mock("@/hooks/queries/work-project/use-get-work-projects", () => ({
-  useGetWorkProjects: () => ({ data: [] }),
+  useGetWorkProjects: () => ({
+    data: [
+      { id: "wp-open", name: "Alpha launch", canOpenDocuments: true },
+      { id: "wp-closed", name: "Beta launch", canOpenDocuments: false },
+    ],
+  }),
 }));
 vi.mock("@/hooks/mutations/document/use-document-mutations", () => ({
   useDeleteDocument: () => ({ mutate: vi.fn() }),
@@ -42,11 +47,11 @@ const document = {
   scope: "workspace",
 } as unknown as DocumentDetail;
 
-const openMenu = () => {
+const openMenu = (shown: DocumentDetail = document) => {
   render(
     <QueryClientProvider client={new QueryClient()}>
       <DocumentOptionsMenu
-        document={document}
+        document={shown}
         historyOpen={false}
         onRename={vi.fn()}
         onShare={vi.fn()}
@@ -109,5 +114,26 @@ describe("DocumentOptionsMenu pin", () => {
         false,
       ),
     );
+  });
+});
+
+describe("DocumentOptionsMenu move", () => {
+  it("offers only the projects the document can be moved to", async () => {
+    mocks.getFavorites.mockResolvedValue([]);
+    openMenu({ ...document, role: "edit" } as DocumentDetail);
+    fireEvent.click(
+      await screen.findByRole("menuitem", {
+        name: "navigation:documents.moveTo",
+      }),
+    );
+    fireEvent.click(
+      await screen.findByRole("menuitem", {
+        name: "navigation:documents.scopes.projects",
+      }),
+    );
+    expect(
+      await screen.findByRole("menuitem", { name: "Alpha launch" }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("menuitem", { name: "Beta launch" })).toBeNull();
   });
 });

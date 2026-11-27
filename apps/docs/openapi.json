@@ -2938,7 +2938,12 @@
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "The project's teams that you can open."
+          },
+          "canOpenDocuments": {
+            "type": "boolean",
+            "description": "Whether you can open the project's documents and put a document in it: the project has no team, or you can open one of its teams."
           },
           "memberIds": {
             "type": "array",
@@ -2985,6 +2990,7 @@
           "createdAt",
           "updatedAt",
           "teamIds",
+          "canOpenDocuments",
           "memberIds",
           "labelIds",
           "progress"
@@ -3978,7 +3984,8 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "The parent team. Null when the viewer cannot open it."
           },
           "workProjectId": {
             "type": [
@@ -3990,7 +3997,8 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "The parent issue. Null when the viewer cannot open its team."
           },
           "parentName": {
             "type": [
@@ -4166,7 +4174,8 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "The parent team. Null when the viewer cannot open it."
           },
           "workProjectId": {
             "type": [
@@ -4178,7 +4187,8 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "The parent issue. Null when the viewer cannot open its team."
           },
           "parentName": {
             "type": [
@@ -4432,10 +4442,7 @@
                   "type": "string"
                 },
                 "title": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": "string"
                 },
                 "number": {
                   "type": [
@@ -4444,16 +4451,10 @@
                   ]
                 },
                 "projectId": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": "string"
                 },
                 "projectSlug": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": "string"
                 }
               },
               "required": [
@@ -4464,7 +4465,11 @@
                 "projectSlug"
               ]
             },
-            "description": "Issues the document is shared with: everyone who can open one can view the document. With edit rights you get every issue, without its name when you cannot open it. Otherwise only issues you can open."
+            "description": "Issues the document is shared with that you can open: everyone who can open one can view the document. An issue you cannot open is left out, also with edit rights."
+          },
+          "hiddenSharedTaskCount": {
+            "type": "integer",
+            "description": "With edit rights: how many issues you cannot open the document is also shared with. Their ids and names stay hidden. Zero without edit rights."
           },
           "shares": {
             "type": "array",
@@ -4546,6 +4551,7 @@
           "revisionOf",
           "citedBy",
           "sharedTasks",
+          "hiddenSharedTaskCount",
           "shares",
           "subscriberIds"
         ]
@@ -7258,6 +7264,24 @@
           "topicName": {
             "type": "string",
             "description": "The topic a document is filed on. Left out when it has none or the searcher cannot open that topic."
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "private",
+              "workspace",
+              "team",
+              "project",
+              "issue"
+            ],
+            "description": "Where a document lives, and so who can open it besides the people it is shared with."
+          },
+          "parentName": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A document's team or project name, or its issue key. Null for a private or workspace document, and for a team or issue the searcher cannot enter."
           },
           "archivedAt": {
             "type": [
@@ -12482,7 +12506,7 @@
             "description": "Not modified"
           },
           "403": {
-            "description": "Staged upload owned by another user, or no access to the asset's project",
+            "description": "Staged upload owned by another user, or a role without permission to read issues",
             "content": {
               "application/json": {
                 "schema": {
@@ -12492,7 +12516,7 @@
             }
           },
           "404": {
-            "description": "Asset not found",
+            "description": "Asset not found, or it sits in a team the caller cannot open",
             "content": {
               "application/json": {
                 "schema": {
@@ -15736,7 +15760,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing read permission",
+            "description": "Missing read permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -15746,7 +15770,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {
@@ -15802,6 +15826,10 @@
                   "isPrivate": {
                     "type": "boolean",
                     "description": "Make the team private or open it again. Leave it out to keep the team as it is. Changing it needs member:update, and a private team can't be shared publicly."
+                  },
+                  "confirmPrivate": {
+                    "type": "boolean",
+                    "description": "Send true with isPrivate: true when making the team private unassigns issues of people who lose it or deletes its calendar links. Opening the team again does not restore either. Without it such a change is refused with 409 and nothing changes."
                   },
                   "includeSubtasks": {
                     "type": "boolean"
@@ -15875,7 +15903,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, missing project:update, or missing project:share when visibility changes",
+            "description": "Missing project:update, or missing project:share when visibility changes",
             "content": {
               "application/json": {
                 "schema": {
@@ -15885,7 +15913,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {
@@ -15895,7 +15923,7 @@
             }
           },
           "409": {
-            "description": "Another project in the workspace uses the new key",
+            "description": "Another project in the workspace uses the new key, or making the team private needs confirmPrivate",
             "content": {
               "application/json": {
                 "schema": {
@@ -15948,7 +15976,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing project:delete permission",
+            "description": "Missing project:delete permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -15958,7 +15986,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {
@@ -16027,7 +16055,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing read permission",
+            "description": "Missing read permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -16083,7 +16111,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing project:update permission",
+            "description": "Missing project:update permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -16093,7 +16121,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {
@@ -16261,7 +16289,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing project:update permission",
+            "description": "Missing project:update permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -16271,7 +16299,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {
@@ -16326,7 +16354,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing project:update permission",
+            "description": "Missing project:update permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -16336,7 +16364,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {
@@ -16411,7 +16439,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing read permission",
+            "description": "Missing read permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -16421,7 +16449,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {
@@ -16496,7 +16524,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing member:update permission",
+            "description": "Missing member:update permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -16579,7 +16607,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing member:update permission",
+            "description": "Missing member:update permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -16676,7 +16704,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing project:update permission",
+            "description": "Missing project:update permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -16686,7 +16714,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {
@@ -16791,7 +16819,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing project:update permission",
+            "description": "Missing project:update permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -16801,7 +16829,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {
@@ -18980,7 +19008,7 @@
             }
           },
           "404": {
-            "description": "Task or destination project not found",
+            "description": "Task or destination project not found, or a destination you cannot open",
             "content": {
               "application/json": {
                 "schema": {
@@ -19578,6 +19606,16 @@
           },
           "404": {
             "description": "Task not found, or assignee is not a member of the workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The task moved to another team while it was assigned",
             "content": {
               "application/json": {
                 "schema": {
@@ -33350,6 +33388,79 @@
         }
       }
     },
+    "/document/workspace/{workspaceId}/{id}/task-shares/hidden": {
+      "delete": {
+        "operationId": "unshareDocumentFromHiddenTasks",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Stop sharing with issues you cannot open",
+        "description": "Removes every share on an issue in a team you cannot open; those issues no longer let anyone into the document. Needs edit rights on the document.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sharing stopped",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/document/workspace/{workspaceId}/{id}/share/{userId}": {
       "put": {
         "operationId": "shareDocument",
@@ -36877,7 +36988,7 @@
           "Favorites"
         ],
         "summary": "Add favorite",
-        "description": "Favorite a team, view, document or pull request, or pin a document (documentPin). Repeating the call is a no-op. A document the user cannot open is refused like one that does not exist.",
+        "description": "Favorite a team, view, document or pull request, or pin a document (documentPin). Repeating the call is a no-op. A team or document the user cannot open is refused like one that does not exist.",
         "parameters": [
           {
             "schema": {
@@ -36970,7 +37081,7 @@
             }
           },
           "404": {
-            "description": "Document not found",
+            "description": "Team or document not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -48161,7 +48272,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing read permission",
+            "description": "Missing read permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -48171,7 +48282,7 @@
             }
           },
           "404": {
-            "description": "Workspace not found, or project not found in this workspace",
+            "description": "Workspace not found, or project not found in this workspace or closed to you",
             "content": {
               "application/json": {
                 "schema": {

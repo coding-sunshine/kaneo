@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowUpRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import CommentEditor from "@/components/activity/comment-editor";
+import { DocumentAccessLabel } from "@/components/documents/document-access-label";
 import { DocumentCommentComposer } from "@/components/documents/document-comment-composer";
 import { DocumentCommentThread } from "@/components/documents/document-comment-thread";
 import { groupDocumentThreads } from "@/components/documents/group-document-threads";
@@ -59,9 +60,16 @@ export function InboxDocument({ workspaceId, documentId }: InboxDocumentProps) {
   return (
     <div className="flex flex-col gap-7">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <h2 className="min-w-0 flex-1 font-semibold text-2xl text-foreground tracking-tight">
-          {document.title || t("navigation:documents.untitled")}
-        </h2>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <h2 className="font-semibold text-2xl text-foreground tracking-tight">
+            {document.title || t("navigation:documents.untitled")}
+          </h2>
+          <DocumentAccessLabel
+            scope={document.scope}
+            parentName={document.parentName}
+            className="text-xs"
+          />
+        </div>
         <Button
           variant="outline"
           size="xs"

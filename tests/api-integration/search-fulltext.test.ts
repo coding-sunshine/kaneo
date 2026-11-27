@@ -157,6 +157,49 @@ describe("full-text search", () => {
     expect(theirs[0].topicName).toBeUndefined();
   });
 
+  it("says where a document lives, naming a team only to a reader who can enter it", async () => {
+    const { member, project, search } = await setup();
+    const [doc] = await db
+      .insert(schema.documentTable)
+      .values({
+        workspaceId: member.workspace.id,
+        title: "narwhal notes",
+        scope: "team",
+        projectId: project.id,
+      })
+      .returning();
+    expect(await search("narwhal", "documents")).toMatchObject([
+      { scope: "team", parentName: project.name },
+    ]);
+
+    // Shared by name with a member who cannot enter the team.
+    const viewer = await createWorkspaceMember();
+    await db.insert(schema.workspaceUserTable).values({
+      workspaceId: member.workspace.id,
+      userId: viewer.user.id,
+      role: "member",
+      joinedAt: new Date(),
+    });
+    await db.insert(schema.workspaceMemberAccessTable).values({
+      workspaceId: member.workspace.id,
+      userId: viewer.user.id,
+      projectAccess: "selected",
+    });
+    await db
+      .insert(schema.documentShareTable)
+      .values({ documentId: doc.id, userId: viewer.user.id, access: "view" });
+    const theirs = (await search(
+      "narwhal",
+      "documents",
+      viewer.user,
+      member.workspace.id,
+    )) as { scope?: string; parentName?: string | null }[];
+    expect(theirs).toHaveLength(1);
+    expect(theirs[0].scope).toBe("team");
+    expect(theirs[0].parentName ?? null).toBeNull();
+    expect(JSON.stringify(theirs)).not.toContain(project.name);
+  });
+
   it("never returns another workspace's rows or a team the user cannot see", async () => {
     const { member, project, search, task } = await setup();
     const other = await createWorkspaceMember();

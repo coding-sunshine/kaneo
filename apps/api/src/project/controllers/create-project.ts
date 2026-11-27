@@ -1,6 +1,7 @@
+import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { publishEvent } from "../../events";
-import { assertProjectAccess } from "../../project-access/assert-project-access";
+import { hideClosedTeams } from "../../project-access/hide-closed-teams";
 import { copyProjectSettings } from "./copy-project-settings";
 import { insertProject } from "./insert-project";
 
@@ -13,7 +14,11 @@ async function createProject(
   copySettingsFromProjectId?: string,
 ) {
   if (copySettingsFromProjectId) {
-    await assertProjectAccess(userId, copySettingsFromProjectId);
+    await hideClosedTeams(
+      userId,
+      copySettingsFromProjectId,
+      () => new HTTPException(404, { message: "Source project not found" }),
+    );
   }
   const project = await db.transaction(async (tx) => {
     const created = await insertProject(tx, {

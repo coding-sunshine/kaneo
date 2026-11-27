@@ -13,6 +13,7 @@ import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
 import { toast } from "@/lib/toast";
 import { DocumentAccessMenu } from "./document-access-menu";
+import { DocumentHiddenTaskShares } from "./document-hidden-task-shares";
 import { DocumentPerson } from "./document-person";
 import { DocumentWhoCanOpen } from "./document-who-can-open";
 import { useCopyDocumentLink } from "./use-copy-document-link";
@@ -40,6 +41,7 @@ export function DocumentSharePopover({
   const unshare = useUnshareDocumentFromTask(workspaceId);
   const copyLink = useCopyDocumentLink(workspaceId, id);
   const canManage = document.role === "owner" || document.role === "edit";
+  const hiddenTaskShares = canManage ? document.hiddenSharedTaskCount : 0;
 
   const taken = new Set([
     document.creatorId,
@@ -48,6 +50,9 @@ export function DocumentSharePopover({
   const candidates = (users?.members ?? []).filter(
     (member) => !taken.has(member.userId),
   );
+  // Null for a team or issue the reader cannot enter: it stays unnamed.
+  const placeName =
+    document.scope === "workspace" ? workspace?.name : document.parentName;
   const onError = (error: Error) => toast.error(error.message);
   const updated = () => toast.success(t("navigation:documents.share.updated"));
 
@@ -143,7 +148,7 @@ export function DocumentSharePopover({
             </li>
           ))}
         </ul>
-        {document.sharedTasks.length > 0 && (
+        {(document.sharedTasks.length > 0 || hiddenTaskShares > 0) && (
           <>
             <p className={section}>
               {t("navigation:documents.share.sharedTasks")}
@@ -153,14 +158,11 @@ export function DocumentSharePopover({
             </p>
             <ul className="px-1">
               {document.sharedTasks.map((task) => {
-                const label =
-                  task.title === null
-                    ? t("navigation:documents.share.hiddenTask")
-                    : `${
-                        task.number === null || !task.projectSlug
-                          ? ""
-                          : `${task.projectSlug.toUpperCase()}-${task.number} `
-                      }${task.title}`;
+                const label = `${
+                  task.number === null
+                    ? ""
+                    : `${task.projectSlug.toUpperCase()}-${task.number} `
+                }${task.title}`;
                 return (
                   <li
                     key={task.id}
@@ -200,6 +202,13 @@ export function DocumentSharePopover({
                 );
               })}
             </ul>
+            {hiddenTaskShares > 0 && (
+              <DocumentHiddenTaskShares
+                workspaceId={workspaceId}
+                id={id}
+                count={hiddenTaskShares}
+              />
+            )}
           </>
         )}
         <p className={section}>
@@ -224,12 +233,13 @@ export function DocumentSharePopover({
                   className="size-4 shrink-0 text-muted-foreground"
                 />
                 <span className="truncate">
-                  {t("navigation:documents.share.everyoneIn", {
-                    name:
-                      document.scope === "workspace"
-                        ? workspace?.name
-                        : document.parentName,
-                  })}
+                  {placeName
+                    ? t("navigation:documents.share.everyoneIn", {
+                        name: placeName,
+                      })
+                    : t(
+                        `navigation:documents.share.everyoneUnnamed.${document.scope}`,
+                      )}
                 </span>
               </span>
               <DocumentAccessMenu

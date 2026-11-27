@@ -174,6 +174,7 @@ vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: React.ReactNode }) => (
     <a href="/">{children}</a>
   ),
+  useRouter: () => null,
 }));
 vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: () => false }));
 

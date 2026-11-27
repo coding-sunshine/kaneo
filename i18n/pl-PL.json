@@ -1005,7 +1005,6 @@
 				"privateHint": "Only people invited can open this document",
 				"remove": "Remove access",
 				"title": "Share",
-				"hiddenTask": "An issue you cannot open",
 				"leaveAsItIs": "Leave as it is",
 				"sharedTasks": "Shared with issues",
 				"sharedTasksHint": "Everyone who can open the issue can view this document.",
@@ -1021,7 +1020,20 @@
 				"taskGains": "Sharing gives view access to {{names}}.",
 				"taskShared": "Shared with this issue",
 				"taskUnshared": "Stopped sharing with this issue",
-				"updated": "Access updated"
+				"updated": "Access updated",
+				"hiddenTasks_few": "Also shared with {{count}} issues you cannot open",
+				"hiddenTasks_many": "Also shared with {{count}} issues you cannot open",
+				"hiddenTasks_one": "Also shared with {{count}} issue you cannot open",
+				"hiddenTasks_other": "Also shared with {{count}} issues you cannot open",
+				"hiddenTasksUnshared": "Stopped sharing with issues you cannot open",
+				"stopHiddenTasks": "Stop sharing with them",
+				"unshareHiddenTasksFailed": "Could not stop sharing with those issues",
+				"everyoneUnnamed": {
+					"issue": "Everyone who can open an issue you cannot open",
+					"project": "Everyone in the project's teams",
+					"team": "Everyone in a team you cannot open",
+					"workspace": "Everyone in this workspace"
+				}
 			},
 			"shareMenu": "Share…",
 			"showComments": "Show comments",
