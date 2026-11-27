@@ -2071,7 +2071,20 @@ it("recovers a crashed replica lease and releases it after processing", async ()
 it("uses the queued-link partial index without inspecting historical issue metadata", async () => {
   const { link, integration } = await seed();
   await deferTaskSync(link, integration, ["title"]);
+  await db.insert(schema.externalLinkTable).values(
+    Array.from({ length: 200 }, (_, i) => ({
+      taskId: link.taskId,
+      integrationId: integration.id,
+      resourceType: "issue",
+      externalId: `${i + 2}`,
+      url: `https://git.example/owner/repo/issues/${i + 2}`,
+      metadata: link.metadata,
+    })),
+  );
   await db.transaction(async (tx) => {
+    // Fresh statistics pin the plan; without them it rests on whatever
+    // autovacuum last saw of the table.
+    await tx.execute(sql`ANALYZE external_link`);
     await tx.execute(sql`SET LOCAL enable_seqscan = off`);
     const result = await tx.execute<{ "QUERY PLAN": string }>(sql`
       EXPLAIN SELECT id FROM external_link
