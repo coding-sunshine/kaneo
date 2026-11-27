@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { strFromU8, unzipSync } from "fflate";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
@@ -161,11 +161,46 @@ async function seed() {
     else mockAnonymousSession();
     return app.request(`/api/workspace-export/${workspaceId}`);
   };
-  return { ws, owner, admin, member, viewer, elsewhere, as };
+  return {
+    ws,
+    app,
+    owner,
+    admin,
+    member,
+    viewer,
+    elsewhere,
+    generalId: general!.id,
+    as,
+  };
+}
+
+// Reads a response body chunk by chunk, as a browser download does.
+async function readChunks(response: Response) {
+  const reader = response.body!.getReader();
+  const chunks: Uint8Array[] = [];
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) return chunks;
+    chunks.push(value);
+  }
+}
+
+function joinChunks(chunks: Uint8Array[]) {
+  const all = new Uint8Array(chunks.reduce((sum, c) => sum + c.length, 0));
+  let at = 0;
+  for (const chunk of chunks) {
+    all.set(chunk, at);
+    at += chunk.length;
+  }
+  return all;
 }
 
 async function unzip(response: Response) {
-  const entries = unzipSync(new Uint8Array(await response.arrayBuffer()));
+  return unzipBytes(new Uint8Array(await response.arrayBuffer()));
+}
+
+function unzipBytes(bytes: Uint8Array) {
+  const entries = unzipSync(bytes);
   const text = (name: string) => {
     const entry = entries[name];
     if (!entry) throw new Error(`missing ${name}`);
@@ -280,6 +315,106 @@ describe("API integration: workspace export", () => {
       channelMessages: 4,
       users: 4,
     });
+  });
+
+  it("streams a large export in chunks, page by page, and keeps it whole", async () => {
+    const { admin, generalId, as } = await seed();
+    const start = Date.UTC(2026, 0, 1);
+    for (let batch = 0; batch < 3; batch++) {
+      await db.insert(chatMessageTable).values(
+        Array.from({ length: 1000 }, (_, index) => {
+          const n = batch * 1000 + index;
+          return {
+            channelId: generalId,
+            userId: admin.id,
+            body: `Bulk message ${n}`,
+            // Many rows share a timestamp, so paging must not skip or repeat.
+            createdAt: new Date(start + Math.floor(n / 7) * 1000),
+          };
+        }),
+      );
+    }
+
+    const response = await as(admin);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-length")).toBeNull();
+    const chunks = await readChunks(response);
+    expect(chunks.length).toBeGreaterThan(10);
+    const zip = unzipBytes(joinChunks(chunks));
+
+    expect(zip.json("manifest.json").counts.channelMessages).toBe(3002);
+    const bodies = zip
+      .json("channel-messages.json")
+      .map((m: { body: string }) => m.body);
+    expect(bodies).toHaveLength(3002);
+    expect(new Set(bodies).size).toBe(3002);
+    const channelFile = zip.names.find((name) => name.startsWith("channels/"));
+    const markdown = zip.text(channelFile!);
+    expect(markdown.indexOf("Bulk message 0\n")).toBeLessThan(
+      markdown.indexOf("Bulk message 2999\n"),
+    );
+    expect(markdown.match(/^Bulk message \d+$/gm)).toHaveLength(3000);
+  });
+
+  it("runs one export at a time per workspace, and at most one a minute", async () => {
+    const { ws, admin, owner, as } = await seed();
+    const first = await as(admin);
+    expect(first.status).toBe(200);
+
+    const whileRunning = await as(owner);
+    expect(whileRunning.status).toBe(429);
+    expect(Number(whileRunning.headers.get("retry-after"))).toBeGreaterThan(0);
+
+    await readChunks(first);
+    const tooSoon = await as(admin);
+    expect(tooSoon.status).toBe(429);
+    const wait = Number(tooSoon.headers.get("retry-after"));
+    expect(wait).toBeGreaterThan(0);
+    expect(wait).toBeLessThanOrEqual(60);
+
+    // Another workspace is not held up.
+    const other = await createWorkspaceMember({ role: "owner" });
+    expect((await as(other.user, other.workspace.id)).status).toBe(200);
+
+    // A minute later the workspace may export again.
+    await db
+      .update(schema.jobLeaseTable)
+      .set({ expiresAt: new Date(Date.now() - 1000) })
+      .where(eq(schema.jobLeaseTable.name, `workspace-export:${ws}`));
+    const again = await as(admin);
+    expect(again.status).toBe(200);
+    await readChunks(again);
+  });
+
+  it("refuses an API key, even an admin's", async () => {
+    const { ws, app, admin } = await seed();
+    mockAnonymousSession();
+    const key = `test_${randomUUID()}`;
+    await db.insert(schema.apikeyTable).values({
+      referenceId: admin.id,
+      userId: admin.id,
+      key: createHash("sha256").update(key).digest("base64url"),
+      enabled: true,
+      rateLimitEnabled: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    const response = await app.request(`/api/workspace-export/${ws}`, {
+      headers: { "x-api-key": key },
+    });
+    expect(response.status).toBe(403);
+  });
+
+  it("refuses a guest, even one holding the admin role", async () => {
+    const { ws, as } = await seed();
+    const guest = await addUser(ws, "admin", "Guest Five");
+    await db.insert(schema.workspaceMemberAccessTable).values({
+      workspaceId: ws,
+      userId: guest.id,
+      projectAccess: "selected",
+      guest: true,
+    });
+    expect((await as(guest)).status).toBe(403);
   });
 
   it("refuses members, viewers, outsiders and signed-out callers", async () => {

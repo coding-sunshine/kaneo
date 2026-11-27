@@ -26425,7 +26425,7 @@
           "Workspaces"
         ],
         "summary": "Export workspace",
-        "description": "Download a zip of the workspace's tickets, documents, channel messages and members, each as JSON and as Markdown, with a manifest of the counts. Holds what the caller can open in the app. Admins and owners only.",
+        "description": "Download a zip of the workspace's tickets, documents, channel messages and members, each as JSON and as Markdown, with a manifest of the counts. Holds what the caller can open in the app. Admins and owners only, from a signed-in session (not an API key). The zip is streamed. One export runs at a time per workspace, at most one a minute; others get 429 with Retry-After.",
         "parameters": [
           {
             "schema": {
@@ -26438,7 +26438,7 @@
         ],
         "responses": {
           "200": {
-            "description": "The export as a zip file",
+            "description": "The export as a zip file, streamed",
             "content": {
               "application/zip": {
                 "schema": {
@@ -26459,7 +26459,7 @@
             }
           },
           "403": {
-            "description": "Missing workspace:manage_settings",
+            "description": "Missing workspace:manage_settings, a guest, or an API key",
             "content": {
               "application/json": {
                 "schema": {
@@ -26479,7 +26479,14 @@
             }
           },
           "429": {
-            "$ref": "#/components/responses/ApiKeyRateLimited"
+            "description": "An export of this workspace is running or just ran",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
