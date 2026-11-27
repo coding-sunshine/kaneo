@@ -920,7 +920,15 @@
 				"confirm": "轉移擁有權"
 			},
 			"ownershipSubtitle": "只有擁有者看得到此區塊。",
-			"ownershipTitle": "擁有權"
+			"ownershipTitle": "擁有權",
+			"export": {
+				"button": "Export workspace",
+				"description": "Download a zip of tickets, documents, channel messages and members, as JSON and Markdown. It holds what you can open in Kaneo.",
+				"failed": "Could not export the workspace",
+				"pending": "Exporting…",
+				"rowTitle": "Workspace data",
+				"title": "Export"
+			}
 		},
 		"workspaceRoles": {
 			"pageTitle": "角色",
@@ -4289,6 +4297,12 @@
 				"empty": "No pages yet",
 				"expand": "Show pages inside",
 				"title": "Pages"
+			},
+			"export": {
+				"failed": "Could not export the document",
+				"label": "Export",
+				"markdown": "Markdown",
+				"pdf": "PDF"
 			}
 		},
 		"drafts": {

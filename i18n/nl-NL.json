@@ -796,7 +796,15 @@
 				"confirm": "Eigendom overdragen"
 			},
 			"ownershipSubtitle": "Alleen de eigenaar ziet dit.",
-			"ownershipTitle": "Eigendom"
+			"ownershipTitle": "Eigendom",
+			"export": {
+				"button": "Export workspace",
+				"description": "Download a zip of tickets, documents, channel messages and members, as JSON and Markdown. It holds what you can open in Kaneo.",
+				"failed": "Could not export the workspace",
+				"pending": "Exporting…",
+				"rowTitle": "Workspace data",
+				"title": "Export"
+			}
 		},
 		"projectGeneral": {
 			"pageTitle": "Projectinstellingen",
@@ -4359,6 +4367,12 @@
 				"empty": "No pages yet",
 				"expand": "Show pages inside",
 				"title": "Pages"
+			},
+			"export": {
+				"failed": "Could not export the document",
+				"label": "Export",
+				"markdown": "Markdown",
+				"pdf": "PDF"
 			}
 		},
 		"drafts": {

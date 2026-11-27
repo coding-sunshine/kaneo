@@ -2,6 +2,7 @@ import { brand } from "@kaneo/brand";
 import { startWebhookWorker } from "./admin/webhooks/start-webhook-worker";
 import { startWorkspaceWebhookWorker } from "./workspace-webhook/worker";
 import workspaceWebhook from "./workspace-webhook";
+import workspaceExport from "./workspace-export";
 import integrationSync from "./integration-sync";
 import { syncWorkspaceAccess } from "./ws/workspace-access";
 import { drainPasswordResetDeliveries } from "./utils/password-reset-delivery";
@@ -874,6 +875,7 @@ export function createApp() {
   const labelApi = api.route("/label", label);
   const projectLabelApi = api.route("/project-label", projectLabel);
   const workspaceWebhookApi = api.route("/workspace-webhook", workspaceWebhook);
+  const workspaceExportApi = api.route("/workspace-export", workspaceExport);
   const cycleApi = api.route("/cycle", cycle);
   const teamAutomationApi = api.route("/team-automation", teamAutomation);
   const emailIntakeApi = api.route("/email-intake", emailIntake);
@@ -1119,6 +1121,7 @@ export function createApp() {
     labelApi,
     projectLabelApi,
     workspaceWebhookApi,
+    workspaceExportApi,
     cycleApi,
     teamAutomationApi,
     emailIntakeApi,
@@ -1282,6 +1285,7 @@ const {
   labelApi,
   projectLabelApi,
   workspaceWebhookApi,
+  workspaceExportApi,
   cycleApi,
   teamAutomationApi,
   emailIntakeApi,
@@ -1343,6 +1347,7 @@ export type AppType =
   | typeof labelApi
   | typeof projectLabelApi
   | typeof workspaceWebhookApi
+  | typeof workspaceExportApi
   | typeof cycleApi
   | typeof teamAutomationApi
   | typeof emailIntakeApi

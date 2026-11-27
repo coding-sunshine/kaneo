@@ -921,7 +921,15 @@
 				"confirm": "소유권 이전"
 			},
 			"ownershipSubtitle": "소유자만 볼 수 있습니다.",
-			"ownershipTitle": "소유권"
+			"ownershipTitle": "소유권",
+			"export": {
+				"button": "Export workspace",
+				"description": "Download a zip of tickets, documents, channel messages and members, as JSON and Markdown. It holds what you can open in Kaneo.",
+				"failed": "Could not export the workspace",
+				"pending": "Exporting…",
+				"rowTitle": "Workspace data",
+				"title": "Export"
+			}
 		},
 		"projectGeneral": {
 			"pageTitle": "프로젝트 설정",
@@ -4289,6 +4297,12 @@
 				"empty": "No pages yet",
 				"expand": "Show pages inside",
 				"title": "Pages"
+			},
+			"export": {
+				"failed": "Could not export the document",
+				"label": "Export",
+				"markdown": "Markdown",
+				"pdf": "PDF"
 			}
 		},
 		"drafts": {
