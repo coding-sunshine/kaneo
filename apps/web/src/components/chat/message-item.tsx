@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { LinkPreviewCard } from "@/components/chat/link-preview-card";
 import { MessageActions } from "@/components/chat/message-actions";
+import { MessageBody } from "@/components/chat/message-body";
 import { MessageEditForm } from "@/components/chat/message-edit-form";
 import { MessageReactions } from "@/components/chat/message-reactions";
 import type { ChatMessage } from "@/components/chat/types";
@@ -12,6 +14,7 @@ type MessageItemProps = {
   currentUserId: string | undefined;
   canWrite: boolean;
   online: boolean;
+  onRemovePreview?: (messageId: string) => void;
 };
 
 export function MessageItem({
@@ -21,6 +24,7 @@ export function MessageItem({
   currentUserId,
   canWrite,
   online,
+  onRemovePreview,
 }: MessageItemProps) {
   const { t, i18n } = useTranslation();
   const [editing, setEditing] = useState(false);
@@ -76,9 +80,17 @@ export function MessageItem({
           onDone={() => setEditing(false)}
         />
       ) : (
-        <p className="whitespace-pre-wrap break-words text-sm">
-          {message.body}
-        </p>
+        <MessageBody body={message.body} />
+      )}
+      {message.linkPreview && (
+        <LinkPreviewCard
+          preview={message.linkPreview}
+          onRemove={
+            onRemovePreview && message.userId === currentUserId
+              ? () => onRemovePreview(message.id)
+              : undefined
+          }
+        />
       )}
       <MessageReactions
         workspaceId={workspaceId}

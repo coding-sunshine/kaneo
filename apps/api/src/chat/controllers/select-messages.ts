@@ -13,6 +13,7 @@ export const selectMessages = () =>
       body: chatMessageTable.body,
       editedAt: chatMessageTable.editedAt,
       pinnedAt: chatMessageTable.pinnedAt,
+      linkPreview: chatMessageTable.linkPreview,
       createdAt: chatMessageTable.createdAt,
     })
     .from(chatMessageTable)

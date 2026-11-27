@@ -43,6 +43,9 @@ import { InMemoryBroadcastAdapter } from "../../../apps/api/src/ws/in-memory-bro
 const messageCreatedHandler = vi
   .mocked(subscribeToEvent)
   .mock.calls.find(([name]) => name === "chat.message_created")?.[1];
+const messageUpdatedHandler = vi
+  .mocked(subscribeToEvent)
+  .mock.calls.find(([name]) => name === "chat.message_updated")?.[1];
 
 function makeFakeWs() {
   return {
@@ -138,6 +141,22 @@ describe("chat channel realtime delivery", () => {
 
     expect(sentTo(b)).toEqual([
       { type: "CHAT_MESSAGE_CREATED", channelId: "channel-1" },
+    ]);
+  });
+
+  it("tells readers when a message changes, such as a new link preview", async () => {
+    allow("workspace-1", "user-b");
+    const b = connect("channel-1", "user-b");
+
+    expect(messageUpdatedHandler).toBeDefined();
+    await messageUpdatedHandler?.({
+      workspaceId: "workspace-1",
+      channelId: "channel-1",
+      messageId: "message-1",
+    });
+
+    expect(sentTo(b)).toEqual([
+      { type: "CHAT_MESSAGE_UPDATED", channelId: "channel-1" },
     ]);
   });
 

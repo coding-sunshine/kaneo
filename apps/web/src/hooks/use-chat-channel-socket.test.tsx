@@ -89,7 +89,7 @@ describe("useChatChannelSocket", () => {
     expect(client.invalidateQueries).toHaveBeenCalledWith(messages);
   });
 
-  it("refetches messages and pins when a message is edited, pinned or deleted", () => {
+  it("refetches messages and pins when one changes, such as an edit, pin or link preview", () => {
     render();
     act(() => latest().open());
     client.invalidateQueries.mockClear();
@@ -97,7 +97,7 @@ describe("useChatChannelSocket", () => {
     act(() =>
       latest().onmessage?.({
         data: JSON.stringify({
-          type: "CHAT_MESSAGE_CHANGED",
+          type: "CHAT_MESSAGE_UPDATED",
           channelId: "channel-1",
         }),
       }),

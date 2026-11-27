@@ -18478,6 +18478,36 @@
 						"unread_other": {
 							"type": "string"
 						},
+						"removePreview": {
+							"type": "string"
+						},
+						"startCall": {
+							"type": "string"
+						},
+						"incomingCall": {
+							"type": "string"
+						},
+						"incomingCallIn": {
+							"type": "string"
+						},
+						"answerCall": {
+							"type": "string"
+						},
+						"callTitle": {
+							"type": "string"
+						},
+						"callFailed": {
+							"type": "string"
+						},
+						"microphone": {
+							"type": "string"
+						},
+						"camera": {
+							"type": "string"
+						},
+						"leaveCall": {
+							"type": "string"
+						},
 						"directMessages": {
 							"type": "string"
 						},
@@ -18550,6 +18580,16 @@
 						"pinned",
 						"noPins",
 						"online",
+						"removePreview",
+						"startCall",
+						"incomingCall",
+						"incomingCallIn",
+						"answerCall",
+						"callTitle",
+						"callFailed",
+						"microphone",
+						"camera",
+						"leaveCall",
 						"directMessages",
 						"newDirectMessage",
 						"directTitle",

@@ -12,6 +12,7 @@ type MessageListProps = {
   canWrite: boolean;
   /** Authors to mark online; only set while the reader's presence is on. */
   online?: Set<string>;
+  onRemovePreview?: (messageId: string) => void;
 };
 
 export function MessageList({ messages, online, ...item }: MessageListProps) {

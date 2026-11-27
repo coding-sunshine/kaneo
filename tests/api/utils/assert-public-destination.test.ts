@@ -33,6 +33,26 @@ describe("isDisallowedAddress", () => {
     expect(isDisallowedAddress("100.0.0.1")).toBe(false);
   });
 
+  // Multicast (RFC 5771), reserved incl. broadcast (RFC 1112), and the
+  // benchmarking range (RFC 2544) that some networks use internally.
+  it.each([
+    "224.0.0.1",
+    "239.255.255.250",
+    "240.0.0.1",
+    "255.255.255.255",
+    "198.18.0.1",
+    "198.19.255.255",
+    "[::ffff:e000:1]",
+  ])("blocks multicast, reserved and benchmarking address %s", (address) => {
+    expect(isDisallowedAddress(address)).toBe(true);
+  });
+
+  it("leaves the neighbours of 198.18.0.0/15 alone", () => {
+    expect(isDisallowedAddress("198.17.255.255")).toBe(false);
+    expect(isDisallowedAddress("198.20.0.0")).toBe(false);
+    expect(isDisallowedAddress("223.255.255.255")).toBe(false);
+  });
+
   it("allows a routable address", () => {
     expect(isDisallowedAddress("8.8.8.8")).toBe(false);
     expect(isDisallowedAddress("93.184.216.34")).toBe(false);

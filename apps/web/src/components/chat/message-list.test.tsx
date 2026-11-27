@@ -94,6 +94,58 @@ describe("MessageList", () => {
     );
   });
 
+  it("shows a card for the link preview that opens the page in a new tab", () => {
+    const linkPreview = {
+      url: "https://example.com/",
+      title: "Example Domain",
+      description: "For documentation examples.",
+      siteName: "example.com",
+    };
+    renderList([message({ linkPreview })]);
+    const card = screen.getByRole("link", { name: /Example Domain/ });
+    expect(card).toHaveAttribute("href", "https://example.com/");
+    expect(card).toHaveAttribute("target", "_blank");
+    expect(card).toHaveAttribute("rel", "noopener noreferrer");
+    expect(card).toHaveTextContent("For documentation examples.");
+    expect(card).toHaveTextContent("example.com");
+  });
+
+  it("lets only the author remove a link preview", () => {
+    const linkPreview = {
+      url: "https://example.com/",
+      title: "Example Domain",
+      description: null,
+      siteName: "example.com",
+    };
+    const onRemovePreview = vi.fn();
+    renderList([message({ userId: "user-2", linkPreview })], {
+      onRemovePreview,
+    });
+    expect(
+      screen.queryByRole("button", { name: "navigation:chat.removePreview" }),
+    ).toBeNull();
+
+    cleanup();
+    renderList([message({ userId: "user-1", linkPreview })], {
+      onRemovePreview,
+    });
+    screen
+      .getByRole("button", { name: "navigation:chat.removePreview" })
+      .click();
+    expect(onRemovePreview).toHaveBeenCalledWith("message-1");
+  });
+
+  it("turns a pasted meeting link into a link that opens in a new tab", () => {
+    renderList([message({ body: "call: https://meet.example.test/abc-defg" })]);
+    const link = screen.getByRole("link", {
+      name: "https://meet.example.test/abc-defg",
+    });
+    expect(link).toHaveAttribute("href", "https://meet.example.test/abc-defg");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    expect(screen.getByRole("listitem")).toHaveTextContent("call:");
+  });
+
   it("invites the first message in an empty channel", () => {
     renderList([]);
     expect(screen.getByText("navigation:chat.noMessages")).toBeTruthy();

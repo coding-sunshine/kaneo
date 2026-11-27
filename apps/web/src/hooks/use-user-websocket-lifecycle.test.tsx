@@ -57,6 +57,8 @@ vi.mock("@/lib/auth-client", () => ({
   },
 }));
 vi.mock("@kaneo/libs", () => ({ windowId: "local-test" }));
+const { ringIncomingCall } = vi.hoisted(() => ({ ringIncomingCall: vi.fn() }));
+vi.mock("@/lib/ring-incoming-call", () => ({ ringIncomingCall }));
 vi.mock("@/lib/evict-project-cache", () => ({
   evictProjectCache: evictProject,
 }));
@@ -158,6 +160,23 @@ describe("user WebSocket lifecycle", () => {
     );
     expect(navigate).toHaveBeenCalledWith({ to: "/dashboard" });
   });
+  it("rings when another member starts a call", () => {
+    renderHook(() => useUserWebSocket());
+    const ring = {
+      workspaceId: "workspace",
+      channelId: "channel-1",
+      channelName: "pair",
+      isDirect: false,
+      callerName: "Test caller",
+    };
+    act(() =>
+      TestSocket.instances[0].onmessage?.({
+        data: JSON.stringify({ type: "CALL_RINGING", ...ring }),
+      }),
+    );
+    expect(ringIncomingCall).toHaveBeenCalledWith(ring, expect.any(Function));
+  });
+
   it("clears revoked workspace data from the global user connection", () => {
     renderHook(() => useUserWebSocket());
     act(() =>

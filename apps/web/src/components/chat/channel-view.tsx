@@ -3,6 +3,7 @@ import { ChannelHeader } from "@/components/chat/channel-header";
 import { ChannelNotFound } from "@/components/chat/channel-not-found";
 import { MessageList } from "@/components/chat/message-list";
 import { useAuth } from "@/components/providers/auth-provider/hooks/use-auth";
+import { useRemoveLinkPreview } from "@/hooks/mutations/chat/use-remove-link-preview";
 import { useChannel } from "@/hooks/queries/chat/use-channel";
 import { useOnline } from "@/hooks/queries/chat/use-online";
 import { usePresenceSetting } from "@/hooks/queries/chat/use-presence-setting";
@@ -11,6 +12,7 @@ import { useChatChannelSocket } from "@/hooks/use-chat-channel-socket";
 import { useMarkChannelRead } from "@/hooks/use-mark-channel-read";
 import { usePresenceHeartbeat } from "@/hooks/use-presence-heartbeat";
 import { useDirectMessageTitle } from "@/hooks/use-direct-message-title";
+import { toast } from "@/lib/toast";
 
 /** One channel: header with topic, history, then the composer. */
 export function ChannelView({
@@ -25,6 +27,7 @@ export function ChannelView({
   const presenceOn = usePresenceSetting().data?.enabled ?? false;
   usePresenceHeartbeat(presenceOn);
   const { data: online } = useOnline(workspaceId, presenceOn);
+  const removePreview = useRemoveLinkPreview(workspaceId, channelId);
   const titleOf = useDirectMessageTitle(workspaceId);
   const live = useChatChannelSocket(workspaceId, channelId, Boolean(channel));
   const { data: messages = [] } = useMessages(
@@ -59,6 +62,11 @@ export function ChannelView({
           currentUserId={user?.id}
           canWrite={channel.isMember && !channel.archivedAt}
           online={presenceOn ? online : undefined}
+          onRemovePreview={(messageId) =>
+            removePreview.mutate(messageId, {
+              onError: (error) => toast.error(error.message),
+            })
+          }
         />
       </div>
       <ChannelFooter

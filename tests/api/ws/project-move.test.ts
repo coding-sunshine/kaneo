@@ -67,7 +67,10 @@ vi.mock(
       ),
   }),
 );
-vi.mock("../../../apps/api/src/events", () => ({ subscribeToEvent: vi.fn() }));
+vi.mock("../../../apps/api/src/events", () => ({
+  subscribeToEvent: vi.fn(),
+  publishEvent: vi.fn(),
+}));
 vi.mock(
   "../../../apps/api/src/project-access/find-inaccessible-project-ids",
   () => ({

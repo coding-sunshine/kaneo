@@ -238,7 +238,7 @@ describe("API integration: chat over WebSocket", () => {
     const reader = await subscribe(b, pub.id);
     expect(reader.status).toBe(101);
     const url = `${channels}/${pub.id}/messages/${message.id}`;
-    const changed = { type: "CHAT_MESSAGE_CHANGED", channelId: pub.id };
+    const changed = { type: "CHAT_MESSAGE_UPDATED", channelId: pub.id };
 
     expect((await request(a, url, { body: "final" }, "PATCH")).status).toBe(
       200,

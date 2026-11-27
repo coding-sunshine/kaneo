@@ -33,6 +33,8 @@ export const removedMemberSchema = z.object({
   userId: z.string(),
 });
 
+export const messageParam = channelParam.extend({ messageId: z.string() });
+
 export const listMessagesQuery = z.object({
   before: z.iso.datetime().optional().openapi({
     description: "Return messages posted before this time.",
@@ -49,8 +51,6 @@ export const openDirectMessageBody = z.object({
 export const postMessageBody = z.object({
   body: z.string().trim().min(1).max(4000),
 });
-
-export const messageParam = channelParam.extend({ messageId: z.string() });
 
 export const reactionBody = z.object({
   // Native emoji, or a workspace custom emoji as :name:.
@@ -95,6 +95,15 @@ export const directMessageListSchema = z.array(
     .openapi("ChatDirectMessageListItem"),
 );
 
+const linkPreviewSchema = z
+  .object({
+    url: z.string(),
+    title: z.string(),
+    description: z.string().nullable(),
+    siteName: z.string(),
+  })
+  .openapi("ChatLinkPreview");
+
 export const messageSchema = z
   .object({
     id: z.string(),
@@ -115,6 +124,10 @@ export const messageSchema = z
         description:
           "Emoji reactions, in the order each emoji was first used; userIds oldest first.",
       }),
+    linkPreview: linkPreviewSchema.nullable().openapi({
+      description:
+        "A card for the first web link, added shortly after posting. Links inside code get none.",
+    }),
     createdAt: responseTimestamp,
   })
   .openapi("ChatMessage");
@@ -139,3 +152,16 @@ export const onlineListSchema = z
 
 export const deletedMessageSchema = z.object({ messageId: z.string() });
 export const leftChannelSchema = z.object({ channelId: z.string() });
+
+export const callSessionSchema = z
+  .object({
+    serverUrl: z
+      .string()
+      .openapi({ description: "The LiveKit server to join." }),
+    roomName: z.string(),
+    token: z.string().openapi({
+      description:
+        "A LiveKit access token for this room only, valid for one minute. LiveKit renews it once connected.",
+    }),
+  })
+  .openapi("ChatCallSession");

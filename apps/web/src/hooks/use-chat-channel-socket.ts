@@ -16,7 +16,7 @@ const WS_PING_INTERVAL_MS = 30_000;
 
 /**
  * Watches one channel and refetches its messages when one is posted, edited,
- * pinned or deleted.
+ * pinned, reacted to, previewed or deleted.
  * Returns whether the socket is open, so callers poll only while it is not.
  */
 export function useChatChannelSocket(
@@ -77,7 +77,7 @@ export function useChatChannelSocket(
           };
           if (message.channelId !== channelId) return;
           if (message.type === "CHAT_MESSAGE_CREATED") refetchMessages();
-          if (message.type === "CHAT_MESSAGE_CHANGED") {
+          if (message.type === "CHAT_MESSAGE_UPDATED") {
             refetchMessages();
             void queryClient.invalidateQueries({
               queryKey: pinsKey(workspaceId, channelId),

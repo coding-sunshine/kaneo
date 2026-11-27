@@ -797,6 +797,10 @@
           "hasAgent": {
             "type": "boolean",
             "description": "Whether the agent and loops are available (an OpenRouter API key is configured)."
+          },
+          "hasCalls": {
+            "type": "boolean",
+            "description": "Whether voice and video calls are available (a LiveKit server is configured)."
           }
         },
         "required": [
@@ -822,7 +826,8 @@
           "customOAuthManagedProfileFields",
           "customOAuthAccountUrl",
           "billingEnabled",
-          "hasAgent"
+          "hasAgent",
+          "hasCalls"
         ]
       },
       "McpClientRegistration": {
@@ -3500,6 +3505,9 @@
             },
             "description": "Emoji reactions, in the order each emoji was first used; userIds oldest first."
           },
+          "linkPreview": {
+            "$ref": "#/components/schemas/ChatLinkPreview"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -3515,7 +3523,59 @@
           "editedAt",
           "pinnedAt",
           "reactions",
+          "linkPreview",
           "createdAt"
+        ]
+      },
+      "ChatLinkPreview": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "siteName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "title",
+          "description",
+          "siteName"
+        ],
+        "description": "A card for the first web link, added shortly after posting. Links inside code get none."
+      },
+      "ChatCallSession": {
+        "type": "object",
+        "properties": {
+          "serverUrl": {
+            "type": "string",
+            "description": "The LiveKit server to join."
+          },
+          "roomName": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string",
+            "description": "A LiveKit access token for this room only, valid for one minute. LiveKit renews it once connected."
+          }
+        },
+        "required": [
+          "serverUrl",
+          "roomName",
+          "token"
         ]
       },
       "AgentChatSummary": {
@@ -30402,6 +30462,260 @@
           },
           "404": {
             "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/call": {
+      "post": {
+        "operationId": "startChatCall",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Start call",
+        "description": "Start a voice or video call in a channel or direct message you belong to. Rings the other members, at most 10 starts a minute per person. Needs LiveKit configured on the server.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Call started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatCallSession"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Calls are off on this server, or channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many calls started; see the Retry-After header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/call/join": {
+      "post": {
+        "operationId": "joinChatCall",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Join call",
+        "description": "Join the call in a channel you belong to.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Call session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatCallSession"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Calls are off on this server, or channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/messages/{messageId}/preview": {
+      "delete": {
+        "operationId": "removeChatLinkPreview",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Remove link preview",
+        "description": "Remove the link preview from your own message.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Preview removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only the author can remove the preview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or message not found",
             "content": {
               "application/json": {
                 "schema": {
