@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -92,6 +93,7 @@ const verified = {
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  vi.useRealTimers();
 });
 beforeEach(() => {
   permissions.create = true;
@@ -102,10 +104,14 @@ beforeEach(() => {
 
 describe("connected Gitea repository", () => {
   it("verifies the saved token automatically without exposing or reentering it", async () => {
+    // Fake timers skip the verification debounce, so a busy machine cannot
+    // push the check past a wall-clock wait.
+    vi.useFakeTimers();
     render(<GiteaIntegrationSettings projectId="project" />);
-    expect(
-      await screen.findByText(verified.message, {}, { timeout: 2000 }),
-    ).toBeInTheDocument();
+    await act(async () => {
+      await vi.runOnlyPendingTimersAsync();
+    });
+    expect(screen.getByText(verified.message)).toBeInTheDocument();
     expect(m.verify).toHaveBeenCalledWith({
       projectId: "project",
       baseUrl: saved.baseUrl,
@@ -117,8 +123,10 @@ describe("connected Gitea repository", () => {
       name: "settings:codeHosting.importIssues",
     });
     expect(importButton).toBeEnabled();
-    fireEvent.click(importButton);
-    await waitFor(() => expect(m.importIssues).toHaveBeenCalledWith("project"));
+    await act(async () => {
+      fireEvent.click(importButton);
+    });
+    expect(m.importIssues).toHaveBeenCalledWith("project");
     expect(screen.queryByText(saved.webhookSecret)).toBeNull();
   });
 
