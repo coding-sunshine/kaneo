@@ -109,6 +109,7 @@ async function fixture(
     { path: `/api/activity/${task.id}`, resources: ["task"] },
     { path: `/api/comment/${task.id}`, resources: ["task"] },
     { path: `/api/time-entry/task/${task.id}`, resources: ["task"] },
+    { path: `/api/design-review/task/${task.id}`, resources: ["task"] },
     { path: `/api/time-entry/${timeEntry.id}`, resources: ["task"] },
     { path: `/api/external-link/task/${task.id}`, resources: ["task"] },
     { path: `/api/task-relation/${task.id}`, resources: ["task"] },

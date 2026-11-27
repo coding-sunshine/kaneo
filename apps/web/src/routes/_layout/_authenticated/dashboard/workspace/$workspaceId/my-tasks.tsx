@@ -40,6 +40,8 @@ function RouteComponent() {
   } = useGetAssignedTasks(workspaceId, false, tab);
   const [groupBy, setGroupBy] = useState<MyTasksGroupBy>("status");
   const [layout, setLayout] = useState<MyTasksLayout>("list");
+  // Activity and review rows carry their own trailing column, so stay a list.
+  const listOnly = tab === "activity" || tab === "review";
 
   return (
     <>
@@ -48,7 +50,7 @@ function RouteComponent() {
         <div className="flex h-full min-h-0 flex-col">
           <div className="flex h-11 shrink-0 items-center justify-between border-border/50 border-b px-4">
             <MyTasksTabs value={tab} onChange={setTab} />
-            {tab !== "activity" && assigned?.tasks.length ? (
+            {!listOnly && assigned?.tasks.length ? (
               <MyTasksGroupByToggle
                 value={groupBy}
                 onChange={setGroupBy}
@@ -60,7 +62,7 @@ function RouteComponent() {
           <div
             className={cn(
               "min-h-0 flex-1",
-              layout === "board" && tab !== "activity"
+              layout === "board" && !listOnly
                 ? "overflow-hidden"
                 : "overflow-y-auto",
             )}
@@ -91,7 +93,9 @@ function RouteComponent() {
                   </EmptyMedia>
                   <EmptyTitle>{t("workspace:myWork.empty")}</EmptyTitle>
                   <EmptyDescription>
-                    {t("workspace:myTasks.emptyDescription")}
+                    {tab === "review"
+                      ? t("workspace:myTasks.reviewEmptyDescription")
+                      : t("workspace:myTasks.emptyDescription")}
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>
@@ -101,8 +105,9 @@ function RouteComponent() {
                 total={assigned.total}
                 groupBy={groupBy}
                 activity={tab === "activity"}
+                review={tab === "review"}
                 workspaceId={workspaceId}
-                layout={tab === "activity" ? "list" : layout}
+                layout={listOnly ? "list" : layout}
               />
             )}
           </div>

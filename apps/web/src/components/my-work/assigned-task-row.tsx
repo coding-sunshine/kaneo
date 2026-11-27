@@ -4,6 +4,7 @@ import { getColumnIcon } from "@/lib/column";
 import { getStatusDisplayLabel } from "@/lib/i18n/domain";
 import { resolveLabelColor } from "@/lib/label-color";
 import { getPriorityIcon } from "@/lib/priority";
+import { ReviewAgeChip } from "@/components/task-chips/review-age-chip";
 import { DueDateText } from "./due-date-text";
 
 type AssignedTaskRowProps = {
@@ -11,6 +12,8 @@ type AssignedTaskRowProps = {
   workspaceId: string;
   showLabels?: boolean;
   showActivity?: boolean;
+  /** Needs my review rows show how long the design review has waited. */
+  showReview?: boolean;
 };
 
 const ACTIVITY_VERBS: Record<string, string> = {
@@ -33,6 +36,7 @@ export function AssignedTaskRow({
   workspaceId,
   showLabels = false,
   showActivity = false,
+  showReview = false,
 }: AssignedTaskRowProps) {
   return (
     <Link
@@ -77,7 +81,13 @@ export function AssignedTaskRow({
       <span className="hidden w-28 shrink-0 truncate text-muted-foreground text-xs sm:block">
         {task.projectName}
       </span>
-      {showActivity ? (
+      {showReview && task.reviewRequestedAt ? (
+        <ReviewAgeChip
+          requestedAt={task.reviewRequestedAt}
+          slaDueAt={task.reviewSlaDueAt}
+          showLabel
+        />
+      ) : showActivity ? (
         <span className="hidden w-44 shrink-0 truncate text-right text-muted-foreground text-xs sm:block">
           {activityText(task)}
         </span>

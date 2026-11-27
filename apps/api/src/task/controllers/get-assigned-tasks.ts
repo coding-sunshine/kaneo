@@ -15,9 +15,11 @@ import {
   columnTable,
   labelTable,
   projectTable,
+  taskDesignReviewTable,
   taskSubscriberTable,
   taskTable,
 } from "../../database/schema";
+import { designReviewSlaDueAt } from "../../design-review/sla";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
 import { taskIsCompleted } from "../task-is-completed";
 
@@ -32,7 +34,12 @@ const priorityRank = sql<number>`CASE
   ELSE 0
 END`;
 
-export type MyTasksTab = "assigned" | "created" | "subscribed" | "activity";
+export type MyTasksTab =
+  | "assigned"
+  | "created"
+  | "subscribed"
+  | "activity"
+  | "review";
 
 async function getAssignedTasks(
   workspaceId: string,
@@ -41,13 +48,18 @@ async function getAssignedTasks(
   tab: MyTasksTab = "assigned",
 ) {
   const isActivity = tab === "activity";
-  const relation = isActivity
-    ? sql`exists (select 1 from ${activityTable} where ${activityTable.taskId} = ${taskTable.id} and ${activityTable.userId} = ${userId})`
-    : tab === "created"
-      ? eq(taskTable.creatorId, userId)
-      : tab === "subscribed"
-        ? sql`exists (select 1 from ${taskSubscriberTable} where ${taskSubscriberTable.taskId} = ${taskTable.id} and ${taskSubscriberTable.userId} = ${userId})`
-        : eq(taskTable.userId, userId);
+  const isReview = tab === "review";
+  // The caller's pending design review on the task, for the review tab.
+  const pendingReviewAt = sql<Date | null>`(select ${taskDesignReviewTable.requestedAt} from ${taskDesignReviewTable} where ${taskDesignReviewTable.taskId} = ${taskTable.id} and ${taskDesignReviewTable.reviewerId} = ${userId} and ${taskDesignReviewTable.status} = 'pending')`;
+  const relation = isReview
+    ? sql`${pendingReviewAt} is not null`
+    : isActivity
+      ? sql`exists (select 1 from ${activityTable} where ${activityTable.taskId} = ${taskTable.id} and ${activityTable.userId} = ${userId})`
+      : tab === "created"
+        ? eq(taskTable.creatorId, userId)
+        : tab === "subscribed"
+          ? sql`exists (select 1 from ${taskSubscriberTable} where ${taskSubscriberTable.taskId} = ${taskTable.id} and ${taskSubscriberTable.userId} = ${userId})`
+          : eq(taskTable.userId, userId);
 
   const openAndMine = and(
     eq(projectTable.workspaceId, workspaceId),
@@ -118,6 +130,9 @@ async function getAssignedTasks(
               string | null
             >`(select ${activityTable.type} from ${activityTable} where ${activityTable.taskId} = ${taskTable.id} and ${activityTable.userId} = ${userId} order by ${activityTable.createdAt} desc limit 1)`
           : sql<string | null>`null`,
+        reviewRequestedAt: isReview
+          ? pendingReviewAt.as("review_requested_at")
+          : sql<Date | null>`null`.as("review_requested_at"),
         workProjectId: taskTable.workProjectId,
         workProjectMilestoneId: taskTable.workProjectMilestoneId,
         projectName: projectTable.name,
@@ -131,11 +146,13 @@ async function getAssignedTasks(
       .orderBy(
         ...(isActivity
           ? [sql`last_activity_at desc`]
-          : [
-              sql`${taskTable.dueDate} asc nulls last`,
-              desc(priorityRank),
-              asc(taskTable.createdAt),
-            ]),
+          : isReview
+            ? [sql`review_requested_at asc`]
+            : [
+                sql`${taskTable.dueDate} asc nulls last`,
+                desc(priorityRank),
+                asc(taskTable.createdAt),
+              ]),
         asc(taskTable.id),
       )
       .limit(ASSIGNED_TASKS_LIMIT),
@@ -171,15 +188,23 @@ async function getAssignedTasks(
     labelsByTask.set(taskId, taskLabels);
   }
 
+  // Raw subselects skip drizzle's timestamp mapping; the column stores UTC.
+  const utcDate = (value: Date | null) =>
+    value ? new Date(`${String(value).replace(" ", "T")}Z`) : null;
+
   return {
-    tasks: tasks.map((task) => ({
-      ...task,
-      // Raw subselects skip drizzle's timestamp mapping; the column stores UTC.
-      lastActivityAt: task.lastActivityAt
-        ? new Date(`${String(task.lastActivityAt).replace(" ", "T")}Z`)
-        : null,
-      labels: labelsByTask.get(task.id) ?? [],
-    })),
+    tasks: tasks.map((task) => {
+      const reviewRequestedAt = utcDate(task.reviewRequestedAt);
+      return {
+        ...task,
+        lastActivityAt: utcDate(task.lastActivityAt),
+        reviewRequestedAt,
+        reviewSlaDueAt: reviewRequestedAt
+          ? designReviewSlaDueAt(reviewRequestedAt)
+          : null,
+        labels: labelsByTask.get(task.id) ?? [],
+      };
+    }),
     total: Number(totals?.total ?? 0),
   };
 }

@@ -30,6 +30,8 @@ function task(
     labels: [],
     lastActivityAt: null,
     lastActivityType: null,
+    reviewRequestedAt: null,
+    reviewSlaDueAt: null,
     workProjectId: null,
     workProjectMilestoneId: null,
   };

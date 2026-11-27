@@ -46,6 +46,7 @@ describe("project access enforcement", () => {
       [`/task-relation/project/${ctx.beta.id}`, 404],
       [`/custom-field/project/${ctx.beta.id}`, 404],
       [`/external-link/task/${ctx.betaTask.id}`, 403],
+      [`/design-review/task/${ctx.betaTask.id}`, 403],
       [`/workflow-rule/${ctx.beta.id}`, 404],
     ];
     const answered: [string, number][] = [];

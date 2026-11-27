@@ -13425,6 +13425,144 @@
 						"last",
 						"restoreTest"
 					]
+				},
+				"calendarSync": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"navLabel": {
+							"type": "string"
+						},
+						"pageTitle": {
+							"type": "string"
+						},
+						"title": {
+							"type": "string"
+						},
+						"subtitle": {
+							"type": "string"
+						},
+						"accountsTitle": {
+							"type": "string"
+						},
+						"accountsDescription": {
+							"type": "string"
+						},
+						"providers": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"google": {
+									"type": "string"
+								},
+								"microsoft": {
+									"type": "string"
+								}
+							},
+							"required": ["google", "microsoft"]
+						},
+						"descriptions": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"google": {
+									"type": "string"
+								},
+								"microsoft": {
+									"type": "string"
+								}
+							},
+							"required": ["google", "microsoft"]
+						},
+						"notConfigured": {
+							"type": "string"
+						},
+						"connected": {
+							"type": "string"
+						},
+						"connectedNoEmail": {
+							"type": "string"
+						},
+						"needsReconnect": {
+							"type": "string"
+						},
+						"needsReconnectDescription": {
+							"type": "string"
+						},
+						"connect": {
+							"type": "string"
+						},
+						"reconnect": {
+							"type": "string"
+						},
+						"disconnect": {
+							"type": "string"
+						},
+						"disconnected": {
+							"type": "string"
+						},
+						"loadFailed": {
+							"type": "string"
+						},
+						"howItWorks": {
+							"type": "string"
+						},
+						"dueDatesTitle": {
+							"type": "string"
+						},
+						"syncNow": {
+							"type": "string"
+						},
+						"syncNowDescription": {
+							"type": "string"
+						},
+						"syncNowAction": {
+							"type": "string"
+						},
+						"synced_one": {
+							"type": "string"
+						},
+						"synced_zero": {
+							"type": "string"
+						},
+						"synced_two": {
+							"type": "string"
+						},
+						"synced_few": {
+							"type": "string"
+						},
+						"synced_many": {
+							"type": "string"
+						},
+						"synced_other": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"navLabel",
+						"pageTitle",
+						"title",
+						"subtitle",
+						"accountsTitle",
+						"accountsDescription",
+						"providers",
+						"descriptions",
+						"notConfigured",
+						"connected",
+						"connectedNoEmail",
+						"needsReconnect",
+						"needsReconnectDescription",
+						"connect",
+						"reconnect",
+						"disconnect",
+						"disconnected",
+						"loadFailed",
+						"howItWorks",
+						"dueDatesTitle",
+						"syncNow",
+						"syncNowDescription",
+						"syncNowAction"
+					]
 				}
 			},
 			"required": [
@@ -13495,7 +13633,8 @@
 				"issueTemplates",
 				"projectSla",
 				"projectTriage",
-				"adminBackups"
+				"adminBackups",
+				"calendarSync"
 			]
 		},
 		"navigation": {
@@ -22202,6 +22341,119 @@
 						},
 						"noTasksThisMonth": {
 							"type": "string"
+						},
+						"newEvent": {
+							"type": "string"
+						},
+						"untitledEvent": {
+							"type": "string"
+						},
+						"allDay": {
+							"type": "string"
+						},
+						"joinMeeting": {
+							"type": "string"
+						},
+						"eventAriaLabel": {
+							"type": "string"
+						},
+						"moreEvents": {
+							"type": "string"
+						},
+						"moreEvents_zero": {
+							"type": "string"
+						},
+						"moreEvents_one": {
+							"type": "string"
+						},
+						"moreEvents_two": {
+							"type": "string"
+						},
+						"moreEvents_few": {
+							"type": "string"
+						},
+						"moreEvents_many": {
+							"type": "string"
+						},
+						"moreEvents_other": {
+							"type": "string"
+						},
+						"eventsUnavailable": {
+							"type": "string"
+						},
+						"createEvent": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"calendar": {
+									"type": "string"
+								},
+								"eventTitle": {
+									"type": "string"
+								},
+								"titlePlaceholder": {
+									"type": "string"
+								},
+								"date": {
+									"type": "string"
+								},
+								"startTime": {
+									"type": "string"
+								},
+								"endTime": {
+									"type": "string"
+								},
+								"allDay": {
+									"type": "string"
+								},
+								"addMeeting": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"google": {
+											"type": "string"
+										},
+										"microsoft": {
+											"type": "string"
+										}
+									},
+									"required": ["google", "microsoft"]
+								},
+								"meetingUrl": {
+									"type": "string"
+								},
+								"meetingUrlPlaceholder": {
+									"type": "string"
+								},
+								"create": {
+									"type": "string"
+								},
+								"created": {
+									"type": "string"
+								},
+								"invalid": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"calendar",
+								"eventTitle",
+								"titlePlaceholder",
+								"date",
+								"startTime",
+								"endTime",
+								"allDay",
+								"addMeeting",
+								"meetingUrl",
+								"meetingUrlPlaceholder",
+								"create",
+								"created",
+								"invalid"
+							]
 						}
 					},
 					"required": [
@@ -22215,7 +22467,14 @@
 						"loadError",
 						"dayTasksAriaLabel",
 						"taskAriaLabel",
-						"noTasksThisMonth"
+						"noTasksThisMonth",
+						"newEvent",
+						"untitledEvent",
+						"allDay",
+						"joinMeeting",
+						"eventAriaLabel",
+						"eventsUnavailable",
+						"createEvent"
 					]
 				},
 				"gantt": {
@@ -24089,6 +24348,62 @@
 						"ageTitle",
 						"none"
 					]
+				},
+				"designReview": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"request": {
+							"type": "string"
+						},
+						"reviewer": {
+							"type": "string"
+						},
+						"reviewerPlaceholder": {
+							"type": "string"
+						},
+						"approve": {
+							"type": "string"
+						},
+						"approved": {
+							"type": "string"
+						},
+						"withdraw": {
+							"type": "string"
+						},
+						"waitingTitle": {
+							"type": "string"
+						},
+						"unknownReviewer": {
+							"type": "string"
+						},
+						"requestError": {
+							"type": "string"
+						},
+						"approveError": {
+							"type": "string"
+						},
+						"withdrawError": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"title",
+						"request",
+						"reviewer",
+						"reviewerPlaceholder",
+						"approve",
+						"approved",
+						"withdraw",
+						"waitingTitle",
+						"unknownReviewer",
+						"requestError",
+						"approveError",
+						"withdrawError"
+					]
 				}
 			},
 			"required": [
@@ -24147,7 +24462,8 @@
 				"dateFilter",
 				"timeTracking",
 				"createModal",
-				"sla"
+				"sla",
+				"designReview"
 			]
 		},
 		"invitations": {
@@ -26650,6 +26966,9 @@
 						"emptyDescription": {
 							"type": "string"
 						},
+						"reviewEmptyDescription": {
+							"type": "string"
+						},
 						"tabs": {
 							"type": "object",
 							"additionalProperties": false,
@@ -26662,9 +26981,12 @@
 								},
 								"subscribed": {
 									"type": "string"
+								},
+								"review": {
+									"type": "string"
 								}
 							},
-							"required": ["assigned", "created", "subscribed"]
+							"required": ["assigned", "created", "subscribed", "review"]
 						},
 						"groupBy": {
 							"type": "object",
@@ -26692,6 +27014,7 @@
 					"required": [
 						"pageTitle",
 						"emptyDescription",
+						"reviewEmptyDescription",
 						"tabs",
 						"groupBy",
 						"truncated"
