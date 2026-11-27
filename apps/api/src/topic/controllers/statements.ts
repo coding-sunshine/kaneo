@@ -2,6 +2,7 @@ import { and, asc, eq, ne } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
+  documentTable,
   type StatementResult,
   type StatementSource,
   statementTable,
@@ -19,7 +20,7 @@ import {
   textBlocks,
 } from "../statement-text";
 import { normalizeValue } from "../statement-value";
-import { changingTopic } from "./flag-dependents";
+import { changingTopic, type Transaction } from "./flag-dependents";
 import { getTopic } from "./get-topic";
 import { type Slot, slotsOf } from "./slots";
 
@@ -359,36 +360,67 @@ export async function confirmStatement(
   statementId: string,
   userId: string,
 ) {
-  const { doc, statement, topicId } = await forDecision(
+  const { statement, topicId } = await forDecision(
     workspaceId,
     documentId,
     statementId,
     userId,
   );
-  if (statement.status === "rejected") {
-    throw new HTTPException(409, {
-      message: "A rejected statement cannot be confirmed. Write it again",
-    });
-  }
-  const texts = [
-    doc.contentHash,
-    ...(doc.status === "current" ? [doc.approvedHash] : []),
-  ];
-  if (!texts.includes(statement.contentHash)) {
-    throw new HTTPException(409, {
-      message: "The document changed after this statement was written",
-    });
-  }
-  if (statement.status === "proposed") {
-    // On the current document this changes what the topic states.
-    await changingTopic(topicId, (tx) =>
-      tx
+  // On the current document this changes what the topic states.
+  await changingTopic(topicId, async (tx) => {
+    // Read again under the topic's lock: a reject or an edit that landed
+    // while this request waited decides what happens now.
+    const { status, contentHash, doc } = await lockedStatement(
+      tx,
+      statement.id,
+    );
+    if (status === "rejected") {
+      throw new HTTPException(409, {
+        message: "A rejected statement cannot be confirmed. Write it again",
+      });
+    }
+    const texts = [
+      doc.contentHash,
+      ...(doc.status === "current" ? [doc.approvedHash] : []),
+    ];
+    if (!texts.includes(contentHash)) {
+      throw new HTTPException(409, {
+        message: "The document changed after this statement was written",
+      });
+    }
+    if (status === "proposed") {
+      await tx
         .update(statementTable)
         .set({ status: "confirmed", decidedBy: userId, decidedAt: new Date() })
-        .where(eq(statementTable.id, statement.id)),
-    );
-  }
+        .where(eq(statementTable.id, statement.id));
+    }
+  });
   return one(statement.id);
+}
+
+// The statement and its document, locked in that order after the topic.
+async function lockedStatement(tx: Transaction, statementId: string) {
+  const [locked] = await tx
+    .select({
+      status: statementTable.status,
+      contentHash: statementTable.contentHash,
+      documentId: statementTable.documentId,
+    })
+    .from(statementTable)
+    .where(eq(statementTable.id, statementId))
+    .for("update");
+  if (!locked) throw notFound();
+  const [doc] = await tx
+    .select({
+      contentHash: documentTable.contentHash,
+      approvedHash: documentTable.approvedHash,
+      status: documentTable.status,
+    })
+    .from(documentTable)
+    .where(eq(documentTable.id, locked.documentId))
+    .for("update");
+  if (!doc) throw notFound();
+  return { ...locked, doc };
 }
 
 export async function rejectStatement(

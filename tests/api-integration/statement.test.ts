@@ -13,6 +13,7 @@ import {
   documentExtractionTable,
   documentTable,
   statementTable,
+  topicTable,
 } from "../../apps/api/src/database/schema";
 import { resetTestDatabase } from "./helpers/database";
 import {
@@ -235,6 +236,43 @@ describe("API integration: statements of a document", () => {
     expect(await api.statementsOf(docId)).toMatchObject([
       { id: first.id, value: "40", status: "confirmed" },
     ]);
+  });
+
+  it("confirm races reject: the statement stays rejected", async () => {
+    const { api, docId, topicId } = await setup();
+    const proposal = await api.add(docId, HOW_MUCH);
+    const waiting = (count: number) =>
+      vi.waitFor(async () => {
+        const rows = await db.execute(
+          sql`select 1 from pg_locks where not granted`,
+        );
+        expect(rows.rows).toHaveLength(count);
+      });
+    let rejecting: Promise<Response> | undefined;
+    let confirming: Promise<Response> | undefined;
+    // Both requests read the proposal, then wait for the topic: the reject
+    // gets it first.
+    await db.transaction(async (tx) => {
+      await tx
+        .select({ id: topicTable.id })
+        .from(topicTable)
+        .where(eq(topicTable.id, topicId))
+        .for("no key update");
+      rejecting = api.decide(docId, proposal.id, "reject", {
+        reason: "Wrong price",
+      });
+      await waiting(1);
+      confirming = api.decide(docId, proposal.id, "confirm");
+      await waiting(2);
+    });
+
+    expect((await rejecting)?.status).toBe(200);
+    expect((await confirming)?.status).toBe(409);
+    const [row] = await db
+      .select({ status: statementTable.status })
+      .from(statementTable)
+      .where(eq(statementTable.id, proposal.id));
+    expect(row?.status).toBe("rejected");
   });
 
   it("answers 403 to a member who can only view the document", async () => {
