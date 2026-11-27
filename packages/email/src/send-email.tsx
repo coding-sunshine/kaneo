@@ -247,6 +247,40 @@ export const sendEmailVerificationEmail = (
     EmailVerificationEmail({ email: to, instance: instanceHost(), ...data }),
   );
 
+export type TicketReplyEmail = {
+  to: string;
+  replyTo: string;
+  subject: string;
+  text: string;
+  messageId: string;
+  inReplyTo: string;
+  references: string[];
+};
+
+/**
+ * A team's answer to an emailed ticket, sent as plain text in the requester's
+ * thread. Reply-To is the team's intake address, so their answer comes back
+ * to the same ticket. Throws when the SMTP server rejects it.
+ */
+export const sendTicketReplyEmail = async (
+  email: TicketReplyEmail,
+): Promise<EmailResult> => {
+  if (!isSmtpConfigured()) {
+    return { success: false, reason: "SMTP_NOT_CONFIGURED" };
+  }
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to: email.to,
+    replyTo: email.replyTo,
+    subject: email.subject,
+    text: email.text,
+    messageId: email.messageId,
+    inReplyTo: email.inReplyTo,
+    references: email.references,
+  });
+  return { success: true };
+};
+
 /**
  * Send the administrator's SMTP test. It throws the SMTP error itself so the
  * caller can tell the administrator what went wrong.

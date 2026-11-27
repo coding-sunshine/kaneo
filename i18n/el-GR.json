@@ -3093,6 +3093,19 @@
 				"done": "IT intake is ready",
 				"failed": "Could not set up IT intake",
 				"title": "IT intake"
+			},
+			"emailIntake": {
+				"address": "Address",
+				"copied": "Address copied",
+				"copy": "Copy",
+				"copyFailed": "Could not copy the address",
+				"description": "Mail sent to the team's address becomes a Triage ticket. Replies from the ticket go back to the sender by email.",
+				"disable": "Turn off",
+				"enable": "Turn on",
+				"failed": "Could not change email intake",
+				"off": "Email intake is off on this instance. An administrator needs to add the intake mailbox settings on the server.",
+				"repliesOff": "This instance cannot send email yet, so replies from tickets will not be delivered until SMTP is set up.",
+				"title": "Email intake"
 			}
 		},
 		"teams": {
@@ -5048,6 +5061,15 @@
 				"delete": "Delete attachment",
 				"deleteFailed": "Failed to delete attachment",
 				"title": "Attachments"
+			},
+			"emailReply": {
+				"failed": "Could not send the reply",
+				"from": "Emailed in by {{requester}}",
+				"label": "Reply to {{address}}",
+				"placeholder": "Write a reply…",
+				"send": "Send reply",
+				"sent": "Reply sent",
+				"title": "Email"
 			}
 		},
 		"entity": {
