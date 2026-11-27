@@ -150,6 +150,8 @@ const attach = async (
     mimeType: string;
     size?: number;
     kind?: string;
+    surface?: string;
+    activityId?: string;
   },
 ) =>
   (
@@ -947,6 +949,127 @@ describe("API integration: facts found in issues", () => {
         readable: true,
         reason: null,
       });
+    });
+
+    it("reads a picture inside an issue description and one inside a comment, each once", async () => {
+      const { world, topicId } = await setup();
+      const [said] = await db
+        .insert(activityTable)
+        .values({
+          taskId: world.betaTask.id,
+          type: "comment",
+          content: "See the picture.",
+          userId: world.owner.id,
+        })
+        .returning();
+      const inText = await attach(world, {
+        filename: "whiteboard.png",
+        mimeType: "image/png",
+        kind: "image",
+        surface: "description",
+      });
+      const inComment = await attach(world, {
+        filename: "receipt.jpg",
+        mimeType: "image/jpeg",
+        kind: "image",
+        surface: "comment",
+        activityId: said.id,
+      });
+      const words: Record<string, string> = {
+        [inText.objectKey]: LAUNCH,
+        [inComment.objectKey]: PRICE,
+      };
+      readObject.mockImplementation(async (key: string) => ({
+        body: new Response(new TextEncoder().encode(key)).body,
+      }));
+      type Part = { type: string; image_url?: { url: string } };
+      const pictures: string[] = [];
+      fetchMock.mockImplementation(
+        async (_url: string, init: { body: string }) => {
+          const body = JSON.parse(init.body);
+          const content = body.messages[1].content as string | Part[];
+          if (typeof content !== "string") {
+            const url =
+              content.find((part) => part.type === "image_url")?.image_url
+                ?.url ?? "";
+            pictures.push(url);
+            // The picture's bytes are its object key, so the answer is its words.
+            const key = Buffer.from(
+              url.split(",")[1] ?? "",
+              "base64",
+            ).toString();
+            return new Response(
+              JSON.stringify({
+                choices: [
+                  {
+                    message: {
+                      content: JSON.stringify({
+                        text: words[key] ?? "",
+                        more: false,
+                      }),
+                    },
+                  },
+                ],
+                usage: { prompt_tokens: 900, completion_tokens: 40 },
+              }),
+            );
+          }
+          if (content.includes(PRICE)) {
+            return answer({ topics: [NAMED], statements: [HOW_MUCH] });
+          }
+          if (content.includes(LAUNCH)) {
+            return answer({ topics: [NAMED], statements: [WHEN] });
+          }
+          return answer(NOTHING);
+        },
+      );
+      await run();
+
+      expect(pictures).toHaveLength(2);
+      expect(
+        pictures.some((url) => url.startsWith("data:image/png;base64,")),
+      ).toBe(true);
+      expect(
+        pictures.some((url) => url.startsWith("data:image/jpeg;base64,")),
+      ).toBe(true);
+      const byFile = new Map(
+        (await records()).map((row) => [row.assetId, row]),
+      );
+      expect(byFile.get(inText.id)).toMatchObject({
+        taskId: world.betaTask.id,
+        readable: true,
+        reason: null,
+      });
+      expect(byFile.get(inComment.id)).toMatchObject({
+        taskId: world.betaTask.id,
+        readable: true,
+        reason: null,
+      });
+      const listed = await facts(world, topicId, world.owner);
+      expect(listed.map((fact) => [fact.slot, fact.file?.id]).sort()).toEqual([
+        ["launch_date", inText.id],
+        ["price", inComment.id],
+      ]);
+
+      const asked = prompts(fetchMock).filter(
+        (prompt) => typeof prompt === "string",
+      );
+      expect(
+        asked.some((prompt) =>
+          prompt.includes("Picture in the issue description whiteboard.png:"),
+        ),
+      ).toBe(true);
+      expect(
+        asked.some((prompt) =>
+          prompt.includes("Picture in a comment on the issue receipt.jpg:"),
+        ),
+      ).toBe(true);
+
+      // A picture is read once.
+      const calls = fetchMock.mock.calls.length;
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(calls);
+      expect(readObject).toHaveBeenCalledTimes(2);
     });
 
     it("keeps a record of an answer nobody could read, and none of a request that failed", async () => {

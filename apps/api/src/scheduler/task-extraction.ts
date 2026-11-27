@@ -57,6 +57,12 @@ const AGAIN = new Set(["truncated", "too_large", "unparsed"]);
 // day's tokens and of the spending cap to the job that reads documents.
 const RESERVE = 0.3;
 
+// What a file's place on the issue is called in the question.
+const WHERE: Record<string, string> = {
+  description: "Picture in the issue description",
+  comment: "Picture in a comment on the issue",
+};
+
 /** A text whose request failed is asked about again after an hour. */
 export const taskExtractionRetry = retryLater(60 * 60_000);
 
@@ -362,6 +368,7 @@ async function readWorkspace(
         mimeType: assetTable.mimeType,
         size: assetTable.size,
         objectKey: assetTable.objectKey,
+        surface: assetTable.surface,
         since: taskExtractionTable.createdAt,
         hash: taskExtractionTable.contentHash,
         reason: taskExtractionTable.reason,
@@ -377,8 +384,9 @@ async function readWorkspace(
       .where(
         and(
           eq(projectTable.workspaceId, workspaceId),
-          // Pictures in the text are kind `image`. They are not read.
-          eq(assetTable.kind, "attachment"),
+          // Files attached to the issue, and pictures (kind `image`) attached
+          // or inside its description or a comment, which the model writes out.
+          inArray(assetTable.kind, ["attachment", "image"]),
         ),
       )
       .orderBy(asc(assetTable.id), desc(taskExtractionTable.createdAt)),
@@ -476,7 +484,7 @@ async function readWorkspace(
         contentHash,
         // The title is not the file: a quote from it does not count, so a
         // quote is looked for in the part asked about.
-        head: `Title: ${collapse(file.title)}\n\nAttached file ${collapse(file.filename)}:\n`,
+        head: `Title: ${collapse(file.title)}\n\n${WHERE[file.surface] ?? "Attached file"} ${collapse(file.filename)}:\n`,
         body: text,
       },
       outcome,
@@ -527,9 +535,9 @@ async function readWorkspace(
 }
 
 /**
- * Asks the model which facts each issue, and each text file on an issue,
- * states for the slots of the workspace's topics, and stores them as
- * proposals. A proposal changes nothing a topic states: a person puts the
+ * Asks the model which facts each issue, each file on an issue and each
+ * picture inside its text states for the slots of the workspace's topics, and
+ * stores them as proposals. A proposal changes nothing a topic states: a person puts the
  * issue on the topic or dismisses the fact. The same words are asked about a
  * slot once: an issue is read again when its words change, and every text is
  * asked once more about a slot made after it was read. Every file gets a
