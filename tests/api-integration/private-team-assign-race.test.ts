@@ -102,3 +102,73 @@ describe("private teams: an assign racing the privacy change", () => {
     expect(await outsiderAssignees()).toEqual([]);
   });
 });
+
+describe("private teams: other assignee writes racing the privacy change", () => {
+  const writes: Record<string, () => [string, ReturnType<typeof json>]> = {
+    update: () => [
+      `/task/${world.alphaTask.id}`,
+      json("PUT", {
+        title: world.alphaTask.title,
+        priority: world.alphaTask.priority ?? "no-priority",
+        status: world.alphaTask.status,
+        projectId: world.alpha.id,
+        position: world.alphaTask.position ?? 0,
+        userId: world.open.id,
+      }),
+    ],
+    bulk: () => [
+      "/task/bulk",
+      json("PATCH", {
+        taskIds: [world.alphaTask.id],
+        operation: "updateAssignee",
+        value: world.open.id,
+      }),
+    ],
+    create: () => [
+      `/task/${world.alpha.id}`,
+      json("POST", {
+        title: "Raced",
+        description: "",
+        priority: "low",
+        status: world.alphaTask.status,
+        userId: world.open.id,
+      }),
+    ],
+  };
+
+  it.each(Object.keys(writes))(
+    "leaves no outsider assigned after a racing %s",
+    async (kind) => {
+      const ask = world.as(world.owner);
+      const checked = new Promise<void>((resolve) => {
+        gate.checked = resolve;
+      });
+      let finishPrivacy = () => {};
+      gate.privacyDone = new Promise<void>((resolve) => {
+        finishPrivacy = resolve;
+      });
+      const [path, init] = writes[kind]();
+      const write = Promise.resolve(ask(path, init));
+      await checked;
+      const team = world.alpha;
+      const privacy = Promise.resolve(
+        ask(
+          `/project/${team.id}`,
+          json("PUT", {
+            name: team.name,
+            icon: team.icon,
+            slug: team.slug,
+            description: team.description ?? "",
+            isPublic: false,
+            isPrivate: true,
+            confirmPrivate: true,
+          }),
+        ),
+      ).finally(finishPrivacy);
+      const [written, madePrivate] = await Promise.all([write, privacy]);
+      expect(madePrivate.status).toBe(200);
+      expect(written.status).toBeLessThan(500);
+      expect(await outsiderAssignees()).toEqual([]);
+    },
+  );
+});
