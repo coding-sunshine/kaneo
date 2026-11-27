@@ -29,8 +29,13 @@ export function splitSources(content: string): {
 }
 
 /**
- * Keeps the sources whose id came back in a tool result of the same turn: an
- * id the model never read is not a source.
+ * Keeps the sources whose id came back whole in a tool result of the same
+ * turn: an id the model never read, or only part of a longer one, is not a
+ * source.
  */
-export const grounded = (cited: Cited[], toolResults: string[]) =>
-  cited.filter(({ id }) => toolResults.some((result) => result.includes(id)));
+export function grounded(cited: Cited[], toolResults: string[]) {
+  const returned = new Set(
+    toolResults.flatMap((result) => result.match(/[A-Za-z0-9_-]+/g) ?? []),
+  );
+  return cited.filter(({ id }) => returned.has(id));
+}

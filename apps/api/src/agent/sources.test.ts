@@ -59,4 +59,17 @@ describe("grounded", () => {
       ),
     ).toEqual([{ kind: "task", id: "read1" }]);
   });
+
+  it("does not take part of a longer id for the id", () => {
+    expect(
+      grounded(
+        [
+          { kind: "task", id: "abc" },
+          { kind: "task", id: "c1" },
+          { kind: "task", id: "x-1" },
+        ],
+        ['{"id":"abcdef","taskId":"c12"} x-12'],
+      ),
+    ).toEqual([]);
+  });
 });
