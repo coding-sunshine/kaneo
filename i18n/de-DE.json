@@ -3020,7 +3020,14 @@
 			"notify": "Notify",
 			"saveFailed": "Could not save triage responsibility",
 			"subtitle": "Who handles issues that arrive in this team's triage.",
-			"title": "Triage"
+			"title": "Triage",
+			"itIntake": {
+				"action": "Set up IT intake",
+				"description": "Add an IT request template with a required Category, turn SLAs on, and add a shared IT queue view of Triage.",
+				"done": "IT intake is ready",
+				"failed": "Could not set up IT intake",
+				"title": "IT intake"
+			}
 		},
 		"teams": {
 			"columns": {
@@ -5313,7 +5320,9 @@
 			"label": "SLA",
 			"low": "Low risk",
 			"medium": "Medium risk",
-			"title": "SLA {{status}} - due {{date}}"
+			"title": "SLA {{status}} - due {{date}}",
+			"ageTitle": "Open for {{age}}",
+			"none": "No SLA"
 		},
 		"subscription": {
 			"subscribe": "Subscribe",

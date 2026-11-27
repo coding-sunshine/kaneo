@@ -2812,6 +2812,33 @@
           "progress"
         ]
       },
+      "ItIntake": {
+        "type": "object",
+        "properties": {
+          "columnId": {
+            "type": "string",
+            "description": "The Triage status."
+          },
+          "fieldId": {
+            "type": "string",
+            "description": "The Category custom field."
+          },
+          "templateId": {
+            "type": "string",
+            "description": "The IT request template."
+          },
+          "viewId": {
+            "type": "string",
+            "description": "The IT queue saved view."
+          }
+        },
+        "required": [
+          "columnId",
+          "fieldId",
+          "templateId",
+          "viewId"
+        ]
+      },
       "TriageResponsibility": {
         "type": "object",
         "properties": {
@@ -24858,6 +24885,71 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/team-automation/it-intake/{projectId}": {
+      "post": {
+        "operationId": "setUpItIntake",
+        "tags": [
+          "Team automation"
+        ],
+        "summary": "Set up IT intake for a team",
+        "description": "Add a Triage status, a required Category dropdown, an \"IT request\" template that files high priority requests into Triage, turn SLAs on, and add a shared \"IT queue\" view of Triage. Running it again reuses what already exists.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "What the IT intake uses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItIntake"
                 }
               }
             }
