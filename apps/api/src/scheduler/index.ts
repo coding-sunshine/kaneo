@@ -15,6 +15,7 @@ import { extractFiledDocuments } from "./statement-extraction";
 import { extractTaskFacts } from "./task-extraction";
 import { askConflictQuestions } from "./conflict-questions";
 import { checkTrialReminders } from "./trial-reminders";
+import { runBackupIfDue } from "../backup/run-backup-if-due";
 
 const jobs: Cron[] = [];
 
@@ -76,6 +77,15 @@ export function initializeScheduler(): void {
       withCheckIn("storage-cleanup", retryStorageCleanup),
     ),
   );
+  // Hourly check; a backup runs when none has succeeded in the last day.
+  jobs.push(
+    new Cron(
+      "41 * * * *",
+      { protect: true },
+      withCheckIn("database-backup", runBackupIfDue),
+    ),
+  );
+  void withCheckIn("database-backup", runBackupIfDue)();
   // Runs once at start-up, then daily.
   jobs.push(
     new Cron(

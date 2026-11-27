@@ -85,6 +85,7 @@ describe("buildSettingsNav", () => {
       "/dashboard/settings/admin/workspaces",
       "/dashboard/settings/admin/audit-log",
       "/dashboard/settings/admin/system",
+      "/dashboard/settings/admin/backups",
     ]);
     expect(
       build({

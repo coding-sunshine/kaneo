@@ -2,6 +2,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { relations, sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
+  bigint,
   boolean,
   check,
   customType,
@@ -3798,4 +3799,28 @@ export const taskStatementTable = pgTable(
       .nullsNotDistinct(),
     index("task_statement_task_idx").on(table.taskId),
   ],
+);
+
+// One row per scheduled or manual database backup. `counts` holds the row
+// counts of the tables a restore test compares, taken in the dump's snapshot.
+export const backupRunTable = pgTable(
+  "backup_run",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    status: text("status")
+      .$type<"running" | "succeeded" | "failed">()
+      .notNull(),
+    objectKey: text("object_key"),
+    sizeBytes: bigint("size_bytes", { mode: "number" }),
+    offsiteStatus: text("offsite_status").$type<"ok" | "failed">(),
+    errorCode: text("error_code"),
+    counts: jsonb("counts").$type<Record<string, number>>(),
+    startedAt: timestamp("started_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    finishedAt: timestamp("finished_at", { mode: "date" }),
+  },
+  (table) => [index("backup_run_started_idx").on(table.startedAt)],
 );

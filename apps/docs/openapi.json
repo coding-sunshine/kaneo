@@ -11679,6 +11679,256 @@
           "integrationProviders"
         ]
       },
+      "BackupStatus": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "False until the offsite bucket and its keys are set on the server."
+          },
+          "missingEnv": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Names of the server settings to set to turn backups on."
+          },
+          "lastRun": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "running",
+                  "succeeded",
+                  "failed"
+                ]
+              },
+              "startedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "finishedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "sizeBytes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "offsiteStatus": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "ok",
+                  "failed",
+                  null
+                ]
+              },
+              "errorCode": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Short failure category such as ECONNREFUSED, InternalError or COUNT_MISMATCH. Never contains hosts, credentials or server messages."
+              }
+            },
+            "required": [
+              "id",
+              "status",
+              "startedAt",
+              "finishedAt",
+              "sizeBytes",
+              "offsiteStatus",
+              "errorCode"
+            ]
+          },
+          "lastSuccess": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "running",
+                  "succeeded",
+                  "failed"
+                ]
+              },
+              "startedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "finishedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "sizeBytes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "offsiteStatus": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "ok",
+                  "failed",
+                  null
+                ]
+              },
+              "errorCode": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Short failure category such as ECONNREFUSED, InternalError or COUNT_MISMATCH. Never contains hosts, credentials or server messages."
+              }
+            },
+            "required": [
+              "id",
+              "status",
+              "startedAt",
+              "finishedAt",
+              "sizeBytes",
+              "offsiteStatus",
+              "errorCode"
+            ]
+          }
+        },
+        "required": [
+          "enabled",
+          "missingEnv",
+          "lastRun",
+          "lastSuccess"
+        ]
+      },
+      "BackupRestoreTest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "passed",
+              "failed"
+            ]
+          },
+          "errorCode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Short failure category such as ECONNREFUSED, InternalError or COUNT_MISMATCH. Never contains hosts, credentials or server messages."
+          },
+          "backupId": {
+            "type": "string"
+          },
+          "backupStartedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "restored": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "tickets": {
+                "type": "integer"
+              },
+              "documents": {
+                "type": "integer"
+              },
+              "chatMessages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "tickets",
+              "documents",
+              "chatMessages"
+            ]
+          },
+          "atBackup": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "tickets": {
+                "type": "integer"
+              },
+              "documents": {
+                "type": "integer"
+              },
+              "chatMessages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "tickets",
+              "documents",
+              "chatMessages"
+            ]
+          },
+          "live": {
+            "type": "object",
+            "properties": {
+              "tickets": {
+                "type": "integer"
+              },
+              "documents": {
+                "type": "integer"
+              },
+              "chatMessages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "tickets",
+              "documents",
+              "chatMessages"
+            ]
+          },
+          "durationMs": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "status",
+          "errorCode",
+          "backupId",
+          "backupStartedAt",
+          "restored",
+          "atBackup",
+          "live",
+          "durationMs"
+        ]
+      },
       "InstanceWebhookList": {
         "type": "object",
         "properties": {
@@ -53507,6 +53757,106 @@
           },
           "409": {
             "description": "An environment variable locks the setting (code SETTING_LOCKED_BY_ENV)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/admin/backups": {
+      "get": {
+        "operationId": "getAdminBackupStatus",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Get backup status",
+        "description": "Whether scheduled backups are on, the latest backup run and the latest successful one with its size and offsite copy state. Requires the `system:read` instance permission; API keys are rejected.",
+        "responses": {
+          "200": {
+            "description": "Backup status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the instance permission or used an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/admin/backups/test-restore": {
+      "post": {
+        "operationId": "testAdminBackupRestore",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Test restoring the latest backup",
+        "description": "Download the latest offsite backup, restore it into a scratch database, compare ticket, document and chat message counts, then drop the scratch database. Requires the `instance:settings` instance permission; API keys are rejected.",
+        "responses": {
+          "200": {
+            "description": "The restore test result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupRestoreTest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the instance permission or used an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Backups are off, there is no backup yet, or a restore test is already running",
             "content": {
               "application/json": {
                 "schema": {

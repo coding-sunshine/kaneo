@@ -3110,6 +3110,45 @@
 				"done": "IT intake is ready",
 				"failed": "Could not set up IT intake"
 			}
+		},
+		"adminBackups": {
+			"title": "Backups",
+			"loadError": "Backup status could not be loaded.",
+			"retry": "Retry",
+			"off": {
+				"title": "Backups are off",
+				"description": "Set {{settings}} on the server to turn on daily backups with an offsite copy."
+			},
+			"failed": {
+				"title": "The last backup failed",
+				"description": "The backup started {{time}} failed ({{code}}). It is retried every hour until one succeeds."
+			},
+			"last": {
+				"title": "Last backup",
+				"description": "The database is backed up once a day and copied to offsite storage.",
+				"backup": "Latest backup",
+				"summary": "{{time}} · {{size}}",
+				"none": "No backup yet",
+				"offsite": "Offsite copy",
+				"offsiteOk": "Offsite copy ok",
+				"offsiteNone": "No offsite copy"
+			},
+			"restoreTest": {
+				"title": "Restore test",
+				"description": "Restores the latest backup into a scratch database, counts its rows, then deletes the scratch database.",
+				"run": "Restore the latest backup",
+				"button": "Test restore",
+				"running": "Restoring…",
+				"passed": "Restore passed",
+				"failed": "Restore failed ({{code}})",
+				"error": "The restore test could not be run.",
+				"table": "Table",
+				"restored": "Restored",
+				"live": "Live",
+				"tickets": "Tickets",
+				"documents": "Documents",
+				"chatMessages": "Chat messages"
+			}
 		}
 	},
 	"navigation": {
