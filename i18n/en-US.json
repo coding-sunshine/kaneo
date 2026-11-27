@@ -3866,7 +3866,7 @@
 				"rejectDone": "Fact rejected",
 				"rejectedLine": "Rejected: {{value}}. {{reason}}",
 				"reasonLabel": "Reason",
-				"deciderOnly": "Only the topic's decider confirms or rejects facts on the current document.",
+				"deciderOnly": "Only the topic's decider adds, confirms or rejects facts on the current document.",
 				"add": "Add value",
 				"addName": "Add a value for {{name}}",
 				"valueLabel": "Value",

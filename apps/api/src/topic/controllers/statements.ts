@@ -272,6 +272,7 @@ export async function addStatement(
       message: "File the document on a topic first",
     });
   }
+  if (doc.status === "current") await assertDecides(workspaceId, doc, userId);
   const slots = (await slotsOf([topicId])).get(topicId) ?? [];
   const [outcome] = await proposeStatements(
     doc,

@@ -203,6 +203,28 @@ describe("DocumentFacts", () => {
     ).toBeNull();
   });
 
+  it("offers no add to an editor who is not the decider on the current document", async () => {
+    const missing = receipt({
+      notChecked: [{ slot: "s", slotName: "Owner", type: "person" }],
+    });
+    await show(missing, {
+      ...current,
+      topic: { id: "t1", canDecide: false, deciderName: "Ann" },
+    });
+    await screen.findByText(`${T}.deciderOnly`);
+    expect(
+      screen.queryByRole("button", { name: `${T}.addName {"name":"Owner"}` }),
+    ).toBeNull();
+    cleanup();
+
+    await show(missing, current);
+    expect(
+      await screen.findByRole("button", {
+        name: `${T}.addName {"name":"Owner"}`,
+      }),
+    ).toBeTruthy();
+  });
+
   it("shows the rejected value of a missing fact", async () => {
     await show(
       receipt({

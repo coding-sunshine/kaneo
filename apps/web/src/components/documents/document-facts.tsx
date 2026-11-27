@@ -137,7 +137,7 @@ export function DocumentFacts({
                   document={document}
                   fact={fact}
                   rejected={rejectedFor(fact.slot)}
-                  canEdit={canEdit}
+                  canEdit={canEdit && (!isCurrent || decider)}
                 />
               ))}
             {group.key !== "conflicts" &&
