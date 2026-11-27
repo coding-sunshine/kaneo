@@ -21,6 +21,7 @@ import {
   sentMessageSchema,
   workspaceParam,
 } from "./schema";
+import usageRoutes from "./usage-routes";
 
 const noAccess = errorResponse("Missing permission for this workspace");
 const notFound = errorResponse("Agent is disabled or chat not found");
@@ -86,7 +87,7 @@ const sendRoute = createRoute({
   path: "/workspace/{workspaceId}/messages",
   tags,
   summary: "Send a message to the agent",
-  description: `Send a message and wait for the agent to finish. The agent calls ${brand.name} tools with your own permissions and returns the full transcript of this turn.`,
+  description: `Send a message and wait for the agent to finish. The agent calls ${brand.name} tools with your own permissions and returns the full transcript of this turn. Answers 429 when the person's daily or the workspace's monthly AI budget is used up.`,
   middleware: [...read] as const,
   request: {
     params: workspaceParam,
@@ -110,7 +111,7 @@ const streamRoute = createRoute({
   tags,
   summary: "Send a message and stream the reply",
   description:
-    "Same as sending a message, but answers as server-sent events: `chat` (chat id and title), `delta` (reply text as it is written), `message` (each finished message, tool calls and results included), then `done`, or `error`.",
+    "Same as sending a message, but answers as server-sent events: `chat` (chat id and title), `delta` (reply text as it is written), `message` (each finished message, tool calls and results included), then `done`, or `error`. A used-up AI budget ends in an `error` event.",
   middleware: [...read] as const,
   request: {
     params: workspaceParam,
@@ -183,6 +184,7 @@ const routes = agent
         });
       }
     }) as never;
-  });
+  })
+  .route("/", usageRoutes);
 
 export default routes;

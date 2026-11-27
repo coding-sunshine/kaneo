@@ -2,6 +2,7 @@ import {
   Activity,
   Bell,
   Building2,
+  ChartColumn,
   Code,
   CreditCard,
   Import,
@@ -38,6 +39,8 @@ type BuildSettingsNavInput = {
   billingEnabled: boolean;
   canImport: boolean;
   canManageWebhooks?: boolean;
+  /** An admin on a server with a model key. */
+  canManageAiUsage?: boolean;
   /** The signed-in user's instance permissions. */
   adminPermissions: readonly InstancePermission[];
   projects: { id: string; name: string; icon?: string | null }[];
@@ -140,6 +143,7 @@ export function buildSettingsNav({
   billingEnabled,
   canImport,
   canManageWebhooks = false,
+  canManageAiUsage = false,
   adminPermissions,
   projects,
 }: BuildSettingsNavInput): SettingsNav {
@@ -228,6 +232,16 @@ export function buildSettingsNav({
                 label: t("settings:workspaceWebhooks.title"),
                 to: "/dashboard/settings/workspace/webhooks",
                 icon: Webhook,
+              },
+            ]
+          : []),
+        ...(canManageAiUsage
+          ? [
+              {
+                id: "workspace-ai-usage",
+                label: t("settings:aiUsage.title"),
+                to: "/dashboard/settings/workspace/ai-usage",
+                icon: ChartColumn,
               },
             ]
           : []),

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { buildSettingsNav } from "@/components/settings/nav/build-settings-nav";
+import { useHasAgent } from "@/hooks/queries/agent/use-agent";
 import useAdminAccess from "@/hooks/queries/admin/use-admin-access";
 import useGetConfig from "@/hooks/queries/config/use-get-config";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
@@ -18,6 +19,7 @@ export function useSettingsNav() {
   const { permissions: adminPermissions } = useAdminAccess();
   const { canImport } = useCanImport();
   const canManageWebhooks = useWorkspacePermission().canManageSettings();
+  const canManageAiUsage = useHasAgent() && canManageWebhooks;
 
   return useMemo(
     () =>
@@ -27,6 +29,7 @@ export function useSettingsNav() {
         billingEnabled: Boolean(config?.billingEnabled),
         canImport,
         canManageWebhooks,
+        canManageAiUsage,
         adminPermissions,
         // "Your teams" lists only teams you joined, like the app sidebar.
         projects: (projects ?? []).filter(
@@ -39,6 +42,7 @@ export function useSettingsNav() {
       config?.billingEnabled,
       canImport,
       canManageWebhooks,
+      canManageAiUsage,
       adminPermissions,
       projects,
     ],

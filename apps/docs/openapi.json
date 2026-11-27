@@ -3389,6 +3389,102 @@
           "messages"
         ]
       },
+      "AiUsage": {
+        "type": "object",
+        "properties": {
+          "budget": {
+            "$ref": "#/components/schemas/AiBudget"
+          },
+          "monthTokens": {
+            "type": "integer",
+            "description": "Tokens used this UTC month."
+          },
+          "days": {
+            "type": "integer",
+            "description": "How many days the lists below cover."
+          },
+          "byFeature": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "feature": {
+                  "type": "string",
+                  "description": "assistant, loop or loop-draft."
+                },
+                "tokens": {
+                  "type": "integer"
+                },
+                "cost": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "description": "US dollars the provider reported, when it did."
+                }
+              },
+              "required": [
+                "feature",
+                "tokens",
+                "cost"
+              ]
+            }
+          },
+          "byDay": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "day": {
+                  "type": "string",
+                  "description": "UTC date, YYYY-MM-DD."
+                },
+                "tokens": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "day",
+                "tokens"
+              ]
+            }
+          }
+        },
+        "required": [
+          "budget",
+          "monthTokens",
+          "days",
+          "byFeature",
+          "byDay"
+        ]
+      },
+      "AiBudget": {
+        "type": "object",
+        "properties": {
+          "userDailyTokens": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 1000000000,
+            "description": "Tokens one person may use in this workspace per UTC day. Null means no limit."
+          },
+          "workspaceMonthlyTokens": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 1000000000,
+            "description": "Tokens the whole workspace may use per UTC calendar month. Null means no limit."
+          }
+        },
+        "required": [
+          "userDailyTokens",
+          "workspaceMonthlyTokens"
+        ]
+      },
       "Loop": {
         "type": "object",
         "properties": {
@@ -27846,7 +27942,7 @@
           "Agent"
         ],
         "summary": "Send a message to the agent",
-        "description": "Send a message and wait for the agent to finish. The agent calls Organyz Work tools with your own permissions and returns the full transcript of this turn.",
+        "description": "Send a message and wait for the agent to finish. The agent calls Organyz Work tools with your own permissions and returns the full transcript of this turn. Answers 429 when the person's daily or the workspace's monthly AI budget is used up.",
         "parameters": [
           {
             "schema": {
@@ -27945,7 +28041,7 @@
           "Agent"
         ],
         "summary": "Send a message and stream the reply",
-        "description": "Same as sending a message, but answers as server-sent events: `chat` (chat id and title), `delta` (reply text as it is written), `message` (each finished message, tool calls and results included), then `done`, or `error`.",
+        "description": "Same as sending a message, but answers as server-sent events: `chat` (chat id and title), `delta` (reply text as it is written), `message` (each finished message, tool calls and results included), then `done`, or `error`. A used-up AI budget ends in an `error` event.",
         "parameters": [
           {
             "schema": {
@@ -28013,6 +28109,146 @@
           },
           "404": {
             "description": "Agent is disabled or chat not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/usage": {
+      "get": {
+        "operationId": "getAiUsage",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Get AI usage",
+        "description": "Tokens the assistant and loops used in this workspace over the last 30 UTC days, by feature and by day, with the workspace's budgets. Admins and owners only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AI usage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiUsage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/budget": {
+      "put": {
+        "operationId": "setAiBudget",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Set AI budgets",
+        "description": "Set the per-person daily and the workspace monthly token budgets. A call is refused, before the model is asked, once either is used up. Admins and owners only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiBudget"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Budgets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiBudget"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or workspace not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -28536,7 +28772,7 @@
           "Loops"
         ],
         "summary": "Draft a loop from a description",
-        "description": "One model call turns a plain-language description into a loop draft (name, instructions, trigger or schedule). Nothing is saved.",
+        "description": "One model call turns a plain-language description into a loop draft (name, instructions, trigger or schedule). Nothing is saved. Answers 429 when the person's daily or the workspace's monthly AI budget is used up.",
         "requestBody": {
           "required": true,
           "content": {
@@ -28625,7 +28861,7 @@
           "Loops"
         ],
         "summary": "Run loop now",
-        "description": "Run the loop immediately and wait for it to finish. Only the creator can.",
+        "description": "Run the loop immediately and wait for it to finish. Only the creator can. Answers 429 when the person's daily or the workspace's monthly AI budget is used up.",
         "parameters": [
           {
             "schema": {
