@@ -23,6 +23,9 @@ import {
   topicTable,
 } from "../../apps/api/src/database/schema";
 import { markInternalRequest } from "../../apps/api/src/agent/internal-auth";
+import { proposer } from "../../apps/api/src/agent/proposals/create-proposal";
+import { listAudit } from "../../apps/api/src/agent/proposals/list-audit";
+import { createSelfClient } from "../../apps/api/src/agent/self-client";
 import { settleEvents } from "../../apps/api/src/events";
 import { createApp } from "../../apps/api/src/index";
 import {
@@ -761,6 +764,187 @@ describe("guest access", () => {
       expect(forGuest.status, path).toBe(200);
       expect(await forGuest.json(), path).toEqual({ references: [] });
     }
+  });
+
+  it("lets a guest hold direct messages only with people they work with", async () => {
+    const world = await setUp();
+    const dms = `/chat/workspace/${world.workspaceId}/direct-messages`;
+    const open = (request: Request, userIds: string[]) =>
+      request(dms, { method: "POST", body: { userIds } });
+    // Shares only channel X with the guest, no project.
+    const colleague = await signUpWithSession(app, {
+      email: "colleague@example.test",
+      name: "Colleague",
+    });
+    await db.insert(schema.workspaceUserTable).values({
+      workspaceId: world.workspaceId,
+      userId: colleague.userId,
+      role: "member",
+      joinedAt: new Date(),
+    });
+    await restrictToProjects(world.workspaceId, colleague.userId, [world.q.id]);
+    await db
+      .insert(chatChannelMemberTable)
+      .values({ channelId: world.x.id, userId: colleague.userId });
+
+    expect((await open(world.guestRequest, [world.owner.userId])).status).toBe(
+      200,
+    );
+    expect((await open(world.guestRequest, [colleague.userId])).status).toBe(
+      200,
+    );
+    // Someone who shares nothing answers like someone who does not exist.
+    const outsider = await open(world.guestRequest, [world.teammate.userId]);
+    const unknown = await open(world.guestRequest, ["user-does-not-exist"]);
+    expect(outsider.status).toBe(404);
+    expect(unknown.status).toBe(404);
+    expect(await outsider.json()).toEqual(await unknown.json());
+    // Nor can anyone else put the guest in a conversation with an outsider.
+    expect(
+      (await open(world.teammateRequest, [world.guest.userId])).status,
+    ).toBe(404);
+    expect(
+      (
+        await open(world.ownerRequest, [
+          world.guest.userId,
+          world.teammate.userId,
+        ])
+      ).status,
+    ).toBe(404);
+
+    // A conversation made before the rule, or after sharing ended, is gone.
+    const [old] = await db
+      .insert(chatChannelTable)
+      .values({
+        workspaceId: world.workspaceId,
+        name: "",
+        isPrivate: true,
+        directKey: [world.guest.userId, world.teammate.userId].sort().join(","),
+        createdBy: world.teammate.userId,
+      })
+      .returning();
+    await db.insert(chatChannelMemberTable).values([
+      { channelId: old.id, userId: world.guest.userId },
+      { channelId: old.id, userId: world.teammate.userId },
+    ]);
+    await db.insert(chatMessageTable).values({
+      channelId: old.id,
+      userId: world.teammate.userId,
+      body: "Canary direct note",
+    });
+    const listed = async () => {
+      const response = await world.guestRequest(dms);
+      expect(response.status).toBe(200);
+      return ((await response.json()) as { memberIds: string[] }[]).map((dm) =>
+        dm.memberIds.filter((id) => id !== world.guest.userId),
+      );
+    };
+    expect((await listed()).sort()).toEqual(
+      [[world.owner.userId], [colleague.userId]].sort(),
+    );
+    const oldPath = `/chat/workspace/${world.workspaceId}/channels/${old.id}`;
+    expect((await world.guestRequest(oldPath)).status).toBe(404);
+    expect((await world.guestRequest(`${oldPath}/messages`)).status).toBe(404);
+    expect(
+      (
+        await world.guestRequest(`${oldPath}/messages`, {
+          method: "POST",
+          body: { body: "hello" },
+        })
+      ).status,
+    ).toBe(404);
+    // The teammate still has it.
+    expect((await world.teammateRequest(`${oldPath}/messages`)).status).toBe(
+      200,
+    );
+
+    await db
+      .delete(chatChannelMemberTable)
+      .where(
+        and(
+          eq(chatChannelMemberTable.channelId, world.x.id),
+          eq(chatChannelMemberTable.userId, colleague.userId),
+        ),
+      );
+    expect(await listed()).toEqual([[world.owner.userId]]);
+  });
+
+  it("keeps a guest's assistant proposals and the AI audit inside the guest's projects", async () => {
+    const world = await setUp();
+    const [chat] = await db
+      .insert(schema.agentChatTable)
+      .values({
+        workspaceId: world.workspaceId,
+        userId: world.guest.userId,
+        title: "Guest chat",
+      })
+      .returning();
+    const propose = proposer({
+      userId: world.guest.userId,
+      workspaceId: world.workspaceId,
+      chatId: chat.id,
+      prompt: "Add a ticket",
+      client: createSelfClient(new Headers({ cookie: world.guest.cookies })),
+    });
+    const ask = (tool: string, args: Record<string, unknown>) =>
+      propose(
+        { tool, args, reason: "asked", sources: [] },
+        { toolCallId: `call-${tool}-${Math.random()}`, added: [] },
+      ).then((text) => JSON.parse(text) as { error?: string });
+
+    expect(
+      await ask("create_task", { projectId: world.q.id, title: "Sneak in" }),
+    ).toEqual({ error: "Project not found" });
+    expect(
+      await ask("update_task", {
+        taskId: world.pTask.id,
+        projectId: world.q.id,
+      }),
+    ).toEqual({ error: "Project not found" });
+    expect(
+      (await ask("update_task", { taskId: world.qTask.id, title: "Nope" }))
+        .error,
+    ).toBeTruthy();
+    expect(
+      (await ask("create_task", { projectId: world.p.id, title: "Real one" }))
+        .error,
+    ).toBeUndefined();
+    const rows = await db
+      .select({ projectId: schema.agentProposalTable.projectId })
+      .from(schema.agentProposalTable)
+      .where(eq(schema.agentProposalTable.userId, world.guest.userId));
+    expect(rows).toEqual([{ projectId: world.p.id }]);
+
+    // An accepted write in Q never reaches the guest's view of the audit,
+    // and the audit route is for admins only.
+    await db.insert(schema.agentProposalTable).values({
+      workspaceId: world.workspaceId,
+      chatId: world.chat.id,
+      userId: world.owner.userId,
+      toolCallId: "owner-call",
+      tool: "create_task",
+      arguments: { projectId: world.q.id, title: "Canary hire" },
+      projectId: world.q.id,
+      prompt: "Canary hiring plan",
+      toolCalls: [],
+      sources: [],
+      diff: [],
+      reason: "asked",
+      status: "accepted",
+      decidedBy: world.owner.userId,
+      decidedAt: new Date(),
+    });
+    const audit = await listAudit({
+      userId: world.guest.userId,
+      workspaceId: world.workspaceId,
+      mayReadTasks: true,
+    });
+    expect(JSON.stringify(audit)).not.toMatch(CANARY);
+    const route = await world.guestRequest(
+      `/agent/workspace/${world.workspaceId}/audit`,
+    );
+    expect([403, 404]).toContain(route.status);
+    expect(await route.text()).not.toMatch(CANARY);
   });
 
   describe("over WebSocket", () => {

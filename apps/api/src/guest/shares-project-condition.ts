@@ -4,7 +4,7 @@ import { projectAccessCondition } from "../project-access/project-access-conditi
 // The person in `memberId` can enter a project of the workspace that the
 // viewer can enter too: the people a guest works with.
 export function sharesProjectCondition(
-  viewerId: string,
+  viewerId: string | SQLWrapper,
   memberId: SQLWrapper,
   workspaceId: string,
 ) {

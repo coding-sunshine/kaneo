@@ -76,9 +76,10 @@ Once they accept, a guest:
 - sees only the people who work on their projects, by name and picture but without their email addresses. The **Members** page, **Projects**, and **Pulse** aren't shown to them.
 - doesn't see the workspace's pending invitations or teams, or links to their tasks from tasks and documents they can't open.
 - doesn't see workspace-wide documents, documents of projects that have no team, other people's workspace-wide saved views and loops, or search results from anywhere else.
+- can send direct messages only to people who share one of their projects or channels. Nobody can add them to a conversation with anyone else, and a conversation disappears for them once they no longer share a project or channel with everyone in it.
 - can work on tasks in their projects, but can't create projects, invite anyone, or change roles and teams, even if the workspace's roles would allow it.
 
-The same limits apply to the guest's assistant, loops, API keys, and MCP clients, since they all act as the guest.
+The same limits apply to the guest's assistant, loops, API keys, and MCP clients, since they all act as the guest. The assistant only proposes changes inside the guest's projects, so the AI audit holds nothing from elsewhere for their work.
 
 To take a guest out of a channel, open the channel's menu and choose **Manage members**. They lose the channel with their next request. Only workspace admins can add a guest to a channel or remove people from one.
 
