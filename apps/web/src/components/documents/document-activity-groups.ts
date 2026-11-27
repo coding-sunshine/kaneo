@@ -1,12 +1,12 @@
 export type ActivityGroupKey = "thisWeek" | "lastWeek" | "thisMonth" | "older";
 
-/** Midnight on the Sunday of the week `now` falls in, local time, as Linear groups. */
+/** Midnight on the Monday of the week `now` falls in, local time. */
 // Calendar arithmetic, not milliseconds, so a daylight-saving change cannot shift it.
 function startOfWeek(now: Date, weeksBack = 0) {
   return new Date(
     now.getFullYear(),
     now.getMonth(),
-    now.getDate() - now.getDay() - 7 * weeksBack,
+    now.getDate() - ((now.getDay() + 6) % 7) - 7 * weeksBack,
   );
 }
 

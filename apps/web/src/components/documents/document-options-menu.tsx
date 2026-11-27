@@ -8,6 +8,8 @@ import {
   Link2,
   Lock,
   Pencil,
+  Pin,
+  PinOff,
   Star,
   Trash2,
   UserPlus,
@@ -37,6 +39,7 @@ import { useGetWorkProjects } from "@/hooks/queries/work-project/use-get-work-pr
 import { toast } from "@/lib/toast";
 import { type MoveLocation, MoveDocumentDialog } from "./move-document-dialog";
 import { useCopyDocumentLink } from "./use-copy-document-link";
+import { useDocumentPins } from "./use-document-pins";
 
 type DocumentOptionsMenuProps = {
   document: DocumentDetail;
@@ -71,6 +74,12 @@ export function DocumentOptionsMenu({
   const restore = useRestoreDocument(workspaceId);
   const favorite = useFavorite(workspaceId, { type: "document", targetId: id });
   const copyLink = useCopyDocumentLink(workspaceId, id);
+  const pins = useDocumentPins(workspaceId);
+  const pinned = pins.pinnedIds.includes(id);
+  const togglePin = () =>
+    (pinned ? pins.unpin(id) : pins.pin([id])).catch((error: Error) =>
+      toast.error(error.message),
+    );
 
   const moveTo = (location: MoveLocation, name: string) =>
     setTarget({ location, name });
@@ -210,6 +219,12 @@ export function DocumentOptionsMenu({
             {favorite.isFavorite
               ? t("navigation:documents.unfavorite")
               : t("navigation:documents.favorite")}
+          </MenuItem>
+          <MenuItem onClick={togglePin}>
+            {pinned ? <PinOff aria-hidden /> : <Pin aria-hidden />}
+            {pinned
+              ? t("navigation:documents.pins.unpin")
+              : t("navigation:documents.pins.pin")}
           </MenuItem>
           <MenuItem onClick={onToggleHistory}>
             <Clock aria-hidden />
