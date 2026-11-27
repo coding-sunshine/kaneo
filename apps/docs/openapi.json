@@ -1728,6 +1728,14 @@
             ],
             "format": "date-time"
           },
+          "completedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the task entered a completed status; null unless completed."
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -2893,6 +2901,32 @@
               "started",
               "done"
             ]
+          },
+          "summary": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "completed": {
+                "type": "integer",
+                "description": "Issues finished when the cycle ended."
+              },
+              "addedAfterStart": {
+                "type": "integer",
+                "description": "Issues that joined the cycle after it started."
+              },
+              "carriedOver": {
+                "type": "integer",
+                "description": "Issues still open when the cycle ended."
+              }
+            },
+            "required": [
+              "completed",
+              "addedAfterStart",
+              "carriedOver"
+            ],
+            "description": "Team totals snapshotted when the cycle completes; null until then. Canceled and archived issues are excluded."
           }
         },
         "required": [
@@ -2904,7 +2938,8 @@
           "endsAt",
           "completedAt",
           "createdAt",
-          "progress"
+          "progress",
+          "summary"
         ]
       },
       "ItIntake": {

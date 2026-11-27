@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import ProjectLayout from "@/components/common/project-layout";
 import { CycleSidePanel } from "@/components/cycle/cycle-side-panel";
+import { CycleSummary } from "@/components/cycle/cycle-summary";
 import KanbanBoard from "@/components/kanban-board";
 import ListView from "@/components/list-view";
 import PageTitle from "@/components/page-title";
@@ -155,38 +156,41 @@ function RouteComponent() {
     >
       <PageTitle title={cycle ? cycleTitle(cycle) : undefined} />
       <div className="flex h-full min-h-0 overflow-hidden">
-        <div className="flex min-w-0 flex-1 overflow-hidden">
-          {cyclesLoaded && !cycle ? (
-            <Empty className="min-h-[60vh] flex-1">
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <SearchXIcon />
-                </EmptyMedia>
-                <EmptyTitle>{t("workspace:cycles.notFound")}</EmptyTitle>
-                <EmptyDescription>
-                  {t("workspace:cycles.notFoundDescription")}
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          ) : sorted ? (
-            viewMode === "board" ? (
-              <KanbanBoard
-                key={cycle?.id}
-                project={sorted}
-                disableCollectionActions
-                disableDragDrop
-              />
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          {cycle?.summary && <CycleSummary summary={cycle.summary} />}
+          <div className="flex min-h-0 flex-1 overflow-hidden">
+            {cyclesLoaded && !cycle ? (
+              <Empty className="min-h-[60vh] flex-1">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <SearchXIcon />
+                  </EmptyMedia>
+                  <EmptyTitle>{t("workspace:cycles.notFound")}</EmptyTitle>
+                  <EmptyDescription>
+                    {t("workspace:cycles.notFoundDescription")}
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            ) : sorted ? (
+              viewMode === "board" ? (
+                <KanbanBoard
+                  key={cycle?.id}
+                  project={sorted}
+                  disableCollectionActions
+                  disableDragDrop
+                />
+              ) : (
+                <ListView
+                  key={cycle?.id}
+                  project={sorted}
+                  disableCollectionActions
+                  disableDragDrop
+                />
+              )
             ) : (
-              <ListView
-                key={cycle?.id}
-                project={sorted}
-                disableCollectionActions
-                disableDragDrop
-              />
-            )
-          ) : (
-            <Skeleton className="m-4 h-10 w-full" />
-          )}
+              <Skeleton className="m-4 h-10 w-full" />
+            )}
+          </div>
         </div>
         {cycle && <CycleSidePanel cycle={cycle} board={board} />}
       </div>

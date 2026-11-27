@@ -49,6 +49,7 @@ vi.mock("./task-title", () => ({ default: () => null }));
 vi.mock("./task-time-tracking", () => ({ TaskTimeTracking: () => null }));
 vi.mock("./task-attachments", () => ({ default: () => null }));
 vi.mock("./task-archived-banner", () => ({ default: () => null }));
+vi.mock("./task-email-reply", () => ({ TaskEmailReply: () => null }));
 
 beforeEach(() => {
   mocks.getRelations.mockReturnValue({

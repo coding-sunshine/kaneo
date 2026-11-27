@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { invalidateMyWork } from "@/lib/invalidate-my-work";
 import updateTaskStatus from "@/fetchers/task/update-task-status";
+import { celebrateCompletion } from "@/lib/completion-celebration";
 import { isPerTaskRelationQuery } from "@/lib/relation-query-keys";
 import {
   applyOptimisticBoardPatch,
@@ -20,7 +21,8 @@ export function useUpdateTaskStatus() {
       }),
     onError: (_error, _task, context) =>
       rollbackOptimisticBoardPatch(queryClient, context),
-    onSuccess: (_, variables) => {
+    onSuccess: (result, variables) => {
+      if (result.completedAt && !variables.completedAt) celebrateCompletion();
       invalidateMyWork(queryClient);
       queryClient.invalidateQueries({
         queryKey: ["task", variables.id],

@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, isNull, lte, sql } from "drizzle-orm";
+import { and, asc, eq, gt, isNull, lte, notInArray, sql } from "drizzle-orm";
 import db from "../database";
 import {
   activityTable,
@@ -66,18 +66,35 @@ export async function reconcileCycles(projectId: string, now = new Date()) {
       if (created) cycles.push(created);
     }
 
+    const finished = sql`${taskTable.status} in (select ${columnTable.slug} from ${columnTable} where ${columnTable.projectId} = ${projectId} and ${columnTable.isFinal})`;
     for (const [i, cycle] of cycles.entries()) {
       if (cycle.completedAt || cycle.endsAt > now) continue;
+      // Team totals only, taken before rollover moves the unfinished issues.
+      const [summary] = await tx
+        .select({
+          completed: sql<number>`(count(*) filter (where ${finished}))::int`,
+          carriedOver: sql<number>`(count(*) filter (where not ${finished}))::int`,
+          addedAfterStart: sql<number>`(count(*) filter (where ${gt(taskTable.cycleAddedAt, cycle.startsAt)}))::int`,
+        })
+        .from(taskTable)
+        .where(
+          and(
+            eq(taskTable.cycleId, cycle.id),
+            isNull(taskTable.archivedAt),
+            notInArray(taskTable.status, ["archived", "canceled"]),
+          ),
+        );
       const next = cycles[i + 1];
       if (project.cycleAutoRollover && next) {
         const moved = await tx
           .update(taskTable)
-          .set({ cycleId: next.id })
+          // Rolled-over issues count as planned for the next cycle.
+          .set({ cycleId: next.id, cycleAddedAt: next.startsAt })
           .where(
             and(
               eq(taskTable.cycleId, cycle.id),
               isNull(taskTable.archivedAt),
-              sql`${taskTable.status} not in (select ${columnTable.slug} from ${columnTable} where ${columnTable.projectId} = ${projectId} and ${columnTable.isFinal})`,
+              sql`not ${finished}`,
             ),
           )
           .returning({ id: taskTable.id });
@@ -95,7 +112,12 @@ export async function reconcileCycles(projectId: string, now = new Date()) {
       }
       await tx
         .update(cycleTable)
-        .set({ completedAt: cycle.endsAt })
+        .set({
+          completedAt: cycle.endsAt,
+          summaryCompleted: summary?.completed ?? 0,
+          summaryAddedAfterStart: summary?.addedAfterStart ?? 0,
+          summaryCarriedOver: summary?.carriedOver ?? 0,
+        })
         .where(eq(cycleTable.id, cycle.id));
     }
   });
@@ -147,6 +169,6 @@ export async function autoAddToCurrentCycle(
   if (!current) return;
   await db
     .update(taskTable)
-    .set({ cycleId: current.id })
+    .set({ cycleId: current.id, cycleAddedAt: now })
     .where(and(eq(taskTable.id, taskId), isNull(taskTable.cycleId)));
 }

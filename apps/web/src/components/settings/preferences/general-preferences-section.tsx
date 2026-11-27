@@ -22,6 +22,12 @@ export function GeneralPreferencesSection() {
   const setSidebarDefaultOpen = useUserPreferencesStore(
     (state) => state.setSidebarDefaultOpen,
   );
+  const completionAnimation = useUserPreferencesStore(
+    (state) => state.completionAnimation,
+  );
+  const setCompletionAnimation = useUserPreferencesStore(
+    (state) => state.setCompletionAnimation,
+  );
   const codeReviewsEnabled = useUserPreferencesStore(
     (state) => state.codeReviewsEnabled,
   );
@@ -49,6 +55,14 @@ export function GeneralPreferencesSection() {
           description={t("settings:preferencesPage.sidebarDefaultDescription")}
           checked={sidebarDefaultOpen}
           onCheckedChange={setSidebarDefaultOpen}
+        />
+        <PreferenceSwitchRow
+          title={t("settings:preferencesPage.completionAnimation")}
+          description={t(
+            "settings:preferencesPage.completionAnimationDescription",
+          )}
+          checked={completionAnimation}
+          onCheckedChange={setCompletionAnimation}
         />
         <PreferenceSwitchRow
           title={t("settings:preferencesPage.codeReviews")}

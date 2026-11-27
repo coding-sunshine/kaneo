@@ -227,6 +227,7 @@ async function createTask({
         workProjectId: workProjectId ?? null,
         workProjectMilestoneId: workProjectMilestoneId ?? null,
         cycleId: cycleId ?? null,
+        cycleAddedAt: cycleId ? new Date() : null,
         sourceCommentId: sourceComment ? sourceCommentId : null,
         title: title || "",
         status: resolvedStatus,

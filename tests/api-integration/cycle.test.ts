@@ -163,4 +163,76 @@ describe("API integration: cycles", () => {
       ],
     ]);
   });
+
+  it("snapshots a team summary when a cycle completes, with no per-person data", async () => {
+    const { app, project, columns, task, enable } = await setup();
+    await enable({ cycleAutoRollover: true });
+    const [first, second] = (await db.select().from(schema.cycleTable)).sort(
+      (a, b) => a.number - b.number,
+    );
+    const beforeStart = new Date(first.startsAt.getTime() - 24 * 3600 * 1000);
+    const plan = async (number: number, columnId: string, status: string) => {
+      const t = await task(number, columnId, status);
+      await db
+        .update(schema.taskTable)
+        .set({ cycleId: first.id, cycleAddedAt: beforeStart })
+        .where(eq(schema.taskTable.id, t.id));
+      return t;
+    };
+    await plan(101, columns.done.id, "done");
+    await plan(102, columns.inProgress.id, "in-progress");
+    await plan(103, columns.todo.id, "canceled");
+    // Added after start: one through the task cycle route, one on creation.
+    const late = await task(104, columns.done.id, "done");
+    await app.request(
+      `/api/task/cycle/${late.id}`,
+      json("PUT", { cycleId: first.id }),
+    );
+    const created = await app.request(
+      `/api/task/${project.id}`,
+      json("POST", {
+        title: "Added later",
+        description: "",
+        status: "to-do",
+        priority: "medium",
+        cycleId: first.id,
+      }),
+    );
+    expect(created.status).toBe(200);
+
+    const open = await (await app.request(`/api/cycle/${first.id}`)).json();
+    expect(open.summary).toBeNull();
+
+    await reconcileCycles(project.id, new Date(first.endsAt.getTime() + 1000));
+    const done = await (await app.request(`/api/cycle/${first.id}`)).json();
+    expect(done.summary).toEqual({
+      completed: 2,
+      addedAfterStart: 2,
+      carriedOver: 2,
+    });
+
+    // Rolled-over issues were planned for the next cycle, not added to it.
+    await reconcileCycles(project.id, new Date(second.endsAt.getTime() + 1000));
+    const next = await (await app.request(`/api/cycle/${second.id}`)).json();
+    expect(next.summary).toEqual({
+      completed: 0,
+      addedAfterStart: 0,
+      carriedOver: 2,
+    });
+  });
+
+  it("hides a cycle and its summary from people outside the workspace", async () => {
+    const { project, enable } = await setup();
+    await enable();
+    const [cycle] = await db
+      .select()
+      .from(schema.cycleTable)
+      .where(eq(schema.cycleTable.projectId, project.id));
+    const outsider = await createWorkspaceMember({ role: "owner" });
+    mockAuthenticatedSession(outsider.user);
+    const { app } = createApp();
+    const response = await app.request(`/api/cycle/${cycle.id}`);
+    expect([403, 404]).toContain(response.status);
+    expect(await response.text()).not.toContain("summary");
+  });
 });
