@@ -807,7 +807,10 @@
 				"remove": "Remove {{tool}}",
 				"title": "Coding tools",
 				"urlPlaceholder": "cursor://vscode.git/clone?url=https://github.com/{owner}/{repo}.git"
-			}
+			},
+			"chatPresence": "Show when I'm online",
+			"chatPresenceDescription": "Others see a dot by your name in chat, but only people who turned this on too. Off by default.",
+			"chatTitle": "Chat"
 		},
 		"managedProfile": {
 			"note": "Kuruluşunuz tarafından yönetiliyor.",
@@ -4370,7 +4373,8 @@
 			"pin": "Pin to channel",
 			"pinned": "Pinned messages",
 			"save": "Save",
-			"unpin": "Unpin"
+			"unpin": "Unpin",
+			"online": "Online"
 		}
 	},
 	"notifications": {

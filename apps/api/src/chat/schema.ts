@@ -93,5 +93,22 @@ export const messageSchema = z
   .openapi("ChatMessage");
 
 export const messageListSchema = z.array(messageSchema);
+export const presenceSettingBody = z.object({
+  enabled: z.boolean().openapi({
+    description: "Show others in your workspaces when you are online in chat.",
+  }),
+});
+export const presenceSettingSchema = presenceSettingBody.openapi(
+  "ChatPresenceSetting",
+);
+export const onlineListSchema = z
+  .object({
+    online: z.array(z.string()).openapi({
+      description:
+        "Ids of workspace members who turned presence on and are online now. Empty while your own presence is off.",
+    }),
+  })
+  .openapi("ChatOnlineList");
+
 export const deletedMessageSchema = z.object({ messageId: z.string() });
 export const leftChannelSchema = z.object({ channelId: z.string() });

@@ -11,6 +11,7 @@ type MessageItemProps = {
   channelId: string;
   currentUserId: string | undefined;
   canWrite: boolean;
+  online: boolean;
 };
 
 export function MessageItem({
@@ -19,6 +20,7 @@ export function MessageItem({
   channelId,
   currentUserId,
   canWrite,
+  online,
 }: MessageItemProps) {
   const { t, i18n } = useTranslation();
   const [editing, setEditing] = useState(false);
@@ -31,8 +33,16 @@ export function MessageItem({
   return (
     <li className="group flex flex-col gap-0.5">
       <span className="flex items-baseline gap-2 text-xs">
-        <span className="font-medium">
+        <span className="flex items-center gap-1.5 font-medium">
           {message.authorName ?? t("navigation:chat.deletedUser")}
+          {online && (
+            <span
+              role="img"
+              aria-label={t("navigation:chat.online")}
+              title={t("navigation:chat.online")}
+              className="size-2 rounded-full bg-emerald-500"
+            />
+          )}
         </span>
         <time
           dateTime={new Date(message.createdAt).toISOString()}

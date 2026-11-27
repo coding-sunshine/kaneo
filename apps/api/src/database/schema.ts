@@ -3370,6 +3370,17 @@ export const chatMessageReactionTable = pgTable(
   ],
 );
 
+// Chat presence is opt-in: a row exists only while the user has it on, so
+// turning it off deletes the row and the dot is gone at once.
+export const chatPresenceTable = pgTable("chat_presence", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => userTable.id, { onDelete: "cascade" }),
+  lastSeenAt: timestamp("last_seen_at", { mode: "date" })
+    .default(utcNow)
+    .notNull(),
+});
+
 // A loop runs its instructions as the agent on a schedule, with the creator's
 // permissions at run time. Disabled loops keep their `nextRunAt` but never run.
 export const loopTable = pgTable(

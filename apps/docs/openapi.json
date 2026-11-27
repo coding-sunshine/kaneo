@@ -3293,6 +3293,33 @@
           "updatedAt"
         ]
       },
+      "ChatPresenceSetting": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Show others in your workspaces when you are online in chat."
+          }
+        },
+        "required": [
+          "enabled"
+        ]
+      },
+      "ChatOnlineList": {
+        "type": "object",
+        "properties": {
+          "online": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Ids of workspace members who turned presence on and are online now. Empty while your own presence is off."
+          }
+        },
+        "required": [
+          "online"
+        ]
+      },
       "ChatChannel": {
         "type": "object",
         "properties": {
@@ -27786,6 +27813,183 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/presence": {
+      "get": {
+        "operationId": "getChatPresenceSetting",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Get presence setting",
+        "description": "Whether you show others when you are online. Off by default.",
+        "responses": {
+          "200": {
+            "description": "Presence setting",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatPresenceSetting"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "put": {
+        "operationId": "setChatPresenceSetting",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Set presence setting",
+        "description": "Turn your online presence on or off. Off removes it for everyone at once.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean",
+                    "description": "Show others in your workspaces when you are online in chat."
+                  }
+                },
+                "required": [
+                  "enabled"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Presence setting",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatPresenceSetting"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/presence/heartbeat": {
+      "post": {
+        "operationId": "chatPresenceHeartbeat",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Send presence heartbeat",
+        "description": "Mark yourself online for the next 90 seconds. Does nothing while presence is off.",
+        "responses": {
+          "200": {
+            "description": "Presence setting",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatPresenceSetting"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/presence": {
+      "get": {
+        "operationId": "listChatOnline",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "List online members",
+        "description": "Members of the workspace who turned presence on and are online. Empty unless your own presence is on.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Online members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatOnlineList"
                 }
               }
             }

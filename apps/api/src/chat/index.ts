@@ -21,6 +21,12 @@ import { pinMessage } from "./controllers/pin-message";
 import { postMessage } from "./controllers/post-message";
 import { reactToMessage } from "./controllers/react-to-message";
 import { updateChannel } from "./controllers/update-channel";
+import { listOnline } from "./presence/list-online";
+import {
+  getPresenceSetting,
+  recordHeartbeat,
+  setPresenceSetting,
+} from "./presence/set-presence";
 import {
   channelDetailSchema,
   channelListSchema,
@@ -34,7 +40,10 @@ import {
   messageListSchema,
   messageParam,
   messageSchema,
+  onlineListSchema,
   postMessageBody,
+  presenceSettingBody,
+  presenceSettingSchema,
   reactionBody,
   updateChannelBody,
   workspaceIdParam,
@@ -326,7 +335,74 @@ const listPinsRoute = createRoute({
   },
 });
 
+const getPresenceRoute = createRoute({
+  method: "get",
+  operationId: "getChatPresenceSetting",
+  path: "/presence",
+  tags,
+  summary: "Get presence setting",
+  description: "Whether you show others when you are online. Off by default.",
+  responses: { 200: jsonResponse("Presence setting", presenceSettingSchema) },
+});
+
+const setPresenceRoute = createRoute({
+  method: "put",
+  operationId: "setChatPresenceSetting",
+  path: "/presence",
+  tags,
+  summary: "Set presence setting",
+  description:
+    "Turn your online presence on or off. Off removes it for everyone at once.",
+  request: { body: body(presenceSettingBody) },
+  responses: { 200: jsonResponse("Presence setting", presenceSettingSchema) },
+});
+
+const heartbeatRoute = createRoute({
+  method: "post",
+  operationId: "chatPresenceHeartbeat",
+  path: "/presence/heartbeat",
+  tags,
+  summary: "Send presence heartbeat",
+  description:
+    "Mark yourself online for the next 90 seconds. Does nothing while presence is off.",
+  responses: { 200: jsonResponse("Presence setting", presenceSettingSchema) },
+});
+
+const onlineRoute = createRoute({
+  method: "get",
+  operationId: "listChatOnline",
+  path: "/workspace/{workspaceId}/presence",
+  tags,
+  summary: "List online members",
+  description:
+    "Members of the workspace who turned presence on and are online. Empty unless your own presence is on.",
+  middleware: [...access] as const,
+  request: { params: workspaceIdParam },
+  responses: {
+    200: jsonResponse("Online members", onlineListSchema),
+    403: noAccess,
+  },
+});
+
 const chat = apiRouter()
+  .openapi(getPresenceRoute, async (c) =>
+    c.json(await getPresenceSetting(c.get("userId")), 200),
+  )
+  .openapi(setPresenceRoute, async (c) =>
+    c.json(
+      await setPresenceSetting(c.get("userId"), c.req.valid("json").enabled),
+      200,
+    ),
+  )
+  .openapi(heartbeatRoute, async (c) =>
+    c.json(await recordHeartbeat(c.get("userId")), 200),
+  )
+  .openapi(onlineRoute, async (c) =>
+    c.json(
+      await listOnline(c.req.valid("param").workspaceId, c.get("userId")),
+      200,
+    ),
+  )
   .openapi(listRoute, async (c) =>
     c.json(
       await listChannels(c.req.valid("param").workspaceId, c.get("userId")),

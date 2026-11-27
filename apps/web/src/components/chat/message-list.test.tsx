@@ -177,4 +177,21 @@ describe("MessageList", () => {
       screen.queryByRole("button", { name: "navigation:chat.messageActions" }),
     ).toBeNull();
   });
+
+  it("shows a presence dot only on authors who are online", () => {
+    renderList(
+      [
+        message(),
+        message({ id: "message-2", userId: "user-2", authorName: "Other" }),
+      ],
+      { online: new Set(["user-2"]) },
+    );
+    const [first, second] = screen.getAllByRole("listitem");
+    expect(
+      within(second as HTMLElement).getByRole("img", {
+        name: "navigation:chat.online",
+      }),
+    ).toBeTruthy();
+    expect(within(first as HTMLElement).queryByRole("img")).toBeNull();
+  });
 });

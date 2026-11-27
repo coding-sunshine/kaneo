@@ -1236,6 +1236,9 @@
 			"priority": "Priority",
 			"projectBackgrounds": "Project backgrounds",
 			"projectBackgroundsDescription": "Show the image a project sets behind its board.",
+			"chatTitle": "Chat",
+			"chatPresence": "Show when I'm online",
+			"chatPresenceDescription": "Others see a dot by your name in chat, but only people who turned this on too. Off by default.",
 			"advancedTitle": "Advanced"
 		},
 		"managedProfile": {
@@ -4370,7 +4373,8 @@
 			"pin": "Pin to channel",
 			"unpin": "Unpin",
 			"pinned": "Pinned messages",
-			"noPins": "Nothing is pinned yet."
+			"noPins": "Nothing is pinned yet.",
+			"online": "Online"
 		}
 	},
 	"notifications": {

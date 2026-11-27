@@ -10,9 +10,11 @@ type MessageListProps = {
   currentUserId: string | undefined;
   /** Whether the reader may change messages here: a member of an open channel. */
   canWrite: boolean;
+  /** Authors to mark online; only set while the reader's presence is on. */
+  online?: Set<string>;
 };
 
-export function MessageList({ messages, ...item }: MessageListProps) {
+export function MessageList({ messages, online, ...item }: MessageListProps) {
   const { t } = useTranslation();
   const end = useRef<HTMLDivElement>(null);
   const last = messages.at(-1)?.id;
@@ -35,7 +37,12 @@ export function MessageList({ messages, ...item }: MessageListProps) {
       aria-label={t("navigation:chat.messages")}
     >
       {messages.map((message) => (
-        <MessageItem key={message.id} message={message} {...item} />
+        <MessageItem
+          key={message.id}
+          message={message}
+          online={Boolean(message.userId && online?.has(message.userId))}
+          {...item}
+        />
       ))}
       <div ref={end} />
     </ol>
