@@ -140,6 +140,7 @@ import { normalizeApiServerUrl } from "./utils/openapi-spec";
 import { seedDefaultWorkspaceRoles } from "./utils/seed-default-workspace-roles";
 import { drainSignInEmails } from "./utils/sign-in-email-tasks";
 import { validateWorkspaceAccess } from "./utils/validate-workspace-access";
+import { listenPort } from "./utils/listen-port";
 import { requireWorkspacePermission } from "./utils/require-workspace-permission";
 import { PROJECT_READ_PERMISSIONS } from "./ws/project-read-permissions";
 import { apiKeyResponseHeaders } from "./utils/rate-limit-headers";
@@ -1201,7 +1202,7 @@ export async function runStartupTasks() {
 
 export async function startServer(
   injectWebSocket: ReturnType<typeof createNodeWebSocket>["injectWebSocket"],
-  port = Number(process.env.PORT) || 1337,
+  port = listenPort(),
 ) {
   try {
     await runStartupTasks();
