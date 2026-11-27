@@ -4812,7 +4812,8 @@
 			"createTicket": "Create ticket",
 			"noTicketsFound": "No tickets found",
 			"openInChat": "Open in chat",
-			"searchTickets": "Search tickets"
+			"searchTickets": "Search tickets",
+			"drafts": "Drafts"
 		}
 	},
 	"notifications": {

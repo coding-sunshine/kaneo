@@ -23,6 +23,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Link, useParams } from "@tanstack/react-router";
 import { ChannelsNav } from "@/components/chat/channels-nav";
 import { DirectMessagesNav } from "@/components/chat/direct-messages-nav";
+import { DraftsNav } from "@/components/chat/drafts-nav";
 import { FavoritesNav } from "@/components/team/favorites-nav";
 import {
   LeaveTeamDialog,
@@ -201,6 +202,7 @@ export function NavProjects() {
       <FavoritesNav workspaceId={workspace.id} />
       <ChannelsNav workspaceId={workspace.id} />
       <DirectMessagesNav workspaceId={workspace.id} />
+      <DraftsNav workspaceId={workspace.id} />
       <Collapsible
         open={!collapsedNavIds.includes("your-teams")}
         onOpenChange={(open) => setNavOpen("your-teams", open)}

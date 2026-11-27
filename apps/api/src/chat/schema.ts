@@ -56,6 +56,21 @@ export const postMessageBody = z.object({
   body: z.string().trim().min(1).max(4000),
 });
 
+export const saveDraftBody = z.object({
+  body: z.string().max(4000).openapi({
+    description: "The unsent text. An empty or blank body deletes the draft.",
+  }),
+});
+
+export const draftSchema = z
+  .object({
+    channelId: z.string(),
+    body: z.string(),
+    updatedAt: responseTimestamp,
+  })
+  .openapi("ChatDraft");
+export const draftListSchema = z.array(draftSchema);
+
 export const ticketCommentBody = z.object({
   taskId: z.string().openapi({
     description: "A ticket in this workspace, in a team you can open.",

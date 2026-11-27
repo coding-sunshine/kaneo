@@ -18733,6 +18733,9 @@
 						"channels": {
 							"type": "string"
 						},
+						"drafts": {
+							"type": "string"
+						},
 						"browse": {
 							"type": "string"
 						},
@@ -18994,6 +18997,7 @@
 					},
 					"required": [
 						"channels",
+						"drafts",
 						"browse",
 						"directoryTitle",
 						"newChannel",

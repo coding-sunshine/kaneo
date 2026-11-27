@@ -3796,6 +3796,34 @@ export const chatMessageReactionTable = pgTable(
   ],
 );
 
+// What a user has typed into a channel's composer and not sent. Private to
+// that user: no response, event or socket shows it to anyone else.
+export const chatDraftTable = pgTable(
+  "chat_draft",
+  {
+    channelId: text("channel_id")
+      .notNull()
+      .references(() => chatChannelTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    body: text("body").notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.channelId, table.userId] }),
+    index("chat_draft_user_idx").on(table.userId),
+  ],
+);
+
 // Chat presence is opt-in: a row exists only while the user has it on, so
 // turning it off deletes the row and the dot is gone at once.
 export const chatPresenceTable = pgTable("chat_presence", {

@@ -4577,6 +4577,7 @@
 		},
 		"chat": {
 			"channels": "Channels",
+			"drafts": "Drafts",
 			"browse": "Browse channels",
 			"directoryTitle": "Channels",
 			"newChannel": "New channel",

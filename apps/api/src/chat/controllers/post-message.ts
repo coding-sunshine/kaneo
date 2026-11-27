@@ -3,6 +3,7 @@ import db from "../../database";
 import { chatMessageTable } from "../../database/schema";
 import { publishEvent } from "../../events";
 import { loadChannel } from "./load-channel";
+import { deleteDraft } from "./save-draft";
 import { selectMessages } from "./select-messages";
 
 export async function postMessage(
@@ -20,6 +21,7 @@ export async function postMessage(
     eq(chatMessageTable.id, created?.id ?? ""),
   );
   if (!message) throw new Error("Message insert returned no row");
+  await deleteDraft(channelId, userId);
   // Realtime delivery only says the channel changed; readers refetch.
   await publishEvent("chat.message_created", {
     workspaceId,
