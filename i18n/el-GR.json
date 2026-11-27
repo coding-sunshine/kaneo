@@ -168,6 +168,9 @@
 				"apply": "Εφαρμογή συνδέσμου",
 				"remove": "Αφαίρεση συνδέσμου"
 			}
+		},
+		"mentionedIn": {
+			"title": "Mentioned in"
 		}
 	},
 	"auth": {

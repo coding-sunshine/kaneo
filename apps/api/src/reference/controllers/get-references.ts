@@ -19,6 +19,7 @@ type Row = {
   id: string;
   title: string;
   key: string | null;
+  projectId: string | null;
   place: ReferencePlace;
 };
 
@@ -37,11 +38,12 @@ function bySource(kind: "task" | "document", rows: Row[]) {
     if (source) source.places.push(row.place);
     else sources.set(row.id, { ...row, places: [row.place] });
   }
-  return [...sources.values()].map(({ id, title, key, places }) => ({
+  return [...sources.values()].map(({ id, title, key, projectId, places }) => ({
     kind,
     id,
     title,
     key,
+    projectId,
     places: places.sort(),
   }));
 }
@@ -65,6 +67,7 @@ export async function getReferences(
       .select({
         id: taskTable.id,
         title: taskTable.title,
+        projectId: taskTable.projectId,
         slug: projectTable.slug,
         number: taskTable.number,
         place: referenceTable.place,
@@ -116,7 +119,7 @@ export async function getReferences(
       ),
       ...bySource(
         "document",
-        documents.map((row) => ({ ...row, key: null })),
+        documents.map((row) => ({ ...row, key: null, projectId: null })),
       ),
     ],
   };

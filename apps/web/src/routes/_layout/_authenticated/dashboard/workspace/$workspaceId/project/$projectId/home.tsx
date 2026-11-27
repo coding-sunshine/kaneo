@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import ProjectLayout from "@/components/common/project-layout";
 import { TeamResources } from "@/components/documents/team-resources";
 import PageTitle from "@/components/page-title";
+import { MentionedIn } from "@/components/references/mentioned-in";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import icons from "@/constants/project-icons";
 import useGetProject from "@/hooks/queries/project/use-get-project";
@@ -94,6 +95,11 @@ function RouteComponent() {
           </section>
 
           <TeamResources workspaceId={workspaceId} projectId={projectId} />
+
+          <MentionedIn
+            workspaceId={workspaceId}
+            target={{ kind: "project", projectId }}
+          />
 
           <section className="flex flex-col gap-2">
             <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">

@@ -168,6 +168,9 @@
 				"apply": "套用連結",
 				"remove": "移除連結"
 			}
+		},
+		"mentionedIn": {
+			"title": "Mentioned in"
 		}
 	},
 	"auth": {

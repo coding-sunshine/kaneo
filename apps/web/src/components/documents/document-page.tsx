@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import WorkspaceLayout from "@/components/common/workspace-layout";
 import PageTitle from "@/components/page-title";
+import { MentionedIn } from "@/components/references/mentioned-in";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { DocumentVersion } from "@/fetchers/document/documents";
 import { useRestoreDocumentVersion } from "@/hooks/mutations/document/use-document-mutations";
@@ -191,12 +192,23 @@ export function DocumentPage({
                     onBack={() => setVersion(null)}
                   />
                 ) : (
-                  <DocumentEditor
-                    key={`${document.id}:${loadCount}`}
-                    document={document}
-                    readOnly={!canEdit}
-                    titleRef={titleRef}
-                  />
+                  <>
+                    <DocumentEditor
+                      key={`${document.id}:${loadCount}`}
+                      document={document}
+                      readOnly={!canEdit}
+                      titleRef={titleRef}
+                    />
+                    <MentionedIn
+                      workspaceId={workspaceId}
+                      target={{
+                        kind: "document",
+                        workspaceId,
+                        documentId: document.id,
+                      }}
+                      className="mx-auto w-full max-w-[55rem] px-6 pb-16 sm:px-10"
+                    />
+                  </>
                 )}
               </div>
               {/* Re-keyed with the editor so it reads the headings of what shows. */}

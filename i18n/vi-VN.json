@@ -168,6 +168,9 @@
 				"apply": "Áp dụng liên kết",
 				"remove": "Xóa liên kết"
 			}
+		},
+		"mentionedIn": {
+			"title": "Mentioned in"
 		}
 	},
 	"auth": {

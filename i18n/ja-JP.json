@@ -168,6 +168,9 @@
 				"apply": "リンクを適用",
 				"remove": "リンクを削除"
 			}
+		},
+		"mentionedIn": {
+			"title": "Mentioned in"
 		}
 	},
 	"auth": {
