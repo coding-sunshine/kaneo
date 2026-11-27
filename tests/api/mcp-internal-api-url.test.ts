@@ -4,6 +4,10 @@ const authMocks = vi.hoisted(() => ({
   getSession: vi.fn(async () => ({ user: { id: "test-user" }, session: {} })),
 }));
 
+// Each re-import would reload the root .env and refill the variables these
+// tests unset, so a local KANEO_INTERNAL_API_URL would win over the default.
+vi.mock("dotenv-mono", () => ({ config: () => {} }));
+
 vi.mock("../../apps/api/src/auth", () => ({
   auth: { api: { getSession: authMocks.getSession } },
 }));
