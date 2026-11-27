@@ -26,7 +26,10 @@ export const workspaceMemberSchema = z
   .object({
     id: z.string(),
     name: z.string(),
-    email: z.string(),
+    email: z.string().openapi({
+      description:
+        "Empty when a workspace guest reads the list, except for their own row.",
+    }),
     image: z.string().nullable(),
     role: z.string().openapi({
       description:
@@ -46,6 +49,10 @@ export const memberProjectAccessSchema = z
     userId: z.string(),
     projectAccess: z.enum(PROJECT_ACCESS_MODES),
     projectIds: z.array(z.string()),
+    guest: z.boolean().optional().openapi({
+      description:
+        "A guest: selected projects, only the channels they were added to, and no workspace directory.",
+    }),
   })
   .openapi("MemberProjectAccess");
 

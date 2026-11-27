@@ -6,6 +6,7 @@ import {
   projectTable,
   workProjectTable,
 } from "../../database/schema";
+import { canAccessProject } from "../../project-access/can-access-project";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
 import type { ChatMessage } from "../openrouter";
 import { type Cited, grounded, splitSources } from "../sources";
@@ -148,6 +149,18 @@ export function proposer(turn: ProposalTurn) {
       projectId = String(args.projectId ?? "");
       if ((await projectWorkspace(projectId)) !== turn.workspaceId) {
         return refuse("Project not found");
+      }
+    }
+
+    // The asker's own teams only, for a new ticket and a move's target alike:
+    // a guest's assistant must not record work in projects the guest lacks.
+    // A project update names a project, not a team; it was checked above.
+    if (tool !== PROJECT_UPDATE_TOOL) {
+      const target = typeof args.projectId === "string" ? args.projectId : null;
+      for (const id of new Set([projectId, target].filter(Boolean))) {
+        if (!(await canAccessProject(turn.userId, id as string))) {
+          return refuse("Project not found");
+        }
       }
     }
 

@@ -5,36 +5,67 @@ import {
   errorResponse,
   jsonResponse,
 } from "../openapi";
-import { requireWorkspacePermission } from "../utils/require-workspace-permission";
+import {
+  hasWorkspacePermission,
+  requireWorkspacePermission,
+} from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import { createChannel } from "./controllers/create-channel";
+import { deleteMessage } from "./controllers/delete-message";
+import { editMessage } from "./controllers/edit-message";
 import { getChannel } from "./controllers/get-channel";
+import { requireCalls } from "./call/require-calls";
 import { inviteMember } from "./controllers/invite-member";
+import { joinCall } from "./controllers/join-call";
 import { joinChannel } from "./controllers/join-channel";
 import { leaveChannel } from "./controllers/leave-channel";
 import { listChannels } from "./controllers/list-channels";
 import { listDirectMessages } from "./controllers/list-direct-messages";
 import { listMessages } from "./controllers/list-messages";
+import { listPins } from "./controllers/list-pins";
+import { markRead } from "./controllers/mark-read";
+import { pinMessage } from "./controllers/pin-message";
 import { openDirectMessage } from "./controllers/open-direct-message";
 import { postMessage } from "./controllers/post-message";
+import { reactToMessage } from "./controllers/react-to-message";
+import { removeLinkPreview } from "./controllers/remove-link-preview";
+import { removeMember } from "./controllers/remove-member";
+import { startCall } from "./controllers/start-call";
 import { updateChannel } from "./controllers/update-channel";
+import { listOnline } from "./presence/list-online";
 import {
+  getPresenceSetting,
+  recordHeartbeat,
+  setPresenceSetting,
+} from "./presence/set-presence";
+import {
+  callSessionSchema,
   channelDetailSchema,
   channelListSchema,
+  channelMemberParam,
   channelParam,
   channelSchema,
   createChannelBody,
+  deletedMessageSchema,
   directMessageListSchema,
   inviteMemberBody,
   leftChannelSchema,
   listMessagesQuery,
   messageListSchema,
+  messageParam,
   messageSchema,
+  onlineListSchema,
   openDirectMessageBody,
   postMessageBody,
+  presenceSettingBody,
+  presenceSettingSchema,
+  reactionBody,
+  removedMemberSchema,
   updateChannelBody,
   workspaceIdParam,
 } from "./schema";
+import "./call/subscribe";
+import "./link-preview/subscribe";
 
 const body = <T extends z.ZodType>(schema: T) => ({
   required: true as const,
@@ -60,6 +91,10 @@ const write = [
   requireWorkspacePermission({ task: ["update"] }),
 ] as const;
 const channelPath = "/workspace/{workspaceId}/channels/{channelId}";
+const messagePath = `${channelPath}/messages/{messageId}`;
+const messageNotFound = errorResponse("Channel or message not found");
+// Who manages the workspace's people: adds guests to channels, removes anyone.
+const manageMembers = { member: ["update"] };
 const directPath = "/workspace/{workspaceId}/direct-messages";
 
 const listRoute = createRoute({
@@ -181,6 +216,27 @@ const inviteRoute = createRoute({
   },
 });
 
+const removeMemberRoute = createRoute({
+  method: "delete",
+  operationId: "removeChatChannelMember",
+  path: `${channelPath}/members/{userId}`,
+  tags,
+  summary: "Remove member",
+  description:
+    "Take a member out of a channel. They lose it with their next request. Workspace admins only.",
+  middleware: [
+    workspaceAccess.fromParam(),
+    requireWorkspacePermission(manageMembers),
+  ] as const,
+  request: { params: channelMemberParam },
+  responses: {
+    200: jsonResponse("Member removed", removedMemberSchema),
+    403: noAccess,
+    404: errorResponse("Channel or member not found"),
+    409: errorResponse("The last member cannot leave a private channel"),
+  },
+});
+
 const listDirectRoute = createRoute({
   method: "get",
   operationId: "listChatDirectMessages",
@@ -221,7 +277,8 @@ const listMessagesRoute = createRoute({
   path: `${channelPath}/messages`,
   tags,
   summary: "List messages",
-  description: "The newest 50 messages, oldest first.",
+  description:
+    "The newest 50 messages, oldest first. Pass `before` to page back, or `around` to open the page that holds one message.",
   middleware: [...access] as const,
   request: { params: channelParam, query: listMessagesQuery },
   responses: {
@@ -248,7 +305,261 @@ const postMessageRoute = createRoute({
   },
 });
 
+const editMessageRoute = createRoute({
+  method: "patch",
+  operationId: "editChatMessage",
+  path: messagePath,
+  tags,
+  summary: "Edit message",
+  description: "Change the text of your own message. It then shows as edited.",
+  middleware: [...write] as const,
+  request: { params: messageParam, body: body(postMessageBody) },
+  responses: {
+    200: jsonResponse("Message edited", messageSchema),
+    403: errorResponse("Only the author can change this message"),
+    404: messageNotFound,
+    409: archived,
+  },
+});
+
+const deleteMessageRoute = createRoute({
+  method: "delete",
+  operationId: "deleteChatMessage",
+  path: messagePath,
+  tags,
+  summary: "Delete message",
+  description: "Delete your own message for everyone.",
+  middleware: [...write] as const,
+  request: { params: messageParam },
+  responses: {
+    200: jsonResponse("Message deleted", deletedMessageSchema),
+    403: errorResponse("Only the author can change this message"),
+    404: messageNotFound,
+    409: archived,
+  },
+});
+
+const pinResponses = {
+  200: jsonResponse("Message", messageSchema),
+  403: notMember,
+  404: messageNotFound,
+  409: archived,
+};
+
+const pinRoute = createRoute({
+  method: "post",
+  operationId: "pinChatMessage",
+  path: `${messagePath}/pin`,
+  tags,
+  summary: "Pin message",
+  description: "Pin a message to its channel. Any channel member may pin.",
+  middleware: [...write] as const,
+  request: { params: messageParam },
+  responses: pinResponses,
+});
+
+const unpinRoute = createRoute({
+  method: "delete",
+  operationId: "unpinChatMessage",
+  path: `${messagePath}/pin`,
+  tags,
+  summary: "Unpin message",
+  description: "Remove a message from the channel's pinned list.",
+  middleware: [...write] as const,
+  request: { params: messageParam },
+  responses: pinResponses,
+});
+
+const reactionResponses = {
+  200: jsonResponse("Message", messageSchema),
+  400: errorResponse("Unknown custom emoji"),
+  403: notMember,
+  404: messageNotFound,
+  409: archived,
+};
+
+const addReactionRoute = createRoute({
+  method: "post",
+  operationId: "addChatMessageReaction",
+  path: `${messagePath}/reactions`,
+  tags,
+  summary: "Add reaction",
+  description:
+    "Add your emoji reaction to a message. Adding one you already have is a no-op.",
+  middleware: [...write] as const,
+  request: { params: messageParam, body: body(reactionBody) },
+  responses: reactionResponses,
+});
+
+const removeReactionRoute = createRoute({
+  method: "delete",
+  operationId: "removeChatMessageReaction",
+  path: `${messagePath}/reactions`,
+  tags,
+  summary: "Remove reaction",
+  description: "Remove your emoji reaction from a message.",
+  middleware: [...write] as const,
+  request: { params: messageParam, body: body(reactionBody) },
+  responses: reactionResponses,
+});
+
+const markReadRoute = createRoute({
+  method: "post",
+  operationId: "markChatChannelRead",
+  path: `${channelPath}/read`,
+  tags,
+  summary: "Mark channel read",
+  description:
+    "Clear your unread count for the channel. Only you can see when you read it.",
+  middleware: [...access] as const,
+  request: { params: channelParam },
+  responses: {
+    200: jsonResponse("Marked read", leftChannelSchema),
+    403: noAccess,
+    404: notFound,
+  },
+});
+
+const listPinsRoute = createRoute({
+  method: "get",
+  operationId: "listChatPins",
+  path: `${channelPath}/pins`,
+  tags,
+  summary: "List pinned messages",
+  description: "Every pinned message of the channel, newest pin first.",
+  middleware: [...access] as const,
+  request: { params: channelParam },
+  responses: {
+    200: jsonResponse("Pinned messages", messageListSchema),
+    403: noAccess,
+    404: notFound,
+  },
+});
+
+const getPresenceRoute = createRoute({
+  method: "get",
+  operationId: "getChatPresenceSetting",
+  path: "/presence",
+  tags,
+  summary: "Get presence setting",
+  description: "Whether you show others when you are online. Off by default.",
+  responses: { 200: jsonResponse("Presence setting", presenceSettingSchema) },
+});
+
+const setPresenceRoute = createRoute({
+  method: "put",
+  operationId: "setChatPresenceSetting",
+  path: "/presence",
+  tags,
+  summary: "Set presence setting",
+  description:
+    "Turn your online presence on or off. Off removes it for everyone at once.",
+  request: { body: body(presenceSettingBody) },
+  responses: { 200: jsonResponse("Presence setting", presenceSettingSchema) },
+});
+
+const heartbeatRoute = createRoute({
+  method: "post",
+  operationId: "chatPresenceHeartbeat",
+  path: "/presence/heartbeat",
+  tags,
+  summary: "Send presence heartbeat",
+  description:
+    "Mark yourself online for the next 90 seconds. Does nothing while presence is off.",
+  responses: { 200: jsonResponse("Presence setting", presenceSettingSchema) },
+});
+
+const onlineRoute = createRoute({
+  method: "get",
+  operationId: "listChatOnline",
+  path: "/workspace/{workspaceId}/presence",
+  tags,
+  summary: "List online members",
+  description:
+    "Members of the workspace who turned presence on and are online. Empty unless your own presence is on.",
+  middleware: [...access] as const,
+  request: { params: workspaceIdParam },
+  responses: {
+    200: jsonResponse("Online members", onlineListSchema),
+    403: noAccess,
+  },
+});
+
+const removePreviewRoute = createRoute({
+  method: "delete",
+  operationId: "removeChatLinkPreview",
+  path: `${messagePath}/preview`,
+  tags,
+  summary: "Remove link preview",
+  description: "Remove the link preview from your own message.",
+  middleware: [...write] as const,
+  request: { params: messageParam },
+  responses: {
+    200: jsonResponse("Preview removed", messageSchema),
+    403: errorResponse("Only the author can remove the preview"),
+    404: errorResponse("Channel or message not found"),
+  },
+});
+
+const callsOff = errorResponse(
+  "Calls are off on this server, or channel not found",
+);
+
+const startCallRoute = createRoute({
+  method: "post",
+  operationId: "startChatCall",
+  path: `${channelPath}/call`,
+  tags,
+  summary: "Start call",
+  description:
+    "Start a voice or video call in a channel or direct message you belong to. Rings the other members, at most 10 starts a minute per person. Needs LiveKit configured on the server.",
+  middleware: [requireCalls, ...write] as const,
+  request: { params: channelParam },
+  responses: {
+    200: jsonResponse("Call started", callSessionSchema),
+    403: notMember,
+    404: callsOff,
+    409: archived,
+    429: errorResponse("Too many calls started; see the Retry-After header"),
+  },
+});
+
+const joinCallRoute = createRoute({
+  method: "post",
+  operationId: "joinChatCall",
+  path: `${channelPath}/call/join`,
+  tags,
+  summary: "Join call",
+  description: "Join the call in a channel you belong to.",
+  middleware: [requireCalls, ...write] as const,
+  request: { params: channelParam },
+  responses: {
+    200: jsonResponse("Call session", callSessionSchema),
+    403: notMember,
+    404: callsOff,
+    409: archived,
+  },
+});
+
 const chat = apiRouter()
+  .openapi(getPresenceRoute, async (c) =>
+    c.json(await getPresenceSetting(c.get("userId")), 200),
+  )
+  .openapi(setPresenceRoute, async (c) =>
+    c.json(
+      await setPresenceSetting(c.get("userId"), c.req.valid("json").enabled),
+      200,
+    ),
+  )
+  .openapi(heartbeatRoute, async (c) =>
+    c.json(await recordHeartbeat(c.get("userId")), 200),
+  )
+  .openapi(onlineRoute, async (c) =>
+    c.json(
+      await listOnline(c.req.valid("param").workspaceId, c.get("userId")),
+      200,
+    ),
+  )
   .openapi(listRoute, async (c) =>
     c.json(
       await listChannels(c.req.valid("param").workspaceId, c.get("userId")),
@@ -325,9 +636,14 @@ const chat = apiRouter()
         channelId,
         c.get("userId"),
         c.req.valid("json").userId,
+        await hasWorkspacePermission(c, manageMembers),
       ),
       200,
     );
+  })
+  .openapi(removeMemberRoute, async (c) => {
+    const { workspaceId, channelId, userId } = c.req.valid("param");
+    return c.json(await removeMember(workspaceId, channelId, userId), 200);
   })
   .openapi(listMessagesRoute, async (c) => {
     const { workspaceId, channelId } = c.req.valid("param");
@@ -336,7 +652,7 @@ const chat = apiRouter()
         workspaceId,
         channelId,
         c.get("userId"),
-        c.req.valid("query").before,
+        c.req.valid("query"),
       ),
       200,
     );
@@ -349,6 +665,111 @@ const chat = apiRouter()
         channelId,
         c.get("userId"),
         c.req.valid("json").body,
+      ),
+      200,
+    );
+  })
+  .openapi(editMessageRoute, async (c) => {
+    const { workspaceId, channelId, messageId } = c.req.valid("param");
+    return c.json(
+      await editMessage(
+        workspaceId,
+        channelId,
+        messageId,
+        c.get("userId"),
+        c.req.valid("json").body,
+      ),
+      200,
+    );
+  })
+  .openapi(deleteMessageRoute, async (c) => {
+    const { workspaceId, channelId, messageId } = c.req.valid("param");
+    return c.json(
+      await deleteMessage(workspaceId, channelId, messageId, c.get("userId")),
+      200,
+    );
+  })
+  .openapi(pinRoute, async (c) => {
+    const { workspaceId, channelId, messageId } = c.req.valid("param");
+    return c.json(
+      await pinMessage(
+        workspaceId,
+        channelId,
+        messageId,
+        c.get("userId"),
+        true,
+      ),
+      200,
+    );
+  })
+  .openapi(unpinRoute, async (c) => {
+    const { workspaceId, channelId, messageId } = c.req.valid("param");
+    return c.json(
+      await pinMessage(
+        workspaceId,
+        channelId,
+        messageId,
+        c.get("userId"),
+        false,
+      ),
+      200,
+    );
+  })
+  .openapi(addReactionRoute, async (c) => {
+    const { workspaceId, channelId, messageId } = c.req.valid("param");
+    return c.json(
+      await reactToMessage(
+        workspaceId,
+        channelId,
+        messageId,
+        c.get("userId"),
+        c.req.valid("json").emoji,
+        true,
+      ),
+      200,
+    );
+  })
+  .openapi(removeReactionRoute, async (c) => {
+    const { workspaceId, channelId, messageId } = c.req.valid("param");
+    return c.json(
+      await reactToMessage(
+        workspaceId,
+        channelId,
+        messageId,
+        c.get("userId"),
+        c.req.valid("json").emoji,
+        false,
+      ),
+      200,
+    );
+  })
+  .openapi(markReadRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(await markRead(workspaceId, channelId, c.get("userId")), 200);
+  })
+  .openapi(listPinsRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(await listPins(workspaceId, channelId, c.get("userId")), 200);
+  })
+  .openapi(startCallRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(
+      await startCall(workspaceId, channelId, c.get("userId")),
+      200,
+    );
+  })
+  .openapi(joinCallRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(await joinCall(workspaceId, channelId, c.get("userId")), 200);
+  })
+  .openapi(removePreviewRoute, async (c) => {
+    const { workspaceId, channelId, messageId } = c.req.valid("param");
+    return c.json(
+      await removeLinkPreview(
+        workspaceId,
+        channelId,
+        messageId,
+        c.get("userId"),
       ),
       200,
     );

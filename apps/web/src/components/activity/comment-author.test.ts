@@ -47,6 +47,18 @@ describe("commentAuthor", () => {
     ).toBeUndefined();
   });
 
+  it("keeps the name and avatar when a guest reads members without email", () => {
+    const masked = [
+      { user: { id: "u2", name: "Ada", email: "", image: "https://avatar" } },
+    ];
+    expect(commentAuthor({ userId: "u2" }, masked, labels).user).toEqual({
+      id: "u2",
+      name: "Ada",
+      email: "",
+      image: "https://avatar",
+    });
+  });
+
   it("uses the workspace member for native comments", () => {
     expect(commentAuthor({ userId: "u1" }, members, labels).user).toEqual({
       id: "u1",

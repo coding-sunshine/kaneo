@@ -77,16 +77,29 @@ vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => ({
 vi.mock("@/hooks/queries/agent/use-agent", () => ({
   useHasAgent: () => false,
 }));
+const directMessages = vi.hoisted(() => ({
+  list: [] as { unreadCount: number }[],
+}));
+vi.mock("@/hooks/queries/chat/use-direct-messages", () => ({
+  useDirectMessages: () => ({ data: directMessages.list }),
+}));
 const drafts = vi.hoisted(() => ({ list: [] as unknown[] }));
 vi.mock("@/hooks/queries/task-draft/use-task-drafts", () => ({
   useTaskDrafts: () => ({ data: drafts.list }),
 }));
 
+const access = vi.hoisted(() => ({ guest: false }));
+vi.mock("@/hooks/queries/workspace-users/use-get-my-project-access", () => ({
+  default: () => ({ data: { guest: access.guest } }),
+}));
+
 const defaultSidebar = useUserPreferencesStore.getState().sidebar;
 beforeEach(() => {
+  access.guest = false;
   reviews.state = "connected";
   reviews.toReview = [];
   drafts.list = [];
+  directMessages.list = [];
   useUserPreferencesStore.setState({
     codeReviewsEnabled: true,
     sidebar: defaultSidebar,
@@ -124,6 +137,12 @@ describe("NavMain reviews row", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("badges Inbox with unread direct messages", () => {
+    directMessages.list = [{ unreadCount: 2 }, { unreadCount: 0 }];
+    render(<NavMain />);
+    expect(buttonLabels()).toContain("navigation:sidebar.inbox2");
+  });
+
   it("shows Drafts with its count only once a draft exists", () => {
     const { unmount } = render(<NavMain />);
     expect(buttonLabels()).not.toContain("navigation:sidebar.drafts");
@@ -149,6 +168,17 @@ describe("NavMain reviews row", () => {
       .getAllByRole("button")
       .map((button) => button.textContent);
     expect(labels).toContain("navigation:sidebar.pulse");
+  });
+});
+
+describe("NavMain for a guest", () => {
+  it("leaves out workspace-wide projects, pulse and people", () => {
+    access.guest = true;
+    render(<NavMain />);
+    const labels = buttonLabels();
+    expect(labels).not.toContain("navigation:sidebar.pulse");
+    expect(labels).not.toContain("navigation:sidebar.projects");
+    expect(labels).toContain("navigation:sidebar.documents");
   });
 });
 

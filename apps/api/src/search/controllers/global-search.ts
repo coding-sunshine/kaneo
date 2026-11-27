@@ -3,7 +3,6 @@ import { and, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import db from "../../database";
 import {
   activityTable,
-  type DocumentScope,
   documentTable,
   projectTable,
   taskTable,
@@ -19,6 +18,9 @@ import { projectAccessCondition } from "../../project-access/project-access-cond
 import { bodyVector, buildFtsQuery, ftsMatch, titleBodyVector } from "../fts";
 import { escapeLikePattern } from "../like-pattern";
 import { pickAcrossTypes } from "../pick-across-types";
+import type { SearchResult } from "../search-result";
+import { searchMessages } from "./search-messages";
+import { searchPeople } from "./search-people";
 import { TASK_SHORT_ID_PATTERN } from "../task-short-id";
 
 type SearchParams = {
@@ -32,35 +34,12 @@ type SearchParams = {
     | "workspaces"
     | "comments"
     | "activities"
-    | "documents";
+    | "documents"
+    | "messages"
+    | "people";
   workspaceId?: string;
   projectId?: string;
   limit?: number;
-};
-
-type SearchResult = {
-  id: string;
-  type: "task" | "project" | "workspace" | "comment" | "activity" | "document";
-  title: string;
-  description?: string;
-  content?: string;
-  projectId?: string;
-  projectName?: string;
-  workspaceId?: string;
-  workspaceName?: string;
-  userId?: string;
-  userName?: string;
-  createdAt: Date;
-  relevanceScore: number;
-  taskId?: string;
-  taskNumber?: number;
-  projectSlug?: string;
-  priority?: string;
-  status?: string;
-  topicName?: string;
-  scope?: DocumentScope;
-  parentName?: string | null;
-  archivedAt?: Date | null;
 };
 
 function toDisplayCase(value: string) {
@@ -577,6 +556,7 @@ async function globalSearch(params: SearchParams): Promise<{
           isNull(documentTable.deletedAt),
           documentVisibility(resolvedUserId, {
             id: documentTable.id,
+            workspaceId: documentTable.workspaceId,
             creatorId: documentTable.creatorId,
             scope: documentTable.scope,
             projectId: documentTable.projectId,
@@ -617,6 +597,29 @@ async function globalSearch(params: SearchParams): Promise<{
         parentName: doc.parentName,
       });
     }
+  }
+
+  // Chat and people sit outside projects, so a project-scoped search skips them.
+  if (workspaceId && !projectId) {
+    if (type === "all" || type === "messages")
+      results.push(
+        ...(await searchMessages({
+          query,
+          fts,
+          userId: resolvedUserId,
+          workspaceId,
+          limit,
+        })),
+      );
+    if (type === "all" || type === "people")
+      results.push(
+        ...(await searchPeople({
+          query,
+          userId: resolvedUserId,
+          workspaceId,
+          limit,
+        })),
+      );
   }
 
   results.sort((a, b) => {

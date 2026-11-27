@@ -11,13 +11,23 @@ describe("getUserActionTypes", () => {
   it("offers verification actions only for unverified addresses", () => {
     expect(
       getUserActionTypes(
-        { isAnonymous: false, emailVerified: true, banned: false },
+        {
+          isAnonymous: false,
+          emailVerified: true,
+          banned: false,
+          twoFactorEnabled: false,
+        },
         options,
       ),
     ).toEqual(["sendPasswordReset", "deactivate", "delete"]);
     expect(
       getUserActionTypes(
-        { isAnonymous: false, emailVerified: false, banned: true },
+        {
+          isAnonymous: false,
+          emailVerified: false,
+          banned: true,
+          twoFactorEnabled: false,
+        },
         options,
       ),
     ).toEqual([
@@ -32,7 +42,12 @@ describe("getUserActionTypes", () => {
   it("omits every email action for guests", () => {
     expect(
       getUserActionTypes(
-        { isAnonymous: true, emailVerified: false, banned: false },
+        {
+          isAnonymous: true,
+          emailVerified: false,
+          banned: false,
+          twoFactorEnabled: false,
+        },
         options,
       ),
     ).toEqual(["deactivate", "delete"]);
@@ -41,7 +56,12 @@ describe("getUserActionTypes", () => {
   it("never offers deactivating or deleting yourself", () => {
     expect(
       getUserActionTypes(
-        { isAnonymous: false, emailVerified: true, banned: false },
+        {
+          isAnonymous: false,
+          emailVerified: true,
+          banned: false,
+          twoFactorEnabled: false,
+        },
         { ...options, isSelf: true },
       ),
     ).toEqual(["sendPasswordReset"]);
@@ -50,16 +70,47 @@ describe("getUserActionTypes", () => {
   it("hides reset links when password sign-in is off", () => {
     expect(
       getUserActionTypes(
-        { isAnonymous: false, emailVerified: true, banned: false },
+        {
+          isAnonymous: false,
+          emailVerified: true,
+          banned: false,
+          twoFactorEnabled: false,
+        },
         { ...options, canSendPasswordReset: false },
       ),
     ).toEqual(["deactivate", "delete"]);
   });
 
+  it("offers a two-factor reset only when it is on", () => {
+    const user = {
+      isAnonymous: false,
+      emailVerified: true,
+      banned: false,
+      twoFactorEnabled: true,
+    };
+    expect(getUserActionTypes(user, options)).toEqual([
+      "sendPasswordReset",
+      "resetTwoFactor",
+      "deactivate",
+      "delete",
+    ]);
+    expect(
+      getUserActionTypes(user, { ...options, permissions: ["users:disable"] }),
+    ).toEqual(["deactivate"]);
+    expect(getUserActionTypes(user, { ...options, isSelf: true })).toEqual([
+      "sendPasswordReset",
+    ]);
+  });
+
   it("offers only the actions the viewer has permission for", () => {
     expect(
       getUserActionTypes(
-        { isAnonymous: false, emailVerified: false, banned: false },
+        {
+          isAnonymous: false,
+          emailVerified: false,
+          banned: false,
+          twoFactorEnabled: false,
+        },
         { ...options, permissions: ["users:disable"] },
       ),
     ).toEqual(["deactivate"]);

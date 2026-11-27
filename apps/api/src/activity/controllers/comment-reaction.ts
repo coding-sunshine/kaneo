@@ -6,9 +6,8 @@ import {
   commentReactionTable,
   projectTable,
   taskTable,
-  workspaceEmojiTable,
 } from "../../database/schema";
-import { CUSTOM_EMOJI_SHORTCODE } from "../../emoji/constants";
+import { assertCustomEmojiExists } from "../../emoji/assert-custom-emoji";
 import { publishEvent } from "../../events";
 
 /** Adds or removes the user's emoji reaction; both are idempotent. */
@@ -38,24 +37,7 @@ async function setCommentReaction(
   }
 
   // Removing stays allowed after the emoji is deleted from the workspace.
-  const custom = CUSTOM_EMOJI_SHORTCODE.exec(emoji);
-  if (reacted && custom) {
-    const [exists] = await db
-      .select({ id: workspaceEmojiTable.id })
-      .from(workspaceEmojiTable)
-      .where(
-        and(
-          eq(workspaceEmojiTable.workspaceId, comment.workspaceId),
-          eq(workspaceEmojiTable.name, custom[1] as string),
-        ),
-      )
-      .limit(1);
-    if (!exists) {
-      throw new HTTPException(400, {
-        message: `Custom emoji ${emoji} does not exist in this workspace`,
-      });
-    }
-  }
+  if (reacted) await assertCustomEmojiExists(comment.workspaceId, emoji);
 
   if (reacted) {
     await db

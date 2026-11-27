@@ -2279,6 +2279,70 @@
 						}
 					},
 					"required": ["authorize", "expired", "signIn"]
+				},
+				"twoFactor": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"pageTitle": {
+							"type": "string"
+						},
+						"heading": {
+							"type": "string"
+						},
+						"description": {
+							"type": "string"
+						},
+						"codeLabel": {
+							"type": "string"
+						},
+						"recoveryLabel": {
+							"type": "string"
+						},
+						"submit": {
+							"type": "string"
+						},
+						"useRecovery": {
+							"type": "string"
+						},
+						"useAuthenticator": {
+							"type": "string"
+						},
+						"wrongCode": {
+							"type": "string"
+						},
+						"expired": {
+							"type": "string"
+						},
+						"backToSignIn": {
+							"type": "string"
+						},
+						"setupPageTitle": {
+							"type": "string"
+						},
+						"setupHeading": {
+							"type": "string"
+						},
+						"setupDescription": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"pageTitle",
+						"heading",
+						"description",
+						"codeLabel",
+						"recoveryLabel",
+						"submit",
+						"useRecovery",
+						"useAuthenticator",
+						"wrongCode",
+						"expired",
+						"backToSignIn",
+						"setupPageTitle",
+						"setupHeading",
+						"setupDescription"
+					]
 				}
 			},
 			"required": [
@@ -2296,7 +2360,8 @@
 				"passwordReset",
 				"page",
 				"device",
-				"mcp"
+				"mcp",
+				"twoFactor"
 			]
 		},
 		"settings": {
@@ -2754,6 +2819,9 @@
 								"markEmailVerified": {
 									"type": "string"
 								},
+								"resetTwoFactor": {
+									"type": "string"
+								},
 								"security": {
 									"type": "string"
 								}
@@ -2766,6 +2834,7 @@
 								"sendPasswordReset",
 								"sendVerification",
 								"markEmailVerified",
+								"resetTwoFactor",
 								"security"
 							]
 						},
@@ -2902,6 +2971,25 @@
 										}
 									},
 									"required": ["title", "action"]
+								},
+								"resetTwoFactor": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"title": {
+											"type": "string"
+										},
+										"description": {
+											"type": "string"
+										},
+										"action": {
+											"type": "string"
+										},
+										"codeLabel": {
+											"type": "string"
+										}
+									},
+									"required": ["title", "description", "action", "codeLabel"]
 								}
 							},
 							"required": [
@@ -2911,7 +2999,8 @@
 								"delete",
 								"sendPasswordReset",
 								"sendVerification",
-								"markEmailVerified"
+								"markEmailVerified",
+								"resetTwoFactor"
 							]
 						},
 						"toast": {
@@ -2960,6 +3049,9 @@
 								"emailVerified": {
 									"type": "string"
 								},
+								"twoFactorReset": {
+									"type": "string"
+								},
 								"emailError": {
 									"type": "string"
 								},
@@ -2988,6 +3080,7 @@
 								"passwordResetSent",
 								"verificationSent",
 								"emailVerified",
+								"twoFactorReset",
 								"emailError",
 								"avatarChanged",
 								"avatarRemoved",
@@ -3871,6 +3964,9 @@
 								"userEmailVerified": {
 									"type": "string"
 								},
+								"userTwoFactorReset": {
+									"type": "string"
+								},
 								"userAvatarChanged": {
 									"type": "string"
 								},
@@ -3933,6 +4029,7 @@
 								"userPasswordResetSent",
 								"userVerificationSent",
 								"userEmailVerified",
+								"userTwoFactorReset",
 								"userAvatarChanged",
 								"userAvatarRemoved",
 								"apiKeyRevoked",
@@ -4927,6 +5024,15 @@
 						"projectBackgroundsDescription": {
 							"type": "string"
 						},
+						"chatTitle": {
+							"type": "string"
+						},
+						"chatPresence": {
+							"type": "string"
+						},
+						"chatPresenceDescription": {
+							"type": "string"
+						},
 						"advancedTitle": {
 							"type": "string"
 						}
@@ -4974,6 +5080,9 @@
 						"priority",
 						"projectBackgrounds",
 						"projectBackgroundsDescription",
+						"chatTitle",
+						"chatPresence",
+						"chatPresenceDescription",
 						"advancedTitle"
 					]
 				},
@@ -10168,6 +10277,138 @@
 								"toastDeleted",
 								"toastDeleteError"
 							]
+						},
+						"twoFactor": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"rowTitle": {
+									"type": "string"
+								},
+								"needsPassword": {
+									"type": "string"
+								},
+								"on": {
+									"type": "string"
+								},
+								"turnOn": {
+									"type": "string"
+								},
+								"turnOff": {
+									"type": "string"
+								},
+								"newCodes": {
+									"type": "string"
+								},
+								"setupTitle": {
+									"type": "string"
+								},
+								"setupDescription": {
+									"type": "string"
+								},
+								"scanHint": {
+									"type": "string"
+								},
+								"qrLabel": {
+									"type": "string"
+								},
+								"secretHint": {
+									"type": "string"
+								},
+								"codeLabel": {
+									"type": "string"
+								},
+								"verify": {
+									"type": "string"
+								},
+								"continue": {
+									"type": "string"
+								},
+								"done": {
+									"type": "string"
+								},
+								"wrongCode": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								},
+								"turnedOn": {
+									"type": "string"
+								},
+								"turnedOff": {
+									"type": "string"
+								},
+								"disableTitle": {
+									"type": "string"
+								},
+								"disableDescription": {
+									"type": "string"
+								},
+								"regenerateTitle": {
+									"type": "string"
+								},
+								"regenerateDescription": {
+									"type": "string"
+								},
+								"currentCode": {
+									"type": "string"
+								},
+								"codesTitle": {
+									"type": "string"
+								},
+								"codesHint": {
+									"type": "string"
+								},
+								"copyCodes": {
+									"type": "string"
+								},
+								"codesCopied": {
+									"type": "string"
+								},
+								"copyFailed": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"description",
+								"rowTitle",
+								"needsPassword",
+								"on",
+								"turnOn",
+								"turnOff",
+								"newCodes",
+								"setupTitle",
+								"setupDescription",
+								"scanHint",
+								"qrLabel",
+								"secretHint",
+								"codeLabel",
+								"verify",
+								"continue",
+								"done",
+								"wrongCode",
+								"failed",
+								"turnedOn",
+								"turnedOff",
+								"disableTitle",
+								"disableDescription",
+								"regenerateTitle",
+								"regenerateDescription",
+								"currentCode",
+								"codesTitle",
+								"codesHint",
+								"copyCodes",
+								"codesCopied",
+								"copyFailed"
+							]
 						}
 					},
 					"required": [
@@ -10193,7 +10434,8 @@
 						"dialogTitle",
 						"dialogDescription",
 						"sessions",
-						"passkeys"
+						"passkeys",
+						"twoFactor"
 					]
 				},
 				"calendarFeeds": {
@@ -11936,6 +12178,12 @@
 								}
 							},
 							"required": ["saved", "error"]
+						},
+						"requireTwoFactor": {
+							"type": "string"
+						},
+						"requireTwoFactorHint": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -11957,7 +12205,9 @@
 						"workspaceCreationRestricted",
 						"integrations",
 						"lockedByEnv",
-						"toast"
+						"toast",
+						"requireTwoFactor",
+						"requireTwoFactorHint"
 					]
 				},
 				"adminWebhooks": {
@@ -12777,6 +13027,160 @@
 						"saveFailed",
 						"itIntake"
 					]
+				},
+				"adminBackups": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"loadError": {
+							"type": "string"
+						},
+						"retry": {
+							"type": "string"
+						},
+						"off": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "description"]
+						},
+						"failed": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "description"]
+						},
+						"last": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"backup": {
+									"type": "string"
+								},
+								"summary": {
+									"type": "string"
+								},
+								"none": {
+									"type": "string"
+								},
+								"offsite": {
+									"type": "string"
+								},
+								"offsiteOk": {
+									"type": "string"
+								},
+								"offsiteNone": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"description",
+								"backup",
+								"summary",
+								"none",
+								"offsite",
+								"offsiteOk",
+								"offsiteNone"
+							]
+						},
+						"restoreTest": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"run": {
+									"type": "string"
+								},
+								"button": {
+									"type": "string"
+								},
+								"running": {
+									"type": "string"
+								},
+								"passed": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								},
+								"error": {
+									"type": "string"
+								},
+								"table": {
+									"type": "string"
+								},
+								"restored": {
+									"type": "string"
+								},
+								"live": {
+									"type": "string"
+								},
+								"tickets": {
+									"type": "string"
+								},
+								"documents": {
+									"type": "string"
+								},
+								"chatMessages": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"description",
+								"run",
+								"button",
+								"running",
+								"passed",
+								"failed",
+								"error",
+								"table",
+								"restored",
+								"live",
+								"tickets",
+								"documents",
+								"chatMessages"
+							]
+						}
+					},
+					"required": [
+						"title",
+						"loadError",
+						"retry",
+						"off",
+						"failed",
+						"last",
+						"restoreTest"
+					]
 				}
 			},
 			"required": [
@@ -12845,7 +13249,8 @@
 				"projectCycles",
 				"issueTemplates",
 				"projectSla",
-				"projectTriage"
+				"projectTriage",
+				"adminBackups"
 			]
 		},
 		"navigation": {
@@ -13256,6 +13661,12 @@
 								},
 								"fallback": {
 									"type": "string"
+								},
+								"message": {
+									"type": "string"
+								},
+								"person": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -13265,7 +13676,9 @@
 								"comment",
 								"activity",
 								"document",
-								"fallback"
+								"fallback",
+								"message",
+								"person"
 							]
 						}
 					},
@@ -17968,6 +18381,21 @@
 						"everyoneIsIn": {
 							"type": "string"
 						},
+						"manageMembers": {
+							"type": "string"
+						},
+						"manageMembersTitle": {
+							"type": "string"
+						},
+						"onlyYou": {
+							"type": "string"
+						},
+						"remove": {
+							"type": "string"
+						},
+						"removeMemberAria": {
+							"type": "string"
+						},
 						"memberCount_one": {
 							"type": "string"
 						},
@@ -18006,6 +18434,105 @@
 						},
 						"send": {
 							"type": "string"
+						},
+						"edited": {
+							"type": "string"
+						},
+						"messageActions": {
+							"type": "string"
+						},
+						"editMessage": {
+							"type": "string"
+						},
+						"deleteMessage": {
+							"type": "string"
+						},
+						"save": {
+							"type": "string"
+						},
+						"cancel": {
+							"type": "string"
+						},
+						"pin": {
+							"type": "string"
+						},
+						"unpin": {
+							"type": "string"
+						},
+						"pinned": {
+							"type": "string"
+						},
+						"noPins": {
+							"type": "string"
+						},
+						"online": {
+							"type": "string"
+						},
+						"unread_one": {
+							"type": "string"
+						},
+						"unread_zero": {
+							"type": "string"
+						},
+						"unread_two": {
+							"type": "string"
+						},
+						"unread_few": {
+							"type": "string"
+						},
+						"unread_many": {
+							"type": "string"
+						},
+						"unread_other": {
+							"type": "string"
+						},
+						"removePreview": {
+							"type": "string"
+						},
+						"startCall": {
+							"type": "string"
+						},
+						"incomingCall": {
+							"type": "string"
+						},
+						"incomingCallIn": {
+							"type": "string"
+						},
+						"answerCall": {
+							"type": "string"
+						},
+						"callTitle": {
+							"type": "string"
+						},
+						"callFailed": {
+							"type": "string"
+						},
+						"microphone": {
+							"type": "string"
+						},
+						"camera": {
+							"type": "string"
+						},
+						"leaveCall": {
+							"type": "string"
+						},
+						"directMessages": {
+							"type": "string"
+						},
+						"newDirectMessage": {
+							"type": "string"
+						},
+						"directTitle": {
+							"type": "string"
+						},
+						"directHint": {
+							"type": "string"
+						},
+						"openDirect": {
+							"type": "string"
+						},
+						"noOneElse": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -18038,13 +18565,45 @@
 						"addMemberTitle",
 						"add",
 						"everyoneIsIn",
+						"manageMembers",
+						"manageMembersTitle",
+						"onlyYou",
+						"remove",
+						"removeMemberAria",
 						"notFound",
 						"messages",
 						"noMessages",
 						"deletedUser",
 						"messageLabel",
 						"messagePlaceholder",
-						"send"
+						"send",
+						"edited",
+						"messageActions",
+						"editMessage",
+						"deleteMessage",
+						"save",
+						"cancel",
+						"pin",
+						"unpin",
+						"pinned",
+						"noPins",
+						"online",
+						"removePreview",
+						"startCall",
+						"incomingCall",
+						"incomingCallIn",
+						"answerCall",
+						"callTitle",
+						"callFailed",
+						"microphone",
+						"camera",
+						"leaveCall",
+						"directMessages",
+						"newDirectMessage",
+						"directTitle",
+						"directHint",
+						"openDirect",
+						"noOneElse"
 					]
 				}
 			},
@@ -23457,6 +24016,9 @@
 						},
 						"suggestionCompleted": {
 							"type": "string"
+						},
+						"directMessage": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -23474,7 +24036,8 @@
 						"suggestionBug",
 						"suggestionFeature",
 						"suggestionInProgress",
-						"suggestionCompleted"
+						"suggestionCompleted",
+						"directMessage"
 					]
 				},
 				"create": {
@@ -26382,6 +26945,34 @@
 			"type": "object",
 			"additionalProperties": false,
 			"properties": {
+				"guest": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"badge": {
+							"type": "string"
+						},
+						"inviteLabel": {
+							"type": "string"
+						},
+						"inviteHint": {
+							"type": "string"
+						},
+						"channelsLabel": {
+							"type": "string"
+						},
+						"noChannels": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"badge",
+						"inviteLabel",
+						"inviteHint",
+						"channelsLabel",
+						"noChannels"
+					]
+				},
 				"roles": {
 					"type": "object",
 					"additionalProperties": false,
@@ -26766,6 +27357,7 @@
 				}
 			},
 			"required": [
+				"guest",
 				"roles",
 				"members",
 				"invitations",

@@ -11,12 +11,17 @@ export const searchResultSchema = z
       "comment",
       "activity",
       "document",
+      "message",
+      "person",
     ]),
-    title: z.string(),
+    title: z.string().openapi({
+      description:
+        "What to show for the result. A message's channel name, empty for a direct message; a person's name.",
+    }),
     description: z.string().optional(),
     content: z.string().optional().openapi({
       description:
-        "Matched body text, for comment and activity results. Activities get a rendered summary such as `changed status from Todo to In Progress`.",
+        "Matched body text, for comment, activity and message results. Activities get a rendered summary such as `changed status from Todo to In Progress`.",
     }),
     projectId: z.string().optional(),
     projectName: z.string().optional(),
@@ -53,6 +58,13 @@ export const searchResultSchema = z
         "A document's team or project name, or its issue key. Null for a private or workspace document, and for a team or issue the searcher cannot enter.",
     }),
     archivedAt: nullableResponseTimestamp.optional(),
+    channelId: z
+      .string()
+      .optional()
+      .openapi({ description: "The channel a message was posted in." }),
+    isDirect: z.boolean().optional().openapi({
+      description: "True when a message is in a direct message.",
+    }),
   })
   .openapi("SearchResult");
 

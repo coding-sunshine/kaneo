@@ -797,6 +797,10 @@
           "hasAgent": {
             "type": "boolean",
             "description": "Whether the agent and loops are available (an OpenRouter API key or a self-hosted model URL is configured)."
+          },
+          "hasCalls": {
+            "type": "boolean",
+            "description": "Whether voice and video calls are available (a LiveKit server is configured)."
           }
         },
         "required": [
@@ -822,7 +826,8 @@
           "customOAuthManagedProfileFields",
           "customOAuthAccountUrl",
           "billingEnabled",
-          "hasAgent"
+          "hasAgent",
+          "hasCalls"
         ]
       },
       "McpClientRegistration": {
@@ -3293,6 +3298,52 @@
           "updatedAt"
         ]
       },
+      "ChatPresenceSetting": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Show others in your workspaces when you are online in chat."
+          }
+        },
+        "required": [
+          "enabled"
+        ]
+      },
+      "ChatOnlineList": {
+        "type": "object",
+        "properties": {
+          "online": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Ids of workspace members who turned presence on and are online now. Empty while your own presence is off."
+          }
+        },
+        "required": [
+          "online"
+        ]
+      },
+      "ChatChannelListItem": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ChatChannel"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "unreadCount": {
+                "type": "integer",
+                "description": "Messages from others since you last read the channel. 0 for channels you have not joined."
+              }
+            },
+            "required": [
+              "unreadCount"
+            ]
+          }
+        ]
+      },
       "ChatChannel": {
         "type": "object",
         "properties": {
@@ -3346,6 +3397,25 @@
           "createdAt"
         ]
       },
+      "ChatDirectMessageListItem": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ChatChannelDetail"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "unreadCount": {
+                "type": "integer",
+                "description": "Messages from others since you last read the channel. 0 for channels you have not joined."
+              }
+            },
+            "required": [
+              "unreadCount"
+            ]
+          }
+        ]
+      },
       "ChatChannelDetail": {
         "allOf": [
           {
@@ -3397,6 +3467,47 @@
           "body": {
             "type": "string"
           },
+          "editedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the author last edited the message. Null if never."
+          },
+          "pinnedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the message was pinned to its channel. Null if not."
+          },
+          "reactions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "emoji": {
+                  "type": "string"
+                },
+                "userIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "emoji",
+                "userIds"
+              ]
+            },
+            "description": "Emoji reactions, in the order each emoji was first used; userIds oldest first."
+          },
+          "linkPreview": {
+            "$ref": "#/components/schemas/ChatLinkPreview"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -3409,7 +3520,62 @@
           "authorName",
           "authorImage",
           "body",
+          "editedAt",
+          "pinnedAt",
+          "reactions",
+          "linkPreview",
           "createdAt"
+        ]
+      },
+      "ChatLinkPreview": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "siteName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "title",
+          "description",
+          "siteName"
+        ],
+        "description": "A card for the first web link, added shortly after posting. Links inside code get none."
+      },
+      "ChatCallSession": {
+        "type": "object",
+        "properties": {
+          "serverUrl": {
+            "type": "string",
+            "description": "The LiveKit server to join."
+          },
+          "roomName": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string",
+            "description": "A LiveKit access token for this room only, valid for one minute. LiveKit renews it once connected."
+          }
+        },
+        "required": [
+          "serverUrl",
+          "roomName",
+          "token"
         ]
       },
       "AgentChatSummary": {
@@ -7803,18 +7969,21 @@
               "workspace",
               "comment",
               "activity",
-              "document"
+              "document",
+              "message",
+              "person"
             ]
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "What to show for the result. A message's channel name, empty for a direct message; a person's name."
           },
           "description": {
             "type": "string"
           },
           "content": {
             "type": "string",
-            "description": "Matched body text, for comment and activity results. Activities get a rendered summary such as `changed status from Todo to In Progress`."
+            "description": "Matched body text, for comment, activity and message results. Activities get a rendered summary such as `changed status from Todo to In Progress`."
           },
           "projectId": {
             "type": "string"
@@ -7887,6 +8056,14 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "channelId": {
+            "type": "string",
+            "description": "The channel a message was posted in."
+          },
+          "isDirect": {
+            "type": "boolean",
+            "description": "True when a message is in a direct message."
           }
         },
         "required": [
@@ -10052,7 +10229,8 @@
             "type": "string"
           },
           "email": {
-            "type": "string"
+            "type": "string",
+            "description": "Empty when a workspace guest reads the list, except for their own row."
           },
           "image": {
             "type": [
@@ -10095,6 +10273,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "guest": {
+            "type": "boolean",
+            "description": "A guest: selected projects, only the channels they were added to, and no workspace directory."
           }
         },
         "required": [
@@ -11409,6 +11591,9 @@
           "emailVerified": {
             "type": "boolean"
           },
+          "twoFactorEnabled": {
+            "type": "boolean"
+          },
           "isAnonymous": {
             "type": "boolean"
           },
@@ -11469,6 +11654,7 @@
           "name",
           "email",
           "emailVerified",
+          "twoFactorEnabled",
           "isAnonymous",
           "image",
           "createdAt",
@@ -12322,6 +12508,9 @@
           "requireEmailVerification": {
             "type": "boolean"
           },
+          "requireTwoFactor": {
+            "type": "boolean"
+          },
           "defaultRole": {
             "type": "string"
           },
@@ -12381,6 +12570,7 @@
           "registrationEnabled",
           "passwordRegistrationEnabled",
           "requireEmailVerification",
+          "requireTwoFactor",
           "defaultRole",
           "workspaceCreationRestricted",
           "disabledIntegrations",
@@ -12388,6 +12578,256 @@
           "emailDeliveryConfigured",
           "roles",
           "integrationProviders"
+        ]
+      },
+      "BackupStatus": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "False until the offsite bucket and its keys are set on the server."
+          },
+          "missingEnv": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Names of the server settings to set to turn backups on."
+          },
+          "lastRun": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "running",
+                  "succeeded",
+                  "failed"
+                ]
+              },
+              "startedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "finishedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "sizeBytes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "offsiteStatus": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "ok",
+                  "failed",
+                  null
+                ]
+              },
+              "errorCode": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Short failure category such as ECONNREFUSED, InternalError or COUNT_MISMATCH. Never contains hosts, credentials or server messages."
+              }
+            },
+            "required": [
+              "id",
+              "status",
+              "startedAt",
+              "finishedAt",
+              "sizeBytes",
+              "offsiteStatus",
+              "errorCode"
+            ]
+          },
+          "lastSuccess": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "running",
+                  "succeeded",
+                  "failed"
+                ]
+              },
+              "startedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "finishedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "sizeBytes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "offsiteStatus": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "ok",
+                  "failed",
+                  null
+                ]
+              },
+              "errorCode": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Short failure category such as ECONNREFUSED, InternalError or COUNT_MISMATCH. Never contains hosts, credentials or server messages."
+              }
+            },
+            "required": [
+              "id",
+              "status",
+              "startedAt",
+              "finishedAt",
+              "sizeBytes",
+              "offsiteStatus",
+              "errorCode"
+            ]
+          }
+        },
+        "required": [
+          "enabled",
+          "missingEnv",
+          "lastRun",
+          "lastSuccess"
+        ]
+      },
+      "BackupRestoreTest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "passed",
+              "failed"
+            ]
+          },
+          "errorCode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Short failure category such as ECONNREFUSED, InternalError or COUNT_MISMATCH. Never contains hosts, credentials or server messages."
+          },
+          "backupId": {
+            "type": "string"
+          },
+          "backupStartedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "restored": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "tickets": {
+                "type": "integer"
+              },
+              "documents": {
+                "type": "integer"
+              },
+              "chatMessages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "tickets",
+              "documents",
+              "chatMessages"
+            ]
+          },
+          "atBackup": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "tickets": {
+                "type": "integer"
+              },
+              "documents": {
+                "type": "integer"
+              },
+              "chatMessages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "tickets",
+              "documents",
+              "chatMessages"
+            ]
+          },
+          "live": {
+            "type": "object",
+            "properties": {
+              "tickets": {
+                "type": "integer"
+              },
+              "documents": {
+                "type": "integer"
+              },
+              "chatMessages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "tickets",
+              "documents",
+              "chatMessages"
+            ]
+          },
+          "durationMs": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "status",
+          "errorCode",
+          "backupId",
+          "backupStartedAt",
+          "restored",
+          "atBackup",
+          "live",
+          "durationMs"
         ]
       },
       "InstanceWebhookList": {
@@ -12604,6 +13044,34 @@
         },
         "required": [
           "revoked"
+        ]
+      },
+      "AdminTwoFactorReset": {
+        "type": "object",
+        "properties": {
+          "twoFactorEnabled": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          }
+        },
+        "required": [
+          "twoFactorEnabled"
+        ]
+      },
+      "AdminTwoFactorResetBody": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "A current code from the caller's own authenticator app, or one of their recovery codes (used up)."
+          }
+        },
+        "required": [
+          "code"
         ]
       }
     },
@@ -28276,6 +28744,183 @@
         }
       }
     },
+    "/chat/presence": {
+      "get": {
+        "operationId": "getChatPresenceSetting",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Get presence setting",
+        "description": "Whether you show others when you are online. Off by default.",
+        "responses": {
+          "200": {
+            "description": "Presence setting",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatPresenceSetting"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "put": {
+        "operationId": "setChatPresenceSetting",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Set presence setting",
+        "description": "Turn your online presence on or off. Off removes it for everyone at once.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean",
+                    "description": "Show others in your workspaces when you are online in chat."
+                  }
+                },
+                "required": [
+                  "enabled"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Presence setting",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatPresenceSetting"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/presence/heartbeat": {
+      "post": {
+        "operationId": "chatPresenceHeartbeat",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Send presence heartbeat",
+        "description": "Mark yourself online for the next 90 seconds. Does nothing while presence is off.",
+        "responses": {
+          "200": {
+            "description": "Presence setting",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatPresenceSetting"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/presence": {
+      "get": {
+        "operationId": "listChatOnline",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "List online members",
+        "description": "Members of the workspace who turned presence on and are online. Empty unless your own presence is on.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Online members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatOnlineList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/chat/workspace/{workspaceId}/channels": {
       "get": {
         "operationId": "listChatChannels",
@@ -28302,7 +28947,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ChatChannel"
+                    "$ref": "#/components/schemas/ChatChannelListItem"
                   }
                 }
               }
@@ -28442,7 +29087,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ChatChannelDetail"
+                    "$ref": "#/components/schemas/ChatDirectMessageListItem"
                   }
                 }
               }
@@ -29018,6 +29663,109 @@
         }
       }
     },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/members/{userId}": {
+      "delete": {
+        "operationId": "removeChatChannelMember",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Remove member",
+        "description": "Take a member out of a channel. They lose it with their next request. Workspace admins only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "userId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "channelId": {
+                      "type": "string"
+                    },
+                    "userId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "channelId",
+                    "userId"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or member not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The last member cannot leave a private channel",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/chat/workspace/{workspaceId}/channels/{channelId}/messages": {
       "get": {
         "operationId": "listChatMessages",
@@ -29025,7 +29773,7 @@
           "Chat"
         ],
         "summary": "List messages",
-        "description": "The newest 50 messages, oldest first.",
+        "description": "The newest 50 messages, oldest first. Pass `before` to page back, or `around` to open the page that holds one message.",
         "parameters": [
           {
             "schema": {
@@ -29052,6 +29800,16 @@
             "required": false,
             "description": "Return messages posted before this time.",
             "name": "before",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "A message id in this channel: return the page that holds it, with up to 25 older messages before it. Takes precedence over `before`."
+            },
+            "required": false,
+            "description": "A message id in this channel: return the page that holds it, with up to 25 older messages before it. Takes precedence over `before`.",
+            "name": "around",
             "in": "query"
           }
         ],
@@ -29192,6 +29950,1045 @@
           },
           "409": {
             "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/messages/{messageId}": {
+      "patch": {
+        "operationId": "editChatMessage",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Edit message",
+        "description": "Change the text of your own message. It then shows as edited.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "body": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  }
+                },
+                "required": [
+                  "body"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Message edited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only the author can change this message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or message not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteChatMessage",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Delete message",
+        "description": "Delete your own message for everyone.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "messageId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "messageId"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only the author can change this message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or message not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/messages/{messageId}/pin": {
+      "post": {
+        "operationId": "pinChatMessage",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Pin message",
+        "description": "Pin a message to its channel. Any channel member may pin.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or message not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "unpinChatMessage",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Unpin message",
+        "description": "Remove a message from the channel's pinned list.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or message not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/messages/{messageId}/reactions": {
+      "post": {
+        "operationId": "addChatMessageReaction",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Add reaction",
+        "description": "Add your emoji reaction to a message. Adding one you already have is a no-op.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "emoji": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 258
+                  }
+                },
+                "required": [
+                  "emoji"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown custom emoji",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or message not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeChatMessageReaction",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Remove reaction",
+        "description": "Remove your emoji reaction from a message.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "emoji": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 258
+                  }
+                },
+                "required": [
+                  "emoji"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown custom emoji",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or message not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/read": {
+      "post": {
+        "operationId": "markChatChannelRead",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Mark channel read",
+        "description": "Clear your unread count for the channel. Only you can see when you read it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Marked read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "channelId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "channelId"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/pins": {
+      "get": {
+        "operationId": "listChatPins",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "List pinned messages",
+        "description": "Every pinned message of the channel, newest pin first.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pinned messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatMessage"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/call": {
+      "post": {
+        "operationId": "startChatCall",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Start call",
+        "description": "Start a voice or video call in a channel or direct message you belong to. Rings the other members, at most 10 starts a minute per person. Needs LiveKit configured on the server.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Call started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatCallSession"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Calls are off on this server, or channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many calls started; see the Retry-After header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/call/join": {
+      "post": {
+        "operationId": "joinChatCall",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Join call",
+        "description": "Join the call in a channel you belong to.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Call session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatCallSession"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Calls are off on this server, or channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/messages/{messageId}/preview": {
+      "delete": {
+        "operationId": "removeChatLinkPreview",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Remove link preview",
+        "description": "Remove the link preview from your own message.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Preview removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only the author can remove the preview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or message not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -39883,7 +41680,7 @@
           "Search"
         ],
         "summary": "Global search",
-        "description": "Search across tasks, projects, workspaces, comments, and activities in one workspace. Results are ranked by relevance and returned as a single flat list, each entry tagged with its `type`.",
+        "description": "Search across tasks, projects, workspaces, comments, activities, documents, chat messages and people in one workspace. Messages come only from channels and direct messages the caller can read, archived channels included. Results are ranked by relevance and returned as a single flat list, each entry tagged with its `type`.",
         "parameters": [
           {
             "schema": {
@@ -39905,7 +41702,9 @@
                 "workspaces",
                 "comments",
                 "activities",
-                "documents"
+                "documents",
+                "messages",
+                "people"
               ],
               "default": "all"
             },
@@ -55530,6 +57329,10 @@
                     "type": "boolean",
                     "description": "New password sign-ups must confirm their email before they can sign in. Requires email delivery."
                   },
+                  "requireTwoFactor": {
+                    "type": "boolean",
+                    "description": "Password users must set up two-factor sign-in. Each one is held to setting it up at their next sign-in."
+                  },
                   "defaultRole": {
                     "type": "string",
                     "minLength": 1,
@@ -55596,6 +57399,106 @@
           },
           "409": {
             "description": "An environment variable locks the setting (code SETTING_LOCKED_BY_ENV)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/admin/backups": {
+      "get": {
+        "operationId": "getAdminBackupStatus",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Get backup status",
+        "description": "Whether scheduled backups are on, the latest backup run and the latest successful one with its size and offsite copy state. Requires the `system:read` instance permission; API keys are rejected.",
+        "responses": {
+          "200": {
+            "description": "Backup status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the instance permission or used an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/admin/backups/test-restore": {
+      "post": {
+        "operationId": "testAdminBackupRestore",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Test restoring the latest backup",
+        "description": "Download the latest offsite backup, restore it into a scratch database, compare ticket, document and chat message counts, then drop the scratch database. Requires the `instance:settings` instance permission; API keys are rejected.",
+        "responses": {
+          "200": {
+            "description": "The restore test result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupRestoreTest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the instance permission or used an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Backups are off, there is no backup yet, or a restore test is already running",
             "content": {
               "application/json": {
                 "schema": {
@@ -56544,6 +58447,100 @@
           },
           "429": {
             "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/admin/users/{userId}/two-factor/reset": {
+      "post": {
+        "operationId": "resetAdminUserTwoFactor",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Reset a user's two-factor",
+        "description": "Turn off another user's two-factor sign-in, for example after they lost their device: their authenticator secret, recovery codes and remembered devices are removed, and the reset is recorded in the audit log. Sessions are kept. If the instance requires two-factor, the next sign-in asks them to set it up again. You must have two-factor on yourself and send a current code from your authenticator app or one of your recovery codes; a session alone is refused. Your own two-factor can't be reset here. Requires the `users:credentials` instance permission; API keys are rejected.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "required": true,
+            "name": "userId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminTwoFactorResetBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Two-factor is off",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminTwoFactorReset"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the instance permission, uses an API key, has no two-factor of their own, or sent a missing or wrong code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The user is the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many wrong codes from the caller; code entry is locked for 15 minutes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }

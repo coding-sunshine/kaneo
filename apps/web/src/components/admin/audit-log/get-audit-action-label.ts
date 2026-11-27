@@ -25,6 +25,10 @@ const ACTION_LABEL_KEYS = new Map([
     "settings:adminAuditLog.actions.userVerificationSent",
   ],
   ["user.email_verified", "settings:adminAuditLog.actions.userEmailVerified"],
+  [
+    "user.two_factor_reset",
+    "settings:adminAuditLog.actions.userTwoFactorReset",
+  ],
   ["user.avatar_changed", "settings:adminAuditLog.actions.userAvatarChanged"],
   ["user.avatar_removed", "settings:adminAuditLog.actions.userAvatarRemoved"],
   ["session.revoked", "settings:adminAuditLog.actions.sessionRevoked"],

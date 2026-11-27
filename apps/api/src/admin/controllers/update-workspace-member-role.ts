@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
+import { assertNotGuest } from "../../guest/assert-not-guest";
 import { workspaceUserTable } from "../../database/schema";
 import { isOwnerRole } from "../../project-access/is-owner-role";
 import type { AdminAuditRequest } from "../audit/admin-audit-request";
@@ -25,6 +26,7 @@ async function updateWorkspaceMemberRole(
     if (!member) {
       throw new HTTPException(404, { message: "Member not found" });
     }
+    await assertNotGuest(workspaceId, userId, tx);
     if (!(await isAssignableWorkspaceRole(tx, workspaceId, role))) {
       throw new HTTPException(400, {
         message:

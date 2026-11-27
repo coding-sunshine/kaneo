@@ -16,6 +16,7 @@ import {
   Workflow,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useDirectMessages } from "@/hooks/queries/chat/use-direct-messages";
 import { inboxCount } from "@/components/sidebar-customize/inbox-count";
 import type { SidebarItemId } from "@/components/sidebar-customize/sidebar-items";
 import { useTaskDrafts } from "@/hooks/queries/task-draft/use-task-drafts";
@@ -26,6 +27,7 @@ import {
   useReviewsStatus,
 } from "@/hooks/queries/github-reviews/use-github-reviews";
 import useGetNotifications from "@/hooks/queries/notification/use-get-notifications";
+import useGetMyProjectAccess from "@/hooks/queries/workspace-users/use-get-my-project-access";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { reviewsCount } from "@/lib/reviews-count";
 import { splitSnoozed } from "@/lib/reviews-snooze";
@@ -50,6 +52,7 @@ export function useSidebarItems() {
   const { data: workspace } = useActiveWorkspace();
   const { data: invitations = [] } = usePendingInvitations();
   const { data: notifications = [] } = useGetNotifications(workspace?.id);
+  const { data: directMessages = [] } = useDirectMessages(workspace?.id ?? "");
   const hasAgent = useHasAgent();
   const inboxCountMode = useUserPreferencesStore(
     (state) => state.sidebar.inboxCount,
@@ -69,8 +72,13 @@ export function useSidebarItems() {
   );
   const snoozes = useReviewsSnoozeStore((state) => state.entries);
   const { data: drafts = [] } = useTaskDrafts(workspace?.id);
+  const { data: myAccess } = useGetMyProjectAccess(workspace?.id ?? "");
 
   if (!workspace) return null;
+  // The API gives a guest no workspace-wide projects, pulse or directory.
+  const guestHidden = new Set<SidebarItemId>(
+    myAccess?.guest ? ["pulse", "projects", "members"] : [],
+  );
 
   const homeUrl = `/dashboard/workspace/${workspace.id}`;
   const item = (
@@ -87,7 +95,11 @@ export function useSidebarItems() {
       t("navigation:sidebar.inbox"),
       Inbox,
       `${homeUrl}/inbox`,
-      inboxCount(notifications, inboxCountMode),
+      inboxCount(
+        notifications,
+        inboxCountMode,
+        directMessages.reduce((total, dm) => total + dm.unreadCount, 0),
+      ),
     ),
     item(
       "myTasks",
@@ -193,8 +205,8 @@ export function useSidebarItems() {
 
   return {
     workspaceId: workspace.id,
-    personal,
-    workspace: workspaceItems,
+    personal: personal.filter((row) => !guestHidden.has(row.id)),
+    workspace: workspaceItems.filter((row) => !guestHidden.has(row.id)),
     invitations: invitationsItem,
   };
 }

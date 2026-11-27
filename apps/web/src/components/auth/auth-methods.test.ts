@@ -34,6 +34,7 @@ function config(overrides: Partial<GetConfigResponse> = {}) {
     customOAuthAccountUrl: null,
     billingEnabled: false,
     hasAgent: false,
+    hasCalls: false,
     ...overrides,
   } satisfies GetConfigResponse;
 }

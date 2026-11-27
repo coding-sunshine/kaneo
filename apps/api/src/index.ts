@@ -22,7 +22,7 @@ import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import activity from "./activity";
 import admin from "./admin";
-import { auth } from "./auth";
+import { handleAuthRequest } from "./auth";
 import { forwardAuthRequest } from "./utils/forward-auth-request";
 import { organizationRoutes } from "./auth-openapi";
 import {
@@ -76,6 +76,7 @@ import { isAgentEnabled } from "./agent/openrouter";
 import { setSelfFetch } from "./agent/self-client";
 import loop from "./loop";
 import chat from "./chat";
+import { callsConfigured, logCallsOffOnce } from "./chat/call/call-config";
 import { findChannelWorkspace } from "./chat/controllers/find-channel-workspace";
 import { loadChannel } from "./chat/controllers/load-channel";
 import savedView from "./saved-view";
@@ -116,8 +117,10 @@ import { apiKeyRejection } from "./utils/api-key-rejection";
 import { applyApiKeyHeaders } from "./utils/apply-api-key-headers";
 import {
   authenticateApiRequest,
-  isRefusedForScopedSession,
+  authRouteRefusal,
 } from "./utils/authenticate-api-request";
+import { ApiError } from "./errors/api-error";
+import { TWO_FACTOR_SETUP_REQUIRED } from "./two-factor/setup-pending";
 import { requireIntegrationProviderEnabled } from "./instance-settings/require-integration-provider-enabled";
 import {
   authorizeAssetAccess,
@@ -497,10 +500,14 @@ export function createApp() {
 
   // Before every /auth handler below, the device page included.
   api.use("/auth/*", async (c, next) => {
-    if (await isRefusedForScopedSession(c)) {
+    const refusal = await authRouteRefusal(c);
+    if (refusal === "scoped") {
       throw new HTTPException(403, {
         message: "This connection can only change documents and topics",
       });
+    }
+    if (refusal === "two-factor-setup") {
+      throw new ApiError(403, TWO_FACTOR_SETUP_REQUIRED);
     }
     return next();
   });
@@ -810,7 +817,7 @@ export function createApp() {
         }
         return c.redirect(deviceUrl.toString(), 302);
       }
-      return withJsonRateLimit(await auth.handler(c.req.raw));
+      return withJsonRateLimit(await handleAuthRequest(c.req.raw));
     },
   );
 
@@ -1208,6 +1215,7 @@ export async function startServer(
       console.log(
         `⚡ API is running at ${process.env.KANEO_API_URL || "http://localhost:1337"}`,
       );
+      if (!callsConfigured()) logCallsOffOnce();
     },
   );
 

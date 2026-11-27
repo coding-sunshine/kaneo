@@ -129,19 +129,26 @@ async function fixture(
       path: `/api/${provider}-integration/project/${project.id}`,
       resources: ["project"],
     })),
-    ...["tasks", "comments", "activities", "projects", "workspaces", "all"].map(
-      (type) => ({
-        path: `/api/search?workspaceId=${workspaceId}&q=Private&type=${type}`,
-        resources:
-          type === "projects"
-            ? ["project"]
-            : type === "workspaces"
-              ? ["workspace"]
-              : type === "all"
-                ? ["project", "task", "workspace"]
-                : ["project", "task"],
-      }),
-    ),
+    ...[
+      "tasks",
+      "comments",
+      "activities",
+      "projects",
+      "workspaces",
+      "messages",
+      "people",
+      "all",
+    ].map((type) => ({
+      path: `/api/search?workspaceId=${workspaceId}&q=Private&type=${type}`,
+      resources:
+        type === "projects"
+          ? ["project"]
+          : ["workspaces", "messages", "people"].includes(type)
+            ? ["workspace"]
+            : type === "all"
+              ? ["project", "task", "workspace"]
+              : ["project", "task"],
+    })),
   ];
   return { app, member, comment, headers, reads };
 }

@@ -1,10 +1,11 @@
-import { useNavigate } from "@tanstack/react-router";
 import {
   FileText,
   FolderKanban,
   Hash,
   MessageSquare,
+  MessagesSquare,
   Search,
+  User,
   Users,
   Zap,
 } from "lucide-react";
@@ -26,18 +27,33 @@ import {
 } from "@/components/ui/command";
 import { DocumentAccessLabel } from "@/components/documents/document-access-label";
 import { STATUS_TONE } from "@/components/documents/document-status-tone";
+import {
+  searchResultDetail,
+  searchResultTitle,
+} from "@/components/search-page/search-result-title";
 import { Badge } from "@/components/ui/badge";
 import useGlobalSearch from "@/hooks/queries/search/use-global-search";
 import type { DocumentScope } from "@/fetchers/document/documents";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
+import { useOpenSearchResult } from "@/hooks/use-open-search-result";
 
 type SearchResultItem = {
   id: string;
   title: string;
   description?: string;
   content?: string;
-  type: "task" | "project" | "workspace" | "comment" | "activity" | "document";
+  type:
+    | "task"
+    | "project"
+    | "workspace"
+    | "comment"
+    | "activity"
+    | "document"
+    | "message"
+    | "person";
   projectName?: string;
+  channelId?: string;
+  isDirect?: boolean;
   taskId?: string;
   projectId?: string;
   workspaceId?: string;
@@ -71,7 +87,7 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const { data: workspace } = useActiveWorkspace();
-  const navigate = useNavigate();
+  const openResult = useOpenSearchResult(workspace?.id);
 
   const searchEnabled = query.trim().length >= 3;
 
@@ -92,62 +108,7 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
     setOpen(false);
     setQuery("");
 
-    switch (item.type) {
-      case "task":
-        if (item.projectId && item.id && workspace?.id) {
-          navigate({
-            to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
-            params: {
-              workspaceId: workspace.id,
-              projectId: item.projectId,
-              taskId: item.id,
-            },
-          });
-        }
-        break;
-      case "project":
-        if (item.id && workspace?.id) {
-          navigate({
-            to: "/dashboard/workspace/$workspaceId/project/$projectId/board",
-            params: {
-              workspaceId: workspace.id,
-              projectId: item.id,
-            },
-          });
-        }
-        break;
-      case "workspace":
-        if (item.id) {
-          navigate({
-            to: "/dashboard/workspace/$workspaceId",
-            params: {
-              workspaceId: item.id,
-            },
-          });
-        }
-        break;
-      case "document":
-        if (workspace?.id) {
-          navigate({
-            to: "/dashboard/workspace/$workspaceId/document/$documentId",
-            params: { workspaceId: workspace.id, documentId: item.id },
-          });
-        }
-        break;
-      case "comment":
-      case "activity":
-        if (item.projectId && item.taskId && workspace?.id) {
-          navigate({
-            to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
-            params: {
-              workspaceId: workspace.id,
-              projectId: item.projectId,
-              taskId: item.taskId,
-            },
-          });
-        }
-        break;
-    }
+    openResult(item);
   };
 
   const getItemIcon = (type: string) => {
@@ -164,6 +125,10 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
         return Zap;
       case "document":
         return FileText;
+      case "message":
+        return MessagesSquare;
+      case "person":
+        return User;
       default:
         return FileText;
     }
@@ -195,6 +160,10 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
           return t("navigation:search.groups.activity");
         case "document":
           return t("navigation:search.groups.document");
+        case "message":
+          return t("navigation:search.groups.message");
+        case "person":
+          return t("navigation:search.groups.person");
         default:
           return t("navigation:search.groups.fallback");
       }
@@ -249,7 +218,12 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
                             />
                             <div className="flex-1 min-w-0">
                               <div className="flex min-w-0 items-center gap-2 font-medium text-sm">
-                                <span className="truncate">{item.title}</span>
+                                <span className="truncate">
+                                  {searchResultTitle(
+                                    item,
+                                    t("workspace:search.directMessage"),
+                                  )}
+                                </span>
                                 {item.type === "document" &&
                                   isDocumentStatus(item.status) && (
                                     <Badge
@@ -280,9 +254,9 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
                                   {item.topicName}
                                 </div>
                               )}
-                              {item.description && (
+                              {searchResultDetail(item) && (
                                 <div className="text-xs text-muted-foreground truncate mt-1">
-                                  {item.description}
+                                  {searchResultDetail(item)}
                                 </div>
                               )}
                             </div>

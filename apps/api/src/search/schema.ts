@@ -14,6 +14,8 @@ export const searchQuery = z.object({
       "comments",
       "activities",
       "documents",
+      "messages",
+      "people",
     ])
     .optional()
     .default("all"),

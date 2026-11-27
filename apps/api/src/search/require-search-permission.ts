@@ -11,6 +11,9 @@ export function requireSearchPermission(c: Context, next: Next) {
       permissions = { project: ["read"] };
       break;
     case "workspaces":
+    // Chat and the member list are open to anyone who can read the workspace.
+    case "messages":
+    case "people":
       permissions = { workspace: ["read"] };
       break;
     case "tasks":

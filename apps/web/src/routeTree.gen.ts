@@ -20,6 +20,8 @@ import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-pas
 import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
+import { Route as AuthTwoFactorRouteImport } from './routes/auth/two-factor'
+import { Route as AuthTwoFactorSetupRouteImport } from './routes/auth/two-factor-setup'
 import { Route as AuthVerifyOtpRouteImport } from './routes/auth/verify-otp'
 import { Route as DeviceIndexRouteImport } from './routes/device/index'
 import { Route as DeviceApproveRouteImport } from './routes/device/approve'
@@ -47,6 +49,7 @@ import { Route as LayoutAuthenticatedDashboardSettingsAccountPreferencesRouteImp
 import { Route as LayoutAuthenticatedDashboardSettingsAccountSecurityRouteImport } from './routes/_layout/_authenticated/dashboard/settings/account/security'
 import { Route as LayoutAuthenticatedDashboardSettingsAdminIndexRouteImport } from './routes/_layout/_authenticated/dashboard/settings/admin/index'
 import { Route as LayoutAuthenticatedDashboardSettingsAdminAuditLogRouteImport } from './routes/_layout/_authenticated/dashboard/settings/admin/audit-log'
+import { Route as LayoutAuthenticatedDashboardSettingsAdminBackupsRouteImport } from './routes/_layout/_authenticated/dashboard/settings/admin/backups'
 import { Route as LayoutAuthenticatedDashboardSettingsAdminOverviewRouteImport } from './routes/_layout/_authenticated/dashboard/settings/admin/overview'
 import { Route as LayoutAuthenticatedDashboardSettingsAdminRolesRouteImport } from './routes/_layout/_authenticated/dashboard/settings/admin/roles'
 import { Route as LayoutAuthenticatedDashboardSettingsAdminSettingsRouteImport } from './routes/_layout/_authenticated/dashboard/settings/admin/settings'
@@ -163,6 +166,16 @@ const AuthSignInRoute = AuthSignInRouteImport.update({
 const AuthSignUpRoute = AuthSignUpRouteImport.update({
   id: '/sign-up',
   path: '/sign-up',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthTwoFactorRoute = AuthTwoFactorRouteImport.update({
+  id: '/two-factor',
+  path: '/two-factor',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthTwoFactorSetupRoute = AuthTwoFactorSetupRouteImport.update({
+  id: '/two-factor-setup',
+  path: '/two-factor-setup',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthVerifyOtpRoute = AuthVerifyOtpRouteImport.update({
@@ -322,6 +335,12 @@ const LayoutAuthenticatedDashboardSettingsAdminAuditLogRoute =
   LayoutAuthenticatedDashboardSettingsAdminAuditLogRouteImport.update({
     id: '/audit-log',
     path: '/audit-log',
+    getParentRoute: () => LayoutAuthenticatedDashboardSettingsAdminRoute,
+  } as any)
+const LayoutAuthenticatedDashboardSettingsAdminBackupsRoute =
+  LayoutAuthenticatedDashboardSettingsAdminBackupsRouteImport.update({
+    id: '/backups',
+    path: '/backups',
     getParentRoute: () => LayoutAuthenticatedDashboardSettingsAdminRoute,
   } as any)
 const LayoutAuthenticatedDashboardSettingsAdminOverviewRoute =
@@ -810,6 +829,8 @@ export interface FileRoutesByFullPath {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/auth/two-factor': typeof AuthTwoFactorRoute
+  '/auth/two-factor-setup': typeof AuthTwoFactorSetupRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/device/approve': typeof DeviceApproveRoute
   '/mcp/authorize': typeof McpAuthorizeRoute
@@ -836,6 +857,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/account/preferences': typeof LayoutAuthenticatedDashboardSettingsAccountPreferencesRoute
   '/dashboard/settings/account/security': typeof LayoutAuthenticatedDashboardSettingsAccountSecurityRoute
   '/dashboard/settings/admin/audit-log': typeof LayoutAuthenticatedDashboardSettingsAdminAuditLogRoute
+  '/dashboard/settings/admin/backups': typeof LayoutAuthenticatedDashboardSettingsAdminBackupsRoute
   '/dashboard/settings/admin/overview': typeof LayoutAuthenticatedDashboardSettingsAdminOverviewRoute
   '/dashboard/settings/admin/roles': typeof LayoutAuthenticatedDashboardSettingsAdminRolesRoute
   '/dashboard/settings/admin/settings': typeof LayoutAuthenticatedDashboardSettingsAdminSettingsRoute
@@ -911,6 +933,8 @@ export interface FileRoutesByTo {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/auth/two-factor': typeof AuthTwoFactorRoute
+  '/auth/two-factor-setup': typeof AuthTwoFactorSetupRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/device/approve': typeof DeviceApproveRoute
   '/mcp/authorize': typeof McpAuthorizeRoute
@@ -934,6 +958,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings/account/preferences': typeof LayoutAuthenticatedDashboardSettingsAccountPreferencesRoute
   '/dashboard/settings/account/security': typeof LayoutAuthenticatedDashboardSettingsAccountSecurityRoute
   '/dashboard/settings/admin/audit-log': typeof LayoutAuthenticatedDashboardSettingsAdminAuditLogRoute
+  '/dashboard/settings/admin/backups': typeof LayoutAuthenticatedDashboardSettingsAdminBackupsRoute
   '/dashboard/settings/admin/overview': typeof LayoutAuthenticatedDashboardSettingsAdminOverviewRoute
   '/dashboard/settings/admin/roles': typeof LayoutAuthenticatedDashboardSettingsAdminRolesRoute
   '/dashboard/settings/admin/settings': typeof LayoutAuthenticatedDashboardSettingsAdminSettingsRoute
@@ -1013,6 +1038,8 @@ export interface FileRoutesById {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/auth/two-factor': typeof AuthTwoFactorRoute
+  '/auth/two-factor-setup': typeof AuthTwoFactorSetupRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/device/approve': typeof DeviceApproveRoute
   '/mcp/authorize': typeof McpAuthorizeRoute
@@ -1039,6 +1066,7 @@ export interface FileRoutesById {
   '/_layout/_authenticated/dashboard/settings/account/preferences': typeof LayoutAuthenticatedDashboardSettingsAccountPreferencesRoute
   '/_layout/_authenticated/dashboard/settings/account/security': typeof LayoutAuthenticatedDashboardSettingsAccountSecurityRoute
   '/_layout/_authenticated/dashboard/settings/admin/audit-log': typeof LayoutAuthenticatedDashboardSettingsAdminAuditLogRoute
+  '/_layout/_authenticated/dashboard/settings/admin/backups': typeof LayoutAuthenticatedDashboardSettingsAdminBackupsRoute
   '/_layout/_authenticated/dashboard/settings/admin/overview': typeof LayoutAuthenticatedDashboardSettingsAdminOverviewRoute
   '/_layout/_authenticated/dashboard/settings/admin/roles': typeof LayoutAuthenticatedDashboardSettingsAdminRolesRoute
   '/_layout/_authenticated/dashboard/settings/admin/settings': typeof LayoutAuthenticatedDashboardSettingsAdminSettingsRoute
@@ -1117,6 +1145,8 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/auth/two-factor'
+    | '/auth/two-factor-setup'
     | '/auth/verify-otp'
     | '/device/approve'
     | '/mcp/authorize'
@@ -1143,6 +1173,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/account/preferences'
     | '/dashboard/settings/account/security'
     | '/dashboard/settings/admin/audit-log'
+    | '/dashboard/settings/admin/backups'
     | '/dashboard/settings/admin/overview'
     | '/dashboard/settings/admin/roles'
     | '/dashboard/settings/admin/settings'
@@ -1218,6 +1249,8 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/auth/two-factor'
+    | '/auth/two-factor-setup'
     | '/auth/verify-otp'
     | '/device/approve'
     | '/mcp/authorize'
@@ -1241,6 +1274,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/account/preferences'
     | '/dashboard/settings/account/security'
     | '/dashboard/settings/admin/audit-log'
+    | '/dashboard/settings/admin/backups'
     | '/dashboard/settings/admin/overview'
     | '/dashboard/settings/admin/roles'
     | '/dashboard/settings/admin/settings'
@@ -1319,6 +1353,8 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/auth/two-factor'
+    | '/auth/two-factor-setup'
     | '/auth/verify-otp'
     | '/device/approve'
     | '/mcp/authorize'
@@ -1345,6 +1381,7 @@ export interface FileRouteTypes {
     | '/_layout/_authenticated/dashboard/settings/account/preferences'
     | '/_layout/_authenticated/dashboard/settings/account/security'
     | '/_layout/_authenticated/dashboard/settings/admin/audit-log'
+    | '/_layout/_authenticated/dashboard/settings/admin/backups'
     | '/_layout/_authenticated/dashboard/settings/admin/overview'
     | '/_layout/_authenticated/dashboard/settings/admin/roles'
     | '/_layout/_authenticated/dashboard/settings/admin/settings'
@@ -1500,6 +1537,20 @@ declare module '@tanstack/react-router' {
       path: '/sign-up'
       fullPath: '/auth/sign-up'
       preLoaderRoute: typeof AuthSignUpRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/two-factor': {
+      id: '/auth/two-factor'
+      path: '/two-factor'
+      fullPath: '/auth/two-factor'
+      preLoaderRoute: typeof AuthTwoFactorRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/two-factor-setup': {
+      id: '/auth/two-factor-setup'
+      path: '/two-factor-setup'
+      fullPath: '/auth/two-factor-setup'
+      preLoaderRoute: typeof AuthTwoFactorSetupRouteImport
       parentRoute: typeof AuthRoute
     }
     '/auth/verify-otp': {
@@ -1689,6 +1740,13 @@ declare module '@tanstack/react-router' {
       path: '/audit-log'
       fullPath: '/dashboard/settings/admin/audit-log'
       preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsAdminAuditLogRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardSettingsAdminRoute
+    }
+    '/_layout/_authenticated/dashboard/settings/admin/backups': {
+      id: '/_layout/_authenticated/dashboard/settings/admin/backups'
+      path: '/backups'
+      fullPath: '/dashboard/settings/admin/backups'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsAdminBackupsRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardSettingsAdminRoute
     }
     '/_layout/_authenticated/dashboard/settings/admin/overview': {
@@ -2171,6 +2229,7 @@ const LayoutAuthenticatedDashboardSettingsAccountRouteWithChildren =
 
 interface LayoutAuthenticatedDashboardSettingsAdminRouteChildren {
   LayoutAuthenticatedDashboardSettingsAdminAuditLogRoute: typeof LayoutAuthenticatedDashboardSettingsAdminAuditLogRoute
+  LayoutAuthenticatedDashboardSettingsAdminBackupsRoute: typeof LayoutAuthenticatedDashboardSettingsAdminBackupsRoute
   LayoutAuthenticatedDashboardSettingsAdminOverviewRoute: typeof LayoutAuthenticatedDashboardSettingsAdminOverviewRoute
   LayoutAuthenticatedDashboardSettingsAdminRolesRoute: typeof LayoutAuthenticatedDashboardSettingsAdminRolesRoute
   LayoutAuthenticatedDashboardSettingsAdminSettingsRoute: typeof LayoutAuthenticatedDashboardSettingsAdminSettingsRoute
@@ -2185,6 +2244,8 @@ const LayoutAuthenticatedDashboardSettingsAdminRouteChildren: LayoutAuthenticate
   {
     LayoutAuthenticatedDashboardSettingsAdminAuditLogRoute:
       LayoutAuthenticatedDashboardSettingsAdminAuditLogRoute,
+    LayoutAuthenticatedDashboardSettingsAdminBackupsRoute:
+      LayoutAuthenticatedDashboardSettingsAdminBackupsRoute,
     LayoutAuthenticatedDashboardSettingsAdminOverviewRoute:
       LayoutAuthenticatedDashboardSettingsAdminOverviewRoute,
     LayoutAuthenticatedDashboardSettingsAdminRolesRoute:
@@ -2528,6 +2589,8 @@ interface AuthRouteChildren {
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
+  AuthTwoFactorRoute: typeof AuthTwoFactorRoute
+  AuthTwoFactorSetupRoute: typeof AuthTwoFactorSetupRoute
   AuthVerifyOtpRoute: typeof AuthVerifyOtpRoute
 }
 
@@ -2537,6 +2600,8 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
+  AuthTwoFactorRoute: AuthTwoFactorRoute,
+  AuthTwoFactorSetupRoute: AuthTwoFactorSetupRoute,
   AuthVerifyOtpRoute: AuthVerifyOtpRoute,
 }
 

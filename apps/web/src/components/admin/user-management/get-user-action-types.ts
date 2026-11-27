@@ -12,7 +12,10 @@ type Options = {
 
 /** The confirmable actions a directory row offers, in menu order. */
 export function getUserActionTypes(
-  user: Pick<AdminUser, "emailVerified" | "banned" | "isAnonymous">,
+  user: Pick<
+    AdminUser,
+    "emailVerified" | "banned" | "isAnonymous" | "twoFactorEnabled"
+  >,
   { isSelf, canSendPasswordReset, permissions }: Options,
 ): UserActionType[] {
   const types: UserActionType[] = [];
@@ -20,6 +23,7 @@ export function getUserActionTypes(
     if (canSendPasswordReset) types.push("sendPasswordReset");
     if (!user.emailVerified)
       types.push("sendVerification", "markEmailVerified");
+    if (user.twoFactorEnabled && !isSelf) types.push("resetTwoFactor");
   }
   if (!isSelf) {
     if (permissions.includes("users:disable"))

@@ -48,8 +48,22 @@ export async function leaveChannel(param: ChannelParam) {
   return response.json();
 }
 
+export async function removeChannelMember(param: ChannelParam, userId: string) {
+  const response = await channel.members[":userId"].$delete({
+    param: { ...param, userId },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
 export async function addChannelMember(param: ChannelParam, userId: string) {
   const response = await channel.members.$post({ param, json: { userId } });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function markChannelRead(param: ChannelParam) {
+  const response = await channel.read.$post({ param });
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }

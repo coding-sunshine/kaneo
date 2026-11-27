@@ -3,6 +3,7 @@ import { ThemePicker } from "@/components/account/theme-picker";
 import PageTitle from "@/components/page-title";
 import { AdvancedSettingsSwitch } from "@/components/settings/advanced-settings-switch";
 import { AutosaveNote } from "@/components/settings/autosave-note";
+import { ChatPresenceSection } from "@/components/settings/preferences/chat-presence-section";
 import { CodingToolsSection } from "@/components/settings/preferences/coding-tools-section";
 import { GeneralPreferencesSection } from "@/components/settings/preferences/general-preferences-section";
 import { TaskDetailsSection } from "@/components/settings/preferences/task-details-section";
@@ -29,6 +30,7 @@ export function PreferencesPage() {
       <GeneralPreferencesSection />
       <CodingToolsSection />
       <TaskDetailsSection />
+      <ChatPresenceSection />
       <SettingsSection title={t("settings:preferencesPage.advancedTitle")}>
         <SettingsCard>
           <AdvancedSettingsSwitch />

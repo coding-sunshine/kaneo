@@ -76,6 +76,13 @@ export function RegistrationSection({
             onChange({ requireEmailVerification })
           }
         />
+        <SettingSwitchRow
+          title={t("settings:adminSettings.requireTwoFactor")}
+          description={t("settings:adminSettings.requireTwoFactorHint")}
+          checked={settings.requireTwoFactor}
+          disabled={pending}
+          onCheckedChange={(requireTwoFactor) => onChange({ requireTwoFactor })}
+        />
         <DefaultRoleRow
           value={settings.defaultRole}
           roles={settings.roles}

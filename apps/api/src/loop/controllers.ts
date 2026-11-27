@@ -1,4 +1,14 @@
-import { and, asc, desc, eq, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  isNotNull,
+  isNull,
+  not,
+  or,
+  sql,
+} from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
 import type { WRITE_TOOLS } from "../agent/tools";
@@ -9,6 +19,7 @@ import {
   projectTable,
   userTable,
 } from "../database/schema";
+import { isGuestCondition } from "../guest/guest-condition";
 import { projectAccessCondition } from "../project-access/project-access-condition";
 import { nextRunAfter } from "./schedule";
 import type { createLoopBody, updateLoopBody } from "./schema";
@@ -41,11 +52,19 @@ const selectLoop = () =>
     .leftJoin(userTable, eq(userTable.id, loopTable.creatorId));
 
 // A loop names its team and says what is done there, so only people who can
-// open that team see it. Its creator always does.
+// open that team see it. Its creator always does. A loop on no team spans the
+// workspace, which a guest never sees.
 const visibleTo = (userId: string) =>
   or(
     eq(loopTable.creatorId, userId),
-    projectAccessCondition(userId, loopTable.projectId),
+    and(
+      isNotNull(loopTable.projectId),
+      projectAccessCondition(userId, loopTable.projectId),
+    ),
+    and(
+      isNull(loopTable.projectId),
+      not(isGuestCondition(userId, loopTable.workspaceId)),
+    ),
   );
 
 export const listLoops = (

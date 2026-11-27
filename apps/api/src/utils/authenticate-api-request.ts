@@ -3,7 +3,13 @@ import { APIError } from "better-auth/api";
 import type { Context } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { resolveInternalUser } from "../agent/internal-auth";
+import { ApiError } from "../errors/api-error";
 import { scopedSessionAllows } from "../mcp/scope";
+import {
+  isTwoFactorSetupPath,
+  isTwoFactorSetupPending,
+  TWO_FACTOR_SETUP_REQUIRED,
+} from "../two-factor/setup-pending";
 import { apiKeyRejection } from "./api-key-rejection";
 import { getUserSession } from "./get-user-session";
 import { type ApiKeyRateLimit, rateLimitHeaders } from "./rate-limit-headers";
@@ -79,6 +85,15 @@ function assertSessionScope(
   }
 }
 
+type SessionResult = NonNullable<Awaited<ReturnType<typeof getSession>>>;
+
+// A session held to setting up two-factor reaches only the auth routes for it.
+function assertTwoFactorSetupDone(result: SessionResult) {
+  if (isTwoFactorSetupPending(result)) {
+    throw new ApiError(403, TWO_FACTOR_SETUP_REQUIRED);
+  }
+}
+
 function setRateLimitHeaders(c: Context, rateLimit: ApiKeyRateLimit | null) {
   if (rateLimit) c.set("apiKeyHeaders", rateLimitHeaders(rateLimit));
 }
@@ -144,6 +159,7 @@ export async function authenticateApiRequest(c: Context): Promise<void> {
     const sessionResult = await getSessionFromBearerOnlyHeaders(c);
     if (sessionResult?.user && sessionResult.session) {
       assertSessionScope(c, sessionResult.session);
+      assertTwoFactorSetupDone(sessionResult);
       c.set("user", sessionResult.user);
       c.set("session", sessionResult.session);
       c.set("userId", sessionResult.user.id);
@@ -164,26 +180,38 @@ export async function authenticateApiRequest(c: Context): Promise<void> {
     throw new HTTPException(401, { message: "Unauthorized" });
   }
   assertSessionScope(c, sessionResult.session);
+  assertTwoFactorSetupDone(sessionResult);
 
   attachUserToScope(sessionResult.user.id);
 }
 
 /**
- * For the /auth routes, which the provider answers itself. True when either
- * credential on the request, read on its own, is a session limited to
- * documents and the request is not one such a session may send.
+ * For the /auth routes, which the provider answers itself. Reads each
+ * credential on the request on its own: a session limited to documents may
+ * only send what such a session may, and a session held to setting up
+ * two-factor may only reach the routes for that.
  */
-export async function isRefusedForScopedSession(c: Context): Promise<boolean> {
-  if (scopedSessionAllows(c.req.method, c.req.path)) return false;
+export async function authRouteRefusal(
+  c: Context,
+): Promise<"scoped" | "two-factor-setup" | null> {
+  const scopedAllowed = scopedSessionAllows(c.req.method, c.req.path);
+  const setupAllowed = isTwoFactorSetupPath(
+    c.req.path.replace(/^(?:\/api)?\/auth/, ""),
+  );
+  if (scopedAllowed && setupAllowed) return null;
   const raw = c.req.raw.headers;
   for (const drop of ["cookie", "authorization"]) {
     const kept = drop === "cookie" ? "authorization" : "cookie";
     if (!raw.get(kept)) continue;
     const headers = new Headers(raw);
     headers.delete(drop);
-    if ((await getSession(headers))?.session.mcpScope) return true;
+    const result = await getSession(headers);
+    if (!scopedAllowed && result?.session.mcpScope) return "scoped";
+    if (!setupAllowed && isTwoFactorSetupPending(result)) {
+      return "two-factor-setup";
+    }
   }
-  return false;
+  return null;
 }
 
 export async function resolveAssetBearerOrCookie(c: Context): Promise<{
@@ -225,6 +253,7 @@ export async function resolveAssetBearerOrCookie(c: Context): Promise<{
     }
     const sessionResult = await getSessionFromBearerOnlyHeaders(c);
     if (sessionResult?.user?.id) {
+      assertTwoFactorSetupDone(sessionResult);
       return { userId: sessionResult.user.id };
     }
     throw new HTTPException(401, { message: "Unauthorized" });
@@ -234,6 +263,7 @@ export async function resolveAssetBearerOrCookie(c: Context): Promise<{
   if (!sessionResult?.user) {
     throw new HTTPException(401, { message: "Unauthorized" });
   }
+  assertTwoFactorSetupDone(sessionResult);
 
   return { userId: sessionResult.user.id };
 }

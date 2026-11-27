@@ -1,5 +1,6 @@
 import { createRoute, errorResponse, jsonResponse } from "../openapi";
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
+import { refuseGuests } from "../guest/refuse-guests";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import { deletedSchema, workProjectLinkSchema } from "./response";
 import { linkBody, linkParam, workProjectParam } from "./schema";
@@ -18,6 +19,7 @@ export const addLinkRoute = createRoute({
     "Add a link to the project's resources: a web address, or a path inside the app.",
   middleware: [
     workspaceAccess.fromWorkProject(),
+    refuseGuests(),
     requireWorkspacePermission({ task: ["update"] }),
   ] as const,
   request: {
@@ -43,6 +45,7 @@ export const removeLinkRoute = createRoute({
   description: "Remove one link from the project's resources.",
   middleware: [
     workspaceAccess.fromWorkProject(),
+    refuseGuests(),
     requireWorkspacePermission({ task: ["update"] }),
   ] as const,
   request: { params: linkParam },

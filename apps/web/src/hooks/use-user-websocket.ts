@@ -4,12 +4,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { getApiUrl } from "@/fetchers/get-api-url";
+import { answerCall } from "@/lib/answer-call";
 import {
   evictInaccessibleWorkspaceCache,
   evictWorkspaceCache,
 } from "@/lib/evict-workspace-cache";
 import { authClient } from "@/lib/auth-client";
 import { reconcileProjectAccess } from "@/lib/reconcile-project-access";
+import { ringIncomingCall } from "@/lib/ring-incoming-call";
 
 export function getUserWsUrl() {
   const base = getApiUrl("ws");
@@ -192,8 +194,35 @@ export function useUserWebSocket() {
               void queryClient.invalidateQueries({ queryKey });
             reconcileProjectAccess(queryClient, workspaceId, () => !disposed);
           }
+          if (message.type === "CHAT_UNREAD_CHANGED" && message.workspaceId) {
+            void queryClient.invalidateQueries({
+              queryKey: ["chat-channels", message.workspaceId],
+            });
+            void queryClient.invalidateQueries({
+              queryKey: ["chat-direct-messages", message.workspaceId],
+            });
+          }
           if (message.type === "NOTIFICATION_CREATED") {
             queryClient.invalidateQueries({ queryKey: ["notifications"] });
+          }
+          if (message.type === "CALL_RINGING") {
+            const ring = message as Record<string, unknown>;
+            if (
+              typeof ring.workspaceId === "string" &&
+              typeof ring.channelId === "string" &&
+              typeof ring.channelName === "string" &&
+              typeof ring.callerName === "string"
+            )
+              ringIncomingCall(
+                {
+                  workspaceId: ring.workspaceId,
+                  channelId: ring.channelId,
+                  channelName: ring.channelName,
+                  isDirect: ring.isDirect === true,
+                  callerName: ring.callerName,
+                },
+                answerCall,
+              );
           }
         } catch {
           // Ignore malformed messages
