@@ -205,4 +205,11 @@ describe("API integration: chat link previews", () => {
     );
     expect(response.status).toBe(404);
   });
+
+  it("limits how many previews one person's messages fetch", async () => {
+    const { pub, post } = await setup();
+    for (let i = 0; i < 31; i++) await post(pub.id, `${SITE}?page=${i}`);
+
+    expect(siteFetch).toHaveBeenCalledTimes(30);
+  });
 });
