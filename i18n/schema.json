@@ -12135,6 +12135,117 @@
 						"save"
 					]
 				},
+				"aiUsage": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"description": {
+							"type": "string"
+						},
+						"budgets": {
+							"type": "string"
+						},
+						"monthUsed": {
+							"type": "string"
+						},
+						"userDaily": {
+							"type": "string"
+						},
+						"userDailyHint": {
+							"type": "string"
+						},
+						"workspaceMonthly": {
+							"type": "string"
+						},
+						"workspaceMonthlyHint": {
+							"type": "string"
+						},
+						"noLimit": {
+							"type": "string"
+						},
+						"invalid": {
+							"type": "string"
+						},
+						"save": {
+							"type": "string"
+						},
+						"saved": {
+							"type": "string"
+						},
+						"byFeature": {
+							"type": "string"
+						},
+						"byDay": {
+							"type": "string"
+						},
+						"period": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "string"
+						},
+						"loadError": {
+							"type": "string"
+						},
+						"tokens_one": {
+							"type": "string"
+						},
+						"tokens_zero": {
+							"type": "string"
+						},
+						"tokens_two": {
+							"type": "string"
+						},
+						"tokens_few": {
+							"type": "string"
+						},
+						"tokens_many": {
+							"type": "string"
+						},
+						"tokens_other": {
+							"type": "string"
+						},
+						"features": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"assistant": {
+									"type": "string"
+								},
+								"loop": {
+									"type": "string"
+								},
+								"loopDraft": {
+									"type": "string"
+								}
+							},
+							"required": ["assistant", "loop", "loopDraft"]
+						}
+					},
+					"required": [
+						"title",
+						"description",
+						"budgets",
+						"monthUsed",
+						"userDaily",
+						"userDailyHint",
+						"workspaceMonthly",
+						"workspaceMonthlyHint",
+						"noLimit",
+						"invalid",
+						"save",
+						"saved",
+						"byFeature",
+						"byDay",
+						"period",
+						"empty",
+						"loadError",
+						"features"
+					]
+				},
 				"workspaceWebhooks": {
 					"type": "object",
 					"additionalProperties": false,
@@ -12668,6 +12779,7 @@
 				"adminRoles",
 				"adminSettings",
 				"adminWebhooks",
+				"aiUsage",
 				"workspaceWebhooks",
 				"projectCycles",
 				"issueTemplates",
