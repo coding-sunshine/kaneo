@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
@@ -86,6 +87,17 @@ describe("API integration: plain-English filters", () => {
     expect(sent).toContain("my blocked bugs older than 2 weeks");
     expect(sent).toContain("bug");
     expect(sent).not.toContain(owner.email);
+  });
+
+  it("names statuses by the value tickets carry, as the board does", async () => {
+    const [column] = await db
+      .select()
+      .from(schema.columnTable)
+      .where(eq(schema.columnTable.projectId, projectId));
+    expect(column).toBeDefined();
+    model.queue.push(reply(JSON.stringify({ status: [column?.name] })));
+    const body = await (await parse(owner, "everything in that column")).json();
+    expect(body.filters).toEqual({ status: [column?.slug] });
   });
 
   it("asks one question and applies nothing for an unclear sentence", async () => {

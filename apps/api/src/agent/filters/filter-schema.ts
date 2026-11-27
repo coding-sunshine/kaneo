@@ -23,7 +23,7 @@ export const parsedFilterSchema = z
           description: "Label ids.",
         }),
         status: z.array(z.string()).optional().openapi({
-          description: "Column ids of the team.",
+          description: "Status slugs of the team's columns.",
         }),
         priority: z.array(z.string()).optional(),
         blocked: z.literal(true).optional().openapi({

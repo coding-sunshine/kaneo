@@ -4127,7 +4127,7 @@
                 "items": {
                   "type": "string"
                 },
-                "description": "Column ids of the team."
+                "description": "Status slugs of the team's columns."
               },
               "priority": {
                 "type": "array",

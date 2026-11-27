@@ -69,8 +69,9 @@ export async function parseFilter(request: ParseRequest) {
           or(isNull(labelTable.projectId), eq(labelTable.projectId, projectId)),
         ),
       ),
+    // A ticket's status is its column's slug, which the board filters on.
     db
-      .select({ id: columnTable.id, name: columnTable.name })
+      .select({ id: columnTable.slug, name: columnTable.name })
       .from(columnTable)
       .where(eq(columnTable.projectId, projectId)),
     db
