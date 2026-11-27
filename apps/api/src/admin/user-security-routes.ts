@@ -144,7 +144,7 @@ const resetTwoFactorRoute = createRoute({
   tags: ["Admin"],
   summary: "Reset a user's two-factor",
   description:
-    "Turn off a user's two-factor sign-in, for example after they lost their device: their authenticator secret, recovery codes and remembered devices are removed, and the reset is recorded in the audit log. Sessions are kept. If the instance requires two-factor, the next sign-in asks them to set it up again. Requires the `users:credentials` instance permission; API keys are rejected.",
+    "Turn off another user's two-factor sign-in, for example after they lost their device: their authenticator secret, recovery codes and remembered devices are removed, and the reset is recorded in the audit log. Sessions are kept. If the instance requires two-factor, the next sign-in asks them to set it up again. Your own two-factor can't be reset here. Requires the `users:credentials` instance permission; API keys are rejected.",
   middleware: [
     requireUserSession,
     requireInstancePermission("users:credentials"),
@@ -155,6 +155,7 @@ const resetTwoFactorRoute = createRoute({
     200: jsonResponse("Two-factor is off", adminTwoFactorResetSchema),
     403: forbidden,
     404: errorResponse("User not found"),
+    409: errorResponse("The user is the caller"),
   },
 });
 

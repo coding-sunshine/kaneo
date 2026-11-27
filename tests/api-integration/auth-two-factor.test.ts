@@ -17,7 +17,7 @@ import { signUpWithSession } from "./helpers/auth-session";
 import { signInWithCustomOAuth } from "./helpers/custom-oauth";
 import { resetTestDatabase } from "./helpers/database";
 import { createWorkspaceMember } from "./helpers/fixtures";
-import { signInWithRole } from "./helpers/admin/instance-roles";
+import { adminApi, signInWithRole } from "./helpers/admin/instance-roles";
 import { totpCode } from "./helpers/totp";
 import { createSoftwarePasskey } from "./helpers/webauthn";
 
@@ -553,6 +553,23 @@ describe("API integration: two-factor secrets, passkeys and resets", () => {
       .from(schema.adminAuditLogTable)
       .where(eq(schema.adminAuditLogTable.action, "user.two_factor_reset"));
     expect(entry).toMatchObject({ targetId: user.userId });
+  });
+
+  it("does not let an administrator reset their own two-factor", async () => {
+    const admin = await signInWithRole(app, "admin");
+    // Turning two-factor on replaces the session.
+    const jar = new CookieJar(admin.cookies);
+    await enableTwoFactor(jar);
+    const api = adminApi(app, { cookie: jar.header() });
+    const response = await api(`/users/${admin.userId}/two-factor`, {
+      method: "DELETE",
+    });
+    expect(response.status).toBe(409);
+    const [user] = await db
+      .select({ enabled: schema.userTable.twoFactorEnabled })
+      .from(schema.userTable)
+      .where(eq(schema.userTable.id, admin.userId));
+    expect(user?.enabled).toBe(true);
   });
 
   it("returns 404 for a user that does not exist", async () => {

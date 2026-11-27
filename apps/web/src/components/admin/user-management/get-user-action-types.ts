@@ -23,7 +23,7 @@ export function getUserActionTypes(
     if (canSendPasswordReset) types.push("sendPasswordReset");
     if (!user.emailVerified)
       types.push("sendVerification", "markEmailVerified");
-    if (user.twoFactorEnabled) types.push("resetTwoFactor");
+    if (user.twoFactorEnabled && !isSelf) types.push("resetTwoFactor");
   }
   if (!isSelf) {
     if (permissions.includes("users:disable"))

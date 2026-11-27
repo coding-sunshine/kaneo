@@ -97,6 +97,9 @@ describe("getUserActionTypes", () => {
     expect(
       getUserActionTypes(user, { ...options, permissions: ["users:disable"] }),
     ).toEqual(["deactivate"]);
+    expect(getUserActionTypes(user, { ...options, isSelf: true })).toEqual([
+      "sendPasswordReset",
+    ]);
   });
 
   it("offers only the actions the viewer has permission for", () => {
