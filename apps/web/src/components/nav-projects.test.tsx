@@ -65,6 +65,9 @@ vi.mock("@/hooks/use-workspace-permission", () => ({
     canUpdateProjects: () => true,
   }),
 }));
+vi.mock("@/components/chat/channels-nav", () => ({
+  ChannelsNav: () => null,
+}));
 vi.mock("@/components/team/favorites-nav", () => ({
   FavoritesNav: () => null,
 }));

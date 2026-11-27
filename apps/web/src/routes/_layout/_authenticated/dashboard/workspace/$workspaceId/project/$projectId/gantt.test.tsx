@@ -94,6 +94,9 @@ const noCustomFieldValues = () => [];
 vi.mock("@/hooks/queries/label/use-get-labels-by-workspace", () => ({
   default: () => ({ data: undefined }),
 }));
+vi.mock("@/hooks/queries/task-relation/use-get-project-task-relations", () => ({
+  default: () => ({ data: undefined }),
+}));
 vi.mock(
   "@/hooks/queries/custom-field/use-get-all-custom-field-values-by-project",
   () => ({

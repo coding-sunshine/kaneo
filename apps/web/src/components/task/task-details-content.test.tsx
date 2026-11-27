@@ -37,6 +37,9 @@ vi.mock("@/hooks/queries/external-link/use-external-links", () => ({
 vi.mock("@/components/external-links/external-links-accordion", () => ({
   ExternalLinksAccordion: () => null,
 }));
+vi.mock("@/components/references/mentioned-in", () => ({
+  MentionedIn: () => null,
+}));
 vi.mock("./task-activity", () => ({ TaskActivity: () => null }));
 vi.mock("./task-description", () => ({ default: () => null }));
 vi.mock("./task-relations", () => ({ default: () => null }));
