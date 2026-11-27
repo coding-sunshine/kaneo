@@ -4317,6 +4317,10 @@
 			"document_decision": {
 				"content": "In {{documentTitle}}",
 				"title": "{{actorName}} recorded a decision on {{topicName}}"
+			},
+			"document_inbox_waiting": {
+				"content": "{{documentTitle}} has no topic yet",
+				"title": "Waiting in the Inbox for three days"
 			}
 		},
 		"inbox": {

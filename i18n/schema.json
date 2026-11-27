@@ -18007,6 +18007,19 @@
 								}
 							},
 							"required": ["title", "content"]
+						},
+						"document_inbox_waiting": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"content": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "content"]
 						}
 					},
 					"required": [
@@ -18030,7 +18043,8 @@
 						"team_issue_added",
 						"team_issue_closed",
 						"team_issue_triage",
-						"document_question"
+						"document_question",
+						"document_inbox_waiting"
 					]
 				},
 				"inbox": {

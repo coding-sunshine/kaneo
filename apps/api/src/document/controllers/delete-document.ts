@@ -57,7 +57,8 @@ export async function restoreDocument(
   await loadDocument(workspaceId, id, userId, { need: "edit", deleted: true });
   await db
     .update(documentTable)
-    .set({ deletedAt: null })
+    // Time in the trash is no time waiting in the Inbox.
+    .set({ deletedAt: null, inboxSince: new Date() })
     .where(eq(documentTable.id, id));
   return getDocument(workspaceId, id, userId);
 }

@@ -2753,6 +2753,15 @@ export const documentTable = pgTable(
     // Set aside in the Inbox until this time. One date for everybody who sees
     // the item: one person triages the Inbox.
     inboxSnoozedUntil: timestamp("inbox_snoozed_until", { mode: "date" }),
+    // When the document last came into the Inbox: written in a shared place,
+    // or moved there from My documents or off a topic. Rows from before this
+    // column count from the migration.
+    inboxSince: timestamp("inbox_since", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    // When its people were reminded that it still waits there. Once per stay:
+    // a reminder older than `inboxSince` belongs to an earlier one.
+    inboxRemindedAt: timestamp("inbox_reminded_at", { mode: "date" }),
     // Why the document has the status it has: the reason given on approval.
     statusReason: text("status_reason"),
     // The approval that made the document current: who, when, and the text.
