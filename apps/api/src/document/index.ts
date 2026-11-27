@@ -486,7 +486,7 @@ const purgeRoute = createRoute({
   tags,
   summary: "Delete document permanently",
   description:
-    "Permanently delete a document in the trash and queue its uploaded files for storage cleanup.",
+    "Permanently delete a document in the trash. Its uploaded files that another document in the workspace still links move to the oldest such document; the rest are queued for storage cleanup.",
   middleware: [...write] as const,
   request: { params: documentParam },
   responses: {
@@ -494,7 +494,7 @@ const purgeRoute = createRoute({
     403: noAccess,
     404: notFound,
     409: errorResponse(
-      "This is the current document on its topic. Make another one current first.",
+      "The document is current on its topic, or one of its files is still linked from an issue or another workspace",
     ),
   },
 });

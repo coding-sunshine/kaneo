@@ -31492,7 +31492,7 @@
           "Documents"
         ],
         "summary": "Delete document permanently",
-        "description": "Permanently delete a document in the trash and queue its uploaded files for storage cleanup.",
+        "description": "Permanently delete a document in the trash. Its uploaded files that another document in the workspace still links move to the oldest such document; the rest are queued for storage cleanup.",
         "parameters": [
           {
             "schema": {
@@ -31561,7 +31561,7 @@
             }
           },
           "409": {
-            "description": "This is the current document on its topic. Make another one current first.",
+            "description": "The document is current on its topic, or one of its files is still linked from an issue or another workspace",
             "content": {
               "application/json": {
                 "schema": {

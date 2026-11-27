@@ -9,7 +9,6 @@ import { carryStatements } from "../../topic/controllers/statements";
 import type { updateDocumentBody } from "../schema";
 import { getDocument } from "./get-document";
 import { assertNotSuperseded } from "./assert-not-superseded";
-import { cleanupUnlinkedDocumentFiles } from "./cleanup-document-files";
 import { proposeLineage } from "./lineage";
 import { loadDocument } from "./load-document";
 import { notifyBodyMentions } from "./notify";
@@ -60,7 +59,6 @@ export async function writeDocument(
     await notifyBodyMentions({ ...doc, title }, userId, doc.content, content);
   }
   if (prints) {
-    await cleanupUnlinkedDocumentFiles(id, doc.content, content);
     await proposeLineage(doc, prints, userId);
     await syncDocumentTaskLinks(db, doc, userId, content);
     await syncDocumentReferences(db, doc.id, content);

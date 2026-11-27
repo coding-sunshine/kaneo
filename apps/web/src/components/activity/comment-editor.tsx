@@ -13,8 +13,8 @@ import { useEditorHighlighter } from "@/components/editor/use-editor-highlighter
 import {
   shouldShowSelectionBubble,
   shouldShowTableBubble,
-  withoutFlushSync,
-} from "@/components/editor/without-flush-sync";
+} from "@/components/editor/bubble-visibility";
+import { withoutFlushSync } from "@/components/editor/without-flush-sync";
 import type { Editor } from "@tiptap/core";
 import Image from "@tiptap/extension-image";
 import { TextSelection } from "@tiptap/pm/state";
