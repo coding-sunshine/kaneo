@@ -162,7 +162,13 @@ describe("API integration: the audience of a document", () => {
       expect(await response.json()).toEqual(unknownBody);
     }
 
-    // Asking about a place they cannot enter would name who can.
+    // Asking about a place they cannot enter would name who can. It answers
+    // like a place that does not exist, so it does not confirm one either.
+    const nowhere = await ask(world, limited, "teamAlpha", {
+      projectId: "no-such-team",
+    });
+    expect(nowhere.status).toBe(400);
+    const nowhereBody = await nowhere.json();
     for (const target of [
       { projectId: world.beta.id },
       { taskId: world.betaTask.id },
@@ -171,12 +177,9 @@ describe("API integration: the audience of a document", () => {
       const response = await ask(world, limited, "teamAlpha", target);
       expect({ target, status: response.status }).toEqual({
         target,
-        status: 403,
+        status: 400,
       });
+      expect(await response.json()).toEqual(nowhereBody);
     }
-    expect(
-      (await ask(world, limited, "teamAlpha", { projectId: "no-such-team" }))
-        .status,
-    ).toBe(400);
   });
 });

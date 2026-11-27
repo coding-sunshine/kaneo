@@ -7,7 +7,7 @@ import {
   taskTable,
   workProjectTable,
 } from "../../database/schema";
-import { assertProjectAccess } from "../../project-access/assert-project-access";
+import { findInaccessibleProjectIds } from "../../project-access/find-inaccessible-project-ids";
 import { workProjectDocumentAccess } from "../visibility";
 
 type ParentInput = {
@@ -19,6 +19,13 @@ type ParentInput = {
 
 const parentNotFound = () =>
   new HTTPException(400, { message: "Document parent not found" });
+
+// A place the user cannot enter answers like one that does not exist, so a
+// refusal never confirms that a hidden team or issue is there.
+async function assertEnters(userId: string, projectId: string) {
+  const denied = await findInaccessibleProjectIds(userId, [projectId]);
+  if (denied.length > 0) throw parentNotFound();
+}
 
 // Normalizes where a document lives and checks the parent is in the workspace
 // and visible to the user placing the document there.
@@ -50,7 +57,7 @@ export async function resolveParent(
         ),
       );
     if (!team) throw parentNotFound();
-    await assertProjectAccess(userId, team.id);
+    await assertEnters(userId, team.id);
     return { ...none, projectId: team.id };
   }
 
@@ -68,13 +75,7 @@ export async function resolveParent(
           eq(workProjectTable.workspaceId, workspaceId),
         ),
       );
-    if (!project) throw parentNotFound();
-    // Every member can see the project, so this is a refusal, not a 404.
-    if (!project.open) {
-      throw new HTTPException(403, {
-        message: "You don't have access to this project",
-      });
-    }
+    if (!project?.open) throw parentNotFound();
     return { ...none, workProjectId: project.id };
   }
 
@@ -91,7 +92,7 @@ export async function resolveParent(
         ),
       );
     if (!task) throw parentNotFound();
-    await assertProjectAccess(userId, task.projectId);
+    await assertEnters(userId, task.projectId);
     return { ...none, taskId: task.id };
   }
 
