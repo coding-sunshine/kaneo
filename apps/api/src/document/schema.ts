@@ -379,15 +379,15 @@ export const documentSchema = z
       .array(
         z.object({
           id: z.string(),
-          title: z.string().nullable(),
+          title: z.string(),
           number: z.number().nullable(),
-          projectId: z.string().nullable(),
-          projectSlug: z.string().nullable(),
+          projectId: z.string(),
+          projectSlug: z.string(),
         }),
       )
       .openapi({
         description:
-          "Issues the document is shared with: everyone who can open one can view the document. With edit rights you get every issue, without its name when you cannot open it. Otherwise only issues you can open.",
+          "Issues the document is shared with that you can open: everyone who can open one can view the document. An issue you cannot open is left out, also with edit rights.",
       }),
     shares: z.array(
       z.object({

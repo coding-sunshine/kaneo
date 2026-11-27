@@ -44,7 +44,6 @@ vi.mock("./use-copy-document-link", () => ({
 
 const sharedTasks = [
   { id: "t1", title: "Fix it", number: 7, projectId: "p", projectSlug: "eng" },
-  { id: "t2", title: null, number: null, projectId: null, projectSlug: null },
 ];
 const show = (role: string) =>
   render(
@@ -74,12 +73,9 @@ afterEach(() => {
 });
 
 describe("DocumentSharePopover shared issues", () => {
-  it("lists each issue, hiding the title of one the viewer cannot open", () => {
+  it("lists each issue by key and title", () => {
     show("edit");
     expect(screen.getByText("ENG-7 Fix it")).toBeTruthy();
-    expect(
-      screen.getByText("navigation:documents.share.hiddenTask"),
-    ).toBeTruthy();
   });
 
   it("removes a share by issue id", () => {

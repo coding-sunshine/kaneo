@@ -153,14 +153,11 @@ export function DocumentSharePopover({
             </p>
             <ul className="px-1">
               {document.sharedTasks.map((task) => {
-                const label =
-                  task.title === null
-                    ? t("navigation:documents.share.hiddenTask")
-                    : `${
-                        task.number === null || !task.projectSlug
-                          ? ""
-                          : `${task.projectSlug.toUpperCase()}-${task.number} `
-                      }${task.title}`;
+                const label = `${
+                  task.number === null
+                    ? ""
+                    : `${task.projectSlug.toUpperCase()}-${task.number} `
+                }${task.title}`;
                 return (
                   <li
                     key={task.id}

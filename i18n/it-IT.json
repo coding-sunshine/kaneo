@@ -3537,7 +3537,6 @@
 				"privateHint": "Only people invited can open this document",
 				"remove": "Remove access",
 				"title": "Share",
-				"hiddenTask": "An issue you cannot open",
 				"leaveAsItIs": "Leave as it is",
 				"sharedTasks": "Shared with issues",
 				"sharedTasksHint": "Everyone who can open the issue can view this document.",

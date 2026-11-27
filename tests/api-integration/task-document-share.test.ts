@@ -360,13 +360,6 @@ describe("API integration: sharing a document with the people of an issue", () =
       projectId: world.beta.id,
       projectSlug: "beta",
     };
-    const hiddenBeta = {
-      id: betaTask.id,
-      title: null,
-      number: null,
-      projectId: null,
-      projectSlug: null,
-    };
     const byId = (rows: Opened["sharedTasks"]) =>
       [...rows].sort((a, b) => a.id.localeCompare(b.id));
 
@@ -376,13 +369,17 @@ describe("API integration: sharing a document with the people of an issue", () =
     await share(world, owner, docs.sharedByName, alphaTask.id);
     await share(world, owner, docs.sharedByName, betaTask.id);
 
-    // An editor sees every grant; an issue they cannot open is only an id.
+    // An editor sees the grants on issues they can open, and no entry, not
+    // even an id, for an issue they cannot open.
     expect(byId(await sharedTasksOf(world, owner, docs.teamAlpha))).toEqual(
       byId([alphaEntry, betaEntry]),
     );
-    expect(byId(await sharedTasksOf(world, limited, docs.teamAlpha))).toEqual(
-      byId([alphaEntry, hiddenBeta]),
-    );
+    const editor = await open(world, limited, docs.teamAlpha);
+    expect(((await editor.clone().json()) as Opened).role).toBe("edit");
+    expect(await sharedTasksOf(world, limited, docs.teamAlpha)).toEqual([
+      alphaEntry,
+    ]);
+    expect(await editor.text()).not.toContain(betaTask.id);
     // Someone who may only view sees the issues they can open.
     expect(await sharedTasksOf(world, limited, docs.sharedByName)).toEqual([
       alphaEntry,

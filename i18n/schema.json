@@ -14434,9 +14434,6 @@
 								"sharedTasksHint": {
 									"type": "string"
 								},
-								"hiddenTask": {
-									"type": "string"
-								},
 								"stopSharingWith": {
 									"type": "string"
 								},
@@ -14493,7 +14490,6 @@
 								"leaveAsItIs",
 								"sharedTasks",
 								"sharedTasksHint",
-								"hiddenTask",
 								"stopSharingWith",
 								"shareWithTaskFailed",
 								"unshareFromTaskFailed",

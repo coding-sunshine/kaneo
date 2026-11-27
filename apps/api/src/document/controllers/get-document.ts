@@ -82,12 +82,7 @@ export async function getDocument(
           ),
         )
         .orderBy(asc(projectTable.slug), asc(taskTable.number)),
-      sharedTasksOf(
-        workspaceId,
-        id,
-        userId,
-        doc.role === "owner" || doc.role === "edit",
-      ),
+      sharedTasksOf(workspaceId, id, userId),
     ]);
   const topicName = parent?.topicName ?? null;
   const personIds = [doc.creatorId, doc.updatedById, doc.approvedBy].filter(

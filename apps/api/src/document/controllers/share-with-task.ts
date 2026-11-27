@@ -1,4 +1,4 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
@@ -113,29 +113,17 @@ export async function unshareFromTask(
   return getDocument(workspaceId, id, userId);
 }
 
-// The issues a document is shared with. Whoever manages the document sees
-// every one, because each lets people in. An issue they cannot open comes
-// without its name. Everyone else sees only issues they can open.
-export function sharedTasksOf(
-  workspaceId: string,
-  id: string,
-  userId: string,
-  manages: boolean,
-) {
-  const open = projectAccessCondition(userId, projectTable.id);
+// The issues a document is shared with that the viewer can open. An issue
+// they cannot open is left out, not even its id is named, also to someone
+// who manages the document.
+export function sharedTasksOf(workspaceId: string, id: string, userId: string) {
   return db
     .select({
       id: taskTable.id,
-      title: sql<string | null>`CASE WHEN ${open} THEN ${taskTable.title} END`,
-      number: sql<
-        number | null
-      >`CASE WHEN ${open} THEN ${taskTable.number} END`,
-      projectId: sql<
-        string | null
-      >`CASE WHEN ${open} THEN ${projectTable.id} END`,
-      projectSlug: sql<
-        string | null
-      >`CASE WHEN ${open} THEN ${projectTable.slug} END`,
+      title: taskTable.title,
+      number: taskTable.number,
+      projectId: projectTable.id,
+      projectSlug: projectTable.slug,
     })
     .from(taskDocumentTable)
     .innerJoin(taskTable, eq(taskTable.id, taskDocumentTable.taskId))
@@ -145,7 +133,7 @@ export function sharedTasksOf(
         eq(taskDocumentTable.documentId, id),
         eq(taskDocumentTable.source, "share"),
         eq(projectTable.workspaceId, workspaceId),
-        manages ? undefined : open,
+        projectAccessCondition(userId, projectTable.id),
       ),
     )
     .orderBy(asc(projectTable.slug), asc(taskTable.number));
