@@ -19,6 +19,7 @@ import { listMessages } from "./controllers/list-messages";
 import { listPins } from "./controllers/list-pins";
 import { pinMessage } from "./controllers/pin-message";
 import { postMessage } from "./controllers/post-message";
+import { reactToMessage } from "./controllers/react-to-message";
 import { updateChannel } from "./controllers/update-channel";
 import {
   channelDetailSchema,
@@ -34,6 +35,7 @@ import {
   messageParam,
   messageSchema,
   postMessageBody,
+  reactionBody,
   updateChannelBody,
   workspaceIdParam,
 } from "./schema";
@@ -275,6 +277,39 @@ const unpinRoute = createRoute({
   responses: pinResponses,
 });
 
+const reactionResponses = {
+  200: jsonResponse("Message", messageSchema),
+  400: errorResponse("Unknown custom emoji"),
+  403: notMember,
+  404: messageNotFound,
+  409: archived,
+};
+
+const addReactionRoute = createRoute({
+  method: "post",
+  operationId: "addChatMessageReaction",
+  path: `${messagePath}/reactions`,
+  tags,
+  summary: "Add reaction",
+  description:
+    "Add your emoji reaction to a message. Adding one you already have is a no-op.",
+  middleware: [...write] as const,
+  request: { params: messageParam, body: body(reactionBody) },
+  responses: reactionResponses,
+});
+
+const removeReactionRoute = createRoute({
+  method: "delete",
+  operationId: "removeChatMessageReaction",
+  path: `${messagePath}/reactions`,
+  tags,
+  summary: "Remove reaction",
+  description: "Remove your emoji reaction from a message.",
+  middleware: [...write] as const,
+  request: { params: messageParam, body: body(reactionBody) },
+  responses: reactionResponses,
+});
+
 const listPinsRoute = createRoute({
   method: "get",
   operationId: "listChatPins",
@@ -418,6 +453,34 @@ const chat = apiRouter()
         channelId,
         messageId,
         c.get("userId"),
+        false,
+      ),
+      200,
+    );
+  })
+  .openapi(addReactionRoute, async (c) => {
+    const { workspaceId, channelId, messageId } = c.req.valid("param");
+    return c.json(
+      await reactToMessage(
+        workspaceId,
+        channelId,
+        messageId,
+        c.get("userId"),
+        c.req.valid("json").emoji,
+        true,
+      ),
+      200,
+    );
+  })
+  .openapi(removeReactionRoute, async (c) => {
+    const { workspaceId, channelId, messageId } = c.req.valid("param");
+    return c.json(
+      await reactToMessage(
+        workspaceId,
+        channelId,
+        messageId,
+        c.get("userId"),
+        c.req.valid("json").emoji,
         false,
       ),
       200,

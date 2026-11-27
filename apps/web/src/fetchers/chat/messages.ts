@@ -45,3 +45,15 @@ export async function setMessagePinned(param: MessageParam, pinned: boolean) {
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }
+
+export async function setMessageReaction({
+  emoji,
+  reacted,
+  ...param
+}: MessageParam & { emoji: string; reacted: boolean }) {
+  const response = reacted
+    ? await message.reactions.$post({ param, json: { emoji } })
+    : await message.reactions.$delete({ param, json: { emoji } });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}

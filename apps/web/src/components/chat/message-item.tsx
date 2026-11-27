@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MessageActions } from "@/components/chat/message-actions";
 import { MessageEditForm } from "@/components/chat/message-edit-form";
+import { MessageReactions } from "@/components/chat/message-reactions";
 import type { ChatMessage } from "@/components/chat/types";
 
 type MessageItemProps = {
@@ -69,6 +70,14 @@ export function MessageItem({
           {message.body}
         </p>
       )}
+      <MessageReactions
+        workspaceId={workspaceId}
+        channelId={channelId}
+        messageId={message.id}
+        currentUserId={currentUserId}
+        reactions={message.reactions}
+        canReact={canWrite}
+      />
     </li>
   );
 }

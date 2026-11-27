@@ -19,6 +19,10 @@ vi.mock("@/hooks/mutations/chat/use-message-mutations", () => ({
   useEditMessage: () => ({ mutate: editMessage, isPending: false }),
   useDeleteMessage: () => ({ mutate: deleteMessage }),
   usePinMessage: () => ({ mutate: pinMessage }),
+  useReactToMessage: () => ({ mutate: vi.fn() }),
+}));
+vi.mock("@/components/chat/message-reactions", () => ({
+  MessageReactions: () => null,
 }));
 
 const renderList = (
@@ -45,6 +49,7 @@ const message = (patch: Partial<ChatMessage> = {}) =>
     authorName: "Test author",
     editedAt: null,
     pinnedAt: null,
+    reactions: [],
     createdAt: "2026-01-02T03:04:05.000Z",
     ...patch,
   }) as ChatMessage;

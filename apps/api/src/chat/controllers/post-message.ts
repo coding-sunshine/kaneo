@@ -26,5 +26,5 @@ export async function postMessage(
     channelId,
     messageId: message.id,
   });
-  return message;
+  return { ...message, reactions: [] };
 }

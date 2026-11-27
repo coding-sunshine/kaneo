@@ -40,6 +40,11 @@ export const postMessageBody = z.object({
 
 export const messageParam = channelParam.extend({ messageId: z.string() });
 
+export const reactionBody = z.object({
+  // Native emoji, or a workspace custom emoji as :name:.
+  emoji: z.string().min(1).max(258),
+});
+
 export const channelSchema = z
   .object({
     id: z.string(),
@@ -77,6 +82,12 @@ export const messageSchema = z
     pinnedAt: nullableResponseTimestamp.openapi({
       description: "When the message was pinned to its channel. Null if not.",
     }),
+    reactions: z
+      .array(z.object({ emoji: z.string(), userIds: z.array(z.string()) }))
+      .openapi({
+        description:
+          "Emoji reactions, in the order each emoji was first used; userIds oldest first.",
+      }),
     createdAt: responseTimestamp,
   })
   .openapi("ChatMessage");

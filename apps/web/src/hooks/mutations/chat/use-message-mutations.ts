@@ -3,6 +3,7 @@ import {
   deleteMessage,
   editMessage,
   setMessagePinned,
+  setMessageReaction,
 } from "@/fetchers/chat/messages";
 import { messagesKey } from "@/hooks/queries/chat/use-messages";
 import { pinsKey } from "@/hooks/queries/chat/use-pins";
@@ -46,4 +47,12 @@ export const usePinMessage = (workspaceId: string, channelId: string) =>
     channelId,
     ({ messageId, pinned }: { messageId: string; pinned: boolean }) =>
       setMessagePinned({ workspaceId, channelId, messageId }, pinned),
+  );
+
+export const useReactToMessage = (workspaceId: string, channelId: string) =>
+  useMessageMutation(
+    workspaceId,
+    channelId,
+    (input: { messageId: string; emoji: string; reacted: boolean }) =>
+      setMessageReaction({ workspaceId, channelId, ...input }),
   );

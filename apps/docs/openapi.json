@@ -3408,6 +3408,28 @@
             "format": "date-time",
             "description": "When the message was pinned to its channel. Null if not."
           },
+          "reactions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "emoji": {
+                  "type": "string"
+                },
+                "userIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "emoji",
+                "userIds"
+              ]
+            },
+            "description": "Emoji reactions, in the order each emoji was first used; userIds oldest first."
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -3422,6 +3444,7 @@
           "body",
           "editedAt",
           "pinnedAt",
+          "reactions",
           "createdAt"
         ]
       },
@@ -28906,6 +28929,246 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ChatMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or message not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/messages/{messageId}/reactions": {
+      "post": {
+        "operationId": "addChatMessageReaction",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Add reaction",
+        "description": "Add your emoji reaction to a message. Adding one you already have is a no-op.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "emoji": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 258
+                  }
+                },
+                "required": [
+                  "emoji"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown custom emoji",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or message not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeChatMessageReaction",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Remove reaction",
+        "description": "Remove your emoji reaction from a message.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "emoji": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 258
+                  }
+                },
+                "required": [
+                  "emoji"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown custom emoji",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }

@@ -2,6 +2,7 @@ import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { chatMessageTable } from "../../database/schema";
 import { loadChannel } from "./load-channel";
 import { selectMessages } from "./select-messages";
+import { withReactions } from "./with-reactions";
 
 // Its own query: a pinned message can be older than the newest page.
 export async function listPins(
@@ -10,7 +11,7 @@ export async function listPins(
   userId: string,
 ) {
   await loadChannel(workspaceId, channelId, userId, "read");
-  return selectMessages()
+  const pins = await selectMessages()
     .where(
       and(
         eq(chatMessageTable.channelId, channelId),
@@ -18,4 +19,5 @@ export async function listPins(
       ),
     )
     .orderBy(desc(chatMessageTable.pinnedAt));
+  return withReactions(pins);
 }

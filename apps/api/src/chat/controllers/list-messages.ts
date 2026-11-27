@@ -2,6 +2,7 @@ import { and, desc, eq, lt } from "drizzle-orm";
 import { chatMessageTable } from "../../database/schema";
 import { loadChannel } from "./load-channel";
 import { selectMessages } from "./select-messages";
+import { withReactions } from "./with-reactions";
 
 const PAGE_SIZE = 50;
 
@@ -22,5 +23,5 @@ export async function listMessages(
     )
     .orderBy(desc(chatMessageTable.createdAt), desc(chatMessageTable.id))
     .limit(PAGE_SIZE);
-  return rows.reverse();
+  return withReactions(rows.reverse());
 }

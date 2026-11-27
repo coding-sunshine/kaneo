@@ -3342,6 +3342,34 @@ export const chatMessageTable = pgTable(
   ],
 );
 
+// One row per user and emoji on a chat message, like comment_reaction.
+export const chatMessageReactionTable = pgTable(
+  "chat_message_reaction",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    messageId: text("message_id")
+      .notNull()
+      .references(() => chatMessageTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    emoji: text("emoji").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("chat_message_reaction_message_id_idx").on(table.messageId),
+    unique("chat_message_reaction_message_user_emoji_unique").on(
+      table.messageId,
+      table.userId,
+      table.emoji,
+    ),
+  ],
+);
+
 // A loop runs its instructions as the agent on a schedule, with the creator's
 // permissions at run time. Disabled loops keep their `nextRunAt` but never run.
 export const loopTable = pgTable(
