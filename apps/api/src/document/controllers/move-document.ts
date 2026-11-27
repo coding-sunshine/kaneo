@@ -40,11 +40,18 @@ export async function moveDocument(
     });
   }
   const parent = await resolveParent(workspaceId, userId, body);
+  // A move between two shared places keeps the wait it had in the Inbox.
+  const entersInbox =
+    parent.scope !== "private" && (doc.scope === "private" || !!doc.topicId);
 
   await db.transaction(async (tx) => {
     await tx
       .update(documentTable)
-      .set({ ...parent, ...OFF_TOPIC })
+      .set({
+        ...parent,
+        ...OFF_TOPIC,
+        ...(entersInbox && { inboxSince: new Date() }),
+      })
       .where(eq(documentTable.id, id));
     // Back in My documents means private again: drop everyone invited.
     if (parent.scope === "private") {

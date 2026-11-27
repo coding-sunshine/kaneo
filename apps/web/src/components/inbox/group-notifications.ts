@@ -26,6 +26,7 @@ export const NOTIFICATION_TYPE_FILTERS = [
       "document_decision",
       "document_replaced",
       "document_question",
+      "document_inbox_waiting",
     ],
   },
   { label: "Status changes", types: ["task_status_changed"] },

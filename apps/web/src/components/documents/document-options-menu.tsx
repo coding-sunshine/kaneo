@@ -5,6 +5,7 @@ import {
   Clock,
   Ellipsis,
   FolderInput,
+  LayoutTemplate,
   Link2,
   Lock,
   Pencil,
@@ -33,10 +34,12 @@ import {
   useDeleteDocument,
   useRestoreDocument,
 } from "@/hooks/mutations/document/use-document-mutations";
+import { useSaveDocumentTemplate } from "@/hooks/mutations/document/use-document-template-mutations";
 import { useFavorite } from "@/hooks/queries/favorite/use-favorites";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import { useGetWorkProjects } from "@/hooks/queries/work-project/use-get-work-projects";
 import { toast } from "@/lib/toast";
+import { DeletePageDialog } from "./delete-page-dialog";
 import { type MoveLocation, MoveDocumentDialog } from "./move-document-dialog";
 import { useCopyDocumentLink } from "./use-copy-document-link";
 import { useDocumentPins } from "./use-document-pins";
@@ -72,8 +75,10 @@ export function DocumentOptionsMenu({
     location: MoveLocation;
     name: string;
   } | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const remove = useDeleteDocument(workspaceId);
   const restore = useRestoreDocument(workspaceId);
+  const saveTemplate = useSaveDocumentTemplate(workspaceId);
   const favorite = useFavorite(workspaceId, { type: "document", targetId: id });
   const copyLink = useCopyDocumentLink(workspaceId, id);
   const pins = useDocumentPins(workspaceId);
@@ -83,29 +88,48 @@ export function DocumentOptionsMenu({
       toast.error(error.message),
     );
 
+  // A template is listed to every member, so only a page they can all open
+  // may become one. The API refuses the others.
+  const canSaveTemplate = document.scope === "workspace";
+  const onSaveTemplate = () =>
+    saveTemplate.mutate(id, {
+      onSuccess: () => toast.success(t("navigation:documents.templates.saved")),
+      onError: (error) => toast.error(error.message),
+    });
+
   const moveTo = (location: MoveLocation, name: string) =>
     setTarget({ location, name });
 
-  const onDelete = () =>
-    remove.mutate(id, {
-      onSuccess: () => {
-        navigate({
-          to: "/dashboard/workspace/$workspaceId/documents",
-          params: { workspaceId },
-        });
-        toast.success(t("navigation:documents.deleted"), {
-          action: {
-            label: t("navigation:documents.undo"),
-            onClick: () =>
-              restore.mutate(id, {
-                onSuccess: () =>
-                  toast.success(t("navigation:documents.restored")),
-              }),
-          },
-        });
-      },
-      onError: (error) => toast.error(error.message),
+  // Undo brings back the pages that went to trash with this one, too.
+  const onDeleted = ({ alsoDeleted }: { alsoDeleted: string[] }) => {
+    navigate({
+      to: "/dashboard/workspace/$workspaceId/documents",
+      params: { workspaceId },
     });
+    toast.success(t("navigation:documents.deleted"), {
+      action: {
+        label: t("navigation:documents.undo"),
+        onClick: () =>
+          Promise.all(
+            [id, ...alsoDeleted].map((page) => restore.mutateAsync(page)),
+          )
+            .then(() => toast.success(t("navigation:documents.restored")))
+            .catch((error: Error) => toast.error(error.message)),
+      },
+    });
+  };
+
+  // A page with pages under it asks what happens to them first.
+  const onDelete = () =>
+    document.hasChildren
+      ? setDeleting(true)
+      : remove.mutate(
+          { id },
+          {
+            onSuccess: onDeleted,
+            onError: (error) => toast.error(error.message),
+          },
+        );
 
   return (
     <>
@@ -228,6 +252,12 @@ export function DocumentOptionsMenu({
               ? t("navigation:documents.pins.unpin")
               : t("navigation:documents.pins.pin")}
           </MenuItem>
+          {canSaveTemplate && (
+            <MenuItem onClick={onSaveTemplate}>
+              <LayoutTemplate aria-hidden />
+              {t("navigation:documents.templates.saveAs")}
+            </MenuItem>
+          )}
           <MenuItem onClick={onToggleHistory}>
             <Clock aria-hidden />
             {historyOpen
@@ -245,6 +275,14 @@ export function DocumentOptionsMenu({
           )}
         </MenuPopup>
       </Menu>
+      {deleting && (
+        <DeletePageDialog
+          workspaceId={workspaceId}
+          id={id}
+          onClose={() => setDeleting(false)}
+          onDeleted={onDeleted}
+        />
+      )}
       {target && (
         <MoveDocumentDialog
           workspaceId={workspaceId}

@@ -2738,6 +2738,12 @@ export const documentTable = pgTable(
     fingerprint: integer("fingerprint").array(),
     // The assistant a document was saved from, when it was not typed here.
     sourceClient: text("source_client").$type<DocumentSourceClient>(),
+    // The page this one sits under in the page tree. Each page keeps its own
+    // place and access: a reader who cannot open the parent sees the child at
+    // the top of the tree. No foreign key: an existing table gets none, so
+    // code that deletes documents for good clears this on the pages under
+    // them (`document/release-child-pages.ts`).
+    parentDocumentId: text("parent_document_id"),
     // The topic the document is filed on. A filed document lives in the
     // topic's place.
     topicId: text("topic_id").references(() => topicTable.id, {
@@ -2753,6 +2759,15 @@ export const documentTable = pgTable(
     // Set aside in the Inbox until this time. One date for everybody who sees
     // the item: one person triages the Inbox.
     inboxSnoozedUntil: timestamp("inbox_snoozed_until", { mode: "date" }),
+    // When the document last came into the Inbox: written in a shared place,
+    // or moved there from My documents or off a topic. Rows from before this
+    // column count from the migration.
+    inboxSince: timestamp("inbox_since", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    // When its people were reminded that it still waits there. Once per stay:
+    // a reminder older than `inboxSince` belongs to an earlier one.
+    inboxRemindedAt: timestamp("inbox_reminded_at", { mode: "date" }),
     // Why the document has the status it has: the reason given on approval.
     statusReason: text("status_reason"),
     // The approval that made the document current: who, when, and the text.
@@ -2805,6 +2820,7 @@ export const documentTable = pgTable(
     index("document_task_idx").on(table.taskId),
     index("document_creator_idx").on(table.creatorId),
     index("document_topic_idx").on(table.topicId),
+    index("document_parent_document_idx").on(table.parentDocumentId),
     // One current document per topic, whatever the code does.
     uniqueIndex("one_current")
       .on(table.topicId)
@@ -3106,6 +3122,34 @@ export const documentVersionTable = pgTable(
       table.createdAt,
     ),
   ],
+);
+
+// A page saved for anyone in the workspace to start a document from. A copy:
+// later edits to the page, or to documents made from it, leave it as it is.
+export const documentTemplateTable = pgTable(
+  "document_template",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    title: text("title").notNull().default(""),
+    content: text("content").notNull().default(""),
+    creatorId: text("creator_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [index("document_template_workspace_idx").on(table.workspaceId)],
 );
 
 export const documentCommentTable = pgTable(

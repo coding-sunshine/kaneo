@@ -16,11 +16,11 @@ import {
   updateComment,
 } from "./controllers/comments";
 import { createDocument } from "./controllers/create-document";
-import {
-  deleteDocument,
-  purgeDocument,
-  restoreDocument,
-} from "./controllers/delete-document";
+import { deletePage } from "./controllers/delete-page";
+import { movePage } from "./controllers/move-page";
+import { pageTree } from "./controllers/page-tree";
+import { deletePageRoute, movePageRoute, pageTreeRoute } from "./page-routes";
+import { purgeDocument, restoreDocument } from "./controllers/delete-document";
 import { documentAudience } from "./controllers/document-audience";
 import { documentUsage } from "./controllers/document-usage";
 import { getDocument } from "./controllers/get-document";
@@ -464,22 +464,6 @@ const lineageRoute = createRoute({
   },
 });
 
-const deleteRoute = createRoute({
-  method: "delete",
-  operationId: "deleteDocument",
-  path: one,
-  tags,
-  summary: "Delete document",
-  description: "Move a document to trash. Restore undoes it.",
-  middleware: [...write] as const,
-  request: { params: documentParam },
-  responses: {
-    200: jsonResponse("Document deleted", idSchema),
-    403: noAccess,
-    404: notFound,
-  },
-});
-
 const purgeRoute = createRoute({
   method: "delete",
   operationId: "purgeDocument",
@@ -892,6 +876,12 @@ const document = apiRouter()
     );
   })
   // Before the routes that read the last segment as a document id.
+  .openapi(pageTreeRoute, async (c) =>
+    c.json(
+      await pageTree(c.req.valid("param").workspaceId, c.get("userId")),
+      200,
+    ),
+  )
   .openapi(receiptRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");
     return c.json(await getReceipt(workspaceId, id, c.get("userId")), 200);
@@ -1022,9 +1012,29 @@ const document = apiRouter()
     await decideLineage(workspaceId, id, userId, c.req.valid("json").status);
     return c.json(await getDocument(workspaceId, id, userId), 200);
   })
-  .openapi(deleteRoute, async (c) => {
+  .openapi(deletePageRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");
-    return c.json(await deleteDocument(workspaceId, id, c.get("userId")), 200);
+    return c.json(
+      await deletePage(
+        workspaceId,
+        id,
+        c.get("userId"),
+        c.req.valid("query").children,
+      ),
+      200,
+    );
+  })
+  .openapi(movePageRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(
+      await movePage(
+        workspaceId,
+        id,
+        c.get("userId"),
+        c.req.valid("json").parentDocumentId,
+      ),
+      200,
+    );
   })
   .openapi(purgeRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");

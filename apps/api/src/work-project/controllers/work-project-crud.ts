@@ -1,4 +1,4 @@
-import { and, eq, max, ne } from "drizzle-orm";
+import { and, eq, max, ne, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
 import db from "../../database";
@@ -6,14 +6,17 @@ import {
   workProjectMilestoneTable,
   workProjectTable,
 } from "../../database/schema";
+import { releaseChildPages } from "../../document/release-child-pages";
 import { assertUnrelied } from "../../topic/controllers/assert-unrelied";
 import { validateAndParseDate } from "../../utils/validate-dates";
 import type { createMilestoneBody, updateMilestoneBody } from "../schema";
 import { loadMilestone } from "./load-work-projects";
 
 export async function deleteWorkProject(id: string) {
+  // The project's documents go with it.
   await db.transaction(async (tx) => {
     await assertUnrelied(tx, { workProjectId: id });
+    await releaseChildPages(tx, sql`doomed.work_project_id = ${id}`);
     await tx.delete(workProjectTable).where(eq(workProjectTable.id, id));
   });
   return { id };

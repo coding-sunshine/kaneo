@@ -1,9 +1,7 @@
-import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import WorkspaceLayout from "@/components/common/workspace-layout";
 import PageTitle from "@/components/page-title";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDocuments } from "@/hooks/queries/document/use-documents";
 import type { DocumentScope } from "@/fetchers/document/documents";
@@ -18,6 +16,7 @@ import { DocumentsPageMenu } from "./documents-page-menu";
 import { DocumentsTabs } from "./documents-tabs";
 import { IssueFileList } from "./issue-file-list";
 import { NeedsReviewList } from "./needs-review-list";
+import { NewDocumentMenu } from "./new-document-menu";
 import { IssueFilesEmpty } from "./issue-files-empty";
 import { InboxList } from "./inbox-list";
 import { NewDocuments } from "./new-documents";
@@ -66,16 +65,7 @@ export function DocumentsPage({ workspaceId, filter }: DocumentsPageProps) {
         headerActions={
           <>
             <DocumentUsageButton workspaceId={workspaceId} />
-            <Button
-              variant="ghost"
-              size="xs"
-              onClick={() => create()}
-              disabled={isPending}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <Plus aria-hidden />
-              {t("navigation:documents.newDocument")}
-            </Button>
+            <NewDocumentMenu workspaceId={workspaceId} />
           </>
         }
       >
