@@ -400,6 +400,12 @@ describe("bounded resumable GitHub import", () => {
       if (history !== "new") {
         const persisted = (await saved())!;
         delete persisted.state.currentIssue!.isNewTask;
+        // Legacy state infers a new task from link createdAt (database clock)
+        // >= startedAt (API clock). Move startedAt clear of clock skew; it
+        // stays after the 2020 issue and comments and the legacy link.
+        persisted.state.startedAt = new Date(
+          Date.parse(persisted.state.startedAt) - 60_000,
+        ).toISOString();
         await db
           .update(schema.githubImportTable)
           .set({ state: persisted.state })
