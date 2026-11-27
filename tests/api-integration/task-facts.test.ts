@@ -268,8 +268,9 @@ describe("API integration: facts found in issues", () => {
       await attach(world, { filename: "notes.md", mimeType: "text/markdown" });
       // Two files that are not read: they stay out of every later run.
       await attach(world, {
-        filename: "scan.pdf",
-        mimeType: "application/pdf",
+        filename: "brief.docx",
+        mimeType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       });
       await attach(world, {
         filename: "big.md",

@@ -20,7 +20,7 @@ import { getPrivateObject } from "../storage/s3";
 import { slotsOf } from "../topic/controllers/slots";
 import { collapse, quoteStart } from "../topic/statement-text";
 import { retryLater } from "./retry-later";
-import { fileKind, fileText } from "./task-file-text";
+import { fileKind, fileText, pdfText } from "./task-file-text";
 import {
   type Asked,
   type AskedTopic,
@@ -373,10 +373,12 @@ async function readWorkspace(
       await record(run, unread, false, kind ? "too_large" : "unsupported");
       return;
     }
-    let text: string;
+    let bytes: Uint8Array;
     try {
       const { body } = await getPrivateObject(file.objectKey);
-      text = fileText(kind, await new Response(body as BodyInit).text());
+      bytes = new Uint8Array(
+        await new Response(body as BodyInit).arrayBuffer(),
+      );
     } catch (error) {
       // The file store did not answer: the file is read later.
       taskExtractionRetry.failed(key);
@@ -384,6 +386,11 @@ async function readWorkspace(
       console.error(`Fetching ${key} to read it for facts failed`, error);
       return;
     }
+    // A PDF that cannot be parsed is recorded as unparsed, not tried again.
+    const text =
+      kind === "pdf"
+        ? await pdfText(bytes).catch(() => "")
+        : fileText(kind, new TextDecoder().decode(bytes));
     if (!collapse(text)) {
       await record(run, unread, false, "unparsed");
       return;
@@ -417,8 +424,11 @@ async function readWorkspace(
       .map((issue) => () => readIssue(issue)),
     ...files
       .filter(
-        ({ since, hash, reason }) =>
-          since === null || (reason === "duplicate" && !holder.has(hash ?? "")),
+        ({ since, hash, reason, filename, mimeType }) =>
+          since === null ||
+          (reason === "duplicate" && !holder.has(hash ?? "")) ||
+          // Recorded before a reader for its kind shipped: read it once now.
+          (reason === "unsupported" && fileKind(filename, mimeType) !== null),
       )
       .map((file) => () => readFile(file, null)),
     ...issues.filter(behind).map((issue) => () => readIssue(issue)),
