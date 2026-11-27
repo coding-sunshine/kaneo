@@ -1,5 +1,16 @@
 import { createHash } from "node:crypto";
-import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  inArray,
+  isNull,
+  notExists,
+  or,
+  sql,
+} from "drizzle-orm";
+import { type AnyPgColumn, alias } from "drizzle-orm/pg-core";
 import {
   extractJson,
   extractionModel,
@@ -85,6 +96,9 @@ type Run = {
   /** When the newest slot of the workspace was made. */
   upTo: Date;
 };
+
+// Another record of the same issue, in a query about one of its records.
+const newer = alias(taskExtractionTable, "newer");
 
 const hashOf = (text: string) =>
   createHash("sha256").update(text).digest("hex");
@@ -219,10 +233,23 @@ async function read(run: Run, source: Source, outcome: Outcome) {
   return "read" as const;
 }
 
-// Changes when the title, the description or a comment changes.
+// Spaces collapsed, as `collapse` does for the words the model reads.
+const squashed = (text: AnyPgColumn) =>
+  sql`btrim(regexp_replace(coalesce(${text}, ''), '\\s+', ' ', 'g'))`;
+
+// Changes when the words of the title, the description or a comment change,
+// and not for an edit of spaces alone: the model reads the same words then.
 // ponytail: computed for every issue of the workspace on every run. Store the
 // hash on the issue when a workspace has tens of thousands of them.
-const issueHash = sql<string>`md5(${taskTable.title} || E'\\n' || coalesce(${taskTable.description}, '') || E'\\n' || coalesce((
+const issueHash = sql<string>`md5(${squashed(taskTable.title)} || E'\\n' || ${squashed(taskTable.description)} || E'\\n' || coalesce((
+  select string_agg(${squashed(activityTable.content)}, E'\\n' order by ${activityTable.createdAt}, ${activityTable.id})
+  from ${activityTable}
+  where ${activityTable.taskId} = ${taskTable.id} and ${activityTable.type} = 'comment' and ${squashed(activityTable.content)} <> ''
+), ''))`;
+
+// The hash records had before spaces were collapsed, of the words as stored.
+// A record with it keeps standing for the same words and takes the new hash.
+const issueHashBefore = sql<string>`md5(${taskTable.title} || E'\\n' || coalesce(${taskTable.description}, '') || E'\\n' || coalesce((
   select string_agg(${activityTable.content}, E'\\n' order by ${activityTable.createdAt}, ${activityTable.id})
   from ${activityTable}
   where ${activityTable.taskId} = ${taskTable.id} and ${activityTable.type} = 'comment'
@@ -330,6 +357,8 @@ async function readWorkspace(
       .select({
         id: taskTable.id,
         hash: issueHash,
+        before: issueHashBefore,
+        recorded: taskExtractionTable.contentHash,
         since: taskExtractionTable.createdAt,
       })
       .from(taskTable)
@@ -339,12 +368,42 @@ async function readWorkspace(
         and(
           eq(taskExtractionTable.taskId, taskTable.id),
           isNull(taskExtractionTable.assetId),
-          eq(taskExtractionTable.contentHash, issueHash),
+          or(
+            eq(taskExtractionTable.contentHash, issueHash),
+            eq(taskExtractionTable.contentHash, issueHashBefore),
+          ),
         ),
       )
       .where(eq(projectTable.workspaceId, workspaceId))
       .orderBy(asc(taskTable.id), desc(taskExtractionTable.createdAt)),
   );
+  // A record written before spaces were collapsed takes the new hash, with no
+  // question: its words were read. A later edit of spaces then reads nothing.
+  for (const { id, hash, before, recorded } of issues) {
+    if (recorded === null || recorded === hash) continue;
+    await db
+      .update(taskExtractionTable)
+      .set({ contentHash: hash })
+      .where(
+        and(
+          eq(taskExtractionTable.taskId, id),
+          isNull(taskExtractionTable.assetId),
+          eq(taskExtractionTable.contentHash, before),
+          notExists(
+            db
+              .select({ id: newer.id })
+              .from(newer)
+              .where(
+                and(
+                  eq(newer.taskId, id),
+                  isNull(newer.assetId),
+                  eq(newer.contentHash, hash),
+                ),
+              ),
+          ),
+        ),
+      );
+  }
   const readIssue = async ({ id, hash, since }: (typeof issues)[number]) => {
     if (taskExtractionRetry.waiting(`issue:${id}`)) return;
     const source = await issueSource(id);

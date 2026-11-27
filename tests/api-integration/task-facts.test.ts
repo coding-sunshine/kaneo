@@ -302,6 +302,63 @@ describe("API integration: facts found in issues", () => {
       ).toEqual(["launch_date", "price"]);
     });
 
+    it("does not read an issue again for an edit that changes only spaces", async () => {
+      const { world } = await found();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      await comment(world, world.betaTask.id, "Agreed with the team.");
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+
+      // The model reads the words with their spaces collapsed, so it would
+      // read the same text again.
+      await describeIssue(
+        world.betaTask.id,
+        `\n  ${LAUNCH.replace("settled:", "settled:\n\n   ")}  \n`,
+      );
+      await db
+        .update(taskTable)
+        .set({ title: " Beta   issue " })
+        .where(eq(taskTable.id, world.betaTask.id));
+      await db
+        .update(activityTable)
+        .set({ content: "Agreed  with the\nteam. " })
+        .where(eq(activityTable.taskId, world.betaTask.id));
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+
+      // A change of words is read.
+      await describeIssue(world.betaTask.id, `${LAUNCH} Signed.`);
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(4);
+    });
+
+    it("keeps a record of an issue read before the spaces rule and does not read it again", async () => {
+      const { world } = await found();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const spaced = LAUNCH.replace("settled:", "settled:  ");
+      await describeIssue(world.betaTask.id, spaced);
+      // As the build before wrote it: the hash of the words as they are stored.
+      const before = createHash("md5")
+        .update(`Beta issue\n${spaced}\n`)
+        .digest("hex");
+      await db
+        .update(taskExtractionTable)
+        .set({ contentHash: before })
+        .where(eq(taskExtractionTable.taskId, world.betaTask.id));
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+
+      // Nothing is read for a later edit of spaces either.
+      await describeIssue(world.betaTask.id, LAUNCH);
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const [kept] = await db
+        .select()
+        .from(taskExtractionTable)
+        .where(eq(taskExtractionTable.taskId, world.betaTask.id));
+      expect(kept?.contentHash).not.toBe(before);
+    });
+
     it("asks old texts once about a field added later", async () => {
       const { world, topicId } = await found();
       await attach(world, { filename: "notes.md", mimeType: "text/markdown" });
