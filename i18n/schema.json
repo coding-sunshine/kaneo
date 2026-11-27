@@ -25733,6 +25733,9 @@
 						"takeOver": {
 							"type": "string"
 						},
+						"ownerlessInTrash": {
+							"type": "string"
+						},
 						"takeOverSuccess": {
 							"type": "string"
 						},
@@ -25811,6 +25814,7 @@
 						"ownerlessTitle",
 						"ownerlessDescription",
 						"takeOver",
+						"ownerlessInTrash",
 						"takeOverSuccess",
 						"takeOverError",
 						"ownerlessFrom",

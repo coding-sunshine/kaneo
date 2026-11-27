@@ -36,12 +36,14 @@ const doc = (
   id: string,
   creatorId: string | null,
   creatorName: string | null,
+  deletedAt: string | null = null,
 ) => ({
   id,
   title: `Title ${id}`,
   updatedAt: "2026-11-20T10:00:00.000Z",
   creatorId,
   creatorName,
+  deletedAt,
 });
 const members = [
   { userId: "member-1", name: "Owner Person" },
@@ -94,5 +96,18 @@ describe("OwnerlessDocuments", () => {
     expect(
       screen.getAllByRole("button", { name: `${KEY}.takeOver` }),
     ).toHaveLength(3);
+  });
+
+  it("marks a draft that is in the trash and offers no hand-over for it", async () => {
+    mocks.getOwnerlessDocuments.mockResolvedValue([
+      doc("d1", "left-1", "Former Person", "2026-11-21T10:00:00.000Z"),
+    ]);
+    show();
+
+    expect(await screen.findByText(/ownerlessInTrash/)).toBeTruthy();
+    expect(screen.queryByRole("combobox")).toBeNull();
+    expect(
+      screen.getByRole("button", { name: `${KEY}.takeOver` }),
+    ).toBeTruthy();
   });
 });

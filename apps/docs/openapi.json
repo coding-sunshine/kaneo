@@ -5138,6 +5138,14 @@
               "string",
               "null"
             ]
+          },
+          "deletedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the author put it in the trash. Null when they did not. A hand-over leaves it here; taking it over brings it out of the trash."
           }
         },
         "required": [
@@ -5145,7 +5153,8 @@
           "title",
           "updatedAt",
           "creatorId",
-          "creatorName"
+          "creatorName",
+          "deletedAt"
         ]
       },
       "IssueFile": {

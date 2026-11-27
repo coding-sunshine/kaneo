@@ -514,6 +514,10 @@ export const ownerlessDocumentListSchema = z.array(
           "The author who left. Null when they deleted their account. Hand the documents over with it.",
       }),
       creatorName: z.string().nullable(),
+      deletedAt: nullableResponseTimestamp.openapi({
+        description:
+          "When the author put it in the trash. Null when they did not. A hand-over leaves it here; taking it over brings it out of the trash.",
+      }),
     })
     .openapi("OwnerlessDocument"),
 );

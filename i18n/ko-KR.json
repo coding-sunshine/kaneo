@@ -6082,7 +6082,8 @@
 			"takeOverSuccess": "You are now the author of this document",
 			"handOverDone_other": "{{count}} documents are now {{name}}'s",
 			"handOverGive": "Give their documents",
-			"ownerlessFrom": "Left by {{name}}"
+			"ownerlessFrom": "Left by {{name}}",
+			"ownerlessInTrash": "In the trash"
 		},
 		"projectAccess": {
 			"allProjects": "All projects",
