@@ -68,9 +68,9 @@ const notFound = () =>
  * slot must be the topic's, the quote must be in the text and the value must
  * fit the slot. A value the slot already has keeps its statement. With
  * `replace` (a person) a new value replaces the slot's proposal, never a
- * confirmed statement. Without it (the model) a new value is added beside the
- * model's own proposals, as a long text can state two values for one fact;
- * a free-text slot keeps the first value found.
+ * confirmed statement. Without it a slot keeps the statement it has, except
+ * that the model adds a new value beside its own proposals, as a long text
+ * can state two values for one fact; a free-text slot keeps the first value.
  */
 export async function proposeStatements(
   doc: Text,
@@ -131,7 +131,8 @@ export async function proposeStatements(
       ? existing?.status === "confirmed"
       : existing !== undefined ||
         (held.length > 0 &&
-          (slot.type === "term" ||
+          (source !== "model" ||
+            slot.type === "term" ||
             held.some(
               (row) => row.source !== "model" || row.status !== "proposed",
             )));
