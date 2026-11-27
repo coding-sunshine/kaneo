@@ -35452,7 +35452,7 @@
           "Favorites"
         ],
         "summary": "Add favorite",
-        "description": "Favorite a team, view, document or pull request, or pin a document (documentPin). Repeating the call is a no-op. A document the user cannot open is refused like one that does not exist.",
+        "description": "Favorite a team, view, document or pull request, or pin a document (documentPin). Repeating the call is a no-op. A team or document the user cannot open is refused like one that does not exist.",
         "parameters": [
           {
             "schema": {
@@ -35545,7 +35545,7 @@
             }
           },
           "404": {
-            "description": "Document not found",
+            "description": "Team or document not found",
             "content": {
               "application/json": {
                 "schema": {
