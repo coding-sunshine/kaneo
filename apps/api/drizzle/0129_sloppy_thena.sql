@@ -1,0 +1,1 @@
+CREATE INDEX "chat_message_search_idx" ON "chat_message" USING gin (to_tsvector('simple', left(coalesce("body", ''), 100000)));
