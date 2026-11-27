@@ -4,7 +4,14 @@ import type { IncomingMessage } from "node:http";
 import { createRequire } from "node:module";
 import { defaultRolePayloads } from "@kaneo/permissions";
 import { and, eq } from "drizzle-orm";
-import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 import { serve } from "../../apps/api/node_modules/@hono/node-server";
 import db, { schema } from "../../apps/api/src/database";
 import {
@@ -16,6 +23,7 @@ import {
   topicTable,
 } from "../../apps/api/src/database/schema";
 import { markInternalRequest } from "../../apps/api/src/agent/internal-auth";
+import { settleEvents } from "../../apps/api/src/events";
 import { createApp } from "../../apps/api/src/index";
 import {
   initializeWebSocketAdapter,
@@ -225,6 +233,27 @@ async function setUp() {
     body: { organizationId: workspaceId },
   });
 
+  // Links from Q into what the guest can open, made the way people make
+  // them: a comment on the Q task that mentions the guest and the teammate,
+  // and a relation from the P task to the Q task.
+  const mention = await ownerRequest(`/comment/${qTask.id}`, {
+    method: "POST",
+    body: {
+      content: `<kaneo-mention id="${guest.userId}">@Guest</kaneo-mention> <kaneo-mention id="${teammate.userId}">@Teammate</kaneo-mention> canary payroll numbers`,
+    },
+  });
+  expect(mention.status, await mention.clone().text()).toBe(200);
+  const related = await ownerRequest("/task-relation", {
+    method: "POST",
+    body: {
+      sourceTaskId: pTask.id,
+      targetTaskId: qTask.id,
+      relationType: "related",
+    },
+  });
+  expect(related.status, await related.clone().text()).toBe(200);
+  await settleEvents();
+
   // Hidden sources that name what the guest can open: P and its task.
   await db.insert(referenceTable).values([
     {
@@ -314,6 +343,7 @@ function sweepPaths(world: World, side: Side = "hidden") {
     runId: world.run.id,
     assetId: world.asset.id,
     provider: "github",
+    ticketId: `${(own ? world.p : world.q).slug}-1`,
   };
   // What `{id}` names, by the route it appears in.
   const ids: [string, string[]][] = [
@@ -687,7 +717,33 @@ describe("guest access", () => {
       teams?: unknown[];
     };
     expect(organization.invitations).toEqual([]);
-    expect(organization.teams ?? []).toEqual([]);
+    expect(organization.teams).toEqual([]);
+    // The workspace has teams; the owner sees them.
+    const forOwner = (await (
+      await ownerRequest(
+        `/auth/organization/get-full-organization?organizationId=${workspaceId}`,
+      )
+    ).json()) as { teams: unknown[] };
+    expect(forOwner.teams.length).toBeGreaterThan(0);
+  });
+
+  it("shows the links from Q to the people who can open Q, not to the guest", async () => {
+    const world = await setUp();
+    const relations = `/task-relation/${world.pTask.id}`;
+    expect((await bodyOf(world.ownerRequest, relations)).text).toMatch(CANARY);
+    expect((await bodyOf(world.teammateRequest, "/notification")).text).toMatch(
+      CANARY,
+    );
+
+    for (const path of [
+      relations,
+      "/notification",
+      `/activity/${world.pTask.id}`,
+    ]) {
+      const { status, text } = await bodyOf(world.guestRequest, path);
+      expect(status, path).toBe(200);
+      expect(text, path).not.toMatch(CANARY);
+    }
   });
 
   it("shows a guest only references from inside their projects", async () => {
@@ -754,12 +810,21 @@ describe("guest access", () => {
 
     /** 101 when the upgrade is accepted, else the refusal's status. */
     async function open(path: string, cookie: string) {
+      return (await openCollecting(path, cookie)).status;
+    }
+
+    /** Opens a socket and keeps every message it receives. */
+    async function openCollecting(path: string, cookie: string) {
       const socket = new WebSocket(`ws://${base}/api${path}`, {
         headers: { cookie, origin: "http://localhost:5173" },
       });
       sockets.push(socket);
+      const received: unknown[] = [];
       socket.on("error", () => {});
-      return new Promise<number>((resolve) => {
+      socket.on("message", (data: never) =>
+        received.push(JSON.parse(String(data))),
+      );
+      const status = await new Promise<number>((resolve) => {
         socket.once("open", () => resolve(101));
         socket.once(
           "unexpected-response",
@@ -769,7 +834,44 @@ describe("guest access", () => {
           },
         );
       });
+      return { status, received };
     }
+
+    it("stops pushing a channel's messages to a guest taken out of it", async () => {
+      await listen();
+      const world = await setUp();
+      const { workspaceId, x, guest, owner } = world;
+      const guestSocket = await openCollecting(
+        `/ws/chat/${x.id}`,
+        guest.cookies,
+      );
+      const ownerSocket = await openCollecting(
+        `/ws/chat/${x.id}`,
+        owner.cookies,
+      );
+      expect([guestSocket.status, ownerSocket.status]).toEqual([101, 101]);
+
+      const removed = await world.ownerRequest(
+        `/chat/workspace/${workspaceId}/channels/${x.id}/members/${guest.userId}`,
+        { method: "DELETE" },
+      );
+      expect(removed.status).toBe(200);
+      const posted = await world.ownerRequest(
+        `/chat/workspace/${workspaceId}/channels/${x.id}/messages`,
+        { method: "POST", body: { body: "after the guest left" } },
+      );
+      expect(posted.status).toBe(200);
+      await settleEvents();
+
+      await vi.waitFor(() =>
+        expect(JSON.stringify(ownerSocket.received)).toContain(
+          "CHAT_MESSAGE_CREATED",
+        ),
+      );
+      expect(JSON.stringify(guestSocket.received)).not.toContain(
+        "CHAT_MESSAGE_CREATED",
+      );
+    });
 
     it("lets a guest subscribe only to their own channel and project", async () => {
       await listen();
