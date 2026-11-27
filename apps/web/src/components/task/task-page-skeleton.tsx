@@ -52,7 +52,7 @@ export function TaskDetailsSkeleton({ className }: TaskDetailsSkeletonProps) {
 
 export function TaskPropertiesRailSkeleton() {
   return (
-    <div className="flex w-80 shrink-0 flex-col gap-0.5 px-3 pt-4">
+    <div className="flex w-80 max-w-full shrink-0 flex-col gap-0.5 px-3 pt-4">
       {[0, 1, 2, 3, 4, 5].map((row) => (
         <div key={row} className="flex h-8 items-center gap-3 pl-2">
           <Skeleton className="h-3 w-14" />

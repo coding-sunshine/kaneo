@@ -98,7 +98,7 @@ function RouteComponent() {
             taskId={taskId}
             projectId={projectId}
             workspaceId={workspaceId}
-            className="w-80 shrink-0"
+            className="w-80 max-w-full shrink-0"
           />
         )
       }

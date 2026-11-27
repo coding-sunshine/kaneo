@@ -127,7 +127,7 @@ export default function TaskLayout({
         </Layout.Content>
       </div>
       {unavailableReason ? null : (
-        <div className="relative hidden border-border/80 border-l lg:flex lg:h-full lg:overflow-y-auto">
+        <div className="relative hidden border-border/80 border-l lg:flex lg:h-full lg:max-w-[40%] lg:overflow-y-auto">
           {rail}
         </div>
       )}
