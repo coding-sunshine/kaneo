@@ -1,11 +1,11 @@
-import { and, gte, isNull, sql } from "drizzle-orm";
+import { and, eq, gte, isNull, sql } from "drizzle-orm";
 import db from "../database";
 import { aiUsageTable } from "../database/schema";
 
 type Usage = {
   purpose: string;
-  /** Set for calls made for a person; extraction jobs leave both unset. */
-  workspaceId?: string;
+  workspaceId: string;
+  /** Set for calls made for a person; extraction jobs leave it unset. */
   userId?: string;
   model: string;
   promptTokens: number;
@@ -13,8 +13,12 @@ type Usage = {
   cost: number | null;
 };
 
-/** Tokens of every extraction call since the start of the UTC day. */
-export async function tokensUsedToday() {
+/**
+ * Tokens of the extraction calls made for a workspace since the start of the
+ * UTC day. Each workspace has its own cap, so one that files a lot never
+ * stops the reading of the others.
+ */
+export async function tokensUsedToday(workspaceId: string) {
   const start = new Date();
   start.setUTCHours(0, 0, 0, 0);
   const [row] = await db
@@ -23,7 +27,11 @@ export async function tokensUsedToday() {
     })
     .from(aiUsageTable)
     .where(
-      and(isNull(aiUsageTable.workspaceId), gte(aiUsageTable.createdAt, start)),
+      and(
+        eq(aiUsageTable.workspaceId, workspaceId),
+        isNull(aiUsageTable.userId),
+        gte(aiUsageTable.createdAt, start),
+      ),
     );
   return row?.tokens ?? 0;
 }

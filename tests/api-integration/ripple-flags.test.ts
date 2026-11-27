@@ -1,5 +1,7 @@
-import { beforeEach, describe, expect, it } from "vite-plus/test";
+import { eq, sql } from "drizzle-orm";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
+import { topicTable } from "../../apps/api/src/database/schema";
 import { resetTestDatabase } from "./helpers/database";
 import {
   buildDocumentWorld,
@@ -243,6 +245,67 @@ describe("API integration: ripple flags", () => {
     expect(byTask.cause).toEqual(byTask.dependsOn);
     expect(byDoc.cause).toEqual(byDoc.dependsOn);
     expect(byTask.flaggedAt).toEqual(expect.any(String));
+  });
+
+  it("flags a link during approval that changes its value", async () => {
+    const s = await setup();
+    const { world, api, r, topicId, docId, cost } = s;
+    // A second document ready to state another price, all but approved.
+    const next = await api.filed(
+      topicId,
+      "Launch plan v2",
+      textOf([DATE, price(45)]),
+    );
+    await confirmAll(api, next, [DATE, price(45)]);
+    for (const conflict of (await api.receipt(next)).conflicts) {
+      await expectStatus(
+        await api.settleConflict(next, conflict.id, {
+          decision: "replace",
+          reason: "Changed.",
+        }),
+        200,
+      );
+    }
+    const waiting = async () =>
+      (
+        await db.execute(
+          sql`select 1 from pg_locks l join pg_stat_activity a on a.pid = l.pid where not l.granted and a.datname = current_database()`,
+        )
+      ).rows.length;
+
+    let linking: Promise<Response> | undefined;
+    let approving: Promise<Response> | undefined;
+    let approved = false;
+    // The link has checked the price and waits to write its row, which names
+    // the issue held here. The approval runs meanwhile.
+    await db.transaction(async (tx) => {
+      await tx
+        .select({ id: schema.taskTable.id })
+        .from(schema.taskTable)
+        .where(eq(schema.taskTable.id, world.alphaTask.id))
+        .for("update");
+      linking = r.depend(docId, cost.id, { taskId: world.alphaTask.id });
+      await vi.waitFor(async () => expect(await waiting()).toBe(1));
+      approving = api.approve(topicId, next).then((response) => {
+        approved = true;
+        return response;
+      });
+      await vi.waitFor(async () =>
+        expect(approved || (await waiting()) >= 2).toBe(true),
+      );
+    });
+
+    const linked = await linking;
+    await expectStatus((await approving) as Response, 200);
+    if (linked?.status === 200) {
+      const link = (await linked.json()) as Dependency;
+      expect(link.statementId).toBe(cost.id);
+      expect((await r.needsReview()).map((item) => item.task?.id)).toContain(
+        world.alphaTask.id,
+      );
+    } else {
+      expect(linked?.status).toBe(409);
+    }
   });
 
   it("lists the topics a document relies on, only to someone who can open it", async () => {
@@ -553,6 +616,109 @@ describe("API integration: ripple flags", () => {
     expect(((await again.json()) as Dependency).id).toBe(link.id);
 
     await expectStatus(await r.remove(docId, cost.id, link.id), 200);
+    await expectStatus(await drop(), 200);
+  });
+
+  it("refuses a team delete while work outside the team relies on its facts", async () => {
+    const s = await setup();
+    const { world, r, topicId, docId, cost } = s;
+    // The issue and the memo of the team go with it.
+    await dependOnPrice(s);
+    const outside = await r.depend(docId, cost.id, {
+      taskId: world.betaTask.id,
+    });
+    await expectStatus(outside, 200);
+    const drop = () =>
+      world.as(world.owner)(`/project/${world.alpha.id}`, json("DELETE"));
+
+    // The issue in team Beta would lose its link unflagged.
+    await expectStatus(await drop(), 409);
+    const [topic] = await db
+      .select({ id: topicTable.id })
+      .from(topicTable)
+      .where(eq(topicTable.id, topicId));
+    expect(topic?.id).toBe(topicId);
+
+    const link = (await outside.json()) as Dependency;
+    await expectStatus(await r.remove(docId, cost.id, link.id), 200);
+    await expectStatus(await drop(), 200);
+  });
+
+  it("refuses a team delete that lands while a link outside the team is written", async () => {
+    const s = await setup();
+    const { world, r, topicId, docId, cost } = s;
+    const waiting = async () =>
+      (
+        await db.execute(
+          sql`select 1 from pg_locks l join pg_stat_activity a on a.pid = l.pid where not l.granted and a.datname = current_database()`,
+        )
+      ).rows.length;
+    let linking: Promise<Response> | undefined;
+    let dropping: Promise<Response> | undefined;
+    let dropped = false;
+    // The link has checked the price and waits to write its row, which names
+    // the issue held here. The delete starts meanwhile.
+    await db.transaction(async (tx) => {
+      await tx
+        .select({ id: schema.taskTable.id })
+        .from(schema.taskTable)
+        .where(eq(schema.taskTable.id, world.betaTask.id))
+        .for("update");
+      linking = r.depend(docId, cost.id, { taskId: world.betaTask.id });
+      await vi.waitFor(async () => expect(await waiting()).toBe(1));
+      dropping = world
+        .as(world.owner)(`/project/${world.alpha.id}`, json("DELETE"))
+        .then((response) => {
+          dropped = true;
+          return response;
+        });
+      await vi.waitFor(async () =>
+        expect(dropped || (await waiting()) >= 2).toBe(true),
+      );
+    });
+
+    await expectStatus((await linking) as Response, 200);
+    await expectStatus((await dropping) as Response, 409);
+    const [topic] = await db
+      .select({ id: topicTable.id })
+      .from(topicTable)
+      .where(eq(topicTable.id, topicId));
+    expect(topic?.id).toBe(topicId);
+  });
+
+  it("refuses to delete a work project while other work relies on its topics' facts", async () => {
+    const world = await buildDocumentWorld();
+    const api = filing(world);
+    const r = routes(world);
+    const created = await world.as(world.owner)(
+      "/topic",
+      json("POST", {
+        workspaceId: world.ws,
+        name: "Launch plan",
+        workProjectId: world.workProject.id,
+      }),
+    );
+    await expectStatus(created, 200);
+    const { id: topicId } = (await created.json()) as { id: string };
+    await api.addSlot(topicId, { name: "Price", type: "number" });
+    const docId = await api.filed(topicId, "Launch plan", textOf([price(40)]));
+    const [cost] = await confirmAll(api, docId, [price(40)]);
+    await expectStatus(await api.approve(topicId, docId), 200);
+    const made = await r.depend(docId, cost!.id, {
+      taskId: world.alphaTask.id,
+    });
+    await expectStatus(made, 200);
+    const drop = () =>
+      world.as(world.owner)(
+        `/work-project/${world.workProject.id}`,
+        json("DELETE"),
+      );
+
+    await expectStatus(await drop(), 409);
+    await expectStatus(
+      await r.remove(docId, cost!.id, ((await made.json()) as Dependency).id),
+      200,
+    );
     await expectStatus(await drop(), 200);
   });
 

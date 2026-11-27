@@ -64,6 +64,7 @@ const slot: Slot = {
 };
 const topics = [{ id: "t1", name: "Launch plan", slots: [slot] }];
 const run = {
+  workspaceId: "ws-1",
   model: "test/model",
   slotsHash: "slots",
   topics,

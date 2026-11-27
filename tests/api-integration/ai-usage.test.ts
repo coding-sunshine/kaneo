@@ -204,7 +204,7 @@ describe("API integration: AI usage and budgets", () => {
       json("POST", { message: "hello" }),
     );
     expect(await usageRows()).toHaveLength(1);
-    expect(await tokensUsedToday()).toBe(0);
+    expect(await tokensUsedToday(owner.workspace.id)).toBe(0);
   });
 
   it("stops a chat call once the month's AI spending of every feature reaches 20 USD, until the next month", async () => {

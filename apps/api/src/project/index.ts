@@ -234,7 +234,7 @@ const deleteProjectRoute = createRoute({
   tags: ["Projects"],
   summary: "Delete project",
   description:
-    "Permanently delete a project and everything in it. Archive it instead to keep the data.",
+    "Permanently delete a project and everything in it. Archive it instead to keep the data. Refused while work outside the project relies on a fact of its topics or documents.",
   middleware: [
     workspaceAccess.fromProject(),
     requireWorkspacePermission({ project: ["delete"] }),
@@ -244,6 +244,9 @@ const deleteProjectRoute = createRoute({
     200: jsonResponse("The deleted project", projectSchema),
     403: errorResponse("Missing project:delete permission"),
     404: errorResponse("Project not found, or the caller cannot open it"),
+    409: errorResponse(
+      "Work outside the project relies on facts of its topics or documents",
+    ),
   },
 });
 

@@ -10,7 +10,7 @@ import { extractJson } from "./extraction";
 import { DEFAULT_AGENT_MODEL } from "./openrouter";
 
 const usage = vi.hoisted(() => ({
-  tokensUsedToday: vi.fn(async () => 0),
+  tokensUsedToday: vi.fn(async (_workspaceId: string) => 0),
   recordUsage: vi.fn(async () => undefined),
   withinMonthlyCap: vi.fn(async (_share?: number) => true),
 }));
@@ -26,6 +26,7 @@ const schema = {
 
 const request = {
   purpose: "statements",
+  workspaceId: "ws-1",
   system: "Report the facts.",
   text: "Go-live is 14 March.",
   schema,
@@ -113,7 +114,7 @@ describe("extractJson", () => {
     expect(await model()).toBe("reader/model");
   });
 
-  it("writes the tokens the call used to the usage table", async () => {
+  it("writes the tokens the call used to the usage table, under its workspace", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => answer('{"statements":[]}')),
@@ -124,6 +125,7 @@ describe("extractJson", () => {
     expect(usage.recordUsage).toHaveBeenCalledTimes(1);
     expect(usage.recordUsage).toHaveBeenCalledWith({
       purpose: "statements",
+      workspaceId: "ws-1",
       model: "z-ai/glm-5.3-flash",
       promptTokens: 120,
       completionTokens: 30,
@@ -131,13 +133,14 @@ describe("extractJson", () => {
     });
   });
 
-  it("makes no call when the day's cap is used up", async () => {
+  it("makes no call when the workspace's day cap is used up", async () => {
     vi.stubEnv("EXTRACTION_DAILY_TOKEN_CAP", "1000");
     usage.tokensUsedToday.mockResolvedValue(1000);
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
     expect(await extractJson(request)).toBeNull();
+    expect(usage.tokensUsedToday).toHaveBeenCalledWith("ws-1");
     expect(fetchMock).not.toHaveBeenCalled();
     expect(usage.recordUsage).not.toHaveBeenCalled();
   });

@@ -8,6 +8,7 @@ import {
 import { documentVisibility } from "../../document/visibility";
 import { currentStatements } from "./current-statements";
 import type { Slot } from "./slots";
+import { forText } from "../statement-hash";
 
 /**
  * What a topic states for each of its slots, as `viewerId` may see it: the
@@ -46,7 +47,7 @@ export async function answersOf(
         eq(documentTable.status, "in_review"),
         isNull(documentTable.deletedAt),
         ne(statementTable.status, "rejected"),
-        eq(statementTable.contentHash, documentTable.contentHash),
+        forText(documentTable.contentHash),
         documentVisibility(viewerId, documentTable),
       ),
     )

@@ -385,7 +385,7 @@ async function workspaceQueue(
     (version ?? PROMPT_VERSION) < PROMPT_VERSION &&
     (AGAIN.has(reason ?? "") ||
       (reason === null && fileKind(filename, mimeType) === "pdf"));
-  const see = seeWith(RESERVE, outcome);
+  const see = seeWith(RESERVE, outcome, workspaceId);
   const readFile = async (file: (typeof files)[number], since: Date | null) => {
     const key = `file:${file.id}`;
     if (taskExtractionRetry.waiting(key)) return;
@@ -550,6 +550,7 @@ export async function extractTaskFacts() {
       await workspaceQueue(
         workspaceId,
         {
+          workspaceId,
           model,
           topics: list,
           asked: numbered(list),

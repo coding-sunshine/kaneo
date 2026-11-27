@@ -5,6 +5,7 @@ import {
   statementDependencyTable,
   statementTable,
   topicSlotTable,
+  topicTable,
 } from "../../database/schema";
 import { loadDocument } from "../../document/controllers/load-document";
 import { topicAccess } from "../../document/visibility";
@@ -43,12 +44,6 @@ export async function addDependency(
 ) {
   const doc = await loadDocument(workspaceId, documentId, userId);
   const { statement, topicId } = await statementOf(doc, statementId, userId);
-  const stated = await currentStatements(db, topicId);
-  if (!stated.some((row) => row.statementId === statement.id)) {
-    throw new HTTPException(409, {
-      message: "Only a value the topic states now can be relied on",
-    });
-  }
   if (work.documentId === doc.id) {
     throw new HTTPException(400, {
       message: "A document cannot rely on its own statement",
@@ -56,24 +51,39 @@ export async function addDependency(
   }
   const { id } = await openWork(workspaceId, work, userId);
   const target = work.taskId ? { taskId: id } : { documentId: id };
-  const [made] = await db
-    .insert(statementDependencyTable)
-    .values({ statementId: statement.id, createdBy: userId, ...target })
-    .onConflictDoNothing()
-    .returning();
-  const [row] = made
-    ? [made]
-    : await db
-        .select()
-        .from(statementDependencyTable)
-        .where(
-          and(
-            eq(statementDependencyTable.statementId, statement.id),
-            work.taskId
-              ? eq(statementDependencyTable.taskId, id)
-              : eq(statementDependencyTable.documentId, id),
-          ),
-        );
+  const row = await db.transaction(async (tx) => {
+    // Waits for a change to what the topic states, and holds the next one
+    // back until the link is written: the change then flags the link.
+    await tx
+      .select({ id: topicTable.id })
+      .from(topicTable)
+      .where(eq(topicTable.id, topicId))
+      .for("share");
+    const stated = await currentStatements(tx, topicId);
+    if (!stated.some((found) => found.statementId === statement.id)) {
+      throw new HTTPException(409, {
+        message: "Only a value the topic states now can be relied on",
+      });
+    }
+    const [made] = await tx
+      .insert(statementDependencyTable)
+      .values({ statementId: statement.id, createdBy: userId, ...target })
+      .onConflictDoNothing()
+      .returning();
+    if (made) return made;
+    const [found] = await tx
+      .select()
+      .from(statementDependencyTable)
+      .where(
+        and(
+          eq(statementDependencyTable.statementId, statement.id),
+          work.taskId
+            ? eq(statementDependencyTable.taskId, id)
+            : eq(statementDependencyTable.documentId, id),
+        ),
+      );
+    return found;
+  });
   if (!row) {
     throw new HTTPException(409, {
       message: "The dependency was removed meanwhile. Send it again",

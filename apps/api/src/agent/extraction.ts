@@ -7,6 +7,8 @@ const MAX_OUTPUT_TOKENS = 1500;
 type ExtractionRequest = {
   /** Names the call in the usage table and names the schema. */
   purpose: string;
+  /** The workspace the text belongs to. Its tokens count against its own cap. */
+  workspaceId: string;
   system: string;
   text: string;
   schema: Record<string, unknown>;
@@ -89,8 +91,8 @@ export function extractionModel() {
  * One model call that answers in the given JSON schema, for jobs that read
  * documents. Unlike the assistant's `createCompletion` it does not stream,
  * limits the answer, writes the tokens it used to `ai_usage` and stops for
- * the day at `EXTRACTION_DAILY_TOKEN_CAP` and for the calendar month at
- * `AI_MONTHLY_USD_CAP` dollars. Returns null, without calling, when no key is
+ * the day at `EXTRACTION_DAILY_TOKEN_CAP` tokens of the workspace, and for
+ * the calendar month at `AI_MONTHLY_USD_CAP` dollars of the instance. Returns null, without calling, when no key is
  * set or a cap is used up.
  *
  * `zdr` keeps the request on endpoints with zero data retention. An
@@ -102,7 +104,8 @@ export async function extractJson<T>(
 ): Promise<T | null> {
   if (!isAgentEnabled()) return null;
   const share = 1 - (request.reserve ?? 0);
-  if ((await tokensUsedToday()) >= dailyTokenCap() * share) return null;
+  if ((await tokensUsedToday(request.workspaceId)) >= dailyTokenCap() * share)
+    return null;
   if (!(await withinMonthlyCap(share))) return null;
 
   const model = extractionModel();
@@ -154,6 +157,7 @@ export async function extractJson<T>(
   const completion = (await response.json()) as Completion;
   await recordUsage({
     purpose: request.purpose,
+    workspaceId: request.workspaceId,
     model,
     promptTokens: completion.usage?.prompt_tokens ?? 0,
     completionTokens: completion.usage?.completion_tokens ?? 0,
