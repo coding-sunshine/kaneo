@@ -1,3 +1,4 @@
+import { syncTaskDescriptionLinks } from "../../../task-document/sync-links";
 import { recordLabelHistory } from "../../sync/record-label-history";
 import { resumeLabelChanges } from "../../sync/resume-label-changes";
 import { acceptsIssue, readSyncRules } from "../../sync/rules";
@@ -268,6 +269,13 @@ export async function handleGitlabIssueUpdated(
                 .update(taskTable)
                 .set(updateData)
                 .where(linkedTaskScope(task.id, integration.projectId));
+              if (typeof updateData.description === "string")
+                await syncTaskDescriptionLinks(
+                  db,
+                  task.id,
+                  null,
+                  updateData.description,
+                );
 
               metadata = { ...metadata, lastSync };
 

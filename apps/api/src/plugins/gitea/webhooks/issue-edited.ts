@@ -1,3 +1,4 @@
+import { syncTaskDescriptionLinks } from "../../../task-document/sync-links";
 import { issueEditScope } from "../../github/utils/deferred-issue-edit";
 import { deferIssueEdit } from "../../github/services/deferred-issue-edits";
 import { inboundStamp } from "../../github/utils/sync-echo";
@@ -194,6 +195,13 @@ export async function handleGiteaIssueEdited(
                 .update(taskTable)
                 .set(updateData)
                 .where(linkedTaskScope(task.id, integration.projectId));
+              if (typeof updateData.description === "string")
+                await syncTaskDescriptionLinks(
+                  db,
+                  task.id,
+                  null,
+                  updateData.description,
+                );
 
               await updateExternalLink(
                 externalLink.id,

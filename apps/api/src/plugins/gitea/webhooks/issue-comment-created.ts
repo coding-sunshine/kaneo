@@ -1,3 +1,5 @@
+import { mentionsDocument } from "../../../task-document/find-links";
+import { syncTaskCommentLinks } from "../../../task-document/sync-links";
 import { withIntegrationLink } from "../../github/services/with-integration-link";
 import { activityTable } from "../../../database/schema";
 import { findExternalLink } from "../../github/services/link-manager";
@@ -93,6 +95,8 @@ export async function handleGiteaIssueCommentCreated(
               activityTable.externalUrl,
             ],
           });
+        if (mentionsDocument(comment.body))
+          await syncTaskCommentLinks(db, existingLink.taskId, null);
       },
     );
   }

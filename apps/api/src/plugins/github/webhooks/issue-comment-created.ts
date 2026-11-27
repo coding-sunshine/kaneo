@@ -1,3 +1,5 @@
+import { mentionsDocument } from "../../../task-document/find-links";
+import { syncTaskCommentLinks } from "../../../task-document/sync-links";
 import { withIntegrationLink } from "../services/with-integration-link";
 import { activityTable } from "../../../database/schema";
 import { findExternalLink } from "../services/link-manager";
@@ -75,6 +77,8 @@ export async function handleIssueCommentCreated(
               activityTable.externalUrl,
             ],
           });
+        if (mentionsDocument(comment.body))
+          await syncTaskCommentLinks(db, existingLink.taskId, null);
 
         return;
       },
