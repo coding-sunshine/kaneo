@@ -45,6 +45,11 @@ export async function requestDesignReview({
   reviewerId: string;
   requesterId: string;
 }) {
+  if (reviewerId === requesterId) {
+    throw new HTTPException(400, {
+      message: "You cannot request a design review from yourself",
+    });
+  }
   await assertReviewerCanOpenTask(taskId, reviewerId);
   const requestedAt = new Date();
   await db

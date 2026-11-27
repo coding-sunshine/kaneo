@@ -9,8 +9,9 @@ import {
 } from "@/components/ui/popover";
 import useRequestDesignReview from "@/hooks/mutations/design-review/use-request-design-review";
 import useGetProjectMembers from "@/hooks/queries/workspace-users/use-get-project-members";
-import { assigneeMenuOptions } from "../menus/assignee-menu-options";
+import useAuth from "@/components/providers/auth-provider/hooks/use-auth";
 import { PropertyValue } from "../properties/property-value";
+import { reviewerOptions } from "./reviewer-options";
 
 type RequestDesignReviewPopoverProps = {
   task: { id: string; projectId: string };
@@ -24,19 +25,14 @@ export function RequestDesignReviewPopover({
   reviewerIds,
 }: RequestDesignReviewPopoverProps) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const request = useRequestDesignReview();
   const { data: members = [] } = useGetProjectMembers({
     workspaceId,
     projectId: task.projectId,
   });
-  // Drop the menu's leading "unassigned" entry; a review always names someone.
-  const options = assigneeMenuOptions(members, undefined, "")
-    .slice(1)
-    .map((option) => ({
-      ...option,
-      selected: reviewerIds.includes(option.value),
-    }));
+  const options = reviewerOptions(members, user?.id, reviewerIds);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

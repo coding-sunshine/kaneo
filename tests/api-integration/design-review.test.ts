@@ -1,9 +1,10 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
+import { restrictToProjects } from "./helpers/project-access/restrict-to-projects";
 import {
   createProjectFixture,
   createWorkspaceMember,
@@ -67,6 +68,18 @@ function as(user: Parameters<typeof mockAuthenticatedSession>[0]) {
       headers: init?.body ? { "Content-Type": "application/json" } : {},
       body: init?.body ? JSON.stringify(init.body) : undefined,
     });
+}
+
+// A guest holds selected access to the given teams only, like an invited guest.
+async function makeGuest(workspaceId: string, projectIds: string[]) {
+  const guest = await joinWorkspace(workspaceId, "member", "Guest");
+  await restrictToProjects(workspaceId, guest.id, projectIds);
+  const rules = schema.workspaceMemberAccessTable;
+  await db
+    .update(rules)
+    .set({ guest: true })
+    .where(and(eq(rules.workspaceId, workspaceId), eq(rules.userId, guest.id)));
+  return guest;
 }
 
 async function reviewQueue(
@@ -240,5 +253,115 @@ describe("API integration: design review", () => {
       { method: "POST" },
     );
     expect(closedApprove.status).toBe(403);
+  });
+
+  it("refuses to make the requester their own reviewer", async () => {
+    const { requester, task } = await seed();
+    const response = await as(requester.user)(
+      `/design-review/task/${task.id}`,
+      { method: "POST", body: { reviewerId: requester.user.id } },
+    );
+    expect(response.status).toBe(400);
+    const rows = await db
+      .select()
+      .from(schema.taskDesignReviewTable)
+      .where(eq(schema.taskDesignReviewTable.taskId, task.id));
+    expect(rows).toHaveLength(0);
+  });
+
+  it("keeps an approved review: withdrawing it answers 409", async () => {
+    const { requester, reviewer, task } = await seed();
+    await as(requester.user)(`/design-review/task/${task.id}`, {
+      method: "POST",
+      body: { reviewerId: reviewer.id },
+    });
+    await as(reviewer)(`/design-review/task/${task.id}/approve`, {
+      method: "POST",
+    });
+
+    const response = await as(requester.user)(
+      `/design-review/task/${task.id}/reviewer/${reviewer.id}`,
+      { method: "DELETE" },
+    );
+    expect(response.status).toBe(409);
+    const [row] = await db
+      .select({ status: schema.taskDesignReviewTable.status })
+      .from(schema.taskDesignReviewTable)
+      .where(eq(schema.taskDesignReviewTable.taskId, task.id));
+    expect(row?.status).toBe("approved");
+  });
+
+  it("names a guest reviewer only on tasks in the guest's teams", async () => {
+    const { requester, workspaceId, task } = await seed();
+    const shared = await createProjectFixture({ workspaceId });
+    const [sharedTask] = await db
+      .insert(schema.taskTable)
+      .values({
+        projectId: shared.project.id,
+        title: "Landing page",
+        status: "to-do",
+        columnId: shared.columns.todo.id,
+        priority: "medium",
+        position: 1,
+        number: 1,
+      })
+      .returning();
+    const guest = await makeGuest(workspaceId, [shared.project.id]);
+
+    // The task's team is outside the guest's reach: answered like an
+    // unknown person.
+    const outside = await as(requester.user)(`/design-review/task/${task.id}`, {
+      method: "POST",
+      body: { reviewerId: guest.id },
+    });
+    expect(outside.status).toBe(400);
+    const unknown = await as(requester.user)(`/design-review/task/${task.id}`, {
+      method: "POST",
+      body: { reviewerId: "user-that-does-not-exist" },
+    });
+    expect(unknown.status).toBe(400);
+    expect(await outside.json()).toEqual(await unknown.json());
+
+    const inside = await as(requester.user)(
+      `/design-review/task/${sharedTask.id}`,
+      { method: "POST", body: { reviewerId: guest.id } },
+    );
+    expect(inside.status).toBe(200);
+    expect((await reviewQueue(as(guest), workspaceId)).total).toBe(1);
+  });
+
+  it("lets a guest request reviews only on tasks they can open", async () => {
+    const { requester, reviewer, workspaceId, task } = await seed();
+    const shared = await createProjectFixture({ workspaceId });
+    const [sharedTask] = await db
+      .insert(schema.taskTable)
+      .values({
+        projectId: shared.project.id,
+        title: "Landing page",
+        status: "to-do",
+        columnId: shared.columns.todo.id,
+        priority: "medium",
+        position: 1,
+        number: 1,
+      })
+      .returning();
+    const guest = await makeGuest(workspaceId, [shared.project.id]);
+
+    const blocked = await as(guest)(`/design-review/task/${task.id}`, {
+      method: "POST",
+      body: { reviewerId: requester.user.id },
+    });
+    expect([403, 404]).toContain(blocked.status);
+
+    const allowed = await as(guest)(`/design-review/task/${sharedTask.id}`, {
+      method: "POST",
+      body: { reviewerId: reviewer.id },
+    });
+    expect(allowed.status).toBe(200);
+    const rows = await db
+      .select()
+      .from(schema.taskDesignReviewTable)
+      .where(eq(schema.taskDesignReviewTable.taskId, task.id));
+    expect(rows).toHaveLength(0);
   });
 });

@@ -49682,7 +49682,7 @@
                   "reviewerId": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "The workspace member asked to review. They must be able to open the task's team."
+                    "description": "The workspace member asked to review. They must be able to open the task's team, and cannot be the caller."
                   }
                 },
                 "required": [
@@ -49704,7 +49704,7 @@
             }
           },
           "400": {
-            "description": "The reviewer is not a workspace member who can open the team",
+            "description": "The reviewer is the caller, or not a workspace member who can open the team",
             "content": {
               "application/json": {
                 "schema": {
@@ -49821,7 +49821,7 @@
           "Design Reviews"
         ],
         "summary": "Withdraw a design review request",
-        "description": "Remove a reviewer's design review from the task.",
+        "description": "Remove a reviewer's pending design review from the task. Approved reviews stay on record and cannot be withdrawn.",
         "parameters": [
           {
             "schema": {
@@ -49885,6 +49885,16 @@
           },
           "404": {
             "description": "Task or design review not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The review is already approved",
             "content": {
               "application/json": {
                 "schema": {

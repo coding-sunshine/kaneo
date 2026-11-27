@@ -18,12 +18,15 @@ const iconClass: Record<SlaStatus, string> = {
 export function SlaChip({
   task,
   showLabel = false,
+  status: statusOverride,
 }: {
   task: Pick<Task, "slaDueAt" | "completedAt">;
   showLabel?: boolean;
+  /** Set when the SLA uses its own thresholds, such as a design review's. */
+  status?: SlaStatus;
 }) {
   const { t } = useTranslation();
-  const status = getSlaStatus(task);
+  const status = statusOverride ?? getSlaStatus(task);
   if (!status || !task.slaDueAt) return null;
 
   const label = t(`tasks:sla.${status}`);

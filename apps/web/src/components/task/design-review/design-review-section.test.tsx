@@ -88,6 +88,8 @@ describe("DesignReviewSection", () => {
     expect(screen.getByText("Me")).toBeTruthy();
     expect(screen.getByText("Other")).toBeTruthy();
     expect(screen.getAllByText("3h")).toHaveLength(2);
+    // A fresh request is well inside its two-day SLA: no risk shown.
+    expect(screen.queryByRole("img")).toBeNull();
     const buttons = screen.getAllByRole("button", {
       name: "tasks:designReview.approve",
     });
@@ -104,6 +106,10 @@ describe("DesignReviewSection", () => {
     expect(screen.getByText("tasks:designReview.approved")).toBeTruthy();
     expect(
       screen.queryByRole("button", { name: "tasks:designReview.approve" }),
+    ).toBeNull();
+    // An approval stays on record: it cannot be withdrawn.
+    expect(
+      screen.queryByRole("button", { name: "tasks:designReview.withdraw:Me" }),
     ).toBeNull();
   });
 

@@ -4,7 +4,7 @@ import { getColumnIcon } from "@/lib/column";
 import { getStatusDisplayLabel } from "@/lib/i18n/domain";
 import { resolveLabelColor } from "@/lib/label-color";
 import { getPriorityIcon } from "@/lib/priority";
-import { SlaAgeChip } from "@/components/task-chips/sla-age-chip";
+import { ReviewAgeChip } from "@/components/task-chips/review-age-chip";
 import { DueDateText } from "./due-date-text";
 
 type AssignedTaskRowProps = {
@@ -82,12 +82,10 @@ export function AssignedTaskRow({
         {task.projectName}
       </span>
       {showReview && task.reviewRequestedAt ? (
-        <SlaAgeChip
-          task={{
-            createdAt: task.reviewRequestedAt,
-            slaDueAt: task.reviewSlaDueAt,
-            completedAt: null,
-          }}
+        <ReviewAgeChip
+          requestedAt={task.reviewRequestedAt}
+          slaDueAt={task.reviewSlaDueAt}
+          showLabel
         />
       ) : showActivity ? (
         <span className="hidden w-44 shrink-0 truncate text-right text-muted-foreground text-xs sm:block">

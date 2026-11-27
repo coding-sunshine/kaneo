@@ -45,6 +45,22 @@ const task = {
 } satisfies AssignedTask;
 
 describe("AssignedTaskRow", () => {
+  it("shows no risk on a fresh design review", () => {
+    render(
+      <AssignedTaskRow
+        task={{
+          ...task,
+          reviewRequestedAt: hoursAgo(1),
+          reviewSlaDueAt: hoursAgo(-47),
+        }}
+        workspaceId="w1"
+        showReview
+      />,
+    );
+    expect(screen.getByText("1h")).toBeTruthy();
+    expect(screen.queryByRole("img")).toBeNull();
+  });
+
   it("shows how long a design review has waited and its SLA state", () => {
     render(<AssignedTaskRow task={task} workspaceId="w1" showReview />);
     expect(screen.getByText("2d")).toBeTruthy();

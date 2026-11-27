@@ -59,7 +59,7 @@ const requestDesignReviewRoute = createRoute({
   responses: {
     200: jsonResponse("The pending design review", designReviewSchema),
     400: errorResponse(
-      "The reviewer is not a workspace member who can open the team",
+      "The reviewer is the caller, or not a workspace member who can open the team",
     ),
     403: errorResponse(
       "No access to the project, or missing task:update permission",
@@ -96,7 +96,8 @@ const withdrawDesignReviewRoute = createRoute({
   path: "/task/{taskId}/reviewer/{reviewerId}",
   tags: ["Design Reviews"],
   summary: "Withdraw a design review request",
-  description: "Remove a reviewer's design review from the task.",
+  description:
+    "Remove a reviewer's pending design review from the task. Approved reviews stay on record and cannot be withdrawn.",
   middleware: [
     workspaceAccess.fromTaskId("taskId"),
     requireWorkspacePermission({ task: ["update"] }),
@@ -111,6 +112,7 @@ const withdrawDesignReviewRoute = createRoute({
       "No access to the project, or missing task:update permission",
     ),
     404: errorResponse("Task or design review not found"),
+    409: errorResponse("The review is already approved"),
   },
 });
 

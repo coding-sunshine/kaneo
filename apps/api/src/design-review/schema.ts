@@ -10,6 +10,6 @@ export const reviewerParam = z.object({
 export const requestDesignReviewBody = z.object({
   reviewerId: z.string().min(1).openapi({
     description:
-      "The workspace member asked to review. They must be able to open the task's team.",
+      "The workspace member asked to review. They must be able to open the task's team, and cannot be the caller.",
   }),
 });
