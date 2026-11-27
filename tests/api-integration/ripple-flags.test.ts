@@ -267,8 +267,11 @@ describe("API integration: ripple flags", () => {
       );
     }
     const waiting = async () =>
-      (await db.execute(sql`select 1 from pg_locks where not granted`)).rows
-        .length;
+      (
+        await db.execute(
+          sql`select 1 from pg_locks l join pg_stat_activity a on a.pid = l.pid where not l.granted and a.datname = current_database()`,
+        )
+      ).rows.length;
 
     let linking: Promise<Response> | undefined;
     let approving: Promise<Response> | undefined;
