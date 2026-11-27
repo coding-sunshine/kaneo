@@ -1,16 +1,23 @@
-import { createHash } from "node:crypto";
-import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import {
-  extractJson,
-  extractionModel,
-  UnreadableAnswer,
-} from "../agent/extraction";
+  and,
+  asc,
+  desc,
+  eq,
+  inArray,
+  isNull,
+  notExists,
+  or,
+  sql,
+} from "drizzle-orm";
+import { type AnyPgColumn, alias } from "drizzle-orm/pg-core";
+import { extractionModel } from "../agent/extraction";
 import { isAgentEnabled } from "../agent/openrouter";
 import db from "../database";
 import {
   activityTable,
   assetTable,
   projectTable,
+  taskExtractionProgressTable,
   taskExtractionTable,
   taskStatementTable,
   taskTable,
@@ -24,15 +31,14 @@ import { ReadLater } from "./read-later";
 import { retryLater } from "./retry-later";
 import { fileKind, readFileText } from "./task-file-text";
 import {
-  type Asked,
-  type AskedTopic,
-  keptStatements,
-  numbered,
-  TASK_SYSTEM,
-  taskAnswerSchema,
-  taskQuestion,
-} from "./task-question";
-import { textParts } from "./text-parts";
+  ask,
+  hashOf,
+  type Outcome,
+  RESERVE,
+  type Run,
+  type Source,
+} from "./task-parts";
+import { type AskedTopic, numbered } from "./task-question";
 
 /**
  * Kept on each record. Raising it reads no text again that was read whole: a
@@ -46,105 +52,22 @@ export const PROMPT_VERSION = 2;
 const PER_TICK = 10;
 /** Questions in one run. A longer text goes on in the next run. */
 const PARTS_PER_RUN = 50;
-const MAX_CHARACTERS = 12_000;
-const OVERLAP = 200;
 // A file is held in memory whole while it is read, and the API is one
 // process. Nothing of it is written to disk.
 const MAX_FILE_BYTES = 100_000_000;
 // Records that a reader before this version left short: read once again.
 const AGAIN = new Set(["truncated", "too_large", "unparsed"]);
-// Issues are many and documents are few, so this job leaves a share of the
-// day's tokens and of the spending cap to the job that reads documents.
-const RESERVE = 0.3;
+// What a file's place on the issue is called in the question.
+const WHERE: Record<string, string> = {
+  description: "Picture in the issue description",
+  comment: "Picture in a comment on the issue",
+};
 
 /** A text whose request failed is asked about again after an hour. */
 export const taskExtractionRetry = retryLater(60 * 60_000);
 
-type Source = {
-  key: string;
-  taskId: string;
-  assetId: string | null;
-  contentHash: string;
-  /** What every part of the question starts with. */
-  head: string;
-  body: string;
-  /** The text a quote must be found in. Without it: the part asked about. */
-  quotable?: string;
-};
-type Run = {
-  model: string;
-  slotsHash: string;
-  topics: AskedTopic[];
-  asked: Asked;
-  /** When the newest slot of the workspace was made. */
-  upTo: Date;
-};
-
-const hashOf = (text: string) =>
-  createHash("sha256").update(text).digest("hex");
-
-// Where a text that stopped part way goes on, and whether a part of it had
-// an answer. In memory only: after a restart the text is asked about from its
-// start, and the facts found before are not stored twice.
-const resume = new Map<string, { next: number; readable: boolean }>();
-
-/**
- * Asks about the whole of one text, part by part, and stores what each part
- * states as proposals. `stop` when a cap or the run's questions are used up,
- * `failed` when a request failed; nothing is recorded then, and the text goes
- * on from that part later. Else whether any part had an answer.
- */
-async function ask(run: Run, source: Source, outcome: Outcome) {
-  const parts = textParts(source.body, MAX_CHARACTERS, OVERLAP);
-  const at = `${source.key}:${source.contentHash}:${hashOf(JSON.stringify(run.asked))}`;
-  const state = resume.get(at) ?? { next: 0, readable: false };
-  resume.delete(at);
-  for (; state.next < parts.length; state.next++) {
-    const part = parts[state.next] ?? "";
-    if (outcome.parts <= 0) {
-      resume.set(at, state);
-      return "stop" as const;
-    }
-    try {
-      const answer = await extractJson<unknown>({
-        purpose: "task-facts",
-        system: TASK_SYSTEM,
-        text: taskQuestion(run.asked, source.head + part),
-        schema: taskAnswerSchema(run.asked),
-        reserve: RESERVE,
-      });
-      if (!answer) {
-        resume.set(at, state);
-        return "stop" as const;
-      }
-      outcome.parts -= 1;
-      const found = keptStatements(run.asked, answer, source.quotable ?? part);
-      if (!found) continue;
-      state.readable = true;
-      if (found.length === 0) continue;
-      await db
-        .insert(taskStatementTable)
-        .values(
-          found.map((statement) => ({
-            ...statement,
-            taskId: source.taskId,
-            assetId: source.assetId,
-          })),
-        )
-        // A fact that is already there stays as it is, dismissed or not.
-        .onConflictDoNothing();
-    } catch (error) {
-      if (!(error instanceof UnreadableAnswer)) {
-        resume.set(at, state);
-        taskExtractionRetry.failed(source.key);
-        console.error(`Reading ${source.key} for facts failed`, error);
-        return "failed" as const;
-      }
-      outcome.parts -= 1;
-    }
-  }
-  return { readable: state.readable };
-}
+// Another record of the same issue, in a query about one of its records.
+const newer = alias(taskExtractionTable, "newer");
 
 // One record for each text: the one before it goes. Its time is not when it
 // was written. It is when the newest slot the text was asked about was made,
@@ -164,6 +87,17 @@ const record = (
           source.assetId
             ? eq(taskExtractionTable.assetId, source.assetId)
             : isNull(taskExtractionTable.assetId),
+        ),
+      );
+    // Progress on older words of the text goes with the record before.
+    await tx
+      .delete(taskExtractionProgressTable)
+      .where(
+        and(
+          eq(taskExtractionProgressTable.taskId, source.taskId),
+          source.assetId
+            ? eq(taskExtractionProgressTable.assetId, source.assetId)
+            : isNull(taskExtractionProgressTable.assetId),
         ),
       );
     await tx
@@ -203,6 +137,7 @@ const later = (run: Run, since: Date): Run => ({
 /** Asks, stores what was found as proposals and records that the text was read. */
 async function read(run: Run, source: Source, outcome: Outcome) {
   const answer = await ask(run, source, outcome);
+  if (answer === "failed") taskExtractionRetry.failed(source.key);
   if (answer === "stop" || answer === "failed") return answer;
   await record(
     run,
@@ -213,10 +148,23 @@ async function read(run: Run, source: Source, outcome: Outcome) {
   return "read" as const;
 }
 
-// Changes when the title, the description or a comment changes.
+// Spaces collapsed, as `collapse` does for the words the model reads.
+const squashed = (text: AnyPgColumn) =>
+  sql`btrim(regexp_replace(coalesce(${text}, ''), '\\s+', ' ', 'g'))`;
+
+// Changes when the words of the title, the description or a comment change,
+// and not for an edit of spaces alone: the model reads the same words then.
 // ponytail: computed for every issue of the workspace on every run. Store the
 // hash on the issue when a workspace has tens of thousands of them.
-const issueHash = sql<string>`md5(${taskTable.title} || E'\\n' || coalesce(${taskTable.description}, '') || E'\\n' || coalesce((
+const issueHash = sql<string>`md5(${squashed(taskTable.title)} || E'\\n' || ${squashed(taskTable.description)} || E'\\n' || coalesce((
+  select string_agg(${squashed(activityTable.content)}, E'\\n' order by ${activityTable.createdAt}, ${activityTable.id})
+  from ${activityTable}
+  where ${activityTable.taskId} = ${taskTable.id} and ${activityTable.type} = 'comment' and ${squashed(activityTable.content)} <> ''
+), ''))`;
+
+// The hash records had before spaces were collapsed, of the words as stored.
+// A record with it keeps standing for the same words and takes the new hash.
+const issueHashBefore = sql<string>`md5(${taskTable.title} || E'\\n' || coalesce(${taskTable.description}, '') || E'\\n' || coalesce((
   select string_agg(${activityTable.content}, E'\\n' order by ${activityTable.createdAt}, ${activityTable.id})
   from ${activityTable}
   where ${activityTable.taskId} = ${taskTable.id} and ${activityTable.type} = 'comment'
@@ -291,14 +239,6 @@ async function dropStale(source: Source) {
   );
 }
 
-type Outcome = {
-  left: number;
-  /** Questions left in this run. */
-  parts: number;
-  degraded: boolean;
-  stop: boolean;
-};
-
 // The newest of each id's rows, which come newest first.
 const newest = <Row extends { id: string }>(rows: Row[]) =>
   rows.filter((row, index) => row.id !== rows[index - 1]?.id);
@@ -324,6 +264,8 @@ async function readWorkspace(
       .select({
         id: taskTable.id,
         hash: issueHash,
+        before: issueHashBefore,
+        recorded: taskExtractionTable.contentHash,
         since: taskExtractionTable.createdAt,
       })
       .from(taskTable)
@@ -333,12 +275,42 @@ async function readWorkspace(
         and(
           eq(taskExtractionTable.taskId, taskTable.id),
           isNull(taskExtractionTable.assetId),
-          eq(taskExtractionTable.contentHash, issueHash),
+          or(
+            eq(taskExtractionTable.contentHash, issueHash),
+            eq(taskExtractionTable.contentHash, issueHashBefore),
+          ),
         ),
       )
       .where(eq(projectTable.workspaceId, workspaceId))
       .orderBy(asc(taskTable.id), desc(taskExtractionTable.createdAt)),
   );
+  // A record written before spaces were collapsed takes the new hash, with no
+  // question: its words were read. A later edit of spaces then reads nothing.
+  for (const { id, hash, before, recorded } of issues) {
+    if (recorded === null || recorded === hash) continue;
+    await db
+      .update(taskExtractionTable)
+      .set({ contentHash: hash })
+      .where(
+        and(
+          eq(taskExtractionTable.taskId, id),
+          isNull(taskExtractionTable.assetId),
+          eq(taskExtractionTable.contentHash, before),
+          notExists(
+            db
+              .select({ id: newer.id })
+              .from(newer)
+              .where(
+                and(
+                  eq(newer.taskId, id),
+                  isNull(newer.assetId),
+                  eq(newer.contentHash, hash),
+                ),
+              ),
+          ),
+        ),
+      );
+  }
   const readIssue = async ({ id, hash, since }: (typeof issues)[number]) => {
     if (taskExtractionRetry.waiting(`issue:${id}`)) return;
     const source = await issueSource(id);
@@ -362,6 +334,7 @@ async function readWorkspace(
         mimeType: assetTable.mimeType,
         size: assetTable.size,
         objectKey: assetTable.objectKey,
+        surface: assetTable.surface,
         since: taskExtractionTable.createdAt,
         hash: taskExtractionTable.contentHash,
         reason: taskExtractionTable.reason,
@@ -377,8 +350,9 @@ async function readWorkspace(
       .where(
         and(
           eq(projectTable.workspaceId, workspaceId),
-          // Pictures in the text are kind `image`. They are not read.
-          eq(assetTable.kind, "attachment"),
+          // Files attached to the issue, and pictures (kind `image`) attached
+          // or inside its description or a comment, which the model writes out.
+          inArray(assetTable.kind, ["attachment", "image"]),
         ),
       )
       .orderBy(asc(assetTable.id), desc(taskExtractionTable.createdAt)),
@@ -476,7 +450,7 @@ async function readWorkspace(
         contentHash,
         // The title is not the file: a quote from it does not count, so a
         // quote is looked for in the part asked about.
-        head: `Title: ${collapse(file.title)}\n\nAttached file ${collapse(file.filename)}:\n`,
+        head: `Title: ${collapse(file.title)}\n\n${WHERE[file.surface] ?? "Attached file"} ${collapse(file.filename)}:\n`,
         body: text,
       },
       outcome,
@@ -527,9 +501,9 @@ async function readWorkspace(
 }
 
 /**
- * Asks the model which facts each issue, and each text file on an issue,
- * states for the slots of the workspace's topics, and stores them as
- * proposals. A proposal changes nothing a topic states: a person puts the
+ * Asks the model which facts each issue, each file on an issue and each
+ * picture inside its text states for the slots of the workspace's topics, and
+ * stores them as proposals. A proposal changes nothing a topic states: a person puts the
  * issue on the topic or dismisses the fact. The same words are asked about a
  * slot once: an issue is read again when its words change, and every text is
  * asked once more about a slot made after it was read. Every file gets a

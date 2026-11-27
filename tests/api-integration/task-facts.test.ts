@@ -15,6 +15,7 @@ import {
   aiUsageTable,
   assetTable,
   notificationTable,
+  taskExtractionProgressTable,
   taskExtractionTable,
   taskTable,
   topicSlotTable,
@@ -150,6 +151,8 @@ const attach = async (
     mimeType: string;
     size?: number;
     kind?: string;
+    surface?: string;
+    activityId?: string;
   },
 ) =>
   (
@@ -298,6 +301,63 @@ describe("API integration: facts found in issues", () => {
       expect(
         (await facts(world, topicId, world.owner)).map((fact) => fact.slot),
       ).toEqual(["launch_date", "price"]);
+    });
+
+    it("does not read an issue again for an edit that changes only spaces", async () => {
+      const { world } = await found();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      await comment(world, world.betaTask.id, "Agreed with the team.");
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+
+      // The model reads the words with their spaces collapsed, so it would
+      // read the same text again.
+      await describeIssue(
+        world.betaTask.id,
+        `\n  ${LAUNCH.replace("settled:", "settled:\n\n   ")}  \n`,
+      );
+      await db
+        .update(taskTable)
+        .set({ title: " Beta   issue " })
+        .where(eq(taskTable.id, world.betaTask.id));
+      await db
+        .update(activityTable)
+        .set({ content: "Agreed  with the\nteam. " })
+        .where(eq(activityTable.taskId, world.betaTask.id));
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+
+      // A change of words is read.
+      await describeIssue(world.betaTask.id, `${LAUNCH} Signed.`);
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(4);
+    });
+
+    it("keeps a record of an issue read before the spaces rule and does not read it again", async () => {
+      const { world } = await found();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const spaced = LAUNCH.replace("settled:", "settled:  ");
+      await describeIssue(world.betaTask.id, spaced);
+      // As the build before wrote it: the hash of the words as they are stored.
+      const before = createHash("md5")
+        .update(`Beta issue\n${spaced}\n`)
+        .digest("hex");
+      await db
+        .update(taskExtractionTable)
+        .set({ contentHash: before })
+        .where(eq(taskExtractionTable.taskId, world.betaTask.id));
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+
+      // Nothing is read for a later edit of spaces either.
+      await describeIssue(world.betaTask.id, LAUNCH);
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const [kept] = await db
+        .select()
+        .from(taskExtractionTable)
+        .where(eq(taskExtractionTable.taskId, world.betaTask.id));
+      expect(kept?.contentHash).not.toBe(before);
     });
 
     it("asks old texts once about a field added later", async () => {
@@ -720,6 +780,43 @@ describe("API integration: facts found in issues", () => {
       expect(record).toMatchObject({ readable: true, reason: null });
     });
 
+    it("goes on with a long file where it stopped after a restart, sending no part twice", async () => {
+      const { world } = await setup();
+      const log = await attach(world, {
+        filename: "server.log",
+        mimeType: "text/plain",
+      });
+      const long = Array.from(
+        { length: 60_000 },
+        (_, i) => `Line ${i} of the log.`,
+      ).join("\n");
+      readObject.mockImplementation(async () => ({
+        body: new Response(long).body,
+      }));
+      const ofLog = () =>
+        prompts(fetchMock).filter((prompt) => prompt.includes("server.log"));
+      await run();
+      expect(ofLog().length).toBeGreaterThan(0);
+      // Each run in a fresh process: nothing is kept in memory between them.
+      // Fifty parts a run: three more runs read the rest and find it read.
+      for (let runs = 0; runs < 3; runs++) {
+        // The modules before stay with the tests after: their pool stays open.
+        const before = await import("../../apps/api/src/database");
+        vi.resetModules();
+        await run();
+        if (runs > 0) await before.getDatabasePool().end();
+      }
+
+      const sent = ofLog();
+      expect(sent.length).toBe(textParts(long, 12_000, 200).length);
+      expect(new Set(sent).size).toBe(sent.length);
+      const [record] = (await records()).filter(
+        (row) => row.assetId === log.id,
+      );
+      expect(record).toMatchObject({ readable: true, reason: null });
+      expect(await db.select().from(taskExtractionProgressTable)).toEqual([]);
+    }, 240_000);
+
     it("reads once more each file the readers before this change cut short, found too large or could not read, and only once", async () => {
       const { world } = await setup();
       const cut = await attach(world, {
@@ -947,6 +1044,127 @@ describe("API integration: facts found in issues", () => {
         readable: true,
         reason: null,
       });
+    });
+
+    it("reads a picture inside an issue description and one inside a comment, each once", async () => {
+      const { world, topicId } = await setup();
+      const [said] = await db
+        .insert(activityTable)
+        .values({
+          taskId: world.betaTask.id,
+          type: "comment",
+          content: "See the picture.",
+          userId: world.owner.id,
+        })
+        .returning();
+      const inText = await attach(world, {
+        filename: "whiteboard.png",
+        mimeType: "image/png",
+        kind: "image",
+        surface: "description",
+      });
+      const inComment = await attach(world, {
+        filename: "receipt.jpg",
+        mimeType: "image/jpeg",
+        kind: "image",
+        surface: "comment",
+        activityId: said.id,
+      });
+      const words: Record<string, string> = {
+        [inText.objectKey]: LAUNCH,
+        [inComment.objectKey]: PRICE,
+      };
+      readObject.mockImplementation(async (key: string) => ({
+        body: new Response(new TextEncoder().encode(key)).body,
+      }));
+      type Part = { type: string; image_url?: { url: string } };
+      const pictures: string[] = [];
+      fetchMock.mockImplementation(
+        async (_url: string, init: { body: string }) => {
+          const body = JSON.parse(init.body);
+          const content = body.messages[1].content as string | Part[];
+          if (typeof content !== "string") {
+            const url =
+              content.find((part) => part.type === "image_url")?.image_url
+                ?.url ?? "";
+            pictures.push(url);
+            // The picture's bytes are its object key, so the answer is its words.
+            const key = Buffer.from(
+              url.split(",")[1] ?? "",
+              "base64",
+            ).toString();
+            return new Response(
+              JSON.stringify({
+                choices: [
+                  {
+                    message: {
+                      content: JSON.stringify({
+                        text: words[key] ?? "",
+                        more: false,
+                      }),
+                    },
+                  },
+                ],
+                usage: { prompt_tokens: 900, completion_tokens: 40 },
+              }),
+            );
+          }
+          if (content.includes(PRICE)) {
+            return answer({ topics: [NAMED], statements: [HOW_MUCH] });
+          }
+          if (content.includes(LAUNCH)) {
+            return answer({ topics: [NAMED], statements: [WHEN] });
+          }
+          return answer(NOTHING);
+        },
+      );
+      await run();
+
+      expect(pictures).toHaveLength(2);
+      expect(
+        pictures.some((url) => url.startsWith("data:image/png;base64,")),
+      ).toBe(true);
+      expect(
+        pictures.some((url) => url.startsWith("data:image/jpeg;base64,")),
+      ).toBe(true);
+      const byFile = new Map(
+        (await records()).map((row) => [row.assetId, row]),
+      );
+      expect(byFile.get(inText.id)).toMatchObject({
+        taskId: world.betaTask.id,
+        readable: true,
+        reason: null,
+      });
+      expect(byFile.get(inComment.id)).toMatchObject({
+        taskId: world.betaTask.id,
+        readable: true,
+        reason: null,
+      });
+      const listed = await facts(world, topicId, world.owner);
+      expect(listed.map((fact) => [fact.slot, fact.file?.id]).sort()).toEqual([
+        ["launch_date", inText.id],
+        ["price", inComment.id],
+      ]);
+
+      const asked = prompts(fetchMock).filter(
+        (prompt) => typeof prompt === "string",
+      );
+      expect(
+        asked.some((prompt) =>
+          prompt.includes("Picture in the issue description whiteboard.png:"),
+        ),
+      ).toBe(true);
+      expect(
+        asked.some((prompt) =>
+          prompt.includes("Picture in a comment on the issue receipt.jpg:"),
+        ),
+      ).toBe(true);
+
+      // A picture is read once.
+      const calls = fetchMock.mock.calls.length;
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(calls);
+      expect(readObject).toHaveBeenCalledTimes(2);
     });
 
     it("keeps a record of an answer nobody could read, and none of a request that failed", async () => {

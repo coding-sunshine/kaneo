@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { createCompletion } from "./openrouter";
+import {
+  createCompletion,
+  DEFAULT_AGENT_HOST,
+  DEFAULT_AGENT_MODEL,
+} from "./openrouter";
 
 const sse = (...chunks: object[]) =>
   new Response(
@@ -9,7 +13,21 @@ const sse = (...chunks: object[]) =>
     ].join(""),
   );
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+});
+
+const sentBody = async () => {
+  const fetchMock = vi.fn(async () =>
+    sse({ choices: [{ delta: { content: "ok" } }] }),
+  );
+  vi.stubGlobal("fetch", fetchMock);
+  await createCompletion([], []);
+  return JSON.parse(
+    (fetchMock.mock.calls[0] as unknown as [string, { body: string }])[1].body,
+  );
+};
 
 describe("createCompletion", () => {
   it("streams text and joins tool call fragments", async () => {
@@ -69,7 +87,39 @@ describe("createCompletion", () => {
     );
     expect(sent).toMatchObject({
       stream: true,
+      usage: { include: true },
       provider: { data_collection: "deny" },
+    });
+  });
+
+  it("pins the default model to the host that passed the synthetic test", async () => {
+    vi.stubEnv("AGENT_MODEL", "");
+    vi.stubEnv("AGENT_HOST", "");
+    expect(await sentBody()).toMatchObject({
+      model: DEFAULT_AGENT_MODEL,
+      provider: {
+        data_collection: "deny",
+        order: [DEFAULT_AGENT_HOST],
+        allow_fallbacks: false,
+      },
+    });
+  });
+
+  it("does not pin another model to that host", async () => {
+    vi.stubEnv("AGENT_MODEL", "other/model");
+    vi.stubEnv("AGENT_HOST", "");
+    const body = await sentBody();
+    expect(body.model).toBe("other/model");
+    expect(body.provider).toEqual({ data_collection: "deny" });
+  });
+
+  it("pins to AGENT_HOST when it is set", async () => {
+    vi.stubEnv("AGENT_MODEL", "other/model");
+    vi.stubEnv("AGENT_HOST", "some-host/fp8");
+    expect((await sentBody()).provider).toEqual({
+      data_collection: "deny",
+      order: ["some-host/fp8"],
+      allow_fallbacks: false,
     });
   });
 

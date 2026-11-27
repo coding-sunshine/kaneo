@@ -30704,7 +30704,7 @@
           "Documents"
         ],
         "summary": "Add a statement to a document",
-        "description": "Record what the document states for one slot of its topic. The quote must be in the document. The statement is a proposal until a person confirms it. Sending a slot again replaces its unconfirmed statement.",
+        "description": "Record what the document states for one slot of its topic. The quote must be in the document. The statement is a proposal until a person confirms it. Sending a slot again replaces its unconfirmed statement. On a current document, only the topic's decider or backup adds or replaces a statement.",
         "parameters": [
           {
             "schema": {
@@ -30790,7 +30790,7 @@
             }
           },
           "403": {
-            "description": "Needs edit access to the document. On a current document, only the topic's decider.",
+            "description": "Needs edit access to the document. On a current document, only the topic's decider or backup; on a proposal, only they confirm or reject.",
             "content": {
               "application/json": {
                 "schema": {
@@ -30881,7 +30881,7 @@
             }
           },
           "403": {
-            "description": "Needs edit access to the document. On a current document, only the topic's decider.",
+            "description": "Needs edit access to the document. On a current document, only the topic's decider or backup; on a proposal, only they confirm or reject.",
             "content": {
               "application/json": {
                 "schema": {
@@ -30992,7 +30992,7 @@
             }
           },
           "403": {
-            "description": "Needs edit access to the document. On a current document, only the topic's decider.",
+            "description": "Needs edit access to the document. On a current document, only the topic's decider or backup; on a proposal, only they confirm or reject.",
             "content": {
               "application/json": {
                 "schema": {

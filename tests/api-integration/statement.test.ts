@@ -249,6 +249,72 @@ describe("API integration: statements of a document", () => {
     expect((await api.post(docId, WHEN, world.open)).status).toBe(403);
   });
 
+  it("answers 403 when an editor adds on current document, unless they decide on its topic", async () => {
+    const { api, world, topicId, docId } = await setup();
+    const proposal = await api.add(docId, HOW_MUCH);
+    expect((await api.approve(topicId, docId)).status).toBe(200);
+
+    // On the current document a statement says what the topic states, so an
+    // editor who does not decide on the topic neither adds nor replaces one.
+    expect((await api.post(docId, WHEN, world.open)).status).toBe(403);
+    expect(
+      (await api.post(docId, { ...HOW_MUCH, value: "45" }, world.open)).status,
+    ).toBe(403);
+    expect(await api.statementsOf(docId)).toMatchObject([
+      { id: proposal.id, value: "40", status: "proposed" },
+    ]);
+
+    // The topic's backup decides on it, so they may.
+    const named = await world.as(world.owner)(
+      `/topic/workspace/${world.ws}/${topicId}`,
+      json("PATCH", { backupDeciderId: world.open.id }),
+    );
+    expect(named.status).toBe(200);
+    expect((await api.post(docId, WHEN, world.open)).status).toBe(200);
+    // So may the workspace owner.
+    expect((await api.post(docId, { ...HOW_MUCH, value: "45" })).status).toBe(
+      200,
+    );
+  });
+
+  it("lets an editor who does not decide add a statement to a proposal", async () => {
+    const { api, world, docId } = await setup();
+    expect((await api.post(docId, WHEN, world.open)).status).toBe(200);
+  });
+
+  it("lets only the proposal decider or backup confirm or reject on a proposal", async () => {
+    const { api, world, topicId, docId } = await setup();
+    const when = await api.add(docId, WHEN);
+    const price = await api.add(docId, HOW_MUCH);
+    const reason = { reason: "Not what it says" };
+
+    // An editor who does not decide on the topic: the document is a proposal.
+    for (const [id, verb, body] of [
+      [when.id, "confirm", undefined],
+      [price.id, "reject", reason],
+    ] as const) {
+      expect((await api.decide(docId, id, verb, body, world.open)).status).toBe(
+        403,
+      );
+    }
+    expect(
+      (await api.statementsOf(docId)).map((statement) => statement.status),
+    ).toEqual(["proposed", "proposed"]);
+
+    const named = await world.as(world.owner)(
+      `/topic/workspace/${world.ws}/${topicId}`,
+      json("PATCH", { backupDeciderId: world.open.id }),
+    );
+    expect(named.status).toBe(200);
+    expect(
+      (await api.decide(docId, when.id, "confirm", undefined, world.open))
+        .status,
+    ).toBe(200);
+    expect(
+      (await api.decide(docId, price.id, "reject", reason, world.open)).status,
+    ).toBe(200);
+  });
+
   it("confirms a statement, twice without harm, and not one of another document", async () => {
     const { api, docId, topicId } = await setup();
     const statement = await api.add(docId, WHEN);

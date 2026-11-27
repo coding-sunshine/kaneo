@@ -28,18 +28,32 @@ export async function tokensUsedToday() {
   return row?.tokens ?? 0;
 }
 
+const DEFAULT_MONTHLY_USD_CAP = 20;
+
+/** Midnight UTC on the first day of the calendar month `now` falls in. */
+export function monthStart(now: Date) {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+}
+
+function monthlyUsdCap() {
+  const cap = Number(process.env.AI_MONTHLY_USD_CAP || Number.NaN);
+  return Number.isFinite(cap) && cap >= 0 ? cap : DEFAULT_MONTHLY_USD_CAP;
+}
+
 /**
- * Dollars spent on every extraction call so far.
+ * Whether an AI call may still spend this calendar month (UTC): every call
+ * that records its usage counts, and the cap is `AI_MONTHLY_USD_CAP` dollars,
+ * times `share`. A new month starts from nothing.
  * ponytail: a call the provider reports no cost for is not counted.
  */
-export async function spentUsd() {
+export async function withinMonthlyCap(share = 1, now = new Date()) {
   const [row] = await db
     .select({
       spent: sql<number>`coalesce(sum(${aiUsageTable.cost}), 0)::float8`,
     })
     .from(aiUsageTable)
-    .where(isNull(aiUsageTable.workspaceId));
-  return row?.spent ?? 0;
+    .where(gte(aiUsageTable.createdAt, monthStart(now)));
+  return (row?.spent ?? 0) < monthlyUsdCap() * share;
 }
 
 export async function recordUsage(usage: Usage) {

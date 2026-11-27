@@ -15944,6 +15944,9 @@
 								"deciderOnly": {
 									"type": "string"
 								},
+								"deciderOnlyProposal": {
+									"type": "string"
+								},
 								"add": {
 									"type": "string"
 								},
@@ -16452,6 +16455,7 @@
 								"rejectedLine",
 								"reasonLabel",
 								"deciderOnly",
+								"deciderOnlyProposal",
 								"add",
 								"addName",
 								"valueLabel",
