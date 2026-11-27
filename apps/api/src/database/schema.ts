@@ -3670,6 +3670,33 @@ export const taskExtractionTable = pgTable(
   ],
 );
 
+// Where the reading of a text that stopped part way goes on: a cap, the
+// run's questions or a failed request. Kept until the text gets its record,
+// so a restart sends no part twice.
+export const taskExtractionProgressTable = pgTable(
+  "task_extraction_progress",
+  {
+    // The text, its words and the slots it is asked about.
+    key: text("key").primaryKey(),
+    taskId: text("task_id")
+      .notNull()
+      .references(() => taskTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    assetId: text("asset_id").references(() => assetTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    nextPart: integer("next_part").notNull(),
+    // Whether a part read so far had an answer.
+    readable: boolean("readable").notNull(),
+  },
+  (table) => [
+    index("task_extraction_progress_task_idx").on(table.taskId, table.assetId),
+  ],
+);
+
 // A fact the model found in an issue or in a file on it, for a slot of a
 // topic. It is a proposal only: it never changes what the topic states. A
 // person puts the issue on the topic or dismisses the fact, and a dismissed

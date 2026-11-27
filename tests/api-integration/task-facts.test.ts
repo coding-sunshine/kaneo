@@ -720,6 +720,100 @@ describe("API integration: facts found in issues", () => {
       expect(record).toMatchObject({ readable: true, reason: null });
     });
 
+    it("does not send a part again after a later part failed", async () => {
+      const { world, topicId } = await setup();
+      const log = await attach(world, {
+        filename: "server.log",
+        mimeType: "text/plain",
+      });
+      const long = `${PRICE}\n${Array.from(
+        { length: 2_000 },
+        (_, i) => `Line ${i} of the log.`,
+      ).join("\n")}`;
+      const parts = textParts(long, 12_000, 200).length;
+      expect(parts).toBeGreaterThan(3);
+      readObject.mockImplementation(async () => ({
+        body: new Response(long).body,
+      }));
+      const ofLog = () =>
+        prompts(fetchMock).filter((prompt) => prompt.includes("server.log"));
+      // The second part's request fails once.
+      let failed = false;
+      fetchMock.mockImplementation(
+        async (_url: string, init: { body: string }) => {
+          const prompt = JSON.parse(init.body).messages[1].content as string;
+          if (
+            prompt.includes("server.log") &&
+            ofLog().length === 2 &&
+            !failed
+          ) {
+            failed = true;
+            return new Response("down", { status: 500 });
+          }
+          return answer(
+            prompt.includes(PRICE)
+              ? { topics: [NAMED], statements: [HOW_MUCH] }
+              : NOTHING,
+          );
+        },
+      );
+      expect(await run()).toMatchObject({ degraded: true });
+      expect(ofLog()).toHaveLength(2);
+      expect((await records()).filter((row) => row.assetId === log.id)).toEqual(
+        [],
+      );
+
+      // A restart: what was kept in memory is gone. The third part reaches
+      // the day's cap, and the run after the next restart sends the rest.
+      vi.resetModules();
+      const [used] = await db
+        .insert(aiUsageTable)
+        .values({
+          purpose: "statements",
+          model: "m",
+          promptTokens: 0,
+          completionTokens: 0,
+        })
+        .returning();
+      vi.stubEnv("EXTRACTION_DAILY_TOKEN_CAP", "1000000");
+      fetchMock.mockImplementation(async () => {
+        if (ofLog().length === 3) {
+          await db
+            .update(aiUsageTable)
+            .set({ promptTokens: 1_000_000 })
+            .where(eq(aiUsageTable.id, used.id));
+        }
+        // No later part has an answer that can be read: the record's
+        // `readable` comes from the first part, before the restart.
+        return new Response(
+          JSON.stringify({
+            choices: [{ message: { content: "not json" } }],
+            usage: { prompt_tokens: 10, completion_tokens: 2 },
+          }),
+        );
+      });
+      await run();
+      expect(ofLog()).toHaveLength(3);
+
+      vi.resetModules();
+      await db.delete(aiUsageTable).where(eq(aiUsageTable.id, used.id));
+      await run();
+
+      // Only the part whose request failed went twice.
+      const sent = ofLog();
+      expect(sent).toHaveLength(parts + 1);
+      expect(new Set(sent).size).toBe(parts);
+      expect(sent[2]).toBe(sent[1]);
+      const [record] = (await records()).filter(
+        (row) => row.assetId === log.id,
+      );
+      // The fact came from the first part, sent before the failure.
+      expect(record).toMatchObject({ readable: true, reason: null });
+      expect(
+        (await facts(world, topicId, world.owner)).map((fact) => fact.quote),
+      ).toEqual(["40 USD"]);
+    });
+
     it("reads once more each file the readers before this change cut short, found too large or could not read, and only once", async () => {
       const { world } = await setup();
       const cut = await attach(world, {

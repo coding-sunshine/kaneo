@@ -11,6 +11,7 @@ import {
   activityTable,
   assetTable,
   projectTable,
+  taskExtractionProgressTable,
   taskExtractionTable,
   taskStatementTable,
   taskTable,
@@ -83,10 +84,35 @@ type Run = {
 const hashOf = (text: string) =>
   createHash("sha256").update(text).digest("hex");
 
+type Progress = { next: number; readable: boolean };
+
 // Where a text that stopped part way goes on, and whether a part of it had
-// an answer. In memory only: after a restart the text is asked about from its
-// start, and the facts found before are not stored twice.
-const resume = new Map<string, { next: number; readable: boolean }>();
+// an answer. Kept in the database, so a restart sends no part twice.
+async function progressOf(key: string): Promise<Progress> {
+  const [row] = await db
+    .select({
+      next: taskExtractionProgressTable.nextPart,
+      readable: taskExtractionProgressTable.readable,
+    })
+    .from(taskExtractionProgressTable)
+    .where(eq(taskExtractionProgressTable.key, key));
+  return row ?? { next: 0, readable: false };
+}
+
+const keepProgress = (key: string, source: Source, state: Progress) =>
+  db
+    .insert(taskExtractionProgressTable)
+    .values({
+      key,
+      taskId: source.taskId,
+      assetId: source.assetId,
+      nextPart: state.next,
+      readable: state.readable,
+    })
+    .onConflictDoUpdate({
+      target: taskExtractionProgressTable.key,
+      set: { nextPart: state.next, readable: state.readable },
+    });
 
 /**
  * Asks about the whole of one text, part by part, and stores what each part
@@ -97,12 +123,11 @@ const resume = new Map<string, { next: number; readable: boolean }>();
 async function ask(run: Run, source: Source, outcome: Outcome) {
   const parts = textParts(source.body, MAX_CHARACTERS, OVERLAP);
   const at = `${source.key}:${source.contentHash}:${hashOf(JSON.stringify(run.asked))}`;
-  const state = resume.get(at) ?? { next: 0, readable: false };
-  resume.delete(at);
+  const state = await progressOf(at);
   for (; state.next < parts.length; state.next++) {
     const part = parts[state.next] ?? "";
     if (outcome.parts <= 0) {
-      resume.set(at, state);
+      await keepProgress(at, source, state);
       return "stop" as const;
     }
     try {
@@ -114,7 +139,7 @@ async function ask(run: Run, source: Source, outcome: Outcome) {
         reserve: RESERVE,
       });
       if (!answer) {
-        resume.set(at, state);
+        await keepProgress(at, source, state);
         return "stop" as const;
       }
       outcome.parts -= 1;
@@ -135,7 +160,7 @@ async function ask(run: Run, source: Source, outcome: Outcome) {
         .onConflictDoNothing();
     } catch (error) {
       if (!(error instanceof UnreadableAnswer)) {
-        resume.set(at, state);
+        await keepProgress(at, source, state);
         taskExtractionRetry.failed(source.key);
         console.error(`Reading ${source.key} for facts failed`, error);
         return "failed" as const;
@@ -146,8 +171,8 @@ async function ask(run: Run, source: Source, outcome: Outcome) {
   return { readable: state.readable };
 }
 
-// One record for each text: the one before it goes. Its time is not when it
-// was written. It is when the newest slot the text was asked about was made,
+// One record for each text: the one before it goes, and so does where a
+// reading of it stopped. Its time is not when it was written. It is when the newest slot the text was asked about was made,
 // so a slot made later, even while a run was on, is still asked of the text.
 const record = (
   run: Run,
@@ -164,6 +189,16 @@ const record = (
           source.assetId
             ? eq(taskExtractionTable.assetId, source.assetId)
             : isNull(taskExtractionTable.assetId),
+        ),
+      );
+    await tx
+      .delete(taskExtractionProgressTable)
+      .where(
+        and(
+          eq(taskExtractionProgressTable.taskId, source.taskId),
+          source.assetId
+            ? eq(taskExtractionProgressTable.assetId, source.assetId)
+            : isNull(taskExtractionProgressTable.assetId),
         ),
       );
     await tx
