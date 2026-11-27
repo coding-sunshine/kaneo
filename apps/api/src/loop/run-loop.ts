@@ -1,6 +1,8 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { eq } from "drizzle-orm";
 import type { ChatMessage } from "../agent/openrouter";
+import { proposer } from "../agent/proposals/create-proposal";
+import { PROJECT_UPDATE_TOOL } from "../agent/proposals/project-update-tool";
 import { runAgent } from "../agent/run-agent";
 import { createSelfClient } from "../agent/self-client";
 import db from "../database";
@@ -34,21 +36,30 @@ export async function executeLoop(
   };
   let messages: ChatMessage[] = [prompt];
   let error: string | null = null;
+  const client = createSelfClient(new Headers(), loop.creatorId);
   try {
     messages = [
       prompt,
       ...(await loopRunContext.run(true, () =>
-        runAgent(
-          [prompt],
-          createSelfClient(new Headers(), loop.creatorId),
-          loop.workspaceId,
-          undefined,
-          {
-            writes: loop.actions,
-            unattended: true,
-            meter: { userId: loop.creatorId, purpose: "loop" },
-          },
-        ),
+        runAgent([prompt], client, loop.workspaceId, undefined, {
+          writes: loop.actions,
+          unattended: true,
+          meter: { userId: loop.creatorId, purpose: "loop" },
+          // A project update is drafted for the creator to accept on Pulse;
+          // the loop's other writes run.
+          ...(loop.actions.includes(PROJECT_UPDATE_TOOL)
+            ? {
+                propose: proposer({
+                  userId: loop.creatorId,
+                  workspaceId: loop.workspaceId,
+                  chatId: null,
+                  prompt: loop.instructions,
+                  client,
+                }),
+                proposeOnly: [PROJECT_UPDATE_TOOL],
+              }
+            : {}),
+        }),
       )),
     ];
   } catch (caught) {

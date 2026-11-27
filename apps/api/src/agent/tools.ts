@@ -10,6 +10,15 @@ import {
   CHANGE_TASK_DESCRIPTION,
   changeTaskSchema,
 } from "./proposals/change-task-tool";
+import {
+  LIST_WORK_PROJECTS_DESCRIPTION,
+  listWorkProjects,
+  listWorkProjectsSchema,
+  PROJECT_UPDATE_DESCRIPTION,
+  PROJECT_UPDATE_TOOL,
+  postProjectUpdate,
+  projectUpdateSchema,
+} from "./proposals/project-update-tool";
 
 const MAX_RESULT_CHARS = 20_000;
 
@@ -22,9 +31,20 @@ export const WRITE_TOOLS = [
   "update_task_status",
   "update_task_assignee",
   "create_task_comment",
+  PROJECT_UPDATE_TOOL,
 ] as const;
-// A chat also has change_task, the one write that sets priority and labels.
+// Writes that are only ever proposed: they run when a person accepts them.
+const ALWAYS_PROPOSED: readonly string[] = [PROJECT_UPDATE_TOOL];
+// The writes offered when none are named: a project update is opt-in.
+const DEFAULT_WRITES = WRITE_TOOLS.filter(
+  (name) => !ALWAYS_PROPOSED.includes(name),
+);
+// Every write a proposal can hold: change_task sets priority and labels.
 export const CHAT_WRITE_TOOLS = [...WRITE_TOOLS, "change_task"] as const;
+// The writes a chat offers: a project update is drafted by loops only.
+export const CHAT_OFFERED_WRITES = CHAT_WRITE_TOOLS.filter(
+  (name) => name !== PROJECT_UPDATE_TOOL,
+);
 
 export type ProposeRequest = {
   tool: string;
@@ -75,15 +95,23 @@ function withReason(parameters: Record<string, unknown>) {
   };
 }
 
-// `writes` narrows the write tools on offer (default: all of WRITE_TOOLS). A
-// tool outside it is neither shown to the model nor callable. With `propose`,
-// a write is never run: it becomes a proposal a person accepts later.
+// `writes` narrows the write tools on offer (default: every write but the
+// project update). A tool outside it is neither shown to the model nor
+// callable. With `propose`, a write is never run: it becomes a proposal a
+// person accepts later; `proposeOnly` limits that to the named writes, and the
+// others run. A project update is always proposed, never run by the agent.
 export function buildAgentTools(
   client: ToolClient,
-  writes: readonly string[] = WRITE_TOOLS,
+  writes: readonly string[] = DEFAULT_WRITES,
   propose?: Propose,
+  proposeOnly?: readonly string[],
 ) {
   const allowed = new Set(writes);
+  const proposed = (name: string) =>
+    isWriteTool(name) &&
+    (ALWAYS_PROPOSED.includes(name) ||
+      !proposeOnly ||
+      proposeOnly.includes(name));
   const definitions: OpenRouterTool[] = [];
   const handlers = new Map<string, Handler>();
   const schemas = new Map<string, z.ZodObject>();
@@ -99,7 +127,8 @@ export function buildAgentTools(
         function: {
           name,
           description: config.description,
-          parameters: isWrite && propose ? withReason(parameters) : parameters,
+          parameters:
+            propose && proposed(name) ? withReason(parameters) : parameters,
         },
       });
       handlers.set(name, callback);
@@ -107,23 +136,41 @@ export function buildAgentTools(
     },
   };
   registerTools(collector, { client });
-  collector.registerTool(
-    "change_task",
-    { description: CHANGE_TASK_DESCRIPTION, inputSchema: changeTaskSchema },
-    async (args) => {
-      const parsed = changeTaskSchema.safeParse(args);
+  // Tools of the agent's own, beside the MCP ones.
+  const local = <S extends z.ZodObject>(
+    name: string,
+    description: string,
+    inputSchema: S,
+    apply: (args: z.output<S>) => Promise<unknown>,
+  ) =>
+    collector.registerTool(name, { description, inputSchema }, async (args) => {
+      const parsed = inputSchema.safeParse(args);
       const text = (data: unknown, isError = false) => ({
         content: [{ type: "text" as const, text: JSON.stringify(data) }],
         isError,
       });
       if (!parsed.success)
         return text({ error: z.prettifyError(parsed.error) }, true);
-      return applyChangeTask(client, parsed.data).then(
+      return apply(parsed.data).then(
         (data) => text(data),
         (e: unknown) =>
           text({ error: e instanceof Error ? e.message : String(e) }, true),
       );
-    },
+    });
+  local("change_task", CHANGE_TASK_DESCRIPTION, changeTaskSchema, (args) =>
+    applyChangeTask(client, args),
+  );
+  local(
+    "list_work_projects",
+    LIST_WORK_PROJECTS_DESCRIPTION,
+    listWorkProjectsSchema,
+    (args) => listWorkProjects(client, args),
+  );
+  local(
+    PROJECT_UPDATE_TOOL,
+    PROJECT_UPDATE_DESCRIPTION,
+    projectUpdateSchema,
+    (args) => postProjectUpdate(client, args),
   );
 
   /** Runs a tool for real; `isError` is true when it failed. */
@@ -185,7 +232,9 @@ export function buildAgentTools(
     } catch {
       return error("Arguments are not valid JSON");
     }
-    if (propose && isWriteTool(name)) return proposeWrite(name, args);
+    if (propose && proposed(name)) return proposeWrite(name, args);
+    if (ALWAYS_PROPOSED.includes(name))
+      return error("This write needs a person to accept it.");
     return (await run(name, args)).text;
   }
 

@@ -3058,7 +3058,9 @@
 			"features": {
 				"assistant": "Assistant",
 				"loop": "Loop runs",
-				"loopDraft": "Loop drafts"
+				"loopDraft": "Loop drafts",
+				"filter": "Plain-English filters",
+				"summary": "Ticket summaries"
 			}
 		},
 		"aiAudit": {
@@ -3074,7 +3076,35 @@
 			"change": "Change",
 			"toolCalls": "Tool calls",
 			"sources": "Sources",
-			"result": "Result"
+			"result": "Result",
+			"destinationChangedBy": "{{name}} changed the AI data destination"
+		},
+		"aiDestination": {
+			"title": "AI",
+			"description": "Where this workspace's text goes when the assistant, loops and summaries run.",
+			"loadError": "The AI settings could not be loaded.",
+			"current": "Data destination",
+			"receiver": "Receives your content",
+			"receiverHint": {
+				"openrouter": "Ticket text, comments and documents the AI reads are sent to OpenRouter, which passes them to the model below. Providers that keep data for training are excluded.",
+				"selfHosted": "Ticket text, comments and documents the AI reads go only to the model server your administrator runs."
+			},
+			"providers": {
+				"openrouter": "OpenRouter",
+				"selfHosted": "Self-hosted model"
+			},
+			"model": "Model",
+			"host": "Served by {{host}}",
+			"noModel": "No model set",
+			"change": "Change destination",
+			"changeHint": "Each change is recorded in the AI audit.",
+			"adminsOnly": "Only workspace admins can change where AI text goes.",
+			"provider": "Provider",
+			"notConfigured": "Not configured on this server",
+			"selfHostedModel": "Self-hosted model name",
+			"selfHostedModelHint": "The model name your self-hosted server serves, for example llama-3.1-8b-instruct.",
+			"save": "Save destination",
+			"saved": "AI data destination saved"
 		},
 		"workspaceWebhooks": {
 			"title": "Webhooks",
@@ -3187,6 +3217,19 @@
 				"action": "Set up IT intake",
 				"done": "IT intake is ready",
 				"failed": "Could not set up IT intake"
+			},
+			"emailIntake": {
+				"title": "Email intake",
+				"description": "Mail sent to the team's address becomes a Triage ticket. Replies from the ticket go back to the sender by email.",
+				"enable": "Turn on",
+				"disable": "Turn off",
+				"off": "Email intake is off on this instance. An administrator needs to add the intake mailbox settings on the server.",
+				"address": "Address",
+				"copy": "Copy",
+				"copied": "Address copied",
+				"copyFailed": "Could not copy the address",
+				"repliesOff": "This instance cannot send email yet, so replies from tickets will not be delivered until SMTP is set up.",
+				"failed": "Could not change email intake"
 			}
 		},
 		"adminBackups": {
@@ -4326,7 +4369,12 @@
 					"dueDate": "Due date",
 					"comment": "Comment",
 					"topic": "Topic",
-					"position": "Position"
+					"position": "Position",
+					"provider": "Provider",
+					"model": "Model",
+					"project": "Project",
+					"health": "Health",
+					"update": "Update"
 				}
 			}
 		},
@@ -4354,7 +4402,8 @@
 				"update_task": "Edit issue",
 				"update_task_status": "Change status",
 				"update_task_assignee": "Assign",
-				"create_task": "Create issue"
+				"create_task": "Create issue",
+				"create_project_update": "Draft project update"
 			},
 			"permissionNote": "Each run uses your permissions at the time it runs, limited to the changes above.",
 			"save": "Save loop",
@@ -5067,6 +5116,15 @@
 				"saving": "Saving…",
 				"saveFailed": "Changes could not be saved",
 				"retrySave": "Retry"
+			},
+			"emailReply": {
+				"title": "Email",
+				"from": "Emailed in by {{requester}}",
+				"label": "Reply to {{address}}",
+				"placeholder": "Write a reply…",
+				"send": "Send reply",
+				"sent": "Reply sent",
+				"failed": "Could not send the reply"
 			}
 		},
 		"entity": {
@@ -5290,8 +5348,12 @@
 				"estimate": "Estimate",
 				"noEstimate": "No estimate",
 				"workable": "Workable",
+				"created": "Created",
+				"blocked": "Blocked",
 				"statusAge": "Time in status"
 			},
+			"olderThanDays_one": "Older than {{count}} day",
+			"olderThanDays_other": "Older than {{count}} days",
 			"statusAgeOption_one": "{{status}} for more than {{count}} day",
 			"statusAgeOption_other": "{{status}} for more than {{count}} days",
 			"operators": {
@@ -5628,10 +5690,22 @@
 			"matchAny": "any filter",
 			"noMatches": "No issues match your search or filters."
 		},
+		"summary": {
+			"title": "Summary",
+			"action": "Summarise",
+			"again": "Summarise again",
+			"working": "Summarising…",
+			"blockers": "Blockers",
+			"noBlockers": "Nothing is blocking this ticket.",
+			"sources": "Based on"
+		},
 		"filterMenu": {
 			"addFilter": "Add filter…",
 			"searchSubject": "{{name}}…",
-			"noResults": "No results"
+			"noResults": "No results",
+			"askAi": "Filter with AI: “{{text}}”",
+			"askAiWorking": "Reading your filter…",
+			"askAiApplied": "Filter applied"
 		},
 		"shortcuts": {
 			"assignedToMe": "Assigned to you",
@@ -6365,7 +6439,9 @@
 				"save": "Save",
 				"cancel": "Cancel",
 				"deleteConfirm": "Delete this update?",
-				"pulseEmpty": "No project updates yet."
+				"pulseEmpty": "No project updates yet.",
+				"drafts": "Drafts waiting for you",
+				"draftsHint": "Your loops drafted these updates. Nothing is posted until you accept one; it is then posted as you."
 			},
 			"comments": {
 				"title": "Comments",

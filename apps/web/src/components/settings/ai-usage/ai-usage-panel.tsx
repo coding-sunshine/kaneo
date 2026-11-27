@@ -13,6 +13,8 @@ const FEATURE_LABELS: Record<string, string> = {
   assistant: "settings:aiUsage.features.assistant",
   loop: "settings:aiUsage.features.loop",
   "loop-draft": "settings:aiUsage.features.loopDraft",
+  filter: "settings:aiUsage.features.filter",
+  summary: "settings:aiUsage.features.summary",
 };
 
 /** Settings, AI usage: budgets, then tokens by feature and by day. */

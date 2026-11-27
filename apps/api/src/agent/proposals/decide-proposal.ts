@@ -4,7 +4,16 @@ import db from "../../database";
 import { agentProposalTable } from "../../database/schema";
 import { createSelfClient, forwardedAuthHeaders } from "../self-client";
 import { buildAgentTools, CHAT_WRITE_TOOLS } from "../tools";
+import { workProjectName } from "./create-proposal";
 import { currentTeam } from "./current-team";
+import { PROJECT_UPDATE_TOOL } from "./project-update-tool";
+
+// A drafted project update needs its project still in the workspace.
+async function currentProject(workspaceId: string, id: string) {
+  if (!(await workProjectName(workspaceId, id)))
+    throw new HTTPException(404, { message: "Proposal not found" });
+  return id;
+}
 
 // A proposal is private to the person who asked for it, like their chat.
 const own = (userId: string, workspaceId: string, proposalId: string) =>
@@ -61,9 +70,11 @@ export async function acceptProposal(
   if (!pending) throw new HTTPException(404, { message: "Proposal not found" });
   // A decided proposal answers 409 from the claim, before any team check.
   const projectId =
-    pending.status === "pending"
-      ? await currentTeam(userId, workspaceId, pending)
-      : undefined;
+    pending.status !== "pending"
+      ? undefined
+      : pending.tool === PROJECT_UPDATE_TOOL
+        ? await currentProject(workspaceId, pending.projectId)
+        : await currentTeam(userId, workspaceId, pending);
   const row = await claim(
     userId,
     workspaceId,

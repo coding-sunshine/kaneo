@@ -19,7 +19,8 @@ export function useSettingsNav() {
   const { permissions: adminPermissions } = useAdminAccess();
   const { canImport } = useCanImport();
   const canManageWebhooks = useWorkspacePermission().canManageSettings();
-  const canManageAiUsage = useHasAgent() && canManageWebhooks;
+  const hasAgent = useHasAgent();
+  const canManageAiUsage = hasAgent && canManageWebhooks;
 
   return useMemo(
     () =>
@@ -29,6 +30,7 @@ export function useSettingsNav() {
         billingEnabled: Boolean(config?.billingEnabled),
         canImport,
         canManageWebhooks,
+        hasAgent,
         canManageAiUsage,
         adminPermissions,
         // "Your teams" lists only teams you joined, like the app sidebar.
@@ -42,6 +44,7 @@ export function useSettingsNav() {
       config?.billingEnabled,
       canImport,
       canManageWebhooks,
+      hasAgent,
       canManageAiUsage,
       adminPermissions,
       projects,

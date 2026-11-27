@@ -11,6 +11,11 @@ const KEYS: Record<string, string> = {
   comment: "navigation:agent.proposal.fields.comment",
   topic: "navigation:agent.proposal.fields.topic",
   position: "navigation:agent.proposal.fields.position",
+  provider: "navigation:agent.proposal.fields.provider",
+  model: "navigation:agent.proposal.fields.model",
+  project: "navigation:agent.proposal.fields.project",
+  health: "navigation:agent.proposal.fields.health",
+  update: "navigation:agent.proposal.fields.update",
 };
 
 /** The i18n key naming a diff field; an unknown field shows as it is. */

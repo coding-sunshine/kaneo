@@ -12470,9 +12470,21 @@
 								},
 								"loopDraft": {
 									"type": "string"
+								},
+								"filter": {
+									"type": "string"
+								},
+								"summary": {
+									"type": "string"
 								}
 							},
-							"required": ["assistant", "loop", "loopDraft"]
+							"required": [
+								"assistant",
+								"loop",
+								"loopDraft",
+								"filter",
+								"summary"
+							]
 						}
 					},
 					"required": [
@@ -12538,6 +12550,9 @@
 						},
 						"result": {
 							"type": "string"
+						},
+						"destinationChangedBy": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -12553,7 +12568,112 @@
 						"change",
 						"toolCalls",
 						"sources",
-						"result"
+						"result",
+						"destinationChangedBy"
+					]
+				},
+				"aiDestination": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"description": {
+							"type": "string"
+						},
+						"loadError": {
+							"type": "string"
+						},
+						"current": {
+							"type": "string"
+						},
+						"receiver": {
+							"type": "string"
+						},
+						"receiverHint": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"openrouter": {
+									"type": "string"
+								},
+								"selfHosted": {
+									"type": "string"
+								}
+							},
+							"required": ["openrouter", "selfHosted"]
+						},
+						"providers": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"openrouter": {
+									"type": "string"
+								},
+								"selfHosted": {
+									"type": "string"
+								}
+							},
+							"required": ["openrouter", "selfHosted"]
+						},
+						"model": {
+							"type": "string"
+						},
+						"host": {
+							"type": "string"
+						},
+						"noModel": {
+							"type": "string"
+						},
+						"change": {
+							"type": "string"
+						},
+						"changeHint": {
+							"type": "string"
+						},
+						"adminsOnly": {
+							"type": "string"
+						},
+						"provider": {
+							"type": "string"
+						},
+						"notConfigured": {
+							"type": "string"
+						},
+						"selfHostedModel": {
+							"type": "string"
+						},
+						"selfHostedModelHint": {
+							"type": "string"
+						},
+						"save": {
+							"type": "string"
+						},
+						"saved": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"title",
+						"description",
+						"loadError",
+						"current",
+						"receiver",
+						"receiverHint",
+						"providers",
+						"model",
+						"host",
+						"noModel",
+						"change",
+						"changeHint",
+						"adminsOnly",
+						"provider",
+						"notConfigured",
+						"selfHostedModel",
+						"selfHostedModelHint",
+						"save",
+						"saved"
 					]
 				},
 				"workspaceWebhooks": {
@@ -13015,6 +13135,58 @@
 								}
 							},
 							"required": ["title", "description", "action", "done", "failed"]
+						},
+						"emailIntake": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"enable": {
+									"type": "string"
+								},
+								"disable": {
+									"type": "string"
+								},
+								"off": {
+									"type": "string"
+								},
+								"address": {
+									"type": "string"
+								},
+								"copy": {
+									"type": "string"
+								},
+								"copied": {
+									"type": "string"
+								},
+								"copyFailed": {
+									"type": "string"
+								},
+								"repliesOff": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"description",
+								"enable",
+								"disable",
+								"off",
+								"address",
+								"copy",
+								"copied",
+								"copyFailed",
+								"repliesOff",
+								"failed"
+							]
 						}
 					},
 					"required": [
@@ -13025,7 +13197,8 @@
 						"notify",
 						"assign",
 						"saveFailed",
-						"itIntake"
+						"itIntake",
+						"emailIntake"
 					]
 				},
 				"adminBackups": {
@@ -13245,6 +13418,7 @@
 				"adminWebhooks",
 				"aiUsage",
 				"aiAudit",
+				"aiDestination",
 				"workspaceWebhooks",
 				"projectCycles",
 				"issueTemplates",
@@ -17714,6 +17888,21 @@
 										},
 										"position": {
 											"type": "string"
+										},
+										"provider": {
+											"type": "string"
+										},
+										"model": {
+											"type": "string"
+										},
+										"project": {
+											"type": "string"
+										},
+										"health": {
+											"type": "string"
+										},
+										"update": {
+											"type": "string"
 										}
 									},
 									"required": [
@@ -17728,7 +17917,12 @@
 										"dueDate",
 										"comment",
 										"topic",
-										"position"
+										"position",
+										"provider",
+										"model",
+										"project",
+										"health",
+										"update"
 									]
 								}
 							},
@@ -17840,6 +18034,9 @@
 								},
 								"create_task": {
 									"type": "string"
+								},
+								"create_project_update": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -17847,7 +18044,8 @@
 								"update_task",
 								"update_task_status",
 								"update_task_assignee",
-								"create_task"
+								"create_task",
+								"create_project_update"
 							]
 						},
 						"permissionNote": {
@@ -20759,6 +20957,42 @@
 								"saveFailed",
 								"retrySave"
 							]
+						},
+						"emailReply": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"from": {
+									"type": "string"
+								},
+								"label": {
+									"type": "string"
+								},
+								"placeholder": {
+									"type": "string"
+								},
+								"send": {
+									"type": "string"
+								},
+								"sent": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"from",
+								"label",
+								"placeholder",
+								"send",
+								"sent",
+								"failed"
+							]
 						}
 					},
 					"required": [
@@ -20770,7 +21004,8 @@
 						"addDescription",
 						"archived",
 						"attachments",
-						"editor"
+						"editor",
+						"emailReply"
 					]
 				},
 				"entity": {
@@ -21707,6 +21942,12 @@
 								"workable": {
 									"type": "string"
 								},
+								"created": {
+									"type": "string"
+								},
+								"blocked": {
+									"type": "string"
+								},
 								"statusAge": {
 									"type": "string"
 								}
@@ -21723,8 +21964,28 @@
 								"estimate",
 								"noEstimate",
 								"workable",
+								"created",
+								"blocked",
 								"statusAge"
 							]
+						},
+						"olderThanDays_one": {
+							"type": "string"
+						},
+						"olderThanDays_zero": {
+							"type": "string"
+						},
+						"olderThanDays_two": {
+							"type": "string"
+						},
+						"olderThanDays_few": {
+							"type": "string"
+						},
+						"olderThanDays_many": {
+							"type": "string"
+						},
+						"olderThanDays_other": {
+							"type": "string"
 						},
 						"statusAgeOption_one": {
 							"type": "string"
@@ -23340,6 +23601,42 @@
 						"noMatches"
 					]
 				},
+				"summary": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"action": {
+							"type": "string"
+						},
+						"again": {
+							"type": "string"
+						},
+						"working": {
+							"type": "string"
+						},
+						"blockers": {
+							"type": "string"
+						},
+						"noBlockers": {
+							"type": "string"
+						},
+						"sources": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"title",
+						"action",
+						"again",
+						"working",
+						"blockers",
+						"noBlockers",
+						"sources"
+					]
+				},
 				"filterMenu": {
 					"type": "object",
 					"additionalProperties": false,
@@ -23352,9 +23649,25 @@
 						},
 						"noResults": {
 							"type": "string"
+						},
+						"askAi": {
+							"type": "string"
+						},
+						"askAiWorking": {
+							"type": "string"
+						},
+						"askAiApplied": {
+							"type": "string"
 						}
 					},
-					"required": ["addFilter", "searchSubject", "noResults"]
+					"required": [
+						"addFilter",
+						"searchSubject",
+						"noResults",
+						"askAi",
+						"askAiWorking",
+						"askAiApplied"
+					]
 				},
 				"shortcuts": {
 					"type": "object",
@@ -23731,6 +24044,7 @@
 				"display",
 				"insights",
 				"filterBar",
+				"summary",
 				"filterMenu",
 				"shortcuts",
 				"due",
@@ -26423,6 +26737,12 @@
 								},
 								"pulseEmpty": {
 									"type": "string"
+								},
+								"drafts": {
+									"type": "string"
+								},
+								"draftsHint": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -26436,7 +26756,9 @@
 								"save",
 								"cancel",
 								"deleteConfirm",
-								"pulseEmpty"
+								"pulseEmpty",
+								"drafts",
+								"draftsHint"
 							]
 						},
 						"comments": {

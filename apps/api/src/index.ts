@@ -70,9 +70,11 @@ import label from "./label";
 import projectLabel from "./project-label";
 import cycle from "./cycle";
 import teamAutomation from "./team-automation";
+import emailIntake from "./email-intake";
 import workProject from "./work-project";
 import initiative from "./initiative";
 import agent from "./agent";
+import { isAgentEnabled } from "./agent/openrouter";
 import { setSelfFetch } from "./agent/self-client";
 import loop from "./loop";
 import chat from "./chat";
@@ -873,6 +875,7 @@ export function createApp() {
   const workspaceWebhookApi = api.route("/workspace-webhook", workspaceWebhook);
   const cycleApi = api.route("/cycle", cycle);
   const teamAutomationApi = api.route("/team-automation", teamAutomation);
+  const emailIntakeApi = api.route("/email-intake", emailIntake);
   const workProjectApi = api.route("/work-project", workProject);
   const initiativeApi = api.route("/initiative", initiative);
   const savedViewApi = api.route("/view", savedView);
@@ -1117,6 +1120,7 @@ export function createApp() {
     workspaceWebhookApi,
     cycleApi,
     teamAutomationApi,
+    emailIntakeApi,
     workProjectApi,
     initiativeApi,
     savedViewApi,
@@ -1187,6 +1191,11 @@ export async function runStartupTasks() {
 
   initializePlugins();
   initializeScheduler();
+  if (!isAgentEnabled()) {
+    console.log(
+      "ℹ️ AI is off: set OPENROUTER_API_KEY or AI_SELF_HOSTED_URL to turn on the assistant and loops.",
+    );
+  }
   await initializeWebSocketAdapter();
 }
 
@@ -1274,6 +1283,7 @@ const {
   workspaceWebhookApi,
   cycleApi,
   teamAutomationApi,
+  emailIntakeApi,
   workProjectApi,
   initiativeApi,
   savedViewApi,
@@ -1334,6 +1344,7 @@ export type AppType =
   | typeof workspaceWebhookApi
   | typeof cycleApi
   | typeof teamAutomationApi
+  | typeof emailIntakeApi
   | typeof workProjectApi
   | typeof initiativeApi
   | typeof savedViewApi

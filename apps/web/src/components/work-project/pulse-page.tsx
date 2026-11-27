@@ -7,20 +7,23 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { useAgentDrafts } from "@/hooks/queries/agent/use-agent-drafts";
 import { useWorkspaceInitiativeUpdates } from "@/hooks/queries/initiative/use-workspace-initiative-updates";
 import { useWorkspaceProjectUpdates } from "@/hooks/queries/work-project/use-workspace-project-updates";
 import { mergePulse } from "./merge-pulse";
+import { PulseDrafts } from "./pulse-drafts";
 import { WorkProjectUpdateItem } from "./work-project-update-item";
 
-/** Linear's Pulse: every project and initiative update, newest first. */
+/** Linear's Pulse: your loops' drafted updates, then every project and initiative update, newest first. */
 export function PulsePage({ workspaceId }: { workspaceId: string }) {
   const { t } = useTranslation();
   const projects = useWorkspaceProjectUpdates(workspaceId);
   const initiatives = useWorkspaceInitiativeUpdates(workspaceId);
+  const { data: drafts = [] } = useAgentDrafts(workspaceId);
   const isLoading = projects.isLoading || initiatives.isLoading;
   const entries = mergePulse(projects.data ?? [], initiatives.data ?? []);
 
-  if (!isLoading && entries.length === 0) {
+  if (!isLoading && entries.length === 0 && !drafts.length) {
     return (
       <Empty className="min-h-[60vh]">
         <EmptyHeader>
@@ -35,24 +38,27 @@ export function PulsePage({ workspaceId }: { workspaceId: string }) {
     );
   }
   return (
-    <ul className="mx-auto h-full max-w-3xl space-y-3 overflow-y-auto px-6 py-8">
-      {entries.map((entry) =>
-        entry.kind === "initiative" ? (
-          <InitiativeUpdateItem
-            key={`initiative-${entry.update.id}`}
-            update={entry.update}
-            workspaceId={workspaceId}
-            showInitiative
-          />
-        ) : (
-          <WorkProjectUpdateItem
-            key={`project-${entry.update.id}`}
-            update={entry.update}
-            workspaceId={workspaceId}
-            showProject
-          />
-        ),
-      )}
-    </ul>
+    <div className="mx-auto h-full max-w-3xl space-y-6 overflow-y-auto px-6 py-8">
+      <PulseDrafts workspaceId={workspaceId} drafts={drafts} />
+      <ul className="space-y-3">
+        {entries.map((entry) =>
+          entry.kind === "initiative" ? (
+            <InitiativeUpdateItem
+              key={`initiative-${entry.update.id}`}
+              update={entry.update}
+              workspaceId={workspaceId}
+              showInitiative
+            />
+          ) : (
+            <WorkProjectUpdateItem
+              key={`project-${entry.update.id}`}
+              update={entry.update}
+              workspaceId={workspaceId}
+              showProject
+            />
+          ),
+        )}
+      </ul>
+    </div>
   );
 }

@@ -19,7 +19,7 @@ import useGetProjectTaskRelations from "./queries/task-relation/use-get-project-
 import type { BoardFilters } from "./use-task-filters";
 import { useStoredState } from "./use-stored-state";
 
-const DEFAULT_FILTERS: BoardFilters = {
+export const DEFAULT_FILTERS: BoardFilters = {
   status: null,
   priority: null,
   assignee: null,
@@ -36,21 +36,23 @@ const DEFAULT_FILTERS: BoardFilters = {
 
 const NO_IGNORED_FILTERS: ReadonlyArray<keyof BoardFilters> = [];
 
-const FILTER_KEYS: Array<Exclude<keyof BoardFilters, "matchAny" | "workable">> =
-  [
-    "status",
-    "priority",
-    "assignee",
-    "dueDate",
-    "startDate",
-    "labels",
-    "workProject",
-    "cycle",
-    "estimate",
-    "statusAge",
-    "customFields",
-    "negated",
-  ];
+const FILTER_KEYS: Array<
+  Exclude<keyof BoardFilters, "matchAny" | "workable" | "blocked">
+> = [
+  "status",
+  "priority",
+  "assignee",
+  "dueDate",
+  "startDate",
+  "createdAt",
+  "labels",
+  "workProject",
+  "cycle",
+  "estimate",
+  "statusAge",
+  "customFields",
+  "negated",
+];
 
 export function normalizeFilters(raw: unknown): BoardFilters {
   if (!raw || typeof raw !== "object") {
@@ -87,6 +89,7 @@ export function normalizeFilters(raw: unknown): BoardFilters {
   }
 
   if (candidate.workable === true) normalized.workable = true;
+  if (candidate.blocked === true) normalized.blocked = true;
   if (candidate.matchAny === true) normalized.matchAny = true;
 
   return normalized;
@@ -142,7 +145,10 @@ export function useTaskFiltersWithLabelsSupport(
         : ({
             ...filters,
             ...Object.fromEntries(
-              ignore.map((key) => [key, key === "workable" ? undefined : null]),
+              ignore.map((key) => [
+                key,
+                key === "workable" || key === "blocked" ? undefined : null,
+              ]),
             ),
           } as BoardFilters),
     [filters, ignore],
@@ -152,18 +158,19 @@ export function useTaskFiltersWithLabelsSupport(
     () => new Set(expandLabelFilter(labels, effectiveFilters.labels)),
     [labels, effectiveFilters.labels],
   );
+  const needsBlockers = effectiveFilters.workable || effectiveFilters.blocked;
   const { data: projectRelations } = useGetProjectTaskRelations(
-    effectiveFilters.workable && projectId ? projectId : "",
+    needsBlockers && projectId ? projectId : "",
   );
   // Use the unscoped board when provided so blockers hidden by a view preset
   // (e.g. backlog or done columns) still reflect their true open/closed state.
   const blockerSource = sourceProject ?? project;
   const blockedTaskIds = useMemo(
     () =>
-      effectiveFilters.workable
+      needsBlockers
         ? getBlockedTaskIds(blockerSource, projectRelations)
         : undefined,
-    [effectiveFilters.workable, blockerSource, projectRelations],
+    [needsBlockers, blockerSource, projectRelations],
   );
   const customFieldValues = useGetCachedCustomFieldValues(
     effectiveFilters.customFields ? projectId : undefined,
@@ -236,7 +243,12 @@ export function useTaskFiltersWithLabelsSupport(
     const cleared = value === null || value === undefined || value === false;
     setFilters((prev) => ({
       ...prev,
-      [key]: key === "workable" ? (value ? true : undefined) : value,
+      [key]:
+        key === "workable" || key === "blocked"
+          ? value
+            ? true
+            : undefined
+          : value,
       negated: cleared
         ? setSubjectNegated(prev.negated, key, false)
         : prev.negated,
@@ -261,6 +273,7 @@ export function useTaskFiltersWithLabelsSupport(
       | "assignee"
       | "dueDate"
       | "startDate"
+      | "createdAt"
       | "labels"
       | "workProject"
       | "cycle"

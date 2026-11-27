@@ -11,9 +11,11 @@ import useGetTaskRelations from "@/hooks/queries/task-relation/use-get-task-rela
 import { cn } from "@/lib/cn";
 import type { ExternalLink } from "@/types/external-link";
 import { TaskActivity } from "./task-activity";
+import { TaskSummary } from "./task-summary/task-summary";
 import TaskArchivedBanner from "./task-archived-banner";
 import TaskAttachments from "./task-attachments";
 import TaskDescription from "./task-description";
+import { TaskEmailReply } from "./task-email-reply";
 import TaskRelations from "./task-relations";
 import TaskSubtasks from "./task-subtasks";
 import TaskTitle from "./task-title";
@@ -121,6 +123,7 @@ export default function TaskDetailsContent({
               target={{ kind: "task", taskId }}
             />
             <TaskTimeTracking key={taskId} taskId={taskId} />
+            <TaskEmailReply taskId={taskId} />
             <ExternalLinksAccordion
               workspaceId={workspaceId}
               taskId={taskId}
@@ -130,6 +133,8 @@ export default function TaskDetailsContent({
           </>
         )}
       </div>
+
+      {!isPeek && <TaskSummary workspaceId={workspaceId} taskId={taskId} />}
 
       {!isPeek && (
         <TaskActivity

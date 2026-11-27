@@ -74,3 +74,30 @@ export async function verifySmtpConnection(
 export function setBrandNameResolver(
   _resolver: () => Promise<string | null | undefined>,
 ): void {}
+
+// Ticket replies the API asked to send, newest last, so tests can answer them.
+export const sentTicketReplies: Array<{
+  to: string;
+  replyTo: string;
+  subject: string;
+  text: string;
+  messageId: string;
+  inReplyTo: string;
+  references: string[];
+}> = [];
+
+// Set `failWith` to make the next sends throw like a rejecting SMTP server;
+// `beforeSend` runs first, so a test can look at the database mid-send.
+export const ticketReplyTransport: {
+  failWith: Error | null;
+  beforeSend: (() => Promise<void>) | null;
+} = { failWith: null, beforeSend: null };
+
+export async function sendTicketReplyEmail(
+  email: (typeof sentTicketReplies)[number],
+): Promise<EmailResult> {
+  await ticketReplyTransport.beforeSend?.();
+  if (ticketReplyTransport.failWith) throw ticketReplyTransport.failWith;
+  sentTicketReplies.push(email);
+  return { success: true };
+}

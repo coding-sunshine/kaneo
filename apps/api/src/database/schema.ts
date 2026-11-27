@@ -715,6 +715,76 @@ export const projectTriageResponsibleTable = pgTable(
   (table) => [primaryKey({ columns: [table.projectId, table.userId] })],
 );
 
+// A team's email intake: mail to <mailbox>+<token>@<domain> becomes a Triage
+// ticket. No row means intake is off for the team.
+export const emailIntakeTable = pgTable("email_intake", {
+  projectId: text("project_id")
+    .primaryKey()
+    .references(() => projectTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  // 128 random bits as hex. Mail is matched by token_hash (SHA-256 of the
+  // token) and confirmed with a constant-time compare of the token.
+  token: text("token").notNull(),
+  tokenHash: text("token_hash").notNull().unique(),
+  createdAt: timestamp("created_at", { mode: "date" })
+    .default(utcNow)
+    .notNull(),
+});
+
+// Every message of a ticket's email thread, received or sent, so replies find
+// their ticket by In-Reply-To and References and the same mail is never filed twice.
+export const emailIntakeMessageTable = pgTable(
+  "email_intake_message",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projectTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    taskId: text("task_id")
+      .notNull()
+      .references(() => taskTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    messageId: text("message_id").notNull(),
+    // "inbound" from the requester or "outbound" from the team.
+    direction: text("direction").notNull(),
+    // An outbound reply is "pending" while it is being sent, then "sent".
+    status: text("status").notNull().default("sent"),
+    // The requester's address and name, whichever way the message went.
+    address: text("address").notNull(),
+    name: text("name"),
+    subject: text("subject").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    unique("email_intake_message_project_message_unique").on(
+      table.projectId,
+      table.messageId,
+    ),
+    index("email_intake_message_task_idx").on(table.taskId),
+  ],
+);
+
+// Intake mail that kept failing to file, by mailbox UID. After five failed
+// attempts the poller stops reading it; the message stays in the mailbox.
+export const emailIntakeFailureTable = pgTable("email_intake_failure", {
+  uid: text("uid").primaryKey(),
+  attempts: integer("attempts").notNull().default(1),
+  lastFailedAt: timestamp("last_failed_at", { mode: "date" })
+    .default(utcNow)
+    .notNull(),
+});
+
 export const workspaceMemberAccessTable = pgTable(
   "workspace_member_access",
   {
@@ -3727,6 +3797,44 @@ export const aiBudgetTable = pgTable("ai_budget", {
     .default(utcNow)
     .notNull(),
 });
+
+// Where a workspace's AI calls send its text: each row is one change an admin
+// made, and the newest row is the setting in force. Without a row the server
+// default applies. The rows are also the AI audit's record of the setting.
+export const aiDestinationChangeTable = pgTable(
+  "ai_destination_change",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    provider: text("provider").$type<"openrouter" | "self-hosted">().notNull(),
+    // The self-hosted model's name; null for OpenRouter, whose model the
+    // server sets.
+    model: text("model"),
+    changedBy: text("changed_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    diff: jsonb("diff")
+      .$type<{ field: string; from: string | null; to: string | null }[]>()
+      .notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("ai_destination_change_workspace_created_idx").on(
+      table.workspaceId,
+      table.createdAt,
+    ),
+  ],
+);
 
 export const SLOT_TYPES = [
   "date",

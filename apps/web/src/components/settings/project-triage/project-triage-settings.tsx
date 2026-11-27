@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { EmailIntakeCard } from "@/components/settings/project-triage/email-intake-card";
 import { ItIntakeCard } from "@/components/settings/project-triage/it-intake-card";
 import { SettingsCard } from "@/components/settings/settings-card";
 import { SettingsPage } from "@/components/settings/settings-page";
@@ -98,6 +99,7 @@ export function ProjectTriageSettings({ projectId }: { projectId: string }) {
         })}
       </SettingsCard>
       <ItIntakeCard projectId={projectId} />
+      <EmailIntakeCard projectId={projectId} />
     </SettingsPage>
   );
 }

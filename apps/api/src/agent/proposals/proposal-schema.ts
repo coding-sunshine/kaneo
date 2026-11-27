@@ -46,6 +46,10 @@ const personSchema = z.object({ id: z.string(), name: z.string() }).nullable();
 export const auditRowSchema = z
   .object({
     id: z.string(),
+    kind: z.enum(["write", "setting"]).openapi({
+      description:
+        "`write` is an agent write someone accepted; `setting` is an admin's change of the AI data destination (tool `set_ai_destination`).",
+    }),
     tool: z.string(),
     taskId: z.string().nullable(),
     status: statusSchema,

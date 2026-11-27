@@ -30,13 +30,15 @@ export type LoopAction =
   | "update_task"
   | "update_task_status"
   | "update_task_assignee"
-  | "create_task_comment";
+  | "create_task_comment"
+  | "create_project_update";
 export const LOOP_ACTIONS: LoopAction[] = [
   "create_task_comment",
   "update_task",
   "update_task_status",
   "update_task_assignee",
   "create_task",
+  "create_project_update",
 ];
 export type LoopCategory =
   | "featured"

@@ -1,14 +1,14 @@
-import { and, eq, max, sql } from "drizzle-orm";
+import { and, eq, max } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../database";
 import {
-  columnTable,
   customFieldDefinitionTable,
   issueTemplateTable,
   projectTable,
   savedViewTable,
 } from "../database/schema";
 import { publishEvent } from "../events";
+import { ensureTriageColumn } from "./ensure-triage-column";
 
 const IT_CATEGORY_OPTIONS = [
   "Hardware",
@@ -26,11 +26,6 @@ const IT_CATEGORY_OPTIONS = [
  */
 export async function setUpItIntake(projectId: string, userId: string) {
   const result = await db.transaction(async (tx) => {
-    // Same lock key as column creation, so a concurrent run or column create
-    // cannot add a second Triage status.
-    await tx.execute(
-      sql`SELECT pg_advisory_xact_lock(1525, hashtext(${projectId}))`,
-    );
     const [project] = await tx
       .select({
         workspaceId: projectTable.workspaceId,
@@ -40,28 +35,7 @@ export async function setUpItIntake(projectId: string, userId: string) {
       .where(eq(projectTable.id, projectId));
     if (!project) throw new HTTPException(404, { message: "Team not found" });
 
-    const columns = await tx
-      .select({
-        id: columnTable.id,
-        slug: columnTable.slug,
-        position: columnTable.position,
-      })
-      .from(columnTable)
-      .where(eq(columnTable.projectId, projectId));
-    let columnId = columns.find((column) => column.slug === "triage")?.id;
-    if (!columnId) {
-      const [column] = await tx
-        .insert(columnTable)
-        .values({
-          projectId,
-          name: "Triage",
-          slug: "triage",
-          position:
-            Math.max(-1, ...columns.map((column) => column.position)) + 1,
-        })
-        .returning({ id: columnTable.id });
-      columnId = column?.id;
-    }
+    const columnId = await ensureTriageColumn(tx, projectId);
 
     let [field] = await tx
       .select({ id: customFieldDefinitionTable.id })

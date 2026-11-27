@@ -12,6 +12,7 @@ import { strToU8, zipSync } from "fflate";
 import db from "../../apps/api/src/database";
 import {
   activityTable,
+  aiDestinationChangeTable,
   aiUsageTable,
   assetTable,
   notificationTable,
@@ -1206,6 +1207,88 @@ describe("API integration: facts found in issues", () => {
         readable: true,
         reason: null,
       });
+    });
+
+    it("leaves a picture unread while the workspace uses a self-hosted model, reads on, and reads it after a switch to OpenRouter", async () => {
+      vi.stubEnv("AI_SELF_HOSTED_URL", "http://models.test/v1");
+      const { world, topicId } = await setup();
+      const useModel = (provider: string) =>
+        db.insert(aiDestinationChangeTable).values({
+          workspaceId: world.ws,
+          provider,
+          model: provider === "self-hosted" ? "local-model" : null,
+          diff: [],
+        });
+      // The picture is the smallest file, so it comes first.
+      const photo = await attach(world, {
+        filename: "board.png",
+        mimeType: "image/png",
+        size: 10,
+      });
+      const notes = await attach(world, {
+        filename: "notes.md",
+        mimeType: "text/markdown",
+        size: 200,
+      });
+      const bytes: Record<string, Uint8Array> = {
+        // Bytes no other test sends: what was written out is kept by their hash.
+        [photo.objectKey]: new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x5e]),
+        [notes.objectKey]: new TextEncoder().encode(PRICE),
+      };
+      readObject.mockImplementation(async (key: string) => ({
+        body: new Response(bytes[key]).body,
+      }));
+      let pictures = 0;
+      fetchMock.mockImplementation(
+        async (_url: string, init: { body: string }) => {
+          const content = JSON.parse(init.body).messages[1].content;
+          if (typeof content !== "string") {
+            pictures += 1;
+            return new Response(
+              JSON.stringify({
+                choices: [
+                  {
+                    message: {
+                      content: JSON.stringify({ text: LAUNCH, more: false }),
+                    },
+                  },
+                ],
+                usage: { prompt_tokens: 900, completion_tokens: 40 },
+              }),
+            );
+          }
+          if (content.includes(PRICE))
+            return answer({ topics: [NAMED], statements: [HOW_MUCH] });
+          if (content.includes(LAUNCH))
+            return answer({ topics: [NAMED], statements: [WHEN] });
+          return answer(NOTHING);
+        },
+      );
+
+      await useModel("self-hosted");
+      await run();
+      // The picture is never sent to the self-hosted model and stays unread,
+      // neither read nor unreadable; the files after it are still read.
+      expect(pictures).toBe(0);
+      const first = new Map((await records()).map((row) => [row.assetId, row]));
+      expect(first.has(photo.id)).toBe(false);
+      expect(first.get(notes.id)).toMatchObject({ readable: true });
+
+      await useModel("openrouter");
+      await run();
+      expect(pictures).toBe(1);
+      const second = new Map(
+        (await records()).map((row) => [row.assetId, row]),
+      );
+      expect(second.get(photo.id)).toMatchObject({
+        readable: true,
+        reason: null,
+      });
+      const listed = await facts(world, topicId, world.owner);
+      expect(listed.map((fact) => [fact.slot, fact.file?.id]).sort()).toEqual([
+        ["launch_date", photo.id],
+        ["price", notes.id],
+      ]);
     });
 
     it("reads a picture inside an issue description and one inside a comment, each once", async () => {
