@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -92,7 +93,16 @@ const verified = {
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  vi.useRealTimers();
 });
+
+// Tests that need verification call vi.useFakeTimers() before render and then
+// this, so a busy machine cannot push the debounced check past a real wait.
+async function flushVerification() {
+  await act(async () => {
+    await vi.runOnlyPendingTimersAsync();
+  });
+}
 beforeEach(() => {
   permissions.create = true;
   permissions.update = true;
@@ -102,10 +112,10 @@ beforeEach(() => {
 
 describe("connected Gitea repository", () => {
   it("verifies the saved token automatically without exposing or reentering it", async () => {
+    vi.useFakeTimers();
     render(<GiteaIntegrationSettings projectId="project" />);
-    expect(
-      await screen.findByText(verified.message, {}, { timeout: 2000 }),
-    ).toBeInTheDocument();
+    await flushVerification();
+    expect(screen.getByText(verified.message)).toBeInTheDocument();
     expect(m.verify).toHaveBeenCalledWith({
       projectId: "project",
       baseUrl: saved.baseUrl,
@@ -117,17 +127,19 @@ describe("connected Gitea repository", () => {
       name: "settings:codeHosting.importIssues",
     });
     expect(importButton).toBeEnabled();
-    fireEvent.click(importButton);
-    await waitFor(() => expect(m.importIssues).toHaveBeenCalledWith("project"));
+    await act(async () => {
+      fireEvent.click(importButton);
+    });
+    expect(m.importIssues).toHaveBeenCalledWith("project");
     expect(screen.queryByText(saved.webhookSecret)).toBeNull();
   });
 
   it("shows verification errors and keeps importing disabled", async () => {
     m.verify.mockRejectedValue(new Error("Verification failed"));
+    vi.useFakeTimers();
     render(<GiteaIntegrationSettings projectId="project" />);
-    expect(
-      await screen.findByText("Verification failed", {}, { timeout: 2000 }),
-    ).toBeInTheDocument();
+    await flushVerification();
+    expect(screen.getByText("Verification failed")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "settings:codeHosting.importIssues" }),
     ).toBeDisabled();
@@ -147,6 +159,7 @@ describe("connected Gitea repository", () => {
 
   it("rotates the token after verifying the new one", async () => {
     m.create.mockResolvedValue({});
+    vi.useFakeTimers();
     render(<GiteaIntegrationSettings projectId="project" />);
     fireEvent.click(
       screen.getByRole("button", { name: "settings:codeHosting.changeToken" }),
@@ -155,29 +168,26 @@ describe("connected Gitea repository", () => {
       screen.getByLabelText("settings:giteaIntegration.tokenLabel"),
       { target: { value: " new-token " } },
     );
-    await waitFor(
-      () =>
-        expect(m.verify).toHaveBeenCalledWith(
-          expect.objectContaining({ accessToken: "new-token" }),
-        ),
-      { timeout: 2000 },
+    await flushVerification();
+    expect(m.verify).toHaveBeenCalledWith(
+      expect.objectContaining({ accessToken: "new-token" }),
     );
     const saveButton = screen.getByRole("button", {
       name: "settings:codeHosting.saveToken",
     });
-    await waitFor(() => expect(saveButton).toBeEnabled());
-    fireEvent.click(saveButton);
-    await waitFor(() =>
-      expect(m.create).toHaveBeenCalledWith({
-        projectId: "project",
-        data: {
-          baseUrl: saved.baseUrl,
-          accessToken: "new-token",
-          repositoryOwner: "owner",
-          repositoryName: "repo",
-        },
-      }),
-    );
+    expect(saveButton).toBeEnabled();
+    await act(async () => {
+      fireEvent.click(saveButton);
+    });
+    expect(m.create).toHaveBeenCalledWith({
+      projectId: "project",
+      data: {
+        baseUrl: saved.baseUrl,
+        accessToken: "new-token",
+        repositoryOwner: "owner",
+        repositoryName: "repo",
+      },
+    });
   });
 
   it("disconnects only after confirmation", async () => {
@@ -201,6 +211,7 @@ describe("Gitea setup", () => {
   it("maps owner/name to the existing fields and connects once access is verified", async () => {
     m.integration.current = null;
     m.create.mockResolvedValue({});
+    vi.useFakeTimers();
     render(<GiteaIntegrationSettings projectId="project" />);
     fireEvent.change(
       screen.getByLabelText("settings:giteaIntegration.baseUrlLabel"),
@@ -216,9 +227,8 @@ describe("Gitea setup", () => {
       }),
       { target: { value: "my_org/repo" } },
     );
-    expect(
-      await screen.findByText(verified.message, {}, { timeout: 2000 }),
-    ).toBeInTheDocument();
+    await flushVerification();
+    expect(screen.getByText(verified.message)).toBeInTheDocument();
     expect(m.verify).toHaveBeenCalledWith({
       projectId: "project",
       baseUrl: "https://gitea.example",
@@ -226,22 +236,22 @@ describe("Gitea setup", () => {
       repositoryOwner: "my_org",
       repositoryName: "repo",
     });
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: "settings:codeHosting.connectRepository",
-      }),
-    );
-    await waitFor(() =>
-      expect(m.create).toHaveBeenCalledWith({
-        projectId: "project",
-        data: {
-          baseUrl: "https://gitea.example",
-          accessToken: "token",
-          repositoryOwner: "my_org",
-          repositoryName: "repo",
-        },
-      }),
-    );
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: "settings:codeHosting.connectRepository",
+        }),
+      );
+    });
+    expect(m.create).toHaveBeenCalledWith({
+      projectId: "project",
+      data: {
+        baseUrl: "https://gitea.example",
+        accessToken: "token",
+        repositoryOwner: "my_org",
+        repositoryName: "repo",
+      },
+    });
     expect(m.verify).toHaveBeenCalledTimes(1);
   });
 });
@@ -250,8 +260,10 @@ it.each(["create", "update"] as const)(
   "disables verified Gitea imports without %s permission",
   async (permission) => {
     permissions[permission] = false;
+    vi.useFakeTimers();
     render(<GiteaIntegrationSettings projectId="project" />);
-    await screen.findByText(verified.message, {}, { timeout: 2000 });
+    await flushVerification();
+    expect(screen.getByText(verified.message)).toBeInTheDocument();
     expect(
       screen.getByRole("button", {
         name: "settings:codeHosting.importIssues",
