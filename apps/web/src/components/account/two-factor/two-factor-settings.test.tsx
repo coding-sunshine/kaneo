@@ -17,11 +17,12 @@ import { TwoFactorSettings } from "./two-factor-settings";
 
 let session: { user: { twoFactorEnabled: boolean } };
 let accounts: { providerId: string }[];
-const { generateBackupCodes } = vi.hoisted(() => ({
+const { generateBackupCodes, disable } = vi.hoisted(() => ({
   generateBackupCodes: vi.fn(async () => ({
     data: { backupCodes: ["code-1"] },
     error: null,
   })),
+  disable: vi.fn(async () => ({ data: { status: true }, error: null })),
 }));
 
 vi.mock("react-i18next", () => ({
@@ -35,7 +36,7 @@ vi.mock("@/hooks/queries/use-list-accounts", () => ({
 vi.mock("@/lib/auth-client", () => ({
   authClient: {
     useSession: () => ({ data: session, refetch: vi.fn() }),
-    twoFactor: { generateBackupCodes },
+    twoFactor: { generateBackupCodes, disable },
   },
 }));
 
@@ -99,6 +100,39 @@ describe("TwoFactorSettings", () => {
       expect(generateBackupCodes).toHaveBeenCalledWith({
         password: "secret password",
         code: "123456",
+      }),
+    );
+  });
+
+  it("asks for a current code before turning two-factor off", async () => {
+    session.user.twoFactorEnabled = true;
+    render(<TwoFactorSettings />);
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "settings:securityPage.twoFactor.turnOff",
+      }),
+    );
+    fireEvent.change(
+      await screen.findByLabelText("settings:securityPage.currentPassword"),
+      { target: { value: "secret password" } },
+    );
+    const confirm = screen
+      .getAllByRole("button", {
+        name: "settings:securityPage.twoFactor.turnOff",
+      })
+      .at(-1);
+    expect(confirm).toBeDisabled();
+
+    fireEvent.change(
+      screen.getByLabelText("settings:securityPage.twoFactor.currentCode"),
+      { target: { value: "654321" } },
+    );
+    expect(confirm).toBeEnabled();
+    fireEvent.click(confirm as HTMLElement);
+    await waitFor(() =>
+      expect(disable).toHaveBeenCalledWith({
+        password: "secret password",
+        code: "654321",
       }),
     );
   });

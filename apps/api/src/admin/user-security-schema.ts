@@ -33,6 +33,15 @@ export const adminRevokedApiKeySchema = z
   .object({ revoked: z.number().int() })
   .openapi("AdminRevokedApiKey");
 
+export const adminTwoFactorResetBodySchema = z
+  .object({
+    code: z.string().min(1).max(64).openapi({
+      description:
+        "A current code from the caller's own authenticator app, or one of their recovery codes (used up).",
+    }),
+  })
+  .openapi("AdminTwoFactorResetBody");
+
 export const adminTwoFactorResetSchema = z
   .object({ twoFactorEnabled: z.literal(false) })
   .openapi("AdminTwoFactorReset");

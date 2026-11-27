@@ -8,14 +8,20 @@ import {
 } from "@/hooks/queries/admin/use-admin-users";
 import { toast } from "@/lib/toast";
 
+type ResetTwoFactorInput = {
+  user: Pick<AdminUser, "id" | "email">;
+  /** The admin's own authenticator or recovery code. */
+  code: string;
+};
+
 function useResetAdminUserTwoFactor() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (user: Pick<AdminUser, "id" | "email">) =>
-      resetAdminUserTwoFactor(user.id),
-    onSuccess: (_result, user) => {
+    mutationFn: ({ user, code }: ResetTwoFactorInput) =>
+      resetAdminUserTwoFactor(user.id, code),
+    onSuccess: (_result, { user }) => {
       toast.success(
         t("settings:adminUsers.toast.twoFactorReset", { email: user.email }),
         { icon: ShieldOffIcon },

@@ -757,7 +757,8 @@
 				"resetTwoFactor": {
 					"title": "Reset two-factor sign-in?",
 					"description": "{{name}} can sign in with only their password until they turn two-factor on again. Their authenticator app, recovery codes and remembered devices stop working. Do this only after confirming who is asking.",
-					"action": "Reset two-factor"
+					"action": "Reset two-factor",
+					"codeLabel": "Your own authenticator code or a recovery code"
 				}
 			},
 			"toast": {

@@ -33,8 +33,11 @@ export function TwoFactorSettings() {
   const hasPassword =
     accounts?.some((account) => account.providerId === "credential") ?? false;
 
-  const disable = async (password: string) => {
-    const result = await authClient.twoFactor.disable({ password });
+  const disable = async (password: string, code: string) => {
+    // As for new recovery codes, the API wants a current code; the client's
+    // body type predates that field.
+    const body = { password, code };
+    const result = await authClient.twoFactor.disable(body);
     if (result.error) {
       return (
         result.error.message || t("settings:securityPage.twoFactor.failed")
@@ -141,6 +144,7 @@ export function TwoFactorSettings() {
         description={t("settings:securityPage.twoFactor.disableDescription")}
         confirmLabel={t("settings:securityPage.twoFactor.turnOff")}
         destructive
+        askCode
         onConfirm={disable}
       />
       <TwoFactorPasswordDialog

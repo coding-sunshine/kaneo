@@ -18,9 +18,11 @@ import revokeUserApiKey from "./controllers/revoke-user-api-key";
 import revokeUserSession from "./controllers/revoke-user-session";
 import revokeUserSessions from "./controllers/revoke-user-sessions";
 import resetUserTwoFactor from "./controllers/reset-user-two-factor";
+import { requireOwnTwoFactorCode } from "./require-own-two-factor-code";
 import {
   adminApiKeyListSchema,
   adminRevokedApiKeySchema,
+  adminTwoFactorResetBodySchema,
   adminTwoFactorResetSchema,
   adminUserApiKeyParam,
   adminUserParam,
@@ -138,22 +140,32 @@ const revokeApiKeyRoute = createRoute({
 });
 
 const resetTwoFactorRoute = createRoute({
-  method: "delete",
+  method: "post",
   operationId: "resetAdminUserTwoFactor",
-  path: "/users/{userId}/two-factor",
+  path: "/users/{userId}/two-factor/reset",
   tags: ["Admin"],
   summary: "Reset a user's two-factor",
   description:
-    "Turn off another user's two-factor sign-in, for example after they lost their device: their authenticator secret, recovery codes and remembered devices are removed, and the reset is recorded in the audit log. Sessions are kept. If the instance requires two-factor, the next sign-in asks them to set it up again. Your own two-factor can't be reset here. Requires the `users:credentials` instance permission; API keys are rejected.",
+    "Turn off another user's two-factor sign-in, for example after they lost their device: their authenticator secret, recovery codes and remembered devices are removed, and the reset is recorded in the audit log. Sessions are kept. If the instance requires two-factor, the next sign-in asks them to set it up again. You must have two-factor on yourself and send a current code from your authenticator app or one of your recovery codes; a session alone is refused. Your own two-factor can't be reset here. Requires the `users:credentials` instance permission; API keys are rejected.",
   middleware: [
     requireUserSession,
     requireInstancePermission("users:credentials"),
     requireManageableUser,
   ] as const,
-  request: { params: adminUserParam },
+  request: {
+    params: adminUserParam,
+    body: {
+      required: true,
+      content: {
+        "application/json": { schema: adminTwoFactorResetBodySchema },
+      },
+    },
+  },
   responses: {
     200: jsonResponse("Two-factor is off", adminTwoFactorResetSchema),
-    403: forbidden,
+    403: errorResponse(
+      "The caller lacks the instance permission, uses an API key, has no two-factor of their own, or sent a missing or wrong code",
+    ),
     404: errorResponse("User not found"),
     409: errorResponse("The user is the caller"),
   },
@@ -198,12 +210,13 @@ export const adminUserSecurityRoutes = apiRouter()
       200,
     ),
   )
-  .openapi(resetTwoFactorRoute, async (c) =>
-    c.json(
+  .openapi(resetTwoFactorRoute, async (c) => {
+    await requireOwnTwoFactorCode(c, c.req.valid("json").code);
+    return c.json(
       await resetUserTwoFactor(
         c.req.valid("param").userId,
         adminAuditRequest(c),
       ),
       200,
-    ),
-  );
+    );
+  });

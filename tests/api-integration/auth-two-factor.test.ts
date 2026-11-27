@@ -448,6 +448,19 @@ async function passkeySignIn(userId: string, userVerified: boolean) {
   return { response, jar };
 }
 
+/** An instance administrator with two-factor on, and an admin API client. */
+async function adminWithTwoFactor() {
+  const admin = await signInWithRole(app, "admin");
+  // Turning two-factor on replaces the session.
+  const jar = new CookieJar(admin.cookies);
+  const secrets = await enableTwoFactor(jar);
+  return {
+    userId: admin.userId,
+    ...secrets,
+    api: adminApi(app, { cookie: jar.header() }),
+  };
+}
+
 describe("API integration: two-factor secrets, passkeys and resets", () => {
   // The settings cache outlives the database reset between tests.
   beforeEach(() => invalidateInstanceSettings());
@@ -525,19 +538,57 @@ describe("API integration: two-factor secrets, passkeys and resets", () => {
     expect(await sessionUserId(jar)).toBe(user.userId);
   });
 
+  it("asks for a current code before turning two-factor off", async () => {
+    const user = await userWithTwoFactor();
+    const bare = await authCall("/two-factor/disable", user.jar, {
+      password: PASSWORD,
+    });
+    expect(bare.status).toBe(403);
+    expect(await bare.json()).toMatchObject({
+      code: "TWO_FACTOR_CODE_REQUIRED",
+    });
+
+    const wrong = await authCall("/two-factor/disable", user.jar, {
+      password: PASSWORD,
+      code: wrongCode(user.totpURI),
+    });
+    expect(wrong.status).toBe(403);
+
+    const fresh = await authCall("/two-factor/disable", user.jar, {
+      password: PASSWORD,
+      code: totpCode(user.totpURI),
+    });
+    expect(fresh.status, await fresh.clone().text()).toBe(200);
+    const [row] = await db
+      .select({ enabled: schema.userTable.twoFactorEnabled })
+      .from(schema.userTable)
+      .where(eq(schema.userTable.id, user.userId));
+    expect(row?.enabled).toBe(false);
+  });
+
   it("lets only instance administrators reset someone's two-factor", async () => {
     const user = await userWithTwoFactor();
-    const admin = await signInWithRole(app, "admin");
+    const admin = await adminWithTwoFactor();
     const member = await signInWithRole(app, "user");
-    const path = `/users/${user.userId}/two-factor`;
+    const path = `/users/${user.userId}/two-factor/reset`;
 
-    expect((await member.api(path, { method: "DELETE" })).status).toBe(403);
+    expect(
+      (
+        await member.api(path, {
+          method: "POST",
+          body: { code: totpCode(admin.totpURI) },
+        })
+      ).status,
+    ).toBe(403);
     expect((await passwordSignIn(user.email)).response.status).toBe(200);
     const stillOn = await passwordSignIn(user.email);
     expect(await sessionUserId(stillOn.jar)).toBeNull();
 
-    const reset = await admin.api(path, { method: "DELETE" });
-    expect(reset.status).toBe(200);
+    const reset = await admin.api(path, {
+      method: "POST",
+      body: { code: totpCode(admin.totpURI) },
+    });
+    expect(reset.status, await reset.clone().text()).toBe(200);
     expect(await reset.json()).toEqual({ twoFactorEnabled: false });
     expect(
       await db
@@ -555,15 +606,82 @@ describe("API integration: two-factor secrets, passkeys and resets", () => {
     expect(entry).toMatchObject({ targetId: user.userId });
   });
 
-  it("does not let an administrator reset their own two-factor", async () => {
-    const admin = await signInWithRole(app, "admin");
-    // Turning two-factor on replaces the session.
-    const jar = new CookieJar(admin.cookies);
-    await enableTwoFactor(jar);
-    const api = adminApi(app, { cookie: jar.header() });
-    const response = await api(`/users/${admin.userId}/two-factor`, {
-      method: "DELETE",
+  it("refuses a reset from a valid admin session without the admin's own code", async () => {
+    const user = await userWithTwoFactor();
+    const admin = await adminWithTwoFactor();
+    const path = `/users/${user.userId}/two-factor/reset`;
+
+    const bare = await admin.api(path, { method: "POST", body: {} });
+    expect(bare.status).toBe(400);
+    const blank = await admin.api(path, {
+      method: "POST",
+      body: { code: " " },
     });
+    expect(blank.status).toBe(403);
+    expect(await blank.json()).toMatchObject({
+      code: "TWO_FACTOR_CODE_REQUIRED",
+    });
+    const wrong = await admin.api(path, {
+      method: "POST",
+      body: { code: wrongCode(admin.totpURI) },
+    });
+    expect(wrong.status).toBe(403);
+    expect(await wrong.json()).toMatchObject({
+      code: "INVALID_TWO_FACTOR_CODE",
+    });
+    // The person's own code is not the admin's.
+    const theirs = await admin.api(path, {
+      method: "POST",
+      body: { code: totpCode(user.totpURI) },
+    });
+    expect(theirs.status).toBe(403);
+
+    const [row] = await db
+      .select({ enabled: schema.userTable.twoFactorEnabled })
+      .from(schema.userTable)
+      .where(eq(schema.userTable.id, user.userId));
+    expect(row?.enabled).toBe(true);
+  });
+
+  it("refuses a reset from an administrator without two-factor", async () => {
+    const user = await userWithTwoFactor();
+    const admin = await signInWithRole(app, "admin");
+    const response = await admin.api(`/users/${user.userId}/two-factor/reset`, {
+      method: "POST",
+      body: { code: "123456" },
+    });
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({
+      code: "OWN_TWO_FACTOR_REQUIRED",
+    });
+  });
+
+  it("accepts one of the administrator's recovery codes, once", async () => {
+    const admin = await adminWithTwoFactor();
+    const first = await userWithTwoFactor();
+    const second = await userWithTwoFactor();
+    const [recovery] = admin.backupCodes;
+    const once = await admin.api(`/users/${first.userId}/two-factor/reset`, {
+      method: "POST",
+      body: { code: recovery },
+    });
+    expect(once.status, await once.clone().text()).toBe(200);
+    const again = await admin.api(`/users/${second.userId}/two-factor/reset`, {
+      method: "POST",
+      body: { code: recovery },
+    });
+    expect(again.status).toBe(403);
+  });
+
+  it("does not let an administrator reset their own two-factor", async () => {
+    const admin = await adminWithTwoFactor();
+    const response = await admin.api(
+      `/users/${admin.userId}/two-factor/reset`,
+      {
+        method: "POST",
+        body: { code: totpCode(admin.totpURI) },
+      },
+    );
     expect(response.status).toBe(409);
     const [user] = await db
       .select({ enabled: schema.userTable.twoFactorEnabled })
@@ -573,10 +691,11 @@ describe("API integration: two-factor secrets, passkeys and resets", () => {
   });
 
   it("returns 404 for a user that does not exist", async () => {
-    const admin = await signInWithRole(app, "admin");
-    const response = await admin.api(`/users/user-${randomUUID()}/two-factor`, {
-      method: "DELETE",
-    });
+    const admin = await adminWithTwoFactor();
+    const response = await admin.api(
+      `/users/user-${randomUUID()}/two-factor/reset`,
+      { method: "POST", body: { code: totpCode(admin.totpURI) } },
+    );
     expect(response.status).toBe(404);
   });
 });

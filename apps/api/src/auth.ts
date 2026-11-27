@@ -72,6 +72,7 @@ import { assertPasskeyIsSecondFactor } from "./two-factor/passkey-second-factor"
 import {
   FRESH_CODE_PATHS,
   requireFreshCode,
+  verifyOwnCode,
 } from "./two-factor/require-fresh-code";
 import {
   needsTwoFactorSetup,
@@ -1138,11 +1139,9 @@ export const auth = betterAuth({
             (viewer?.user as { twoFactorEnabled?: boolean } | undefined)
               ?.twoFactorEnabled
           ) {
-            await requireFreshCode(ctx.body?.code, (code) =>
-              auth.api.verifyTOTP({
-                body: { code },
-                headers: ctx.headers ?? new Headers(),
-              }),
+            await requireFreshCode(
+              ctx.body?.code,
+              verifyOwnCode(auth.api, ctx.headers ?? new Headers()),
             );
           }
         }

@@ -12381,6 +12381,20 @@
         "required": [
           "twoFactorEnabled"
         ]
+      },
+      "AdminTwoFactorResetBody": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "A current code from the caller's own authenticator app, or one of their recovery codes (used up)."
+          }
+        },
+        "required": [
+          "code"
+        ]
       }
     },
     "parameters": {}
@@ -55766,14 +55780,14 @@
         }
       }
     },
-    "/admin/users/{userId}/two-factor": {
-      "delete": {
+    "/admin/users/{userId}/two-factor/reset": {
+      "post": {
         "operationId": "resetAdminUserTwoFactor",
         "tags": [
           "Admin"
         ],
         "summary": "Reset a user's two-factor",
-        "description": "Turn off another user's two-factor sign-in, for example after they lost their device: their authenticator secret, recovery codes and remembered devices are removed, and the reset is recorded in the audit log. Sessions are kept. If the instance requires two-factor, the next sign-in asks them to set it up again. Your own two-factor can't be reset here. Requires the `users:credentials` instance permission; API keys are rejected.",
+        "description": "Turn off another user's two-factor sign-in, for example after they lost their device: their authenticator secret, recovery codes and remembered devices are removed, and the reset is recorded in the audit log. Sessions are kept. If the instance requires two-factor, the next sign-in asks them to set it up again. You must have two-factor on yourself and send a current code from your authenticator app or one of your recovery codes; a session alone is refused. Your own two-factor can't be reset here. Requires the `users:credentials` instance permission; API keys are rejected.",
         "parameters": [
           {
             "schema": {
@@ -55786,6 +55800,16 @@
             "in": "path"
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminTwoFactorResetBody"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Two-factor is off",
@@ -55808,7 +55832,7 @@
             }
           },
           "403": {
-            "description": "The caller lacks the instance permission or is authenticated with an API key",
+            "description": "The caller lacks the instance permission, uses an API key, has no two-factor of their own, or sent a missing or wrong code",
             "content": {
               "application/json": {
                 "schema": {
