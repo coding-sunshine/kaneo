@@ -5358,6 +5358,10 @@
 				"updated": "更新了任務",
 				"empty": "過去 30 天沒有任何動態。",
 				"loadError": "無法載入動態。"
+			},
+			"doneThisWeek": {
+				"empty": "Nothing finished yet this week.",
+				"title": "Done this week"
 			}
 		},
 		"myWork": {

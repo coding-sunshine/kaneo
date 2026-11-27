@@ -5358,6 +5358,10 @@
 			"week": {
 				"more_other": "还有 {{count}} 个",
 				"truncated": "本周预览只显示前 {{shown}} 个指派给你的任务（共 {{total}} 个）。"
+			},
+			"doneThisWeek": {
+				"empty": "Nothing finished yet this week.",
+				"title": "Done this week"
 			}
 		},
 		"myTasks": {

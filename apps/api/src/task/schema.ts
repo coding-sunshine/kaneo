@@ -50,6 +50,14 @@ export const assignedTasksQuery = z.object({
   }),
 });
 
+export const doneTasksQuery = z.object({
+  workspaceId: z.string().min(1),
+  since: z.iso.datetime({ offset: true }).openapi({
+    description:
+      "Start of the caller's week as an ISO 8601 timestamp; tasks completed at or after it are listed.",
+  }),
+});
+
 const priority = z.enum(VALID_PRIORITIES);
 
 // Required object of optional filters: a RouteParameter cannot itself be optional.

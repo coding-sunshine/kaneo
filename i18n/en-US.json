@@ -5449,6 +5449,10 @@
 				"assigned_other": "{{count}} assigned to you",
 				"viewAll": "View all"
 			},
+			"doneThisWeek": {
+				"title": "Done this week",
+				"empty": "Nothing finished yet this week."
+			},
 			"projects": {
 				"title": "Your teams",
 				"all": "All teams",

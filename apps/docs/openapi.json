@@ -1468,6 +1468,69 @@
           "labels"
         ]
       },
+      "DoneTasks": {
+        "type": "object",
+        "properties": {
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DoneTask"
+            }
+          }
+        },
+        "required": [
+          "tasks"
+        ]
+      },
+      "DoneTask": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "number": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "completedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "projectSlug": {
+            "type": "string"
+          },
+          "projectIcon": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "number",
+          "title",
+          "completedAt",
+          "projectName",
+          "projectSlug",
+          "projectIcon"
+        ]
+      },
       "BoardResponse": {
         "type": "object",
         "properties": {
@@ -16908,6 +16971,93 @@
           },
           "400": {
             "description": "Invalid workspace ID or query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing project:read or task:read permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/task/done": {
+      "get": {
+        "operationId": "listDoneTasks",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "List tasks I completed",
+        "description": "Get the tasks the caller moved into a completed status at or after `since`, across the workspace projects they can open, newest first. A task counts for whoever completed it, not its assignee, and leaves the list when reopened. At most 50 tasks are returned.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Start of the caller's week as an ISO 8601 timestamp; tasks completed at or after it are listed."
+            },
+            "required": true,
+            "description": "Start of the caller's week as an ISO 8601 timestamp; tasks completed at or after it are listed.",
+            "name": "since",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tasks the caller completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoneTasks"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid workspace ID or since timestamp",
             "content": {
               "application/json": {
                 "schema": {

@@ -41,6 +41,7 @@ import deleteTask from "./controllers/delete-task";
 import duplicateTask from "./controllers/duplicate-task";
 import exportTasks from "./controllers/export-tasks";
 import getAssignedTasks from "./controllers/get-assigned-tasks";
+import getDoneTasks from "./controllers/get-done-tasks";
 import getTaskByTicketId from "./controllers/get-task-by-ticket-id";
 import getTask from "./controllers/get-task";
 import getTasks from "./controllers/get-tasks";
@@ -88,6 +89,7 @@ import {
   bulkResultSchema,
   descriptionMatchesSchema,
   descriptionPageSchema,
+  doneTasksSchema,
   finalizedAssetSchema,
   imageUploadSchema,
   moveTaskResultSchema,
@@ -105,6 +107,7 @@ import {
   createTaskBody,
   descriptionMatchesQuery,
   descriptionPageQuery,
+  doneTasksQuery,
   duplicateTaskBody,
   finalizeImageUploadBody,
   imageUploadBody,
@@ -147,6 +150,27 @@ const listAssignedTasksRoute = createRoute({
   responses: {
     200: jsonResponse("Open tasks assigned to the caller", assignedTasksSchema),
     400: errorResponse("Invalid workspace ID or query parameters"),
+    403: errorResponse("Missing project:read or task:read permission"),
+    404: errorResponse("Workspace not found"),
+  },
+});
+
+const listDoneTasksRoute = createRoute({
+  method: "get",
+  operationId: "listDoneTasks",
+  path: "/done",
+  tags: ["Tasks"],
+  summary: "List tasks I completed",
+  description:
+    "Get the tasks the caller moved into a completed status at or after `since`, across the workspace projects they can open, newest first. A task counts for whoever completed it, not its assignee, and leaves the list when reopened. At most 50 tasks are returned.",
+  middleware: [
+    workspaceAccess.fromQuery(),
+    requireWorkspacePermission({ project: ["read"], task: ["read"] }),
+  ] as const,
+  request: { query: doneTasksQuery },
+  responses: {
+    200: jsonResponse("Tasks the caller completed", doneTasksSchema),
+    400: errorResponse("Invalid workspace ID or since timestamp"),
     403: errorResponse("Missing project:read or task:read permission"),
     404: errorResponse("Workspace not found"),
   },
@@ -1127,6 +1151,13 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
         countOnly === "true",
         tab,
       ),
+      200,
+    );
+  })
+  .openapi(listDoneTasksRoute, async (c) => {
+    const { workspaceId, since } = c.req.valid("query");
+    return c.json(
+      await getDoneTasks(workspaceId, c.get("userId"), new Date(since)),
       200,
     );
   })

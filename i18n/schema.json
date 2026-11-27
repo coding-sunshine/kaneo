@@ -22686,6 +22686,19 @@
 							},
 							"required": ["title", "viewAll"]
 						},
+						"doneThisWeek": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"empty": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "empty"]
+						},
 						"projects": {
 							"type": "object",
 							"additionalProperties": false,
@@ -22755,6 +22768,7 @@
 						"newTask",
 						"week",
 						"upNext",
+						"doneThisWeek",
 						"projects",
 						"activity"
 					]
