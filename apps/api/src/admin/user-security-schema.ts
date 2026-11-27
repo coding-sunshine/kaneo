@@ -32,3 +32,7 @@ export const adminApiKeyListSchema = z
 export const adminRevokedApiKeySchema = z
   .object({ revoked: z.number().int() })
   .openapi("AdminRevokedApiKey");
+
+export const adminTwoFactorResetSchema = z
+  .object({ twoFactorEnabled: z.literal(false) })
+  .openapi("AdminTwoFactorReset");

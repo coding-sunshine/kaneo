@@ -45,8 +45,11 @@ export function TwoFactorSettings() {
     return null;
   };
 
-  const regenerate = async (password: string) => {
-    const result = await authClient.twoFactor.generateBackupCodes({ password });
+  const regenerate = async (password: string, code: string) => {
+    // The API also wants a current code once two-factor is on; the client's
+    // body type predates that field.
+    const body = { password, code };
+    const result = await authClient.twoFactor.generateBackupCodes(body);
     if (result.error || !result.data) {
       return (
         result.error?.message || t("settings:securityPage.twoFactor.failed")
@@ -146,6 +149,7 @@ export function TwoFactorSettings() {
         title={t("settings:securityPage.twoFactor.regenerateTitle")}
         description={t("settings:securityPage.twoFactor.regenerateDescription")}
         confirmLabel={t("settings:securityPage.twoFactor.newCodes")}
+        askCode
         onConfirm={regenerate}
       />
 

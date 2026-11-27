@@ -7,6 +7,7 @@ import {
   MailIcon,
   MonitorSmartphoneIcon,
   PencilIcon,
+  ShieldOffIcon,
   Trash2Icon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -35,6 +36,7 @@ const ACTION_ICONS: Record<UserActionType, LucideIcon> = {
   sendPasswordReset: KeyRoundIcon,
   sendVerification: MailIcon,
   markEmailVerified: BadgeCheckIcon,
+  resetTwoFactor: ShieldOffIcon,
   deactivate: BanIcon,
   reactivate: CheckCircle2Icon,
   delete: Trash2Icon,

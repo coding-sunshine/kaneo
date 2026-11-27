@@ -712,6 +712,7 @@
 				"sendPasswordReset": "Send password reset link",
 				"sendVerification": "Resend verification email",
 				"markEmailVerified": "Mark email as verified",
+				"resetTwoFactor": "Reset two-factor sign-in",
 				"security": "Sessions & API keys"
 			},
 			"edit": {
@@ -752,6 +753,11 @@
 				"markEmailVerified": {
 					"title": "Mark this email as verified?",
 					"action": "Mark as verified"
+				},
+				"resetTwoFactor": {
+					"title": "Reset two-factor sign-in?",
+					"description": "{{name}} can sign in with only their password until they turn two-factor on again. Their authenticator app, recovery codes and remembered devices stop working. Do this only after confirming who is asking.",
+					"action": "Reset two-factor"
 				}
 			},
 			"toast": {
@@ -769,6 +775,7 @@
 				"passwordResetSent": "Password reset link sent to {{email}}",
 				"verificationSent": "Verification email sent to {{email}}",
 				"emailVerified": "Email marked as verified",
+				"twoFactorReset": "Two-factor sign-in reset for {{email}}",
 				"emailError": "The email could not be sent",
 				"avatarChanged": "Profile picture updated",
 				"avatarRemoved": "Profile picture removed",
@@ -996,6 +1003,7 @@
 				"userPasswordResetSent": "Sent password reset link",
 				"userVerificationSent": "Sent verification email",
 				"userEmailVerified": "Marked email as verified",
+				"userTwoFactorReset": "Reset two-factor sign-in",
 				"userAvatarChanged": "Changed profile picture",
 				"userAvatarRemoved": "Removed profile picture",
 				"apiKeyRevoked": "Revoked an API key",
@@ -2543,6 +2551,7 @@
 				"disableDescription": "Signing in will only need your password or email again.",
 				"regenerateTitle": "Make new recovery codes?",
 				"regenerateDescription": "Your old recovery codes stop working.",
+				"currentCode": "Code from your authenticator app",
 				"codesTitle": "Recovery codes",
 				"codesHint": "Keep these somewhere safe. Each one signs you in once if you lose your authenticator app.",
 				"copyCodes": "Copy codes",

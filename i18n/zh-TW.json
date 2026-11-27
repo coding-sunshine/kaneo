@@ -1689,7 +1689,8 @@
 				"markEmailVerified": "Mark email as verified",
 				"sendPasswordReset": "Send password reset link",
 				"sendVerification": "Resend verification email",
-				"security": "Sessions & API keys"
+				"security": "Sessions & API keys",
+				"resetTwoFactor": "Reset two-factor sign-in"
 			},
 			"clearSearch": "清除搜尋",
 			"columns": {
@@ -1728,6 +1729,11 @@
 				"sendVerification": {
 					"action": "Send email",
 					"title": "Resend the verification email?"
+				},
+				"resetTwoFactor": {
+					"action": "Reset two-factor",
+					"description": "{{name}} can sign in with only their password until they turn two-factor on again. Their authenticator app, recovery codes and remembered devices stop working. Do this only after confirming who is asking.",
+					"title": "Reset two-factor sign-in?"
 				}
 			},
 			"directoryTitle": "所有使用者",
@@ -1780,7 +1786,8 @@
 				"emailError": "The email could not be sent",
 				"emailVerified": "Email marked as verified",
 				"passwordResetSent": "Password reset link sent to {{email}}",
-				"verificationSent": "Verification email sent to {{email}}"
+				"verificationSent": "Verification email sent to {{email}}",
+				"twoFactorReset": "Two-factor sign-in reset for {{email}}"
 			},
 			"you": "你",
 			"create": {
@@ -1927,7 +1934,8 @@
 				"turnOff": "Turn off",
 				"turnOn": "Turn on",
 				"verify": "Verify",
-				"wrongCode": "That code is not right. Try again."
+				"wrongCode": "That code is not right. Try again.",
+				"currentCode": "Code from your authenticator app"
 			}
 		},
 		"gitlabIntegration": {
@@ -2628,7 +2636,8 @@
 				"webhookCreated": "Created webhook",
 				"webhookDeleted": "Deleted webhook",
 				"webhookSecretRotated": "Rotated webhook secret",
-				"webhookUpdated": "Updated webhook"
+				"webhookUpdated": "Updated webhook",
+				"userTwoFactorReset": "Reset two-factor sign-in"
 			},
 			"categories": {
 				"all": "All actions",

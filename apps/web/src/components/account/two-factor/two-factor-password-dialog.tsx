@@ -3,6 +3,10 @@ import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/components/settings/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  TWO_FACTOR_CODE_LENGTH,
+  TwoFactorCodeInput,
+} from "./two-factor-code-input";
 
 type TwoFactorPasswordDialogProps = {
   open: boolean;
@@ -11,11 +15,13 @@ type TwoFactorPasswordDialogProps = {
   description: string;
   confirmLabel: string;
   destructive?: boolean;
+  /** Also ask for a current authenticator code. */
+  askCode?: boolean;
   /** Resolves to an error message, or null when the action worked. */
-  onConfirm: (password: string) => Promise<string | null>;
+  onConfirm: (password: string, code: string) => Promise<string | null>;
 };
 
-/** Asks for the account password before a two-factor change. */
+/** Asks for the account password, and a code if needed, before a two-factor change. */
 export function TwoFactorPasswordDialog({
   open,
   onOpenChange,
@@ -23,16 +29,19 @@ export function TwoFactorPasswordDialog({
   description,
   confirmLabel,
   destructive = false,
+  askCode = false,
   onConfirm,
 }: TwoFactorPasswordDialogProps) {
   const { t } = useTranslation();
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const close = (next: boolean) => {
     if (!next) {
       setPassword("");
+      setCode("");
       setError(null);
     }
     onOpenChange(next);
@@ -40,7 +49,7 @@ export function TwoFactorPasswordDialog({
 
   const confirm = async () => {
     setPending(true);
-    const message = await onConfirm(password);
+    const message = await onConfirm(password, code);
     setPending(false);
     if (message) setError(message);
     else close(false);
@@ -55,7 +64,9 @@ export function TwoFactorPasswordDialog({
       confirmLabel={confirmLabel}
       pending={pending}
       destructive={destructive}
-      confirmDisabled={!password}
+      confirmDisabled={
+        !password || (askCode && code.length < TWO_FACTOR_CODE_LENGTH)
+      }
       onConfirm={confirm}
     >
       <div className="flex flex-col gap-2">
@@ -74,6 +85,23 @@ export function TwoFactorPasswordDialog({
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? "two-factor-password-error" : undefined}
         />
+        {askCode ? (
+          <>
+            <Label htmlFor="two-factor-current-code">
+              {t("settings:securityPage.twoFactor.currentCode")}
+            </Label>
+            <TwoFactorCodeInput
+              id="two-factor-current-code"
+              value={code}
+              onChange={(value) => {
+                setCode(value);
+                setError(null);
+              }}
+              autoFocus={false}
+              errorId={error ? "two-factor-password-error" : undefined}
+            />
+          </>
+        ) : null}
         {error ? (
           <p
             id="two-factor-password-error"

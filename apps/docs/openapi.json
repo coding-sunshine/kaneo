@@ -10815,6 +10815,9 @@
           "emailVerified": {
             "type": "boolean"
           },
+          "twoFactorEnabled": {
+            "type": "boolean"
+          },
           "isAnonymous": {
             "type": "boolean"
           },
@@ -10875,6 +10878,7 @@
           "name",
           "email",
           "emailVerified",
+          "twoFactorEnabled",
           "isAnonymous",
           "image",
           "createdAt",
@@ -12264,6 +12268,20 @@
         },
         "required": [
           "revoked"
+        ]
+      },
+      "AdminTwoFactorReset": {
+        "type": "object",
+        "properties": {
+          "twoFactorEnabled": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          }
+        },
+        "required": [
+          "twoFactorEnabled"
         ]
       }
     },
@@ -55201,6 +55219,73 @@
           },
           "404": {
             "description": "User or API key not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/admin/users/{userId}/two-factor": {
+      "delete": {
+        "operationId": "resetAdminUserTwoFactor",
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Reset a user's two-factor",
+        "description": "Turn off a user's two-factor sign-in, for example after they lost their device: their authenticator secret, recovery codes and remembered devices are removed, and the reset is recorded in the audit log. Sessions are kept. If the instance requires two-factor, the next sign-in asks them to set it up again. Requires the `users:credentials` instance permission; API keys are rejected.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "required": true,
+            "name": "userId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Two-factor is off",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminTwoFactorReset"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the instance permission or is authenticated with an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
             "content": {
               "application/json": {
                 "schema": {

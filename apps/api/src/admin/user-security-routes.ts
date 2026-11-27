@@ -17,9 +17,11 @@ import listUserSessions from "./controllers/list-user-sessions";
 import revokeUserApiKey from "./controllers/revoke-user-api-key";
 import revokeUserSession from "./controllers/revoke-user-session";
 import revokeUserSessions from "./controllers/revoke-user-sessions";
+import resetUserTwoFactor from "./controllers/reset-user-two-factor";
 import {
   adminApiKeyListSchema,
   adminRevokedApiKeySchema,
+  adminTwoFactorResetSchema,
   adminUserApiKeyParam,
   adminUserParam,
   adminUserSessionParam,
@@ -135,6 +137,27 @@ const revokeApiKeyRoute = createRoute({
   },
 });
 
+const resetTwoFactorRoute = createRoute({
+  method: "delete",
+  operationId: "resetAdminUserTwoFactor",
+  path: "/users/{userId}/two-factor",
+  tags: ["Admin"],
+  summary: "Reset a user's two-factor",
+  description:
+    "Turn off a user's two-factor sign-in, for example after they lost their device: their authenticator secret, recovery codes and remembered devices are removed, and the reset is recorded in the audit log. Sessions are kept. If the instance requires two-factor, the next sign-in asks them to set it up again. Requires the `users:credentials` instance permission; API keys are rejected.",
+  middleware: [
+    requireUserSession,
+    requireInstancePermission("users:credentials"),
+    requireManageableUser,
+  ] as const,
+  request: { params: adminUserParam },
+  responses: {
+    200: jsonResponse("Two-factor is off", adminTwoFactorResetSchema),
+    403: forbidden,
+    404: errorResponse("User not found"),
+  },
+});
+
 export const adminUserSecurityRoutes = apiRouter()
   .openapi(listSessionsRoute, async (c) =>
     c.json(
@@ -171,6 +194,15 @@ export const adminUserSecurityRoutes = apiRouter()
   .openapi(revokeApiKeyRoute, async (c) =>
     c.json(
       await revokeUserApiKey(c.req.valid("param"), adminAuditRequest(c)),
+      200,
+    ),
+  )
+  .openapi(resetTwoFactorRoute, async (c) =>
+    c.json(
+      await resetUserTwoFactor(
+        c.req.valid("param").userId,
+        adminAuditRequest(c),
+      ),
       200,
     ),
   );

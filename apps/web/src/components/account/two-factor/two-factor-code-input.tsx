@@ -17,6 +17,7 @@ type TwoFactorCodeInputProps = {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  autoFocus?: boolean;
   errorId?: string;
 };
 
@@ -25,6 +26,7 @@ export function TwoFactorCodeInput({
   value,
   onChange,
   disabled = false,
+  autoFocus = true,
   errorId,
 }: TwoFactorCodeInputProps) {
   return (
@@ -37,7 +39,7 @@ export function TwoFactorCodeInput({
       autoComplete="one-time-code"
       inputMode="numeric"
       name="one-time-code"
-      autoFocus
+      autoFocus={autoFocus}
       disabled={disabled}
       aria-invalid={errorId ? true : undefined}
       aria-describedby={errorId}

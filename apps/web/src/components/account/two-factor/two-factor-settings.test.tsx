@@ -1,4 +1,10 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import {
   afterEach,
   beforeEach,
@@ -11,6 +17,12 @@ import { TwoFactorSettings } from "./two-factor-settings";
 
 let session: { user: { twoFactorEnabled: boolean } };
 let accounts: { providerId: string }[];
+const { generateBackupCodes } = vi.hoisted(() => ({
+  generateBackupCodes: vi.fn(async () => ({
+    data: { backupCodes: ["code-1"] },
+    error: null,
+  })),
+}));
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -23,7 +35,7 @@ vi.mock("@/hooks/queries/use-list-accounts", () => ({
 vi.mock("@/lib/auth-client", () => ({
   authClient: {
     useSession: () => ({ data: session, refetch: vi.fn() }),
-    twoFactor: {},
+    twoFactor: { generateBackupCodes },
   },
 }));
 
@@ -56,6 +68,39 @@ describe("TwoFactorSettings", () => {
         name: "settings:securityPage.twoFactor.newCodes",
       }),
     ).toBeVisible();
+  });
+
+  it("asks for a current code before making new recovery codes", async () => {
+    session.user.twoFactorEnabled = true;
+    render(<TwoFactorSettings />);
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "settings:securityPage.twoFactor.newCodes",
+      }),
+    );
+    fireEvent.change(
+      await screen.findByLabelText("settings:securityPage.currentPassword"),
+      { target: { value: "secret password" } },
+    );
+    const confirm = screen
+      .getAllByRole("button", {
+        name: "settings:securityPage.twoFactor.newCodes",
+      })
+      .at(-1);
+    expect(confirm).toBeDisabled();
+
+    fireEvent.change(
+      screen.getByLabelText("settings:securityPage.twoFactor.currentCode"),
+      { target: { value: "123456" } },
+    );
+    expect(confirm).toBeEnabled();
+    fireEvent.click(confirm as HTMLElement);
+    await waitFor(() =>
+      expect(generateBackupCodes).toHaveBeenCalledWith({
+        password: "secret password",
+        code: "123456",
+      }),
+    );
   });
 
   it("asks a user without a password to set one first", () => {

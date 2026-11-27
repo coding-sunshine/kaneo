@@ -68,6 +68,11 @@ import { readStoredSettings } from "./instance-settings/read-stored-settings";
 import { lockedSessionRevocation } from "./utils/locked-session-revocation";
 import { createAuthRateLimit } from "./auth-rate-limit/auth-rate-limit";
 import { challengeEverySignIn } from "./two-factor/challenge-every-sign-in";
+import { assertPasskeyIsSecondFactor } from "./two-factor/passkey-second-factor";
+import {
+  FRESH_CODE_PATHS,
+  requireFreshCode,
+} from "./two-factor/require-fresh-code";
 import {
   needsTwoFactorSetup,
   requiresTwoFactor,
@@ -816,6 +821,7 @@ export const auth = betterAuth({
       rpID: clientHostname,
       rpName: brand.name,
       origin: clientUrl,
+      authentication: { afterVerification: assertPasskeyIsSecondFactor },
     }),
     deviceAuthorization({
       verificationUri: getDeviceAuthVerificationUri(),
@@ -1121,6 +1127,23 @@ export const auth = betterAuth({
               code: "TWO_FACTOR_REQUIRED",
               message: "This instance requires two-factor sign-in.",
             });
+          }
+        }
+
+        if (FRESH_CODE_PATHS.has(ctx.path)) {
+          const viewer = await getSessionFromCtx(ctx, {
+            disableRefresh: true,
+          }).catch(() => null);
+          if (
+            (viewer?.user as { twoFactorEnabled?: boolean } | undefined)
+              ?.twoFactorEnabled
+          ) {
+            await requireFreshCode(ctx.body?.code, (code) =>
+              auth.api.verifyTOTP({
+                body: { code },
+                headers: ctx.headers ?? new Headers(),
+              }),
+            );
           }
         }
 

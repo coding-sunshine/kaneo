@@ -19,6 +19,7 @@ import { resetTestDatabase } from "./helpers/database";
 import { createWorkspaceMember } from "./helpers/fixtures";
 import { signInWithRole } from "./helpers/admin/instance-roles";
 import { totpCode } from "./helpers/totp";
+import { createSoftwarePasskey } from "./helpers/webauthn";
 
 vi.hoisted(() => {
   process.env.CUSTOM_OAUTH_CLIENT_ID = "kaneo-test";
@@ -410,5 +411,155 @@ describe("require two-factor", () => {
     const { jar } = await emailCodeSignIn(user.email);
     expect(await sessionUserId(jar)).toBe(user.id);
     expect((await authCall("/api/notification", jar)).status).toBe(200);
+  });
+});
+
+/** A code that is not valid in the current, previous or next window. */
+function wrongCode(totpURI: string) {
+  const now = Date.now();
+  const valid = new Set(
+    [now - 30_000, now, now + 30_000].map((at) => totpCode(totpURI, at)),
+  );
+  return ["000000", "111111", "222222", "333333"].find((c) => !valid.has(c));
+}
+
+async function passkeySignIn(userId: string, userVerified: boolean) {
+  const key = createSoftwarePasskey();
+  await db.insert(schema.passkeyTable).values({
+    id: `passkey-${randomUUID()}`,
+    name: "Laptop",
+    userId,
+    publicKey: key.publicKey,
+    credentialID: key.credentialID,
+    counter: 0,
+    deviceType: "singleDevice",
+    backedUp: false,
+  });
+  const jar = new CookieJar();
+  const options = await authCall("/passkey/generate-authenticate-options", jar);
+  const { challenge } = (await options.json()) as { challenge: string };
+  const response = await authCall("/passkey/verify-authentication", jar, {
+    response: key.assert(challenge, {
+      origin: CLIENT_URL,
+      rpID: "localhost",
+      userVerified,
+    }),
+  });
+  return { response, jar };
+}
+
+describe("API integration: two-factor secrets, passkeys and resets", () => {
+  // The settings cache outlives the database reset between tests.
+  beforeEach(() => invalidateInstanceSettings());
+
+  it("asks for a current code before showing the secret or new recovery codes", async () => {
+    const user = await userWithTwoFactor();
+    for (const path of [
+      "/two-factor/get-totp-uri",
+      "/two-factor/generate-backup-codes",
+    ]) {
+      const bare = await authCall(path, user.jar, { password: PASSWORD });
+      expect(bare.status, path).toBe(403);
+      expect(await bare.json()).toMatchObject({
+        code: "TWO_FACTOR_CODE_REQUIRED",
+      });
+
+      const wrong = await authCall(path, user.jar, {
+        password: PASSWORD,
+        code: wrongCode(user.totpURI),
+      });
+      expect(wrong.status, path).toBe(403);
+      expect(await wrong.json()).toMatchObject({
+        code: "INVALID_TWO_FACTOR_CODE",
+      });
+
+      const fresh = await authCall(path, user.jar, {
+        password: PASSWORD,
+        code: totpCode(user.totpURI),
+      });
+      expect(fresh.status, path).toBe(200);
+    }
+  });
+
+  it("shows the secret with the password alone while setup is unfinished", async () => {
+    const user = await createPasswordUser();
+    const enable = await authCall("/two-factor/enable", user.jar, {
+      password: PASSWORD,
+    });
+    expect(enable.status).toBe(200);
+    const uri = await authCall("/two-factor/get-totp-uri", user.jar, {
+      password: PASSWORD,
+    });
+    expect(uri.status).toBe(200);
+  });
+
+  it("counts a passkey that verified the person as both factors", async () => {
+    const user = await userWithTwoFactor();
+    const { response, jar } = await passkeySignIn(user.userId, true);
+    expect(response.status, await response.clone().text()).toBe(200);
+    expect(await sessionUserId(jar)).toBe(user.userId);
+  });
+
+  it("refuses a passkey that did not verify the person once two-factor is on", async () => {
+    const user = await userWithTwoFactor();
+    const { response, jar } = await passkeySignIn(user.userId, false);
+    expect(response.status).toBe(401);
+    expect(await response.json()).toMatchObject({
+      code: "PASSKEY_USER_VERIFICATION_REQUIRED",
+    });
+    expect(await sessionUserId(jar)).toBeNull();
+  });
+
+  it("refuses it when the instance requires two-factor, too", async () => {
+    const user = await createPasswordUser();
+    await setRequireTwoFactor(true);
+    const { response } = await passkeySignIn(user.userId, false);
+    await setRequireTwoFactor(false);
+    expect(response.status).toBe(401);
+  });
+
+  it("keeps such a passkey working for someone without two-factor", async () => {
+    const user = await createPasswordUser();
+    const { response, jar } = await passkeySignIn(user.userId, false);
+    expect(response.status).toBe(200);
+    expect(await sessionUserId(jar)).toBe(user.userId);
+  });
+
+  it("lets only instance administrators reset someone's two-factor", async () => {
+    const user = await userWithTwoFactor();
+    const admin = await signInWithRole(app, "admin");
+    const member = await signInWithRole(app, "user");
+    const path = `/users/${user.userId}/two-factor`;
+
+    expect((await member.api(path, { method: "DELETE" })).status).toBe(403);
+    expect((await passwordSignIn(user.email)).response.status).toBe(200);
+    const stillOn = await passwordSignIn(user.email);
+    expect(await sessionUserId(stillOn.jar)).toBeNull();
+
+    const reset = await admin.api(path, { method: "DELETE" });
+    expect(reset.status).toBe(200);
+    expect(await reset.json()).toEqual({ twoFactorEnabled: false });
+    expect(
+      await db
+        .select()
+        .from(schema.twoFactorTable)
+        .where(eq(schema.twoFactorTable.userId, user.userId)),
+    ).toHaveLength(0);
+
+    const { jar } = await passwordSignIn(user.email);
+    expect(await sessionUserId(jar)).toBe(user.userId);
+    const [entry] = await db
+      .select()
+      .from(schema.adminAuditLogTable)
+      .where(eq(schema.adminAuditLogTable.action, "user.two_factor_reset"));
+    expect(entry).toMatchObject({ targetId: user.userId });
+  });
+
+  it("returns 404 for a user that does not exist", async () => {
+    const admin = await signInWithRole(app, "admin");
+    const response = await admin.api(`/users/user-${randomUUID()}/two-factor`, {
+      method: "DELETE",
+    });
+    expect(response.status).toBe(404);
   });
 });

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/components/settings/confirm-dialog";
 import useDeleteAdminUser from "@/hooks/mutations/admin/use-delete-admin-user";
 import useMarkAdminUserEmailVerified from "@/hooks/mutations/admin/use-mark-admin-user-email-verified";
+import useResetAdminUserTwoFactor from "@/hooks/mutations/admin/use-reset-admin-user-two-factor";
 import useSendAdminUserPasswordReset from "@/hooks/mutations/admin/use-send-admin-user-password-reset";
 import useSendAdminUserVerificationEmail from "@/hooks/mutations/admin/use-send-admin-user-verification-email";
 import useToggleAdminUserStatus from "@/hooks/mutations/admin/use-toggle-admin-user-status";
@@ -22,12 +23,14 @@ export function UserConfirmDialog({ action, onClose }: UserConfirmDialogProps) {
   const sendPasswordReset = useSendAdminUserPasswordReset();
   const sendVerification = useSendAdminUserVerificationEmail();
   const markEmailVerified = useMarkAdminUserEmailVerified();
+  const resetTwoFactor = useResetAdminUserTwoFactor();
   const isPending = [
     toggleStatus,
     deleteUser,
     sendPasswordReset,
     sendVerification,
     markEmailVerified,
+    resetTwoFactor,
   ].some((mutation) => mutation.isPending);
 
   if (action && action !== shownAction) {
@@ -50,6 +53,8 @@ export function UserConfirmDialog({ action, onClose }: UserConfirmDialogProps) {
         return sendVerification.mutateAsync(user);
       case "markEmailVerified":
         return markEmailVerified.mutateAsync(user);
+      case "resetTwoFactor":
+        return resetTwoFactor.mutateAsync(user);
     }
   };
 
