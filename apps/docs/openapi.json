@@ -8655,18 +8655,14 @@
             "type": "string"
           },
           "title": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "The source's title. Null when the caller cannot open the source."
+            "type": "string"
           },
           "key": {
             "type": [
               "string",
               "null"
             ],
-            "description": "A task's key, such as ENG-12. Null for a document, or when the caller cannot open the task."
+            "description": "A task's key, such as ENG-12. Null for a document."
           },
           "places": {
             "type": "array",
@@ -45695,7 +45691,7 @@
           "References"
         ],
         "summary": "Get a task's references",
-        "description": "List the tasks and documents whose text links to the task or types its key. Each source is listed once with the places it names the target in. A source the caller cannot open is listed without its title or key.",
+        "description": "List the tasks and documents whose text links to the task or types its key. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
         "parameters": [
           {
             "schema": {
@@ -45760,7 +45756,7 @@
           "References"
         ],
         "summary": "Get a project's references",
-        "description": "List the tasks and documents whose text links to the project. Each source is listed once with the places it names the target in. A source the caller cannot open is listed without its title or key.",
+        "description": "List the tasks and documents whose text links to the project. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
         "parameters": [
           {
             "schema": {
@@ -45825,7 +45821,7 @@
           "References"
         ],
         "summary": "Get a document's references",
-        "description": "List the tasks and documents whose text links to the document. Each source is listed once with the places it names the target in. A source the caller cannot open is listed without its title or key.",
+        "description": "List the tasks and documents whose text links to the document. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
         "parameters": [
           {
             "schema": {

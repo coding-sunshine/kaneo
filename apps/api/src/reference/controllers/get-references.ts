@@ -19,7 +19,6 @@ type Row = {
   id: string;
   title: string;
   key: string | null;
-  open: boolean;
   place: ReferencePlace;
 };
 
@@ -30,8 +29,7 @@ const targetCondition = (target: ReferenceTarget) =>
       ? eq(referenceTable.targetDocumentId, target.documentId)
       : eq(referenceTable.targetProjectId, target.projectId);
 
-// One entry per source, with every place it names the target in. A source the
-// reader cannot open stays listed, unnamed, like a team they cannot enter.
+// One entry per source, with every place it names the target in.
 function bySource(kind: "task" | "document", rows: Row[]) {
   const sources = new Map<string, Row & { places: ReferencePlace[] }>();
   for (const row of rows) {
@@ -39,18 +37,19 @@ function bySource(kind: "task" | "document", rows: Row[]) {
     if (source) source.places.push(row.place);
     else sources.set(row.id, { ...row, places: [row.place] });
   }
-  return [...sources.values()].map(({ id, title, key, open, places }) => ({
+  return [...sources.values()].map(({ id, title, key, places }) => ({
     kind,
     id,
-    title: open ? title : null,
-    key: open ? key : null,
+    title,
+    key,
     places: places.sort(),
   }));
 }
 
 /**
- * The tickets and documents of a workspace whose text names the target. The
- * caller has checked that the reader may open the target.
+ * The tickets and documents of a workspace whose text names the target, only
+ * those the reader can open: a hidden source never shows through a reference.
+ * The caller has checked that the reader may open the target.
  */
 export async function getReferences(
   workspaceId: string,
@@ -68,13 +67,18 @@ export async function getReferences(
         title: taskTable.title,
         slug: projectTable.slug,
         number: taskTable.number,
-        open: projectAccessCondition(userId, projectTable.id),
         place: referenceTable.place,
       })
       .from(referenceTable)
       .innerJoin(taskTable, eq(taskTable.id, referenceTable.sourceTaskId))
       .innerJoin(projectTable, eq(projectTable.id, taskTable.projectId))
-      .where(and(where, eq(projectTable.workspaceId, workspaceId)))
+      .where(
+        and(
+          where,
+          eq(projectTable.workspaceId, workspaceId),
+          projectAccessCondition(userId, projectTable.id),
+        ),
+      )
       .orderBy(
         asc(projectTable.slug),
         asc(taskTable.number),
@@ -84,7 +88,6 @@ export async function getReferences(
       .select({
         id: documentTable.id,
         title: documentTable.title,
-        open: documentVisibility(userId, documentTable),
         place: referenceTable.place,
       })
       .from(referenceTable)
@@ -97,6 +100,7 @@ export async function getReferences(
           where,
           eq(documentTable.workspaceId, workspaceId),
           isNull(documentTable.deletedAt),
+          documentVisibility(userId, documentTable),
         ),
       )
       .orderBy(asc(documentTable.title), asc(documentTable.id)),
@@ -107,17 +111,12 @@ export async function getReferences(
         "task",
         tasks.map(({ slug, number, ...row }) => ({
           ...row,
-          open: Boolean(row.open),
           key: number === null ? null : `${slug.toUpperCase()}-${number}`,
         })),
       ),
       ...bySource(
         "document",
-        documents.map((row) => ({
-          ...row,
-          open: Boolean(row.open),
-          key: null,
-        })),
+        documents.map((row) => ({ ...row, key: null })),
       ),
     ],
   };

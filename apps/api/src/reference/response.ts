@@ -7,13 +7,9 @@ const referenceSchema = z
       description: "Whether the source is a task or a document.",
     }),
     id: z.string(),
-    title: z.string().nullable().openapi({
-      description:
-        "The source's title. Null when the caller cannot open the source.",
-    }),
+    title: z.string(),
     key: z.string().nullable().openapi({
-      description:
-        "A task's key, such as ENG-12. Null for a document, or when the caller cannot open the task.",
+      description: "A task's key, such as ENG-12. Null for a document.",
     }),
     places: z.array(z.enum(REFERENCE_PLACES)).openapi({
       description:

@@ -18,7 +18,7 @@ const listed = jsonResponse(
   referenceListSchema,
 );
 const sources =
-  "Each source is listed once with the places it names the target in. A source the caller cannot open is listed without its title or key.";
+  "Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.";
 
 const taskReferencesRoute = createRoute({
   method: "get",

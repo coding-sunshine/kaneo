@@ -19,7 +19,7 @@ type Task = DocumentWorld["alphaTask"];
 type Reference = {
   kind: "task" | "document";
   id: string;
-  title: string | null;
+  title: string;
   key: string | null;
   places: string[];
 };
@@ -262,37 +262,39 @@ describe("API integration: references between tickets, documents and teams", () 
     expect(await ofTask(world, owner, alphaTask)).toEqual([]);
   });
 
-  it("names no source the reader cannot open", async () => {
+  it("leaves out every source the reader cannot open", async () => {
     const world = await buildDocumentWorld();
-    const { owner, limited, open, alphaTask, betaTask, docs } = world;
-    await describeTask(
-      world,
-      owner,
-      betaTask,
-      `<p>Secret plan, see ${taskAddress(world.ws, alphaTask)}</p>`,
-    );
-    // A team document in Beta, which `limited` cannot see.
-    await editDocument(world, owner, docs.teamBeta, "<p>Follows ALPHA-1.</p>");
+    const { owner, limited, open, alpha, alphaTask, betaTask, docs } = world;
+    // A ticket and a team document in Beta, which `limited` cannot enter,
+    // name a ticket, a document and a team that `limited` can open.
+    const names = [
+      taskAddress(world.ws, alphaTask),
+      documentAddress(world.ws, docs.workspace),
+      projectAddress(world.ws, alpha.id),
+    ].join(" ");
+    await describeTask(world, owner, betaTask, `<p>Secret plan: ${names}</p>`);
+    await editDocument(world, owner, docs.teamBeta, `<p>${names}</p>`);
 
-    const seen = await read(world, limited, `/task/${alphaTask.id}`);
-    expect(
-      seen.references.map(({ kind, title, key }) => ({ kind, title, key })),
-    ).toEqual(
-      expect.arrayContaining([
-        { kind: "task", title: null, key: null },
-        { kind: "document", title: null, key: null },
-      ]),
-    );
-    expect(seen.references).toHaveLength(2);
-    expect(seen.body).not.toContain("Beta issue");
-    expect(seen.body).not.toContain("BETA");
-    expect(seen.body).not.toContain("leakdoc teamBeta");
+    const paths = [
+      `/task/${alphaTask.id}`,
+      `/workspace/${world.ws}/document/${docs.workspace}`,
+      `/project/${alpha.id}`,
+    ];
+    for (const path of paths) {
+      const seen = await read(world, limited, path);
+      expect(seen.references).toEqual([]);
+      expect(seen.body).not.toContain(betaTask.id);
+      expect(seen.body).not.toContain(docs.teamBeta);
+    }
 
-    // Someone who can open both sees the names.
-    const titles = (await ofTask(world, open, alphaTask))
-      .map((ref) => ref.title)
-      .sort();
-    expect(titles).toEqual(["Beta issue", "leakdoc teamBeta"]);
+    // Someone who can open both sources sees them on every route.
+    for (const path of paths) {
+      expect(
+        (await read(world, open, path)).references
+          .map((ref) => ref.title)
+          .sort(),
+      ).toEqual(["Beta issue", "leakdoc teamBeta"]);
+    }
   });
 
   it("refuses a reader who cannot open the ticket, and anyone outside the workspace", async () => {
