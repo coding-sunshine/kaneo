@@ -1,7 +1,7 @@
 import type { Context } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { loadDocument } from "../document/controllers/load-document";
-import { assertProjectAccess } from "../project-access/assert-project-access";
+import { findInaccessibleProjectIds } from "../project-access/find-inaccessible-project-ids";
 import { resolveAssetBearerOrCookie } from "./authenticate-api-request";
 import { validateWorkspaceAccess } from "./validate-workspace-access";
 import { workspacePermissionGrants } from "./workspace-permission-grants";
@@ -75,11 +75,15 @@ export async function authorizeAssetAccess(
   await validateWorkspaceAccess(userId, asset.workspaceId, apiKeyId, {
     notFoundMessage: "Asset not found",
   });
+  // A file in a team the caller cannot open looks like one that does not
+  // exist, so its id never confirms the team or the issue is there.
+  if ((await findInaccessibleProjectIds(userId, [asset.projectId])).length) {
+    throw new HTTPException(404, { message: "Asset not found" });
+  }
   if (asset.surface.startsWith("draft") && asset.createdBy !== userId)
     throw new HTTPException(403, {
       message: "Staged uploads are private to their owner",
     });
-  await assertProjectAccess(userId, asset.projectId);
   const grants = await workspacePermissionGrants(userId, {
     apiKeyPermissions,
     workspaceIds: [asset.workspaceId],

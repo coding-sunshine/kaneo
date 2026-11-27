@@ -558,9 +558,11 @@ export function createApp() {
         },
         304: { description: "Not modified" },
         403: errorResponse(
-          "Staged upload owned by another user, or no access to the asset's project",
+          "Staged upload owned by another user, or a role without permission to read issues",
         ),
-        404: errorResponse("Asset not found"),
+        404: errorResponse(
+          "Asset not found, or it sits in a team the caller cannot open",
+        ),
         429: apiKeyRateLimited.ref,
       },
     }),

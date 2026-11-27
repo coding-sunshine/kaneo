@@ -12148,7 +12148,7 @@
             "description": "Not modified"
           },
           "403": {
-            "description": "Staged upload owned by another user, or no access to the asset's project",
+            "description": "Staged upload owned by another user, or a role without permission to read issues",
             "content": {
               "application/json": {
                 "schema": {
@@ -12158,7 +12158,7 @@
             }
           },
           "404": {
-            "description": "Asset not found",
+            "description": "Asset not found, or it sits in a team the caller cannot open",
             "content": {
               "application/json": {
                 "schema": {
