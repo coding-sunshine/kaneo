@@ -147,6 +147,14 @@ describe("notification display content", () => {
         '"topicName":"notifications:privateTopic ',
       );
     }
+    const replaced = notification("document_replaced", {
+      documentTitle: "Pricing",
+      projectSlug: "ENG",
+      taskNumber: 12,
+    });
+    expect(getNotificationContent(replaced, say)).toContain(
+      '"topicName":"notifications:privateTopic ',
+    );
   });
 
   it("names the first issue and counts the rest when a linked document was replaced", () => {

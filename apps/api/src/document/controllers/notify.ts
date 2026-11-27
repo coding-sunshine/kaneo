@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNotNull, isNull, ne } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, isNull, ne, sql } from "drizzle-orm";
 import db from "../../database";
 import {
   documentSubscriberTable,
@@ -188,6 +188,7 @@ export async function notifyReplacedDocument(
       taskTitle: taskTable.title,
       projectId: projectTable.id,
       projectSlug: projectTable.slug,
+      opensTopic: topicAccess(taskTable.userId, sql`${topicId}`),
     })
     .from(taskDocumentTable)
     .innerJoin(taskTable, eq(taskTable.id, taskDocumentTable.taskId))
@@ -223,12 +224,13 @@ export async function notifyReplacedDocument(
       .where(eq(topicTable.id, topicId)),
     userName(actorId),
   ]);
-  // persistNotification drops anyone who cannot open the new document.
+  // persistNotification drops anyone who cannot open the new document. One
+  // who can open it but not the topic's place hears of it with the topic
+  // unnamed.
   await Promise.all(
     [...byAssignee].map(([userId, [first, ...more]]) =>
       send(doc, [userId], "document_replaced", actorName, {
-        topicId,
-        topicName: topic?.name,
+        ...(first?.opensTopic ? { topicId, topicName: topic?.name } : {}),
         taskId: first?.taskId,
         taskNumber: first?.taskNumber,
         taskTitle: first?.taskTitle,
