@@ -15406,7 +15406,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing read permission",
+            "description": "Missing read permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -15416,7 +15416,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {
@@ -15549,7 +15549,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, missing project:update, or missing project:share when visibility changes",
+            "description": "Missing project:update, or missing project:share when visibility changes",
             "content": {
               "application/json": {
                 "schema": {
@@ -15559,7 +15559,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {
@@ -15622,7 +15622,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing project:delete permission",
+            "description": "Missing project:delete permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -15632,7 +15632,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {
@@ -15691,7 +15691,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing read permission",
+            "description": "Missing read permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -15747,7 +15747,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing project:update permission",
+            "description": "Missing project:update permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -15757,7 +15757,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {
@@ -15925,7 +15925,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing project:update permission",
+            "description": "Missing project:update permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -15935,7 +15935,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {
@@ -15990,7 +15990,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing project:update permission",
+            "description": "Missing project:update permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -16000,7 +16000,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {
@@ -16075,7 +16075,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing read permission",
+            "description": "Missing read permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -16085,7 +16085,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {
@@ -16160,7 +16160,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing member:update permission",
+            "description": "Missing member:update permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -16243,7 +16243,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing member:update permission",
+            "description": "Missing member:update permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -16340,7 +16340,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing project:update permission",
+            "description": "Missing project:update permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -16350,7 +16350,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {
@@ -16455,7 +16455,7 @@
             }
           },
           "403": {
-            "description": "No access to the project, or missing project:update permission",
+            "description": "Missing project:update permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -16465,7 +16465,7 @@
             }
           },
           "404": {
-            "description": "Project not found",
+            "description": "Project not found, or the caller cannot open it",
             "content": {
               "application/json": {
                 "schema": {

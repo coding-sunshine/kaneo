@@ -3,6 +3,7 @@ import type { Context, Next } from "hono";
 import { HTTPException } from "hono/http-exception";
 import db, { schema } from "../database";
 import { assertProjectAccess } from "../project-access/assert-project-access";
+import { findInaccessibleProjectIds } from "../project-access/find-inaccessible-project-ids";
 import { validateWorkspaceAccess } from "./validate-workspace-access";
 
 type LookupResource =
@@ -91,6 +92,8 @@ export function workspaceAccessMiddleware(
     let workspaceId: string | null = null;
     let projectIds: string[] = [];
     let notFoundMessage = WORKSPACE_NOT_FOUND;
+    // A team the caller cannot open answers like a team that does not exist.
+    let hideClosedTeam = false;
 
     for (const source of config.sources) {
       if (source.type === "query") {
@@ -118,6 +121,7 @@ export function workspaceAccessMiddleware(
           }
           workspaceId = scope.workspaceId;
           projectIds = scope.projectId ? [scope.projectId] : [];
+          hideClosedTeam = source.resource === "project";
         }
       } else if (source.type === "lookupMany") {
         const body = await readJsonObjectBody(c);
@@ -173,6 +177,12 @@ export function workspaceAccessMiddleware(
     await validateWorkspaceAccess(userId, workspaceId, apiKeyId, {
       notFoundMessage,
     });
+    if (
+      hideClosedTeam &&
+      (await findInaccessibleProjectIds(userId, projectIds)).length
+    ) {
+      throw new HTTPException(404, { message: notFoundMessage });
+    }
     await assertProjectAccess(userId, projectIds);
 
     c.set("workspaceId", workspaceId);

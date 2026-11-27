@@ -190,8 +190,8 @@ const CAN_OPEN = {
 };
 const CANNOT_OPEN = {
   teamList: false,
-  team: 403,
-  issueList: 403,
+  team: 404,
+  issueList: 404,
   issue: 403,
   search: false,
   document: 404,
@@ -275,7 +275,7 @@ describe("private teams: turning privacy on and off", () => {
     await setPrivate(world.owner, world.alpha);
     expect(
       (await putTeam(admin, world.alpha, { isPrivate: false })).status,
-    ).toBe(403);
+    ).toBe(404);
     expect((await getTeam(world.owner, world.alpha)).isPrivate).toBe(true);
     await setPrivate(world.owner, world.alpha, false);
   });
@@ -412,6 +412,21 @@ describe("private teams: losses need a confirm", () => {
   });
 });
 
+describe("private teams: an outsider asking for the team", () => {
+  it("gets the same answer as for an unknown id", async () => {
+    await setPrivate(world.owner, world.alpha);
+    const ask = world.as(world.open);
+    const unknown = await ask(`/project/${randomUUID()}`);
+    const hidden = await ask(`/project/${world.alpha.id}`);
+    expect(unknown.status).toBe(404);
+    expect(hidden.status).toBe(unknown.status);
+    expect(await hidden.json()).toEqual(await unknown.json());
+    expect(
+      (await world.as(world.limited)(`/project/${world.alpha.id}`)).status,
+    ).toBe(200);
+  });
+});
+
 describe("private teams: the member access endpoint", () => {
   beforeEach(async () => {
     await setPrivate(world.owner, world.alpha);
@@ -446,7 +461,7 @@ describe("private teams: the member access endpoint", () => {
     expect(saved.status).toBe(200);
     expect(await grantsOf(world.open)).toEqual([world.beta.id]);
     expect(await teamStatus(world.open, world.beta)).toBe(200);
-    expect(await teamStatus(world.open, world.alpha)).toBe(403);
+    expect(await teamStatus(world.open, world.alpha)).toBe(404);
   });
 
   it("removes nothing on a private team when a selection leaves it out", async () => {
@@ -509,7 +524,7 @@ describe("private teams: invitations", () => {
     const rows = await readMemberAccessRows(ctx.workspaceId, invitee.userId);
     expect(rows.grants.map((grant) => grant.projectId)).toEqual([ctx.beta.id]);
     expect((await inviteeRequest(`/project/${ctx.beta.id}`)).status).toBe(200);
-    expect((await inviteeRequest(`/project/${ctx.alpha.id}`)).status).toBe(403);
+    expect((await inviteeRequest(`/project/${ctx.alpha.id}`)).status).toBe(404);
   });
 });
 
@@ -521,7 +536,7 @@ describe("private teams: private-members routes", () => {
     await setPrivate(world.owner, world.alpha);
     expect(
       (await world.as(world.open)(`/project/${world.alpha.id}`)).status,
-    ).toBe(403);
+    ).toBe(404);
     const added = await world.as(world.owner)(
       members(world.alpha, world.open.id),
       json("PUT"),
@@ -570,7 +585,7 @@ describe("private teams: private-members routes", () => {
     ).not.toContain(world.limited.id);
     expect(
       (await world.as(world.limited)(`/project/${world.alpha.id}`)).status,
-    ).toBe(403);
+    ).toBe(404);
     expect(await assigneeOf(issue.id)).toBeNull();
     expect(await unassignedBy(issue.id)).toEqual([world.owner.id]);
   });
@@ -593,12 +608,12 @@ describe("private teams: private-members routes", () => {
     expect((await add(world.open.id)).status).toBe(200);
   });
 
-  it("answers 403 to a caller who cannot open the team", async () => {
+  it("answers a caller who cannot open the team like an unknown team", async () => {
     const admin = await addWorkspaceMember(world.ws, "admin");
     await setPrivate(world.owner, world.alpha);
     const add = (user: User) =>
       world.as(user)(members(world.alpha, world.open.id), json("PUT"));
-    expect((await add(admin)).status).toBe(403);
+    expect((await add(admin)).status).toBe(404);
     expect((await add(world.owner)).status).toBe(200);
   });
 
@@ -756,7 +771,7 @@ describe("private teams: a stale grant on an invitation", () => {
     const rows = await readMemberAccessRows(ctx.workspaceId, invitee.userId);
     expect(rows.grants.map((grant) => grant.projectId)).toEqual([ctx.beta.id]);
     expect((await inviteeRequest(`/project/${ctx.beta.id}`)).status).toBe(200);
-    expect((await inviteeRequest(`/project/${ctx.alpha.id}`)).status).toBe(403);
+    expect((await inviteeRequest(`/project/${ctx.alpha.id}`)).status).toBe(404);
   });
 });
 
