@@ -167,6 +167,21 @@ describe("API integration: statements of a document", () => {
     expect(await made("The price is\n40   USD per  seat.")).toBe(200);
   });
 
+  it("accepts a quote copied from the page across bold text and a link", async () => {
+    const { api, topicId } = await setup();
+    const docId = await api.filed(
+      topicId,
+      "Formatted plan",
+      '<p>We launch on <strong>5 March 2027</strong>. The price is <a href="https://example.com/price">40 USD</a>, per seat.</p>',
+    );
+    const made = await api.post(docId, { ...WHEN, quote: "5 March 2027." });
+    expect(made.status, await made.clone().text()).toBe(200);
+    expect(
+      (await api.post(docId, { ...HOW_MUCH, quote: "40 USD, per seat" }))
+        .status,
+    ).toBe(200);
+  });
+
   it("refuses a value the slot cannot hold", async () => {
     const { api, topicId, docId } = await setup();
     await api.addSlot(topicId, {

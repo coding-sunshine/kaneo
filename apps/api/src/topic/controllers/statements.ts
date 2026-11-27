@@ -211,9 +211,11 @@ export async function carryStatements(
   const was = new Set(textBlocks(before));
   const blocks = textBlocks(content);
   const carried = previous.flatMap((statement) => {
-    const start = text.indexOf(statement.quote);
+    const start = quoteStart(text, statement.quote);
     if (start < 0) return [];
-    const holding = blocks.filter((block) => block.includes(statement.quote));
+    const holding = blocks.filter(
+      (block) => quoteStart(block, statement.quote) >= 0,
+    );
     const untouched =
       statement.status === "confirmed" &&
       holding.length > 0 &&
