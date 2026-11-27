@@ -3,12 +3,24 @@ import {
   chatChannelMemberTable,
   chatChannelTable,
 } from "../../database/schema";
+import { countUnread } from "./count-unread";
 import { selectChannels } from "./select-channels";
 
 // The channel directory: every public channel plus the private ones the
 // caller belongs to. The sidebar shows the joined, unarchived subset.
 export async function listChannels(workspaceId: string, userId: string) {
-  return selectChannels(userId)
+  const [channels, unread] = await Promise.all([
+    listVisibleChannels(workspaceId, userId),
+    countUnread(workspaceId, userId),
+  ]);
+  return channels.map((channel) => ({
+    ...channel,
+    unreadCount: unread.get(channel.id) ?? 0,
+  }));
+}
+
+const listVisibleChannels = (workspaceId: string, userId: string) =>
+  selectChannels(userId)
     .where(
       and(
         eq(chatChannelTable.workspaceId, workspaceId),
@@ -19,4 +31,3 @@ export async function listChannels(workspaceId: string, userId: string) {
       ),
     )
     .orderBy(asc(chatChannelTable.name));
-}

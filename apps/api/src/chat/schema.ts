@@ -66,7 +66,16 @@ export const channelDetailSchema = channelSchema
   })
   .openapi("ChatChannelDetail");
 
-export const channelListSchema = z.array(channelSchema);
+export const channelListSchema = z.array(
+  channelSchema
+    .extend({
+      unreadCount: z.number().int().openapi({
+        description:
+          "Messages from others since you last read the channel. 0 for channels you have not joined.",
+      }),
+    })
+    .openapi("ChatChannelListItem"),
+);
 
 export const messageSchema = z
   .object({

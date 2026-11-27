@@ -3299,6 +3299,10 @@ export const chatChannelMemberTable = pgTable(
     joinedAt: timestamp("joined_at", { mode: "date" })
       .default(utcNow)
       .notNull(),
+    // Private to the member: no response shows it to anyone else.
+    lastReadAt: timestamp("last_read_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
   },
   (table) => [
     primaryKey({ columns: [table.channelId, table.userId] }),

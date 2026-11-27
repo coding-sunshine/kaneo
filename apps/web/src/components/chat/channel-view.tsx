@@ -8,6 +8,7 @@ import { useOnline } from "@/hooks/queries/chat/use-online";
 import { usePresenceSetting } from "@/hooks/queries/chat/use-presence-setting";
 import { useMessages } from "@/hooks/queries/chat/use-messages";
 import { useChatChannelSocket } from "@/hooks/use-chat-channel-socket";
+import { useMarkChannelRead } from "@/hooks/use-mark-channel-read";
 import { usePresenceHeartbeat } from "@/hooks/use-presence-heartbeat";
 
 /** One channel: header with topic, history, then the composer. */
@@ -29,6 +30,12 @@ export function ChannelView({
     channelId,
     Boolean(channel),
     live,
+  );
+  useMarkChannelRead(
+    workspaceId,
+    channelId,
+    Boolean(channel?.isMember),
+    messages.at(-1)?.id,
   );
 
   if (isError) return <ChannelNotFound workspaceId={workspaceId} />;

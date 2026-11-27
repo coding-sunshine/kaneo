@@ -192,6 +192,11 @@ export function useUserWebSocket() {
               void queryClient.invalidateQueries({ queryKey });
             reconcileProjectAccess(queryClient, workspaceId, () => !disposed);
           }
+          if (message.type === "CHAT_UNREAD_CHANGED" && message.workspaceId) {
+            void queryClient.invalidateQueries({
+              queryKey: ["chat-channels", message.workspaceId],
+            });
+          }
           if (message.type === "NOTIFICATION_CREATED") {
             queryClient.invalidateQueries({ queryKey: ["notifications"] });
           }

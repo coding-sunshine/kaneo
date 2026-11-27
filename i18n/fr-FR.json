@@ -4446,7 +4446,10 @@
 			"pinned": "Pinned messages",
 			"save": "Save",
 			"unpin": "Unpin",
-			"online": "Online"
+			"online": "Online",
+			"unread_many": "{{count}} unread messages",
+			"unread_one": "{{count}} unread message",
+			"unread_other": "{{count}} unread messages"
 		}
 	},
 	"notifications": {

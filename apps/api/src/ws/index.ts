@@ -39,6 +39,7 @@ import {
   deliverToLocalChatConnections,
   listChatConnections,
 } from "./chat-connections";
+import { findUnreadRecipients } from "./chat-unread-recipients";
 import { InMemoryBroadcastAdapter } from "./in-memory-broadcast-adapter";
 import { RedisBroadcastAdapter } from "./redis-broadcast-adapter";
 import { getProjectReadAccess } from "./project-read-access";
@@ -1260,10 +1261,22 @@ subscribeToEvent<{
   });
 });
 
-subscribeToEvent<{ channelId: string }>(
+subscribeToEvent<{ channelId: string; workspaceId: string; userId?: string }>(
   "chat.message_created",
-  async ({ channelId }) => {
-    if (channelId) await broadcastToChatChannel(channelId);
+  async ({ channelId, workspaceId, userId }) => {
+    if (!channelId) return;
+    await broadcastToChatChannel(channelId);
+    // The hint names only the workspace, so it says nothing about the channel.
+    for (const memberId of await findUnreadRecipients(channelId, userId))
+      broadcastToUser(memberId, { type: "CHAT_UNREAD_CHANGED", workspaceId });
+  },
+);
+
+// A read refreshes the reader's own other tabs, and nobody else's.
+subscribeToEvent<{ workspaceId: string; userId: string }>(
+  "chat.channel_read",
+  async ({ workspaceId, userId }) => {
+    broadcastToUser(userId, { type: "CHAT_UNREAD_CHANGED", workspaceId });
   },
 );
 

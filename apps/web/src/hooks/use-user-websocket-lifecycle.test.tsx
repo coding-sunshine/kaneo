@@ -372,6 +372,21 @@ describe("user WebSocket lifecycle", () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
+  it("refreshes chat unread counts when the server hints a change", () => {
+    renderHook(useUserWebSocket);
+    act(() =>
+      TestSocket.instances[0]?.onmessage?.({
+        data: JSON.stringify({
+          type: "CHAT_UNREAD_CHANGED",
+          workspaceId: "workspace",
+        }),
+      }),
+    );
+    expect(client.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["chat-channels", "workspace"],
+    });
+  });
+
   it("evicts cached data for projects that left the refreshed list", async () => {
     cachedProjects.mockReturnValueOnce([{ id: "kept" }, { id: "removed" }]);
     client.fetchQuery.mockResolvedValueOnce([{ id: "kept" }, { id: "added" }]);

@@ -17,6 +17,7 @@ import { leaveChannel } from "./controllers/leave-channel";
 import { listChannels } from "./controllers/list-channels";
 import { listMessages } from "./controllers/list-messages";
 import { listPins } from "./controllers/list-pins";
+import { markRead } from "./controllers/mark-read";
 import { pinMessage } from "./controllers/pin-message";
 import { postMessage } from "./controllers/post-message";
 import { reactToMessage } from "./controllers/react-to-message";
@@ -319,6 +320,23 @@ const removeReactionRoute = createRoute({
   responses: reactionResponses,
 });
 
+const markReadRoute = createRoute({
+  method: "post",
+  operationId: "markChatChannelRead",
+  path: `${channelPath}/read`,
+  tags,
+  summary: "Mark channel read",
+  description:
+    "Clear your unread count for the channel. Only you can see when you read it.",
+  middleware: [...access] as const,
+  request: { params: channelParam },
+  responses: {
+    200: jsonResponse("Marked read", leftChannelSchema),
+    403: noAccess,
+    404: notFound,
+  },
+});
+
 const listPinsRoute = createRoute({
   method: "get",
   operationId: "listChatPins",
@@ -561,6 +579,10 @@ const chat = apiRouter()
       ),
       200,
     );
+  })
+  .openapi(markReadRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(await markRead(workspaceId, channelId, c.get("userId")), 200);
   })
   .openapi(listPinsRoute, async (c) => {
     const { workspaceId, channelId } = c.req.valid("param");

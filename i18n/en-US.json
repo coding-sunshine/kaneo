@@ -4374,7 +4374,9 @@
 			"unpin": "Unpin",
 			"pinned": "Pinned messages",
 			"noPins": "Nothing is pinned yet.",
-			"online": "Online"
+			"online": "Online",
+			"unread_one": "{{count}} unread message",
+			"unread_other": "{{count}} unread messages"
 		}
 	},
 	"notifications": {

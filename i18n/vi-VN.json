@@ -4303,7 +4303,8 @@
 			"pinned": "Pinned messages",
 			"save": "Save",
 			"unpin": "Unpin",
-			"online": "Online"
+			"online": "Online",
+			"unread_other": "{{count}} unread messages"
 		}
 	},
 	"notifications": {

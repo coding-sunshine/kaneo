@@ -3320,6 +3320,25 @@
           "online"
         ]
       },
+      "ChatChannelListItem": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ChatChannel"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "unreadCount": {
+                "type": "integer",
+                "description": "Messages from others since you last read the channel. 0 for channels you have not joined."
+              }
+            },
+            "required": [
+              "unreadCount"
+            ]
+          }
+        ]
+      },
       "ChatChannel": {
         "type": "object",
         "properties": {
@@ -28046,7 +28065,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ChatChannel"
+                    "$ref": "#/components/schemas/ChatChannelListItem"
                   }
                 }
               }
@@ -29409,6 +29428,87 @@
           },
           "409": {
             "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/read": {
+      "post": {
+        "operationId": "markChatChannelRead",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Mark channel read",
+        "description": "Clear your unread count for the channel. Only you can see when you read it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Marked read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "channelId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "channelId"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
             "content": {
               "application/json": {
                 "schema": {
