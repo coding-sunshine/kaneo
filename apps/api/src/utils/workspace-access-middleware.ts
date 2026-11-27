@@ -23,7 +23,9 @@ type LookupResource =
   | "workspaceWebhook"
   | "workProjectMilestone"
   | "workProjectUpdate"
-  | "workProjectComment";
+  | "workProjectComment"
+  | "initiative"
+  | "initiativeUpdate";
 
 type WorkspaceIdSource =
   | { type: "query"; key: string }
@@ -61,6 +63,8 @@ const RESOURCE_NOT_FOUND: Record<LookupResource, string> = {
   workProjectMilestone: "Milestone not found",
   workProjectUpdate: "Update not found",
   workProjectComment: "Comment not found",
+  initiative: "Initiative not found",
+  initiativeUpdate: "Update not found",
 };
 
 type WorkspaceAccessMiddlewareConfig = {
@@ -476,6 +480,31 @@ async function lookupScope(
       return comment ? { ...comment, projectId: null } : null;
     }
 
+    case "initiative": {
+      const [initiative] = await db
+        .select({ workspaceId: schema.initiativeTable.workspaceId })
+        .from(schema.initiativeTable)
+        .where(eq(schema.initiativeTable.id, id))
+        .limit(1);
+      return initiative ? { ...initiative, projectId: null } : null;
+    }
+
+    case "initiativeUpdate": {
+      const [update] = await db
+        .select({ workspaceId: schema.initiativeTable.workspaceId })
+        .from(schema.initiativeUpdateTable)
+        .innerJoin(
+          schema.initiativeTable,
+          eq(
+            schema.initiativeUpdateTable.initiativeId,
+            schema.initiativeTable.id,
+          ),
+        )
+        .where(eq(schema.initiativeUpdateTable.id, id))
+        .limit(1);
+      return update ? { ...update, projectId: null } : null;
+    }
+
     default:
       return null;
   }
@@ -608,6 +637,16 @@ export const workspaceAccess = {
   fromWorkProjectMilestone: (idKey = "id") =>
     workspaceAccessMiddleware({
       sources: [{ type: "lookup", resource: "workProjectMilestone", idKey }],
+    }),
+
+  fromInitiative: (idKey = "id") =>
+    workspaceAccessMiddleware({
+      sources: [{ type: "lookup", resource: "initiative", idKey }],
+    }),
+
+  fromInitiativeUpdate: (idKey = "id") =>
+    workspaceAccessMiddleware({
+      sources: [{ type: "lookup", resource: "initiativeUpdate", idKey }],
     }),
 
   fromProjectId: (idKey = "projectId") =>

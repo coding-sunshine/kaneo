@@ -20033,6 +20033,22 @@
 						"planned"
 					]
 				},
+				"statusTime": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"current": {
+							"type": "string"
+						},
+						"error": {
+							"type": "string"
+						}
+					},
+					"required": ["title", "current", "error"]
+				},
 				"priority": {
 					"type": "object",
 					"additionalProperties": false,
@@ -21690,6 +21706,9 @@
 								},
 								"workable": {
 									"type": "string"
+								},
+								"statusAge": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -21703,8 +21722,27 @@
 								"cycle",
 								"estimate",
 								"noEstimate",
-								"workable"
+								"workable",
+								"statusAge"
 							]
+						},
+						"statusAgeOption_one": {
+							"type": "string"
+						},
+						"statusAgeOption_zero": {
+							"type": "string"
+						},
+						"statusAgeOption_two": {
+							"type": "string"
+						},
+						"statusAgeOption_few": {
+							"type": "string"
+						},
+						"statusAgeOption_many": {
+							"type": "string"
+						},
+						"statusAgeOption_other": {
+							"type": "string"
 						},
 						"operators": {
 							"type": "object",
@@ -23123,6 +23161,9 @@
 								"triageTime": {
 									"type": "string"
 								},
+								"timeInStatus": {
+									"type": "string"
+								},
 								"age": {
 									"type": "string"
 								}
@@ -23133,6 +23174,7 @@
 								"cycleTime",
 								"leadTime",
 								"triageTime",
+								"timeInStatus",
 								"age"
 							]
 						},
@@ -23645,6 +23687,7 @@
 				"checklistProgress",
 				"title",
 				"status",
+				"statusTime",
 				"priority",
 				"subscription",
 				"triage",
@@ -26926,6 +26969,220 @@
 						"percentSuccess",
 						"state"
 					]
+				},
+				"initiative": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"pageTitle": {
+							"type": "string"
+						},
+						"newInitiative": {
+							"type": "string"
+						},
+						"loadError": {
+							"type": "string"
+						},
+						"notFound": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "string"
+						},
+						"emptyDescription": {
+							"type": "string"
+						},
+						"list": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"projects_one": {
+									"type": "string"
+								},
+								"projects_zero": {
+									"type": "string"
+								},
+								"projects_two": {
+									"type": "string"
+								},
+								"projects_few": {
+									"type": "string"
+								},
+								"projects_many": {
+									"type": "string"
+								},
+								"projects_other": {
+									"type": "string"
+								}
+							},
+							"required": []
+						},
+						"fields": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"owner": {
+									"type": "string"
+								},
+								"noOwner": {
+									"type": "string"
+								},
+								"targetDate": {
+									"type": "string"
+								}
+							},
+							"required": ["owner", "noOwner", "targetDate"]
+						},
+						"create": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"name": {
+									"type": "string"
+								},
+								"submit": {
+									"type": "string"
+								},
+								"cancel": {
+									"type": "string"
+								},
+								"error": {
+									"type": "string"
+								},
+								"created": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"name",
+								"submit",
+								"cancel",
+								"error",
+								"created"
+							]
+						},
+						"detail": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"titleLabel": {
+									"type": "string"
+								},
+								"properties": {
+									"type": "string"
+								},
+								"rolledUpHealth": {
+									"type": "string"
+								},
+								"progressLabel": {
+									"type": "string"
+								},
+								"progress": {
+									"type": "string"
+								},
+								"descriptionPlaceholder": {
+									"type": "string"
+								},
+								"updateError": {
+									"type": "string"
+								},
+								"delete": {
+									"type": "string"
+								},
+								"deleteConfirm": {
+									"type": "string"
+								},
+								"deleted": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"titleLabel",
+								"properties",
+								"rolledUpHealth",
+								"progressLabel",
+								"progress",
+								"descriptionPlaceholder",
+								"updateError",
+								"delete",
+								"deleteConfirm",
+								"deleted"
+							]
+						},
+						"projects": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"add": {
+									"type": "string"
+								},
+								"remove": {
+									"type": "string"
+								},
+								"empty": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "add", "remove", "empty"]
+						},
+						"updates": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"placeholder": {
+									"type": "string"
+								},
+								"post": {
+									"type": "string"
+								},
+								"empty": {
+									"type": "string"
+								},
+								"postError": {
+									"type": "string"
+								},
+								"delete": {
+									"type": "string"
+								},
+								"deleteConfirm": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"placeholder",
+								"post",
+								"empty",
+								"postError",
+								"delete",
+								"deleteConfirm"
+							]
+						}
+					},
+					"required": [
+						"pageTitle",
+						"newInitiative",
+						"loadError",
+						"notFound",
+						"empty",
+						"emptyDescription",
+						"list",
+						"fields",
+						"create",
+						"detail",
+						"projects",
+						"updates"
+					]
 				}
 			},
 			"required": [
@@ -26938,7 +27195,8 @@
 				"myTasks",
 				"archived",
 				"workProject",
-				"cycles"
+				"cycles",
+				"initiative"
 			]
 		},
 		"team": {

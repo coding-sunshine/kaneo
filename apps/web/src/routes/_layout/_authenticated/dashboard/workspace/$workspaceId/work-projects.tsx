@@ -1,10 +1,15 @@
-import { createFileRoute, Outlet, useMatch } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useMatch,
+} from "@tanstack/react-router";
+import { Plus, Target } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import WorkspaceLayout from "@/components/common/workspace-layout";
 import PageTitle from "@/components/page-title";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { CreateWorkProjectModal } from "@/components/work-project/create-work-project-modal";
 import { WorkProjectList } from "@/components/work-project/work-project-list";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
@@ -31,12 +36,24 @@ function RouteComponent() {
       <WorkspaceLayout
         title={t("workspace:workProject.pageTitle")}
         headerActions={
-          !detail && canUpdateTasks() ? (
-            <Button size="sm" onClick={() => setCreating(true)}>
-              <Plus />
-              {t("workspace:workProject.newProject")}
-            </Button>
-          ) : undefined
+          detail ? undefined : (
+            <>
+              <Link
+                to="/dashboard/workspace/$workspaceId/initiatives"
+                params={{ workspaceId }}
+                className={buttonVariants({ size: "sm", variant: "ghost" })}
+              >
+                <Target />
+                {t("workspace:initiative.pageTitle")}
+              </Link>
+              {canUpdateTasks() && (
+                <Button size="sm" onClick={() => setCreating(true)}>
+                  <Plus />
+                  {t("workspace:workProject.newProject")}
+                </Button>
+              )}
+            </>
+          )
         }
       >
         {detail ? <Outlet /> : <WorkProjectList workspaceId={workspaceId} />}

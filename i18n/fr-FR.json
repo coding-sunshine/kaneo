@@ -5353,7 +5353,8 @@
 				"estimate": "Estimate",
 				"noEstimate": "No estimate",
 				"workProject": "Project",
-				"workable": "Workable"
+				"workable": "Workable",
+				"statusAge": "Time in status"
 			},
 			"operators": {
 				"isAnyOf": "est l'un des",
@@ -5366,7 +5367,10 @@
 			},
 			"allCustomFieldValues": "Toutes les valeurs",
 			"noCustomFieldValues": "Aucune valeur de champ personnalisé",
-			"noValuesUsedYet": "Aucune valeur utilisée pour le moment"
+			"noValuesUsedYet": "Aucune valeur utilisée pour le moment",
+			"statusAgeOption_many": "{{status}} for more than {{count}} days",
+			"statusAgeOption_one": "{{status}} for more than {{count}} day",
+			"statusAgeOption_other": "{{status}} for more than {{count}} days"
 		},
 		"gantt": {
 			"searchPlaceholder": "Rechercher des tâches planifiées...",
@@ -5752,7 +5756,8 @@
 				"cycleTime": "Cycle time",
 				"effort": "Effort",
 				"leadTime": "Lead time",
-				"triageTime": "Triage time"
+				"triageTime": "Triage time",
+				"timeInStatus": "Time in status"
 			},
 			"median": "Median",
 			"noSegment": "No segment",
@@ -5803,6 +5808,11 @@
 			"toTriage_many": "{{count}} issues to triage",
 			"toTriage_one": "{{count}} issue to triage",
 			"toTriage_other": "{{count}} issues to triage"
+		},
+		"statusTime": {
+			"current": "current",
+			"error": "Could not load time in status",
+			"title": "Time in status"
 		}
 	},
 	"invitations": {
@@ -6590,6 +6600,59 @@
 				"pulseEmpty": "No project updates yet.",
 				"save": "Save",
 				"title": "Project updates"
+			}
+		},
+		"initiative": {
+			"create": {
+				"cancel": "Cancel",
+				"created": "Initiative created",
+				"error": "Could not create the initiative",
+				"name": "Initiative name",
+				"submit": "Create initiative",
+				"title": "New initiative"
+			},
+			"detail": {
+				"delete": "Delete initiative",
+				"deleteConfirm": "Delete this initiative? Its projects stay.",
+				"deleted": "Initiative deleted",
+				"descriptionPlaceholder": "Describe the goal and why it matters...",
+				"progress": "{{done}} of {{total}} issues done",
+				"progressLabel": "Progress",
+				"properties": "Properties",
+				"rolledUpHealth": "Health",
+				"titleLabel": "Initiative name",
+				"updateError": "Could not save the initiative"
+			},
+			"empty": "No initiatives yet",
+			"emptyDescription": "Initiatives group projects toward a company goal and roll up their health and progress.",
+			"fields": {
+				"noOwner": "No owner",
+				"owner": "Owner",
+				"targetDate": "Target date"
+			},
+			"list": {
+				"projects_many": "{{count}} projects",
+				"projects_one": "{{count}} project",
+				"projects_other": "{{count}} projects"
+			},
+			"loadError": "Could not load initiatives.",
+			"newInitiative": "New initiative",
+			"notFound": "Initiative not found.",
+			"pageTitle": "Initiatives",
+			"projects": {
+				"add": "Add project",
+				"empty": "No projects in this initiative yet.",
+				"remove": "Remove {{name}}",
+				"title": "Projects"
+			},
+			"updates": {
+				"delete": "Delete update",
+				"deleteConfirm": "Delete this update?",
+				"empty": "No updates yet.",
+				"placeholder": "Write an initiative update...",
+				"post": "Post update",
+				"postError": "Could not save the update",
+				"title": "Initiative updates"
 			}
 		}
 	},
