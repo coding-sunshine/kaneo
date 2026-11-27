@@ -820,6 +820,13 @@
       "when": 1795689670212,
       "tag": "0116_bumpy_multiple_man",
       "breakpoints": true
+    },
+    {
+      "idx": 117,
+      "version": "7",
+      "when": 1795779863999,
+      "tag": "0117_low_luckman",
+      "breakpoints": true
     }
   ]
 }
