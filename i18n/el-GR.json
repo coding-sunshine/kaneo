@@ -794,7 +794,17 @@
 			"createdDates": "Created",
 			"status": "Status",
 			"codeReviews": "Enable code reviews",
-			"codeReviewsDescription": "Show Reviews in the sidebar and enable the G then R shortcut."
+			"codeReviewsDescription": "Show Reviews in the sidebar and enable the G then R shortcut.",
+			"codingTools": {
+				"add": "Add tool",
+				"addTitle": "Add custom tool",
+				"description": "Choose which coding tools appear in the Work on pull request menu.",
+				"invalidUrl": "Enter a valid URL or editor scheme.",
+				"namePlaceholder": "Tool name",
+				"remove": "Remove {{tool}}",
+				"title": "Coding tools",
+				"urlPlaceholder": "cursor://vscode.git/clone?url=https://github.com/{owner}/{repo}.git"
+			}
 		},
 		"managedProfile": {
 			"note": "Διαχειρίζεται από τον οργανισμό σας.",
@@ -5810,7 +5820,10 @@
 					"or": "or",
 					"remove": "Remove advanced filter",
 					"toggleOperator": "Toggle filter operator, currently {{operator}}",
-					"triggerLabel": "Advanced filter: {{conditions}}"
+					"triggerLabel": "Advanced filter: {{conditions}}",
+					"addGroup": "Filter group",
+					"group": "Filter group",
+					"removeGroup": "Remove filter group"
 				},
 				"customDate": "Custom date or timeframe...",
 				"customDatePlaceholder": "Try: 10 days ago"
@@ -5968,6 +5981,10 @@
 				"quick": "Quick",
 				"riskHigh": "High risk",
 				"riskVeryHigh": "Very high risk"
+			},
+			"workMenu": {
+				"configure": "Configure coding tools…",
+				"openIn": "Open in {{tool}}"
 			}
 		},
 		"workProject": {

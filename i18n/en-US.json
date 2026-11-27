@@ -1212,6 +1212,16 @@
 			"sidebarDefaultDescription": "Start with the sidebar expanded.",
 			"codeReviews": "Enable code reviews",
 			"codeReviewsDescription": "Show Reviews in the sidebar and enable the G then R shortcut.",
+			"codingTools": {
+				"title": "Coding tools",
+				"description": "Choose which coding tools appear in the Work on pull request menu.",
+				"addTitle": "Add custom tool",
+				"namePlaceholder": "Tool name",
+				"urlPlaceholder": "cursor://vscode.git/clone?url=https://github.com/{owner}/{repo}.git",
+				"add": "Add tool",
+				"remove": "Remove {{tool}}",
+				"invalidUrl": "Enter a valid URL or editor scheme."
+			},
 			"displayOptions": "Issue details",
 			"displayOptionsDescription": "What shows on cards and rows in your boards and lists.",
 			"taskNumbers": "Issue numbers",
@@ -5739,7 +5749,10 @@
 					"and": "and",
 					"or": "or",
 					"toggleOperator": "Toggle filter operator, currently {{operator}}",
-					"addFilter": "Filter"
+					"addFilter": "Filter",
+					"addGroup": "Filter group",
+					"group": "Filter group",
+					"removeGroup": "Remove filter group"
 				},
 				"count_one": "{{count, number}} review",
 				"count_other": "{{count, number}} reviews",
@@ -5886,6 +5899,10 @@
 				"group": "Snoozed",
 				"tipComment": "Snoozed until a new comment",
 				"tipReview": "Snoozed until a new review"
+			},
+			"workMenu": {
+				"openIn": "Open in {{tool}}",
+				"configure": "Configure coding tools…"
 			},
 			"prActions": {
 				"workOn": "Work on pull request",

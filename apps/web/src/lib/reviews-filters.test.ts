@@ -6,7 +6,6 @@ import {
   filterByReviewFilters,
   parseCustomDate,
   type ReviewsFilters,
-  sanitizeReviewsAdvanced,
   sanitizeReviewsFilters,
   setFilterNegated,
   toggleFilterValue,
@@ -261,20 +260,6 @@ describe("advanced filter", () => {
       );
     expect(quick(false)).toEqual([1]);
     expect(quick(true)).toEqual([2]);
-  });
-
-  it("keeps a saved advanced filter and repairs a broken one", () => {
-    expect(sanitizeReviewsAdvanced(null)).toBeNull();
-    expect(sanitizeReviewsAdvanced("or")).toBeNull();
-    expect(sanitizeReviewsAdvanced([])).toBeNull();
-    expect(sanitizeReviewsAdvanced({ operator: "and" })).toBeNull();
-    expect(sanitizeReviewsAdvanced({ operator: "and", filters })).toEqual({
-      operator: "and",
-      filters,
-    });
-    expect(
-      sanitizeReviewsAdvanced({ operator: "xor", filters: { nope: 1 } }),
-    ).toEqual({ operator: "or", filters: {} });
   });
 });
 

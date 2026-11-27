@@ -12,7 +12,10 @@ import { ReviewsTabMenu } from "@/components/reviews/reviews-tab-menu";
 import { ReviewsTabPill } from "@/components/reviews/reviews-tab-pill";
 import { ActiveFiltersBar } from "@/components/project/task-filters/active-filters-bar";
 import { FilterMenu } from "@/components/project/task-filters/filter-menu";
-import { useReviewsFilterSubjects } from "@/components/reviews/use-reviews-filter-subjects";
+import {
+  useReviewsFilterBinder,
+  useReviewsFilterSubjects,
+} from "@/components/reviews/use-reviews-filter-subjects";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -29,8 +32,13 @@ import {
 } from "@/hooks/queries/github-reviews/use-github-reviews";
 import { cn } from "@/lib/cn";
 import {
+  countAdvancedConditions,
+  filterByAdvancedFilter,
+} from "@/lib/reviews-advanced";
+import {
   activeFilterCount,
   filterByReviewFilters,
+  REVIEW_FILTER_IDS,
   type ReviewsFilters,
 } from "@/lib/reviews-filters";
 import {
@@ -49,7 +57,6 @@ import { useReviewsSnoozeStore } from "@/store/reviews-snooze";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 
 type DetailParams = { owner?: string; repo?: string; number?: string };
-const NO_FILTERS: ReviewsFilters = {};
 
 /** Linear's split: the list on the left, the opened pull request (children) beside it. */
 export function ReviewsPage({
@@ -101,20 +108,12 @@ export function ReviewsPage({
     [data, tab, view],
   );
   const subjects = useReviewsFilterSubjects(items, filters, setFilters, ctx);
+  const bindSubject = useReviewsFilterBinder(items, ctx);
   const advanced = view.advanced;
-  const advancedSubjects = useReviewsFilterSubjects(
-    items,
-    advanced?.filters ?? NO_FILTERS,
-    (next) =>
-      setView(tab, {
-        advanced: { operator: advanced?.operator ?? "or", filters: next },
-      }),
-    ctx,
-  );
   const openAdvanced = () => {
     // Linear starts a new advanced filter on "or" and reopens the one already there.
     if (!advanced)
-      setView(tab, { advanced: { operator: "or", filters: NO_FILTERS } });
+      setView(tab, { advanced: { operator: "or", conditions: [] } });
     setAdvancedOpen(true);
   };
   const snoozes = useReviewsSnoozeStore((state) => state.entries);
@@ -123,11 +122,10 @@ export function ReviewsPage({
     const { active, snoozed } = splitSnoozed(
       sortPullRequests(
         filterPullRequests(
-          filterByReviewFilters(
+          filterByAdvancedFilter(
             filterByReviewFilters(items, filters, ctx),
-            advanced?.filters ?? NO_FILTERS,
+            advanced,
             ctx,
-            advanced?.operator,
           ),
           query,
         ),
@@ -177,9 +175,7 @@ export function ReviewsPage({
                   subjects={subjects}
                   activeCount={
                     activeFilterCount(filters) +
-                    (advanced && activeFilterCount(advanced.filters) > 0
-                      ? 1
-                      : 0)
+                    (advanced && countAdvancedConditions(advanced) > 0 ? 1 : 0)
                   }
                   actions={[
                     {
@@ -249,13 +245,12 @@ export function ReviewsPage({
               extra={
                 advanced && (
                   <ReviewsAdvancedFilterChip
-                    operator={advanced.operator}
-                    subjects={advancedSubjects}
+                    filter={advanced}
+                    bindSubject={bindSubject}
+                    subjectIds={REVIEW_FILTER_IDS}
                     open={advancedOpen}
                     onOpenChange={setAdvancedOpen}
-                    onOperatorChange={(operator) =>
-                      setView(tab, { advanced: { ...advanced, operator } })
-                    }
+                    onChange={(next) => setView(tab, { advanced: next })}
                     onRemove={() => {
                       setAdvancedOpen(false);
                       setView(tab, { advanced: null });

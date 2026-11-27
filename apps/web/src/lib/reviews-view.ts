@@ -7,8 +7,10 @@ import type {
 import { reviewStatus, REVIEW_STATUSES } from "@/lib/reviews-status";
 import {
   type ReviewsAdvancedFilter,
-  type ReviewsFilters,
   sanitizeReviewsAdvanced,
+} from "@/lib/reviews-advanced";
+import {
+  type ReviewsFilters,
   sanitizeReviewsFilters,
 } from "@/lib/reviews-filters";
 

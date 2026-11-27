@@ -14,10 +14,12 @@ import {
   vi,
 } from "vite-plus/test";
 import "@/lib/i18n";
+import { DEFAULT_CODING_TOOLS } from "@/lib/coding-tools";
 import { ShortcutTestWrapper } from "@/lib/shortcuts/shortcut-test-wrapper";
 import queryClient from "@/query-client";
 import { useCreateIssueStore } from "@/store/create-issue";
 import { useReviewsSnoozeStore } from "@/store/reviews-snooze";
+import { useUserPreferencesStore } from "@/store/user-preferences";
 import { PullRequestMenu } from "./pull-request-menu";
 
 const mocks = vi.hoisted(() => ({
@@ -150,6 +152,7 @@ beforeEach(() => {
     configurable: true,
   });
   useReviewsSnoozeStore.setState({ entries: {} });
+  useUserPreferencesStore.setState({ codingTools: DEFAULT_CODING_TOOLS });
 });
 afterEach(cleanup);
 
@@ -185,6 +188,102 @@ describe("PullRequestMenu", () => {
     fireEvent.keyDown(document.body, { key: "w" });
     fireEvent.keyDown(document.body, { key: "o" });
     expect(await screen.findByText("Copy as prompt")).toBeVisible();
+  });
+
+  describe("Work on pull request coding tools", () => {
+    it("lists Open in Cursor for an enabled built-in tool", async () => {
+      useUserPreferencesStore.setState({
+        codingTools: [
+          {
+            id: "cursor",
+            name: "Cursor",
+            urlTemplate:
+              "cursor://vscode.git/clone?url=https://github.com/{owner}/{repo}.git",
+            enabled: true,
+            builtin: true,
+          },
+          {
+            id: "vscode",
+            name: "VS Code",
+            urlTemplate:
+              "vscode://vscode.git/clone?url=https://github.com/{owner}/{repo}.git",
+            enabled: false,
+            builtin: true,
+          },
+        ],
+      });
+      renderMenu();
+      await open("Work on pull request");
+      const cursor = await screen.findByRole("menuitem", {
+        name: "Open in Cursor",
+      });
+      expect(cursor).toHaveAttribute(
+        "href",
+        "cursor://vscode.git/clone?url=https://github.com/acme/web.git",
+      );
+      expect(
+        screen.queryByRole("menuitem", { name: "Open in VS Code" }),
+      ).toBeNull();
+    });
+
+    it("lists Open in VS Code and custom configured tools with resolved pull request links", async () => {
+      useUserPreferencesStore.setState({
+        codingTools: [
+          {
+            id: "vscode",
+            name: "VS Code",
+            urlTemplate:
+              "vscode://vscode.git/clone?url=https://github.com/{owner}/{repo}.git",
+            enabled: true,
+            builtin: true,
+          },
+          {
+            id: "custom-ide",
+            name: "Cloud IDE",
+            urlTemplate:
+              "https://ide.example.com/{owner}/{repo}/pull/{number}?branch={branch}",
+            enabled: true,
+          },
+          {
+            id: "bad-tool",
+            name: "Unsafe",
+            urlTemplate: "javascript:alert(1)",
+            enabled: true,
+          },
+        ],
+      });
+      renderMenu();
+      await open("Work on pull request");
+      const vscode = await screen.findByRole("menuitem", {
+        name: "Open in VS Code",
+      });
+      expect(vscode).toHaveAttribute(
+        "href",
+        "vscode://vscode.git/clone?url=https://github.com/acme/web.git",
+      );
+      const custom = screen.getByRole("menuitem", {
+        name: "Open in Cloud IDE",
+      });
+      expect(custom).toHaveAttribute(
+        "href",
+        "https://ide.example.com/acme/web/pull/7?branch=feat",
+      );
+      expect(
+        screen.queryByRole("menuitem", { name: "Open in Unsafe" }),
+      ).toBeNull();
+    });
+
+    it("includes Configure coding tools… pointing to its settings section", async () => {
+      renderMenu();
+      await open("Work on pull request");
+      const configure = await screen.findByRole("menuitem", {
+        name: "Configure coding tools…",
+      });
+      expect(configure).toHaveAttribute(
+        "href",
+        "/dashboard/settings/account/preferences#coding-tools",
+      );
+    });
   });
 
   it("copies the prompt with Cmd+Alt+P, without opening the menu", async () => {
