@@ -9,6 +9,7 @@ import { fingerprint } from "../fingerprint";
 import { syncDocumentReferences } from "../../reference/sync-references";
 import { syncDocumentTaskLinks } from "../../task-document/sync-links";
 import type { saveDraftBody } from "../schema";
+import { copyLinkedFiles } from "./copy-linked-files";
 import { proposeLineage, readLineage } from "./lineage";
 import { loadDocument } from "./load-document";
 import { recordVersion } from "./record-version";
@@ -61,7 +62,8 @@ export async function saveDraft(
 ) {
   const { workspaceId, title, markdown } = body;
   const externalId = `${userId}:${body.idempotencyKey}`;
-  const prints = fingerprint(markdown);
+  let prints = fingerprint(markdown);
+  let content = markdown;
   // One transaction: a repeated call that arrives while this one runs waits
   // on the unique index, then finds the finished draft.
   const created = await db.transaction(async (tx) => {
@@ -92,23 +94,26 @@ export async function saveDraft(
         createdAt: documentTable.createdAt,
       });
     if (!row) return null;
+    content = await copyLinkedFiles(tx, row, userId, markdown);
+    if (content !== markdown) {
+      prints = fingerprint(content);
+      await tx
+        .update(documentTable)
+        .set({ content, fingerprint: prints })
+        .where(eq(documentTable.id, row.id));
+    }
     // Like any new document: its author follows it and its history starts.
     await tx
       .insert(documentSubscriberTable)
       .values({ documentId: row.id, userId });
-    await recordVersion(
-      row.id,
-      userId,
-      { title, content: markdown },
-      { database: tx },
-    );
+    await recordVersion(row.id, userId, { title, content }, { database: tx });
     return row;
   });
 
   if (created) {
     await proposeLineage(created, prints, userId);
-    await syncDocumentTaskLinks(db, created, userId, markdown);
-    await syncDocumentReferences(db, created.id, markdown);
+    await syncDocumentTaskLinks(db, created, userId, content);
+    await syncDocumentReferences(db, created.id, content);
   }
 
   let id = created?.id;

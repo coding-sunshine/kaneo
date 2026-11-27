@@ -23,6 +23,7 @@ export const NOTIFICATION_TYPE_FILTERS = [
     types: [
       "document_proposed",
       "document_current",
+      "document_decision",
       "document_replaced",
       "document_question",
     ],

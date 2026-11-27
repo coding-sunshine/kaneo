@@ -33,8 +33,26 @@ vi.mock("@/fetchers/document/facts", () => mocks);
 vi.mock("@/fetchers/topic/facts", () => ({}));
 vi.mock("@/lib/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("./fact-conflict-card", () => ({
-  FactConflictCard: ({ conflict }: { conflict: { slotName: string } }) => (
-    <div>conflict card {conflict.slotName}</div>
+  FactConflictCard: ({
+    conflict,
+    canConfirm,
+    onConfirm,
+  }: {
+    conflict: { slotName: string; status: string; confirmed: boolean };
+    canConfirm?: boolean;
+    onConfirm?: () => void;
+  }) => (
+    <div>
+      <span>conflict card {conflict.slotName}</span>
+      {conflict.status !== "open" &&
+        !conflict.confirmed &&
+        canConfirm &&
+        onConfirm && (
+          <button type="button" onClick={onConfirm}>
+            confirm conflict {conflict.slotName}
+          </button>
+        )}
+    </div>
   ),
 }));
 vi.mock("./reject-fact-dialog", () => ({
@@ -203,6 +221,44 @@ describe("DocumentFacts", () => {
     ).toBeNull();
   });
 
+  it("tells an editor who is not the decider on a proposal and hides confirm and reject", async () => {
+    await show(receipt({ new: [stated("n", "Launch")] }), {
+      document: {
+        workspaceId: "ws",
+        id: "doc",
+        status: "in_review",
+        topicId: "t1",
+      } as never,
+      topic: { id: "t1", canDecide: false, deciderName: "Ann" },
+    });
+    expect(await screen.findByText(`${T}.deciderOnlyProposal`)).toBeTruthy();
+    expect(
+      screen.queryByRole("button", { name: /confirmName|rejectName/ }),
+    ).toBeNull();
+  });
+
+  it("offers no add to an editor who is not the decider on the current document", async () => {
+    const missing = receipt({
+      notChecked: [{ slot: "s", slotName: "Owner", type: "person" }],
+    });
+    await show(missing, {
+      ...current,
+      topic: { id: "t1", canDecide: false, deciderName: "Ann" },
+    });
+    await screen.findByText(`${T}.deciderOnly`);
+    expect(
+      screen.queryByRole("button", { name: `${T}.addName {"name":"Owner"}` }),
+    ).toBeNull();
+    cleanup();
+
+    await show(missing, current);
+    expect(
+      await screen.findByRole("button", {
+        name: `${T}.addName {"name":"Owner"}`,
+      }),
+    ).toBeTruthy();
+  });
+
   it("shows the rejected value of a missing fact", async () => {
     await show(
       receipt({
@@ -269,6 +325,25 @@ describe("DocumentFacts", () => {
         slot: "s",
         value: "Ann",
         quote: "abcd",
+      }),
+    );
+  });
+
+  it("confirms an unconfirmed fact under a both-stand decision", async () => {
+    mocks.confirmDocumentFact.mockResolvedValue({});
+    await show(
+      receipt({
+        conflicts: [{ ...stated("c", "Price", false), status: "tolerated" }],
+      }),
+    );
+    fireEvent.click(
+      await screen.findByRole("button", { name: "confirm conflict Price" }),
+    );
+    await waitFor(() =>
+      expect(mocks.confirmDocumentFact.mock.calls[0]?.[0]).toEqual({
+        workspaceId: "ws",
+        id: "doc",
+        statementId: "c",
       }),
     );
   });

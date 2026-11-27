@@ -17,13 +17,15 @@ export function openConflicts(receipt: DocumentReceipt) {
 }
 
 /**
- * Stated facts the panel offers to confirm. A fact in a conflict is left out:
- * the decider settles it with a decision, not with a confirmation.
+ * Stated facts the panel offers to confirm. Open conflicts are left out:
+ * the decider settles those with a decision, not with a confirmation.
  */
 export function waitingCount(receipt: DocumentReceipt) {
-  const { unjudged, new: added, repeats } = receipt;
-  return [...unjudged, ...added, ...repeats].filter((fact) => !fact.confirmed)
-    .length;
+  const { conflicts, unjudged, new: added, repeats } = receipt;
+  const decided = conflicts.filter((conflict) => conflict.status !== "open");
+  return [...decided, ...unjudged, ...added, ...repeats].filter(
+    (fact) => !fact.confirmed,
+  ).length;
 }
 
 /**

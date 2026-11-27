@@ -14,6 +14,7 @@ import {
   shareDocument,
   shareDocumentWithTask,
   snoozeDocument,
+  unshareDocumentFromHiddenTasks,
   unshareDocumentFromTask,
   updateDocument,
   updateDocumentComment,
@@ -103,6 +104,18 @@ export function useUnshareDocumentFromTask(workspaceId: string) {
   return useMutation({
     mutationFn: ({ id, taskId }: { id: string; taskId: string }) =>
       unshareDocumentFromTask(workspaceId, id, taskId),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: documentsKey(workspaceId) }),
+  });
+}
+
+export function useUnshareDocumentFromHiddenTasks(
+  workspaceId: string,
+  id: string,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => unshareDocumentFromHiddenTasks(workspaceId, id),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: documentsKey(workspaceId) }),
   });

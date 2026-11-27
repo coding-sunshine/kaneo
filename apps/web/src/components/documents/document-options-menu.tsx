@@ -65,7 +65,9 @@ export function DocumentOptionsMenu({
     workspaceId,
     enabled: canEdit,
   });
-  const { data: projects = [] } = useGetWorkProjects(workspaceId);
+  const { data: allProjects = [] } = useGetWorkProjects(workspaceId);
+  // A project whose teams are all closed to this person refuses the move.
+  const projects = allProjects.filter((project) => project.canOpenDocuments);
   const [target, setTarget] = useState<{
     location: MoveLocation;
     name: string;

@@ -74,6 +74,8 @@ import agent from "./agent";
 import { setSelfFetch } from "./agent/self-client";
 import loop from "./loop";
 import chat from "./chat";
+import { findChannelWorkspace } from "./chat/controllers/find-channel-workspace";
+import { loadChannel } from "./chat/controllers/load-channel";
 import savedView from "./saved-view";
 import taskDraft from "./task-draft";
 import document from "./document";
@@ -88,7 +90,7 @@ import { createRoute, errorResponse, jsonResponse, z } from "./openapi";
 import { initializePlugins, integrationPlugins } from "./plugins";
 import { migrateGitHubIntegration } from "./plugins/github/migration";
 import project from "./project";
-import { assertProjectAccess } from "./project-access/assert-project-access";
+import { hideClosedTeams } from "./project-access/hide-closed-teams";
 import { getPublicProject } from "./project/controllers/get-public-project";
 import { initializeScheduler, shutdownScheduler } from "./scheduler";
 import search from "./search";
@@ -147,6 +149,7 @@ import {
   removeUserConnection,
   shutdownWebSocketAdapter,
 } from "./ws";
+import { addChatConnection, removeChatConnection } from "./ws/chat-connections";
 import {
   assertWebSocketOrigin,
   handleWebSocketMessage,
@@ -565,9 +568,11 @@ export function createApp() {
         },
         304: { description: "Not modified" },
         403: errorResponse(
-          "Staged upload owned by another user, or no access to the asset's project",
+          "Staged upload owned by another user, or a role without permission to read issues",
         ),
-        404: errorResponse("Asset not found"),
+        404: errorResponse(
+          "Asset not found, or it sits in a team the caller cannot open",
+        ),
         429: apiKeyRateLimited.ref,
       },
     }),
@@ -972,6 +977,49 @@ export function createApp() {
     }),
   );
 
+  // A refused upgrade is a refused subscription: the same rules as reading
+  // the channel's messages, and the same 404 for missing and private channels.
+  api.get(
+    "/ws/chat/:channelId",
+    upgradeWebSocket(async (c) => {
+      assertWebSocketOrigin(c.req.raw.headers);
+      const channelId = c.req.param("channelId") ?? "";
+      const userId = c.get("userId");
+      const apiKeyId = c.get("apiKey")?.id;
+
+      const workspaceId = await findChannelWorkspace(channelId);
+      await validateWorkspaceAccess(userId, workspaceId, apiKeyId, {
+        notFoundMessage: "Channel not found",
+      });
+      c.set("workspaceId", workspaceId);
+      await requireWorkspacePermission({ workspace: ["read"] })(
+        c,
+        async () => {},
+      );
+      await loadChannel(workspaceId, channelId, userId, "read");
+
+      const sessionId = c.get("session")?.id ?? null;
+      let conn: ReturnType<typeof addChatConnection> | null = null;
+
+      return {
+        onOpen(_evt, ws) {
+          conn = addChatConnection(
+            channelId,
+            ws,
+            userId,
+            workspaceId,
+            sessionId,
+            apiKeyId,
+          );
+        },
+        onMessage: handleWebSocketMessage,
+        onClose() {
+          if (conn) removeChatConnection(channelId, conn);
+        },
+      };
+    }),
+  );
+
   api.get(
     "/ws/:projectId",
     upgradeWebSocket(async (c) => {
@@ -995,7 +1043,11 @@ export function createApp() {
         await validateWorkspaceAccess(userId, project.workspaceId, undefined, {
           notFoundMessage: "Project not found",
         });
-        await assertProjectAccess(userId, projectId);
+        await hideClosedTeams(
+          userId,
+          projectId,
+          () => new HTTPException(404, { message: "Project not found" }),
+        );
         workspaceId = project.workspaceId;
         c.set("workspaceId", workspaceId);
         await requireWorkspacePermission(PROJECT_READ_PERMISSIONS)(

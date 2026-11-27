@@ -16,7 +16,7 @@ const statements = "/workspace/{workspaceId}/{id}/statements";
 const decided = `${statements}/{statementId}`;
 const notFound = errorResponse("Document or statement not found");
 const noEdit = errorResponse(
-  "Needs edit access to the document. On a current document, only the topic's decider.",
+  "Needs edit access to the document. On a current document, only the topic's decider or backup; on a proposal, only they confirm or reject.",
 );
 const body = <T extends ZodType>(schema: T) => ({
   required: true as const,
@@ -54,7 +54,7 @@ export const addStatementRoute = createRoute({
   tags,
   summary: "Add a statement to a document",
   description:
-    "Record what the document states for one slot of its topic. The quote must be in the document. The statement is a proposal until a person confirms it. Sending a slot again replaces its unconfirmed statement.",
+    "Record what the document states for one slot of its topic. The quote must be in the document. The statement is a proposal until a person confirms it. Sending a slot again replaces its unconfirmed statement. On a current document, only the topic's decider or backup adds or replaces a statement.",
   middleware: [...write] as const,
   request: { params: documentParam, body: body(statementBody) },
   responses: {

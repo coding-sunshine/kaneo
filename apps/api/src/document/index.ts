@@ -16,7 +16,11 @@ import {
   updateComment,
 } from "./controllers/comments";
 import { createDocument } from "./controllers/create-document";
-import { deleteDocument, restoreDocument } from "./controllers/delete-document";
+import {
+  deleteDocument,
+  purgeDocument,
+  restoreDocument,
+} from "./controllers/delete-document";
 import { documentAudience } from "./controllers/document-audience";
 import { documentUsage } from "./controllers/document-usage";
 import { getDocument } from "./controllers/get-document";
@@ -38,6 +42,7 @@ import {
   shareWithTask,
   taskAudience,
   unshareFromTask,
+  unshareHiddenTasks,
 } from "./controllers/share-with-task";
 import { markDocumentsSeen } from "./controllers/mark-documents-seen";
 import { decideLineage } from "./controllers/lineage";
@@ -475,6 +480,26 @@ const deleteRoute = createRoute({
   },
 });
 
+const purgeRoute = createRoute({
+  method: "delete",
+  operationId: "purgeDocument",
+  path: `${one}/permanent`,
+  tags,
+  summary: "Delete document permanently",
+  description:
+    "Permanently delete a document in the trash. Its uploaded files that another document in the workspace still links move to the oldest such document; the rest are queued for storage cleanup.",
+  middleware: [...write] as const,
+  request: { params: documentParam },
+  responses: {
+    200: jsonResponse("Document permanently deleted", idSchema),
+    403: noAccess,
+    404: notFound,
+    409: errorResponse(
+      "The document is current on its topic, or one of its files is still linked from an issue or another workspace",
+    ),
+  },
+});
+
 const restoreRoute = createRoute({
   method: "post",
   operationId: "restoreDocument",
@@ -568,6 +593,23 @@ const unshareTaskRoute = createRoute({
     "The issue no longer lets anyone into the document. Needs edit rights on the document.",
   middleware: [...write] as const,
   request: { params: documentTaskParam },
+  responses: {
+    200: jsonResponse("Sharing stopped", documentSchema),
+    403: noAccess,
+    404: notFound,
+  },
+});
+
+const unshareHiddenTasksRoute = createRoute({
+  method: "delete",
+  operationId: "unshareDocumentFromHiddenTasks",
+  path: `${one}/task-shares/hidden`,
+  tags,
+  summary: "Stop sharing with issues you cannot open",
+  description:
+    "Removes every share on an issue in a team you cannot open; those issues no longer let anyone into the document. Needs edit rights on the document.",
+  middleware: [...write] as const,
+  request: { params: documentParam },
   responses: {
     200: jsonResponse("Sharing stopped", documentSchema),
     403: noAccess,
@@ -984,6 +1026,10 @@ const document = apiRouter()
     const { workspaceId, id } = c.req.valid("param");
     return c.json(await deleteDocument(workspaceId, id, c.get("userId")), 200);
   })
+  .openapi(purgeRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(await purgeDocument(workspaceId, id, c.get("userId")), 200);
+  })
   .openapi(restoreRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");
     return c.json(await restoreDocument(workspaceId, id, c.get("userId")), 200);
@@ -1018,6 +1064,13 @@ const document = apiRouter()
     const { workspaceId, id, taskId } = c.req.valid("param");
     return c.json(
       await unshareFromTask(workspaceId, id, c.get("userId"), taskId),
+      200,
+    );
+  })
+  .openapi(unshareHiddenTasksRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(
+      await unshareHiddenTasks(workspaceId, id, c.get("userId")),
       200,
     );
   })

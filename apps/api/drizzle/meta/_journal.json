@@ -841,6 +841,20 @@
       "when": 1795793959564,
       "tag": "0119_solid_baron_strucker",
       "breakpoints": true
+    },
+    {
+      "idx": 120,
+      "version": "7",
+      "when": 1795801018936,
+      "tag": "0120_old_namorita",
+      "breakpoints": true
+    },
+    {
+      "idx": 121,
+      "version": "7",
+      "when": 1795802061424,
+      "tag": "0121_safe_human_torch",
+      "breakpoints": true
     }
   ]
 }

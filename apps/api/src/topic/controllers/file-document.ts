@@ -14,6 +14,7 @@ type Topic = Awaited<ReturnType<typeof getTopic>>;
 // everyone who can open the topic can read it, and its turn to be reviewed.
 export const filedOn = (
   topic: Pick<Topic, "id" | "scope" | "projectId" | "workProjectId">,
+  userId: string,
 ) => ({
   scope: topic.scope,
   projectId: topic.projectId,
@@ -22,6 +23,7 @@ export const filedOn = (
   topicId: topic.id,
   status: "in_review" as const,
   filedAt: new Date(),
+  filedById: userId,
 });
 
 // Files a document on a topic as a proposal. It moves to the topic's place,
@@ -59,7 +61,7 @@ export async function fileDocument(
     await tx
       .update(documentTable)
       .set({
-        ...filedOn(topic),
+        ...filedOn(topic, userId),
         supersedesDocumentId: replace ? topic.currentDocumentId : null,
       })
       .where(eq(documentTable.id, documentId));

@@ -165,13 +165,13 @@ describe("API integration: topics and the current document", () => {
     const seen = (await (await api.get(limited, pricing.id)).json()) as Topic;
     expect(seen).toMatchObject({ name: "Pricing", canDecide: false });
 
-    // A place the member cannot enter, an unknown place, a nameless topic and
-    // a place only a document can live in.
+    // A place the member cannot enter (answered like an unknown one), an
+    // unknown place, a nameless topic and a place only a document can live in.
     expect(
       await statusOf(
         api.create(limited, { name: "Hidden", projectId: world.beta.id }),
       ),
-    ).toBe(403);
+    ).toBe(400);
     expect(
       await statusOf(
         api.create(owner, { name: "Nowhere", projectId: "no-such-team" }),

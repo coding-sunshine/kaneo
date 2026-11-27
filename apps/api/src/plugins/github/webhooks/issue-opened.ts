@@ -12,6 +12,7 @@ import {
   taskTable,
 } from "../../../database/schema";
 import { claimTaskNumber } from "../../../task/controllers/claim-task-numbers";
+import { syncTaskDescriptionLinks } from "../../../task-document/sync-links";
 import type { GitHubConfig } from "../config";
 import { createExternalLink, findExternalLink } from "../services/link-manager";
 import { confirmedFieldLabels } from "../../sync/field-labels";
@@ -133,6 +134,7 @@ export async function handleIssueOpened(
         })
         .returning();
       if (!task) throw new Error("Failed to create task from GitHub issue");
+      await syncTaskDescriptionLinks(tx, task.id, null, task.description);
       const link = await createExternalLink(
         {
           taskId: task.id,

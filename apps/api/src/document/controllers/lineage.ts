@@ -12,8 +12,16 @@ import { documentVisibility } from "../visibility";
 import { loadDocument } from "./load-document";
 
 // A text that shares this much of all five-word runs with an older document
-// looks like a revision of it. Assumed: hand test 15 sets the real value.
-const THRESHOLD = 0.5;
+// looks like a revision of it. Decided at 0.30: of a ten-sentence plan, one
+// sentence rewritten shares 0.76, two 0.56-0.60, three 0.41-0.45, four
+// 0.28-0.31, five 0.20 and six 0.16. So a revision with up to three of ten
+// sentences new is named, and at four it depends on the words.
+const THRESHOLD = 0.3;
+// A text with fewer five-word runs than this, about two sentences, is not
+// compared, as the new text or as the older one. A line like a heading, a
+// greeting or a template's first sentence turns up in many unrelated
+// documents, and at 0.30 a run of eight shared words would name one of them.
+const MIN_RUNS = 25;
 // Documents that nobody edited for this long are not compared.
 const WINDOW_MS = 90 * 86_400_000;
 
@@ -26,7 +34,9 @@ type Written = Pick<
  * Proposes the older document that a text which was just written resembles,
  * among the documents its writer can open. `prints` is the fingerprint the
  * writer stored with the text. A link that a person confirmed or dismissed is
- * left alone.
+ * left alone, and so is a proposal whose source the writer cannot open: the
+ * comparison runs as the writer, and what they cannot see says nothing about
+ * it.
  */
 export async function proposeLineage(
   doc: Written,
@@ -34,17 +44,24 @@ export async function proposeLineage(
   userId: string,
 ) {
   const [link] = await db
-    .select({ status: documentLineageTable.status })
+    .select({
+      status: documentLineageTable.status,
+      sourceVisible: documentVisibility(userId, documentTable),
+    })
     .from(documentLineageTable)
+    .innerJoin(
+      documentTable,
+      eq(documentTable.id, documentLineageTable.sourceDocumentId),
+    )
     .where(eq(documentLineageTable.documentId, doc.id));
-  if (link && link.status !== "proposed") return;
+  if (link && (link.status !== "proposed" || !link.sourceVisible)) return;
 
   // ponytail: every save of an undecided text loads the fingerprints of the
   // recent documents of a similar length and compares them here. That holds at
   // this team's volume. Move the comparison into SQL (intarray) when a save
   // gets slow.
   const candidates =
-    prints.length === 0
+    prints.length < MIN_RUNS
       ? []
       : await db
           .select({
@@ -66,11 +83,11 @@ export async function proposeLineage(
               lt(documentTable.createdAt, doc.createdAt),
               gt(documentTable.updatedAt, new Date(Date.now() - WINDOW_MS)),
               documentVisibility(userId, documentTable),
-              // Two texts cannot share half of all runs when one is more
-              // than twice as long as the other.
+              // Two texts cannot share THRESHOLD of all runs when one is
+              // more than 1 / THRESHOLD times as long as the other.
               or(
                 isNull(documentTable.fingerprint),
-                sql`cardinality(${documentTable.fingerprint}) BETWEEN ${Math.ceil(prints.length * THRESHOLD)} AND ${Math.floor(prints.length / THRESHOLD)}`,
+                sql`cardinality(${documentTable.fingerprint}) BETWEEN ${Math.max(MIN_RUNS, Math.ceil(prints.length * THRESHOLD))} AND ${Math.floor(prints.length / THRESHOLD)}`,
               ),
             ),
           )
@@ -96,6 +113,7 @@ export async function proposeLineage(
           ),
         );
     }
+    if (theirs.length < MIN_RUNS) continue;
     const overlap = resemblance(prints, theirs);
     if (overlap >= THRESHOLD && overlap > (best?.overlap ?? 0)) {
       best = { id: candidate.id, overlap };

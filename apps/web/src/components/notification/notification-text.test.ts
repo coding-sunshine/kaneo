@@ -113,6 +113,7 @@ describe("notification display content", () => {
       "document_mention",
       "document_comment",
       "document_current",
+      "document_decision",
     ]) {
       // A deleted account and an empty title still read as a sentence.
       const item = notification(type, { actorName: null, documentTitle: "" });

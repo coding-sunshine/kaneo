@@ -3,6 +3,7 @@ import { and, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import db from "../../database";
 import {
   activityTable,
+  type DocumentScope,
   documentTable,
   projectTable,
   taskTable,
@@ -11,6 +12,7 @@ import {
   workspaceTable,
   workspaceUserTable,
 } from "../../database/schema";
+import { documentParentName } from "../../document/controllers/list-documents";
 import { documentVisibility, topicAccess } from "../../document/visibility";
 import { canAccessProject } from "../../project-access/can-access-project";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
@@ -56,6 +58,8 @@ type SearchResult = {
   priority?: string;
   status?: string;
   topicName?: string;
+  scope?: DocumentScope;
+  parentName?: string | null;
   archivedAt?: Date | null;
 };
 
@@ -531,7 +535,7 @@ async function globalSearch(params: SearchParams): Promise<{
       .select({
         id: documentTable.id,
         title: documentTable.title,
-        projectId: documentTable.projectId,
+        projectId: projectTable.id,
         projectName: projectTable.name,
         workspaceId: documentTable.workspaceId,
         workspaceName: workspaceTable.name,
@@ -539,6 +543,8 @@ async function globalSearch(params: SearchParams): Promise<{
         createdAt: documentTable.createdAt,
         status: documentTable.status,
         topicName: topicTable.name,
+        scope: documentTable.scope,
+        parentName: documentParentName(resolvedUserId),
         relevanceScore: docScore.as("relevanceScore"),
       })
       .from(documentTable)
@@ -578,7 +584,7 @@ async function globalSearch(params: SearchParams): Promise<{
             workProjectId: documentTable.workProjectId,
             taskId: documentTable.taskId,
           }),
-          projectId ? eq(documentTable.projectId, projectId) : undefined,
+          projectId ? eq(projectTable.id, projectId) : undefined,
           docFts?.match ??
             or(
               ilike(documentTable.title, searchPattern),
@@ -608,6 +614,8 @@ async function globalSearch(params: SearchParams): Promise<{
         relevanceScore: doc.relevanceScore,
         status: doc.status,
         topicName: doc.topicName ?? undefined,
+        scope: doc.scope,
+        parentName: doc.parentName,
       });
     }
   }

@@ -132,7 +132,8 @@ describe("API integration: project documents follow the project's teams", () => 
 
     expect((await create(limited, workProject.id)).status).toBe(200);
     expect((await create(limited, alphaProject.id)).status).toBe(200);
-    expect((await create(limited, betaProject.id)).status).toBe(403);
+    // A project they cannot enter answers like one that does not exist.
+    expect((await create(limited, betaProject.id)).status).toBe(400);
     expect((await create(open, betaProject.id)).status).toBe(200);
     expect((await create(limited, "no-such-project")).status).toBe(400);
 
@@ -147,7 +148,7 @@ describe("API integration: project documents follow the project's teams", () => 
         `/document/workspace/${world.ws}/${draft.id}/location`,
         json("PUT", { scope: "project", workProjectId }),
       );
-    expect((await move(betaProject.id)).status).toBe(403);
+    expect((await move(betaProject.id)).status).toBe(400);
     const [unmoved] = await db
       .select({
         scope: schema.documentTable.scope,
@@ -157,6 +158,45 @@ describe("API integration: project documents follow the project's teams", () => 
       .where(eq(schema.documentTable.id, draft.id));
     expect(unmoved).toEqual({ scope: "private", workProjectId: null });
     expect((await move(alphaProject.id)).status).toBe(200);
+  });
+
+  it("tells each member which projects can hold their documents", async () => {
+    const world = await buildDocumentWorld();
+    const { limited, open, workProject, alphaProject, betaProject } = world;
+    const places = async (user: Member) => {
+      const list = await world.as(user)(`/work-project/workspace/${world.ws}`);
+      expect(list.status).toBe(200);
+      const rows = (await list.json()) as {
+        id: string;
+        teamIds: string[];
+        canOpenDocuments: boolean;
+      }[];
+      return Object.fromEntries(
+        rows.map((row) => [row.id, row.canOpenDocuments]),
+      );
+    };
+
+    // Beta launch looks teamless to `limited`: its only team is hidden.
+    expect(await places(limited)).toEqual({
+      [workProject.id]: true,
+      [alphaProject.id]: true,
+      [betaProject.id]: false,
+    });
+    expect(await places(open)).toEqual({
+      [workProject.id]: true,
+      [alphaProject.id]: true,
+      [betaProject.id]: true,
+    });
+    const detail = await world.as(limited)(`/work-project/${betaProject.id}`);
+    expect(detail.status).toBe(200);
+    expect(await detail.json()).toMatchObject({
+      teamIds: [],
+      canOpenDocuments: false,
+    });
+
+    // A second team they can enter opens it.
+    await link(betaProject.id, world.alpha.id);
+    expect((await places(limited))[betaProject.id]).toBe(true);
   });
 
   it("gives a named share its own role inside a closed project", async () => {

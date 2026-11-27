@@ -4,12 +4,14 @@ import createActivities from "../../activity/controllers/create-activities";
 import db from "../../database";
 import {
   assetTable,
+  documentTable,
   externalLinkTable,
   integrationTable,
   labelTable,
   projectTable,
   taskRelationTable,
   taskTable,
+  topicTable,
   userNotificationWorkspaceProjectTable,
   workspaceMemberProjectTable,
   workspaceUserTable,
@@ -92,6 +94,23 @@ async function moveProject(
       throw new HTTPException(409, {
         message:
           "Remove task relationships to other projects before moving this project.",
+      });
+
+    // A team's documents and topics, and the documents of its issues, carry
+    // the workspace and its people: shares, followers, deciders, lineage. A
+    // move would leave them behind, so it waits until they are gone.
+    const held = await tx.execute(sql`
+      SELECT 1 FROM ${documentTable} doc
+      WHERE doc.project_id = ${id}
+         OR doc.task_id IN (SELECT task.id FROM ${taskTable} task WHERE task.project_id = ${id})
+      UNION ALL
+      SELECT 1 FROM ${topicTable} topic WHERE topic.project_id = ${id}
+      LIMIT 1
+    `);
+    if (held.rows.length)
+      throw new HTTPException(409, {
+        message:
+          "Move this project's documents and topics to another place, or delete them, before moving the project. Documents in the trash count too.",
       });
 
     // These rows point at both the project and a notification rule via

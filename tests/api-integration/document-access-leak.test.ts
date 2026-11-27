@@ -1308,4 +1308,43 @@ describe("API integration: document access leaks", () => {
       expect(JSON.stringify(left)).not.toContain(secret);
     }
   });
+
+  it("answers a hidden team, project or issue like an unknown one when placing a document", async () => {
+    const world = await buildDocumentWorld();
+    const { limited } = world;
+    const create = (parent: Record<string, string>) =>
+      world.as(limited)(
+        "/document",
+        json("POST", { workspaceId: world.ws, title: "Placed", ...parent }),
+      );
+    const move = (parent: Record<string, string>) =>
+      world.as(limited)(
+        `/document/workspace/${world.ws}/${world.docs.teamAlpha}/location`,
+        json("PUT", parent),
+      );
+    for (const [hidden, unknown] of [
+      [
+        { scope: "team", projectId: world.beta.id },
+        { scope: "team", projectId: "no-such-team" },
+      ],
+      [
+        { scope: "issue", taskId: world.betaTask.id },
+        { scope: "issue", taskId: "no-such-issue" },
+      ],
+      [
+        { scope: "project", workProjectId: world.betaProject.id },
+        { scope: "project", workProjectId: "no-such-project" },
+      ],
+    ] as const) {
+      for (const send of [create, move]) {
+        const missing = await send(unknown);
+        const refused = await send(hidden);
+        expect({ hidden, status: refused.status }).toEqual({
+          hidden,
+          status: missing.status,
+        });
+        expect(await refused.json()).toEqual(await missing.json());
+      }
+    }
+  });
 });

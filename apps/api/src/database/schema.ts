@@ -2784,6 +2784,11 @@ export const documentTable = pgTable(
       onUpdate: "cascade",
     }),
     filedAt: timestamp("filed_at", { mode: "date" }),
+    // Who filed it on the topic, who need not be its author. Null on a
+    // document filed before this was recorded: its author stands in. No
+    // foreign key: an existing table gets none. A filer whose account is
+    // gone keeps their id here, which still reads as somebody else.
+    filedById: text("filed_by_id"),
     // Set aside in the Inbox until this time. One date for everybody who sees
     // the item: one person triages the Inbox.
     inboxSnoozedUntil: timestamp("inbox_snoozed_until", { mode: "date" }),
@@ -3791,6 +3796,28 @@ export const taskExtractionTable = pgTable(
       .nullsNotDistinct(),
   ],
 );
+
+// How far a text that stopped part way was read, and whether a part of it
+// had an answer, so the next run goes on with the parts that are left, after
+// a restart too. One row for each text and question; it goes once the text
+// is read to its end or recorded.
+export const taskExtractionProgressTable = pgTable("task_extraction_progress", {
+  // The issue or file, the hash of its text and the hash of the question.
+  key: text("key").primaryKey(),
+  taskId: text("task_id")
+    .notNull()
+    .references(() => taskTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  // Empty for the issue's title, description and comments.
+  assetId: text("asset_id").references(() => assetTable.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
+  next: integer("next").notNull(),
+  readable: boolean("readable").notNull(),
+});
 
 // A fact the model found in an issue or in a file on it, for a slot of a
 // topic. It is a proposal only: it never changes what the topic states. A

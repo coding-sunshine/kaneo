@@ -29,6 +29,7 @@ import {
   createProjectFixture,
   createWorkspaceMember,
 } from "./helpers/fixtures";
+import { restrictToProjects } from "./helpers/project-access/restrict-to-projects";
 
 // Use the actual client from node-ws's installed dependency, without adding a
 // production dependency or connecting to any remote server.
@@ -256,6 +257,19 @@ it("still rejects access to a foreign project with a valid Origin", async () => 
   };
   expect((await connect(project.id, headers)).status).toBe(404);
   expect((await connect("missing-project", headers)).status).toBe(404);
+});
+
+it("answers a team of the workspace the member cannot open like a missing one", async () => {
+  const { project: closed } = await createProjectFixture({ workspaceId });
+  await restrictToProjects(workspaceId, userId, [projectId]);
+  const headers = {
+    cookie: "test-session=valid",
+    origin: "http://localhost:5173",
+  };
+  expect((await connect(closed.id, headers)).status).toBe(
+    (await connect("missing-project", headers)).status,
+  );
+  expect((await connect(projectId, headers)).status).toBe(101);
 });
 
 async function createScopedKey(permissions: Record<string, string[]>) {

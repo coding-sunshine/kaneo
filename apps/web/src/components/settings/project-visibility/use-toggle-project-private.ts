@@ -28,6 +28,8 @@ export function useToggleProjectPrivate(
         icon: project.icon || "Layout",
         isPublic: Boolean(project.isPublic),
         isPrivate: !project.isPrivate,
+        // The dialog before this call named what going private takes away.
+        confirmPrivate: !project.isPrivate,
       });
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["projects"] }),

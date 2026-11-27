@@ -115,6 +115,16 @@ async function updateTask(
         message: "Task order changed; refresh before updating",
       });
     existingTask = locked;
+    // Again under the team row lock, so a privacy change that committed
+    // since the check above is seen.
+    if (normalizedUserId && normalizedUserId !== locked.userId) {
+      await assertAssignableUser(
+        normalizedUserId,
+        await getProjectWorkspaceId(projectId, tx),
+        projectId,
+        tx,
+      );
+    }
 
     const [task] = await tx
       .update(taskTable)

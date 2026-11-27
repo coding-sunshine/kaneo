@@ -391,7 +391,7 @@ describe("API integration: references between tickets, documents and teams", () 
         (ref) => ref.id,
       ),
     ).toEqual([alphaTask.id]);
-    expect(await status(world, limited, `/project/${beta.id}`)).toBe(403);
+    expect(await status(world, limited, `/project/${beta.id}`)).toBe(404);
     expect(
       (await read(world, owner, `/project/${beta.id}`)).references.map(
         (ref) => ref.id,

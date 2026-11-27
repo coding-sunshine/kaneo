@@ -154,8 +154,9 @@ export function filing(world: DocumentWorld) {
       statementId: string,
       verb: "confirm" | "reject",
       body?: unknown,
+      user: Member = owner,
     ) =>
-      world.as(owner)(
+      world.as(user)(
         `${docBase(id)}/statements/${statementId}/${verb}`,
         json("POST", body),
       ),

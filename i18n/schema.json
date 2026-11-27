@@ -12135,6 +12135,117 @@
 						"save"
 					]
 				},
+				"aiUsage": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"description": {
+							"type": "string"
+						},
+						"budgets": {
+							"type": "string"
+						},
+						"monthUsed": {
+							"type": "string"
+						},
+						"userDaily": {
+							"type": "string"
+						},
+						"userDailyHint": {
+							"type": "string"
+						},
+						"workspaceMonthly": {
+							"type": "string"
+						},
+						"workspaceMonthlyHint": {
+							"type": "string"
+						},
+						"noLimit": {
+							"type": "string"
+						},
+						"invalid": {
+							"type": "string"
+						},
+						"save": {
+							"type": "string"
+						},
+						"saved": {
+							"type": "string"
+						},
+						"byFeature": {
+							"type": "string"
+						},
+						"byDay": {
+							"type": "string"
+						},
+						"period": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "string"
+						},
+						"loadError": {
+							"type": "string"
+						},
+						"tokens_one": {
+							"type": "string"
+						},
+						"tokens_zero": {
+							"type": "string"
+						},
+						"tokens_two": {
+							"type": "string"
+						},
+						"tokens_few": {
+							"type": "string"
+						},
+						"tokens_many": {
+							"type": "string"
+						},
+						"tokens_other": {
+							"type": "string"
+						},
+						"features": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"assistant": {
+									"type": "string"
+								},
+								"loop": {
+									"type": "string"
+								},
+								"loopDraft": {
+									"type": "string"
+								}
+							},
+							"required": ["assistant", "loop", "loopDraft"]
+						}
+					},
+					"required": [
+						"title",
+						"description",
+						"budgets",
+						"monthUsed",
+						"userDaily",
+						"userDailyHint",
+						"workspaceMonthly",
+						"workspaceMonthlyHint",
+						"noLimit",
+						"invalid",
+						"save",
+						"saved",
+						"byFeature",
+						"byDay",
+						"period",
+						"empty",
+						"loadError",
+						"features"
+					]
+				},
 				"workspaceWebhooks": {
 					"type": "object",
 					"additionalProperties": false,
@@ -12668,6 +12779,7 @@
 				"adminRoles",
 				"adminSettings",
 				"adminWebhooks",
+				"aiUsage",
 				"workspaceWebhooks",
 				"projectCycles",
 				"issueTemplates",
@@ -14423,6 +14535,25 @@
 								"everyoneIn": {
 									"type": "string"
 								},
+								"everyoneUnnamed": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"workspace": {
+											"type": "string"
+										},
+										"team": {
+											"type": "string"
+										},
+										"project": {
+											"type": "string"
+										},
+										"issue": {
+											"type": "string"
+										}
+									},
+									"required": ["workspace", "team", "project", "issue"]
+								},
 								"private": {
 									"type": "string"
 								},
@@ -14468,9 +14599,6 @@
 								"sharedTasksHint": {
 									"type": "string"
 								},
-								"hiddenTask": {
-									"type": "string"
-								},
 								"stopSharingWith": {
 									"type": "string"
 								},
@@ -14478,6 +14606,33 @@
 									"type": "string"
 								},
 								"unshareFromTaskFailed": {
+									"type": "string"
+								},
+								"hiddenTasks_one": {
+									"type": "string"
+								},
+								"hiddenTasks_zero": {
+									"type": "string"
+								},
+								"hiddenTasks_two": {
+									"type": "string"
+								},
+								"hiddenTasks_few": {
+									"type": "string"
+								},
+								"hiddenTasks_many": {
+									"type": "string"
+								},
+								"hiddenTasks_other": {
+									"type": "string"
+								},
+								"stopHiddenTasks": {
+									"type": "string"
+								},
+								"hiddenTasksUnshared": {
+									"type": "string"
+								},
+								"unshareHiddenTasksFailed": {
 									"type": "string"
 								},
 								"added": {
@@ -14518,6 +14673,7 @@
 								"owner",
 								"generalAccess",
 								"everyoneIn",
+								"everyoneUnnamed",
 								"private",
 								"privateHint",
 								"addPeople",
@@ -14527,10 +14683,12 @@
 								"leaveAsItIs",
 								"sharedTasks",
 								"sharedTasksHint",
-								"hiddenTask",
 								"stopSharingWith",
 								"shareWithTaskFailed",
 								"unshareFromTaskFailed",
+								"stopHiddenTasks",
+								"hiddenTasksUnshared",
+								"unshareHiddenTasksFailed",
 								"added",
 								"updated",
 								"taskGains",
@@ -15832,6 +15990,9 @@
 								"deciderOnly": {
 									"type": "string"
 								},
+								"deciderOnlyProposal": {
+									"type": "string"
+								},
 								"add": {
 									"type": "string"
 								},
@@ -16340,6 +16501,7 @@
 								"rejectedLine",
 								"reasonLabel",
 								"deciderOnly",
+								"deciderOnlyProposal",
 								"add",
 								"addName",
 								"valueLabel",
@@ -16613,6 +16775,34 @@
 						"toolPending": {
 							"type": "string"
 						},
+						"sources": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"unsourced": {
+									"type": "string"
+								},
+								"unsourcedHint": {
+									"type": "string"
+								},
+								"restricted": {
+									"type": "string"
+								},
+								"commentOn": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"label",
+								"unsourced",
+								"unsourcedHint",
+								"restricted",
+								"commentOn"
+							]
+						},
 						"group": {
 							"type": "object",
 							"additionalProperties": false,
@@ -16701,6 +16891,7 @@
 						"toolInput",
 						"toolResult",
 						"toolPending",
+						"sources",
 						"group",
 						"examples"
 					]
@@ -17630,6 +17821,19 @@
 							},
 							"required": ["title", "content"]
 						},
+						"document_decision": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"content": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "content"]
+						},
 						"document_replaced": {
 							"type": "object",
 							"additionalProperties": false,
@@ -17814,6 +18018,7 @@
 						"document_comment",
 						"document_proposed",
 						"document_current",
+						"document_decision",
 						"document_replaced",
 						"task_mention",
 						"task_comment",
@@ -25890,6 +26095,9 @@
 						"takeOver": {
 							"type": "string"
 						},
+						"ownerlessInTrash": {
+							"type": "string"
+						},
 						"takeOverSuccess": {
 							"type": "string"
 						},
@@ -25968,6 +26176,7 @@
 						"ownerlessTitle",
 						"ownerlessDescription",
 						"takeOver",
+						"ownerlessInTrash",
 						"takeOverSuccess",
 						"takeOverError",
 						"ownerlessFrom",

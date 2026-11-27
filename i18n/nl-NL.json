@@ -3502,7 +3502,14 @@
 			"thinking": "Working on it...",
 			"toolInput": "Input",
 			"toolPending": "No result",
-			"toolResult": "Result"
+			"toolResult": "Result",
+			"sources": {
+				"commentOn": "Comment on {{ticket}}",
+				"label": "Sources",
+				"restricted": "Restricted item",
+				"unsourced": "Unsourced",
+				"unsourcedHint": "This answer names no task, document or comment it rests on."
+			}
 		},
 		"customizeSidebar": {
 			"always": "Always show",
@@ -3609,7 +3616,6 @@
 				"privateHint": "Only people invited can open this document",
 				"remove": "Remove access",
 				"title": "Share",
-				"hiddenTask": "An issue you cannot open",
 				"leaveAsItIs": "Leave as it is",
 				"sharedTasks": "Shared with issues",
 				"sharedTasksHint": "Everyone who can open the issue can view this document.",
@@ -3623,7 +3629,18 @@
 				"taskGains": "Sharing gives view access to {{names}}.",
 				"taskShared": "Shared with this issue",
 				"taskUnshared": "Stopped sharing with this issue",
-				"updated": "Access updated"
+				"updated": "Access updated",
+				"hiddenTasks_one": "Also shared with {{count}} issue you cannot open",
+				"hiddenTasks_other": "Also shared with {{count}} issues you cannot open",
+				"hiddenTasksUnshared": "Stopped sharing with issues you cannot open",
+				"stopHiddenTasks": "Stop sharing with them",
+				"unshareHiddenTasksFailed": "Could not stop sharing with those issues",
+				"everyoneUnnamed": {
+					"issue": "Everyone who can open an issue you cannot open",
+					"project": "Everyone in the project's teams",
+					"team": "Everyone in a team you cannot open",
+					"workspace": "Everyone in this workspace"
+				}
 			},
 			"shareMenu": "Share…",
 			"showComments": "Show comments",
@@ -3972,6 +3989,7 @@
 				},
 				"currentValue": "Current: {{value}}",
 				"deciderOnly": "Only the topic's decider confirms or rejects facts on the current document.",
+				"deciderOnlyProposal": "Only the topic's decider confirms or rejects facts on a proposal.",
 				"groupHints": {
 					"conflicts": "This document and the current document say different things.",
 					"new": "The topic states no value for these yet.",
@@ -4457,6 +4475,10 @@
 			"document_question": {
 				"content": "{{documentTitle}}",
 				"title": "Which holds for {{slotName}} in {{topicName}}?"
+			},
+			"document_decision": {
+				"content": "In {{documentTitle}}",
+				"title": "{{actorName}} recorded a decision on {{topicName}}"
 			}
 		},
 		"reminderLeadTime": {
@@ -6355,7 +6377,8 @@
 			"handOverDone_one": "{{count}} document is now {{name}}'s",
 			"handOverDone_other": "{{count}} documents are now {{name}}'s",
 			"handOverGive": "Give their documents",
-			"ownerlessFrom": "Left by {{name}}"
+			"ownerlessFrom": "Left by {{name}}",
+			"ownerlessInTrash": "In the trash"
 		},
 		"projectAccess": {
 			"allProjects": "All projects",

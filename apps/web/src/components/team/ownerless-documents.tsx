@@ -31,11 +31,12 @@ function OwnerlessDocuments({ workspaceId, members }: Props) {
     onError: () => toast.error(t("team:membersTable.takeOverError")),
   });
   if (documents.length === 0) return null;
-  // One hand-over per person who left. A deleted account has no one to name.
+  // One hand-over per person who left. A deleted account has no one to name,
+  // and a hand-over leaves what they threw away.
   const leavers = [
     ...new Map(
       documents.flatMap((document) =>
-        document.creatorId
+        document.creatorId && !document.deletedAt
           ? [[document.creatorId, document.creatorName ?? ""] as const]
           : [],
       ),
@@ -71,6 +72,8 @@ function OwnerlessDocuments({ workspaceId, members }: Props) {
               </div>
               <div className="text-xs text-muted-foreground tabular-nums">
                 {formatDateMedium(document.updatedAt)}
+                {document.deletedAt &&
+                  ` · ${t("team:membersTable.ownerlessInTrash")}`}
               </div>
             </div>
             <Button

@@ -2034,7 +2034,7 @@
 			"publicBlockedByPrivate": "A private team can't have a public link.",
 			"membersDescriptionPrivate": "Only the people added below. The workspace owner can always open this team.",
 			"makePrivateTitle": "Make {{project}} private?",
-			"makePrivateBody": "You and members whose access is already limited to this team keep it. Everyone else loses access, and their issues here become unassigned. Calendar links for this team are deleted and webhooks stop receiving its events.",
+			"makePrivateBody": "You and members whose access is already limited to this team keep it. Everyone else loses access, and their issues here become unassigned. Calendar links for this team are deleted and webhooks stop receiving its events. Opening the team again does not bring back assignees or calendar links.",
 			"makePrivateConfirm": "Make private",
 			"openTeamTitle": "Open {{project}} to the workspace?",
 			"openTeamBody": "Everyone in the workspace can open this team again, unless their access is limited to other teams.",
@@ -3646,6 +3646,12 @@
 				"owner": "Owner",
 				"generalAccess": "General access",
 				"everyoneIn": "Everyone in {{name}}",
+				"everyoneUnnamed": {
+					"workspace": "Everyone in this workspace",
+					"team": "Everyone in a team you cannot open",
+					"project": "Everyone in the project's teams",
+					"issue": "Everyone who can open an issue you cannot open"
+				},
 				"private": "Private",
 				"privateHint": "Only people invited can open this document",
 				"addPeople": "Add people…",
@@ -3657,10 +3663,14 @@
 				"leaveAsItIs": "Leave as it is",
 				"sharedTasks": "Shared with issues",
 				"sharedTasksHint": "Everyone who can open the issue can view this document.",
-				"hiddenTask": "An issue you cannot open",
 				"stopSharingWith": "Stop sharing with {{issue}}",
 				"shareWithTaskFailed": "Could not share the document with this issue",
 				"unshareFromTaskFailed": "Could not stop sharing with this issue",
+				"hiddenTasks_one": "Also shared with {{count}} issue you cannot open",
+				"hiddenTasks_other": "Also shared with {{count}} issues you cannot open",
+				"stopHiddenTasks": "Stop sharing with them",
+				"hiddenTasksUnshared": "Stopped sharing with issues you cannot open",
+				"unshareHiddenTasksFailed": "Could not stop sharing with those issues",
 				"added": "Added {{name}}",
 				"updated": "Access updated",
 				"taskGains": "Sharing gives view access to {{names}}.",
@@ -3991,7 +4001,8 @@
 				"rejectDone": "Fact rejected",
 				"rejectedLine": "Rejected: {{value}}. {{reason}}",
 				"reasonLabel": "Reason",
-				"deciderOnly": "Only the topic's decider confirms or rejects facts on the current document.",
+				"deciderOnly": "Only the topic's decider adds, confirms or rejects facts on the current document.",
+				"deciderOnlyProposal": "Only the topic's decider confirms or rejects facts on a proposal.",
 				"add": "Add value",
 				"addName": "Add a value for {{name}}",
 				"valueLabel": "Value",
@@ -4157,6 +4168,13 @@
 			"toolInput": "Input",
 			"toolResult": "Result",
 			"toolPending": "No result",
+			"sources": {
+				"label": "Sources",
+				"unsourced": "Unsourced",
+				"unsourcedHint": "This answer names no task, document or comment it rests on.",
+				"restricted": "Restricted item",
+				"commentOn": "Comment on {{ticket}}"
+			},
 			"group": {
 				"today": "Today",
 				"yesterday": "Yesterday",
@@ -4415,6 +4433,10 @@
 			"document_current": {
 				"title": "{{topicName}} has a new current document",
 				"content": "{{documentTitle}}, approved by {{actorName}}"
+			},
+			"document_decision": {
+				"title": "{{actorName}} recorded a decision on {{topicName}}",
+				"content": "In {{documentTitle}}"
 			},
 			"document_replaced": {
 				"title_one": "A document linked in {{issueKey}} was replaced",
@@ -6347,6 +6369,7 @@
 			"ownerlessTitle": "Private documents with no author",
 			"ownerlessDescription": "The author left the workspace or deleted their account. Nobody can open these until an owner takes them over.",
 			"takeOver": "Take over",
+			"ownerlessInTrash": "In the trash",
 			"takeOverSuccess": "You are now the author of this document",
 			"takeOverError": "Could not take over the document",
 			"ownerlessFrom": "Left by {{name}}",

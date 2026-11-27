@@ -1,0 +1,15 @@
+{
+	"date": "2026-11-28",
+	"model": "z-ai/glm-5.3-flash",
+	"check": "node --import tsx scripts/assistant-host-check.ts",
+	"data": "synthetic only; provider.data_collection deny; no fallbacks",
+	"cases": 3,
+	"hosts": [
+		{ "host": "z-ai/fp8", "served": "Z.AI", "passed": 3, "chosen": true },
+		{ "host": "deepinfra/fp4", "served": "DeepInfra", "passed": 3 },
+		{ "host": "together", "served": "Together", "passed": 3 },
+		{ "host": "fireworks", "served": "Fireworks", "passed": 3 },
+		{ "host": "novita/fp8", "served": "Novita", "passed": 3 }
+	],
+	"why": "Every host tried answered all three cases and made no write. Z.AI is the model's own lab and serves it in fp8, a higher precision than the fp4 hosts."
+}

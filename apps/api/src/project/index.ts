@@ -91,7 +91,7 @@ const moveProjectRoute = createRoute({
     ),
     404: errorResponse("Project or destination workspace not found"),
     409: errorResponse(
-      "Project key conflict or cross-project task relationships",
+      "Project key conflict, cross-project task relationships, or documents and topics in the project",
     ),
   },
 });
@@ -159,8 +159,8 @@ const getProjectRoute = createRoute({
   request: { params: projectParam },
   responses: {
     200: jsonResponse("Project details", projectSchema),
-    403: errorResponse("No access to the project, or missing read permission"),
-    404: errorResponse("Project not found"),
+    403: errorResponse("Missing read permission"),
+    404: errorResponse("Project not found, or the caller cannot open it"),
   },
 });
 
@@ -218,10 +218,12 @@ const updateProjectRoute = createRoute({
     200: jsonResponse("The updated project", projectSchema),
     400: errorResponse("Invalid body"),
     403: errorResponse(
-      "No access to the project, missing project:update, or missing project:share when visibility changes",
+      "Missing project:update, or missing project:share when visibility changes",
     ),
-    409: errorResponse("Another project in the workspace uses the new key"),
-    404: errorResponse("Project not found"),
+    409: errorResponse(
+      "Another project in the workspace uses the new key, or making the team private needs confirmPrivate",
+    ),
+    404: errorResponse("Project not found, or the caller cannot open it"),
   },
 });
 
@@ -240,10 +242,8 @@ const deleteProjectRoute = createRoute({
   request: { params: projectParam },
   responses: {
     200: jsonResponse("The deleted project", projectSchema),
-    403: errorResponse(
-      "No access to the project, or missing project:delete permission",
-    ),
-    404: errorResponse("Project not found"),
+    403: errorResponse("Missing project:delete permission"),
+    404: errorResponse("Project not found, or the caller cannot open it"),
   },
 });
 
@@ -262,10 +262,8 @@ const archiveProjectRoute = createRoute({
   request: { params: projectParam },
   responses: {
     200: jsonResponse("The archived project", projectSchema),
-    403: errorResponse(
-      "No access to the project, or missing project:update permission",
-    ),
-    404: errorResponse("Project not found"),
+    403: errorResponse("Missing project:update permission"),
+    404: errorResponse("Project not found, or the caller cannot open it"),
   },
 });
 
@@ -283,11 +281,9 @@ const unarchiveProjectRoute = createRoute({
   request: { params: projectParam },
   responses: {
     200: jsonResponse("The restored project", projectSchema),
-    403: errorResponse(
-      "No access to the project, or missing project:update permission",
-    ),
+    403: errorResponse("Missing project:update permission"),
     409: errorResponse("Another project in the workspace uses this key"),
-    404: errorResponse("Project not found"),
+    404: errorResponse("Project not found, or the caller cannot open it"),
   },
 });
 
@@ -312,8 +308,8 @@ const updateTeamMembershipRoute = createRoute({
   },
   responses: {
     200: jsonResponse("Your membership of the project", teamMembershipSchema),
-    403: errorResponse("No access to the project, or missing read permission"),
-    404: errorResponse("Project not found"),
+    403: errorResponse("Missing read permission"),
+    404: errorResponse("Project not found, or the caller cannot open it"),
   },
 });
 
@@ -330,9 +326,7 @@ const privateMember = {
       privateTeamMembersSchema,
     ),
     400: errorResponse("The project isn't private"),
-    403: errorResponse(
-      "No access to the project, or missing member:update permission",
-    ),
+    403: errorResponse("Missing member:update permission"),
     404: errorResponse("Project or member not found"),
   },
 };
@@ -385,7 +379,7 @@ const getProjectBackgroundRoute = createRoute({
       },
     },
     304: { description: "Not modified" },
-    403: errorResponse("No access to the project, or missing read permission"),
+    403: errorResponse("Missing read permission"),
     404: errorResponse("Project or project background not found"),
   },
 });
@@ -417,10 +411,8 @@ const uploadProjectBackgroundRoute = createRoute({
       projectBackgroundUploadSchema,
     ),
     400: errorResponse("Invalid image upload request"),
-    403: errorResponse(
-      "No access to the project, or missing project:update permission",
-    ),
-    404: errorResponse("Project not found"),
+    403: errorResponse("Missing project:update permission"),
+    404: errorResponse("Project not found, or the caller cannot open it"),
     503: errorResponse("Image uploads are not configured"),
   },
 });
@@ -452,10 +444,8 @@ const finalizeProjectBackgroundRoute = createRoute({
       projectBackgroundFinalizeSchema,
     ),
     400: errorResponse("Invalid image upload request"),
-    403: errorResponse(
-      "No access to the project, or missing project:update permission",
-    ),
-    404: errorResponse("Project not found"),
+    403: errorResponse("Missing project:update permission"),
+    404: errorResponse("Project not found, or the caller cannot open it"),
     500: errorResponse("Failed to save the project background"),
   },
 });
@@ -474,10 +464,8 @@ const deleteProjectBackgroundRoute = createRoute({
   request: { params: projectParam },
   responses: {
     204: { description: "Project background removed" },
-    403: errorResponse(
-      "No access to the project, or missing project:update permission",
-    ),
-    404: errorResponse("Project not found"),
+    403: errorResponse("Missing project:update permission"),
+    404: errorResponse("Project not found, or the caller cannot open it"),
   },
 });
 
@@ -624,6 +612,7 @@ const project = apiRouter<BaseVariables & { workspaceId: string }>()
       description,
       isPublic,
       isPrivate,
+      confirmPrivate,
       includeSubtasks,
       autoArchiveMonths,
       ...estimation
@@ -643,7 +632,7 @@ const project = apiRouter<BaseVariables & { workspaceId: string }>()
       estimation,
       isPrivate === undefined
         ? undefined
-        : { isPrivate, actorId: c.get("userId") },
+        : { isPrivate, actorId: c.get("userId"), confirmed: confirmPrivate },
     );
     await publishEvent("project.updated", { projectId: id });
     return c.json(toPublicProject(updatedProject), 200);

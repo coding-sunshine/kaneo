@@ -9,6 +9,7 @@ import { carryStatements } from "../../topic/controllers/statements";
 import type { updateDocumentBody } from "../schema";
 import { getDocument } from "./get-document";
 import { assertNotSuperseded } from "./assert-not-superseded";
+import { copyLinkedFiles } from "./copy-linked-files";
 import { proposeLineage } from "./lineage";
 import { loadDocument } from "./load-document";
 import { notifyBodyMentions } from "./notify";
@@ -34,7 +35,10 @@ export async function writeDocument(
   const { workspaceId, id } = doc;
   assertNotSuperseded(doc);
   const title = body.title ?? doc.title;
-  const content = body.content ?? doc.content;
+  const content =
+    body.content === undefined || body.content === doc.content
+      ? doc.content
+      : await copyLinkedFiles(db, doc, userId, body.content);
   const textChanged = title !== doc.title || content !== doc.content;
   const prints = content === doc.content ? null : fingerprint(content);
 

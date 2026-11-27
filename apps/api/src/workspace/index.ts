@@ -86,9 +86,9 @@ const getWorkspaceMembersRoute = createRoute({
   request: { params: workspaceIdParam, query: workspaceMembersQuery },
   responses: {
     200: jsonResponse("List of workspace members", workspaceMemberListSchema),
-    403: errorResponse("No access to the project, or missing read permission"),
+    403: errorResponse("Missing read permission"),
     404: errorResponse(
-      "Workspace not found, or project not found in this workspace",
+      "Workspace not found, or project not found in this workspace or closed to you",
     ),
   },
 });

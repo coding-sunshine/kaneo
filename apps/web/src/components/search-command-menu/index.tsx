@@ -24,9 +24,11 @@ import {
   CommandPanel,
   CommandSeparator,
 } from "@/components/ui/command";
+import { DocumentAccessLabel } from "@/components/documents/document-access-label";
 import { STATUS_TONE } from "@/components/documents/document-status-tone";
 import { Badge } from "@/components/ui/badge";
 import useGlobalSearch from "@/hooks/queries/search/use-global-search";
+import type { DocumentScope } from "@/fetchers/document/documents";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 
 type SearchResultItem = {
@@ -44,6 +46,8 @@ type SearchResultItem = {
   priority?: string;
   status?: string;
   topicName?: string;
+  scope?: DocumentScope;
+  parentName?: string | null;
   archivedAt?: string | null;
 };
 
@@ -258,20 +262,24 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
                                       )}
                                     </Badge>
                                   )}
+                                {item.type === "document" && item.scope && (
+                                  <DocumentAccessLabel
+                                    scope={item.scope}
+                                    parentName={item.parentName}
+                                    className="max-w-32 shrink-0 font-normal text-xs"
+                                  />
+                                )}
                                 {item.archivedAt && (
                                   <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 font-normal text-[10px] text-muted-foreground">
                                     {t("tasks:detail.archived.badge")}
                                   </span>
                                 )}
                               </div>
-                              {item.type === "document" &&
-                                (item.projectName || item.topicName) && (
-                                  <div className="text-xs text-muted-foreground truncate mt-1">
-                                    {[item.topicName, item.projectName]
-                                      .filter(Boolean)
-                                      .join(" · ")}
-                                  </div>
-                                )}
+                              {item.type === "document" && item.topicName && (
+                                <div className="text-xs text-muted-foreground truncate mt-1">
+                                  {item.topicName}
+                                </div>
+                              )}
                               {item.description && (
                                 <div className="text-xs text-muted-foreground truncate mt-1">
                                   {item.description}

@@ -12,7 +12,7 @@ import { DEFAULT_AGENT_MODEL } from "./openrouter";
 const usage = vi.hoisted(() => ({
   tokensUsedToday: vi.fn(async () => 0),
   recordUsage: vi.fn(async () => undefined),
-  spentUsd: vi.fn(async () => 0),
+  withinMonthlyCap: vi.fn(async (_share?: number) => true),
 }));
 
 vi.mock("./usage", () => usage);
@@ -57,8 +57,7 @@ beforeEach(() => {
   vi.stubEnv("EXTRACTION_DAILY_TOKEN_CAP", "");
   usage.tokensUsedToday.mockReset().mockResolvedValue(0);
   usage.recordUsage.mockReset().mockResolvedValue(undefined);
-  usage.spentUsd.mockReset().mockResolvedValue(0);
-  vi.stubEnv("EXTRACTION_TOTAL_USD_CAP", "");
+  usage.withinMonthlyCap.mockReset().mockResolvedValue(true);
 });
 
 afterEach(() => {
@@ -153,9 +152,8 @@ describe("extractJson", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("makes no call when the total spend has reached its cap", async () => {
-    vi.stubEnv("EXTRACTION_TOTAL_USD_CAP", "5");
-    usage.spentUsd.mockResolvedValue(5);
+  it("makes no call when this month's spend has reached its cap", async () => {
+    usage.withinMonthlyCap.mockResolvedValue(false);
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
@@ -163,13 +161,14 @@ describe("extractJson", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("calls while the total spend is under its cap", async () => {
-    vi.stubEnv("EXTRACTION_TOTAL_USD_CAP", "5");
-    usage.spentUsd.mockResolvedValue(4.99);
+  it("asks for its share of this month's cap", async () => {
     const fetchMock = vi.fn(async () => answer('{"statements":[]}'));
     vi.stubGlobal("fetch", fetchMock);
 
-    expect(await extractJson(request)).toEqual({ statements: [] });
+    expect(await extractJson({ ...request, reserve: 0.2 })).toEqual({
+      statements: [],
+    });
+    expect(usage.withinMonthlyCap).toHaveBeenCalledWith(0.8);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 

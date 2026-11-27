@@ -1,12 +1,16 @@
 import { eq } from "drizzle-orm";
-import { beforeEach, describe, expect, it } from "vite-plus/test";
-import db from "../../apps/api/src/database";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import db, { schema } from "../../apps/api/src/database";
 import {
   activityTable,
   documentTable,
   taskDocumentTable,
   topicTable,
 } from "../../apps/api/src/database/schema";
+import { handleGiteaIssueOpened } from "../../apps/api/src/plugins/gitea/webhooks/issue-opened";
+import { handleIssueCommentCreated } from "../../apps/api/src/plugins/github/webhooks/issue-comment-created";
+import { handleIssueOpened } from "../../apps/api/src/plugins/github/webhooks/issue-opened";
+import { handleGitlabIssueOpened } from "../../apps/api/src/plugins/gitlab/webhooks/issue-opened";
 import { resetTestDatabase } from "./helpers/database";
 import {
   buildDocumentWorld,
@@ -18,6 +22,22 @@ import {
   createWorkspaceMember,
 } from "./helpers/fixtures";
 import { createTaskFixture } from "./helpers/project-access/create-task-fixture";
+
+// The providers' own APIs, which a webhook calls back after it wrote the issue.
+const provider = vi.hoisted(() => ({ write: vi.fn() }));
+vi.mock("../../apps/api/src/plugins/github/utils/github-app", () => ({
+  getGithubApp: () => ({
+    getInstallationOctokit: async () => ({
+      rest: { issues: { createComment: provider.write } },
+    }),
+  }),
+}));
+vi.mock("../../apps/api/src/plugins/gitea/utils/gitea-api", () => ({
+  createGiteaClient: () => ({ createIssueComment: provider.write }),
+}));
+vi.mock("../../apps/api/src/plugins/gitlab/utils/gitlab-api", () => ({
+  createGitlabClient: () => ({ createIssueNote: provider.write }),
+}));
 
 type Member = DocumentWorld["owner"];
 type Task = DocumentWorld["alphaTask"];
@@ -265,6 +285,232 @@ describe("API integration: links between tickets and documents", () => {
         .filter((row) => row.documentId === docs.workspace)
         .map((row) => row.source),
     ).toEqual(["description"]);
+  });
+
+  it.each(["github", "gitea", "gitlab"] as const)(
+    "records a document linked in the text of an issue that %s opened",
+    async (type) => {
+      provider.write.mockResolvedValue({ id: 1 });
+      const world = await buildDocumentWorld();
+      const baseUrl =
+        type === "github" ? "https://github.com" : `https://${type}.example`;
+      const [integration] = await db
+        .insert(schema.integrationTable)
+        .values({
+          projectId: world.alpha.id,
+          type,
+          isActive: true,
+          config: JSON.stringify({
+            baseUrl,
+            repositoryOwner: "team",
+            repositoryName: "repo",
+            repositoryId: 1,
+            installationId: 2,
+            verifiedGithubAccountId: "3",
+            verifiedByUserId: world.owner.id,
+            accessToken: "test-only",
+            projectPath: "team/repo",
+            syncRules: {
+              outgoing: { mode: "all" },
+              incoming: { mode: "all" },
+            },
+          }),
+        })
+        .returning();
+      if (!integration) throw new Error("no integration");
+      const issue = {
+        number: 7,
+        title: "Follow the plan",
+        body: `Steps are in ${documentAddress(world.ws, world.docs.teamAlpha)} and nowhere else.`,
+        html_url: `${baseUrl}/team/repo/issues/7`,
+        labels: [],
+        user: { login: "author" },
+      };
+      const repository = { owner: { login: "team" }, name: "repo" };
+      if (type === "github")
+        await handleIssueOpened(
+          {
+            action: "opened",
+            issue,
+            installation: { id: 2 },
+            repository: { ...repository, id: 1, full_name: "team/repo" },
+          },
+          integration.id,
+        );
+      else if (type === "gitea")
+        await handleGiteaIssueOpened(
+          {
+            action: "opened",
+            issue,
+            repository: { ...repository, html_url: `${baseUrl}/team/repo` },
+          },
+          integration.id,
+        );
+      else
+        await handleGitlabIssueOpened(
+          {
+            object_attributes: {
+              iid: 7,
+              title: issue.title,
+              description: issue.body,
+              url: issue.html_url,
+            },
+            labels: [],
+            project: {
+              name: "repo",
+              path_with_namespace: "team/repo",
+              web_url: `${baseUrl}/team/repo`,
+            },
+          },
+          integration.id,
+        );
+
+      const [task] = await db
+        .select({ id: schema.taskTable.id })
+        .from(schema.taskTable)
+        .where(eq(schema.taskTable.title, issue.title));
+      if (!task) throw new Error(`${type} opened no issue`);
+      expect((await rows()).filter((row) => row.taskId === task.id)).toEqual([
+        {
+          taskId: task.id,
+          documentId: world.docs.teamAlpha,
+          source: "description",
+          createdBy: null,
+          grantsAccess: false,
+        },
+      ]);
+      if (type !== "github") return;
+
+      // A comment the webhook brings in links a document too.
+      await handleIssueCommentCreated({
+        action: "created",
+        issue: { number: 7 },
+        comment: {
+          id: 70,
+          body: `Also ${documentAddress(world.ws, world.docs.workspace)}`,
+          html_url: `${baseUrl}/team/repo/issues/7#issuecomment-70`,
+          user: { login: "author", avatar_url: "" },
+          created_at: new Date().toISOString(),
+        },
+        installation: { id: 2 },
+        repository: { ...repository, id: 1 },
+      });
+      expect(
+        (await rows()).filter(
+          (row) => row.taskId === task.id && row.source === "comment",
+        ),
+      ).toMatchObject([{ documentId: world.docs.workspace, createdBy: null }]);
+    },
+  );
+
+  it("records only the documents the issue's team can open from text an integration writes", async () => {
+    provider.write.mockResolvedValue({ id: 1 });
+    const world = await buildDocumentWorld();
+    const { docs } = world;
+    await db.insert(schema.integrationTable).values({
+      projectId: world.alpha.id,
+      type: "github",
+      isActive: true,
+      config: JSON.stringify({
+        repositoryOwner: "team",
+        repositoryName: "repo",
+        repositoryId: 1,
+        installationId: 2,
+        verifiedGithubAccountId: "3",
+        verifiedByUserId: world.owner.id,
+        syncRules: { outgoing: { mode: "all" }, incoming: { mode: "all" } },
+      }),
+    });
+    const repository = {
+      id: 1,
+      owner: { login: "team" },
+      name: "repo",
+      full_name: "team/repo",
+    };
+    const elsewhere = await buildDocumentWorld();
+    const addresses = (...ids: [string, string][]) =>
+      ids.map(([ws, id]) => documentAddress(ws, id)).join(" and ");
+    const here = (id: string): [string, string] => [world.ws, id];
+
+    await handleIssueOpened({
+      action: "opened",
+      issue: {
+        number: 8,
+        title: "Gather the notes",
+        body: `See ${addresses(
+          here(docs.teamAlpha),
+          here(docs.issueAlpha),
+          here(docs.workspace),
+          here(docs.project),
+          here(docs.projectAlpha),
+          // Closed to team Alpha: another team, its issue and project, and
+          // somebody's private notes.
+          here(docs.teamBeta),
+          here(docs.issueBeta),
+          here(docs.projectBeta),
+          here(docs.private),
+          // Another workspace's document, at an address naming this one.
+          here(elsewhere.docs.workspace),
+          [elsewhere.ws, elsewhere.docs.workspace],
+        )}.`,
+        html_url: "https://github.com/team/repo/issues/8",
+        labels: [],
+        user: { login: "author" },
+      },
+      installation: { id: 2 },
+      repository,
+    });
+    const [task] = await db
+      .select({ id: schema.taskTable.id })
+      .from(schema.taskTable)
+      .where(eq(schema.taskTable.title, "Gather the notes"));
+    if (!task) throw new Error("no issue opened");
+    const linked = async (source: string) =>
+      (await rows())
+        .filter((row) => row.taskId === task.id && row.source === source)
+        .map((row) => row.documentId)
+        .sort();
+    expect(await linked("description")).toEqual(
+      [
+        docs.teamAlpha,
+        docs.issueAlpha,
+        docs.workspace,
+        docs.project,
+        docs.projectAlpha,
+      ].sort(),
+    );
+
+    // A document shared with the issue is open to its team, so a comment the
+    // webhook brings in links it; a private team's document still is not.
+    const shared = await world.as(world.owner)(
+      `${base(world)}/${docs.teamBeta}/task/${task.id}/share`,
+      json("PUT"),
+    );
+    expect(shared.status).toBe(200);
+    // A member's own comment links a document of another team; the webhook
+    // must not drop that link.
+    await comment(
+      world,
+      world.owner,
+      { ...world.alphaTask, id: task.id },
+      linkTo(world, docs.projectBeta),
+    );
+    await handleIssueCommentCreated({
+      action: "created",
+      issue: { number: 8 },
+      comment: {
+        id: 80,
+        body: `Also ${addresses(here(docs.teamBeta), here(docs.issueBeta))}`,
+        html_url: "https://github.com/team/repo/issues/8#issuecomment-80",
+        user: { login: "author", avatar_url: "" },
+        created_at: new Date().toISOString(),
+      },
+      installation: { id: 2 },
+      repository,
+    });
+    expect(await linked("comment")).toEqual(
+      [docs.teamBeta, docs.projectBeta].sort(),
+    );
   });
 
   it("records a ticket named in a document, by address or by its key", async () => {

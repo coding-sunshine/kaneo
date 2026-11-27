@@ -29,10 +29,16 @@ import {
 import type {
   BroadcastAdapter,
   BroadcastMessage,
+  ChatBroadcast,
   ProjectBroadcastMessage,
   UserBroadcast,
   UserBroadcastMessage,
 } from "./broadcast-adapter";
+import {
+  closeChatConnections,
+  deliverToLocalChatConnections,
+  listChatConnections,
+} from "./chat-connections";
 import { InMemoryBroadcastAdapter } from "./in-memory-broadcast-adapter";
 import { RedisBroadcastAdapter } from "./redis-broadcast-adapter";
 import { getProjectReadAccess } from "./project-read-access";
@@ -109,6 +115,20 @@ export function broadcastToUser(userId: string, message: UserBroadcastMessage) {
     });
 }
 
+/**
+ * Tells every reader watching a chat channel, on this and other instances,
+ * that it has a new message. Local sockets never wait on Redis fan-out.
+ */
+export async function broadcastToChatChannel(channelId: string) {
+  const message = { type: "CHAT_MESSAGE_CREATED", channelId };
+  await deliverToLocalChatConnections(channelId, message);
+  try {
+    await adapter?.publishToChat({ channelId, message, origin: INSTANCE_ID });
+  } catch (err) {
+    console.error("Failed to publish a chat broadcast:", err);
+  }
+}
+
 type Credential = { sessionId: string | null; apiKeyId?: string };
 
 function closeLocalCredentialConnections(
@@ -127,6 +147,11 @@ function closeLocalCredentialConnections(
         /* Already closed. */
       }
     }
+  closeChatConnections(
+    (conn) => conn.userId === userId && ended(conn),
+    code,
+    reason,
+  );
   for (const conn of [...(userConnections.get(userId) ?? [])]) {
     if (!ended(conn)) continue;
     removeUserConnection(userId, conn);
@@ -210,6 +235,11 @@ function deliverToLocalUserConnections(
           /* Already closed. */
         }
       }
+    closeChatConnections(
+      (conn) => conn.userId === userId,
+      1008,
+      "User access revoked",
+    );
   }
   const connections = userConnections.get(userId);
   if (!connections) return;
@@ -264,11 +294,12 @@ export function getLocalRealtimeStats() {
     users.add(userId);
     connections += sockets.size;
   }
-  for (const sockets of projectConnections.values()) {
-    for (const socket of sockets) {
-      users.add(socket.userId);
-      connections += 1;
-    }
+  for (const socket of [
+    ...[...projectConnections.values()].flatMap((sockets) => [...sockets]),
+    ...listChatConnections(),
+  ]) {
+    users.add(socket.userId);
+    connections += 1;
   }
   return {
     adapter:
@@ -356,6 +387,10 @@ export async function initializeWebSocketAdapter() {
         ]);
       },
     );
+    await nextAdapter.subscribeToChat((msg: ChatBroadcast) => {
+      if (msg.origin === INSTANCE_ID) return;
+      return deliverToLocalChatConnections(msg.channelId, msg.message);
+    });
   } catch (err) {
     retryReceived.stop();
     receivedRevocations = undefined;
@@ -447,6 +482,11 @@ function revokeLocalWorkspaceConnections(
       }
     }
   }
+  closeChatConnections(
+    (conn) => conn.userId === userId && conn.workspaceId === workspaceId,
+    1008,
+    reason,
+  );
 }
 
 async function revokeLocalProjectConnections(
@@ -522,6 +562,7 @@ async function recheckLocalSessions() {
     for (const conn of connections) note(userId, conn.sessionId);
   for (const connections of projectConnections.values())
     for (const conn of connections) note(conn.userId, conn.sessionId);
+  for (const conn of listChatConnections()) note(conn.userId, conn.sessionId);
   const ids = [...sessionsByUser.values()].flatMap((sessionIds) => [
     ...sessionIds,
   ]);
@@ -554,6 +595,7 @@ async function recheckLocalApiKeys() {
     for (const conn of connections) note(userId, conn.apiKeyId);
   for (const connections of projectConnections.values())
     for (const conn of connections) note(conn.userId, conn.apiKeyId);
+  for (const conn of listChatConnections()) note(conn.userId, conn.apiKeyId);
   const ids = [...keysByUser.values()].flatMap((keyIds) => [...keyIds]);
   if (ids.length === 0) return;
   let existing: Set<string>;
@@ -1211,3 +1253,10 @@ subscribeToEvent<{
     tasks: data.tasks,
   });
 });
+
+subscribeToEvent<{ channelId: string }>(
+  "chat.message_created",
+  async ({ channelId }) => {
+    if (channelId) await broadcastToChatChannel(channelId);
+  },
+);

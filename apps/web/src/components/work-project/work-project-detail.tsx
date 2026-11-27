@@ -181,6 +181,7 @@ export function WorkProjectDetail({ workspaceId, workProjectId }: Props) {
               workspaceId={workspaceId}
               workProjectId={workProjectId}
               editable={editable}
+              canAddDocument={project.canOpenDocuments}
               links={project.links}
             />
 

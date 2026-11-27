@@ -19,3 +19,15 @@ export function addDecisionLine(content: string, line: string) {
   const gap = rest.length > 0 && !isListItem(rest[0] ?? "") ? [""] : [];
   return [...lines.slice(0, at + 1), "", line, ...gap, ...rest].join("\n");
 }
+
+// The items of the document's "Decisions" list, up to the next heading.
+export function decisionLines(content: string) {
+  const lines = content.split("\n");
+  const at = lines.findIndex(isHeading);
+  if (at === -1) return [];
+  const end = lines.findIndex((line, i) => i > at && /^#{1,6}\s/.test(line));
+  return lines
+    .slice(at + 1, end === -1 ? undefined : end)
+    .filter(isListItem)
+    .map((line) => line.trim());
+}

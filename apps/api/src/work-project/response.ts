@@ -35,7 +35,13 @@ export const workProjectSchema = z
     description: z.string().nullable(),
     createdAt: responseTimestamp,
     updatedAt: responseTimestamp,
-    teamIds: z.array(z.string()),
+    teamIds: z.array(z.string()).openapi({
+      description: "The project's teams that you can open.",
+    }),
+    canOpenDocuments: z.boolean().openapi({
+      description:
+        "Whether you can open the project's documents and put a document in it: the project has no team, or you can open one of its teams.",
+    }),
     memberIds: z.array(z.string()),
     labelIds: z.array(z.string()),
     progress,

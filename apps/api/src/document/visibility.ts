@@ -83,6 +83,43 @@ export function documentTaskAccess(
   )`;
 }
 
+// What every member of one team can open without a share by name: workspace
+// documents, the team's own documents and those of its issues, a project with
+// no team or with this team, and a document shared with one of its issues.
+// For text that no signed-in person wrote, such as an integration's.
+export function documentTeamAccess(
+  teamId: string | SQLWrapper,
+  doc: Omit<DocumentColumns, "creatorId">,
+) {
+  return sql<boolean>`(
+    ${doc.scope} = 'workspace'
+    OR (${doc.scope} = 'team' AND ${doc.projectId} = ${teamId})
+    OR (${doc.scope} = 'issue' AND EXISTS (
+      SELECT 1 FROM task AS team_document_task
+      WHERE team_document_task.id = ${doc.taskId}
+        AND team_document_task.project_id = ${teamId}
+    ))
+    OR (${doc.scope} = 'project' AND (
+      NOT EXISTS (
+        SELECT 1 FROM work_project_team AS team_document_project
+        WHERE team_document_project.work_project_id = ${doc.workProjectId}
+      )
+      OR EXISTS (
+        SELECT 1 FROM work_project_team AS team_document_project
+        WHERE team_document_project.work_project_id = ${doc.workProjectId}
+          AND team_document_project.project_id = ${teamId}
+      )
+    ))
+    OR EXISTS (
+      SELECT 1 FROM task_document AS team_grant
+      JOIN task AS team_grant_task ON team_grant_task.id = team_grant.task_id
+      WHERE team_grant.document_id = ${doc.id}
+        AND team_grant.grants_access
+        AND team_grant_task.project_id = ${teamId}
+    )
+  )`;
+}
+
 // The one visibility rule for documents: lists, reads and notifications.
 export function documentVisibility(
   userId: string | SQLWrapper,

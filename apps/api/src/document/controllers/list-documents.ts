@@ -1,4 +1,14 @@
-import { and, desc, eq, gt, isNull, ne, or, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  gt,
+  isNull,
+  ne,
+  or,
+  type SQLWrapper,
+  sql,
+} from "drizzle-orm";
 import type { z } from "zod";
 import db from "../../database";
 import { documentTable, userTable } from "../../database/schema";
@@ -30,6 +40,13 @@ export const documentParentName = (userId: string) =>
     )
   END`;
 
+// A document shared by name keeps the ids of a team or issue the viewer
+// cannot open to itself, like the name above.
+export const openParentId = (userId: string, id: SQLWrapper) =>
+  sql<string | null>`CASE
+    WHEN ${documentParentAccess(userId, documentTable)} THEN ${id}
+  END`;
+
 export const documentSummaryColumns = (userId: string) => ({
   id: documentTable.id,
   workspaceId: documentTable.workspaceId,
@@ -37,9 +54,9 @@ export const documentSummaryColumns = (userId: string) => ({
   icon: documentTable.icon,
   color: documentTable.color,
   scope: documentTable.scope,
-  projectId: documentTable.projectId,
+  projectId: openParentId(userId, documentTable.projectId),
   workProjectId: documentTable.workProjectId,
-  taskId: documentTable.taskId,
+  taskId: openParentId(userId, documentTable.taskId),
   parentName: documentParentName(userId),
   kind: documentTable.kind,
   status: documentTable.status,
@@ -113,6 +130,8 @@ function filterCondition(
     return and(
       eq(documentTable.scope, "team"),
       eq(documentTable.projectId, query.projectId),
+      // A team the reader cannot open matches nothing, like an unknown one.
+      documentParentAccess(userId, documentTable),
     );
   }
   if (query.workProjectId) {
@@ -125,6 +144,7 @@ function filterCondition(
     return and(
       eq(documentTable.scope, "issue"),
       eq(documentTable.taskId, query.taskId),
+      documentParentAccess(userId, documentTable),
     );
   }
   if (query.topicId) {
@@ -160,11 +180,10 @@ function filterCondition(
       WHEN 'current' THEN ${documentTable.approvedAt}
       WHEN 'in_review' THEN ${documentTable.filedAt}
     END`;
-    // ponytail: nothing records who filed a proposal, so its author stands
-    // in. Add a filed_by column if people file each other's drafts often.
+    // A proposal filed before the filer was recorded has its author stand in.
     const by = sql`CASE ${documentTable.status}
       WHEN 'current' THEN ${documentTable.approvedBy}
-      ELSE ${documentTable.creatorId}
+      ELSE COALESCE(${documentTable.filedById}, ${documentTable.creatorId})
     END`;
     return sql`${by} IS DISTINCT FROM ${userId}
       AND EXISTS (

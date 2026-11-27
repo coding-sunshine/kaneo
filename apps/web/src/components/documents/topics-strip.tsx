@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { useTopics } from "@/hooks/queries/topic/use-topics";
+import { DocumentAccessLabel } from "./document-access-label";
 import { NewTopicDialog } from "./new-topic-dialog";
 
 type TopicsStripProps = { workspaceId: string };
@@ -26,9 +27,14 @@ export function TopicsStrip({ workspaceId }: TopicsStripProps) {
           key={topic.id}
           to="/dashboard/workspace/$workspaceId/topic/$topicId"
           params={{ workspaceId, topicId: topic.id }}
-          className="touch-hitbox relative shrink-0 rounded-full border border-border/70 px-2.5 py-0.5 text-xs hover:bg-accent"
+          className="touch-hitbox relative flex shrink-0 items-center gap-1.5 rounded-full border border-border/70 px-2.5 py-0.5 text-xs hover:bg-accent"
         >
           {topic.name}
+          <DocumentAccessLabel
+            scope={topic.scope}
+            parentName={topic.parentName}
+            className="max-w-24"
+          />
         </Link>
       ))}
       <Button
