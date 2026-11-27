@@ -24,6 +24,12 @@ vi.mock("@/hooks/mutations/chat/use-message-mutations", () => ({
 vi.mock("@/components/chat/message-reactions", () => ({
   MessageReactions: () => null,
 }));
+vi.mock("@/hooks/use-workspace-permission", () => ({
+  useWorkspacePermission: () => ({ canCreateTasks: () => true }),
+}));
+vi.mock("@/components/chat/add-to-ticket-dialog", () => ({
+  AddToTicketDialog: () => null,
+}));
 
 const renderList = (
   messages: ChatMessage[],
@@ -222,7 +228,7 @@ describe("MessageList", () => {
     );
   });
 
-  it("offers only pinning on someone else's message", async () => {
+  it("offers pinning but no edit or delete on someone else's message", async () => {
     renderList(
       [message({ userId: "user-2", pinnedAt: "2026-01-03T00:00:00Z" })],
       {

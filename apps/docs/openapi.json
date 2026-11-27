@@ -2213,7 +2213,7 @@
           },
           "type": {
             "type": "string",
-            "description": "One of: comment, task, create, status_changed, priority_changed, assignee_changed, unassigned, due_date_changed, title_changed, description_changed, cycle_changed, labels_changed, work_project_changed, parent_changed, duplicate_changed."
+            "description": "One of: comment, task, create, status_changed, priority_changed, assignee_changed, unassigned, due_date_changed, title_changed, description_changed, cycle_changed, labels_changed, work_project_changed, parent_changed, duplicate_changed, created_from_chat_message, chat_message_added."
           },
           "createdAt": {
             "type": "string",
@@ -2423,7 +2423,7 @@
           },
           "type": {
             "type": "string",
-            "description": "One of: comment, task, create, status_changed, priority_changed, assignee_changed, unassigned, due_date_changed, title_changed, description_changed, cycle_changed, labels_changed, work_project_changed, parent_changed, duplicate_changed."
+            "description": "One of: comment, task, create, status_changed, priority_changed, assignee_changed, unassigned, due_date_changed, title_changed, description_changed, cycle_changed, labels_changed, work_project_changed, parent_changed, duplicate_changed, created_from_chat_message, chat_message_added."
           },
           "createdAt": {
             "type": "string",
@@ -20006,6 +20006,22 @@
                     "type": "string",
                     "description": "A topic you can open. The new task is put on it, and the topic lists the task."
                   },
+                  "sourceMessage": {
+                    "type": "object",
+                    "properties": {
+                      "channelId": {
+                        "type": "string"
+                      },
+                      "messageId": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "channelId",
+                      "messageId"
+                    ],
+                    "description": "A chat message you can read that the task is created from. The task's activity links back to it."
+                  },
                   "customFields": {
                     "type": "array",
                     "items": {
@@ -20047,7 +20063,7 @@
             }
           },
           "400": {
-            "description": "Invalid body, or a repeating task in a final column",
+            "description": "Invalid body, a repeating task in a final column, or a source comment or message you cannot read",
             "content": {
               "application/json": {
                 "schema": {
@@ -32562,6 +32578,106 @@
           },
           "409": {
             "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/messages/{messageId}/ticket-comment": {
+      "post": {
+        "operationId": "addChatMessageToTicket",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Add message to ticket",
+        "description": "Copy a message you can read onto a ticket as your comment, with a link back to the message. The ticket's activity records it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "taskId": {
+                    "type": "string",
+                    "description": "A ticket in this workspace, in a team you can open."
+                  }
+                },
+                "required": [
+                  "taskId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The comment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Activity"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel, message or ticket not found",
             "content": {
               "application/json": {
                 "schema": {

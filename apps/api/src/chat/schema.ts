@@ -56,6 +56,12 @@ export const postMessageBody = z.object({
   body: z.string().trim().min(1).max(4000),
 });
 
+export const ticketCommentBody = z.object({
+  taskId: z.string().openapi({
+    description: "A ticket in this workspace, in a team you can open.",
+  }),
+});
+
 export const reactionBody = z.object({
   // Native emoji, or a workspace custom emoji as :name:.
   emoji: z.string().min(1).max(258),

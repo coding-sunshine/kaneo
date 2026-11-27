@@ -4797,7 +4797,14 @@
 			"directTitle": "New message",
 			"newDirectMessage": "New message",
 			"noOneElse": "Nobody else is in this workspace yet.",
-			"openDirect": "Open conversation"
+			"openDirect": "Open conversation",
+			"addedToTicket": "Message added to the ticket",
+			"addToTicket": "Add to ticket",
+			"addToTicketTitle": "Add message to ticket",
+			"createTicket": "Create ticket",
+			"noTicketsFound": "No tickets found",
+			"openInChat": "Open in chat",
+			"searchTickets": "Search tickets"
 		}
 	},
 	"notifications": {
@@ -5140,7 +5147,9 @@
 		"removedFromProject": "removed from project {{from}}",
 		"removedLabel": "removed label {{names}}",
 		"removedParent": "removed parent issue {{from}}",
-		"setParent": "set parent issue {{to}}"
+		"setParent": "set parent issue {{to}}",
+		"addedChatMessage": "added a <message>chat message</message> as a comment",
+		"createdFromChatMessage": "created this ticket from a <message>chat message</message>"
 	},
 	"tasks": {
 		"dateFilter": {

@@ -347,7 +347,9 @@ const createTaskRoute = createRoute({
   },
   responses: {
     200: jsonResponse("The created task", taskSchema),
-    400: errorResponse("Invalid body, or a repeating task in a final column"),
+    400: errorResponse(
+      "Invalid body, a repeating task in a final column, or a source comment or message you cannot read",
+    ),
     403: errorResponse(
       "No access to the project, or missing task:create permission",
     ),
@@ -1292,6 +1294,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       workProjectMilestoneId: c.req.valid("json").workProjectMilestoneId,
       cycleId: c.req.valid("json").cycleId,
       sourceCommentId: c.req.valid("json").sourceCommentId,
+      sourceMessage: c.req.valid("json").sourceMessage,
       topicId: c.req.valid("json").topicId,
     });
 

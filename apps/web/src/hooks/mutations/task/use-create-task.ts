@@ -25,6 +25,7 @@ function useCreateTask() {
       workProjectMilestoneId,
       cycleId,
       sourceCommentId,
+      sourceMessage,
       topicId,
     }: CreateTaskRequest) =>
       createTask(
@@ -43,6 +44,7 @@ function useCreateTask() {
         cycleId,
         sourceCommentId,
         topicId,
+        sourceMessage,
       ),
     onSuccess: (_data, variables) => {
       invalidateMyWork(queryClient);
