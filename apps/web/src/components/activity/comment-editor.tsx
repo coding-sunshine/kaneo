@@ -10,6 +10,11 @@ import { TableToolbar } from "@/components/editor/table-toolbar";
 import { createEditorExtensions } from "@/components/editor/extensions";
 import { insertUploadedAsset as insertEditorAsset } from "@/components/editor/insert-uploaded-asset";
 import { useEditorHighlighter } from "@/components/editor/use-editor-highlighter";
+import {
+  shouldShowSelectionBubble,
+  shouldShowTableBubble,
+  withoutFlushSync,
+} from "@/components/editor/without-flush-sync";
 import type { Editor } from "@tiptap/core";
 import Image from "@tiptap/extension-image";
 import { TextSelection } from "@tiptap/pm/state";
@@ -262,16 +267,15 @@ export default function CommentEditor({
       })),
     [t],
   );
-  const toShikiLanguage = useCallback(
-    (language: string) => {
-      const normalized = language.toLowerCase();
-      const alias = COMMENT_SHIKI_LANGUAGE_ALIASES[normalized];
-      if (alias) return alias;
-      if (availableShikiLanguages.has(normalized)) return normalized;
-      return "text";
-    },
-    [availableShikiLanguages],
-  );
+  const availableShikiLanguagesRef = useRef(availableShikiLanguages);
+  availableShikiLanguagesRef.current = availableShikiLanguages;
+  const toShikiLanguage = useCallback((language: string) => {
+    const normalized = language.toLowerCase();
+    const alias = COMMENT_SHIKI_LANGUAGE_ALIASES[normalized];
+    if (alias) return alias;
+    if (availableShikiLanguagesRef.current.has(normalized)) return normalized;
+    return "text";
+  }, []);
   const getOverlayPosition = useCallback(
     (editorView: Editor["view"], pos: number) => {
       const coords = editorView.coordsAtPos(pos);
@@ -872,9 +876,11 @@ export default function CommentEditor({
 
   useEffect(() => {
     if (!editor || !shikiHighlighter) return;
-    editor.view.dispatch(
-      editor.state.tr.setMeta(SHIKI_CODEBLOCK_REFRESH_META, true),
-    );
+    withoutFlushSync(editor, () => {
+      editor.view.dispatch(
+        editor.state.tr.setMeta(SHIKI_CODEBLOCK_REFRESH_META, true),
+      );
+    });
   }, [editor, shikiHighlighter]);
 
   useEffect(() => {
@@ -995,7 +1001,9 @@ export default function CommentEditor({
 
   useEffect(() => {
     if (!editor) return;
-    editor.setEditable(!readOnly && !disabled, false);
+    withoutFlushSync(editor, () => {
+      editor.setEditable(!readOnly && !disabled, false);
+    });
   }, [disabled, editor, readOnly]);
 
   useEffect(() => {
@@ -1009,9 +1017,11 @@ export default function CommentEditor({
     if (!hasHydratedRef.current) {
       isSyncingRef.current = true;
       latestValueRef.current = incoming;
-      editor.commands.setContent(incoming, {
-        emitUpdate: false,
-        contentType: "markdown",
+      withoutFlushSync(editor, () => {
+        editor.commands.setContent(incoming, {
+          emitUpdate: false,
+          contentType: "markdown",
+        });
       });
       hasHydratedRef.current = true;
       queueMicrotask(() => {
@@ -1022,9 +1032,11 @@ export default function CommentEditor({
 
     if (incoming === latestValueRef.current) return;
     isSyncingRef.current = true;
-    editor.commands.setContent(incoming, {
-      emitUpdate: false,
-      contentType: "markdown",
+    withoutFlushSync(editor, () => {
+      editor.commands.setContent(incoming, {
+        emitUpdate: false,
+        contentType: "markdown",
+      });
     });
     latestValueRef.current = incoming;
     queueMicrotask(() => {
@@ -1512,12 +1524,7 @@ export default function CommentEditor({
           className="kaneo-comment-editor-bubble"
           getReferencedVirtualElement={bubbleAnchor}
           options={bubbleOptions}
-          shouldShow={({ editor: activeEditor, from, to }) => {
-            if (activeEditor.isActive("embedBlock")) return false;
-            if (activeEditor.isActive("image")) return false;
-            if (activeEditor.isEmpty) return false;
-            return from !== to;
-          }}
+          shouldShow={shouldShowSelectionBubble}
         >
           {isEditingLink ? (
             <BubbleLinkEditor
@@ -1635,9 +1642,7 @@ export default function CommentEditor({
           editor={editor}
           pluginKey="kaneo-comment-table-bubble"
           className="kaneo-comment-editor-bubble"
-          shouldShow={({ editor: activeEditor, from, to }) =>
-            activeEditor.isActive("table") && from === to
-          }
+          shouldShow={shouldShowTableBubble}
         >
           <TableToolbar
             editor={editor}

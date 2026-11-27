@@ -10,6 +10,11 @@ import { TableToolbar } from "@/components/editor/table-toolbar";
 import { createEditorExtensions } from "@/components/editor/extensions";
 import { insertUploadedAsset as insertEditorAsset } from "@/components/editor/insert-uploaded-asset";
 import { useEditorHighlighter } from "@/components/editor/use-editor-highlighter";
+import {
+  shouldShowSelectionBubble,
+  shouldShowTableBubble,
+  withoutFlushSync,
+} from "@/components/editor/without-flush-sync";
 import type { Editor } from "@tiptap/core";
 import { EditorState, TextSelection } from "@tiptap/pm/state";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -655,9 +660,11 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
 
   useEffect(() => {
     if (!editor || !shikiHighlighter) return;
-    editor.view.dispatch(
-      editor.state.tr.setMeta(SHIKI_CODEBLOCK_REFRESH_META, true),
-    );
+    withoutFlushSync(editor, () => {
+      editor.view.dispatch(
+        editor.state.tr.setMeta(SHIKI_CODEBLOCK_REFRESH_META, true),
+      );
+    });
   }, [editor, shikiHighlighter]);
 
   // Toggle Tiptap's editable flag based on workspace permission. When the
@@ -666,7 +673,9 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
   // the editor refuses content mutations.
   useLayoutEffect(() => {
     if (!editor) return;
-    editor.setEditable(canEdit, false);
+    withoutFlushSync(editor, () => {
+      editor.setEditable(canEdit, false);
+    });
   }, [editor, canEdit]);
 
   useEffect(() => {
@@ -871,10 +880,12 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
     if (!hasHydratedRef.current) {
       isSyncingExternalContentRef.current = true;
       latestSyncedMarkdownRef.current = incomingMarkdown;
-      setContentWithoutUndoStep(editor, incomingMarkdown);
-      if (isTaskChanged) {
-        resetUndoHistory(editor);
-      }
+      withoutFlushSync(editor, () => {
+        setContentWithoutUndoStep(editor, incomingMarkdown);
+        if (isTaskChanged) {
+          resetUndoHistory(editor);
+        }
+      });
       hasHydratedRef.current = true;
       requestAnimationFrame(() => {
         isSyncingExternalContentRef.current = false;
@@ -888,7 +899,9 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
 
     isSyncingExternalContentRef.current = true;
     latestSyncedMarkdownRef.current = incomingMarkdown;
-    setContentWithoutUndoStep(editor, incomingMarkdown);
+    withoutFlushSync(editor, () => {
+      setContentWithoutUndoStep(editor, incomingMarkdown);
+    });
     requestAnimationFrame(() => {
       isSyncingExternalContentRef.current = false;
     });
@@ -1390,12 +1403,7 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
           className="kaneo-tiptap-bubble"
           getReferencedVirtualElement={bubbleAnchor}
           options={bubbleOptions}
-          shouldShow={({ editor: activeEditor, from, to }) => {
-            if (activeEditor.isActive("embedBlock")) return false;
-            if (activeEditor.isActive("image")) return false;
-            if (activeEditor.isEmpty) return false;
-            return from !== to;
-          }}
+          shouldShow={shouldShowSelectionBubble}
         >
           {isEditingLink ? (
             <BubbleLinkEditor
@@ -1582,9 +1590,7 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
           editor={editor}
           pluginKey="kaneo-table-bubble"
           className="kaneo-tiptap-bubble"
-          shouldShow={({ editor: activeEditor, from, to }) =>
-            activeEditor.isActive("table") && from === to
-          }
+          shouldShow={shouldShowTableBubble}
         >
           <TableToolbar
             editor={editor}
