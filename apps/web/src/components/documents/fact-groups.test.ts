@@ -25,6 +25,7 @@ const receipt = (over: object) =>
     new: [],
     repeats: [],
     notChecked: [],
+    suggestedTickets: [],
     ...over,
   }) as DocumentReceipt;
 const full = receipt({
