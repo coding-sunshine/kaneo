@@ -7179,6 +7179,24 @@
             "type": "string",
             "description": "The topic a document is filed on. Left out when it has none or the searcher cannot open that topic."
           },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "private",
+              "workspace",
+              "team",
+              "project",
+              "issue"
+            ],
+            "description": "Where a document lives, and so who can open it besides the people it is shared with."
+          },
+          "parentName": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A document's team or project name, or its issue key. Null for a private or workspace document, and for a team or issue the searcher cannot enter."
+          },
           "archivedAt": {
             "type": [
               "string",

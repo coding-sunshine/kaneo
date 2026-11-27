@@ -48,7 +48,14 @@ afterEach(cleanup);
 describe("inbox document", () => {
   it("shows the document, its open threads and a link to it", () => {
     queries.document.mockReturnValue({
-      data: { id: "doc-1", title: "Brief", content: "Body", role: "edit" },
+      data: {
+        id: "doc-1",
+        title: "Brief",
+        content: "Body",
+        role: "edit",
+        scope: "private",
+        parentName: null,
+      },
     });
     queries.comments.mockReturnValue({
       data: [
@@ -68,6 +75,25 @@ describe("inbox document", () => {
         .getAttribute("href"),
     ).toBe("/document/doc-1");
     expect(screen.getByLabelText("composer")).toBeTruthy();
+  });
+
+  it("says who can open the document", () => {
+    queries.document.mockReturnValue({
+      data: {
+        id: "doc-1",
+        title: "Brief",
+        content: "",
+        role: "view",
+        scope: "team",
+        parentName: "Alpha",
+      },
+    });
+    queries.comments.mockReturnValue({ data: [] });
+    render(<InboxDocument workspaceId="ws-1" documentId="doc-1" />);
+    expect(screen.getByText("Alpha")).toBeTruthy();
+    expect(
+      screen.getByText("navigation:documents.accessLabel.team:"),
+    ).toBeTruthy();
   });
 
   it("says when the document is gone", () => {
