@@ -11611,6 +11611,9 @@
           "requireEmailVerification": {
             "type": "boolean"
           },
+          "requireTwoFactor": {
+            "type": "boolean"
+          },
           "defaultRole": {
             "type": "string"
           },
@@ -11670,6 +11673,7 @@
           "registrationEnabled",
           "passwordRegistrationEnabled",
           "requireEmailVerification",
+          "requireTwoFactor",
           "defaultRole",
           "workspaceCreationRestricted",
           "disabledIntegrations",
@@ -53690,6 +53694,10 @@
                   "requireEmailVerification": {
                     "type": "boolean",
                     "description": "New password sign-ups must confirm their email before they can sign in. Requires email delivery."
+                  },
+                  "requireTwoFactor": {
+                    "type": "boolean",
+                    "description": "Password users must set up two-factor sign-in. Each one is held to setting it up at their next sign-in."
                   },
                   "defaultRole": {
                     "type": "string",

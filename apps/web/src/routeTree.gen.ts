@@ -20,6 +20,8 @@ import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-pas
 import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
+import { Route as AuthTwoFactorRouteImport } from './routes/auth/two-factor'
+import { Route as AuthTwoFactorSetupRouteImport } from './routes/auth/two-factor-setup'
 import { Route as AuthVerifyOtpRouteImport } from './routes/auth/verify-otp'
 import { Route as DeviceIndexRouteImport } from './routes/device/index'
 import { Route as DeviceApproveRouteImport } from './routes/device/approve'
@@ -162,6 +164,16 @@ const AuthSignInRoute = AuthSignInRouteImport.update({
 const AuthSignUpRoute = AuthSignUpRouteImport.update({
   id: '/sign-up',
   path: '/sign-up',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthTwoFactorRoute = AuthTwoFactorRouteImport.update({
+  id: '/two-factor',
+  path: '/two-factor',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthTwoFactorSetupRoute = AuthTwoFactorSetupRouteImport.update({
+  id: '/two-factor-setup',
+  path: '/two-factor-setup',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthVerifyOtpRoute = AuthVerifyOtpRouteImport.update({
@@ -803,6 +815,8 @@ export interface FileRoutesByFullPath {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/auth/two-factor': typeof AuthTwoFactorRoute
+  '/auth/two-factor-setup': typeof AuthTwoFactorSetupRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/device/approve': typeof DeviceApproveRoute
   '/mcp/authorize': typeof McpAuthorizeRoute
@@ -903,6 +917,8 @@ export interface FileRoutesByTo {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/auth/two-factor': typeof AuthTwoFactorRoute
+  '/auth/two-factor-setup': typeof AuthTwoFactorSetupRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/device/approve': typeof DeviceApproveRoute
   '/mcp/authorize': typeof McpAuthorizeRoute
@@ -1004,6 +1020,8 @@ export interface FileRoutesById {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/auth/two-factor': typeof AuthTwoFactorRoute
+  '/auth/two-factor-setup': typeof AuthTwoFactorSetupRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/device/approve': typeof DeviceApproveRoute
   '/mcp/authorize': typeof McpAuthorizeRoute
@@ -1107,6 +1125,8 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/auth/two-factor'
+    | '/auth/two-factor-setup'
     | '/auth/verify-otp'
     | '/device/approve'
     | '/mcp/authorize'
@@ -1207,6 +1227,8 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/auth/two-factor'
+    | '/auth/two-factor-setup'
     | '/auth/verify-otp'
     | '/device/approve'
     | '/mcp/authorize'
@@ -1307,6 +1329,8 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/auth/two-factor'
+    | '/auth/two-factor-setup'
     | '/auth/verify-otp'
     | '/device/approve'
     | '/mcp/authorize'
@@ -1487,6 +1511,20 @@ declare module '@tanstack/react-router' {
       path: '/sign-up'
       fullPath: '/auth/sign-up'
       preLoaderRoute: typeof AuthSignUpRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/two-factor': {
+      id: '/auth/two-factor'
+      path: '/two-factor'
+      fullPath: '/auth/two-factor'
+      preLoaderRoute: typeof AuthTwoFactorRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/two-factor-setup': {
+      id: '/auth/two-factor-setup'
+      path: '/two-factor-setup'
+      fullPath: '/auth/two-factor-setup'
+      preLoaderRoute: typeof AuthTwoFactorSetupRouteImport
       parentRoute: typeof AuthRoute
     }
     '/auth/verify-otp': {
@@ -2505,6 +2543,8 @@ interface AuthRouteChildren {
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
+  AuthTwoFactorRoute: typeof AuthTwoFactorRoute
+  AuthTwoFactorSetupRoute: typeof AuthTwoFactorSetupRoute
   AuthVerifyOtpRoute: typeof AuthVerifyOtpRoute
 }
 
@@ -2514,6 +2554,8 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
+  AuthTwoFactorRoute: AuthTwoFactorRoute,
+  AuthTwoFactorSetupRoute: AuthTwoFactorSetupRoute,
   AuthVerifyOtpRoute: AuthVerifyOtpRoute,
 }
 

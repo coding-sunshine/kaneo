@@ -1,0 +1,410 @@
+import { randomUUID } from "node:crypto";
+import * as email from "@kaneo/email";
+import { eq } from "drizzle-orm";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
+import db, { schema } from "../../apps/api/src/database";
+import { createApp } from "../../apps/api/src/index";
+import { invalidateInstanceSettings } from "../../apps/api/src/instance-settings/get-instance-settings";
+import { drainSignInEmails } from "../../apps/api/src/utils/sign-in-email-tasks";
+import { signUpWithSession } from "./helpers/auth-session";
+import { signInWithCustomOAuth } from "./helpers/custom-oauth";
+import { resetTestDatabase } from "./helpers/database";
+import { createWorkspaceMember } from "./helpers/fixtures";
+import { signInWithRole } from "./helpers/admin/instance-roles";
+import { totpCode } from "./helpers/totp";
+
+vi.hoisted(() => {
+  process.env.CUSTOM_OAUTH_CLIENT_ID = "kaneo-test";
+  process.env.CUSTOM_OAUTH_CLIENT_SECRET = "kaneo-test-secret";
+  process.env.CUSTOM_OAUTH_AUTHORIZATION_URL =
+    "https://idp.example.com/authorize";
+  process.env.CUSTOM_OAUTH_TOKEN_URL = "https://idp.example.com/token";
+  process.env.CUSTOM_OAUTH_SCOPES = "openid,profile,email";
+});
+
+type App = ReturnType<typeof createApp>["app"];
+
+const PASSWORD = "correct horse battery staple";
+const CLIENT_URL = "http://localhost:5173";
+
+class CookieJar {
+  private cookies = new Map<string, string>();
+
+  constructor(header = "") {
+    for (const pair of header.split("; ")) {
+      const [name, ...value] = pair.split("=");
+      if (name && value.length) this.cookies.set(name, value.join("="));
+    }
+  }
+
+  take(response: Response) {
+    for (const setCookie of response.headers.getSetCookie()) {
+      const [pair] = setCookie.split(";");
+      const [name, ...value] = (pair ?? "").split("=");
+      if (!name) continue;
+      if (value.join("=") === "" || /max-age=0/i.test(setCookie)) {
+        this.cookies.delete(name);
+      } else {
+        this.cookies.set(name, value.join("="));
+      }
+    }
+    return response;
+  }
+
+  header() {
+    return [...this.cookies]
+      .map(([name, value]) => `${name}=${value}`)
+      .join("; ");
+  }
+}
+
+let app: App;
+
+async function authCall(
+  path: string,
+  jar: CookieJar,
+  body?: unknown,
+  method = body === undefined ? "GET" : "POST",
+) {
+  return jar.take(
+    await app.request(path.startsWith("/api/") ? path : `/api/auth${path}`, {
+      method,
+      headers: {
+        "content-type": "application/json",
+        origin: CLIENT_URL,
+        cookie: jar.header(),
+      },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    }),
+  );
+}
+
+async function sessionUserId(jar: CookieJar) {
+  const response = await authCall("/get-session", jar);
+  const body = (await response.json()) as { user?: { id: string } } | null;
+  return body?.user?.id ?? null;
+}
+
+async function createPasswordUser() {
+  const address = `two-factor-${randomUUID()}@example.com`;
+  const { userId, cookies } = await signUpWithSession(app, {
+    email: address,
+    name: "Two Factor",
+  });
+  await db
+    .update(schema.userTable)
+    .set({ emailVerified: true })
+    .where(eq(schema.userTable.id, userId));
+  return { userId, email: address, jar: new CookieJar(cookies) };
+}
+
+async function enableTwoFactor(jar: CookieJar) {
+  const enable = await authCall("/two-factor/enable", jar, {
+    password: PASSWORD,
+  });
+  expect(enable.status, await enable.clone().text()).toBe(200);
+  const { totpURI, backupCodes } = (await enable.json()) as {
+    totpURI: string;
+    backupCodes: string[];
+  };
+  const verify = await authCall("/two-factor/verify-totp", jar, {
+    code: totpCode(totpURI),
+  });
+  expect(verify.status).toBe(200);
+  return { totpURI, backupCodes };
+}
+
+async function userWithTwoFactor() {
+  const user = await createPasswordUser();
+  return { ...user, ...(await enableTwoFactor(user.jar)) };
+}
+
+async function passwordSignIn(address: string, jar = new CookieJar()) {
+  const response = await authCall("/sign-in/email", jar, {
+    email: address,
+    password: PASSWORD,
+  });
+  return { response, jar };
+}
+
+async function emailCodeSignIn(address: string, jar = new CookieJar()) {
+  const send = vi.spyOn(email, "sendOtpEmail").mockResolvedValue(undefined);
+  expect(
+    (
+      await authCall("/email-otp/send-verification-otp", jar, {
+        email: address,
+        type: "sign-in",
+      })
+    ).status,
+  ).toBe(200);
+  await drainSignInEmails();
+  const { otp } = (send.mock.lastCall?.[2] ?? {}) as { otp: string };
+  const response = await authCall("/sign-in/email-otp", jar, {
+    email: address,
+    otp,
+  });
+  return { response, jar };
+}
+
+async function setRequireTwoFactor(value: boolean) {
+  await db
+    .insert(schema.instanceSettingsTable)
+    .values({ id: "instance", requireTwoFactor: value })
+    .onConflictDoUpdate({
+      target: schema.instanceSettingsTable.id,
+      set: { requireTwoFactor: value },
+    });
+  invalidateInstanceSettings();
+}
+
+beforeEach(async () => {
+  await resetTestDatabase();
+  await createWorkspaceMember();
+  ({ app } = createApp());
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+describe("two-factor sign-in", () => {
+  it("asks a password sign-in for a code, refuses a wrong one and accepts the right one", async () => {
+    const user = await userWithTwoFactor();
+
+    const { response, jar } = await passwordSignIn(user.email);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ twoFactorRedirect: true });
+    expect(await sessionUserId(jar)).toBeNull();
+
+    const wrong = await authCall("/two-factor/verify-totp", jar, {
+      code: totpCode(user.totpURI, Date.now() - 10 * 60_000),
+    });
+    expect(wrong.status).toBe(401);
+    expect(await sessionUserId(jar)).toBeNull();
+
+    const right = await authCall("/two-factor/verify-totp", jar, {
+      code: totpCode(user.totpURI),
+    });
+    expect(right.status).toBe(200);
+    expect(await sessionUserId(jar)).toBe(user.userId);
+  });
+
+  it("accepts each recovery code once", async () => {
+    const user = await userWithTwoFactor();
+    const [first, second] = user.backupCodes;
+
+    const firstUse = await passwordSignIn(user.email);
+    expect(
+      (
+        await authCall("/two-factor/verify-backup-code", firstUse.jar, {
+          code: first,
+        })
+      ).status,
+    ).toBe(200);
+    expect(await sessionUserId(firstUse.jar)).toBe(user.userId);
+
+    const reuse = await passwordSignIn(user.email);
+    expect(
+      (
+        await authCall("/two-factor/verify-backup-code", reuse.jar, {
+          code: first,
+        })
+      ).status,
+    ).toBe(401);
+    expect(await sessionUserId(reuse.jar)).toBeNull();
+    expect(
+      (
+        await authCall("/two-factor/verify-backup-code", reuse.jar, {
+          code: second,
+        })
+      ).status,
+    ).toBe(200);
+    expect(await sessionUserId(reuse.jar)).toBe(user.userId);
+  });
+
+  it("asks an email-code sign-in for the second step", async () => {
+    const user = await userWithTwoFactor();
+
+    const { response, jar } = await emailCodeSignIn(user.email);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ twoFactorRedirect: true });
+    expect(await sessionUserId(jar)).toBeNull();
+
+    await authCall("/two-factor/verify-totp", jar, {
+      code: totpCode(user.totpURI),
+    });
+    expect(await sessionUserId(jar)).toBe(user.userId);
+  });
+
+  it("sends a magic link sign-in to the two-factor page without a session", async () => {
+    const user = await userWithTwoFactor();
+    vi.spyOn(email, "isSmtpConfigured").mockReturnValue(true);
+    const send = vi
+      .spyOn(email, "sendMagicLinkEmail")
+      .mockResolvedValue(undefined);
+    const jar = new CookieJar();
+    expect(
+      (
+        await authCall("/sign-in/magic-link", jar, {
+          email: user.email,
+          callbackURL: `${CLIENT_URL}/dashboard`,
+        })
+      ).status,
+    ).toBe(200);
+    await drainSignInEmails();
+    const { magicLink } = (send.mock.lastCall?.[2] ?? {}) as {
+      magicLink: string;
+    };
+    const link = new URL(magicLink);
+
+    const response = await authCall(`${link.pathname}${link.search}`, jar);
+    expect(response.status).toBe(302);
+    expect(response.headers.get("location")).toBe(
+      `${CLIENT_URL}/auth/two-factor`,
+    );
+    expect(await sessionUserId(jar)).toBeNull();
+
+    await authCall("/two-factor/verify-totp", jar, {
+      code: totpCode(user.totpURI),
+    });
+    expect(await sessionUserId(jar)).toBe(user.userId);
+  });
+
+  it("sends an OAuth sign-in to the two-factor page without a session", async () => {
+    const user = await userWithTwoFactor();
+    const sessionsOf = () =>
+      db
+        .select()
+        .from(schema.sessionTable)
+        .where(eq(schema.sessionTable.userId, user.userId));
+    const before = (await sessionsOf()).length;
+
+    const response = await signInWithCustomOAuth(app, {
+      sub: "idp-two-factor",
+      email: user.email,
+      email_verified: true,
+      name: "Two Factor",
+    });
+    expect(response.status).toBe(302);
+    expect(response.headers.get("location")).toBe(
+      `${CLIENT_URL}/auth/two-factor`,
+    );
+    const jar = new CookieJar();
+    jar.take(response);
+    expect(await sessionUserId(jar)).toBeNull();
+    expect(await sessionsOf()).toHaveLength(before);
+  });
+
+  it("does not turn a guest session into the account before the second step", async () => {
+    const user = await userWithTwoFactor();
+    const jar = new CookieJar();
+    const guest = await authCall("/sign-in/anonymous", jar, {});
+    expect(guest.status).toBe(200);
+    const guestId = await sessionUserId(jar);
+    expect(guestId).not.toBeNull();
+
+    const { response } = await emailCodeSignIn(user.email, jar);
+    expect(await response.json()).toMatchObject({ twoFactorRedirect: true });
+    expect(await sessionUserId(jar)).not.toBe(user.userId);
+    const [guestRow] = await db
+      .select({ id: schema.userTable.id })
+      .from(schema.userTable)
+      .where(eq(schema.userTable.id, guestId ?? ""));
+    expect(guestRow).toBeDefined();
+  });
+
+  it("signs in without a second step when two-factor is off", async () => {
+    const user = await createPasswordUser();
+    const { response, jar } = await passwordSignIn(user.email);
+    expect(await response.json()).not.toHaveProperty("twoFactorRedirect");
+    expect(await sessionUserId(jar)).toBe(user.userId);
+  });
+});
+
+describe("require two-factor", () => {
+  it("lets only instance administrators require two-factor", async () => {
+    const admin = await signInWithRole(app, "admin");
+    const member = await signInWithRole(app, "user");
+
+    expect(
+      (
+        await member.api("/settings", {
+          method: "PATCH",
+          body: { requireTwoFactor: true },
+        })
+      ).status,
+    ).toBe(403);
+    const response = await admin.api("/settings", {
+      method: "PATCH",
+      body: { requireTwoFactor: true },
+    });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ requireTwoFactor: true });
+  });
+
+  it("holds a password user to setting it up at the next sign-in", async () => {
+    const user = await createPasswordUser();
+    const before = user.jar;
+    await setRequireTwoFactor(true);
+
+    // A session from before the requirement keeps working.
+    expect((await authCall("/api/notification", before)).status).toBe(200);
+
+    const { jar } = await passwordSignIn(user.email);
+    expect(await sessionUserId(jar)).toBe(user.userId);
+    const session = (await (await authCall("/get-session", jar)).json()) as {
+      session: { twoFactorSetupRequired?: boolean };
+    };
+    expect(session.session.twoFactorSetupRequired).toBe(true);
+
+    const blocked = await authCall("/api/notification", jar);
+    expect(blocked.status).toBe(403);
+    expect(await blocked.json()).toMatchObject({
+      code: "TWO_FACTOR_SETUP_REQUIRED",
+    });
+    expect(
+      (await authCall("/api-key/create", jar, { name: "sneaky" })).status,
+    ).toBe(403);
+    expect((await authCall("/organization/list", jar)).status).toBe(403);
+
+    await enableTwoFactor(jar);
+    expect((await authCall("/api/notification", jar)).status).toBe(200);
+
+    const disable = await authCall("/two-factor/disable", jar, {
+      password: PASSWORD,
+    });
+    expect(disable.status).toBe(403);
+  });
+
+  it("holds a password user who signs in another way too", async () => {
+    const user = await createPasswordUser();
+    await setRequireTwoFactor(true);
+
+    const { jar } = await emailCodeSignIn(user.email);
+    expect((await authCall("/api/notification", jar)).status).toBe(403);
+  });
+
+  it("does not hold users without a password", async () => {
+    const [user] = await db
+      .insert(schema.userTable)
+      .values({
+        id: `user-${randomUUID()}`,
+        email: `no-password-${randomUUID()}@example.com`,
+        emailVerified: true,
+        name: "No Password",
+      })
+      .returning();
+    await setRequireTwoFactor(true);
+
+    const { jar } = await emailCodeSignIn(user.email);
+    expect(await sessionUserId(jar)).toBe(user.id);
+    expect((await authCall("/api/notification", jar)).status).toBe(200);
+  });
+});

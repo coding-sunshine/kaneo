@@ -576,6 +576,22 @@
 				"description": "You'll come right back here to review it.",
 				"submit": "Sign in"
 			}
+		},
+		"twoFactor": {
+			"pageTitle": "Two-factor sign-in",
+			"heading": "Enter your sign-in code",
+			"description": "Open your authenticator app and enter the 6-digit code for this account.",
+			"codeLabel": "6-digit code",
+			"recoveryLabel": "Recovery code",
+			"submit": "Continue",
+			"useRecovery": "Use a recovery code instead",
+			"useAuthenticator": "Use your authenticator app instead",
+			"wrongCode": "That code is not right. Try again.",
+			"expired": "This sign-in has expired. Sign in again.",
+			"backToSignIn": "Back to sign in",
+			"setupPageTitle": "Set up two-factor sign-in",
+			"setupHeading": "Set up two-factor sign-in",
+			"setupDescription": "Your administrator requires a second step when you sign in with a password. Set it up to continue."
 		}
 	},
 	"settings": {
@@ -2500,6 +2516,38 @@
 				"toastAddError": "Couldn't add the passkey.",
 				"toastDeleted": "Passkey deleted.",
 				"toastDeleteError": "Couldn't delete the passkey."
+			},
+			"twoFactor": {
+				"title": "Two-factor sign-in",
+				"description": "Ask for a code from your authenticator app after your password, or any other sign-in.",
+				"rowTitle": "Authenticator app",
+				"needsPassword": "Set a password first to turn on two-factor sign-in.",
+				"on": "On",
+				"turnOn": "Turn on",
+				"turnOff": "Turn off",
+				"newCodes": "New recovery codes",
+				"setupTitle": "Turn on two-factor sign-in",
+				"setupDescription": "Confirm your password, then scan the code with your authenticator app.",
+				"scanHint": "Scan this code with your authenticator app, then enter the 6-digit code it shows.",
+				"qrLabel": "QR code for your authenticator app",
+				"secretHint": "Can't scan it? Enter this key:",
+				"codeLabel": "6-digit code",
+				"verify": "Verify",
+				"continue": "Continue",
+				"done": "Done",
+				"wrongCode": "That code is not right. Try again.",
+				"failed": "Two-factor sign-in could not be changed.",
+				"turnedOn": "Two-factor sign-in is on",
+				"turnedOff": "Two-factor sign-in is off",
+				"disableTitle": "Turn off two-factor sign-in?",
+				"disableDescription": "Signing in will only need your password or email again.",
+				"regenerateTitle": "Make new recovery codes?",
+				"regenerateDescription": "Your old recovery codes stop working.",
+				"codesTitle": "Recovery codes",
+				"codesHint": "Keep these somewhere safe. Each one signs you in once if you lose your authenticator app.",
+				"copyCodes": "Copy codes",
+				"codesCopied": "Recovery codes copied",
+				"copyFailed": "Could not copy the codes"
 			}
 		},
 		"calendarFeeds": {
@@ -2929,7 +2977,9 @@
 			"toast": {
 				"saved": "Settings saved",
 				"error": "Couldn't save settings"
-			}
+			},
+			"requireTwoFactor": "Require two-factor sign-in",
+			"requireTwoFactorHint": "Password users set it up at their next sign-in."
 		},
 		"adminWebhooks": {
 			"title": "Webhooks",

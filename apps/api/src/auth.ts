@@ -43,6 +43,7 @@ import {
   magicLink,
   openAPI,
   organization,
+  twoFactor,
 } from "better-auth/plugins";
 import type { AccessControl } from "better-auth/plugins/access";
 import type { UserWithAnonymous } from "better-auth/plugins/anonymous";
@@ -65,6 +66,11 @@ import {
 import { getInstanceSettings } from "./instance-settings/get-instance-settings";
 import { readStoredSettings } from "./instance-settings/read-stored-settings";
 import { lockedSessionRevocation } from "./utils/locked-session-revocation";
+import { challengeEverySignIn } from "./two-factor/challenge-every-sign-in";
+import {
+  needsTwoFactorSetup,
+  requiresTwoFactor,
+} from "./two-factor/requires-two-factor";
 import { publishEvent } from "./events";
 import { applyInvitationProjectAccess } from "./project-access/apply-invitation-project-access";
 import { resolveInvitationProjectAccess } from "./project-access/resolve-invitation-project-access";
@@ -309,6 +315,8 @@ function getDeviceAuthVerificationUri(): string {
   return `${base}/device`;
 }
 
+const twoFactorPlugin = twoFactor({ issuer: brand.name });
+
 export const auth = betterAuth({
   baseURL: baseURLWithoutPath,
   trustedOrigins,
@@ -330,6 +338,7 @@ export const auth = betterAuth({
       teamMember: schema.teamMemberTable,
       apikey: schema.apikeyTable,
       passkey: schema.passkeyTable,
+      twoFactor: schema.twoFactorTable,
       deviceCode: schema.deviceCodeTable,
     },
   }),
@@ -417,6 +426,12 @@ export const auth = betterAuth({
   },
   plugins: [
     lockedSessionRevocation,
+    // Before `anonymous`, so a guest session is never linked before the code.
+    twoFactorPlugin,
+    challengeEverySignIn(
+      twoFactorPlugin,
+      `${clientUrl.replace(/\/$/, "")}/auth/two-factor`,
+    ),
     ...(process.env.DISABLE_GUEST_ACCESS !== "true"
       ? [
           anonymous({
@@ -783,6 +798,12 @@ export const auth = betterAuth({
       },
       // Returned, so every place that resolves a session sees the limit.
       mcpScope: { type: "string", required: false, input: false },
+      twoFactorSetupRequired: {
+        type: "boolean",
+        required: false,
+        input: false,
+        defaultValue: false,
+      },
     },
     cookieCache: {
       // Consult the session store on every request so password recovery
@@ -888,9 +909,19 @@ export const auth = betterAuth({
     },
     session: {
       create: {
-        before: async (_session, ctx) => {
+        before: async (session, ctx) => {
           const oidcSid = takeSignInSessionId(ctx);
-          if (oidcSid) return { data: { oidcSid } };
+          const twoFactorSetupRequired = await needsTwoFactorSetup(
+            session.userId,
+          );
+          if (oidcSid || twoFactorSetupRequired) {
+            return {
+              data: {
+                ...(oidcSid ? { oidcSid } : {}),
+                ...(twoFactorSetupRequired ? { twoFactorSetupRequired } : {}),
+              },
+            };
+          }
         },
       },
       delete: {
@@ -1039,6 +1070,17 @@ export const auth = betterAuth({
         }
         if (ctx.path === "/sign-in/anonymous") {
           await assertGuestRegistrationAllowed();
+        }
+        if (ctx.path === "/two-factor/disable") {
+          const viewer = await getSessionFromCtx(ctx, {
+            disableRefresh: true,
+          }).catch(() => null);
+          if (viewer && (await requiresTwoFactor(viewer.user.id))) {
+            throw new APIError("FORBIDDEN", {
+              code: "TWO_FACTOR_REQUIRED",
+              message: "This instance requires two-factor sign-in.",
+            });
+          }
         }
 
         if (authCaptchaPaths.has(ctx.path)) {
@@ -1272,7 +1314,11 @@ export const auth = betterAuth({
         }
       }
 
-      if (ctx.path.startsWith("/sign-up") || ctx.path.startsWith("/sign-in")) {
+      if (
+        ctx.path.startsWith("/sign-up") ||
+        ctx.path.startsWith("/sign-in") ||
+        ctx.path.startsWith("/two-factor/verify")
+      ) {
         const newSession = ctx.context.newSession;
         if (newSession) {
           const workspaceMember = await db

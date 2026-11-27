@@ -112,8 +112,10 @@ import { apiKeyRejection } from "./utils/api-key-rejection";
 import { applyApiKeyHeaders } from "./utils/apply-api-key-headers";
 import {
   authenticateApiRequest,
-  isRefusedForScopedSession,
+  authRouteRefusal,
 } from "./utils/authenticate-api-request";
+import { ApiError } from "./errors/api-error";
+import { TWO_FACTOR_SETUP_REQUIRED } from "./two-factor/setup-pending";
 import { requireIntegrationProviderEnabled } from "./instance-settings/require-integration-provider-enabled";
 import {
   authorizeAssetAccess,
@@ -492,10 +494,14 @@ export function createApp() {
 
   // Before every /auth handler below, the device page included.
   api.use("/auth/*", async (c, next) => {
-    if (await isRefusedForScopedSession(c)) {
+    const refusal = await authRouteRefusal(c);
+    if (refusal === "scoped") {
       throw new HTTPException(403, {
         message: "This connection can only change documents and topics",
       });
+    }
+    if (refusal === "two-factor-setup") {
+      throw new ApiError(403, TWO_FACTOR_SETUP_REQUIRED);
     }
     return next();
   });

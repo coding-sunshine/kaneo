@@ -581,6 +581,22 @@
 				"description": "Vous reviendrez ici juste après pour l'examiner.",
 				"submit": "Se connecter"
 			}
+		},
+		"twoFactor": {
+			"backToSignIn": "Back to sign in",
+			"codeLabel": "6-digit code",
+			"description": "Open your authenticator app and enter the 6-digit code for this account.",
+			"expired": "This sign-in has expired. Sign in again.",
+			"heading": "Enter your sign-in code",
+			"pageTitle": "Two-factor sign-in",
+			"recoveryLabel": "Recovery code",
+			"setupDescription": "Your administrator requires a second step when you sign in with a password. Set it up to continue.",
+			"setupHeading": "Set up two-factor sign-in",
+			"setupPageTitle": "Set up two-factor sign-in",
+			"submit": "Continue",
+			"useAuthenticator": "Use your authenticator app instead",
+			"useRecovery": "Use a recovery code instead",
+			"wrongCode": "That code is not right. Try again."
 		}
 	},
 	"settings": {
@@ -1901,6 +1917,38 @@
 				"toastDeleted": "Passkey deleted.",
 				"toastDeleteError": "Couldn't delete the passkey.",
 				"unnamed": "Passkey"
+			},
+			"twoFactor": {
+				"codeLabel": "6-digit code",
+				"codesCopied": "Recovery codes copied",
+				"codesHint": "Keep these somewhere safe. Each one signs you in once if you lose your authenticator app.",
+				"codesTitle": "Recovery codes",
+				"continue": "Continue",
+				"copyCodes": "Copy codes",
+				"copyFailed": "Could not copy the codes",
+				"description": "Ask for a code from your authenticator app after your password, or any other sign-in.",
+				"disableDescription": "Signing in will only need your password or email again.",
+				"disableTitle": "Turn off two-factor sign-in?",
+				"done": "Done",
+				"failed": "Two-factor sign-in could not be changed.",
+				"needsPassword": "Set a password first to turn on two-factor sign-in.",
+				"newCodes": "New recovery codes",
+				"on": "On",
+				"qrLabel": "QR code for your authenticator app",
+				"regenerateDescription": "Your old recovery codes stop working.",
+				"regenerateTitle": "Make new recovery codes?",
+				"rowTitle": "Authenticator app",
+				"scanHint": "Scan this code with your authenticator app, then enter the 6-digit code it shows.",
+				"secretHint": "Can't scan it? Enter this key:",
+				"setupDescription": "Confirm your password, then scan the code with your authenticator app.",
+				"setupTitle": "Turn on two-factor sign-in",
+				"title": "Two-factor sign-in",
+				"turnedOff": "Two-factor sign-in is off",
+				"turnedOn": "Two-factor sign-in is on",
+				"turnOff": "Turn off",
+				"turnOn": "Turn on",
+				"verify": "Verify",
+				"wrongCode": "That code is not right. Try again."
 			}
 		},
 		"gitlabIntegration": {
@@ -2941,7 +2989,9 @@
 			},
 			"workspaceCreationRestricted": "Only administrators can create workspaces",
 			"workspaces": "Workspaces",
-			"save": "Save"
+			"save": "Save",
+			"requireTwoFactor": "Require two-factor sign-in",
+			"requireTwoFactorHint": "Password users set it up at their next sign-in."
 		},
 		"adminWebhooks": {
 			"actions": "Actions for {{url}}",

@@ -65,6 +65,7 @@ export const userTable = pgTable("user", {
   emailVerificationRequired: boolean("email_verification_required")
     .default(false)
     .notNull(),
+  twoFactorEnabled: boolean("two_factor_enabled").default(false).notNull(),
 });
 
 export const sessionTable = pgTable(
@@ -91,6 +92,11 @@ export const sessionTable = pgTable(
     // Set on an assistant token the person limited to documents. Null means
     // the session may do everything its person may.
     mcpScope: text("mcp_scope"),
+    // Set when the instance requires two-factor and this password user had
+    // none at sign-in. Such a session can only set two-factor up.
+    twoFactorSetupRequired: boolean("two_factor_setup_required")
+      .default(false)
+      .notNull(),
   },
   (table) => [
     index("session_userId_idx").on(table.userId),
@@ -350,6 +356,7 @@ export const instanceSettingsTable = pgTable("instance_settings", {
   workspaceCreationRestricted: boolean("workspace_creation_restricted")
     .default(false)
     .notNull(),
+  requireTwoFactor: boolean("require_two_factor").default(false).notNull(),
   disabledIntegrations: text("disabled_integrations")
     .array()
     .notNull()
@@ -2260,6 +2267,27 @@ export const passkeyTable = pgTable(
   (table) => [
     index("passkey_userId_idx").on(table.userId),
     uniqueIndex("passkey_credentialID_idx").on(table.credentialID),
+  ],
+);
+
+export const twoFactorTable = pgTable(
+  "two_factor",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    secret: text("secret").notNull(),
+    backupCodes: text("backup_codes").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    verified: boolean("verified").default(true),
+    failedVerificationCount: integer("failed_verification_count").default(0),
+    lockedUntil: timestamp("locked_until", { mode: "date" }),
+  },
+  (table) => [
+    index("two_factor_userId_idx").on(table.userId),
+    index("two_factor_secret_idx").on(table.secret),
   ],
 );
 
