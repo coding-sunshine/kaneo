@@ -85,6 +85,10 @@ export const taskWithAssigneeSchema = taskSchema
     isSubscribed: z.boolean().optional().openapi({
       description: "Whether the caller follows the task. Detail view only.",
     }),
+    statusSince: nullableResponseTimestamp.optional().openapi({
+      description:
+        "When the task entered its current status: its latest status change, or its creation if it never moved. Board view only.",
+    }),
     canceledAt: nullableResponseTimestamp.optional().openapi({
       description:
         "When the task entered a canceled status; null unless canceled. Detail view only.",
@@ -166,6 +170,10 @@ export const boardTaskSchema = z
     }),
     triagedAt: nullableResponseTimestamp.openapi({
       description: "When the task last left triage; null while in triage.",
+    }),
+    statusSince: nullableResponseTimestamp.openapi({
+      description:
+        "When the task entered its current status: its latest status change, or its creation if it never moved. Null on public boards.",
     }),
     userId: z.string().nullable(),
     assigneeName: z.string().nullable(),

@@ -5271,8 +5271,11 @@
 				"cycle": "Cycle",
 				"estimate": "Estimate",
 				"noEstimate": "No estimate",
-				"workable": "Workable"
+				"workable": "Workable",
+				"statusAge": "Time in status"
 			},
+			"statusAgeOption_one": "{{status}} for more than {{count}} day",
+			"statusAgeOption_other": "{{status}} for more than {{count}} days",
 			"operators": {
 				"isAnyOf": "is any of",
 				"includeAnyOf": "include any of",
@@ -5569,6 +5572,7 @@
 				"cycleTime": "Cycle time",
 				"leadTime": "Lead time",
 				"triageTime": "Triage time",
+				"timeInStatus": "Time in status",
 				"age": "Issue age"
 			},
 			"issues": "Issues",

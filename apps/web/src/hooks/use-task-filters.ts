@@ -14,6 +14,8 @@ export type BoardFilters = {
   workProject?: string[] | null;
   cycle?: string[] | null;
   estimate?: string[] | null;
+  /** Tasks in a status for more than N days, as `<status>:<days>`. */
+  statusAge?: string[] | null;
   /** Hide tickets blocked by an open "blocks" relation. */
   workable?: boolean;
   customFields: Record<string, string[]> | null;

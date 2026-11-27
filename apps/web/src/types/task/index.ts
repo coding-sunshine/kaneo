@@ -49,6 +49,8 @@ type Task = {
   slaDueAt?: string | null;
   startedTriageAt?: string | null;
   triagedAt?: string | null;
+  /** When the task entered its current status; null on public boards. */
+  statusSince?: string | null;
   creatorId?: string | null;
   userId: string | null;
   assigneeId: string | null;

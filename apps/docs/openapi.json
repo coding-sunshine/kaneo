@@ -340,6 +340,14 @@
             "format": "date-time",
             "description": "When the task last left triage; null while in triage."
           },
+          "statusSince": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the task entered its current status: its latest status change, or its creation if it never moved. Null on public boards."
+          },
           "userId": {
             "type": [
               "string",
@@ -424,6 +432,7 @@
           "slaDueAt",
           "startedTriageAt",
           "triagedAt",
+          "statusSince",
           "userId",
           "assigneeName",
           "assigneeId",
@@ -1868,6 +1877,14 @@
               "isSubscribed": {
                 "type": "boolean",
                 "description": "Whether the caller follows the task. Detail view only."
+              },
+              "statusSince": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "description": "When the task entered its current status: its latest status change, or its creation if it never moved. Board view only."
               },
               "canceledAt": {
                 "type": [

@@ -14,7 +14,10 @@ export function useUpdateTaskStatus() {
   return useMutation({
     mutationFn: (task: Task) => updateTaskStatus(task.id, task),
     onMutate: (task: Task) =>
-      applyOptimisticBoardPatch(queryClient, task, { status: task.status }),
+      applyOptimisticBoardPatch(queryClient, task, {
+        status: task.status,
+        statusSince: new Date().toISOString(),
+      }),
     onError: (_error, _task, context) =>
       rollbackOptimisticBoardPatch(queryClient, context),
     onSuccess: (_, variables) => {
