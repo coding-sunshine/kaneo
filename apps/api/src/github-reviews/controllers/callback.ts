@@ -7,14 +7,15 @@ import {
   getAuthenticatedUser,
   GithubApiError,
 } from "../github-api";
-import { consumeOAuthState } from "../oauth-state-cookie";
+import { reviewsOAuthState } from "../oauth-state-cookie";
 
 export async function callback(
   c: Context,
   query: { code?: string; state?: string },
 ) {
   const userId = c.get("userId");
-  const returnTo = consumeOAuthState(c, userId, query.state);
+  const returnTo =
+    reviewsOAuthState.consume(c, userId, query.state)?.returnTo ?? null;
   if (returnTo === null) {
     throw new ApiError(400, {
       message: "The GitHub sign-in expired or did not start here. Try again.",

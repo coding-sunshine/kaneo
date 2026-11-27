@@ -48591,6 +48591,741 @@
         }
       }
     },
+    "/calendar-sync/status": {
+      "get": {
+        "operationId": "getCalendarSyncStatus",
+        "tags": [
+          "Calendar sync"
+        ],
+        "summary": "Get calendar connection status",
+        "description": "For Google and Microsoft: whether the instance has keys for it and whether the signed-in user has a working connection.",
+        "responses": {
+          "200": {
+            "description": "Connection status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "provider": {
+                            "type": "string",
+                            "enum": [
+                              "google",
+                              "microsoft"
+                            ]
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "not_configured",
+                              "not_connected",
+                              "needs_reconnect",
+                              "connected"
+                            ]
+                          },
+                          "email": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "state",
+                          "email"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "providers"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/calendar-sync/connect/{provider}": {
+      "get": {
+        "operationId": "connectCalendar",
+        "tags": [
+          "Calendar sync"
+        ],
+        "summary": "Connect a calendar",
+        "description": "Starts the provider's authorization for the signed-in user and redirects the browser there. Open it as a page, not through fetch.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "google",
+                "microsoft"
+              ]
+            },
+            "required": true,
+            "name": "provider",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "App-relative path to return to after connecting."
+            },
+            "required": false,
+            "description": "App-relative path to return to after connecting.",
+            "name": "returnTo",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "IANA time zone that decides which calendar day a task's due date falls on. Defaults to UTC."
+            },
+            "required": false,
+            "description": "IANA time zone that decides which calendar day a task's due date falls on. Defaults to UTC.",
+            "name": "timeZone",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirects to the provider to authorize"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Calendar sync is not configured for this provider",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/calendar-sync/callback/{provider}": {
+      "get": {
+        "operationId": "completeCalendarConnection",
+        "tags": [
+          "Calendar sync"
+        ],
+        "summary": "Finish connecting a calendar",
+        "description": "The provider redirects here after authorization. Verifies the state, stores the user's token, starts writing their assigned due dates, and returns the browser to the web app.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "google",
+                "microsoft"
+              ]
+            },
+            "required": true,
+            "name": "provider",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "code",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "state",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "error",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirects back to the web app"
+          },
+          "400": {
+            "description": "The state did not match this browser session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Calendar sync is not configured for this provider",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "502": {
+            "description": "The provider rejected the authorization",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/calendar-sync/connection/{provider}": {
+      "delete": {
+        "operationId": "disconnectCalendar",
+        "tags": [
+          "Calendar sync"
+        ],
+        "summary": "Disconnect a calendar",
+        "description": "Removes the due-date events written to the calendar, then deletes the stored connection.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "google",
+                "microsoft"
+              ]
+            },
+            "required": true,
+            "name": "provider",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Disconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/calendar-sync/events": {
+      "get": {
+        "operationId": "listCalendarEvents",
+        "tags": [
+          "Calendar sync"
+        ],
+        "summary": "List calendar events",
+        "description": "Events between two instants (at most 62 days apart) from the signed-in user's connected calendars, recurring events expanded. Events written for task due dates are left out.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2}(\\.\\d+)?)?(Z|[+-]\\d{2}:\\d{2})$",
+              "description": "Range start (ISO 8601)."
+            },
+            "required": true,
+            "description": "Range start (ISO 8601).",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2}(\\.\\d+)?)?(Z|[+-]\\d{2}:\\d{2})$",
+              "description": "Range end (ISO 8601)."
+            },
+            "required": true,
+            "description": "Range end (ISO 8601).",
+            "name": "to",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Calendar events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "provider": {
+                            "type": "string",
+                            "enum": [
+                              "google",
+                              "microsoft"
+                            ]
+                          },
+                          "title": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "start": {
+                            "type": "string",
+                            "description": "YYYY-MM-DD for all-day events, else an ISO 8601 instant."
+                          },
+                          "end": {
+                            "type": "string",
+                            "description": "Inclusive last day (YYYY-MM-DD) for all-day events, else an ISO 8601 instant."
+                          },
+                          "allDay": {
+                            "type": "boolean"
+                          },
+                          "meetingUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "url": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "provider",
+                          "title",
+                          "start",
+                          "end",
+                          "allDay",
+                          "meetingUrl",
+                          "url"
+                        ]
+                      }
+                    },
+                    "unavailable": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "google",
+                          "microsoft"
+                        ]
+                      },
+                      "description": "Connected calendars that could not be read and need reconnecting or a retry."
+                    }
+                  },
+                  "required": [
+                    "events",
+                    "unavailable"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid range",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createCalendarEvent",
+        "tags": [
+          "Calendar sync"
+        ],
+        "summary": "Create a calendar event",
+        "description": "Creates an event in one of the signed-in user's connected calendars, optionally with a new Google Meet or Microsoft Teams meeting, or with a meeting link the user supplies.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "enum": [
+                      "google",
+                      "microsoft"
+                    ]
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1024
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 8000
+                  },
+                  "allDay": {
+                    "type": "boolean"
+                  },
+                  "start": {
+                    "type": "string",
+                    "description": "YYYY-MM-DD for an all-day event, else an ISO 8601 instant."
+                  },
+                  "end": {
+                    "type": "string",
+                    "description": "Inclusive last day (YYYY-MM-DD) for an all-day event, else an ISO 8601 instant after start."
+                  },
+                  "addMeeting": {
+                    "type": "boolean",
+                    "description": "Create a Google Meet or Microsoft Teams meeting with the event."
+                  },
+                  "meetingUrl": {
+                    "type": "string",
+                    "maxLength": 2048,
+                    "description": "A meeting link to put on the event."
+                  }
+                },
+                "required": [
+                  "provider",
+                  "title",
+                  "allDay",
+                  "start",
+                  "end"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Event created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "provider": {
+                      "type": "string",
+                      "enum": [
+                        "google",
+                        "microsoft"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": "string",
+                      "description": "YYYY-MM-DD for all-day events, else an ISO 8601 instant."
+                    },
+                    "end": {
+                      "type": "string",
+                      "description": "Inclusive last day (YYYY-MM-DD) for all-day events, else an ISO 8601 instant."
+                    },
+                    "allDay": {
+                      "type": "boolean"
+                    },
+                    "meetingUrl": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "url": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "provider",
+                    "title",
+                    "start",
+                    "end",
+                    "allDay",
+                    "meetingUrl",
+                    "url"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid event",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Calendar sync is not configured for this provider",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The calendar is not connected or must be reconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "502": {
+            "description": "The provider rejected the event",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/calendar-sync/sync": {
+      "post": {
+        "operationId": "syncCalendarTasks",
+        "tags": [
+          "Calendar sync"
+        ],
+        "summary": "Sync task due dates",
+        "description": "Writes the due dates of the signed-in user's assigned tasks (from 30 days ago on) to their connected calendars, and removes events for tasks they no longer have or can no longer open.",
+        "responses": {
+          "200": {
+            "description": "Tasks with a calendar event",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "synced": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "synced"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A user session is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/github-integration/app-info": {
       "get": {
         "operationId": "getGitHubAppInfo",

@@ -5,7 +5,7 @@ import {
   getReviewsOAuthConfig,
   safeReturnPath,
 } from "../config";
-import { startOAuthState } from "../oauth-state-cookie";
+import { reviewsOAuthState } from "../oauth-state-cookie";
 
 export function connect(c: Context, returnTo: string | undefined) {
   const config = getReviewsOAuthConfig();
@@ -15,7 +15,9 @@ export function connect(c: Context, returnTo: string | undefined) {
       code: "GITHUB_REVIEWS_NOT_CONFIGURED",
     });
   }
-  const state = startOAuthState(c, c.get("userId"), safeReturnPath(returnTo));
+  const state = reviewsOAuthState.start(c, c.get("userId"), {
+    returnTo: safeReturnPath(returnTo),
+  });
   const url = new URL("https://github.com/login/oauth/authorize");
   url.searchParams.set("client_id", config.clientId);
   url.searchParams.set("redirect_uri", getCallbackUrl());

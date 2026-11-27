@@ -187,6 +187,18 @@ Name | Description |
 | `GITHUB_APP_CLIENT_ID` | (Optional) The GitHub App client ID. With the client secret, lets each person connect their own GitHub account to see their pull requests in Reviews. Set the App's callback URL to `<KANEO_API_URL>/api/github-reviews/callback`. Separate from `GITHUB_CLIENT_ID`, which enables GitHub sign-in.
 | `GITHUB_APP_CLIENT_SECRET` | (Optional) The GitHub App client secret. Also read from `GITHUB_APP_CLIENT_SECRET_FILE`.
 
+### Calendar sync
+
+Each person can connect their own Google or Microsoft calendar under Settings > Calendar. Events from it show on team calendar views, due dates of issues assigned to them are written to it as all-day events, and they can create events with a meeting link. A provider stays off until both of its variables are set.
+
+Name | Description |
+--- | --- |
+| `GOOGLE_CALENDAR_CLIENT_ID` | (Optional) OAuth client ID of a Google Cloud web app with the Calendar API enabled and the `calendar.events` scope. Set its redirect URI to `<KANEO_API_URL>/api/calendar-sync/callback/google`. Separate from `GOOGLE_CLIENT_ID`, which enables Google sign-in.
+| `GOOGLE_CALENDAR_CLIENT_SECRET` | (Optional) Its client secret. Also read from `GOOGLE_CALENDAR_CLIENT_SECRET_FILE`.
+| `MICROSOFT_CALENDAR_CLIENT_ID` | (Optional) Application ID of a Microsoft Entra app registration with the delegated `Calendars.ReadWrite`, `User.Read` and `offline_access` permissions. Set its web redirect URI to `<KANEO_API_URL>/api/calendar-sync/callback/microsoft`.
+| `MICROSOFT_CALENDAR_CLIENT_SECRET` | (Optional) Its client secret. Also read from `MICROSOFT_CALENDAR_CLIENT_SECRET_FILE`.
+| `MICROSOFT_CALENDAR_TENANT` | (Optional) Entra tenant ID to limit sign-in to one organization. Defaults to `common`, which accepts work and personal accounts.
+
 ### Google SSO
 
 Name | Description |
