@@ -35,6 +35,7 @@ import { createInvitationWorkspace } from "./helpers/project-access/create-invit
 import { projectAccessApi } from "./helpers/project-access/project-access-api";
 import { putMemberProjectAccess } from "./helpers/project-access/put-member-project-access";
 import { readMemberAccessRows } from "./helpers/project-access/read-member-access-rows";
+import { restrictToProjects } from "./helpers/project-access/restrict-to-projects";
 
 // Loops talk to a scripted model; the file download reads a stubbed bucket.
 vi.mock("../../apps/api/src/agent/openrouter", async (original) => ({
@@ -711,6 +712,70 @@ describe("private teams: a stale grant on an invitation", () => {
     expect(rows.grants.map((grant) => grant.projectId)).toEqual([ctx.beta.id]);
     expect((await inviteeRequest(`/project/${ctx.beta.id}`)).status).toBe(200);
     expect((await inviteeRequest(`/project/${ctx.alpha.id}`)).status).toBe(403);
+  });
+});
+
+describe("private teams: an older invitation for a current member", () => {
+  it("keeps the member's private-team row when they accept it", async () => {
+    vi.restoreAllMocks();
+    const ctx = await createInvitationWorkspace();
+    const invited = await ctx.ownerRequest("/auth/organization/invite-member", {
+      method: "POST",
+      body: {
+        organizationId: ctx.workspaceId,
+        email: "current@example.com",
+        role: "member",
+        projectAccess: "selected",
+        projectIds: [ctx.beta.id],
+      },
+    });
+    expect(invited.status).toBe(200);
+    const invitation = (await invited.json()) as { id: string };
+    const flipped = await ctx.ownerRequest(`/project/${ctx.alpha.id}`, {
+      method: "PUT",
+      body: {
+        name: ctx.alpha.name,
+        icon: ctx.alpha.icon,
+        slug: ctx.alpha.slug,
+        description: ctx.alpha.description ?? "",
+        isPublic: false,
+        isPrivate: true,
+      },
+    });
+    expect(flipped.status).toBe(200);
+
+    // They joined some other way since, chose team Beta, and were let into
+    // the private team Alpha.
+    const member = await signUpWithSession(ctx.app, {
+      email: "current@example.com",
+      name: "Current",
+    });
+    await db.insert(schema.workspaceUserTable).values({
+      workspaceId: ctx.workspaceId,
+      userId: member.userId,
+      role: "member",
+      joinedAt: new Date(),
+    });
+    await restrictToProjects(ctx.workspaceId, member.userId, [ctx.beta.id]);
+    await db.insert(schema.workspaceMemberProjectTable).values({
+      workspaceId: ctx.workspaceId,
+      userId: member.userId,
+      projectId: ctx.alpha.id,
+    });
+    const memberRequest = projectAccessApi({ cookie: member.cookies });
+    expect((await memberRequest(`/project/${ctx.alpha.id}`)).status).toBe(200);
+
+    await memberRequest("/auth/organization/accept-invitation", {
+      method: "POST",
+      body: { invitationId: invitation.id },
+    });
+
+    const rows = await readMemberAccessRows(ctx.workspaceId, member.userId);
+    expect(rows.grants.map((grant) => grant.projectId).sort()).toEqual(
+      [ctx.alpha.id, ctx.beta.id].sort(),
+    );
+    expect((await memberRequest(`/project/${ctx.alpha.id}`)).status).toBe(200);
+    expect((await memberRequest(`/project/${ctx.beta.id}`)).status).toBe(200);
   });
 });
 
