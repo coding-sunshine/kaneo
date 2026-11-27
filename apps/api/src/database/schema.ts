@@ -3252,8 +3252,73 @@ export const agentMessageTable = pgTable(
   (table) => [index("agent_message_chat_idx").on(table.chatId)],
 );
 
+// A write the agent proposed in a chat. Nothing changes until the person who
+// asked accepts it; the row then is the audit record: the prompt, the tool
+// call that proposed it, the sources, who accepted and what came back. Task and
+// project ids are kept without a foreign key so the record outlives them.
+export const agentProposalTable = pgTable(
+  "agent_proposal",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    chatId: text("chat_id").references(() => agentChatTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    userId: text("user_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    toolCallId: text("tool_call_id").notNull(),
+    tool: text("tool").notNull(),
+    arguments: jsonb("arguments").$type<Record<string, unknown>>().notNull(),
+    taskId: text("task_id"),
+    projectId: text("project_id").notNull(),
+    prompt: text("prompt").notNull(),
+    toolCalls: jsonb("tool_calls")
+      .$type<{ id: string; name: string; arguments: string }[]>()
+      .notNull(),
+    sources: jsonb("sources")
+      .$type<{ kind: "task" | "document" | "comment"; id: string }[]>()
+      .notNull(),
+    diff: jsonb("diff")
+      .$type<{ field: string; from: string | null; to: string | null }[]>()
+      .notNull(),
+    reason: text("reason").notNull(),
+    status: text("status")
+      .$type<"pending" | "accepted" | "declined" | "failed">()
+      .default("pending")
+      .notNull(),
+    decidedBy: text("decided_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    decidedAt: timestamp("decided_at", { mode: "date" }),
+    result: text("result"),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("agent_proposal_chat_idx").on(table.chatId),
+    index("agent_proposal_workspace_decided_idx").on(
+      table.workspaceId,
+      table.decidedAt,
+    ),
+  ],
+);
+
 // Team chat. A public channel is open to every workspace member; a private
-// one only to its members. Archiving keeps the history readable.
+// one only to its members. Archiving keeps the history readable. A direct
+// message is a private channel whose `directKey` (its sorted member ids) keeps
+// one conversation per set of people.
 export const chatChannelTable = pgTable(
   "chat_channel",
   {
@@ -3273,12 +3338,19 @@ export const chatChannelTable = pgTable(
       onDelete: "set null",
       onUpdate: "cascade",
     }),
+    directKey: text("direct_key"),
     archivedAt: timestamp("archived_at", { mode: "date" }),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),
   },
-  (table) => [index("chat_channel_workspace_idx").on(table.workspaceId)],
+  (table) => [
+    index("chat_channel_workspace_idx").on(table.workspaceId),
+    uniqueIndex("chat_channel_workspace_direct_key_idx").on(
+      table.workspaceId,
+      table.directKey,
+    ),
+  ],
 );
 
 export const chatChannelMemberTable = pgTable(

@@ -3360,6 +3360,10 @@
           "isPrivate": {
             "type": "boolean"
           },
+          "isDirect": {
+            "type": "boolean",
+            "description": "True for a direct message: private to its members, whose list never changes."
+          },
           "isMember": {
             "type": "boolean",
             "description": "True when the caller has joined the channel."
@@ -3382,6 +3386,7 @@
           "name",
           "topic",
           "isPrivate",
+          "isDirect",
           "isMember",
           "archivedAt",
           "createdAt"
@@ -3528,12 +3533,20 @@
             "items": {
               "$ref": "#/components/schemas/AgentMessage"
             }
+          },
+          "proposals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentProposal"
+            },
+            "description": "The writes the agent proposed in this chat."
           }
         },
         "required": [
           "id",
           "title",
-          "messages"
+          "messages",
+          "proposals"
         ]
       },
       "AgentMessage": {
@@ -3680,6 +3693,104 @@
         ],
         "description": "A source an answer rests on. One the reader cannot open, or that is gone, is only `restricted`, with no title or id."
       },
+      "AgentProposal": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "toolCallId": {
+            "type": "string",
+            "description": "The tool call in the chat transcript that proposed it."
+          },
+          "tool": {
+            "type": "string"
+          },
+          "taskId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "accepted",
+              "declined",
+              "failed"
+            ]
+          },
+          "diff": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentFieldChange"
+            }
+          },
+          "reason": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentCitation"
+            }
+          },
+          "decidedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "result": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "On a failed proposal: what the API answered."
+          }
+        },
+        "required": [
+          "id",
+          "toolCallId",
+          "tool",
+          "taskId",
+          "status",
+          "diff",
+          "reason",
+          "sources",
+          "decidedAt",
+          "result"
+        ],
+        "description": "A write the agent proposed. Nothing changes until the person who asked accepts it."
+      },
+      "AgentFieldChange": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "priority, labels, status, title, description, assignee, team, startDate, dueDate or comment."
+          },
+          "from": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "to": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "field",
+          "from",
+          "to"
+        ]
+      },
       "AgentReply": {
         "type": "object",
         "properties": {
@@ -3797,6 +3908,144 @@
         "required": [
           "userDailyTokens",
           "workspaceMonthlyTokens"
+        ]
+      },
+      "AgentAuditRow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "taskId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "accepted",
+              "declined",
+              "failed"
+            ]
+          },
+          "prompt": {
+            "type": "string",
+            "description": "The person's message the proposal came from."
+          },
+          "toolCalls": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "arguments": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "arguments"
+              ]
+            },
+            "description": "The tool call that proposed the write."
+          },
+          "diff": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentFieldChange"
+            }
+          },
+          "reason": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentCitation"
+            }
+          },
+          "requestedBy": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ]
+          },
+          "acceptedBy": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ]
+          },
+          "result": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "What the API answered when the write ran."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decidedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "tool",
+          "taskId",
+          "status",
+          "prompt",
+          "toolCalls",
+          "diff",
+          "reason",
+          "sources",
+          "requestedBy",
+          "acceptedBy",
+          "result",
+          "createdAt",
+          "decidedAt"
         ]
       },
       "Loop": {
@@ -28179,6 +28428,161 @@
         }
       }
     },
+    "/chat/workspace/{workspaceId}/direct-messages": {
+      "get": {
+        "operationId": "listChatDirectMessages",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "List direct messages",
+        "description": "Your direct messages and group direct messages, newest first. Read and post through the channel routes.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Direct messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatChannelDetail"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "post": {
+        "operationId": "openChatDirectMessage",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Open direct message",
+        "description": "Open the direct message with these workspace members, creating it the first time. The same people always get the same conversation.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "maxItems": 8,
+                    "description": "The workspace members to talk with. You are always included; one person makes a direct message, more make a group."
+                  }
+                },
+                "required": [
+                  "userIds"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Direct message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatChannelDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No member other than yourself",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Member not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/chat/workspace/{workspaceId}/channels/{channelId}": {
       "get": {
         "operationId": "getChatChannel",
@@ -28326,7 +28730,7 @@
             }
           },
           "403": {
-            "description": "Join the channel first",
+            "description": "Not a channel member, or a direct message, whose members are fixed",
             "content": {
               "application/json": {
                 "schema": {
@@ -28399,7 +28803,7 @@
             }
           },
           "403": {
-            "description": "Missing permission for this workspace",
+            "description": "Missing permission for this workspace, or a direct message, whose members are fixed",
             "content": {
               "application/json": {
                 "schema": {
@@ -28490,7 +28894,7 @@
             }
           },
           "403": {
-            "description": "Missing permission for this workspace",
+            "description": "Missing permission for this workspace, or a direct message, whose members are fixed",
             "content": {
               "application/json": {
                 "schema": {
@@ -28591,7 +28995,7 @@
             }
           },
           "403": {
-            "description": "Join the channel first",
+            "description": "Not a channel member, or a direct message, whose members are fixed",
             "content": {
               "application/json": {
                 "schema": {
@@ -30283,7 +30687,7 @@
           "Agent"
         ],
         "summary": "Send a message to the agent",
-        "description": "Send a message and wait for the agent to finish. The agent calls Organyz Work tools with your own permissions and returns the full transcript of this turn. Answers 429 when the person's daily or the workspace's monthly AI budget is used up.",
+        "description": "Send a message and wait for the agent to finish. The agent reads Organyz Work with your own permissions; a write becomes a proposal you accept or decline, and nothing changes before you accept it. Returns the full transcript of this turn. Answers 429 when the person's daily or the workspace's monthly AI budget is used up.",
         "parameters": [
           {
             "schema": {
@@ -30590,6 +30994,240 @@
           },
           "404": {
             "description": "Agent is disabled or workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/proposals/{proposalId}/accept": {
+      "post": {
+        "operationId": "acceptAgentProposal",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Accept an agent proposal",
+        "description": "Apply one of your agent's proposed writes with your own permissions. A write the API refuses leaves the proposal `failed`, with the error as its result.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "proposalId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The decided proposal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentProposal"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or proposal not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The proposal was already decided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/proposals/{proposalId}/decline": {
+      "post": {
+        "operationId": "declineAgentProposal",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Decline an agent proposal",
+        "description": "Decline one of your agent's proposed writes. Nothing changes.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "proposalId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The decided proposal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentProposal"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or proposal not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The proposal was already decided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/audit": {
+      "get": {
+        "operationId": "getAiAudit",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Get the AI audit",
+        "description": "The agent writes people accepted in this workspace, newest first, with the prompt, the tool call, sources, the accepting person and the result. A write is left out unless you can open its team and, for a move, the team it goes to. Admins and owners only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AI audit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AgentAuditRow"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or proposal not found",
             "content": {
               "application/json": {
                 "schema": {

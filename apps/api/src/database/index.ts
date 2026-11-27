@@ -112,6 +112,7 @@ import {
   workspaceUserTable,
   agentChatTable,
   agentMessageTable,
+  agentProposalTable,
   loopTable,
   loopRunTable,
 } from "./schema";
@@ -121,6 +122,7 @@ config();
 export const schema = {
   agentChatTable,
   agentMessageTable,
+  agentProposalTable,
   loopTable,
   loopRunTable,
   workspaceEmojiTable,

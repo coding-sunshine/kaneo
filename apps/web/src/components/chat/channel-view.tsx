@@ -10,6 +10,7 @@ import { useMessages } from "@/hooks/queries/chat/use-messages";
 import { useChatChannelSocket } from "@/hooks/use-chat-channel-socket";
 import { useMarkChannelRead } from "@/hooks/use-mark-channel-read";
 import { usePresenceHeartbeat } from "@/hooks/use-presence-heartbeat";
+import { useDirectMessageTitle } from "@/hooks/use-direct-message-title";
 
 /** One channel: header with topic, history, then the composer. */
 export function ChannelView({
@@ -24,6 +25,7 @@ export function ChannelView({
   const presenceOn = usePresenceSetting().data?.enabled ?? false;
   usePresenceHeartbeat(presenceOn);
   const { data: online } = useOnline(workspaceId, presenceOn);
+  const titleOf = useDirectMessageTitle(workspaceId);
   const live = useChatChannelSocket(workspaceId, channelId, Boolean(channel));
   const { data: messages = [] } = useMessages(
     workspaceId,
@@ -40,10 +42,15 @@ export function ChannelView({
 
   if (isError) return <ChannelNotFound workspaceId={workspaceId} />;
   if (!channel) return null;
+  const title = channel.isDirect ? titleOf(channel.memberIds) : channel.name;
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <ChannelHeader workspaceId={workspaceId} channel={channel} />
+      <ChannelHeader
+        workspaceId={workspaceId}
+        channel={channel}
+        title={title}
+      />
       <div className="min-h-0 flex-1 overflow-y-auto">
         <MessageList
           messages={messages}
@@ -54,7 +61,11 @@ export function ChannelView({
           online={presenceOn ? online : undefined}
         />
       </div>
-      <ChannelFooter workspaceId={workspaceId} channel={channel} />
+      <ChannelFooter
+        workspaceId={workspaceId}
+        channel={channel}
+        title={title}
+      />
     </div>
   );
 }

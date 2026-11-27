@@ -9,7 +9,7 @@ export async function leaveChannel(
   channelId: string,
   userId: string,
 ) {
-  const channel = await loadChannel(workspaceId, channelId, userId, "read");
+  const channel = await loadChannel(workspaceId, channelId, userId, "leave");
   // Nobody could see or reopen a private channel without members.
   if (channel.isPrivate) {
     const [members] = await db

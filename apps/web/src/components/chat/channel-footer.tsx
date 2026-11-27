@@ -9,9 +9,11 @@ import { toast } from "@/lib/toast";
 export function ChannelFooter({
   workspaceId,
   channel,
+  title,
 }: {
   workspaceId: string;
   channel: ChatChannelDetail;
+  title: string;
 }) {
   const { t } = useTranslation();
   const join = useJoinChannel(workspaceId, channel.id);
@@ -45,7 +47,7 @@ export function ChannelFooter({
     <MessageComposer
       workspaceId={workspaceId}
       channelId={channel.id}
-      channelName={channel.name}
+      channelName={title}
     />
   );
 }

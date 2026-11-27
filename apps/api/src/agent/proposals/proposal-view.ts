@@ -1,0 +1,38 @@
+import { and, asc, eq } from "drizzle-orm";
+import db from "../../database";
+import { agentProposalTable } from "../../database/schema";
+import { resolveCitations } from "../resolve-citations";
+
+type Row = typeof agentProposalTable.$inferSelect;
+type Reader = Parameters<typeof resolveCitations>[0];
+
+/** What the card shows: the diff, the reason, and sources checked for the reader. */
+export async function proposalView(reader: Reader, row: Row) {
+  return {
+    id: row.id,
+    toolCallId: row.toolCallId,
+    tool: row.tool,
+    taskId: row.taskId,
+    status: row.status,
+    diff: row.diff,
+    reason: row.reason,
+    sources: await resolveCitations(reader, row.sources),
+    decidedAt: row.decidedAt,
+    result: row.status === "failed" ? row.result : null,
+  };
+}
+
+/** The proposals of one of the reader's own chats, in the order they came. */
+export async function chatProposals(reader: Reader, chatId: string) {
+  const rows = await db
+    .select()
+    .from(agentProposalTable)
+    .where(
+      and(
+        eq(agentProposalTable.chatId, chatId),
+        eq(agentProposalTable.userId, reader.userId),
+      ),
+    )
+    .orderBy(asc(agentProposalTable.createdAt));
+  return Promise.all(rows.map((row) => proposalView(reader, row)));
+}
