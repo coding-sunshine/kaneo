@@ -39,8 +39,12 @@ const ALWAYS_PROPOSED: readonly string[] = [PROJECT_UPDATE_TOOL];
 const DEFAULT_WRITES = WRITE_TOOLS.filter(
   (name) => !ALWAYS_PROPOSED.includes(name),
 );
-// A chat also has change_task, the one write that sets priority and labels.
+// Every write a proposal can hold: change_task sets priority and labels.
 export const CHAT_WRITE_TOOLS = [...WRITE_TOOLS, "change_task"] as const;
+// The writes a chat offers: a project update is drafted by loops only.
+export const CHAT_OFFERED_WRITES = CHAT_WRITE_TOOLS.filter(
+  (name) => name !== PROJECT_UPDATE_TOOL,
+);
 
 export type ProposeRequest = {
   tool: string;

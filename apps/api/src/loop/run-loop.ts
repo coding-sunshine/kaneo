@@ -47,14 +47,18 @@ export async function executeLoop(
           meter: { userId: loop.creatorId, purpose: "loop" },
           // A project update is drafted for the creator to accept on Pulse;
           // the loop's other writes run.
-          propose: proposer({
-            userId: loop.creatorId,
-            workspaceId: loop.workspaceId,
-            chatId: null,
-            prompt: loop.instructions,
-            client,
-          }),
-          proposeOnly: [PROJECT_UPDATE_TOOL],
+          ...(loop.actions.includes(PROJECT_UPDATE_TOOL)
+            ? {
+                propose: proposer({
+                  userId: loop.creatorId,
+                  workspaceId: loop.workspaceId,
+                  chatId: null,
+                  prompt: loop.instructions,
+                  client,
+                }),
+                proposeOnly: [PROJECT_UPDATE_TOOL],
+              }
+            : {}),
         }),
       )),
     ];

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vite-plus/test";
-import { buildAgentTools } from "../tools";
+import { buildAgentTools, CHAT_OFFERED_WRITES } from "../tools";
 import { fieldDiff } from "./field-diff";
 import { PROJECT_UPDATE_TOOL } from "./project-update-tool";
 
@@ -31,6 +31,11 @@ describe("create_project_update", () => {
     expect(names()).not.toContain(PROJECT_UPDATE_TOOL);
     expect(names([PROJECT_UPDATE_TOOL])).toContain(PROJECT_UPDATE_TOOL);
     expect(names()).toContain("list_work_projects");
+  });
+
+  it("is not offered in a chat, only to loops", () => {
+    expect(CHAT_OFFERED_WRITES).not.toContain(PROJECT_UPDATE_TOOL);
+    expect(CHAT_OFFERED_WRITES).toContain("change_task");
   });
 
   it("is never posted by the agent: without a proposer it is refused", async () => {

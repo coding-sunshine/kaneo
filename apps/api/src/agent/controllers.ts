@@ -7,7 +7,7 @@ import { type ChatMessage } from "./openrouter";
 import { type AgentEvent, runAgent } from "./run-agent";
 import { proposer } from "./proposals/create-proposal";
 import { createSelfClient, forwardedAuthHeaders } from "./self-client";
-import { CHAT_WRITE_TOOLS } from "./tools";
+import { CHAT_OFFERED_WRITES } from "./tools";
 
 export const listChats = (userId: string, workspaceId: string) =>
   db
@@ -121,7 +121,7 @@ export async function sendMessage(
       {
         meter: { userId, purpose: "assistant" },
         cite: true,
-        writes: CHAT_WRITE_TOOLS,
+        writes: CHAT_OFFERED_WRITES,
         propose: proposer({
           userId,
           workspaceId,
