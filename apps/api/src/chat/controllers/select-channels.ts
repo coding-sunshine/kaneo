@@ -14,6 +14,7 @@ export const selectChannels = (userId: string) =>
       name: chatChannelTable.name,
       topic: chatChannelTable.topic,
       isPrivate: chatChannelTable.isPrivate,
+      isDirect: sql<boolean>`${chatChannelTable.directKey} is not null`,
       isMember: sql<boolean>`${chatChannelMemberTable.userId} is not null`,
       archivedAt: chatChannelTable.archivedAt,
       createdAt: chatChannelTable.createdAt,

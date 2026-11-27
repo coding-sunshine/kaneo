@@ -3314,6 +3314,10 @@
           "isPrivate": {
             "type": "boolean"
           },
+          "isDirect": {
+            "type": "boolean",
+            "description": "True for a direct message: private to its members, whose list never changes."
+          },
           "isMember": {
             "type": "boolean",
             "description": "True when the caller has joined the channel."
@@ -3336,6 +3340,7 @@
           "name",
           "topic",
           "isPrivate",
+          "isDirect",
           "isMember",
           "archivedAt",
           "createdAt"
@@ -27915,6 +27920,161 @@
         }
       }
     },
+    "/chat/workspace/{workspaceId}/direct-messages": {
+      "get": {
+        "operationId": "listChatDirectMessages",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "List direct messages",
+        "description": "Your direct messages and group direct messages, newest first. Read and post through the channel routes.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Direct messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatChannelDetail"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "post": {
+        "operationId": "openChatDirectMessage",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Open direct message",
+        "description": "Open the direct message with these workspace members, creating it the first time. The same people always get the same conversation.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "maxItems": 8,
+                    "description": "The workspace members to talk with. You are always included; one person makes a direct message, more make a group."
+                  }
+                },
+                "required": [
+                  "userIds"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Direct message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatChannelDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No member other than yourself",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Member not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/chat/workspace/{workspaceId}/channels/{channelId}": {
       "get": {
         "operationId": "getChatChannel",
@@ -28062,7 +28222,7 @@
             }
           },
           "403": {
-            "description": "Join the channel first",
+            "description": "Not a channel member, or a direct message, whose members are fixed",
             "content": {
               "application/json": {
                 "schema": {
@@ -28135,7 +28295,7 @@
             }
           },
           "403": {
-            "description": "Missing permission for this workspace",
+            "description": "Missing permission for this workspace, or a direct message, whose members are fixed",
             "content": {
               "application/json": {
                 "schema": {
@@ -28226,7 +28386,7 @@
             }
           },
           "403": {
-            "description": "Missing permission for this workspace",
+            "description": "Missing permission for this workspace, or a direct message, whose members are fixed",
             "content": {
               "application/json": {
                 "schema": {
@@ -28327,7 +28487,7 @@
             }
           },
           "403": {
-            "description": "Join the channel first",
+            "description": "Not a channel member, or a direct message, whose members are fixed",
             "content": {
               "application/json": {
                 "schema": {
