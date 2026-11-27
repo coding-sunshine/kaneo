@@ -5567,6 +5567,10 @@
 				"more_one": "+{{count}} de plus",
 				"more_other": "+{{count}} de plus",
 				"truncated": "L'aperçu de la semaine ne comprend que les {{shown}} premières tâches assignées sur {{total}}."
+			},
+			"doneThisWeek": {
+				"empty": "Nothing finished yet this week.",
+				"title": "Done this week"
 			}
 		},
 		"myTasks": {

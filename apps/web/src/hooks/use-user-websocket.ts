@@ -181,6 +181,7 @@ export function useUserWebSocket() {
             for (const queryKey of [
               ["projects", workspaceId],
               ["assigned-tasks", workspaceId],
+              ["done-tasks", workspaceId],
               ["search", { workspaceId }],
               ["workspace-activity", workspaceId],
               ["labels", workspaceId],

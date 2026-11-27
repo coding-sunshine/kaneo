@@ -384,6 +384,25 @@ export const assignedTasksSchema = z
   })
   .openapi("AssignedTasks");
 
+export const doneTasksSchema = z
+  .object({
+    tasks: z.array(
+      z
+        .object({
+          id: z.string(),
+          projectId: z.string(),
+          number: z.number().nullable(),
+          title: z.string(),
+          completedAt: nullableResponseTimestamp,
+          projectName: z.string(),
+          projectSlug: z.string(),
+          projectIcon: z.string().nullable(),
+        })
+        .openapi("DoneTask"),
+    ),
+  })
+  .openapi("DoneTasks");
+
 export const archivedTasksSchema = z.array(
   z.object({
     id: z.string(),

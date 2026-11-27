@@ -6,6 +6,7 @@ import { TrialExpiredCallout } from "@/components/billing/trial-expired-callout"
 import WorkspaceLayout from "@/components/common/workspace-layout";
 import { ActivityFeed } from "@/components/home/activity-feed";
 import { getDayPart } from "@/components/home/day-part";
+import { DoneThisWeek } from "@/components/home/done-this-week";
 import { HomeProjects } from "@/components/home/home-projects";
 import { UpNext } from "@/components/home/up-next";
 import { WeekStrip } from "@/components/home/week-strip";
@@ -107,6 +108,7 @@ function RouteComponent() {
                   isError={isError}
                   workspaceId={workspaceId}
                 />
+                <DoneThisWeek workspaceId={workspaceId} day={day} />
                 <HomeProjects
                   workspaceId={workspaceId}
                   onCreateProject={openCreateProject}
