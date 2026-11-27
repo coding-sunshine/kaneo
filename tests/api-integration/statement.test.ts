@@ -275,6 +275,42 @@ describe("API integration: statements of a document", () => {
     expect(row?.status).toBe("rejected");
   });
 
+  it("keeps the first reject when two land at once", async () => {
+    const { api, docId, topicId } = await setup();
+    const proposal = await api.add(docId, HOW_MUCH);
+    let first: Promise<Response> | undefined;
+    let second: Promise<Response> | undefined;
+    await db.transaction(async (tx) => {
+      await tx
+        .select({ id: topicTable.id })
+        .from(topicTable)
+        .where(eq(topicTable.id, topicId))
+        .for("no key update");
+      first = api.decide(docId, proposal.id, "reject", { reason: "First" });
+      await vi.waitFor(async () => {
+        const rows = await db.execute(
+          sql`select 1 from pg_locks where not granted`,
+        );
+        expect(rows.rows).toHaveLength(1);
+      });
+      second = api.decide(docId, proposal.id, "reject", { reason: "Second" });
+      await vi.waitFor(async () => {
+        const rows = await db.execute(
+          sql`select 1 from pg_locks where not granted`,
+        );
+        expect(rows.rows).toHaveLength(2);
+      });
+    });
+
+    expect((await first)?.status).toBe(200);
+    expect((await second)?.status).toBe(200);
+    const [row] = await db
+      .select({ reason: statementTable.statusReason })
+      .from(statementTable)
+      .where(eq(statementTable.id, proposal.id));
+    expect(row?.reason).toBe("First");
+  });
+
   it("answers 403 to a member who can only view the document", async () => {
     const { api, world, docId } = await setup();
     // Everyone who can open the document's place may edit it until its owner

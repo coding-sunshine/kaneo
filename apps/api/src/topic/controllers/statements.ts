@@ -436,8 +436,11 @@ export async function rejectStatement(
     statementId,
     userId,
   );
-  await changingTopic(topicId, (tx) =>
-    tx
+  await changingTopic(topicId, async (tx) => {
+    // A reject that landed first keeps its reason and its person.
+    const { status } = await lockedStatement(tx, statement.id);
+    if (status === "rejected") return;
+    await tx
       .update(statementTable)
       .set({
         status: "rejected",
@@ -445,7 +448,7 @@ export async function rejectStatement(
         decidedBy: userId,
         decidedAt: new Date(),
       })
-      .where(eq(statementTable.id, statement.id)),
-  );
+      .where(eq(statementTable.id, statement.id));
+  });
   return one(statement.id);
 }
