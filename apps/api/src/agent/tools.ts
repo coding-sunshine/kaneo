@@ -4,6 +4,7 @@ import {
   type ToolRegistrar,
 } from "@kaneo/mcp/tools";
 import { z } from "zod";
+import { cutCurrent } from "./cut-current";
 
 const MAX_RESULT_CHARS = 20_000;
 
@@ -67,9 +68,22 @@ export function buildAgentTools(
     const text = result.content
       .map((part) => (part.type === "text" ? part.text : ""))
       .join("");
-    return text.length > MAX_RESULT_CHARS
-      ? `${text.slice(0, MAX_RESULT_CHARS)}\n[truncated]`
-      : text;
+    if (text.length <= MAX_RESULT_CHARS) return text;
+    // An approved text is cut so the answer stays whole and says where to
+    // read on.
+    const from = (args as { textFrom?: unknown } | null)?.textFrom;
+    const cut =
+      name === "get_current"
+        ? cutCurrent(
+            text,
+            MAX_RESULT_CHARS,
+            typeof from === "number" ? from : 0,
+          )
+        : null;
+    return (
+      cut ??
+      `${text.slice(0, MAX_RESULT_CHARS)}\n[cut: this result has ${text.length} characters and only the first ${MAX_RESULT_CHARS} are shown]`
+    );
   }
 
   return { definitions, call };
