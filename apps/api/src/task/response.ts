@@ -36,6 +36,10 @@ export const taskSchema = z
     dueDate: nullableResponseTimestamp,
     recurrence: z.union([taskRecurrenceSchema, z.null()]).optional(),
     archivedAt: nullableResponseTimestamp.optional(),
+    completedAt: nullableResponseTimestamp.optional().openapi({
+      description:
+        "When the task entered a completed status; null unless completed.",
+    }),
     createdAt: responseTimestamp,
     creatorId: z.string().nullable().optional().openapi({
       description: "The user who created the task, if known.",

@@ -122,6 +122,9 @@ type UserPreferencesStore = {
   priorityIconStyle: PriorityIconStyle;
   setPriorityIconStyle: (style: PriorityIconStyle) => void;
 
+  completionAnimation: boolean;
+  setCompletionAnimation: (enabled: boolean) => void;
+
   // ponytail: per-browser, not per-account. Move to a server-side user setting
   // if it should follow people across devices.
   codeReviewsEnabled: boolean;
@@ -291,6 +294,10 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
 
       priorityIconStyle: "marks",
       setPriorityIconStyle: (priorityIconStyle) => set({ priorityIconStyle }),
+
+      completionAnimation: false,
+      setCompletionAnimation: (completionAnimation) =>
+        set({ completionAnimation }),
 
       codeReviewsEnabled: true,
       setCodeReviewsEnabled: (codeReviewsEnabled) =>

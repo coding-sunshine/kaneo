@@ -38,6 +38,8 @@ import { columnKey, useUserPreferencesStore } from "@/store/user-preferences";
 import type { ProjectWithTasks } from "@/types/project";
 import BulkToolbar from "../bulk-selection/bulk-toolbar";
 import { OPEN_DISPLAY_OPTIONS } from "../project/display/display-menu";
+import { completesTask } from "@/lib/board/completes-task";
+import { celebrateCompletion } from "@/lib/completion-celebration";
 import Column from "./column";
 import TaskCardContent from "./task-card/task-card-content";
 import { useBoardMoveQueue } from "./use-board-move-queue";
@@ -84,6 +86,8 @@ function KanbanBoard({
       reorderTasks(request),
     onMutate: (variables) => ({ previousBoard: variables.previousBoard }),
     onSuccess: (_result, variables) => {
+      if (completesTask(variables.previousBoard, variables.tasks))
+        celebrateCompletion();
       if (variables.tasks.some((task) => task.status !== undefined)) {
         invalidateMyWork(queryClient);
         void queryClient.invalidateQueries({ queryKey: ["projects"] });

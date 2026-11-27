@@ -1189,6 +1189,10 @@ export const cycleTable = pgTable(
     startsAt: timestamp("starts_at", { mode: "date" }).notNull(),
     endsAt: timestamp("ends_at", { mode: "date" }).notNull(),
     completedAt: timestamp("completed_at", { mode: "date" }),
+    // Team summary, snapshotted when the cycle completes; null before then.
+    summaryCompleted: integer("summary_completed"),
+    summaryAddedAfterStart: integer("summary_added_after_start"),
+    summaryCarriedOver: integer("summary_carried_over"),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),
@@ -1551,6 +1555,8 @@ export const taskTable = pgTable(
       onDelete: "set null",
       onUpdate: "cascade",
     }),
+    // When the issue joined its cycle; the cycle summary counts later joins.
+    cycleAddedAt: timestamp("cycle_added_at", { mode: "date" }),
     // The comment this issue was created from; Linear lists it under that comment.
     sourceCommentId: text("source_comment_id").references(
       (): AnyPgColumn => activityTable.id,

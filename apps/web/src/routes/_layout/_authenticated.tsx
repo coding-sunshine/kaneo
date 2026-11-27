@@ -1,4 +1,5 @@
 import { CallRoom } from "@/components/call/call-room";
+import { CompletionCelebration } from "@/components/completion-celebration/completion-celebration";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { needsTwoFactorSetup } from "@/components/auth/two-factor-state";
 import { GlobalShortcuts } from "@/components/shortcuts/global-shortcuts";
@@ -61,6 +62,7 @@ function AuthenticatedLayout() {
       <GlobalShortcuts />
       <Outlet />
       <CallRoom />
+      <CompletionCelebration />
     </>
   );
 }

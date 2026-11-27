@@ -73,6 +73,22 @@ async function move(
 describe("API integration: time in status", () => {
   beforeEach(resetTestDatabase);
 
+  it("returns when the task completed, so the web app can celebrate it", async () => {
+    const { member, task } = await setup();
+    mockAuthenticatedSession(member.user);
+    const { app } = createApp();
+    const put = (status: string) =>
+      app.request(`/api/task/status/${task.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+    const open = await (await put("in-progress")).json();
+    expect(open.completedAt).toBeNull();
+    const done = await (await put("done")).json();
+    expect(typeof done.completedAt).toBe("string");
+  });
+
   it("reports cumulative time per status from status changes", async () => {
     const { member, task } = await setup();
     await move(member.user, task.id, "in-progress");

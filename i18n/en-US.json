@@ -1244,6 +1244,8 @@
 			"sidebarDefaultDescription": "Start with the sidebar expanded.",
 			"codeReviews": "Enable code reviews",
 			"codeReviewsDescription": "Show Reviews in the sidebar and enable the G then R shortcut.",
+			"completionAnimation": "Completion animation",
+			"completionAnimationDescription": "Play a short animation when you complete an issue. Never plays when your system asks for reduced motion.",
 			"codingTools": {
 				"title": "Coding tools",
 				"description": "Choose which coding tools appear in the Work on pull request menu.",
@@ -6664,6 +6666,12 @@
 			"percentSuccess": "{{percent}}% success",
 			"completedCount": "{{count}} completed",
 			"scopeCount": "{{count}} scope",
+			"summary": {
+				"title": "Cycle summary",
+				"completed": "Completed",
+				"addedAfterStart": "Added after start",
+				"carriedOver": "Carried over"
+			},
 			"state": {
 				"current": "Current",
 				"upcoming": "Upcoming",
