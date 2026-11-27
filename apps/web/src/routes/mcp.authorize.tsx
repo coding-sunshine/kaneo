@@ -128,6 +128,10 @@ function McpAuthorizePage() {
                 label: t("auth:mcp.authorize.signedInAs"),
                 value: session.user.email,
               },
+              {
+                label: t("auth:mcp.authorize.duration"),
+                value: t("auth:mcp.authorize.durationValue"),
+              },
             ]}
           />
           <McpAccessChoice

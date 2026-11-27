@@ -559,6 +559,8 @@
 				"selfReported": "Self-reported",
 				"redirect": "Sends you back to",
 				"signedInAs": "Signed in as",
+				"duration": "Stays connected",
+				"durationValue": "30 days, then renews for 7 days at a time while in use",
 				"access": "Access",
 				"accessFull": "Full access",
 				"accessFullDescription": "It can read and change everything you can, including issues and documents.",

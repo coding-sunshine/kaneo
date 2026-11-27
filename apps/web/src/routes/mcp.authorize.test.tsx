@@ -56,7 +56,7 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-it("shows who is asking, where it returns, which account it gets and what it may do", () => {
+it("shows who is asking, where it returns, which account it gets, how long and what it may do", () => {
   render(<Page />);
   expect(
     screen.getByText("auth:mcp.authorize.accessFullDescription"),
@@ -72,6 +72,9 @@ it("shows who is asking, where it returns, which account it gets and what it may
     screen.getByText("http://127.0.0.1:53682/callback"),
   ).toBeInTheDocument();
   expect(screen.getByText("person@example.com")).toBeInTheDocument();
+  expect(
+    screen.getByText("auth:mcp.authorize.durationValue"),
+  ).toBeInTheDocument();
 });
 
 it.each([
