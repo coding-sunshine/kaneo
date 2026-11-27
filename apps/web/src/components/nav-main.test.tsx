@@ -81,8 +81,14 @@ vi.mock("@/hooks/queries/task-draft/use-task-drafts", () => ({
   useTaskDrafts: () => ({ data: drafts.list }),
 }));
 
+const access = vi.hoisted(() => ({ guest: false }));
+vi.mock("@/hooks/queries/workspace-users/use-get-my-project-access", () => ({
+  default: () => ({ data: { guest: access.guest } }),
+}));
+
 const defaultSidebar = useUserPreferencesStore.getState().sidebar;
 beforeEach(() => {
+  access.guest = false;
   reviews.state = "connected";
   reviews.toReview = [];
   drafts.list = [];
@@ -138,6 +144,17 @@ describe("NavMain reviews row", () => {
       .getAllByRole("button")
       .map((button) => button.textContent);
     expect(labels).toContain("navigation:sidebar.pulse");
+  });
+});
+
+describe("NavMain for a guest", () => {
+  it("leaves out workspace-wide projects, pulse and people", () => {
+    access.guest = true;
+    render(<NavMain />);
+    const labels = buttonLabels();
+    expect(labels).not.toContain("navigation:sidebar.pulse");
+    expect(labels).not.toContain("navigation:sidebar.projects");
+    expect(labels).toContain("navigation:sidebar.documents");
   });
 });
 

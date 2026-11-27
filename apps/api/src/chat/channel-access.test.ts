@@ -57,4 +57,14 @@ describe("chat channel access", () => {
     expect(check(archived, "invite")).toBe(409);
     expect(check({ ...archived, isMember: false }, "join")).toBe(409);
   });
+
+  it("shows a guest only the channels they were added to", () => {
+    const outside = { ...publicChannel, guest: true };
+    for (const action of actions) expect(check(outside, action)).toBe(404);
+    const added = { ...outside, isMember: true };
+    expect(check(added, "read")).toBe(200);
+    expect(check(added, "post")).toBe(200);
+    expect(check(added, "manage")).toBe(403);
+    expect(check(added, "invite")).toBe(403);
+  });
 });

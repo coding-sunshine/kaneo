@@ -1,10 +1,21 @@
 import { APIError, getSessionFromCtx } from "better-auth/api";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import db, { schema } from "../database";
+import { isWorkspaceGuest } from "../guest/is-workspace-guest";
 import { rolesAllow, type StoredRolePermission } from "./role-permissions";
 import { splitRoles } from "./split-roles";
 
 type AuthContext = Parameters<typeof getSessionFromCtx>[0];
+
+// Reads that list the workspace's people. A guest gets the people of their
+// projects from the Kaneo members route instead.
+const CLOSED_TO_GUESTS = new Set([
+  "/organization/get-full-organization",
+  "/organization/list-members",
+  "/organization/list-teams",
+  "/organization/list-team-members",
+  "/organization/get-active-member-role",
+]);
 
 export async function readableNativeOrganizations(
   userId: string,
@@ -155,6 +166,15 @@ export async function assertNativeOrganizationReadAllowed(
     throw new APIError("FORBIDDEN", {
       code: "MISSING_PERMISSION",
       message: "Workspace read permission is required",
+    });
+  }
+  if (
+    CLOSED_TO_GUESTS.has(ctx.path ?? "") &&
+    (await isWorkspaceGuest(workspaceId, viewer.user.id))
+  ) {
+    throw new APIError("FORBIDDEN", {
+      code: "GUEST_LIMIT",
+      message: "Guests cannot list the workspace's people",
     });
   }
 }

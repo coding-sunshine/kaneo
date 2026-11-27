@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { chatChannelTable } from "../../database/schema";
+import { isWorkspaceGuest } from "../../guest/is-workspace-guest";
 import { assertChannelAccess, type ChannelAction } from "../channel-access";
 import { selectChannels } from "./select-channels";
 
@@ -17,8 +18,9 @@ export async function loadChannel(
       eq(chatChannelTable.workspaceId, workspaceId),
     ),
   );
+  const guest = await isWorkspaceGuest(workspaceId, userId);
   assertChannelAccess(
-    channel && { ...channel, archived: channel.archivedAt !== null },
+    channel && { ...channel, archived: channel.archivedAt !== null, guest },
     action,
   );
   return channel as NonNullable<typeof channel>;

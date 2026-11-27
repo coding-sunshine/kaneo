@@ -1,6 +1,7 @@
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { publishEvent } from "../../events";
+import { isWorkspaceGuest } from "../../guest/is-workspace-guest";
 import { keepHiddenGrants } from "../../project-access/keep-hidden-grants";
 import { listAccessibleProjectIds } from "../../project-access/list-accessible-project-ids";
 import { lockAccessChange } from "../../project-access/lock-access-change";
@@ -32,6 +33,15 @@ async function updateMemberProjectAccess(request: {
       }
       if (lock.targetRole === null) {
         throw new HTTPException(404, { message: "Member not found" });
+      }
+      if (
+        request.projectAccess === "all" &&
+        (await isWorkspaceGuest(workspaceId, userId, tx))
+      ) {
+        throw new HTTPException(409, {
+          message:
+            "A guest keeps selected access. Remove them and invite them again as a member.",
+        });
       }
 
       const resolution = await resolveProjectAccessRequest({

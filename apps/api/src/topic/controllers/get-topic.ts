@@ -71,6 +71,7 @@ export async function listTopics(
             AND current_document.deleted_at IS NULL
             AND ${documentVisibility(userId, {
               id: sql`current_document.id`,
+              workspaceId: sql`current_document.workspace_id`,
               creatorId: sql`current_document.creator_id`,
               scope: sql`current_document.scope`,
               projectId: sql`current_document.project_id`,

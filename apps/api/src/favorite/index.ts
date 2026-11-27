@@ -42,6 +42,7 @@ const openDocument = (userId: string, workspaceId: string) =>
       AND favorite_document.deleted_at IS NULL
       AND ${documentVisibility(userId, {
         id: sql`favorite_document.id`,
+        workspaceId: sql`favorite_document.workspace_id`,
         creatorId: sql`favorite_document.creator_id`,
         scope: sql`favorite_document.scope`,
         projectId: sql`favorite_document.project_id`,

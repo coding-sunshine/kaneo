@@ -1,6 +1,8 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
+import { isWorkspaceGuest } from "../../guest/is-workspace-guest";
+import { sharesProjectCondition } from "../../guest/shares-project-condition";
 import {
   projectMemberPreferenceTable,
   userTable,
@@ -24,6 +26,8 @@ async function getWorkspaceMembers(request: {
     }
     await assertProjectAccess(request.userId, projectId);
   }
+  // A guest sees only the people of their own projects.
+  const guest = await isWorkspaceGuest(workspaceId, request.userId);
 
   const members = await db
     .select({
@@ -51,6 +55,13 @@ async function getWorkspaceMembers(request: {
         eq(workspaceUserTable.workspaceId, workspaceId),
         projectId
           ? projectAccessCondition(workspaceUserTable.userId, projectId)
+          : undefined,
+        guest
+          ? sharesProjectCondition(
+              request.userId,
+              workspaceUserTable.userId,
+              workspaceId,
+            )
           : undefined,
       ),
     );

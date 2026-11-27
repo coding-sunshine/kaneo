@@ -545,6 +545,13 @@ export const invitationTable = pgTable(
       .array()
       .default(sql`'{}'::text[]`)
       .notNull(),
+    // A guest invitation: the person joins with selected project access, the
+    // guest limits, and the chat channels in `channelIds`.
+    guest: boolean("guest").default(false).notNull(),
+    channelIds: text("channel_ids")
+      .array()
+      .default(sql`'{}'::text[]`)
+      .notNull(),
   },
   (table) => [
     index("invitation_workspaceId_idx").on(table.workspaceId),
@@ -720,6 +727,9 @@ export const workspaceMemberAccessTable = pgTable(
       .notNull()
       .references(() => userTable.id, { onDelete: "cascade" }),
     projectAccess: text("project_access").default("all").notNull(),
+    // An outside person: always "selected" access, only the channels they were
+    // added to, and no directory or workspace-wide documents. See guest/.
+    guest: boolean("guest").default(false).notNull(),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),

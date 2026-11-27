@@ -4359,7 +4359,12 @@
 			"setTopic": "Set topic",
 			"topic": "Topic",
 			"topicPlaceholder": "What is this channel about?",
-			"unarchive": "Unarchive channel"
+			"unarchive": "Unarchive channel",
+			"manageMembers": "Manage members",
+			"manageMembersTitle": "People in #{{name}}",
+			"onlyYou": "Only you are in this channel.",
+			"remove": "Remove",
+			"removeMemberAria": "Remove {{name}} from the channel"
 		}
 	},
 	"notifications": {
@@ -6374,6 +6379,13 @@
 			"allProjectsUnavailable": "Your own access is limited, so you can only give access to selected projects.",
 			"privateTeamsHint": "Managed in each team's settings.",
 			"privateTeamsLabel": "Private teams"
+		},
+		"guest": {
+			"badge": "Guest",
+			"channelsLabel": "Channels",
+			"inviteHint": "Guests see only the projects and channels you pick here. They can't browse the workspace's people, documents or other channels.",
+			"inviteLabel": "Invite as a guest",
+			"noChannels": "There are no channels to add yet."
 		}
 	},
 	"publicProject": {

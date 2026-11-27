@@ -1,9 +1,11 @@
+import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
 import db from "../../database";
 import {
   chatChannelMemberTable,
   chatChannelTable,
 } from "../../database/schema";
+import { isWorkspaceGuest } from "../../guest/is-workspace-guest";
 import type { createChannelBody } from "../schema";
 import { loadChannel } from "./load-channel";
 
@@ -12,6 +14,8 @@ export async function createChannel(
   userId: string,
   body: z.infer<typeof createChannelBody>,
 ) {
+  if (await isWorkspaceGuest(workspaceId, userId))
+    throw new HTTPException(403, { message: "Guests cannot create channels" });
   const channelId = await db.transaction(async (tx) => {
     const [channel] = await tx
       .insert(chatChannelTable)

@@ -30,6 +30,7 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Input } from "../ui/input";
+import GuestInviteFields from "./guest-invite-fields";
 import InvitationLinkField from "./invitation-link-field";
 import {
   ALL_PROJECTS_ACCESS,
@@ -70,9 +71,16 @@ function InviteTeamMemberModal({ open, onClose }: Props) {
   const [chosenAccess, setProjectAccess] = useState<ProjectAccessValue | null>(
     null,
   );
-  const projectAccess =
+  const [guest, setGuest] = useState(false);
+  const [channelIds, setChannelIds] = useState<string[]>([]);
+  const chosenOrDefault =
     chosenAccess ??
     (inviterLimited ? SELECTED_PROJECTS_ACCESS : ALL_PROJECTS_ACCESS);
+  // A guest always gets selected projects.
+  const projectAccess =
+    guest && chosenOrDefault.projectAccess === "all"
+      ? { ...chosenOrDefault, projectAccess: "selected" as const }
+      : chosenOrDefault;
   const [showProjectAccessError, setShowProjectAccessError] = useState(false);
   const { data: projects, isLoading: isLoadingProjects } = useGetProjects({
     workspaceId: workspaceId ?? "",
@@ -113,6 +121,7 @@ function InviteTeamMemberModal({ open, onClose }: Props) {
         workspaceId,
         role: "member",
         ...access,
+        ...(guest ? { guest, channelIds } : {}),
       }); // TODO: role and email
       await queryClient.refetchQueries({
         queryKey: ["workspace-users", workspaceId],
@@ -127,6 +136,8 @@ function InviteTeamMemberModal({ open, onClose }: Props) {
         setCreatedInvitation({ id: invitation.id, email });
         form.reset();
         setProjectAccess(null);
+        setGuest(false);
+        setChannelIds([]);
         return;
       }
 
@@ -153,6 +164,8 @@ function InviteTeamMemberModal({ open, onClose }: Props) {
     form.reset();
     setProjectAccess(null);
     setShowProjectAccessError(false);
+    setGuest(false);
+    setChannelIds([]);
   };
 
   return (
@@ -209,8 +222,18 @@ function InviteTeamMemberModal({ open, onClose }: Props) {
                     </FormItem>
                   )}
                 />
+                {workspaceId ? (
+                  <GuestInviteFields
+                    workspaceId={workspaceId}
+                    guest={guest}
+                    onGuestChange={setGuest}
+                    channelIds={channelIds}
+                    onChannelIdsChange={setChannelIds}
+                    disabled={form.formState.isSubmitting}
+                  />
+                ) : null}
                 <ProjectAccessFields
-                  allowAll={!inviterLimited}
+                  allowAll={!inviterLimited && !guest}
                   value={projectAccess}
                   onChange={(next) => {
                     setProjectAccess(next);

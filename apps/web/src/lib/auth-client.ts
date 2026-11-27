@@ -61,6 +61,16 @@ export const authClient = createAuthClient({
               input: true,
               required: false,
             },
+            guest: {
+              type: "boolean",
+              input: true,
+              required: false,
+            },
+            channelIds: {
+              type: "string[]",
+              input: true,
+              required: false,
+            },
           },
         },
       }),

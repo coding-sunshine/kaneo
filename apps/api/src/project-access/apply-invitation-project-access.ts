@@ -1,4 +1,5 @@
-import db from "../database";
+import { and, eq } from "drizzle-orm";
+import db, { schema } from "../database";
 import { clearMemberProjectAccess } from "./clear-member-project-access";
 import type { InvitationProjectAccess } from "./invitation-project-access-type";
 import { isOwnerRole } from "./is-owner-role";
@@ -8,8 +9,10 @@ export async function applyInvitationProjectAccess(
   invitation: InvitationProjectAccess,
   userId: string,
 ) {
+  const guest = invitation.guest === true;
   const restricted =
-    invitation.projectAccess === "selected" && !isOwnerRole(invitation.role);
+    guest ||
+    (invitation.projectAccess === "selected" && !isOwnerRole(invitation.role));
   const projectIds = Array.isArray(invitation.projectIds)
     ? invitation.projectIds.filter((id): id is string => typeof id === "string")
     : [];
@@ -25,5 +28,19 @@ export async function applyInvitationProjectAccess(
       projectAccess: restricted ? "selected" : "all",
       projectIds,
     });
+    // Written before the membership exists, so a guest is never a full
+    // member, not even for a moment.
+    if (guest) {
+      const rules = schema.workspaceMemberAccessTable;
+      await tx
+        .update(rules)
+        .set({ guest: true })
+        .where(
+          and(
+            eq(rules.workspaceId, invitation.organizationId),
+            eq(rules.userId, userId),
+          ),
+        );
+    }
   });
 }

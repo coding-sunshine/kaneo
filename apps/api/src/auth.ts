@@ -112,6 +112,9 @@ import {
   checkRegistrationAllowed,
   userExistsByEmail,
 } from "./utils/check-registration-allowed";
+import { addGuestToChannels } from "./guest/add-guest-to-channels";
+import { isWorkspaceGuest } from "./guest/is-workspace-guest";
+import { resolveGuestInvitation } from "./guest/resolve-guest-invitation";
 import { checkWorkspaceName } from "./utils/check-workspace-name";
 import {
   assertCustomOAuthEnv,
@@ -554,6 +557,18 @@ export const auth = betterAuth({
               required: false,
               defaultValue: [],
             },
+            guest: {
+              type: "boolean",
+              input: true,
+              required: false,
+              defaultValue: false,
+            },
+            channelIds: {
+              type: "string[]",
+              input: true,
+              required: false,
+              defaultValue: [],
+            },
           },
         },
         organizationRole: {
@@ -653,23 +668,37 @@ export const auth = betterAuth({
           const role =
             normalizeInvitationRole(invitation.role) ?? invitation.role;
           await assertInvitationOwnerAllowed({ ...invitation, role });
+          const guest = await resolveGuestInvitation({ ...invitation, role });
           const access = await resolveInvitationProjectAccess({
             ...invitation,
+            ...guest,
             role,
           });
-          return { data: { ...access, role } };
+          return { data: { ...access, role, ...guest } };
         },
         beforeAcceptInvitation: async ({ invitation, user }) => {
           assertStoredOwnerRoleSafe(invitation.role);
           await applyInvitationProjectAccess(invitation, user.id);
         },
-        afterAcceptInvitation: async ({ member }) => {
+        afterAcceptInvitation: async ({ invitation, member }) => {
+          await addGuestToChannels(invitation, member.userId);
           await publishMemberProjects(
             member.organizationId,
             member.userId,
           ).catch((error) => {
             console.error("Project member refresh failed:", error);
           });
+        },
+        beforeUpdateMemberRole: async ({ member }) => {
+          // A guest's limits come with the invitation. Widening them means
+          // removing the guest and inviting them again as a member.
+          if (await isWorkspaceGuest(member.organizationId, member.userId)) {
+            throw new APIError("CONFLICT", {
+              code: "GUEST_ROLE_LOCKED",
+              message:
+                "A guest keeps their role. Remove them and invite them again as a member.",
+            });
+          }
         },
         afterUpdateMemberRole: async ({ member }) => {
           if (isOwnerRole(member.role)) {

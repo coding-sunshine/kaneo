@@ -3,4 +3,5 @@ export type InvitationProjectAccess = {
   role?: string | null;
   projectAccess?: unknown;
   projectIds?: unknown;
+  guest?: unknown;
 };

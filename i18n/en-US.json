@@ -4351,6 +4351,11 @@
 			"addMemberTitle": "Add people to {{name}}",
 			"add": "Add",
 			"everyoneIsIn": "Everyone in this workspace is already here.",
+			"manageMembers": "Manage members",
+			"manageMembersTitle": "People in #{{name}}",
+			"onlyYou": "Only you are in this channel.",
+			"remove": "Remove",
+			"removeMemberAria": "Remove {{name}} from the channel",
 			"memberCount_one": "{{count}} member",
 			"memberCount_other": "{{count}} members",
 			"notFound": "Channel not found",
@@ -6282,6 +6287,13 @@
 		}
 	},
 	"team": {
+		"guest": {
+			"badge": "Guest",
+			"inviteLabel": "Invite as a guest",
+			"inviteHint": "Guests see only the projects and channels you pick here. They can't browse the workspace's people, documents or other channels.",
+			"channelsLabel": "Channels",
+			"noChannels": "There are no channels to add yet."
+		},
 		"roles": {
 			"owner": "Owner",
 			"admin": "Admin",

@@ -66,6 +66,25 @@ Some rules keep this predictable:
 
 Project access set on an invitation applies when the person accepts it. To change it before then, cancel the invitation and invite them again.
 
+## Invite a guest
+
+A guest is someone from outside, like a client, who should see one or two projects and a chat channel and nothing else. In the invite dialog, turn on **Invite as a guest**, tick the projects and the channels they should have, and create the invitation.
+
+Once they accept, a guest:
+
+- sees only the projects and channels they were given. They can't browse or join other channels, and they can't create channels or add people to them.
+- sees only the people who work on their projects. The **Members** page, **Projects**, and **Pulse** aren't shown to them.
+- doesn't see workspace-wide documents, documents of projects that have no team, saved views, or search results from anywhere else.
+- can work on tasks in their projects, but can't create projects or invite anyone.
+
+The same limits apply to the guest's assistant, loops, API keys, and MCP clients, since they all act as the guest.
+
+To take a guest out of a channel, open the channel's menu and choose **Manage members**. They lose the channel with their next request. Only workspace admins can add a guest to a channel or remove people from one.
+
+A guest keeps the **Member** or **Viewer** role and **Selected projects** access. You can change which projects they have, but not give them **All projects** or another role. To make a guest a full member, remove them and invite them again without **Invite as a guest**.
+
+An invitation can't give a guest a private project; private projects are left out, as they are for any invitation.
+
 ## Edit roles or create a custom role
 
 Open **Settings → Workspace → Roles** to inspect the permissions behind a role. If you have role-management permission, you can change the editable roles or create a custom one.

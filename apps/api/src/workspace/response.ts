@@ -46,6 +46,10 @@ export const memberProjectAccessSchema = z
     userId: z.string(),
     projectAccess: z.enum(PROJECT_ACCESS_MODES),
     projectIds: z.array(z.string()),
+    guest: z.boolean().optional().openapi({
+      description:
+        "A guest: selected projects, only the channels they were added to, and no workspace directory.",
+    }),
   })
   .openapi("MemberProjectAccess");
 

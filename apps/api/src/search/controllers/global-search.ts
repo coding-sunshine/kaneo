@@ -571,6 +571,7 @@ async function globalSearch(params: SearchParams): Promise<{
           isNull(documentTable.deletedAt),
           documentVisibility(resolvedUserId, {
             id: documentTable.id,
+            workspaceId: documentTable.workspaceId,
             creatorId: documentTable.creatorId,
             scope: documentTable.scope,
             projectId: documentTable.projectId,

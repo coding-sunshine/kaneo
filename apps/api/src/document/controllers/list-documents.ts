@@ -75,6 +75,7 @@ export const documentSummaryColumns = (userId: string) => ({
         AND current_doc.deleted_at IS NULL
         AND ${documentVisibility(userId, {
           id: sql`current_doc.id`,
+          workspaceId: sql`current_doc.workspace_id`,
           creatorId: sql`current_doc.creator_id`,
           scope: sql`current_doc.scope`,
           projectId: sql`current_doc.project_id`,
