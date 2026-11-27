@@ -159,7 +159,7 @@ const deleteProjectRoute = createRoute({
   tags: ["Work projects"],
   summary: "Delete project",
   description:
-    "Delete a project and its milestones. Its issues stay and lose the project.",
+    "Delete a project and its milestones. Its issues stay and lose the project. Its topics and documents go with it, so it is refused while other work relies on one of their facts.",
   middleware: [
     workspaceAccess.fromWorkProject(),
     requireWorkspacePermission({ project: ["delete"] }),
@@ -169,6 +169,9 @@ const deleteProjectRoute = createRoute({
     200: jsonResponse("Project deleted", deletedSchema),
     403: noAccess,
     404: errorResponse("Project not found"),
+    409: errorResponse(
+      "Other work relies on facts of the project's topics or documents",
+    ),
   },
 });
 

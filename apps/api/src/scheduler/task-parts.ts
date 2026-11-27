@@ -35,6 +35,7 @@ export type Source = {
   quotable?: string;
 };
 export type Run = {
+  workspaceId: string;
   model: string;
   slotsHash: string;
   topics: AskedTopic[];
@@ -107,6 +108,7 @@ export async function ask(run: Run, source: Source, outcome: Outcome) {
     try {
       const answer = await extractJson<unknown>({
         purpose: "task-facts",
+        workspaceId: run.workspaceId,
         system: TASK_SYSTEM,
         text: taskQuestion(run.asked, source.head + part),
         schema: taskAnswerSchema(run.asked),

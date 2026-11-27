@@ -11,7 +11,9 @@ import db from "../../apps/api/src/database";
 import {
   aiUsageTable,
   documentExtractionTable,
+  documentTable,
   statementTable,
+  topicTable,
 } from "../../apps/api/src/database/schema";
 import { resetTestDatabase } from "./helpers/database";
 import {
@@ -165,6 +167,21 @@ describe("API integration: statements of a document", () => {
     expect(await made("The price is\n40   USD per  seat.")).toBe(200);
   });
 
+  it("accepts a quote copied from the page across bold text and a link", async () => {
+    const { api, topicId } = await setup();
+    const docId = await api.filed(
+      topicId,
+      "Formatted plan",
+      '<p>We launch on <strong>5 March 2027</strong>. The price is <a href="https://example.com/price">40 USD</a>, per seat.</p>',
+    );
+    const made = await api.post(docId, { ...WHEN, quote: "5 March 2027." });
+    expect(made.status, await made.clone().text()).toBe(200);
+    expect(
+      (await api.post(docId, { ...HOW_MUCH, quote: "40 USD, per seat" }))
+        .status,
+    ).toBe(200);
+  });
+
   it("refuses a value the slot cannot hold", async () => {
     const { api, topicId, docId } = await setup();
     await api.addSlot(topicId, {
@@ -234,6 +251,79 @@ describe("API integration: statements of a document", () => {
     expect(await api.statementsOf(docId)).toMatchObject([
       { id: first.id, value: "40", status: "confirmed" },
     ]);
+  });
+
+  it("confirm races reject: the statement stays rejected", async () => {
+    const { api, docId, topicId } = await setup();
+    const proposal = await api.add(docId, HOW_MUCH);
+    const waiting = (count: number) =>
+      vi.waitFor(async () => {
+        const rows = await db.execute(
+          sql`select 1 from pg_locks l join pg_stat_activity a on a.pid = l.pid where not l.granted and a.datname = current_database()`,
+        );
+        expect(rows.rows).toHaveLength(count);
+      });
+    let rejecting: Promise<Response> | undefined;
+    let confirming: Promise<Response> | undefined;
+    // Both requests read the proposal, then wait for the topic: the reject
+    // gets it first.
+    await db.transaction(async (tx) => {
+      await tx
+        .select({ id: topicTable.id })
+        .from(topicTable)
+        .where(eq(topicTable.id, topicId))
+        .for("no key update");
+      rejecting = api.decide(docId, proposal.id, "reject", {
+        reason: "Wrong price",
+      });
+      await waiting(1);
+      confirming = api.decide(docId, proposal.id, "confirm");
+      await waiting(2);
+    });
+
+    expect((await rejecting)?.status).toBe(200);
+    expect((await confirming)?.status).toBe(409);
+    const [row] = await db
+      .select({ status: statementTable.status })
+      .from(statementTable)
+      .where(eq(statementTable.id, proposal.id));
+    expect(row?.status).toBe("rejected");
+  });
+
+  it("keeps the first reject when two land at once", async () => {
+    const { api, docId, topicId } = await setup();
+    const proposal = await api.add(docId, HOW_MUCH);
+    let first: Promise<Response> | undefined;
+    let second: Promise<Response> | undefined;
+    await db.transaction(async (tx) => {
+      await tx
+        .select({ id: topicTable.id })
+        .from(topicTable)
+        .where(eq(topicTable.id, topicId))
+        .for("no key update");
+      first = api.decide(docId, proposal.id, "reject", { reason: "First" });
+      await vi.waitFor(async () => {
+        const rows = await db.execute(
+          sql`select 1 from pg_locks l join pg_stat_activity a on a.pid = l.pid where not l.granted and a.datname = current_database()`,
+        );
+        expect(rows.rows).toHaveLength(1);
+      });
+      second = api.decide(docId, proposal.id, "reject", { reason: "Second" });
+      await vi.waitFor(async () => {
+        const rows = await db.execute(
+          sql`select 1 from pg_locks l join pg_stat_activity a on a.pid = l.pid where not l.granted and a.datname = current_database()`,
+        );
+        expect(rows.rows).toHaveLength(2);
+      });
+    });
+
+    expect((await first)?.status).toBe(200);
+    expect((await second)?.status).toBe(200);
+    const [row] = await db
+      .select({ reason: statementTable.statusReason })
+      .from(statementTable)
+      .where(eq(statementTable.id, proposal.id));
+    expect(row?.reason).toBe("First");
   });
 
   it("answers 403 to a member who can only view the document", async () => {
@@ -568,7 +658,14 @@ describe("API integration: statement extraction job", () => {
       }),
     );
   const job = () => import("../../apps/api/src/scheduler/statement-extraction");
-  const run = async () => (await job()).extractFiledDocuments();
+  // A document edited in the last minutes waits, so every text is made older
+  // than that first.
+  const run = async () => {
+    await db
+      .update(documentTable)
+      .set({ updatedAt: sql`${documentTable.updatedAt} - interval '1 hour'` });
+    return (await job()).extractFiledDocuments();
+  };
   const body = (fetchMock: ReturnType<typeof vi.fn>, call = 0) =>
     JSON.parse(
       (fetchMock.mock.calls[call] as unknown as [string, { body: string }])[1]
@@ -678,7 +775,7 @@ describe("API integration: statement extraction job", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("reads a long document part by part and asks later parts only about the empty slots", async () => {
+  it("reads a long document part by part and asks every part about every slot", async () => {
     const world = await buildDocumentWorld();
     const api = filing(world);
     const topicId = await api.topic();
@@ -702,7 +799,7 @@ describe("API integration: statement extraction job", () => {
     expect(first).toContain(LAUNCH);
     expect(first).not.toContain(PRICE);
     expect(second).toContain(PRICE);
-    expect(second).not.toContain("launch_date");
+    expect(second).toContain("launch_date");
     expect((await api.statementsOf(docId)).map((s) => s.slot)).toEqual([
       "launch_date",
       "price",
@@ -710,15 +807,85 @@ describe("API integration: statement extraction job", () => {
     expect(await extractions()).toHaveLength(1);
   });
 
-  it("stops at the daily token cap", async () => {
+  it("stores a later part's other value for a slot an earlier part filled", async () => {
+    const world = await buildDocumentWorld();
+    const api = filing(world);
+    const topicId = await api.topic();
+    await api.addSlot(topicId, { name: "Launch date", type: "date" });
+    await api.addSlot(topicId, { name: "Price", type: "number" });
+    const filler = `<p>${"Nothing to report. ".repeat(700)}</p>`;
+    const MOVED = "Launch moves to 9 April 2027.";
+    const docId = await api.filed(
+      topicId,
+      "Long plan",
+      `<p>${LAUNCH}</p>${filler}${filler}<p>${MOVED}</p>`,
+    );
+    // Each part is answered by what it holds, whatever order it is sent in.
+    fetchMock.mockImplementation(
+      async (_url: string, init: { body: string }) => {
+        const asked = JSON.parse(init.body).messages[1].content as string;
+        if (asked.includes(LAUNCH)) return answer([WHEN]);
+        if (asked.includes(MOVED)) {
+          return answer([
+            { slot: "launch_date", value: "2027-04-09", quote: "9 April 2027" },
+          ]);
+        }
+        return answer([]);
+      },
+    );
+    await run();
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    const dates = (await api.statementsOf(docId))
+      .filter((statement) => statement.slot === "launch_date")
+      .map((statement) => statement.value)
+      .sort();
+    expect(dates).toEqual(["2027-03-05", "2027-04-09"]);
+
+    // One value of the two is confirmed, never both.
+    const [first, other] = (await api.statementsOf(docId)).filter(
+      (statement) => statement.slot === "launch_date",
+    );
+    expect((await api.decide(docId, first!.id, "confirm")).status).toBe(200);
+    expect((await api.decide(docId, other!.id, "confirm")).status).toBe(409);
+
+    // Both values go with the text through an edit elsewhere.
+    await api.edit(
+      docId,
+      `<p>${LAUNCH}</p>${filler}${filler}<p>${MOVED}</p><p>Doors open at nine.</p>`,
+    );
+    const carried = (await api.statementsOf(docId))
+      .filter((statement) => statement.slot === "launch_date")
+      .map((statement) => [statement.value, statement.status])
+      .sort();
+    expect(carried).toEqual([
+      ["2027-03-05", "confirmed"],
+      ["2027-04-09", "proposed"],
+    ]);
+  });
+
+  it("stops at the workspace's daily token cap", async () => {
     vi.stubEnv("EXTRACTION_DAILY_TOKEN_CAP", "1000");
+    const { world } = await setup();
+    // Another workspace's tokens leave this one's cap alone.
     await db.insert(aiUsageTable).values({
       purpose: "statements",
       model: "test/model",
       promptTokens: 1000,
       completionTokens: 0,
     });
-    await setup();
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    fetchMock.mockClear();
+    await db.delete(documentExtractionTable);
+    await db.insert(aiUsageTable).values({
+      purpose: "statements",
+      workspaceId: world.ws,
+      model: "test/model",
+      promptTokens: 1000,
+      completionTokens: 0,
+    });
     await run();
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -744,6 +911,48 @@ describe("API integration: statement extraction job", () => {
     await api.addSlot(topicId, { name: "Seats", type: "number" });
     await run();
     expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("asks a filed document once about a slot added later", async () => {
+    const { api, topicId } = await setup();
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await api.addSlot(topicId, { name: "Seats", type: "number" });
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const asked = body(fetchMock, 1).messages[1].content as string;
+    expect(asked).toContain("- seats (number)");
+    expect(asked).not.toContain("- launch_date (");
+    expect(asked).not.toContain("- price (");
+
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("reads a document filed on another topic about all that topic's slots", async () => {
+    const { api, topicId, docId } = await setup();
+    const other = await api.topic("Seating plan");
+    await api.addSlot(other, { name: "Seats", type: "number" });
+    // The first topic's newest slot is younger than the other topic's.
+    await api.addSlot(topicId, { name: "Region", type: "term" });
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await api.file(other, docId);
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(body(fetchMock, 1).messages[1].content).toContain("- seats (");
+  });
+
+  it("reads no document again for another model", async () => {
+    await setup();
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    vi.stubEnv("EXTRACTION_MODEL", "another/model");
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("does not replace a statement a person wrote", async () => {

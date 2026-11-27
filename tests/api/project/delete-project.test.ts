@@ -25,6 +25,11 @@ vi.mock("../../../apps/api/src/events", () => ({
 vi.mock("../../../apps/api/src/task/get-subtask-parent-projects", () => ({
   getProjectSubtaskParentProjects: mocks.getProjectSubtaskParentProjects,
 }));
+// Whether work relies on the team's facts is checked against the database in
+// the ripple-flags integration test.
+vi.mock("../../../apps/api/src/topic/controllers/assert-unrelied", () => ({
+  assertUnrelied: async () => {},
+}));
 import deleteProject from "../../../apps/api/src/project/controllers/delete-project";
 function seed(backgroundObjectKey: string | null, assets: string[] = []) {
   const project = {

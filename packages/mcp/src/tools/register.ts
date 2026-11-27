@@ -4,6 +4,7 @@ import { encodeCustomFieldValue } from "../kaneo/custom-field-value.js";
 import { buildFullTaskUpdateBody } from "../kaneo/task-helpers.js";
 import { errorResult, textResult } from "../utils/mcp-result.js";
 import { getCurrentUser } from "./get-current-user.js";
+import { readOn } from "./read-on.js";
 
 export { SERVER_INSTRUCTIONS } from "./instructions.js";
 
@@ -989,12 +990,18 @@ export function registerTools(
   };
   const readTopic =
     (route: "current" | "unreviewed") =>
-    async (args: { workspaceId: string; topic: string; slot?: string }) =>
-      run(() =>
-        client.json(
+    async (args: {
+      workspaceId: string;
+      topic: string;
+      slot?: string;
+      textFrom?: number;
+    }) =>
+      run(async () => {
+        const data = await client.json(
           `/api/topic/workspace/${encodeURIComponent(args.workspaceId)}/${route}?${new URLSearchParams({ topic: args.topic, ...(args.slot ? { slot: args.slot } : {}) }).toString()}`,
-        ),
-      );
+        );
+        return args.textFrom ? readOn(data, args.textFrom) : data;
+      });
 
   registerTool(
     "get_current",
@@ -1006,6 +1013,15 @@ export function registerTools(
         slot: optionalNonEmptyString.describe(
           "A slot key from the topic's slots. answers then holds only that fact.",
         ),
+        textFrom: z
+          .number()
+          .int()
+          .min(0)
+          .max(10_000_000)
+          .optional()
+          .describe(
+            "Where the approved text starts, in characters. Send it only to read on after an answer whose textCut says the text was cut.",
+          ),
       }),
     },
     readTopic("current"),

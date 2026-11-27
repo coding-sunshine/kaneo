@@ -35,7 +35,7 @@ type Words = { text?: string; more?: boolean };
  * the JSON asked for.
  */
 export const seeWith =
-  (reserve: number, run: { parts: number }): See =>
+  (reserve: number, run: { parts: number }, workspaceId: string): See =>
   async (file) => {
     const hash = createHash("sha256").update(file.bytes).digest("hex");
     const known = written.get(hash);
@@ -50,6 +50,7 @@ export const seeWith =
       try {
         answer = await extractJson<Words>({
           purpose: "task-file-words",
+          workspaceId,
           system: SYSTEM,
           text: ask,
           schema: SCHEMA,

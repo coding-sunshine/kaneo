@@ -25,36 +25,40 @@ it("writes out a file in as many answers as it needs, each one a question of the
     .mockResolvedValueOnce({ text: "Last words.", more: false });
   const run = { parts: 5 };
   const scan = file();
-  expect(await seeWith(0.3, run)(scan)).toBe("First words.\nLast words.");
+  expect(await seeWith(0.3, run, "ws-1")(scan)).toBe(
+    "First words.\nLast words.",
+  );
   expect(run.parts).toBe(3);
   expect(extractJson.mock.calls[1]?.[0].text).toContain("First words.");
   // Written out once: the same bytes are not paid for again.
-  expect(await seeWith(0.3, run)(scan)).toBe("First words.\nLast words.");
+  expect(await seeWith(0.3, run, "ws-1")(scan)).toBe(
+    "First words.\nLast words.",
+  );
   expect(extractJson).toHaveBeenCalledTimes(2);
 });
 
 it("leaves the file for later when a cap or the run's questions are used up, or a request failed", async () => {
-  await expect(seeWith(0.3, { parts: 0 })(file())).rejects.toEqual(
+  await expect(seeWith(0.3, { parts: 0 }, "ws-1")(file())).rejects.toEqual(
     new ReadLater(false),
   );
   expect(extractJson).not.toHaveBeenCalled();
   extractJson.mockResolvedValueOnce(null);
-  await expect(seeWith(0.3, { parts: 5 })(file())).rejects.toEqual(
+  await expect(seeWith(0.3, { parts: 5 }, "ws-1")(file())).rejects.toEqual(
     new ReadLater(false),
   );
   extractJson.mockRejectedValueOnce(new Error("HTTP 503"));
-  const failed = seeWith(0.3, { parts: 5 })(file());
+  const failed = seeWith(0.3, { parts: 5 }, "ws-1")(file());
   await expect(failed).rejects.toBeInstanceOf(ReadLater);
   await expect(failed).rejects.toMatchObject({ failed: true });
 });
 
 it("gives up on a file the model refuses or answers about with no JSON", async () => {
   extractJson.mockRejectedValueOnce(new RefusedRequest("HTTP 413"));
-  await expect(seeWith(0.3, { parts: 5 })(file())).rejects.toBeInstanceOf(
-    RefusedRequest,
-  );
+  await expect(
+    seeWith(0.3, { parts: 5 }, "ws-1")(file()),
+  ).rejects.toBeInstanceOf(RefusedRequest);
   extractJson.mockRejectedValueOnce(new UnreadableAnswer("not JSON"));
-  await expect(seeWith(0.3, { parts: 5 })(file())).rejects.toBeInstanceOf(
-    UnreadableAnswer,
-  );
+  await expect(
+    seeWith(0.3, { parts: 5 }, "ws-1")(file()),
+  ).rejects.toBeInstanceOf(UnreadableAnswer);
 });

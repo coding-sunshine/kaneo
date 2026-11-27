@@ -3556,7 +3556,9 @@ export const statementTable = pgTable(
     quote: text("quote").notNull(),
     quoteStart: integer("quote_start").notNull(),
     // The document's `contentHash` the quote was checked against. A statement
-    // for another text of the document says nothing about this one.
+    // for another text of the document says nothing about this one. A further
+    // value of a slot on the same text has `#` and its value's hash after it
+    // (see topic/statement-hash.ts).
     contentHash: text("content_hash").notNull(),
     status: text("status")
       .$type<StatementStatus>()
@@ -3653,6 +3655,12 @@ export const statementJudgementTable = pgTable(
     promptVersion: integer("prompt_version").notNull(),
     model: text("model").notNull(),
     contradicts: boolean("contradicts"),
+    // The workspace whose documents were compared, so the day's questions
+    // are counted per workspace. Another workspace with the same texts reuses
+    // the answer. A plain column, no foreign key: the table already holds
+    // rows on live installs, so its upgrade only adds a nullable column. A
+    // deleted workspace's id stays and counts for nobody.
+    workspaceId: text("workspace_id"),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),
