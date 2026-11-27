@@ -869,6 +869,20 @@
       "when": 1795807883030,
       "tag": "0123_outstanding_shape",
       "breakpoints": true
+    },
+    {
+      "idx": 124,
+      "version": "7",
+      "when": 1795808463418,
+      "tag": "0124_freezing_prowler",
+      "breakpoints": true
+    },
+    {
+      "idx": 125,
+      "version": "7",
+      "when": 1795809008779,
+      "tag": "0125_steep_spacker_dave",
+      "breakpoints": true
     }
   ]
 }

@@ -12246,6 +12246,66 @@
 						"features"
 					]
 				},
+				"aiAudit": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"description": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "string"
+						},
+						"loadError": {
+							"type": "string"
+						},
+						"acceptedBy": {
+							"type": "string"
+						},
+						"askedBy": {
+							"type": "string"
+						},
+						"unknownUser": {
+							"type": "string"
+						},
+						"failed": {
+							"type": "string"
+						},
+						"prompt": {
+							"type": "string"
+						},
+						"change": {
+							"type": "string"
+						},
+						"toolCalls": {
+							"type": "string"
+						},
+						"sources": {
+							"type": "string"
+						},
+						"result": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"title",
+						"description",
+						"empty",
+						"loadError",
+						"acceptedBy",
+						"askedBy",
+						"unknownUser",
+						"failed",
+						"prompt",
+						"change",
+						"toolCalls",
+						"sources",
+						"result"
+					]
+				},
 				"workspaceWebhooks": {
 					"type": "object",
 					"additionalProperties": false,
@@ -12780,6 +12840,7 @@
 				"adminSettings",
 				"adminWebhooks",
 				"aiUsage",
+				"aiAudit",
 				"workspaceWebhooks",
 				"projectCycles",
 				"issueTemplates",
@@ -17156,6 +17217,119 @@
 								}
 							},
 							"required": ["project", "research", "loop"]
+						},
+						"proposal": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"reason": {
+									"type": "string"
+								},
+								"accept": {
+									"type": "string"
+								},
+								"decline": {
+									"type": "string"
+								},
+								"empty": {
+									"type": "string"
+								},
+								"changesTo": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								},
+								"status": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"pending": {
+											"type": "string"
+										},
+										"accepted": {
+											"type": "string"
+										},
+										"declined": {
+											"type": "string"
+										},
+										"failed": {
+											"type": "string"
+										}
+									},
+									"required": ["pending", "accepted", "declined", "failed"]
+								},
+								"fields": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"priority": {
+											"type": "string"
+										},
+										"labels": {
+											"type": "string"
+										},
+										"status": {
+											"type": "string"
+										},
+										"title": {
+											"type": "string"
+										},
+										"description": {
+											"type": "string"
+										},
+										"assignee": {
+											"type": "string"
+										},
+										"team": {
+											"type": "string"
+										},
+										"startDate": {
+											"type": "string"
+										},
+										"dueDate": {
+											"type": "string"
+										},
+										"comment": {
+											"type": "string"
+										},
+										"topic": {
+											"type": "string"
+										},
+										"position": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"priority",
+										"labels",
+										"status",
+										"title",
+										"description",
+										"assignee",
+										"team",
+										"startDate",
+										"dueDate",
+										"comment",
+										"topic",
+										"position"
+									]
+								}
+							},
+							"required": [
+								"label",
+								"reason",
+								"accept",
+								"decline",
+								"empty",
+								"changesTo",
+								"failed",
+								"status",
+								"fields"
+							]
 						}
 					},
 					"required": [
@@ -17173,7 +17347,8 @@
 						"toolPending",
 						"sources",
 						"group",
-						"examples"
+						"examples",
+						"proposal"
 					]
 				},
 				"loops": {
@@ -17861,6 +18036,24 @@
 						},
 						"leaveCall": {
 							"type": "string"
+						},
+						"directMessages": {
+							"type": "string"
+						},
+						"newDirectMessage": {
+							"type": "string"
+						},
+						"directTitle": {
+							"type": "string"
+						},
+						"directHint": {
+							"type": "string"
+						},
+						"openDirect": {
+							"type": "string"
+						},
+						"noOneElse": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -17909,7 +18102,13 @@
 						"callFailed",
 						"microphone",
 						"camera",
-						"leaveCall"
+						"leaveCall",
+						"directMessages",
+						"newDirectMessage",
+						"directTitle",
+						"directHint",
+						"openDirect",
+						"noOneElse"
 					]
 				}
 			},
