@@ -791,10 +791,9 @@ export const auth = betterAuth({
     },
   },
   rateLimit: {
-    // Enable in cloud; self-hosted instances opt in by setting KANEO_CLOUD.
-    // Default better-auth rate-limit only kicks in for production; we keep the
-    // global limits conservative and tighten signup/invite via customRules.
-    enabled: isCloud(),
+    // On for every instance, cloud or self-hosted. Better Auth's default
+    // rules cap sign-in and password flows; customRules tighten signup/invite.
+    enabled: process.env.DISABLE_AUTH_RATE_LIMIT !== "true",
     window: 10,
     max: 100,
     customRules: {
