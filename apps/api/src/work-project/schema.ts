@@ -105,3 +105,14 @@ export const linkBody = z.object({
 export const commentBody = z.object({
   content: z.string().trim().min(1).max(20000),
 });
+
+export const dependencyBody = z.object({
+  dependsOnId: z.string().openapi({
+    description: "The project this one waits on, in the same workspace.",
+  }),
+});
+
+export const dependencyParam = z.object({
+  id: z.string(),
+  dependsOnId: z.string(),
+});

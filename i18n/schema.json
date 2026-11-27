@@ -26800,6 +26800,68 @@
 								"error",
 								"noDate"
 							]
+						},
+						"views": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"list": {
+									"type": "string"
+								},
+								"timeline": {
+									"type": "string"
+								}
+							},
+							"required": ["list", "timeline"]
+						},
+						"timeline": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"conflict": {
+									"type": "string"
+								},
+								"noDates": {
+									"type": "string"
+								}
+							},
+							"required": ["conflict", "noDates"]
+						},
+						"dependencies": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"add": {
+									"type": "string"
+								},
+								"dependsOn": {
+									"type": "string"
+								},
+								"dependents": {
+									"type": "string"
+								},
+								"none": {
+									"type": "string"
+								},
+								"remove": {
+									"type": "string"
+								},
+								"error": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"add",
+								"dependsOn",
+								"dependents",
+								"none",
+								"remove",
+								"error"
+							]
 						}
 					},
 					"required": [
@@ -26824,7 +26886,10 @@
 						"tabs",
 						"detail",
 						"issues",
-						"milestones"
+						"milestones",
+						"views",
+						"timeline",
+						"dependencies"
 					]
 				},
 				"cycles": {

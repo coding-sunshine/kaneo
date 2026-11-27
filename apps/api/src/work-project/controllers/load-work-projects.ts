@@ -6,12 +6,14 @@ import {
   inArray,
   isNull,
   ne,
+  or,
   sql,
 } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
   taskTable,
+  workProjectDependencyTable,
   workProjectLabelTable,
   workProjectMemberTable,
   workProjectMilestoneTable,
@@ -85,7 +87,7 @@ export async function loadWorkProjects(
   const ids = rows.map((row) => row.id);
   if (ids.length === 0) return [];
 
-  const [teams, members, labels, progress] = await Promise.all([
+  const [teams, members, labels, dependencies, progress] = await Promise.all([
     db
       .select()
       .from(workProjectTeamTable)
@@ -104,6 +106,16 @@ export async function loadWorkProjects(
       .select()
       .from(workProjectLabelTable)
       .where(inArray(workProjectLabelTable.workProjectId, ids)),
+    db
+      .select()
+      .from(workProjectDependencyTable)
+      .where(
+        or(
+          inArray(workProjectDependencyTable.workProjectId, ids),
+          inArray(workProjectDependencyTable.dependsOnId, ids),
+        ),
+      )
+      .orderBy(asc(workProjectDependencyTable.createdAt)),
     progressBy(taskTable.workProjectId, ids, userId),
   ]);
 
@@ -118,6 +130,12 @@ export async function loadWorkProjects(
     labelIds: labels
       .filter((l) => l.workProjectId === row.id)
       .map((l) => l.labelId),
+    dependsOnIds: dependencies
+      .filter((d) => d.workProjectId === row.id)
+      .map((d) => d.dependsOnId),
+    dependentIds: dependencies
+      .filter((d) => d.dependsOnId === row.id)
+      .map((d) => d.workProjectId),
     progress: progress.get(row.id) ?? noProgress,
   }));
 }

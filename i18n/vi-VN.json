@@ -6359,6 +6359,23 @@
 				"pulseEmpty": "No project updates yet.",
 				"save": "Save",
 				"title": "Project updates"
+			},
+			"dependencies": {
+				"add": "Add dependency",
+				"dependents": "Blocks",
+				"dependsOn": "Waits on",
+				"error": "Could not change the dependency",
+				"none": "None",
+				"remove": "Remove dependency on {{name}}",
+				"title": "Dependencies"
+			},
+			"timeline": {
+				"conflict": "Starts before {{names}} ends",
+				"noDates": "No dates"
+			},
+			"views": {
+				"list": "List",
+				"timeline": "Timeline"
 			}
 		},
 		"initiative": {

@@ -3023,6 +3023,20 @@
               "type": "string"
             }
           },
+          "dependsOnIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Projects this project waits on."
+          },
+          "dependentIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Projects that wait on this project."
+          },
           "progress": {
             "type": "object",
             "properties": {
@@ -3059,6 +3073,8 @@
           "canOpenDocuments",
           "memberIds",
           "labelIds",
+          "dependsOnIds",
+          "dependentIds",
           "progress"
         ]
       },
@@ -28348,6 +28364,183 @@
           },
           "404": {
             "description": "Link not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/work-project/{id}/dependency": {
+      "post": {
+        "operationId": "addWorkProjectDependency",
+        "tags": [
+          "Work projects"
+        ],
+        "summary": "Add a project dependency",
+        "description": "Make this project wait on another project in the same workspace. Refused when the other project already waits on this one.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "dependsOnId": {
+                    "type": "string",
+                    "description": "The project this one waits on, in the same workspace."
+                  }
+                },
+                "required": [
+                  "dependsOnId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Dependency added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkProjectDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The project depends on itself or on a project outside the workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The projects would wait on each other",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/work-project/{id}/dependency/{dependsOnId}": {
+      "delete": {
+        "operationId": "removeWorkProjectDependency",
+        "tags": [
+          "Work projects"
+        ],
+        "summary": "Remove a project dependency",
+        "description": "Stop this project waiting on another project.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "dependsOnId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dependency removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkProjectDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
             "content": {
               "application/json": {
                 "schema": {

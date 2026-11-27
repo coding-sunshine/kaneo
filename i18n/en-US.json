@@ -6455,6 +6455,23 @@
 				"cancel": "Cancel",
 				"error": "Could not save the milestone",
 				"noDate": "No target date"
+			},
+			"views": {
+				"list": "List",
+				"timeline": "Timeline"
+			},
+			"timeline": {
+				"conflict": "Starts before {{names}} ends",
+				"noDates": "No dates"
+			},
+			"dependencies": {
+				"title": "Dependencies",
+				"add": "Add dependency",
+				"dependsOn": "Waits on",
+				"dependents": "Blocks",
+				"none": "None",
+				"remove": "Remove dependency on {{name}}",
+				"error": "Could not change the dependency"
 			}
 		},
 		"cycles": {

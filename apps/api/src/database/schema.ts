@@ -1254,6 +1254,30 @@ export const workProjectLinkTable = pgTable(
   ],
 );
 
+// A project waits on another: `workProjectId` cannot finish before `dependsOnId`.
+export const workProjectDependencyTable = pgTable(
+  "work_project_dependency",
+  {
+    workProjectId: text("work_project_id")
+      .notNull()
+      .references(() => workProjectTable.id, { onDelete: "cascade" }),
+    dependsOnId: text("depends_on_id")
+      .notNull()
+      .references(() => workProjectTable.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.workProjectId, table.dependsOnId] }),
+    index("work_project_dependency_dependsOnId_idx").on(table.dependsOnId),
+    check(
+      "work_project_dependency_not_self",
+      sql`${table.workProjectId} <> ${table.dependsOnId}`,
+    ),
+  ],
+);
+
 // Linear-style initiatives: a workspace-level goal one level above projects.
 export const initiativeTable = pgTable(
   "initiative",
