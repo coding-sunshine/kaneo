@@ -19,6 +19,7 @@ import TaskPriorityPopover from "../task-priority-popover";
 import { TaskRecurrenceBadge } from "../task-recurrence-badge";
 import TaskRelations from "../task-relations";
 import TaskStartDatePopover from "../task-start-date-popover";
+import { StatusTimeTooltip } from "../status-time/status-time-tooltip";
 import TaskStatusPopover from "../task-status-popover";
 import { AssigneeAvatar } from "./assignee-avatar";
 import { SlaChip } from "@/components/task-chips/sla-chip";
@@ -68,10 +69,15 @@ export function PropertiesRail({
       <RailSection title={t("tasks:properties.title")}>
         <PropertyRow label={t("tasks:status.label")}>
           <TaskStatusPopover task={task}>
-            <PropertyValue data-task-action="status" shortcutId="changeStatus">
-              {getColumnIcon(task.status ?? "", status.isFinal, status.icon)}
-              <span className="truncate">{status.label}</span>
-            </PropertyValue>
+            <StatusTimeTooltip taskId={task.id}>
+              <PropertyValue
+                data-task-action="status"
+                shortcutId="changeStatus"
+              >
+                {getColumnIcon(task.status ?? "", status.isFinal, status.icon)}
+                <span className="truncate">{status.label}</span>
+              </PropertyValue>
+            </StatusTimeTooltip>
           </TaskStatusPopover>
         </PropertyRow>
 

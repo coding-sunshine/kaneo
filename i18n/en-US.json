@@ -4862,6 +4862,11 @@
 			"archived": "Archived",
 			"planned": "Planned"
 		},
+		"statusTime": {
+			"title": "Time in status",
+			"current": "current",
+			"error": "Could not load time in status"
+		},
 		"priority": {
 			"label": "Priority",
 			"no-priority": "No priority",

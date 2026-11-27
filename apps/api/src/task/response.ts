@@ -428,3 +428,28 @@ export const taskAttachmentsSchema = z.array(
     createdAt: z.coerce.date(),
   }),
 );
+
+export const taskStatusSpansSchema = z
+  .object({
+    spans: z.array(
+      z
+        .object({
+          status: z.string().openapi({
+            description:
+              "Status slug as recorded when the task held it. A renamed or removed column keeps its old slug.",
+          }),
+          name: z.string().nullable().openapi({
+            description:
+              "Current name of the project column with this slug; null when no single column matches.",
+          }),
+          totalMs: z.number().openapi({
+            description: "Total milliseconds spent in this status.",
+          }),
+          current: z.boolean().openapi({
+            description: "True for the task's current status.",
+          }),
+        })
+        .openapi("TaskStatusSpan"),
+    ),
+  })
+  .openapi("TaskStatusSpans");

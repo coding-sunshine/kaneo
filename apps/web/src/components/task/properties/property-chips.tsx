@@ -15,6 +15,7 @@ import TaskMovePopover from "../task-move-popover";
 import TaskPriorityPopover from "../task-priority-popover";
 import { TaskRecurrenceBadge } from "../task-recurrence-badge";
 import TaskStartDatePopover from "../task-start-date-popover";
+import { StatusTimeTooltip } from "../status-time/status-time-tooltip";
 import TaskStatusPopover from "../task-status-popover";
 import { AssigneeAvatar } from "./assignee-avatar";
 import { dueDateTextClass } from "./due-date-text-class";
@@ -63,10 +64,12 @@ export function PropertyChips({
     <div className={cn("flex flex-col gap-1.5", className)}>
       <div className="flex flex-wrap items-center gap-1.5">
         <TaskStatusPopover task={task}>
-          <button type="button" data-task-action="status" className={chip}>
-            {getColumnIcon(task.status ?? "", status.isFinal, status.icon)}
-            <span className="truncate">{status.label}</span>
-          </button>
+          <StatusTimeTooltip taskId={task.id}>
+            <button type="button" data-task-action="status" className={chip}>
+              {getColumnIcon(task.status ?? "", status.isFinal, status.icon)}
+              <span className="truncate">{status.label}</span>
+            </button>
+          </StatusTimeTooltip>
         </TaskStatusPopover>
         <TaskPriorityPopover task={task}>
           <button type="button" data-task-action="priority" className={chip}>
