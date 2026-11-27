@@ -11,6 +11,8 @@ import {
   HoverCardTrigger,
 } from "../ui/preview-card";
 import { TimelineContent, TimelineItem } from "../ui/timeline";
+import ChatMessageActivity from "./chat-message-activity";
+import { chatMessageEntry } from "./chat-message-entry";
 import CommentThread, { type ThreadComment } from "./comment-thread";
 import { describeHistoryEvent } from "./describe-history-event";
 import { isCommentActivity } from "./utils";
@@ -137,15 +139,28 @@ function ActorAvatar({
 
 function renderActivityContent({
   activity,
+  workspaceId,
   workspaceUsers,
   t,
 }: {
   activity: ActivityItem;
+  workspaceId: string;
   workspaceUsers: WorkspaceUser[] | undefined;
   t: (key: string, options?: Record<string, unknown>) => string;
 }) {
   const content = activity.content || "";
   const eventData = getEventDataRecord(activity.eventData);
+
+  const chatMessage = chatMessageEntry(activity.type, eventData);
+  if (chatMessage) {
+    return (
+      <ChatMessageActivity
+        type={activity.type}
+        workspaceId={workspaceId}
+        {...chatMessage}
+      />
+    );
+  }
 
   if (activity.type === "priority_changed") {
     if (eventData) {
@@ -436,6 +451,7 @@ function Activity({
         <UserHoverName user={user || null} fallbackName={actorName} />{" "}
         {renderActivityContent({
           activity,
+          workspaceId: workspace?.id ?? "",
           workspaceUsers: workspaceUsers as WorkspaceUser[] | undefined,
           t,
         })}{" "}

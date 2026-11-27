@@ -68,3 +68,12 @@ export async function removeLinkPreview(
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }
+
+export async function addMessageToTicket(param: MessageParam, taskId: string) {
+  const response = await message["ticket-comment"].$post({
+    param,
+    json: { taskId },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}

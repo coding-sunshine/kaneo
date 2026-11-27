@@ -13,6 +13,8 @@ export type CreateIssueDraft = {
   link?: { taskId: string; type: "related" | "parent" };
   /** The comment the issue is made from; it then lists the issue. */
   sourceCommentId?: string;
+  /** The chat message the issue is made from; its history links back. */
+  sourceMessage?: { channelId: string; messageId: string };
   /** The pull request the issue is made from; it is linked to the new issue. */
   pullRequest?: {
     url: string;

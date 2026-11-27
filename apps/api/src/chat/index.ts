@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import { activitySchema } from "../activity/response";
 import {
   apiRouter,
   createRoute,
@@ -10,6 +11,7 @@ import {
   requireWorkspacePermission,
 } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
+import { addMessageToTicket } from "./controllers/add-message-to-ticket";
 import { createChannel } from "./controllers/create-channel";
 import { deleteMessage } from "./controllers/delete-message";
 import { editMessage } from "./controllers/edit-message";
@@ -61,6 +63,7 @@ import {
   presenceSettingSchema,
   reactionBody,
   removedMemberSchema,
+  ticketCommentBody,
   updateChannelBody,
   workspaceIdParam,
 } from "./schema";
@@ -403,6 +406,23 @@ const removeReactionRoute = createRoute({
   responses: reactionResponses,
 });
 
+const ticketCommentRoute = createRoute({
+  method: "post",
+  operationId: "addChatMessageToTicket",
+  path: `${messagePath}/ticket-comment`,
+  tags,
+  summary: "Add message to ticket",
+  description:
+    "Copy a message you can read onto a ticket as your comment, with a link back to the message. The ticket's activity records it.",
+  middleware: [...write] as const,
+  request: { params: messageParam, body: body(ticketCommentBody) },
+  responses: {
+    200: jsonResponse("The comment", activitySchema),
+    403: noAccess,
+    404: errorResponse("Channel, message or ticket not found"),
+  },
+});
+
 const markReadRoute = createRoute({
   method: "post",
   operationId: "markChatChannelRead",
@@ -739,6 +759,19 @@ const chat = apiRouter()
         c.get("userId"),
         c.req.valid("json").emoji,
         false,
+      ),
+      200,
+    );
+  })
+  .openapi(ticketCommentRoute, async (c) => {
+    const { workspaceId, channelId, messageId } = c.req.valid("param");
+    return c.json(
+      await addMessageToTicket(
+        workspaceId,
+        channelId,
+        messageId,
+        c.get("userId"),
+        c.req.valid("json").taskId,
       ),
       200,
     );

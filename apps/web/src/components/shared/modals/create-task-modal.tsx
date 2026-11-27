@@ -711,6 +711,7 @@ function CreateTaskModalContent({
           workProjectMilestoneId: workProjectMilestoneId ?? undefined,
           cycleId: validCycleId ?? undefined,
           sourceCommentId: prefill?.sourceCommentId,
+          sourceMessage: prefill?.sourceMessage,
           topicId: topic?.id,
           status: submitStatus,
           draftAssetIds: stagedAssetsRef.current.filter((id) =>

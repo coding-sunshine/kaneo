@@ -1,8 +1,13 @@
 import { extractAssetIds } from "../../storage/cleanup-assets";
+import {
+  findSourceMessage,
+  type SourceMessage,
+} from "../../chat/controllers/find-source-message";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
+  activityTable,
   assetTable,
   columnTable,
   customFieldDefinitionTable,
@@ -81,6 +86,7 @@ async function createTask({
   workProjectMilestoneId,
   cycleId,
   sourceCommentId,
+  sourceMessage,
   topicId,
 }: {
   projectId: string;
@@ -99,6 +105,7 @@ async function createTask({
   workProjectMilestoneId?: string | null;
   cycleId?: string | null;
   sourceCommentId?: string;
+  sourceMessage?: SourceMessage;
   topicId?: string;
 }) {
   const resolvedStatus = status || "to-do";
@@ -117,6 +124,12 @@ async function createTask({
         currentUserId,
       )
     : null;
+  if (sourceMessage)
+    await findSourceMessage(
+      await getProjectWorkspaceId(projectId),
+      sourceMessage,
+      currentUserId,
+    );
   // A topic the person cannot open answers like one that does not exist, and
   // no issue is made.
   if (topicId)
@@ -246,6 +259,17 @@ async function createTask({
       await subscribeUsers(tx, task.id, [currentUserId, normalizedUserId]);
     if (task && topicId)
       await tx.insert(taskTopicTable).values({ taskId: task.id, topicId });
+    // Ids only: ticket readers may not be in the channel.
+    if (task && sourceMessage)
+      await tx.insert(activityTable).values({
+        taskId: task.id,
+        type: "created_from_chat_message",
+        userId: currentUserId,
+        eventData: {
+          channelId: sourceMessage.channelId,
+          messageId: sourceMessage.messageId,
+        },
+      });
     if (task && mentionsDocument(task.description))
       await syncTaskDescriptionLinks(
         tx,

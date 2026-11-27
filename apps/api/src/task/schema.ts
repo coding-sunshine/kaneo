@@ -123,6 +123,13 @@ export const createTaskBody = z.object({
     description:
       "A topic you can open. The new task is put on it, and the topic lists the task.",
   }),
+  sourceMessage: z
+    .object({ channelId: z.string(), messageId: z.string() })
+    .optional()
+    .openapi({
+      description:
+        "A chat message you can read that the task is created from. The task's activity links back to it.",
+    }),
   customFields: z
     .array(z.object({ fieldId: z.string(), value: z.string() }))
     .optional(),

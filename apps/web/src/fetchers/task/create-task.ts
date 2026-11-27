@@ -26,6 +26,7 @@ async function createTask(
   cycleId?: string | null,
   sourceCommentId?: string,
   topicId?: string,
+  sourceMessage?: CreateTaskRequest["sourceMessage"],
 ) {
   if (!projectId) {
     throw new Error("No project selected for task creation");
@@ -46,6 +47,7 @@ async function createTask(
       ...(cycleId ? { cycleId } : {}),
       ...(sourceCommentId ? { sourceCommentId } : {}),
       ...(topicId ? { topicId } : {}),
+      ...(sourceMessage ? { sourceMessage } : {}),
       ...(workProject?.workProjectId
         ? {
             workProjectId: workProject.workProjectId,

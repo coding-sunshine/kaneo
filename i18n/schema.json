@@ -4967,6 +4967,12 @@
 						"codeReviewsDescription": {
 							"type": "string"
 						},
+						"completionAnimation": {
+							"type": "string"
+						},
+						"completionAnimationDescription": {
+							"type": "string"
+						},
 						"codingTools": {
 							"type": "object",
 							"additionalProperties": false,
@@ -5084,6 +5090,8 @@
 						"sidebarDefaultDescription",
 						"codeReviews",
 						"codeReviewsDescription",
+						"completionAnimation",
+						"completionAnimationDescription",
 						"codingTools",
 						"displayOptions",
 						"displayOptionsDescription",
@@ -18887,6 +18895,27 @@
 						"unpin": {
 							"type": "string"
 						},
+						"createTicket": {
+							"type": "string"
+						},
+						"addToTicket": {
+							"type": "string"
+						},
+						"addToTicketTitle": {
+							"type": "string"
+						},
+						"searchTickets": {
+							"type": "string"
+						},
+						"noTicketsFound": {
+							"type": "string"
+						},
+						"addedToTicket": {
+							"type": "string"
+						},
+						"openInChat": {
+							"type": "string"
+						},
 						"pinned": {
 							"type": "string"
 						},
@@ -19013,6 +19042,13 @@
 						"cancel",
 						"pin",
 						"unpin",
+						"createTicket",
+						"addToTicket",
+						"addToTicketTitle",
+						"searchTickets",
+						"noTicketsFound",
+						"addedToTicket",
+						"openInChat",
 						"pinned",
 						"noPins",
 						"online",
@@ -19695,6 +19731,12 @@
 					"type": "string"
 				},
 				"created": {
+					"type": "string"
+				},
+				"createdFromChatMessage": {
+					"type": "string"
+				},
+				"addedChatMessage": {
 					"type": "string"
 				},
 				"githubUser": {
@@ -20414,6 +20456,8 @@
 				"changedDuplicate",
 				"removedDuplicate",
 				"created",
+				"createdFromChatMessage",
+				"addedChatMessage",
 				"githubUser",
 				"comment",
 				"reactions"
@@ -27758,6 +27802,30 @@
 						"scopeCount_other": {
 							"type": "string"
 						},
+						"summary": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"completed": {
+									"type": "string"
+								},
+								"addedAfterStart": {
+									"type": "string"
+								},
+								"carriedOver": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"completed",
+								"addedAfterStart",
+								"carriedOver"
+							]
+						},
 						"state": {
 							"type": "object",
 							"additionalProperties": false,
@@ -27792,6 +27860,7 @@
 						"assignees",
 						"percentCapacity",
 						"percentSuccess",
+						"summary",
 						"state"
 					]
 				},
