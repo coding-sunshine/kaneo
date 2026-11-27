@@ -14556,6 +14556,9 @@
 								},
 								"current": {
 									"type": "string"
+								},
+								"back": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -14565,7 +14568,8 @@
 								"restored",
 								"close",
 								"viewing",
-								"current"
+								"current",
+								"back"
 							]
 						},
 						"kind": {

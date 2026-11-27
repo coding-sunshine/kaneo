@@ -185,6 +185,7 @@ export function DocumentPage({
                   canRestore={canEdit}
                   restoring={restore.isPending}
                   onRestore={onRestore}
+                  onBack={() => setVersion(null)}
                 />
               ) : (
                 <DocumentEditor

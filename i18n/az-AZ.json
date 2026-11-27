@@ -3435,7 +3435,8 @@
 				"restore": "Restore this version",
 				"restored": "Version restored",
 				"title": "Document history",
-				"viewing": "Version from {{time}} by {{name}}"
+				"viewing": "Version from {{time}} by {{name}}",
+				"back": "Back to versions"
 			},
 			"linkCopied": "Document URL copied to clipboard",
 			"metadata": "Document metadata; Updated {{time}}; Owned by {{owner}}",

@@ -3561,7 +3561,8 @@
 				"restored": "Version restored",
 				"close": "Close history",
 				"viewing": "Version from {{time}} by {{name}}",
-				"current": "Current"
+				"current": "Current",
+				"back": "Back to versions"
 			},
 			"kind": {
 				"label": "Kind:",

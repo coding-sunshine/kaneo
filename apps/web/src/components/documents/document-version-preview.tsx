@@ -1,3 +1,4 @@
+import { ChevronLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import CommentEditor from "@/components/activity/comment-editor";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,8 @@ type DocumentVersionPreviewProps = {
   canRestore: boolean;
   restoring: boolean;
   onRestore: () => void;
+  /** Back to the version list, which a phone hides while a version shows. */
+  onBack: () => void;
 };
 
 /** A past version, read-only, with a Restore button for editors. */
@@ -17,10 +20,20 @@ export function DocumentVersionPreview({
   canRestore,
   restoring,
   onRestore,
+  onBack,
 }: DocumentVersionPreviewProps) {
   const { t } = useTranslation();
   return (
     <div className="mx-auto w-full max-w-[55rem] px-6 pt-6 sm:px-10">
+      <Button
+        size="xs"
+        variant="ghost"
+        className="-ms-2 mb-2 md:hidden"
+        onClick={onBack}
+      >
+        <ChevronLeft aria-hidden />
+        {t("navigation:documents.history.back")}
+      </Button>
       <div className="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-muted/40 px-3 py-2 text-xs">
         <span className="text-muted-foreground">
           {t("navigation:documents.history.viewing", {
