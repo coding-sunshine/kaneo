@@ -13,6 +13,10 @@ import { resolveImportTaskStatus } from "../resolve-import-task-status";
 import { claimTaskNumber } from "./claim-task-numbers";
 import { nextTaskPosition } from "./next-task-position";
 import { mentionsDocument } from "../../task-document/find-links";
+import {
+  mayReference,
+  syncTaskDescriptionReferences,
+} from "../../reference/sync-references";
 import { syncTaskDescriptionLinks } from "../../task-document/sync-links";
 import { subscribeUsers } from "./task-subscribers";
 import { resolveImportAssignees } from "../resolve-import-assignees";
@@ -149,6 +153,8 @@ async function importTasks(
             currentUserId ?? null,
             task.description,
           );
+        if (task && mayReference(task.description))
+          await syncTaskDescriptionReferences(tx, task.id, task.description);
 
         return task;
       });

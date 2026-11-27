@@ -32,6 +32,10 @@ import {
 import { claimTaskNumber } from "./claim-task-numbers";
 import { nextTaskPosition } from "./next-task-position";
 import { mentionsDocument } from "../../task-document/find-links";
+import {
+  mayReference,
+  syncTaskDescriptionReferences,
+} from "../../reference/sync-references";
 import { syncTaskDescriptionLinks } from "../../task-document/sync-links";
 import { subscribeUsers } from "./task-subscribers";
 
@@ -414,6 +418,8 @@ async function duplicateTask({
           currentUserId || null,
           task.description,
         );
+      if (mayReference(task.description))
+        await syncTaskDescriptionReferences(tx, task.id, task.description);
 
       if (customFields.length > 0) {
         await tx

@@ -7,6 +7,7 @@ import {
   userTable,
 } from "../../database/schema";
 import { fingerprint } from "../fingerprint";
+import { syncDocumentReferences } from "../../reference/sync-references";
 import { syncDocumentTaskLinks } from "../../task-document/sync-links";
 import { assertNotSuperseded } from "./assert-not-superseded";
 import { getDocument } from "./get-document";
@@ -73,5 +74,6 @@ export async function restoreVersion(
   await recordVersion(id, userId, version, { fold: false });
   await proposeLineage(doc, prints, userId);
   await syncDocumentTaskLinks(db, doc, userId, version.content);
+  await syncDocumentReferences(db, doc.id, version.content);
   return getDocument(workspaceId, id, userId);
 }

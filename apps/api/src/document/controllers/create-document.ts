@@ -2,6 +2,7 @@ import type { z } from "zod";
 import db from "../../database";
 import { documentSubscriberTable, documentTable } from "../../database/schema";
 import { fingerprint } from "../fingerprint";
+import { syncDocumentReferences } from "../../reference/sync-references";
 import { syncDocumentTaskLinks } from "../../task-document/sync-links";
 import type { createDocumentBody } from "../schema";
 import { getDocument } from "./get-document";
@@ -47,6 +48,7 @@ export async function createDocument(
   if (content) {
     await proposeLineage(created, prints, userId);
     await syncDocumentTaskLinks(db, created, userId, content);
+    await syncDocumentReferences(db, created.id, content);
   }
   return getDocument(body.workspaceId, created.id, userId);
 }

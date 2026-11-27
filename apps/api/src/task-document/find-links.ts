@@ -8,6 +8,9 @@ const NUMBER = /^\d{1,9}$/;
 
 const DOCUMENT_ADDRESS =
   /\/workspace\/([^/\s"'<>()]+)\/document\/([a-z0-9]+)(?![\w-])/g;
+// A team's own pages. The address of a ticket names the ticket, not its team.
+const PROJECT_ADDRESS =
+  /\/workspace\/([^/\s"'<>()]+)\/project\/([a-z0-9]+)(?![\w-])(?!\/task\/)/g;
 const TASK_ADDRESS = /\/task\/([^/\s"'<>()?#]+)/g;
 // ponytail: a typed key is letters and digits only. A key with other
 // characters is linked through the address of its issue. A percent sign in
@@ -28,6 +31,15 @@ export const mentionsDocument = (text: string | null | undefined) =>
 export function findDocumentIds(text: string, workspaceId: string) {
   const ids = new Set<string>();
   for (const [, workspace, id] of text.matchAll(DOCUMENT_ADDRESS)) {
+    if (workspace === workspaceId && id && ids.size < LIMIT) ids.add(id);
+  }
+  return [...ids];
+}
+
+/** The teams of one workspace that a text links to by their address. */
+export function findProjectIds(text: string, workspaceId: string) {
+  const ids = new Set<string>();
+  for (const [, workspace, id] of text.matchAll(PROJECT_ADDRESS)) {
     if (workspace === workspaceId && id && ids.size < LIMIT) ids.add(id);
   }
   return [...ids];

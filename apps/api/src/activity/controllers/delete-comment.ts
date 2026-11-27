@@ -5,6 +5,10 @@ import { activityTable, taskTable } from "../../database/schema";
 import { publishEvent } from "../../events";
 import { deleteOrphanedAssets } from "../../storage/cleanup-assets";
 import { mentionsDocument } from "../../task-document/find-links";
+import {
+  mayReference,
+  syncTaskCommentReferences,
+} from "../../reference/sync-references";
 import { syncTaskCommentLinks } from "../../task-document/sync-links";
 
 async function deleteComment(userId: string, id: string) {
@@ -49,6 +53,8 @@ async function deleteComment(userId: string, id: string) {
 
   if (mentionsDocument(existing.content))
     await syncTaskCommentLinks(db, deletedComment.taskId, userId);
+  if (mayReference(existing.content))
+    await syncTaskCommentReferences(db, deletedComment.taskId);
 
   const [task] = await db
     .select({ projectId: taskTable.projectId })

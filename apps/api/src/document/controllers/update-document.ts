@@ -3,6 +3,7 @@ import type { z } from "zod";
 import db from "../../database";
 import { documentTable } from "../../database/schema";
 import { fingerprint } from "../fingerprint";
+import { syncDocumentReferences } from "../../reference/sync-references";
 import { syncDocumentTaskLinks } from "../../task-document/sync-links";
 import { carryStatements } from "../../topic/controllers/statements";
 import type { updateDocumentBody } from "../schema";
@@ -60,6 +61,7 @@ export async function writeDocument(
   if (prints) {
     await proposeLineage(doc, prints, userId);
     await syncDocumentTaskLinks(db, doc, userId, content);
+    await syncDocumentReferences(db, doc.id, content);
     await carryStatements(
       id,
       doc.contentHash,
