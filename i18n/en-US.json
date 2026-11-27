@@ -168,6 +168,9 @@
 				"apply": "Apply link",
 				"remove": "Remove link"
 			}
+		},
+		"mentionedIn": {
+			"title": "Mentioned in"
 		}
 	},
 	"auth": {
@@ -2969,6 +2972,32 @@
 			},
 			"save": "Save"
 		},
+		"aiUsage": {
+			"title": "AI usage",
+			"description": "Tokens the assistant and loops used in this workspace, and the budgets that stop them.",
+			"budgets": "Budgets",
+			"monthUsed": "Used this month: {{used}}.",
+			"userDaily": "Daily budget per person",
+			"userDailyHint": "Tokens each person may use per day. Resets at 00:00 UTC. Leave empty for no limit.",
+			"workspaceMonthly": "Monthly budget for the workspace",
+			"workspaceMonthlyHint": "Tokens everyone may use together per calendar month (UTC). 0 turns AI off. Leave empty for no limit.",
+			"noLimit": "No limit",
+			"invalid": "Enter a whole number of tokens, or leave the field empty.",
+			"save": "Save budgets",
+			"saved": "Budgets saved",
+			"byFeature": "By feature",
+			"byDay": "By day",
+			"period": "Last {{days}} days.",
+			"empty": "No AI use yet.",
+			"loadError": "AI usage could not be loaded.",
+			"tokens_one": "{{formatted}} token",
+			"tokens_other": "{{formatted}} tokens",
+			"features": {
+				"assistant": "Assistant",
+				"loop": "Loop runs",
+				"loopDraft": "Loop drafts"
+			}
+		},
 		"workspaceWebhooks": {
 			"title": "Webhooks",
 			"add": "Add webhook",
@@ -3073,7 +3102,14 @@
 			"modeDescription": "Notify everyone listed, or assign the issue to them in turn.",
 			"notify": "Notify",
 			"assign": "Auto-assign",
-			"saveFailed": "Could not save triage responsibility"
+			"saveFailed": "Could not save triage responsibility",
+			"itIntake": {
+				"title": "IT intake",
+				"description": "Add an IT request template with a required Category, turn SLAs on, and add a shared IT queue view of Triage.",
+				"action": "Set up IT intake",
+				"done": "IT intake is ready",
+				"failed": "Could not set up IT intake"
+			}
 		}
 	},
 	"navigation": {
@@ -4196,6 +4232,46 @@
 			"delete": "Delete draft",
 			"empty": "No drafts",
 			"emptyHint": "Close the new issue dialog and choose Save as draft to keep one here."
+		},
+		"chat": {
+			"channels": "Channels",
+			"browse": "Browse channels",
+			"directoryTitle": "Channels",
+			"newChannel": "New channel",
+			"createTitle": "Create channel",
+			"create": "Create channel",
+			"name": "Channel name",
+			"namePlaceholder": "e.g. design",
+			"topic": "Topic",
+			"topicPlaceholder": "What is this channel about?",
+			"private": "Private",
+			"privateHint": "Only people you add can find and read it.",
+			"empty": "No channels yet",
+			"emptyHint": "Create a channel to talk with your workspace.",
+			"join": "Join",
+			"joined": "Joined",
+			"joinToPost": "Join this channel to post.",
+			"archived": "Archived",
+			"archivedNotice": "This channel is archived. Its history stays readable.",
+			"archive": "Archive channel",
+			"unarchive": "Unarchive channel",
+			"leave": "Leave channel",
+			"actions": "Channel actions",
+			"setTopic": "Set topic",
+			"saveTopic": "Save topic",
+			"addMember": "Add people",
+			"addMemberTitle": "Add people to {{name}}",
+			"add": "Add",
+			"everyoneIsIn": "Everyone in this workspace is already here.",
+			"memberCount_one": "{{count}} member",
+			"memberCount_other": "{{count}} members",
+			"notFound": "Channel not found",
+			"messages": "Messages",
+			"noMessages": "No messages yet. Say hello.",
+			"deletedUser": "Deleted user",
+			"messageLabel": "Message",
+			"messagePlaceholder": "Message {{name}}",
+			"send": "Send"
 		}
 	},
 	"notifications": {
@@ -4246,6 +4322,10 @@
 			"document_current": {
 				"title": "{{topicName}} has a new current document",
 				"content": "{{documentTitle}}, approved by {{actorName}}"
+			},
+			"document_decision": {
+				"title": "{{actorName}} recorded a decision on {{topicName}}",
+				"content": "In {{documentTitle}}"
 			},
 			"document_replaced": {
 				"title_one": "A document linked in {{issueKey}} was replaced",
@@ -5341,7 +5421,9 @@
 			"achieved": "Achieved",
 			"failed": "Failed",
 			"title": "SLA {{status}} - due {{date}}",
-			"label": "SLA"
+			"label": "SLA",
+			"ageTitle": "Open for {{age}}",
+			"none": "No SLA"
 		}
 	},
 	"invitations": {
@@ -6169,6 +6251,7 @@
 			"ownerlessTitle": "Private documents with no author",
 			"ownerlessDescription": "The author left the workspace or deleted their account. Nobody can open these until an owner takes them over.",
 			"takeOver": "Take over",
+			"ownerlessInTrash": "In the trash",
 			"takeOverSuccess": "You are now the author of this document",
 			"takeOverError": "Could not take over the document",
 			"ownerlessFrom": "Left by {{name}}",

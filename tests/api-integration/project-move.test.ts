@@ -174,6 +174,51 @@ describe("API integration: moving a project between workspaces", () => {
     expect(unchanged.workspaceId).toBe(owner.workspace.id);
   });
 
+  it("refuses to move a team that holds documents, which would stay behind", async () => {
+    const owner = await createWorkspaceMember({ role: "owner" });
+    const target = await createTargetWorkspace();
+    await addMember(target.id, owner.user.id, "owner");
+    const { project } = await createProjectFixture({
+      workspaceId: owner.workspace.id,
+    });
+    const [document] = await db
+      .insert(schema.documentTable)
+      .values({
+        workspaceId: owner.workspace.id,
+        title: "Team notes",
+        scope: "team",
+        projectId: project.id,
+        creatorId: owner.user.id,
+        // In the trash, which a move would strand all the same.
+        deletedAt: new Date(),
+      })
+      .returning();
+
+    mockAuthenticatedSession(owner.user);
+    const { app } = createApp();
+    const move = () =>
+      app.request(`/api/project/${project.id}/move`, moveRequest(target.id));
+
+    const refused = await move();
+    expect(refused.status).toBe(409);
+    const [kept] = await db
+      .select()
+      .from(schema.projectTable)
+      .where(eq(schema.projectTable.id, project.id));
+    expect(kept.workspaceId).toBe(owner.workspace.id);
+    const [stayed] = await db
+      .select({ workspaceId: schema.documentTable.workspaceId })
+      .from(schema.documentTable)
+      .where(eq(schema.documentTable.id, document.id));
+    expect(stayed.workspaceId).toBe(owner.workspace.id);
+
+    // Without documents, the same team moves.
+    await db
+      .delete(schema.documentTable)
+      .where(eq(schema.documentTable.id, document.id));
+    expect((await move()).status).toBe(200);
+  });
+
   it("allows a move when only the source workspace uses that key", async () => {
     const owner = await createWorkspaceMember({ role: "owner" });
     const target = await createTargetWorkspace();

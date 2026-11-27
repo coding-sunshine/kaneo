@@ -159,11 +159,10 @@ function filterCondition(
       WHEN 'current' THEN ${documentTable.approvedAt}
       WHEN 'in_review' THEN ${documentTable.filedAt}
     END`;
-    // ponytail: nothing records who filed a proposal, so its author stands
-    // in. Add a filed_by column if people file each other's drafts often.
+    // A proposal filed before the filer was recorded has its author stand in.
     const by = sql`CASE ${documentTable.status}
       WHEN 'current' THEN ${documentTable.approvedBy}
-      ELSE ${documentTable.creatorId}
+      ELSE COALESCE(${documentTable.filedById}, ${documentTable.creatorId})
     END`;
     return sql`${by} IS DISTINCT FROM ${userId}
       AND EXISTS (

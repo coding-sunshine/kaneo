@@ -15,6 +15,7 @@ import { resolveParent } from "./resolve-parent";
 const OFF_TOPIC = {
   topicId: null,
   filedAt: null,
+  filedById: null,
   status: "draft",
   supersedesDocumentId: null,
 } as const;

@@ -1,9 +1,12 @@
-import { gte, sql } from "drizzle-orm";
+import { and, gte, isNull, sql } from "drizzle-orm";
 import db from "../database";
 import { aiUsageTable } from "../database/schema";
 
 type Usage = {
   purpose: string;
+  /** Set for calls made for a person; extraction jobs leave both unset. */
+  workspaceId?: string;
+  userId?: string;
   model: string;
   promptTokens: number;
   completionTokens: number;
@@ -19,7 +22,9 @@ export async function tokensUsedToday() {
       tokens: sql<number>`coalesce(sum(${aiUsageTable.promptTokens} + ${aiUsageTable.completionTokens}), 0)::int`,
     })
     .from(aiUsageTable)
-    .where(gte(aiUsageTable.createdAt, start));
+    .where(
+      and(isNull(aiUsageTable.workspaceId), gte(aiUsageTable.createdAt, start)),
+    );
   return row?.tokens ?? 0;
 }
 

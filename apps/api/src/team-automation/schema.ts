@@ -19,3 +19,12 @@ export const triageResponsibilitySchema = z
     userIds: z.array(z.string()),
   })
   .openapi("TriageResponsibility");
+
+export const itIntakeSchema = z
+  .object({
+    columnId: z.string().openapi({ description: "The Triage status." }),
+    fieldId: z.string().openapi({ description: "The Category custom field." }),
+    templateId: z.string().openapi({ description: "The IT request template." }),
+    viewId: z.string().openapi({ description: "The IT queue saved view." }),
+  })
+  .openapi("ItIntake");

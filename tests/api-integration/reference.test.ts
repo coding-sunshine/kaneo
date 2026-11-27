@@ -21,6 +21,7 @@ type Reference = {
   id: string;
   title: string;
   key: string | null;
+  projectId: string | null;
   places: string[];
 };
 
@@ -162,6 +163,7 @@ describe("API integration: references between tickets, documents and teams", () 
         id: a.id,
         title: "Alpha issue",
         key: "ALPHA-1",
+        projectId: alpha.id,
         places: ["comment", "description"],
       },
     ]);
@@ -207,6 +209,7 @@ describe("API integration: references between tickets, documents and teams", () 
         id: created.id,
         title: "Follow-up",
         key: "ALPHA-2",
+        projectId: alpha.id,
         places: ["description"],
       },
     ]);
@@ -254,6 +257,7 @@ describe("API integration: references between tickets, documents and teams", () 
         id: notes,
         title: "Notes",
         key: null,
+        projectId: null,
         places: ["document"],
       },
     ]);
@@ -360,6 +364,7 @@ describe("API integration: references between tickets, documents and teams", () 
         id: alphaTask.id,
         title: "Alpha issue",
         key: "ALPHA-1",
+        projectId: alphaTask.projectId,
         places: ["description"],
       },
     ]);

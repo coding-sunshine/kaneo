@@ -7,7 +7,7 @@ import {
   taskTable,
   workProjectTable,
 } from "../../database/schema";
-import { assertProjectAccess } from "../../project-access/assert-project-access";
+import { projectAccessCondition } from "../../project-access/project-access-condition";
 import { workProjectDocumentAccess } from "../visibility";
 
 type ParentInput = {
@@ -21,7 +21,9 @@ const parentNotFound = () =>
   new HTTPException(400, { message: "Document parent not found" });
 
 // Normalizes where a document lives and checks the parent is in the workspace
-// and visible to the user placing the document there.
+// and visible to the user placing the document there. A place the user cannot
+// enter answers like one that does not exist, by the same query, so a refusal
+// never confirms that a hidden team, project or issue is there.
 export async function resolveParent(
   workspaceId: string,
   userId: string,
@@ -47,10 +49,10 @@ export async function resolveParent(
         and(
           eq(projectTable.id, input.projectId),
           eq(projectTable.workspaceId, workspaceId),
+          projectAccessCondition(userId, projectTable.id),
         ),
       );
     if (!team) throw parentNotFound();
-    await assertProjectAccess(userId, team.id);
     return { ...none, projectId: team.id };
   }
 
@@ -68,30 +70,24 @@ export async function resolveParent(
           eq(workProjectTable.workspaceId, workspaceId),
         ),
       );
-    if (!project) throw parentNotFound();
-    // Every member can see the project, so this is a refusal, not a 404.
-    if (!project.open) {
-      throw new HTTPException(403, {
-        message: "You don't have access to this project",
-      });
-    }
+    if (!project?.open) throw parentNotFound();
     return { ...none, workProjectId: project.id };
   }
 
   if (scope === "issue") {
     if (!input.taskId) throw parentNotFound();
     const [task] = await db
-      .select({ id: taskTable.id, projectId: taskTable.projectId })
+      .select({ id: taskTable.id })
       .from(taskTable)
       .innerJoin(projectTable, eq(projectTable.id, taskTable.projectId))
       .where(
         and(
           eq(taskTable.id, input.taskId),
           eq(projectTable.workspaceId, workspaceId),
+          projectAccessCondition(userId, projectTable.id),
         ),
       );
     if (!task) throw parentNotFound();
-    await assertProjectAccess(userId, task.projectId);
     return { ...none, taskId: task.id };
   }
 

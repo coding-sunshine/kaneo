@@ -133,6 +133,9 @@ export function DocumentFacts({
                   conflict={conflict}
                   canDecide={decider}
                   deciderName={topic.deciderName}
+                  canConfirm={canConfirm}
+                  confirmPending={confirm.isPending}
+                  onConfirm={() => confirmFact(conflict.statementId)}
                 />
               ))}
             {group.key === "notChecked" &&

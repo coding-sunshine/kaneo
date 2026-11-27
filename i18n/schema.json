@@ -659,6 +659,16 @@
 						}
 					},
 					"required": ["link"]
+				},
+				"mentionedIn": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						}
+					},
+					"required": ["title"]
 				}
 			},
 			"required": [
@@ -673,7 +683,8 @@
 				"people",
 				"error",
 				"modals",
-				"editor"
+				"editor",
+				"mentionedIn"
 			]
 		},
 		"auth": {
@@ -12124,6 +12135,117 @@
 						"save"
 					]
 				},
+				"aiUsage": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"description": {
+							"type": "string"
+						},
+						"budgets": {
+							"type": "string"
+						},
+						"monthUsed": {
+							"type": "string"
+						},
+						"userDaily": {
+							"type": "string"
+						},
+						"userDailyHint": {
+							"type": "string"
+						},
+						"workspaceMonthly": {
+							"type": "string"
+						},
+						"workspaceMonthlyHint": {
+							"type": "string"
+						},
+						"noLimit": {
+							"type": "string"
+						},
+						"invalid": {
+							"type": "string"
+						},
+						"save": {
+							"type": "string"
+						},
+						"saved": {
+							"type": "string"
+						},
+						"byFeature": {
+							"type": "string"
+						},
+						"byDay": {
+							"type": "string"
+						},
+						"period": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "string"
+						},
+						"loadError": {
+							"type": "string"
+						},
+						"tokens_one": {
+							"type": "string"
+						},
+						"tokens_zero": {
+							"type": "string"
+						},
+						"tokens_two": {
+							"type": "string"
+						},
+						"tokens_few": {
+							"type": "string"
+						},
+						"tokens_many": {
+							"type": "string"
+						},
+						"tokens_other": {
+							"type": "string"
+						},
+						"features": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"assistant": {
+									"type": "string"
+								},
+								"loop": {
+									"type": "string"
+								},
+								"loopDraft": {
+									"type": "string"
+								}
+							},
+							"required": ["assistant", "loop", "loopDraft"]
+						}
+					},
+					"required": [
+						"title",
+						"description",
+						"budgets",
+						"monthUsed",
+						"userDaily",
+						"userDailyHint",
+						"workspaceMonthly",
+						"workspaceMonthlyHint",
+						"noLimit",
+						"invalid",
+						"save",
+						"saved",
+						"byFeature",
+						"byDay",
+						"period",
+						"empty",
+						"loadError",
+						"features"
+					]
+				},
 				"workspaceWebhooks": {
 					"type": "object",
 					"additionalProperties": false,
@@ -12561,6 +12683,28 @@
 						},
 						"saveFailed": {
 							"type": "string"
+						},
+						"itIntake": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"action": {
+									"type": "string"
+								},
+								"done": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "description", "action", "done", "failed"]
 						}
 					},
 					"required": [
@@ -12570,7 +12714,8 @@
 						"modeDescription",
 						"notify",
 						"assign",
-						"saveFailed"
+						"saveFailed",
+						"itIntake"
 					]
 				}
 			},
@@ -12634,6 +12779,7 @@
 				"adminRoles",
 				"adminSettings",
 				"adminWebhooks",
+				"aiUsage",
 				"workspaceWebhooks",
 				"projectCycles",
 				"issueTemplates",
@@ -17200,6 +17346,176 @@
 						}
 					},
 					"required": ["title", "untitled", "delete", "empty", "emptyHint"]
+				},
+				"chat": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"channels": {
+							"type": "string"
+						},
+						"browse": {
+							"type": "string"
+						},
+						"directoryTitle": {
+							"type": "string"
+						},
+						"newChannel": {
+							"type": "string"
+						},
+						"createTitle": {
+							"type": "string"
+						},
+						"create": {
+							"type": "string"
+						},
+						"name": {
+							"type": "string"
+						},
+						"namePlaceholder": {
+							"type": "string"
+						},
+						"topic": {
+							"type": "string"
+						},
+						"topicPlaceholder": {
+							"type": "string"
+						},
+						"private": {
+							"type": "string"
+						},
+						"privateHint": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "string"
+						},
+						"emptyHint": {
+							"type": "string"
+						},
+						"join": {
+							"type": "string"
+						},
+						"joined": {
+							"type": "string"
+						},
+						"joinToPost": {
+							"type": "string"
+						},
+						"archived": {
+							"type": "string"
+						},
+						"archivedNotice": {
+							"type": "string"
+						},
+						"archive": {
+							"type": "string"
+						},
+						"unarchive": {
+							"type": "string"
+						},
+						"leave": {
+							"type": "string"
+						},
+						"actions": {
+							"type": "string"
+						},
+						"setTopic": {
+							"type": "string"
+						},
+						"saveTopic": {
+							"type": "string"
+						},
+						"addMember": {
+							"type": "string"
+						},
+						"addMemberTitle": {
+							"type": "string"
+						},
+						"add": {
+							"type": "string"
+						},
+						"everyoneIsIn": {
+							"type": "string"
+						},
+						"memberCount_one": {
+							"type": "string"
+						},
+						"memberCount_zero": {
+							"type": "string"
+						},
+						"memberCount_two": {
+							"type": "string"
+						},
+						"memberCount_few": {
+							"type": "string"
+						},
+						"memberCount_many": {
+							"type": "string"
+						},
+						"memberCount_other": {
+							"type": "string"
+						},
+						"notFound": {
+							"type": "string"
+						},
+						"messages": {
+							"type": "string"
+						},
+						"noMessages": {
+							"type": "string"
+						},
+						"deletedUser": {
+							"type": "string"
+						},
+						"messageLabel": {
+							"type": "string"
+						},
+						"messagePlaceholder": {
+							"type": "string"
+						},
+						"send": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"channels",
+						"browse",
+						"directoryTitle",
+						"newChannel",
+						"createTitle",
+						"create",
+						"name",
+						"namePlaceholder",
+						"topic",
+						"topicPlaceholder",
+						"private",
+						"privateHint",
+						"empty",
+						"emptyHint",
+						"join",
+						"joined",
+						"joinToPost",
+						"archived",
+						"archivedNotice",
+						"archive",
+						"unarchive",
+						"leave",
+						"actions",
+						"setTopic",
+						"saveTopic",
+						"addMember",
+						"addMemberTitle",
+						"add",
+						"everyoneIsIn",
+						"notFound",
+						"messages",
+						"noMessages",
+						"deletedUser",
+						"messageLabel",
+						"messagePlaceholder",
+						"send"
+					]
 				}
 			},
 			"required": [
@@ -17220,7 +17536,8 @@
 				"agent",
 				"loops",
 				"customizeSidebar",
-				"drafts"
+				"drafts",
+				"chat"
 			]
 		},
 		"notifications": {
@@ -17429,6 +17746,19 @@
 							},
 							"required": ["title", "content"]
 						},
+						"document_decision": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"content": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "content"]
+						},
 						"document_replaced": {
 							"type": "object",
 							"additionalProperties": false,
@@ -17613,6 +17943,7 @@
 						"document_comment",
 						"document_proposed",
 						"document_current",
+						"document_decision",
 						"document_replaced",
 						"task_mention",
 						"task_comment",
@@ -22185,6 +22516,12 @@
 						},
 						"label": {
 							"type": "string"
+						},
+						"ageTitle": {
+							"type": "string"
+						},
+						"none": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -22195,7 +22532,9 @@
 						"achieved",
 						"failed",
 						"title",
-						"label"
+						"label",
+						"ageTitle",
+						"none"
 					]
 				}
 			},
@@ -25681,6 +26020,9 @@
 						"takeOver": {
 							"type": "string"
 						},
+						"ownerlessInTrash": {
+							"type": "string"
+						},
 						"takeOverSuccess": {
 							"type": "string"
 						},
@@ -25759,6 +26101,7 @@
 						"ownerlessTitle",
 						"ownerlessDescription",
 						"takeOver",
+						"ownerlessInTrash",
 						"takeOverSuccess",
 						"takeOverError",
 						"ownerlessFrom",

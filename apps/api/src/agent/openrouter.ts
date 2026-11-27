@@ -30,7 +30,19 @@ export function isAgentEnabled(): boolean {
   return Boolean(process.env.OPENROUTER_API_KEY);
 }
 
+export type CompletionUsage = {
+  model: string;
+  promptTokens: number;
+  completionTokens: number;
+  cost: number | null;
+};
+
 type StreamChunk = {
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    cost?: number | null;
+  };
   choices?: {
     delta?: {
       content?: string | null;
@@ -45,10 +57,12 @@ type StreamChunk = {
 
 // Streams the completion (SSE) and folds the deltas into one message. Text
 // deltas go to `onText` as they arrive; tool calls are only used once whole.
+// The tokens the provider reports in its last chunk go to `onUsage`.
 export async function createCompletion(
   messages: ChatMessage[],
   tools: unknown[],
   onText?: (delta: string) => void,
+  onUsage?: (usage: CompletionUsage) => void,
 ): Promise<ChatMessage> {
   const model = process.env.AGENT_MODEL || DEFAULT_AGENT_MODEL;
   const response = await fetch(
@@ -64,6 +78,7 @@ export async function createCompletion(
         messages,
         ...(tools.length ? { tools } : {}),
         stream: true,
+        usage: { include: true },
         provider: agentProvider(model),
       }),
       signal: AbortSignal.timeout(90_000),
@@ -74,6 +89,7 @@ export async function createCompletion(
   }
 
   let content = "";
+  let usage: StreamChunk["usage"];
   const calls: ToolCall[] = [];
   const decoder = new TextDecoder();
   let buffer = "";
@@ -87,6 +103,7 @@ export async function createCompletion(
     } catch {
       return;
     }
+    if (chunk.usage) usage = chunk.usage;
     const delta = chunk.choices?.[0]?.delta;
     if (delta?.content) {
       content += delta.content;
@@ -110,6 +127,12 @@ export async function createCompletion(
     for (const line of lines) handle(line);
   }
   handle(buffer);
+  onUsage?.({
+    model,
+    promptTokens: usage?.prompt_tokens ?? 0,
+    completionTokens: usage?.completion_tokens ?? 0,
+    cost: usage?.cost ?? null,
+  });
 
   const toolCalls = calls.filter(Boolean);
   if (!content && !toolCalls.length)

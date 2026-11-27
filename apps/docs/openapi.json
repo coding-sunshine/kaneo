@@ -2812,6 +2812,33 @@
           "progress"
         ]
       },
+      "ItIntake": {
+        "type": "object",
+        "properties": {
+          "columnId": {
+            "type": "string",
+            "description": "The Triage status."
+          },
+          "fieldId": {
+            "type": "string",
+            "description": "The Category custom field."
+          },
+          "templateId": {
+            "type": "string",
+            "description": "The IT request template."
+          },
+          "viewId": {
+            "type": "string",
+            "description": "The IT queue saved view."
+          }
+        },
+        "required": [
+          "columnId",
+          "fieldId",
+          "templateId",
+          "viewId"
+        ]
+      },
       "TriageResponsibility": {
         "type": "object",
         "properties": {
@@ -3260,6 +3287,120 @@
           "updatedAt"
         ]
       },
+      "ChatChannel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "topic": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "isMember": {
+            "type": "boolean",
+            "description": "True when the caller has joined the channel."
+          },
+          "archivedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "workspaceId",
+          "name",
+          "topic",
+          "isPrivate",
+          "isMember",
+          "archivedAt",
+          "createdAt"
+        ]
+      },
+      "ChatChannelDetail": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ChatChannel"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "memberIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "memberIds"
+            ]
+          }
+        ]
+      },
+      "ChatMessage": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "channelId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "authorName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "authorImage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "body": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "channelId",
+          "userId",
+          "authorName",
+          "authorImage",
+          "body",
+          "createdAt"
+        ]
+      },
       "AgentChatSummary": {
         "type": "object",
         "properties": {
@@ -3387,6 +3528,102 @@
           "chatId",
           "title",
           "messages"
+        ]
+      },
+      "AiUsage": {
+        "type": "object",
+        "properties": {
+          "budget": {
+            "$ref": "#/components/schemas/AiBudget"
+          },
+          "monthTokens": {
+            "type": "integer",
+            "description": "Tokens used this UTC month."
+          },
+          "days": {
+            "type": "integer",
+            "description": "How many days the lists below cover."
+          },
+          "byFeature": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "feature": {
+                  "type": "string",
+                  "description": "assistant, loop or loop-draft."
+                },
+                "tokens": {
+                  "type": "integer"
+                },
+                "cost": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "description": "US dollars the provider reported, when it did."
+                }
+              },
+              "required": [
+                "feature",
+                "tokens",
+                "cost"
+              ]
+            }
+          },
+          "byDay": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "day": {
+                  "type": "string",
+                  "description": "UTC date, YYYY-MM-DD."
+                },
+                "tokens": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "day",
+                "tokens"
+              ]
+            }
+          }
+        },
+        "required": [
+          "budget",
+          "monthTokens",
+          "days",
+          "byFeature",
+          "byDay"
+        ]
+      },
+      "AiBudget": {
+        "type": "object",
+        "properties": {
+          "userDailyTokens": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 1000000000,
+            "description": "Tokens one person may use in this workspace per UTC day. Null means no limit."
+          },
+          "workspaceMonthlyTokens": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 1000000000,
+            "description": "Tokens the whole workspace may use per UTC calendar month. Null means no limit."
+          }
+        },
+        "required": [
+          "userDailyTokens",
+          "workspaceMonthlyTokens"
         ]
       },
       "Loop": {
@@ -5111,6 +5348,14 @@
               "string",
               "null"
             ]
+          },
+          "deletedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the author put it in the trash. Null when they did not. A hand-over leaves it here; taking it over brings it out of the trash."
           }
         },
         "required": [
@@ -5118,7 +5363,8 @@
           "title",
           "updatedAt",
           "creatorId",
-          "creatorName"
+          "creatorName",
+          "deletedAt"
         ]
       },
       "IssueFile": {
@@ -8664,6 +8910,13 @@
             ],
             "description": "A task's key, such as ENG-12. Null for a document."
           },
+          "projectId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The team a task belongs to. Null for a document."
+          },
           "places": {
             "type": "array",
             "items": {
@@ -8682,6 +8935,7 @@
           "id",
           "title",
           "key",
+          "projectId",
           "places"
         ]
       },
@@ -15152,7 +15406,7 @@
             }
           },
           "409": {
-            "description": "Project key conflict or cross-project task relationships",
+            "description": "Project key conflict, cross-project task relationships, or documents and topics in the project",
             "content": {
               "application/json": {
                 "schema": {
@@ -24898,6 +25152,71 @@
         }
       }
     },
+    "/team-automation/it-intake/{projectId}": {
+      "post": {
+        "operationId": "setUpItIntake",
+        "tags": [
+          "Team automation"
+        ],
+        "summary": "Set up IT intake for a team",
+        "description": "Add a Triage status, a required Category dropdown, an \"IT request\" template that files high priority requests into Triage, turn SLAs on, and add a shared \"IT queue\" view of Triage. Running it again reuses what already exists.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "What the IT intake uses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItIntake"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/team-automation/triage/{projectId}": {
       "get": {
         "operationId": "getTriageResponsibility",
@@ -27221,6 +27540,781 @@
         }
       }
     },
+    "/chat/workspace/{workspaceId}/channels": {
+      "get": {
+        "operationId": "listChatChannels",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "List channels",
+        "description": "Every public channel in the workspace plus the private channels you belong to.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Channels",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatChannel"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createChatChannel",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Create channel",
+        "description": "Create a public or private channel. You join it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "topic": {
+                    "type": "string",
+                    "maxLength": 250
+                  },
+                  "isPrivate": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Private channels are hidden from workspace members who are not invited."
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Channel created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatChannel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}": {
+      "get": {
+        "operationId": "getChatChannel",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Get channel",
+        "description": "Get a channel and its member ids.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Channel",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatChannelDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateChatChannel",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Update channel",
+        "description": "Rename, set the topic, or archive and unarchive. Members only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "topic": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 250
+                  },
+                  "archived": {
+                    "type": "boolean",
+                    "description": "Archive or unarchive. Archived channels stay readable."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Channel updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatChannelDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/join": {
+      "post": {
+        "operationId": "joinChatChannel",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Join channel",
+        "description": "Join a public channel.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Joined",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatChannelDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/leave": {
+      "post": {
+        "operationId": "leaveChatChannel",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Leave channel",
+        "description": "Leave a channel. A private channel then disappears for you; its last member cannot leave.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Left",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "channelId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "channelId"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The last member cannot leave a private channel",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/members": {
+      "post": {
+        "operationId": "inviteChatChannelMember",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Add member",
+        "description": "Add a workspace member to a channel you belong to.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "userId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Member added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatChannelDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or member not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/messages": {
+      "get": {
+        "operationId": "listChatMessages",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "List messages",
+        "description": "The newest 50 messages, oldest first.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Return messages posted before this time."
+            },
+            "required": false,
+            "description": "Return messages posted before this time.",
+            "name": "before",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatMessage"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "post": {
+        "operationId": "postChatMessage",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Post message",
+        "description": "Post to a channel you belong to.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "body": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  }
+                },
+                "required": [
+                  "body"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Message posted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/task-draft/workspace/{workspaceId}": {
       "get": {
         "operationId": "listTaskDrafts",
@@ -27905,7 +28999,7 @@
           "Agent"
         ],
         "summary": "Send a message to the agent",
-        "description": "Send a message and wait for the agent to finish. The agent calls Organyz Work tools with your own permissions and returns the full transcript of this turn.",
+        "description": "Send a message and wait for the agent to finish. The agent calls Organyz Work tools with your own permissions and returns the full transcript of this turn. Answers 429 when the person's daily or the workspace's monthly AI budget is used up.",
         "parameters": [
           {
             "schema": {
@@ -28004,7 +29098,7 @@
           "Agent"
         ],
         "summary": "Send a message and stream the reply",
-        "description": "Same as sending a message, but answers as server-sent events: `chat` (chat id and title), `delta` (reply text as it is written), `message` (each finished message, tool calls and results included), then `done`, or `error`.",
+        "description": "Same as sending a message, but answers as server-sent events: `chat` (chat id and title), `delta` (reply text as it is written), `message` (each finished message, tool calls and results included), then `done`, or `error`. A used-up AI budget ends in an `error` event.",
         "parameters": [
           {
             "schema": {
@@ -28072,6 +29166,146 @@
           },
           "404": {
             "description": "Agent is disabled or chat not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/usage": {
+      "get": {
+        "operationId": "getAiUsage",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Get AI usage",
+        "description": "Tokens the assistant and loops used in this workspace over the last 30 UTC days, by feature and by day, with the workspace's budgets. Admins and owners only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AI usage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiUsage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/budget": {
+      "put": {
+        "operationId": "setAiBudget",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Set AI budgets",
+        "description": "Set the per-person daily and the workspace monthly token budgets. A call is refused, before the model is asked, once either is used up. Admins and owners only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiBudget"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Budgets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiBudget"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or workspace not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -28595,7 +29829,7 @@
           "Loops"
         ],
         "summary": "Draft a loop from a description",
-        "description": "One model call turns a plain-language description into a loop draft (name, instructions, trigger or schedule). Nothing is saved.",
+        "description": "One model call turns a plain-language description into a loop draft (name, instructions, trigger or schedule). Nothing is saved. Answers 429 when the person's daily or the workspace's monthly AI budget is used up.",
         "requestBody": {
           "required": true,
           "content": {
@@ -28684,7 +29918,7 @@
           "Loops"
         ],
         "summary": "Run loop now",
-        "description": "Run the loop immediately and wait for it to finish. Only the creator can.",
+        "description": "Run the loop immediately and wait for it to finish. Only the creator can. Answers 429 when the person's daily or the workspace's monthly AI budget is used up.",
         "parameters": [
           {
             "schema": {
@@ -31471,6 +32705,97 @@
           },
           "404": {
             "description": "Document not found, or it has no link to decide",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/permanent": {
+      "delete": {
+        "operationId": "purgeDocument",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Delete document permanently",
+        "description": "Permanently delete a document in the trash. Its uploaded files that another document in the workspace still links move to the oldest such document; the rest are queued for storage cleanup.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document permanently deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The document is current on its topic, or one of its files is still linked from an issue or another workspace",
             "content": {
               "application/json": {
                 "schema": {

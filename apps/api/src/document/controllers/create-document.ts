@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import type { z } from "zod";
 import db from "../../database";
 import { documentSubscriberTable, documentTable } from "../../database/schema";
@@ -5,6 +6,7 @@ import { fingerprint } from "../fingerprint";
 import { syncDocumentReferences } from "../../reference/sync-references";
 import { syncDocumentTaskLinks } from "../../task-document/sync-links";
 import type { createDocumentBody } from "../schema";
+import { copyLinkedFiles } from "./copy-linked-files";
 import { getDocument } from "./get-document";
 import { proposeLineage } from "./lineage";
 import { recordVersion } from "./record-version";
@@ -16,14 +18,14 @@ export async function createDocument(
 ) {
   const parent = await resolveParent(body.workspaceId, userId, body);
   const title = body.title ?? "";
-  const content = body.content ?? "";
-  const prints = fingerprint(content);
+  const written = body.content ?? "";
+  let prints = fingerprint(written);
   const [created] = await db
     .insert(documentTable)
     .values({
       workspaceId: body.workspaceId,
       title,
-      content,
+      content: written,
       fingerprint: prints,
       icon: body.icon ?? null,
       color: body.color ?? null,
@@ -37,6 +39,15 @@ export async function createDocument(
       createdAt: documentTable.createdAt,
     });
   if (!created) throw new Error("Document insert returned no row");
+  // The copies need the document's row, so the text is written twice.
+  const content = await copyLinkedFiles(db, created, userId, written);
+  if (content !== written) {
+    prints = fingerprint(content);
+    await db
+      .update(documentTable)
+      .set({ content, fingerprint: prints })
+      .where(eq(documentTable.id, created.id));
+  }
 
   // Linear subscribes the creator automatically.
   await db

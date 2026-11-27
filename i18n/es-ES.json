@@ -168,6 +168,9 @@
 				"apply": "Aplicar enlace",
 				"remove": "Quitar enlace"
 			}
+		},
+		"mentionedIn": {
+			"title": "Mentioned in"
 		}
 	},
 	"auth": {
@@ -3072,7 +3075,14 @@
 			"notify": "Notify",
 			"saveFailed": "Could not save triage responsibility",
 			"subtitle": "Who handles issues that arrive in this team's triage.",
-			"title": "Triage"
+			"title": "Triage",
+			"itIntake": {
+				"action": "Set up IT intake",
+				"description": "Add an IT request template with a required Category, turn SLAs on, and add a shared IT queue view of Triage.",
+				"done": "IT intake is ready",
+				"failed": "Could not set up IT intake",
+				"title": "IT intake"
+			}
 		},
 		"teams": {
 			"columns": {
@@ -3126,6 +3136,33 @@
 				"task": "Issues"
 			},
 			"url": "URL"
+		},
+		"aiUsage": {
+			"budgets": "Budgets",
+			"byDay": "By day",
+			"byFeature": "By feature",
+			"description": "Tokens the assistant and loops used in this workspace, and the budgets that stop them.",
+			"empty": "No AI use yet.",
+			"features": {
+				"assistant": "Assistant",
+				"loop": "Loop runs",
+				"loopDraft": "Loop drafts"
+			},
+			"invalid": "Enter a whole number of tokens, or leave the field empty.",
+			"loadError": "AI usage could not be loaded.",
+			"monthUsed": "Used this month: {{used}}.",
+			"noLimit": "No limit",
+			"period": "Last {{days}} days.",
+			"save": "Save budgets",
+			"saved": "Budgets saved",
+			"title": "AI usage",
+			"tokens_many": "{{formatted}} tokens",
+			"tokens_one": "{{formatted}} token",
+			"tokens_other": "{{formatted}} tokens",
+			"userDaily": "Daily budget per person",
+			"userDailyHint": "Tokens each person may use per day. Resets at 00:00 UTC. Leave empty for no limit.",
+			"workspaceMonthly": "Monthly budget for the workspace",
+			"workspaceMonthlyHint": "Tokens everyone may use together per calendar month (UTC). 0 turns AI off. Leave empty for no limit."
 		}
 	},
 	"navigation": {
@@ -4265,6 +4302,47 @@
 			"title": "Views",
 			"toggleDetails": "Toggle details panel",
 			"visibility": "Visibility"
+		},
+		"chat": {
+			"actions": "Channel actions",
+			"add": "Add",
+			"addMember": "Add people",
+			"addMemberTitle": "Add people to {{name}}",
+			"archive": "Archive channel",
+			"archived": "Archived",
+			"archivedNotice": "This channel is archived. Its history stays readable.",
+			"browse": "Browse channels",
+			"channels": "Channels",
+			"create": "Create channel",
+			"createTitle": "Create channel",
+			"deletedUser": "Deleted user",
+			"directoryTitle": "Channels",
+			"empty": "No channels yet",
+			"emptyHint": "Create a channel to talk with your workspace.",
+			"everyoneIsIn": "Everyone in this workspace is already here.",
+			"join": "Join",
+			"joined": "Joined",
+			"joinToPost": "Join this channel to post.",
+			"leave": "Leave channel",
+			"memberCount_many": "{{count}} members",
+			"memberCount_one": "{{count}} member",
+			"memberCount_other": "{{count}} members",
+			"messageLabel": "Message",
+			"messagePlaceholder": "Message {{name}}",
+			"messages": "Messages",
+			"name": "Channel name",
+			"namePlaceholder": "e.g. design",
+			"newChannel": "New channel",
+			"noMessages": "No messages yet. Say hello.",
+			"notFound": "Channel not found",
+			"private": "Private",
+			"privateHint": "Only people you add can find and read it.",
+			"saveTopic": "Save topic",
+			"send": "Send",
+			"setTopic": "Set topic",
+			"topic": "Topic",
+			"topicPlaceholder": "What is this channel about?",
+			"unarchive": "Unarchive channel"
 		}
 	},
 	"notifications": {
@@ -4358,6 +4436,10 @@
 			"document_question": {
 				"content": "{{documentTitle}}",
 				"title": "Which holds for {{slotName}} in {{topicName}}?"
+			},
+			"document_decision": {
+				"content": "In {{documentTitle}}",
+				"title": "{{actorName}} recorded a decision on {{topicName}}"
 			}
 		},
 		"reminderLeadTime": {
@@ -5413,7 +5495,9 @@
 			"label": "SLA",
 			"low": "Low risk",
 			"medium": "Medium risk",
-			"title": "SLA {{status}} - due {{date}}"
+			"title": "SLA {{status}} - due {{date}}",
+			"ageTitle": "Open for {{age}}",
+			"none": "No SLA"
 		},
 		"subscription": {
 			"subscribe": "Subscribe",
@@ -6301,7 +6385,8 @@
 			"handOverDone_one": "{{count}} document is now {{name}}'s",
 			"handOverDone_other": "{{count}} documents are now {{name}}'s",
 			"handOverGive": "Give their documents",
-			"ownerlessFrom": "Left by {{name}}"
+			"ownerlessFrom": "Left by {{name}}",
+			"ownerlessInTrash": "In the trash"
 		},
 		"projectAccess": {
 			"allProjects": "All projects",

@@ -2745,6 +2745,11 @@ export const documentTable = pgTable(
       onUpdate: "cascade",
     }),
     filedAt: timestamp("filed_at", { mode: "date" }),
+    // Who filed it on the topic, who need not be its author. Null on a
+    // document filed before this was recorded: its author stands in. No
+    // foreign key: an existing table gets none. A filer whose account is
+    // gone keeps their id here, which still reads as somebody else.
+    filedById: text("filed_by_id"),
     // Set aside in the Inbox until this time. One date for everybody who sees
     // the item: one person triages the Inbox.
     inboxSnoozedUntil: timestamp("inbox_snoozed_until", { mode: "date" }),
@@ -3203,6 +3208,89 @@ export const agentMessageTable = pgTable(
   (table) => [index("agent_message_chat_idx").on(table.chatId)],
 );
 
+// Team chat. A public channel is open to every workspace member; a private
+// one only to its members. Archiving keeps the history readable.
+export const chatChannelTable = pgTable(
+  "chat_channel",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    topic: text("topic"),
+    isPrivate: boolean("is_private").default(false).notNull(),
+    createdBy: text("created_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    archivedAt: timestamp("archived_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [index("chat_channel_workspace_idx").on(table.workspaceId)],
+);
+
+export const chatChannelMemberTable = pgTable(
+  "chat_channel_member",
+  {
+    channelId: text("channel_id")
+      .notNull()
+      .references(() => chatChannelTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    joinedAt: timestamp("joined_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.channelId, table.userId] }),
+    index("chat_channel_member_user_idx").on(table.userId),
+  ],
+);
+
+export const chatMessageTable = pgTable(
+  "chat_message",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    channelId: text("channel_id")
+      .notNull()
+      .references(() => chatChannelTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("chat_message_channel_created_idx").on(
+      table.channelId,
+      table.createdAt,
+    ),
+  ],
+);
+
 // A loop runs its instructions as the agent on a schedule, with the creator's
 // permissions at run time. Disabled loops keep their `nextRunAt` but never run.
 export const loopTable = pgTable(
@@ -3287,8 +3375,9 @@ export const loopRunTable = pgTable(
   (table) => [index("loop_run_loop_idx").on(table.loopId, table.startedAt)],
 );
 
-// One row for each model call a job made to read documents. The daily cap of
-// extraction is the sum of a day's rows.
+// One row for each model call. Calls for a person (assistant, loops) name the
+// workspace and person and count against that workspace's budgets; jobs that
+// read documents name neither and count against the instance extraction caps.
 export const aiUsageTable = pgTable(
   "ai_usage",
   {
@@ -3297,6 +3386,10 @@ export const aiUsageTable = pgTable(
       .primaryKey(),
     purpose: text("purpose").notNull(),
     model: text("model").notNull(),
+    // Plain columns, no foreign keys: ai_usage already holds rows on live
+    // installs, so its upgrade only adds nullable columns and an index.
+    workspaceId: text("workspace_id"),
+    userId: text("user_id"),
     promptTokens: integer("prompt_tokens").notNull(),
     completionTokens: integer("completion_tokens").notNull(),
     cost: doublePrecision("cost"),
@@ -3304,8 +3397,29 @@ export const aiUsageTable = pgTable(
       .default(utcNow)
       .notNull(),
   },
-  (table) => [index("ai_usage_created_at_idx").on(table.createdAt)],
+  (table) => [
+    index("ai_usage_created_at_idx").on(table.createdAt),
+    index("ai_usage_workspace_created_at_idx").on(
+      table.workspaceId,
+      table.createdAt,
+    ),
+  ],
 );
+
+// A workspace's AI token budgets. Null means no limit; 0 stops every call.
+export const aiBudgetTable = pgTable("ai_budget", {
+  workspaceId: text("workspace_id")
+    .primaryKey()
+    .references(() => workspaceTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  userDailyTokens: integer("user_daily_tokens"),
+  workspaceMonthlyTokens: integer("workspace_monthly_tokens"),
+  updatedAt: timestamp("updated_at", { mode: "date" })
+    .default(utcNow)
+    .notNull(),
+});
 
 export const SLOT_TYPES = [
   "date",

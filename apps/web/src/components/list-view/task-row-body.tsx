@@ -1,3 +1,4 @@
+import { useContext } from "react";
 import { useTranslation } from "react-i18next";
 import TaskStatusPopover from "@/components/task/task-status-popover";
 import { CardFieldList } from "@/components/custom-fields/card-field-list";
@@ -10,11 +11,13 @@ import { CycleChip } from "@/components/cycle/cycle-chip";
 import { WorkProjectChip } from "@/components/work-project/work-project-chip";
 import { ChecklistChip } from "@/components/task-chips/checklist-chip";
 import { EstimateChip } from "@/components/task-chips/estimate-chip";
+import { SlaAgeChip } from "@/components/task-chips/sla-age-chip";
 import { SlaChip } from "@/components/task-chips/sla-chip";
 import { DueDateChip } from "@/components/task-chips/due-date-chip";
 import { LabelChips } from "@/components/task-chips/label-chips";
 import { stopCardEvents } from "@/components/task-chips/stop-card-events";
 import { SubtasksChip } from "@/components/task-chips/subtasks-chip";
+import { SlaQueueContext } from "@/components/views/sla-queue-context";
 import { cn } from "@/lib/cn";
 import { getPriorityLabel } from "@/lib/i18n/domain";
 import { formatDateShort } from "@/lib/format";
@@ -50,6 +53,7 @@ export function TaskRowBody({
   showPullRequests = true,
 }: TaskRowBodyProps) {
   const { t } = useTranslation();
+  const slaQueue = useContext(SlaQueueContext);
   const {
     showAssignees,
     showPriority,
@@ -143,7 +147,7 @@ export function TaskRowBody({
         )}
       </div>
 
-      <SlaChip task={task} />
+      {slaQueue ? <SlaAgeChip task={task} /> : <SlaChip task={task} />}
 
       {showDueDates && (
         <div className="flex w-24 shrink-0 justify-end">

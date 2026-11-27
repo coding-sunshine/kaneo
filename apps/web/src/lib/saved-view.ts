@@ -9,8 +9,15 @@ export type SavedViewInput = {
   display: Record<string, unknown>;
 };
 
-/** Layout and grouping a view restores; filters live in `filters`. */
-export type ViewDisplay = { layout?: "board" | "list"; groupBy?: string };
+/**
+ * Layout and grouping a view restores; filters live in `filters`. The
+ * "it-queue" preset shows each request's age and SLA state.
+ */
+export type ViewDisplay = {
+  layout?: "board" | "list";
+  groupBy?: string;
+  preset?: "it-queue";
+};
 
 export const boardFiltersKey = (projectId: string) =>
   `kaneo:board-filters:${projectId}`;

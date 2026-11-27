@@ -132,7 +132,8 @@ describe("API integration: project documents follow the project's teams", () => 
 
     expect((await create(limited, workProject.id)).status).toBe(200);
     expect((await create(limited, alphaProject.id)).status).toBe(200);
-    expect((await create(limited, betaProject.id)).status).toBe(403);
+    // A project they cannot enter answers like one that does not exist.
+    expect((await create(limited, betaProject.id)).status).toBe(400);
     expect((await create(open, betaProject.id)).status).toBe(200);
     expect((await create(limited, "no-such-project")).status).toBe(400);
 
@@ -147,7 +148,7 @@ describe("API integration: project documents follow the project's teams", () => 
         `/document/workspace/${world.ws}/${draft.id}/location`,
         json("PUT", { scope: "project", workProjectId }),
       );
-    expect((await move(betaProject.id)).status).toBe(403);
+    expect((await move(betaProject.id)).status).toBe(400);
     const [unmoved] = await db
       .select({
         scope: schema.documentTable.scope,

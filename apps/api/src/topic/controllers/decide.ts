@@ -1,7 +1,7 @@
 import { and, eq, isNull, ne } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
-import { documentTable } from "../../database/schema";
+import { documentTable, documentVersionTable } from "../../database/schema";
 import { getDocument } from "../../document/controllers/get-document";
 import { loadDocument } from "../../document/controllers/load-document";
 import {
@@ -9,6 +9,7 @@ import {
   notifyTopicFollowers,
 } from "../../document/controllers/notify";
 import { recordVersion } from "../../document/controllers/record-version";
+import { decisionLines } from "../decision-line";
 import { changingTopic } from "./flag-dependents";
 import { getTopic } from "./get-topic";
 import { receiptOf } from "./receipt";
@@ -52,7 +53,7 @@ export async function makeCurrent(
   seenHash?: string,
 ) {
   await loadForDecision(workspaceId, id, documentId, userId);
-  const proposal = await changingTopic(id, async (tx) => {
+  const approval = await changingTopic(id, async (tx) => {
     // The hash and the kept text come from one locked row, so an edit that
     // lands meanwhile cannot make them disagree.
     const [doc] = await tx
@@ -61,6 +62,7 @@ export async function makeCurrent(
         content: documentTable.content,
         contentHash: documentTable.contentHash,
         status: documentTable.status,
+        approvedVersionId: documentTable.approvedVersionId,
       })
       .from(documentTable)
       .where(
@@ -110,6 +112,13 @@ export async function makeCurrent(
         ),
       )
       .returning({ id: documentTable.id });
+    // The text approved before, to tell which decisions are new.
+    const [approvedBefore] = doc.approvedVersionId
+      ? await tx
+          .select({ content: documentVersionTable.content })
+          .from(documentVersionTable)
+          .where(eq(documentVersionTable.id, doc.approvedVersionId))
+      : [];
     // Its own history entry, which no later edit folds into.
     const approvedVersionId = await recordVersion(
       documentId,
@@ -131,20 +140,29 @@ export async function makeCurrent(
         supersedesDocumentId: replaced?.id ?? null,
       })
       .where(eq(documentTable.id, documentId));
-    return doc.status === "in_review"
-      ? { title: doc.title, replacedId: replaced?.id }
-      : undefined;
+    const decided = new Set(decisionLines(approvedBefore?.content ?? ""));
+    return {
+      title: doc.title,
+      proposed: doc.status === "in_review",
+      replacedId: replaced?.id,
+      newDecision:
+        approvedBefore !== undefined &&
+        decisionLines(doc.content).some((line) => !decided.has(line)),
+    };
   });
+  const made = { id: documentId, workspaceId, title: approval.title };
   // The topic has a new current document. Approving the same one again
   // after an edit is not that.
-  if (proposal) {
-    const made = { id: documentId, workspaceId, title: proposal.title };
+  if (approval.proposed) {
     // Open work that links to the replaced document. Its assignee is told
     // that, and not a second time as a follower of the topic.
-    const told = proposal.replacedId
-      ? await notifyReplacedDocument(made, proposal.replacedId, id, userId)
+    const told = approval.replacedId
+      ? await notifyReplacedDocument(made, approval.replacedId, id, userId)
       : [];
     await notifyTopicFollowers(made, id, userId, "document_current", told);
+  } else if (approval.newDecision) {
+    // A decision added to the current document counts once it is approved.
+    await notifyTopicFollowers(made, id, userId, "document_decision");
   }
   return getDocument(workspaceId, documentId, userId);
 }

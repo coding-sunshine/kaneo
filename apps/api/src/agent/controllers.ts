@@ -2,6 +2,7 @@ import { and, asc, desc, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../database";
 import { agentChatTable, agentMessageTable } from "../database/schema";
+import { assertWithinBudget } from "./budget";
 import { type ChatMessage } from "./openrouter";
 import { type AgentEvent, runAgent } from "./run-agent";
 import { createSelfClient, forwardedAuthHeaders } from "./self-client";
@@ -85,6 +86,8 @@ export async function sendMessage(
     event: AgentEvent | { type: "chat"; chatId: string; title: string },
   ) => void,
 ) {
+  // A spent budget refuses the question before a chat or message is saved.
+  await assertWithinBudget(workspaceId, userId);
   const chat = body.chatId
     ? await getOwnChat(userId, workspaceId, body.chatId)
     : (
@@ -112,8 +115,10 @@ export async function sendMessage(
       createSelfClient(forwardedAuthHeaders(requestHeaders)),
       workspaceId,
       onEvent,
+      { meter: { userId, purpose: "assistant" } },
     );
   } catch (error) {
+    if (error instanceof HTTPException) throw error;
     throw new HTTPException(502, {
       message: error instanceof Error ? error.message : "The agent failed",
     });

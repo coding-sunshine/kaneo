@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { addDecisionLine } from "./decision-line";
+import { addDecisionLine, decisionLines } from "./decision-line";
 
 const LINE = "- 2026-03-03: We launch in March.";
 
@@ -25,5 +25,16 @@ describe("addDecisionLine", () => {
     expect(addDecisionLine("Draft.\n\n# decisions\n\n", LINE)).toBe(
       `Draft.\n\n# decisions\n\n${LINE}`,
     );
+  });
+});
+
+describe("decisionLines", () => {
+  it("reads the list under the heading and stops at the next one", () => {
+    const text = `# Plan\n\n## Decisions\n\n${LINE}\n- 2026-01-05: Older.\n\n## Notes\n\n- Not a decision.`;
+    expect(decisionLines(text)).toEqual([LINE, "- 2026-01-05: Older."]);
+  });
+
+  it("finds none in a document without the heading", () => {
+    expect(decisionLines("# Plan\n\n- An item.")).toEqual([]);
   });
 });

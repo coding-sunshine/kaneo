@@ -79,7 +79,7 @@ describe("factGroups", () => {
 
 describe("waitingCount", () => {
   it("counts the unconfirmed facts the panel offers to confirm", () => {
-    // Not a conflict, open or decided: its card offers a decision, no confirm.
-    expect(waitingCount(full)).toBe(3);
+    // Open conflicts wait for a decision; decided unconfirmed ones can be confirmed.
+    expect(waitingCount(full)).toBe(4);
   });
 });

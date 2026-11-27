@@ -1,6 +1,7 @@
 import { brand } from "@kaneo/brand";
 import type { ToolClient } from "@kaneo/mcp/tools";
-import { type ChatMessage, createCompletion } from "./openrouter";
+import { type Meter, meteredCompletion } from "./metered-completion";
+import type { ChatMessage } from "./openrouter";
 import { buildAgentTools } from "./tools";
 
 export const MAX_AGENT_STEPS = 8;
@@ -10,6 +11,8 @@ export type AgentEvent =
   | { type: "message"; message: ChatMessage };
 
 export type AgentOptions = {
+  /** Whose budget each model call counts against, and under which feature. */
+  meter: Pick<Meter, "userId" | "purpose">;
   /** Write tools on offer; default is every agent write tool. */
   writes?: readonly string[];
   /** Background run: nobody is watching, so the prompt says what is data. */
@@ -37,8 +40,8 @@ export async function runAgent(
   history: ChatMessage[],
   client: ToolClient,
   workspaceId: string,
-  onEvent?: (event: AgentEvent) => void,
-  options: AgentOptions = {},
+  onEvent: ((event: AgentEvent) => void) | undefined,
+  options: AgentOptions,
 ): Promise<ChatMessage[]> {
   const tools = buildAgentTools(client, options.writes);
   const added: ChatMessage[] = [];
@@ -52,7 +55,8 @@ export async function runAgent(
   ];
 
   for (let step = 0; step < MAX_AGENT_STEPS; step++) {
-    const reply = await createCompletion(
+    const reply = await meteredCompletion(
+      { ...options.meter, workspaceId },
       conversation(),
       tools.definitions,
       (text) => onEvent?.({ type: "delta", text }),
