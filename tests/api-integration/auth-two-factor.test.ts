@@ -110,10 +110,14 @@ async function enableTwoFactor(jar: CookieJar) {
     password: PASSWORD,
   });
   expect(enable.status, await enable.clone().text()).toBe(200);
-  const { totpURI, backupCodes } = (await enable.json()) as {
+  const body = (await enable.json()) as {
+    method?: string;
     totpURI: string;
     backupCodes: string[];
   };
+  // The web setup flow reads the URI only from a TOTP enrollment.
+  expect(body.method).toBe("totp");
+  const { totpURI, backupCodes } = body;
   const verify = await authCall("/two-factor/verify-totp", jar, {
     code: totpCode(totpURI),
   });
