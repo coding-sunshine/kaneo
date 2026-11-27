@@ -102,6 +102,7 @@ const base: DocumentDetail = {
   revisionOf: null,
   citedBy: [],
   sharedTasks: [],
+  hiddenSharedTaskCount: 0,
   shares: [],
   subscriberIds: [],
 };

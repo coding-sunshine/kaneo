@@ -743,8 +743,8 @@ describe("API integration: issue files in documents", () => {
 
       expect(read.status).toBe(200);
       expect(served.status).toBe(200);
-      // The asset route's own answer for an issue's file in a closed team.
-      expect(original.status).toBe(403);
+      // The asset route answers an issue's file in a closed team like an unknown one.
+      expect(original.status).toBe(404);
       expect(m.getPrivateObject).not.toHaveBeenCalled();
     });
 

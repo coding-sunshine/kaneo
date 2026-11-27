@@ -33,6 +33,10 @@ export const updateProjectBody = z.object({
     description:
       "Make the team private or open it again. Leave it out to keep the team as it is. Changing it needs member:update, and a private team can't be shared publicly.",
   }),
+  confirmPrivate: z.boolean().optional().openapi({
+    description:
+      "Send true with isPrivate: true when making the team private unassigns issues of people who lose it or deletes its calendar links. Opening the team again does not restore either. Without it such a change is refused with 409 and nothing changes.",
+  }),
   includeSubtasks: z.boolean().optional(),
   autoArchiveMonths: z.number().int().min(0).max(120).optional(),
   estimateType: z.enum(ESTIMATE_TYPES).optional().openapi({

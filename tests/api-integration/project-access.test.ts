@@ -30,29 +30,29 @@ describe("project access enforcement", () => {
     mockAuthenticatedSession(ctx.restricted);
     const request = projectAccessApi();
 
-    const hidden = [
-      `/project/${ctx.beta.id}`,
-      `/task/tasks/${ctx.beta.id}`,
-      `/task/${ctx.betaTask.id}`,
-      `/task/${ctx.betaTask.id}/description`,
-      `/task/export/${ctx.beta.id}`,
-      `/column/${ctx.beta.id}`,
-      `/comment/${ctx.betaTask.id}`,
-      `/activity/${ctx.betaTask.id}`,
-      `/label/task/${ctx.betaTask.id}`,
-      `/time-entry/task/${ctx.betaTask.id}`,
-      `/task-relation/${ctx.betaTask.id}`,
-      `/task-relation/project/${ctx.beta.id}`,
-      `/custom-field/project/${ctx.beta.id}`,
-      `/external-link/task/${ctx.betaTask.id}`,
-      `/workflow-rule/${ctx.beta.id}`,
+    // A route addressed by the team answers like an unknown team.
+    const hidden: [string, number][] = [
+      [`/project/${ctx.beta.id}`, 404],
+      [`/task/tasks/${ctx.beta.id}`, 404],
+      [`/task/${ctx.betaTask.id}`, 403],
+      [`/task/${ctx.betaTask.id}/description`, 403],
+      [`/task/export/${ctx.beta.id}`, 404],
+      [`/column/${ctx.beta.id}`, 404],
+      [`/comment/${ctx.betaTask.id}`, 403],
+      [`/activity/${ctx.betaTask.id}`, 403],
+      [`/label/task/${ctx.betaTask.id}`, 403],
+      [`/time-entry/task/${ctx.betaTask.id}`, 403],
+      [`/task-relation/${ctx.betaTask.id}`, 403],
+      [`/task-relation/project/${ctx.beta.id}`, 404],
+      [`/custom-field/project/${ctx.beta.id}`, 404],
+      [`/external-link/task/${ctx.betaTask.id}`, 403],
+      [`/workflow-rule/${ctx.beta.id}`, 404],
     ];
-    for (const path of hidden) {
-      expect({ path, status: (await request(path)).status }).toEqual({
-        path,
-        status: 403,
-      });
+    const answered: [string, number][] = [];
+    for (const [path] of hidden) {
+      answered.push([path, (await request(path)).status]);
     }
+    expect(answered).toEqual(hidden);
 
     for (const path of [
       `/project/${ctx.alpha.id}`,
@@ -87,7 +87,7 @@ describe("project access enforcement", () => {
         status: "to-do",
       },
     });
-    expect(created.status).toBe(403);
+    expect(created.status).toBe(404);
 
     const bulk = await request("/task/bulk", {
       method: "PATCH",
@@ -103,7 +103,7 @@ describe("project access enforcement", () => {
       method: "PUT",
       body: { destinationProjectId: ctx.beta.id },
     });
-    expect(moved.status).toBe(403);
+    expect(moved.status).toBe(404);
   });
 
   it("filters search, assigned tasks and ticket lookups", async () => {
@@ -189,7 +189,7 @@ describe("project access enforcement", () => {
     });
     const request = projectAccessApi({ Authorization: `Bearer ${key}` });
 
-    expect((await request(`/project/${ctx.beta.id}`)).status).toBe(403);
+    expect((await request(`/project/${ctx.beta.id}`)).status).toBe(404);
     expect((await request(`/project/${ctx.alpha.id}`)).status).toBe(200);
   });
 
@@ -225,7 +225,7 @@ describe("project access enforcement", () => {
     const peek = await projectAccessApi()(
       `/workspace/${ctx.workspace.id}/members?projectId=${ctx.beta.id}`,
     );
-    expect(peek.status).toBe(403);
+    expect(peek.status).toBe(404);
   });
 
   it("unassigns a task moved into a project its assignee can't see", async () => {

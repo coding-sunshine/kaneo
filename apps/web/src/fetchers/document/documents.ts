@@ -158,6 +158,17 @@ export async function unshareDocumentFromTask(
   return response.json();
 }
 
+export async function unshareDocumentFromHiddenTasks(
+  workspaceId: string,
+  id: string,
+) {
+  const response = await one["task-shares"].hidden.$delete({
+    param: { workspaceId, id },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
 export async function setDocumentSubscribers(
   workspaceId: string,
   id: string,

@@ -261,6 +261,18 @@ async function bulkUpdateTasks({
           })
         : undefined;
       const before = await db.transaction(async (tx) => {
+        // The team rows first, the order a privacy change takes, then the
+        // check again under them.
+        if (assigneeId) {
+          const teamIds = [...new Set(tasks.map((task) => task.projectId))];
+          await tx
+            .select({ id: projectTable.id })
+            .from(projectTable)
+            .where(inArray(projectTable.id, teamIds))
+            .orderBy(asc(projectTable.id))
+            .for("key share");
+          await assertAssignableUser(assigneeId, workspaceId, teamIds, tx);
+        }
         const locked = await tx
           .select({
             id: taskTable.id,

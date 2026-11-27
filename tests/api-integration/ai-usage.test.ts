@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import { tokensUsedToday } from "../../apps/api/src/agent/usage";
@@ -204,6 +205,52 @@ describe("API integration: AI usage and budgets", () => {
     );
     expect(await usageRows()).toHaveLength(1);
     expect(await tokensUsedToday()).toBe(0);
+  });
+
+  it("stops a chat call once the month's AI spending of every feature reaches 20 USD, until the next month", async () => {
+    const owner = await createWorkspaceMember({ role: "owner" });
+    mockAuthenticatedSession(owner.user);
+    const { app } = createApp();
+    const ws = owner.workspace.id;
+    // Spent by a call made for a workspace, with no workspace budget set.
+    const [spent] = await db
+      .insert(aiUsageTable)
+      .values({
+        purpose: "loop",
+        workspaceId: ws,
+        userId: owner.user.id,
+        model: "test-model",
+        promptTokens: 1,
+        completionTokens: 1,
+        cost: 20.5,
+      })
+      .returning();
+    const send = () =>
+      app.request(
+        `/api/agent/workspace/${ws}/messages`,
+        json("POST", { message: "hello" }),
+      );
+
+    const refused = await send();
+    expect(refused.status).toBe(429);
+    expect((await refused.json()).message).toContain(
+      "monthly AI spending limit reached",
+    );
+    expect(model.seen).toHaveLength(0);
+
+    // The spend now falls in the month before: this month starts from nothing.
+    const now = new Date();
+    await db
+      .update(aiUsageTable)
+      .set({
+        createdAt: new Date(
+          Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0, 12),
+        ),
+      })
+      .where(eq(aiUsageTable.id, spent!.id));
+    model.queue.push(reply("hi"));
+    expect((await send()).status).toBe(200);
+    expect(model.seen).toHaveLength(1);
   });
 
   it("lets only workspace admins see usage and set budgets", async () => {

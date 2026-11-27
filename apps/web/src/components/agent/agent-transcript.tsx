@@ -1,5 +1,8 @@
 import { ChevronRight, Wrench } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import type { AgentCitation } from "@/components/agent/agent-citation";
+import { AgentSources } from "@/components/agent/agent-sources";
+import { withoutSourcesLine } from "@/components/agent/without-sources-line";
 import { cn } from "@/lib/cn";
 
 export type TranscriptMessage = {
@@ -7,6 +10,9 @@ export type TranscriptMessage = {
   content: string | null;
   tool_calls?: { id: string; function: { name: string; arguments: string } }[];
   tool_call_id?: string;
+  /** On a saved chat answer: what it rests on, checked for the reader. */
+  citations?: AgentCitation[];
+  unsourced?: boolean;
 };
 
 function ToolCall({
@@ -48,11 +54,17 @@ function ToolCall({
   );
 }
 
-/** One chat or loop run: messages in order, every tool call shown with its result. */
+/**
+ * One chat or loop run: messages in order, every tool call shown with its
+ * result. A chat's answers end with their sources, which link into
+ * `workspaceId`.
+ */
 export function AgentTranscript({
   messages,
+  workspaceId,
 }: {
   messages: TranscriptMessage[];
+  workspaceId?: string;
 }) {
   const results = new Map(
     messages
@@ -65,6 +77,11 @@ export function AgentTranscript({
       {messages.map((message, index) => {
         if (message.role === "system" || message.role === "tool") return null;
         const key = `${index}-${message.role}`;
+        // A reply still arriving has not had its sources line taken off.
+        const content =
+          message.role === "assistant" && message.content && !message.citations
+            ? withoutSourcesLine(message.content)
+            : message.content;
         return (
           <li
             key={key}
@@ -73,15 +90,22 @@ export function AgentTranscript({
               message.role === "user" && "items-end",
             )}
           >
-            {message.content ? (
+            {content ? (
               <p
                 className={cn(
                   "max-w-[85%] whitespace-pre-wrap break-words",
                   message.role === "user" && "rounded-2xl bg-muted px-3 py-2",
                 )}
               >
-                {message.content}
+                {content}
               </p>
+            ) : null}
+            {workspaceId && message.citations ? (
+              <AgentSources
+                workspaceId={workspaceId}
+                citations={message.citations}
+                unsourced={message.unsourced ?? false}
+              />
             ) : null}
             {message.tool_calls?.map((call) => (
               <ToolCall

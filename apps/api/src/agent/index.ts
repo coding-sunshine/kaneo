@@ -10,6 +10,7 @@ import {
 } from "../openapi";
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
+import { readerOf, withCitations } from "./cite-messages";
 import { deleteChat, getChat, listChats, sendMessage } from "./controllers";
 import { isAgentEnabled } from "./openrouter";
 import {
@@ -147,23 +148,31 @@ const routes = agent
   )
   .openapi(getRoute, async (c) => {
     const { workspaceId, chatId } = c.req.valid("param");
-    return c.json(await getChat(c.get("userId"), workspaceId, chatId), 200);
+    const chat = await getChat(c.get("userId"), workspaceId, chatId);
+    const messages = await withCitations(
+      await readerOf(c, workspaceId),
+      chat.messages,
+    );
+    return c.json({ ...chat, messages }, 200);
   })
   .openapi(deleteRoute, async (c) => {
     const { workspaceId, chatId } = c.req.valid("param");
     return c.json(await deleteChat(c.get("userId"), workspaceId, chatId), 200);
   })
-  .openapi(sendRoute, async (c) =>
-    c.json(
-      await sendMessage(
-        c.get("userId"),
-        c.req.valid("param").workspaceId,
-        c.req.raw.headers,
-        c.req.valid("json"),
-      ),
-      200,
-    ),
-  )
+  .openapi(sendRoute, async (c) => {
+    const { workspaceId } = c.req.valid("param");
+    const reply = await sendMessage(
+      c.get("userId"),
+      workspaceId,
+      c.req.raw.headers,
+      c.req.valid("json"),
+    );
+    const messages = await withCitations(
+      await readerOf(c, workspaceId),
+      reply.messages,
+    );
+    return c.json({ ...reply, messages }, 200);
+  })
   .openapi(streamRoute, (c) => {
     const { workspaceId } = c.req.valid("param");
     const body = c.req.valid("json");

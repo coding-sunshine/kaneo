@@ -3,7 +3,7 @@ import type { Context, Next } from "hono";
 import { HTTPException } from "hono/http-exception";
 import db from "../database";
 import { projectTable } from "../database/schema";
-import { assertProjectAccess } from "../project-access/assert-project-access";
+import { hideClosedTeams } from "../project-access/hide-closed-teams";
 import { validateWorkspaceAccess } from "../utils/validate-workspace-access";
 
 // Route middleware runs before the validators, so c.req.valid() is unavailable.
@@ -37,7 +37,11 @@ export async function scopeToProjectFromBody(c: Context, next: Next) {
     c.get("apiKey")?.id,
     { notFoundMessage: "Project not found" },
   );
-  await assertProjectAccess(userId, projectId);
+  await hideClosedTeams(
+    userId,
+    projectId,
+    () => new HTTPException(404, { message: "Project not found" }),
+  );
   c.set("workspaceId", project.workspaceId);
 
   return next();

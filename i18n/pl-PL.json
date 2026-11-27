@@ -891,7 +891,14 @@
 			"thinking": "Working on it...",
 			"toolInput": "Input",
 			"toolPending": "No result",
-			"toolResult": "Result"
+			"toolResult": "Result",
+			"sources": {
+				"commentOn": "Comment on {{ticket}}",
+				"label": "Sources",
+				"restricted": "Restricted item",
+				"unsourced": "Unsourced",
+				"unsourcedHint": "This answer names no task, document or comment it rests on."
+			}
 		},
 		"customizeSidebar": {
 			"always": "Always show",
@@ -998,7 +1005,6 @@
 				"privateHint": "Only people invited can open this document",
 				"remove": "Remove access",
 				"title": "Share",
-				"hiddenTask": "An issue you cannot open",
 				"leaveAsItIs": "Leave as it is",
 				"sharedTasks": "Shared with issues",
 				"sharedTasksHint": "Everyone who can open the issue can view this document.",
@@ -1015,6 +1021,13 @@
 				"taskShared": "Shared with this issue",
 				"taskUnshared": "Stopped sharing with this issue",
 				"updated": "Access updated",
+				"hiddenTasks_few": "Also shared with {{count}} issues you cannot open",
+				"hiddenTasks_many": "Also shared with {{count}} issues you cannot open",
+				"hiddenTasks_one": "Also shared with {{count}} issue you cannot open",
+				"hiddenTasks_other": "Also shared with {{count}} issues you cannot open",
+				"hiddenTasksUnshared": "Stopped sharing with issues you cannot open",
+				"stopHiddenTasks": "Stop sharing with them",
+				"unshareHiddenTasksFailed": "Could not stop sharing with those issues",
 				"everyoneUnnamed": {
 					"issue": "Everyone who can open an issue you cannot open",
 					"project": "Everyone in the project's teams",
@@ -1387,6 +1400,7 @@
 				},
 				"currentValue": "Current: {{value}}",
 				"deciderOnly": "Only the topic's decider confirms or rejects facts on the current document.",
+				"deciderOnlyProposal": "Only the topic's decider confirms or rejects facts on a proposal.",
 				"groupHints": {
 					"conflicts": "This document and the current document say different things.",
 					"new": "The topic states no value for these yet.",

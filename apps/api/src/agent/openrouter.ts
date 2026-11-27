@@ -12,6 +12,19 @@ export type ChatMessage = {
 };
 
 export const DEFAULT_AGENT_MODEL = "z-ai/glm-5.3-flash";
+// Hosts serve the default model with uneven quality, so the assistant stays on
+// one that passed the synthetic check (scripts/assistant-host-check.ts).
+export const DEFAULT_AGENT_HOST = "z-ai/fp8";
+
+function agentProvider(model: string) {
+  const host =
+    process.env.AGENT_HOST ||
+    (model === DEFAULT_AGENT_MODEL ? DEFAULT_AGENT_HOST : "");
+  return {
+    data_collection: "deny",
+    ...(host ? { order: [host], allow_fallbacks: false } : {}),
+  };
+}
 
 export function isAgentEnabled(): boolean {
   return Boolean(process.env.OPENROUTER_API_KEY);
@@ -66,7 +79,7 @@ export async function createCompletion(
         ...(tools.length ? { tools } : {}),
         stream: true,
         usage: { include: true },
-        provider: { data_collection: "deny" },
+        provider: agentProvider(model),
       }),
       signal: AbortSignal.timeout(90_000),
     },

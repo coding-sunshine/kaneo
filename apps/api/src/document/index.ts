@@ -42,6 +42,7 @@ import {
   shareWithTask,
   taskAudience,
   unshareFromTask,
+  unshareHiddenTasks,
 } from "./controllers/share-with-task";
 import { markDocumentsSeen } from "./controllers/mark-documents-seen";
 import { decideLineage } from "./controllers/lineage";
@@ -599,6 +600,23 @@ const unshareTaskRoute = createRoute({
   },
 });
 
+const unshareHiddenTasksRoute = createRoute({
+  method: "delete",
+  operationId: "unshareDocumentFromHiddenTasks",
+  path: `${one}/task-shares/hidden`,
+  tags,
+  summary: "Stop sharing with issues you cannot open",
+  description:
+    "Removes every share on an issue in a team you cannot open; those issues no longer let anyone into the document. Needs edit rights on the document.",
+  middleware: [...write] as const,
+  request: { params: documentParam },
+  responses: {
+    200: jsonResponse("Sharing stopped", documentSchema),
+    403: noAccess,
+    404: notFound,
+  },
+});
+
 const audienceRoute = createRoute({
   method: "get",
   operationId: "getDocumentAudience",
@@ -1046,6 +1064,13 @@ const document = apiRouter()
     const { workspaceId, id, taskId } = c.req.valid("param");
     return c.json(
       await unshareFromTask(workspaceId, id, c.get("userId"), taskId),
+      200,
+    );
+  })
+  .openapi(unshareHiddenTasksRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(
+      await unshareHiddenTasks(workspaceId, id, c.get("userId")),
       200,
     );
   })
