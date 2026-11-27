@@ -1903,7 +1903,13 @@
 			"setTopic": "Set topic",
 			"topic": "Topic",
 			"topicPlaceholder": "What is this channel about?",
-			"unarchive": "Unarchive channel"
+			"unarchive": "Unarchive channel",
+			"directHint": "Pick one person, or several for a group conversation.",
+			"directMessages": "Direct messages",
+			"directTitle": "New message",
+			"newDirectMessage": "New message",
+			"noOneElse": "Nobody else is in this workspace yet.",
+			"openDirect": "Open conversation"
 		}
 	},
 	"notifications": {

@@ -4404,7 +4404,13 @@
 			"deletedUser": "Deleted user",
 			"messageLabel": "Message",
 			"messagePlaceholder": "Message {{name}}",
-			"send": "Send"
+			"send": "Send",
+			"directMessages": "Direct messages",
+			"newDirectMessage": "New message",
+			"directTitle": "New message",
+			"directHint": "Pick one person, or several for a group conversation.",
+			"openDirect": "Open conversation",
+			"noOneElse": "Nobody else is in this workspace yet."
 		}
 	},
 	"notifications": {

@@ -3316,7 +3316,9 @@ export const agentProposalTable = pgTable(
 );
 
 // Team chat. A public channel is open to every workspace member; a private
-// one only to its members. Archiving keeps the history readable.
+// one only to its members. Archiving keeps the history readable. A direct
+// message is a private channel whose `directKey` (its sorted member ids) keeps
+// one conversation per set of people.
 export const chatChannelTable = pgTable(
   "chat_channel",
   {
@@ -3336,12 +3338,19 @@ export const chatChannelTable = pgTable(
       onDelete: "set null",
       onUpdate: "cascade",
     }),
+    directKey: text("direct_key"),
     archivedAt: timestamp("archived_at", { mode: "date" }),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),
   },
-  (table) => [index("chat_channel_workspace_idx").on(table.workspaceId)],
+  (table) => [
+    index("chat_channel_workspace_idx").on(table.workspaceId),
+    uniqueIndex("chat_channel_workspace_direct_key_idx").on(
+      table.workspaceId,
+      table.directKey,
+    ),
+  ],
 );
 
 export const chatChannelMemberTable = pgTable(
