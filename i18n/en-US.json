@@ -3231,7 +3231,9 @@
 				"comment": "Comments",
 				"activity": "Activities",
 				"document": "Documents",
-				"fallback": "Results"
+				"fallback": "Results",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -5637,21 +5639,22 @@
 		"search": {
 			"pageTitle": "Search",
 			"backToDashboard": "Back to Dashboard",
-			"placeholder": "Search issues by title or short ID (e.g. DEP-23)...",
-			"hint": "Search across all projects in this workspace. Use short IDs like DEP-23 to find specific issues.",
+			"placeholder": "Search messages, issues, documents, projects and people...",
+			"hint": "Search chat, issues, documents, projects and people in this workspace. Use short IDs like DEP-23 to find specific issues.",
 			"searching": "Searching...",
 			"resultsFound_one": "{{count}} result found",
 			"resultsFound_other": "{{count}} results found",
 			"noResultsTitle": "No results found",
 			"noResultsDescription": "Try adjusting your search terms or search for something else",
 			"startTitle": "Start Searching",
-			"startDescription": "Enter a search term to find issues across all projects",
+			"startDescription": "Enter a search term to find messages, issues, documents, projects and people",
 			"quickSearchesLabel": "Quick searches:",
 			"suggestionHighPriority": "High priority",
 			"suggestionBug": "Bug",
 			"suggestionFeature": "Feature",
 			"suggestionInProgress": "In progress",
-			"suggestionCompleted": "Completed"
+			"suggestionCompleted": "Completed",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "Create Workspace",

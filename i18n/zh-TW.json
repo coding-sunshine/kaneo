@@ -3178,7 +3178,9 @@
 				"comment": "留言",
 				"activity": "活動",
 				"fallback": "結果",
-				"document": "Documents"
+				"document": "Documents",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -5547,7 +5549,8 @@
 			"suggestionBug": "錯誤",
 			"suggestionFeature": "功能",
 			"suggestionInProgress": "進行中",
-			"suggestionCompleted": "已完成"
+			"suggestionCompleted": "已完成",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "建立工作區",

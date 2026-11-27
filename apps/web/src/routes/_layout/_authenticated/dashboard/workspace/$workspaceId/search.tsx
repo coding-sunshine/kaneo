@@ -1,13 +1,15 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Loader2, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import WorkspaceLayout from "@/components/common/workspace-layout";
 import PageTitle from "@/components/page-title";
+import { groupSearchResults } from "@/components/search-page/group-search-results";
+import { SearchResultGroup } from "@/components/search-page/search-result-group";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import useGlobalSearch from "@/hooks/queries/search/use-global-search";
-import { getPriorityIcon } from "@/lib/priority";
+import { useOpenSearchResult } from "@/hooks/use-open-search-result";
 
 export const Route = createFileRoute(
   "/_layout/_authenticated/dashboard/workspace/$workspaceId/search",
@@ -18,7 +20,7 @@ export const Route = createFileRoute(
 function SearchComponent() {
   const { t } = useTranslation();
   const { workspaceId } = Route.useParams();
-  const navigate = useNavigate();
+  const openResult = useOpenSearchResult(workspaceId);
   const [searchInput, setSearchInput] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -26,7 +28,8 @@ function SearchComponent() {
   const { data, isLoading, isFetching } = useGlobalSearch({
     q: debouncedQuery,
     workspaceId,
-    type: "tasks",
+    type: "all",
+    limit: 50,
   });
 
   const handleInputChange = useCallback((value: string) => {
@@ -50,6 +53,7 @@ function SearchComponent() {
   }, []);
 
   const results = data?.results ?? [];
+  const groups = groupSearchResults(results);
   const hasQuery = debouncedQuery.length > 0;
   const showLoading = hasQuery && (isLoading || isFetching);
 
@@ -116,58 +120,19 @@ function SearchComponent() {
                   </div>
                 </div>
               ) : results.length > 0 ? (
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground mb-3">
+                <div className="space-y-6">
+                  <p className="text-xs text-muted-foreground">
                     {t("workspace:search.resultsFound", {
                       count: data?.totalCount ?? results.length,
                     })}
                   </p>
-                  {results.map((result) => (
-                    <button
-                      key={result.id}
-                      type="button"
-                      onClick={() => {
-                        if (result.type === "task" && result.projectId) {
-                          navigate({
-                            to: "/dashboard/workspace/$workspaceId/project/$projectId/board",
-                            params: {
-                              workspaceId,
-                              projectId: result.projectId,
-                            },
-                            search: { taskId: result.id },
-                          });
-                        }
-                      }}
-                      className="w-full flex items-center gap-2.5 px-3 py-3 sm:gap-3 sm:px-4 rounded-lg border border-border bg-background hover:bg-accent/60 transition-colors text-left"
-                    >
-                      <div className="flex-shrink-0 first:[&_svg]:h-4 first:[&_svg]:w-4">
-                        {getPriorityIcon(result.priority ?? "")}
-                      </div>
-
-                      {result.projectSlug && result.taskNumber && (
-                        <span className="text-xs font-mono text-muted-foreground flex-shrink-0">
-                          {result.projectSlug}-{result.taskNumber}
-                        </span>
-                      )}
-
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm text-foreground truncate block">
-                          {result.title}
-                        </span>
-                      </div>
-
-                      {result.projectName && (
-                        <span className="hidden text-xs text-muted-foreground flex-shrink-0 sm:inline">
-                          {result.projectName}
-                        </span>
-                      )}
-
-                      {result.status && (
-                        <span className="text-[10px] font-medium px-2 py-0.5 rounded border border-border bg-muted/55 text-muted-foreground flex-shrink-0">
-                          {result.status}
-                        </span>
-                      )}
-                    </button>
+                  {groups.map((group) => (
+                    <SearchResultGroup
+                      key={group.type}
+                      type={group.type}
+                      items={group.items}
+                      onOpen={openResult}
+                    />
                   ))}
                 </div>
               ) : (

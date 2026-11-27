@@ -3231,7 +3231,9 @@
 				"comment": "Σχόλια",
 				"activity": "Δραστηριότητες",
 				"fallback": "Αποτελέσματα",
-				"document": "Documents"
+				"document": "Documents",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -5651,7 +5653,8 @@
 			"suggestionBug": "Σφάλμα",
 			"suggestionFeature": "Δυνατότητα",
 			"suggestionInProgress": "Σε εξέλιξη",
-			"suggestionCompleted": "Ολοκληρωμένα"
+			"suggestionCompleted": "Ολοκληρωμένα",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "Δημιουργία χώρου εργασίας",

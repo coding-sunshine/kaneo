@@ -1,8 +1,6 @@
-import { and, asc, eq, isNotNull, isNull, or } from "drizzle-orm";
-import {
-  chatChannelMemberTable,
-  chatChannelTable,
-} from "../../database/schema";
+import { and, asc, eq, isNull } from "drizzle-orm";
+import { chatChannelTable } from "../../database/schema";
+import { readableChannel } from "../readable-channel";
 import { selectChannels } from "./select-channels";
 
 // The channel directory: every public channel plus the private ones the
@@ -14,10 +12,7 @@ export async function listChannels(workspaceId: string, userId: string) {
       and(
         eq(chatChannelTable.workspaceId, workspaceId),
         isNull(chatChannelTable.directKey),
-        or(
-          eq(chatChannelTable.isPrivate, false),
-          isNotNull(chatChannelMemberTable.userId),
-        ),
+        readableChannel(userId),
       ),
     )
     .orderBy(asc(chatChannelTable.name));

@@ -55,4 +55,26 @@ describe("MessageList", () => {
     render(<MessageList messages={[]} />);
     expect(screen.getByText("navigation:chat.noMessages")).toBeTruthy();
   });
+
+  it("scrolls to and marks the message a search result opened", () => {
+    const scroll = vi.mocked(Element.prototype.scrollIntoView);
+    scroll.mockClear();
+    render(
+      <MessageList
+        messages={[
+          message({ id: "older", body: "older" }),
+          message({ id: "target", body: "target" }),
+          message({ id: "newer", body: "newer" }),
+        ]}
+        focusId="target"
+      />,
+    );
+    const target = screen.getByText("target").closest("li");
+    expect(target).toHaveAttribute("aria-current", "true");
+    expect(screen.getByText("newer").closest("li")).not.toHaveAttribute(
+      "aria-current",
+    );
+    expect(scroll).toHaveBeenCalledTimes(1);
+    expect(scroll.mock.contexts[0]).toBe(target);
+  });
 });

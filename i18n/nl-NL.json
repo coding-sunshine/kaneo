@@ -3231,7 +3231,9 @@
 				"comment": "Reacties",
 				"activity": "Activiteiten",
 				"fallback": "Resultaten",
-				"document": "Documents"
+				"document": "Documents",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -5651,7 +5653,8 @@
 			"suggestionBug": "Bug",
 			"suggestionFeature": "Feature",
 			"suggestionInProgress": "In behandeling",
-			"suggestionCompleted": "Voltooid"
+			"suggestionCompleted": "Voltooid",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "Werkruimte maken",

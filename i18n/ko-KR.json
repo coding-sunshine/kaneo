@@ -3178,7 +3178,9 @@
 				"comment": "댓글",
 				"activity": "활동",
 				"fallback": "결과",
-				"document": "Documents"
+				"document": "Documents",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -5547,7 +5549,8 @@
 			"suggestionBug": "버그",
 			"suggestionFeature": "기능",
 			"suggestionInProgress": "진행 중",
-			"suggestionCompleted": "완료됨"
+			"suggestionCompleted": "완료됨",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "워크스페이스 만들기",

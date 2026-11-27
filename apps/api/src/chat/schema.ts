@@ -32,6 +32,10 @@ export const listMessagesQuery = z.object({
   before: z.iso.datetime().optional().openapi({
     description: "Return messages posted before this time.",
   }),
+  around: z.string().optional().openapi({
+    description:
+      "A message id in this channel: return the page that holds it, with up to 25 older messages before it. Takes precedence over `before`.",
+  }),
 });
 
 export const openDirectMessageBody = z.object({

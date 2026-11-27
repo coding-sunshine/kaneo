@@ -3178,7 +3178,9 @@
 				"comment": "Komentar",
 				"activity": "Aktivitas",
 				"fallback": "Hasil",
-				"document": "Documents"
+				"document": "Documents",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -5547,7 +5549,8 @@
 			"suggestionBug": "Bug",
 			"suggestionFeature": "Fitur",
 			"suggestionInProgress": "Sedang berjalan",
-			"suggestionCompleted": "Selesai"
+			"suggestionCompleted": "Selesai",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "Buat Ruang Kerja",

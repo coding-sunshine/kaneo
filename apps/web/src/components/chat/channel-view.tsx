@@ -7,13 +7,20 @@ import { useMessages } from "@/hooks/queries/chat/use-messages";
 import { useChatChannelSocket } from "@/hooks/use-chat-channel-socket";
 import { useDirectMessageTitle } from "@/hooks/use-direct-message-title";
 
-/** One channel: header with topic, history, then the composer. */
+/**
+ * One channel: header with topic, history, then the composer. `messageId`
+ * opens the history around that message; posting returns to the newest.
+ */
 export function ChannelView({
   workspaceId,
   channelId,
+  messageId,
+  onPosted,
 }: {
   workspaceId: string;
   channelId: string;
+  messageId?: string;
+  onPosted?: () => void;
 }) {
   const { data: channel, isError } = useChannel(workspaceId, channelId);
   const titleOf = useDirectMessageTitle(workspaceId);
@@ -23,6 +30,7 @@ export function ChannelView({
     channelId,
     Boolean(channel),
     live,
+    messageId,
   );
 
   if (isError) return <ChannelNotFound workspaceId={workspaceId} />;
@@ -37,12 +45,13 @@ export function ChannelView({
         title={title}
       />
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <MessageList messages={messages} />
+        <MessageList messages={messages} focusId={messageId} />
       </div>
       <ChannelFooter
         workspaceId={workspaceId}
         channel={channel}
         title={title}
+        onPosted={onPosted}
       />
     </div>
   );

@@ -3178,7 +3178,9 @@
 				"comment": "コメント",
 				"activity": "アクティビティ",
 				"fallback": "検索結果",
-				"document": "Documents"
+				"document": "Documents",
+				"message": "Messages",
+				"person": "People"
 			}
 		},
 		"settingsLayout": {
@@ -5547,7 +5549,8 @@
 			"suggestionBug": "バグ",
 			"suggestionFeature": "機能",
 			"suggestionInProgress": "進行中",
-			"suggestionCompleted": "完了"
+			"suggestionCompleted": "完了",
+			"directMessage": "Direct message"
 		},
 		"create": {
 			"pageTitle": "ワークスペースを作成",
