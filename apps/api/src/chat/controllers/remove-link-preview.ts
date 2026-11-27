@@ -1,10 +1,9 @@
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { chatMessageTable } from "../../database/schema";
 import { publishEvent } from "../../events";
-import { loadChannel } from "./load-channel";
-import { selectMessages } from "./select-messages";
+import { loadMessage } from "./load-message";
 
 export async function removeLinkPreview(
   workspaceId: string,
@@ -12,18 +11,21 @@ export async function removeLinkPreview(
   messageId: string,
   userId: string,
 ) {
-  await loadChannel(workspaceId, channelId, userId, "read");
-  const inChannel = and(
-    eq(chatMessageTable.id, messageId),
-    eq(chatMessageTable.channelId, channelId),
+  const message = await loadMessage(
+    workspaceId,
+    channelId,
+    messageId,
+    userId,
+    "read",
   );
-  const [message] = await selectMessages().where(inChannel);
-  if (!message) throw new HTTPException(404, { message: "Message not found" });
   if (message.userId !== userId)
     throw new HTTPException(403, {
       message: "Only the author can remove the preview",
     });
-  await db.update(chatMessageTable).set({ linkPreview: null }).where(inChannel);
+  await db
+    .update(chatMessageTable)
+    .set({ linkPreview: null })
+    .where(eq(chatMessageTable.id, messageId));
   await publishEvent("chat.message_updated", {
     workspaceId,
     channelId,

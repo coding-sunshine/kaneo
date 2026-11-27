@@ -4,6 +4,7 @@ import {
   chatChannelMemberTable,
   chatChannelTable,
 } from "../../database/schema";
+import { countUnread } from "./count-unread";
 import { directMessageOpenToGuest } from "../../guest/direct-message-open-to-guest";
 import { isWorkspaceGuest } from "../../guest/is-workspace-guest";
 import { selectChannels } from "./select-channels";
@@ -25,6 +26,7 @@ export async function listDirectMessages(workspaceId: string, userId: string) {
     )
     .orderBy(desc(chatChannelTable.createdAt));
   if (channels.length === 0) return [];
+  const unread = await countUnread(workspaceId, userId);
   const members = await db
     .select({
       channelId: chatChannelMemberTable.channelId,
@@ -37,11 +39,17 @@ export async function listDirectMessages(workspaceId: string, userId: string) {
         channels.map((channel) => channel.id),
       ),
     )
-    .orderBy(asc(chatChannelMemberTable.joinedAt));
+    // Members of one conversation join at the same instant; the id keeps
+    // their order stable.
+    .orderBy(
+      asc(chatChannelMemberTable.joinedAt),
+      asc(chatChannelMemberTable.userId),
+    );
   return channels.map((channel) => ({
     ...channel,
     memberIds: members
       .filter((member) => member.channelId === channel.id)
       .map((member) => member.userId),
+    unreadCount: unread.get(channel.id) ?? 0,
   }));
 }

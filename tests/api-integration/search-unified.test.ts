@@ -237,6 +237,31 @@ describe("API integration: unified search", () => {
     ).toEqual(new Set([seeded.publicMessage]));
   });
 
+  it("finds an edited message by its new text and never a deleted one", async () => {
+    const ctx = await setup();
+    const general = await ctx.createChannel(ctx.a, "general", false);
+    const edited = await ctx.post(ctx.a, general, "zebra-launch draft");
+    const deleted = await ctx.post(ctx.a, general, "zebra-launch typo");
+    const messages = `${ctx.channels}/${general}/messages`;
+    expect(
+      (
+        await ctx.as(ctx.a)(
+          `${messages}/${edited}`,
+          json("PATCH", { body: "walrus-launch final" }),
+        )
+      ).status,
+    ).toBe(200);
+    expect(
+      (await ctx.as(ctx.a)(`${messages}/${deleted}`, json("DELETE"))).status,
+    ).toBe(200);
+
+    expect(await ctx.search(ctx.b, "zebra-launch", "messages")).toEqual([]);
+    const found = await ctx.search(ctx.b, "walrus-launch", "messages");
+    expect(found.map((r) => [r.id, r.content])).toEqual([
+      [edited, "walrus-launch final"],
+    ]);
+  });
+
   it("matches short queries in messages by substring", async () => {
     const ctx = await setup();
     const general = await ctx.createChannel(ctx.a, "general", false);
@@ -419,9 +444,13 @@ describe("API integration: chat messages around one message", () => {
       `${ctx.channels}/${general}/messages?around=${target}`,
     );
     expect(response.status).toBe(200);
-    const window = ((await response.json()) as { id: string }[]).map(
-      (m) => m.id,
-    );
+    const page = (await response.json()) as {
+      id: string;
+      reactions?: unknown[];
+    }[];
+    // Same shape as the newest page, reactions included.
+    expect(page.every((m) => Array.isArray(m.reactions))).toBe(true);
+    const window = page.map((m) => m.id);
     expect(window).toEqual(posted.slice(0, 35));
     expect(window).toContain(target);
   });

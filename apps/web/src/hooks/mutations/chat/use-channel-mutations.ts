@@ -4,11 +4,13 @@ import {
   createChannel,
   joinChannel,
   leaveChannel,
+  markChannelRead,
   removeChannelMember,
   updateChannel,
 } from "@/fetchers/chat/channels";
 import { channelKey } from "@/hooks/queries/chat/use-channel";
 import { channelsKey } from "@/hooks/queries/chat/use-channels";
+import { directMessagesKey } from "@/hooks/queries/chat/use-direct-messages";
 
 export function useCreateChannel(workspaceId: string) {
   const queryClient = useQueryClient();
@@ -52,6 +54,20 @@ export const useLeaveChannel = (workspaceId: string, channelId: string) =>
 
 export const useAddChannelMember = (workspaceId: string, channelId: string) =>
   useChannelMutation(workspaceId, channelId, addChannelMember);
+
+// Reading changes only your own unread counts.
+export function useMarkChannelRead(workspaceId: string, channelId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => markChannelRead({ workspaceId, channelId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: channelsKey(workspaceId) });
+      queryClient.invalidateQueries({
+        queryKey: directMessagesKey(workspaceId),
+      });
+    },
+  });
+}
 
 export const useRemoveChannelMember = (
   workspaceId: string,

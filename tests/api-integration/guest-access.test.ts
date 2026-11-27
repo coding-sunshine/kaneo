@@ -2,7 +2,7 @@ import { once } from "node:events";
 import { readFileSync } from "node:fs";
 import type { IncomingMessage } from "node:http";
 import { createRequire } from "node:module";
-import { defaultRolePayloads } from "@kaneo/permissions";
+import { defaultRolePayloads } from "../../apps/api/node_modules/@kaneo/permissions";
 import { and, eq } from "drizzle-orm";
 import {
   afterEach,
@@ -764,6 +764,126 @@ describe("guest access", () => {
       expect(forGuest.status, path).toBe(200);
       expect(await forGuest.json(), path).toEqual({ references: [] });
     }
+  });
+
+  it("keeps pins, reactions, read marks and unread counts inside the guest's reach", async () => {
+    const world = await setUp();
+    const channels = `/chat/workspace/${world.workspaceId}/channels`;
+    const [inY] = await db
+      .select({ id: chatMessageTable.id })
+      .from(chatMessageTable)
+      .where(eq(chatMessageTable.channelId, world.y.id));
+    // A direct message with the teammate, who shares nothing with the guest.
+    const [closed] = await db
+      .insert(chatChannelTable)
+      .values({
+        workspaceId: world.workspaceId,
+        name: "",
+        isPrivate: true,
+        directKey: [world.guest.userId, world.teammate.userId].sort().join(","),
+        createdBy: world.teammate.userId,
+      })
+      .returning();
+    await db.insert(chatChannelMemberTable).values([
+      { channelId: closed.id, userId: world.guest.userId },
+      { channelId: closed.id, userId: world.teammate.userId },
+    ]);
+    const [inClosed] = await db
+      .insert(chatMessageTable)
+      .values({
+        channelId: closed.id,
+        userId: world.teammate.userId,
+        body: "Canary direct note",
+      })
+      .returning();
+
+    for (const [channelId, messageId] of [
+      [world.y.id, inY?.id],
+      [closed.id, inClosed?.id],
+    ]) {
+      const message = `${channels}/${channelId}/messages/${messageId}`;
+      for (const [path, init] of [
+        [`${channels}/${channelId}/pins`, undefined],
+        [`${channels}/${channelId}/read`, { method: "POST" }],
+        [`${message}/pin`, { method: "POST" }],
+        [`${message}/reactions`, { method: "POST", body: { emoji: "👍" } }],
+        [`${message}/reactions`, { method: "DELETE", body: { emoji: "👍" } }],
+        [message, { method: "PATCH", body: { body: "x" } }],
+        [message, { method: "DELETE" }],
+      ] as const) {
+        const response = await world.guestRequest(path, init);
+        expect(response.status, `${init?.method ?? "GET"} ${path}`).toBe(404);
+      }
+    }
+
+    // Counts only for what the guest can open: X, and no closed conversation.
+    const posted = await world.ownerRequest(
+      `${channels}/${world.x.id}/messages`,
+      { method: "POST", body: { body: "New for the client" } },
+    );
+    expect(posted.status).toBe(200);
+    const listed = (await (await world.guestRequest(channels)).json()) as {
+      id: string;
+      unreadCount: number;
+    }[];
+    expect(listed.map(({ id, unreadCount }) => [id, unreadCount])).toEqual([
+      [world.x.id, 1],
+    ]);
+    const directs = (await (
+      await world.guestRequest(
+        `/chat/workspace/${world.workspaceId}/direct-messages`,
+      )
+    ).json()) as { id: string }[];
+    expect(directs.map((dm) => dm.id)).not.toContain(closed.id);
+  });
+
+  it("shows a guest online only the people who share a project or channel", async () => {
+    const world = await setUp();
+    // Shares only channel X with the guest, no project.
+    const colleague = await signUpWithSession(app, {
+      email: "presence-colleague@example.test",
+      name: "Colleague",
+    });
+    await db.insert(schema.workspaceUserTable).values({
+      workspaceId: world.workspaceId,
+      userId: colleague.userId,
+      role: "member",
+      joinedAt: new Date(),
+    });
+    await restrictToProjects(world.workspaceId, colleague.userId, [world.q.id]);
+    await db
+      .insert(chatChannelMemberTable)
+      .values({ channelId: world.x.id, userId: colleague.userId });
+    const colleagueRequest = projectAccessApi({ cookie: colleague.cookies });
+    const people = [
+      [world.ownerRequest, world.owner.userId],
+      [world.teammateRequest, world.teammate.userId],
+      [colleagueRequest, colleague.userId],
+      [world.guestRequest, world.guest.userId],
+    ] as const;
+    for (const [request] of people) {
+      const on = await request("/chat/presence", {
+        method: "PUT",
+        body: { enabled: true },
+      });
+      expect(on.status, await on.clone().text()).toBe(200);
+    }
+    const online = async (request: Request) => {
+      const response = await request(
+        `/chat/workspace/${world.workspaceId}/presence`,
+      );
+      expect(response.status).toBe(200);
+      return ((await response.json()) as { online: string[] }).online.sort();
+    };
+
+    // The owner shares project P, the colleague channel X; the teammate
+    // shares nothing with the guest.
+    expect(await online(world.guestRequest)).toEqual(
+      [world.owner.userId, colleague.userId, world.guest.userId].sort(),
+    );
+    expect(await online(world.ownerRequest)).toEqual(
+      people.map(([, userId]) => userId).sort(),
+    );
   });
 
   it("lets a guest hold direct messages only with people they work with", async () => {

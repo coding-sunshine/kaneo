@@ -25,6 +25,7 @@ export async function postMessage(
     workspaceId,
     channelId,
     messageId: message.id,
+    userId,
   });
-  return message;
+  return { ...message, reactions: [] };
 }

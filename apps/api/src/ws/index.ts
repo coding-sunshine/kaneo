@@ -39,6 +39,7 @@ import {
   deliverToLocalChatConnections,
   listChatConnections,
 } from "./chat-connections";
+import { findUnreadRecipients } from "./chat-unread-recipients";
 import { InMemoryBroadcastAdapter } from "./in-memory-broadcast-adapter";
 import { RedisBroadcastAdapter } from "./redis-broadcast-adapter";
 import { getProjectReadAccess } from "./project-read-access";
@@ -117,7 +118,8 @@ export function broadcastToUser(userId: string, message: UserBroadcastMessage) {
 
 /**
  * Tells every reader watching a chat channel, on this and other instances,
- * that its messages changed. Local sockets never wait on Redis fan-out.
+ * that it has a new message, or that a message changed. Local sockets never
+ * wait on Redis fan-out.
  */
 export async function broadcastToChatChannel(
   channelId: string,
@@ -1269,12 +1271,31 @@ subscribeToEvent<{
   });
 });
 
-subscribeToEvent<{ channelId: string }>(
+subscribeToEvent<{ channelId: string; workspaceId: string; userId?: string }>(
   "chat.message_created",
-  async ({ channelId }) => {
-    if (channelId) await broadcastToChatChannel(channelId);
+  async ({ channelId, workspaceId, userId }) => {
+    if (!channelId) return;
+    await broadcastToChatChannel(channelId);
+    // The hint names only the workspace, so it says nothing about the channel.
+    for (const memberId of await findUnreadRecipients(channelId, userId))
+      broadcastToUser(memberId, { type: "CHAT_UNREAD_CHANGED", workspaceId });
   },
 );
+
+// A read refreshes the reader's own other tabs, and nobody else's.
+subscribeToEvent<{ workspaceId: string; userId: string }>(
+  "chat.channel_read",
+  async ({ workspaceId, userId }) => {
+    broadcastToUser(userId, { type: "CHAT_UNREAD_CHANGED", workspaceId });
+  },
+);
+
+// Edits, pins, reactions, link previews and deletes: readers refetch the history and the pinned list.
+for (const event of ["chat.message_updated", "chat.message_deleted"])
+  subscribeToEvent<{ channelId: string }>(event, async ({ channelId }) => {
+    if (channelId)
+      await broadcastToChatChannel(channelId, "CHAT_MESSAGE_UPDATED");
+  });
 
 // Rings each channel member on every device; the caller is already in.
 subscribeToEvent<{
@@ -1295,11 +1316,3 @@ subscribeToEvent<{
       callerName: data.callerName,
     });
 });
-
-subscribeToEvent<{ channelId: string }>(
-  "chat.message_updated",
-  async ({ channelId }) => {
-    if (channelId)
-      await broadcastToChatChannel(channelId, "CHAT_MESSAGE_UPDATED");
-  },
-);

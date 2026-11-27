@@ -1,24 +1,30 @@
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { LinkPreviewCard } from "@/components/chat/link-preview-card";
-import { MessageBody } from "@/components/chat/message-body";
+import { MessageItem } from "@/components/chat/message-item";
 import type { ChatMessage } from "@/components/chat/types";
 
-/** `focusId` is a message opened from search: shown in place, not followed. */
+type MessageListProps = {
+  messages: ChatMessage[];
+  /** A message opened from search: shown in place, not followed. */
+  focusId?: string;
+  workspaceId: string;
+  channelId: string;
+  currentUserId: string | undefined;
+  /** Whether the reader may change messages here: a member of an open channel. */
+  canWrite: boolean;
+  /** Authors to mark online; only set while the reader's presence is on. */
+  online?: Set<string>;
+  onRemovePreview?: (messageId: string) => void;
+};
+
 export function MessageList({
   messages,
+  online,
   focusId,
-  currentUserId,
-  onRemovePreview,
-}: {
-  messages: ChatMessage[];
-  focusId?: string;
-  currentUserId?: string;
-  onRemovePreview?: (messageId: string) => void;
-}) {
-  const { t, i18n } = useTranslation();
+  ...item
+}: MessageListProps) {
+  const { t } = useTranslation();
   const end = useRef<HTMLDivElement>(null);
-  const focused = useRef<HTMLLIElement>(null);
   const last = messages.at(-1)?.id;
   const hasFocus = messages.some((message) => message.id === focusId);
 
@@ -28,10 +34,6 @@ export function MessageList({
     if (hasFocus) return;
     if (last) end.current?.scrollIntoView({ block: "end" });
   }, [last, hasFocus]);
-
-  useEffect(() => {
-    if (hasFocus) focused.current?.scrollIntoView({ block: "center" });
-  }, [hasFocus, focusId]);
 
   if (messages.length === 0)
     return (
@@ -46,38 +48,13 @@ export function MessageList({
       aria-label={t("navigation:chat.messages")}
     >
       {messages.map((message) => (
-        <li
+        <MessageItem
           key={message.id}
-          ref={message.id === focusId ? focused : undefined}
-          aria-current={message.id === focusId ? true : undefined}
-          className="flex flex-col gap-0.5 rounded-md aria-[current=true]:bg-accent aria-[current=true]:px-2 aria-[current=true]:py-1"
-        >
-          <span className="flex items-baseline gap-2 text-xs">
-            <span className="font-medium">
-              {message.authorName ?? t("navigation:chat.deletedUser")}
-            </span>
-            <time
-              dateTime={new Date(message.createdAt).toISOString()}
-              className="text-muted-foreground"
-            >
-              {new Date(message.createdAt).toLocaleString(i18n.language, {
-                dateStyle: "short",
-                timeStyle: "short",
-              })}
-            </time>
-          </span>
-          <MessageBody body={message.body} />
-          {message.linkPreview && (
-            <LinkPreviewCard
-              preview={message.linkPreview}
-              onRemove={
-                onRemovePreview && message.userId === currentUserId
-                  ? () => onRemovePreview(message.id)
-                  : undefined
-              }
-            />
-          )}
-        </li>
+          message={message}
+          online={Boolean(message.userId && online?.has(message.userId))}
+          focused={message.id === focusId}
+          {...item}
+        />
       ))}
       <div ref={end} />
     </ol>

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getApiUrl } from "@/fetchers/get-api-url";
 import { channelKey } from "@/hooks/queries/chat/use-channel";
 import { messagesKey } from "@/hooks/queries/chat/use-messages";
+import { pinsKey } from "@/hooks/queries/chat/use-pins";
 
 export function getChatWsUrl(channelId: string) {
   const wsBase = getApiUrl("ws").replace(/^http/, "ws");
@@ -14,7 +15,8 @@ const MAX_RETRY_DELAY = 30_000;
 const WS_PING_INTERVAL_MS = 30_000;
 
 /**
- * Watches one channel and refetches its messages when one is posted or changes.
+ * Watches one channel and refetches its messages when one is posted, edited,
+ * pinned, reacted to, previewed or deleted.
  * Returns whether the socket is open, so callers poll only while it is not.
  */
 export function useChatChannelSocket(
@@ -73,12 +75,14 @@ export function useChatChannelSocket(
             type?: string;
             channelId?: string;
           };
-          if (
-            (message.type === "CHAT_MESSAGE_CREATED" ||
-              message.type === "CHAT_MESSAGE_UPDATED") &&
-            message.channelId === channelId
-          )
+          if (message.channelId !== channelId) return;
+          if (message.type === "CHAT_MESSAGE_CREATED") refetchMessages();
+          if (message.type === "CHAT_MESSAGE_UPDATED") {
             refetchMessages();
+            void queryClient.invalidateQueries({
+              queryKey: pinsKey(workspaceId, channelId),
+            });
+          }
         } catch {
           // Ignore malformed messages.
         }

@@ -89,7 +89,7 @@ describe("useChatChannelSocket", () => {
     expect(client.invalidateQueries).toHaveBeenCalledWith(messages);
   });
 
-  it("refetches messages when one changes, such as a new link preview", () => {
+  it("refetches messages and pins when one changes, such as an edit, pin or link preview", () => {
     render();
     act(() => latest().open());
     client.invalidateQueries.mockClear();
@@ -103,6 +103,9 @@ describe("useChatChannelSocket", () => {
       }),
     );
     expect(client.invalidateQueries).toHaveBeenCalledWith(messages);
+    expect(client.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["chat-pins", "ws-1", "channel-1"],
+    });
   });
 
   it("catches up on messages it missed after reconnecting", () => {

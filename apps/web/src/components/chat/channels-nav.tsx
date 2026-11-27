@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, Compass } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { ChannelIcon } from "@/components/chat/channel-icon";
+import { ChannelNavItem } from "@/components/chat/channel-nav-item";
 import {
   Collapsible,
   CollapsiblePanel,
@@ -48,19 +48,11 @@ export function ChannelsNav({ workspaceId }: { workspaceId: string }) {
           <SidebarGroupContent>
             <SidebarMenu className="gap-px">
               {joined.map((channel) => (
-                <SidebarMenuItem key={channel.id}>
-                  <SidebarMenuButton
-                    render={
-                      <Link
-                        to="/dashboard/workspace/$workspaceId/channels/$channelId"
-                        params={{ workspaceId, channelId: channel.id }}
-                      />
-                    }
-                  >
-                    <ChannelIcon isPrivate={channel.isPrivate} />
-                    <span className="min-w-0 truncate">{channel.name}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                <ChannelNavItem
+                  key={channel.id}
+                  workspaceId={workspaceId}
+                  channel={channel}
+                />
               ))}
               <SidebarMenuItem>
                 <SidebarMenuButton
