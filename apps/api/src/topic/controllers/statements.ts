@@ -66,8 +66,11 @@ const notFound = () =>
  * Writes statements for the present text of a document that is filed on the
  * slots' topic. Each one is checked on its own and none fails the others: the
  * slot must be the topic's, the quote must be in the text and the value must
- * fit the slot. A slot keeps the statement it has, unless `replace` is set and
- * nobody confirmed it.
+ * fit the slot. A value the slot already has keeps its statement. With
+ * `replace` (a person) a new value replaces the slot's proposal, never a
+ * confirmed statement. Without it (the model) a new value is added beside the
+ * model's own proposals, as a long text can state two values for one fact;
+ * a free-text slot keeps the first value found.
  */
 export async function proposeStatements(
   doc: Text,
@@ -105,8 +108,13 @@ export async function proposeStatements(
       source,
       createdBy: userId,
     };
-    const [existing] = await db
-      .select({ id: statementTable.id, status: statementTable.status })
+    const held = await db
+      .select({
+        id: statementTable.id,
+        status: statementTable.status,
+        source: statementTable.source,
+        normalized: statementTable.normalized,
+      })
       .from(statementTable)
       .where(
         and(
@@ -115,9 +123,21 @@ export async function proposeStatements(
           eq(statementTable.contentHash, contentHash),
           ne(statementTable.status, "rejected"),
         ),
-      );
-    if (existing && (!replace || existing.status === "confirmed")) {
-      results.push({ slot: slot.key, result: "exists", id: existing.id });
+      )
+      .orderBy(asc(statementTable.createdAt));
+    const same = held.find((row) => row.normalized === normalized);
+    const existing = replace ? (same ?? held[0]) : same;
+    const kept = replace
+      ? existing?.status === "confirmed"
+      : existing !== undefined ||
+        (held.length > 0 &&
+          (slot.type === "term" ||
+            held.some(
+              (row) => row.source !== "model" || row.status !== "proposed",
+            )));
+    if (kept) {
+      const id = existing?.id ?? held[0]?.id;
+      results.push({ slot: slot.key, result: "exists", id });
       continue;
     }
     if (existing) {
@@ -147,7 +167,7 @@ export async function proposeStatements(
         documentId: doc.id,
         contentHash,
       })
-      // Two writers at once: the slot keeps the first statement.
+      // Two writers at once: the value keeps the first statement.
       .onConflictDoNothing()
       .returning({ id: statementTable.id });
     results.push({
@@ -370,10 +390,8 @@ export async function confirmStatement(
   await changingTopic(topicId, async (tx) => {
     // Read again under the topic's lock: a reject or an edit that landed
     // while this request waited decides what happens now.
-    const { status, contentHash, doc } = await lockedStatement(
-      tx,
-      statement.id,
-    );
+    const { status, contentHash, slotId, documentId, doc } =
+      await lockedStatement(tx, statement.id);
     if (status === "rejected") {
       throw new HTTPException(409, {
         message: "A rejected statement cannot be confirmed. Write it again",
@@ -386,6 +404,25 @@ export async function confirmStatement(
     if (!texts.includes(contentHash)) {
       throw new HTTPException(409, {
         message: "The document changed after this statement was written",
+      });
+    }
+    // A text that states two values for one fact has one confirmed value.
+    const [other] = await tx
+      .select({ id: statementTable.id })
+      .from(statementTable)
+      .where(
+        and(
+          eq(statementTable.slotId, slotId),
+          eq(statementTable.documentId, documentId),
+          eq(statementTable.contentHash, contentHash),
+          eq(statementTable.status, "confirmed"),
+          ne(statementTable.id, statement.id),
+        ),
+      );
+    if (other) {
+      throw new HTTPException(409, {
+        message:
+          "The document has a confirmed statement for this slot. Reject it first",
       });
     }
     if (status === "proposed") {
@@ -405,6 +442,7 @@ async function lockedStatement(tx: Transaction, statementId: string) {
       status: statementTable.status,
       contentHash: statementTable.contentHash,
       documentId: statementTable.documentId,
+      slotId: statementTable.slotId,
     })
     .from(statementTable)
     .where(eq(statementTable.id, statementId))

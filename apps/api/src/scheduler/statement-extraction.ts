@@ -152,8 +152,9 @@ export async function extractFiledDocuments() {
       MAX_CHARACTERS,
       OVERLAP,
     ).slice(0, MAX_PARTS);
-    // Each slot keeps the first statement found, so later parts only ask
-    // about the slots that are still empty.
+    // Every part is asked about every slot, so a later part that states
+    // another value is seen too. A free-text slot keeps the first wording
+    // found: later parts are not asked about it.
     let open = topicSlots;
     let readable = false;
     let failed = false;
@@ -193,7 +194,9 @@ export async function extractFiledDocuments() {
             .filter(({ result }) => result === "added" || result === "exists")
             .map(({ slot }) => slot),
         );
-        open = open.filter((slot) => !filled.has(slot.key));
+        open = open.filter(
+          (slot) => slot.type !== "term" || !filled.has(slot.key),
+        );
       }
       if (open.length === 0) break;
     }

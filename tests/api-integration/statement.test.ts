@@ -760,7 +760,7 @@ describe("API integration: statement extraction job", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("reads a long document part by part and asks later parts only about the empty slots", async () => {
+  it("reads a long document part by part and asks every part about every slot", async () => {
     const world = await buildDocumentWorld();
     const api = filing(world);
     const topicId = await api.topic();
@@ -784,12 +784,55 @@ describe("API integration: statement extraction job", () => {
     expect(first).toContain(LAUNCH);
     expect(first).not.toContain(PRICE);
     expect(second).toContain(PRICE);
-    expect(second).not.toContain("launch_date");
+    expect(second).toContain("launch_date");
     expect((await api.statementsOf(docId)).map((s) => s.slot)).toEqual([
       "launch_date",
       "price",
     ]);
     expect(await extractions()).toHaveLength(1);
+  });
+
+  it("stores a later part's other value for a slot an earlier part filled", async () => {
+    const world = await buildDocumentWorld();
+    const api = filing(world);
+    const topicId = await api.topic();
+    await api.addSlot(topicId, { name: "Launch date", type: "date" });
+    await api.addSlot(topicId, { name: "Price", type: "number" });
+    const filler = `<p>${"Nothing to report. ".repeat(700)}</p>`;
+    const MOVED = "Launch moves to 9 April 2027.";
+    const docId = await api.filed(
+      topicId,
+      "Long plan",
+      `<p>${LAUNCH}</p>${filler}${filler}<p>${MOVED}</p>`,
+    );
+    // Each part is answered by what it holds, whatever order it is sent in.
+    fetchMock.mockImplementation(
+      async (_url: string, init: { body: string }) => {
+        const asked = JSON.parse(init.body).messages[1].content as string;
+        if (asked.includes(LAUNCH)) return answer([WHEN]);
+        if (asked.includes(MOVED)) {
+          return answer([
+            { slot: "launch_date", value: "2027-04-09", quote: "9 April 2027" },
+          ]);
+        }
+        return answer([]);
+      },
+    );
+    await run();
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    const dates = (await api.statementsOf(docId))
+      .filter((statement) => statement.slot === "launch_date")
+      .map((statement) => statement.value)
+      .sort();
+    expect(dates).toEqual(["2027-03-05", "2027-04-09"]);
+
+    // One value of the two is confirmed, never both.
+    const [first, other] = (await api.statementsOf(docId)).filter(
+      (statement) => statement.slot === "launch_date",
+    );
+    expect((await api.decide(docId, first!.id, "confirm")).status).toBe(200);
+    expect((await api.decide(docId, other!.id, "confirm")).status).toBe(409);
   });
 
   it("stops at the workspace's daily token cap", async () => {

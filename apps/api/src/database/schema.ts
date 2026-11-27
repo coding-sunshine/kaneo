@@ -3535,10 +3535,11 @@ export const statementTable = pgTable(
   },
   (table) => [
     index("statement_document_idx").on(table.documentId),
-    // One statement a slot for each text of a document. Rejected ones stay
-    // as a record beside it.
+    // One statement a value of a slot for each text of a document: a long
+    // text can state two values for one fact. Rejected ones stay as a record
+    // beside them.
     uniqueIndex("statement_slot_document_hash_uidx")
-      .on(table.slotId, table.documentId, table.contentHash)
+      .on(table.slotId, table.documentId, table.contentHash, table.normalized)
       .where(sql`${table.status} <> 'rejected'`),
     check(
       "statement_rejected_has_reason",
