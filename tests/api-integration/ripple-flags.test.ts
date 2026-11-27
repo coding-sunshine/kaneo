@@ -644,6 +644,48 @@ describe("API integration: ripple flags", () => {
     await expectStatus(await drop(), 200);
   });
 
+  it("refuses a team delete that lands while a link outside the team is written", async () => {
+    const s = await setup();
+    const { world, r, topicId, docId, cost } = s;
+    const waiting = async () =>
+      (
+        await db.execute(
+          sql`select 1 from pg_locks l join pg_stat_activity a on a.pid = l.pid where not l.granted and a.datname = current_database()`,
+        )
+      ).rows.length;
+    let linking: Promise<Response> | undefined;
+    let dropping: Promise<Response> | undefined;
+    let dropped = false;
+    // The link has checked the price and waits to write its row, which names
+    // the issue held here. The delete starts meanwhile.
+    await db.transaction(async (tx) => {
+      await tx
+        .select({ id: schema.taskTable.id })
+        .from(schema.taskTable)
+        .where(eq(schema.taskTable.id, world.betaTask.id))
+        .for("update");
+      linking = r.depend(docId, cost.id, { taskId: world.betaTask.id });
+      await vi.waitFor(async () => expect(await waiting()).toBe(1));
+      dropping = world
+        .as(world.owner)(`/project/${world.alpha.id}`, json("DELETE"))
+        .then((response) => {
+          dropped = true;
+          return response;
+        });
+      await vi.waitFor(async () =>
+        expect(dropped || (await waiting()) >= 2).toBe(true),
+      );
+    });
+
+    await expectStatus((await linking) as Response, 200);
+    await expectStatus((await dropping) as Response, 409);
+    const [topic] = await db
+      .select({ id: topicTable.id })
+      .from(topicTable)
+      .where(eq(topicTable.id, topicId));
+    expect(topic?.id).toBe(topicId);
+  });
+
   it("refuses to delete a work project while other work relies on its topics' facts", async () => {
     const world = await buildDocumentWorld();
     const api = filing(world);

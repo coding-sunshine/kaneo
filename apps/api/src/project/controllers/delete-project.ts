@@ -10,11 +10,12 @@ import getProject from "./get-project";
 
 async function deleteProject(id: string, workspaceId: string) {
   const existingProject = await getProject(id, workspaceId);
-  await assertUnrelied({ projectId: id });
 
   const parents = await getProjectSubtaskParentProjects(id);
 
   const deletedProject = await db.transaction(async (tx) => {
+    // Locks the topics first, as every topic path does.
+    await assertUnrelied(tx, { projectId: id });
     // Lock the owner before collecting keys so uploads cannot race the cascade.
     const [project] = await tx
       .select()

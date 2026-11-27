@@ -12,8 +12,10 @@ import type { createMilestoneBody, updateMilestoneBody } from "../schema";
 import { loadMilestone } from "./load-work-projects";
 
 export async function deleteWorkProject(id: string) {
-  await assertUnrelied({ workProjectId: id });
-  await db.delete(workProjectTable).where(eq(workProjectTable.id, id));
+  await db.transaction(async (tx) => {
+    await assertUnrelied(tx, { workProjectId: id });
+    await tx.delete(workProjectTable).where(eq(workProjectTable.id, id));
+  });
   return { id };
 }
 
