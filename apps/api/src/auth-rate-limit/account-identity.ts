@@ -3,6 +3,17 @@ import { parseCookies } from "better-auth/cookies";
 
 const MAX_BODY_LENGTH = 16_384;
 
+// Paths where the email in the body is the account the request acts on.
+// Anywhere else (an invitee, a new address) it says nothing about the caller.
+const EMAIL_ACCOUNT_PATHS = [
+  "/sign-in/email",
+  "/sign-in/magic-link",
+  "/email-otp/",
+  "/request-password-reset",
+  "/forget-password",
+  "/send-verification-email",
+];
+
 const hash = (value: string) =>
   createHash("sha256").update(value).digest("base64url");
 
@@ -28,20 +39,25 @@ async function readEmail(request: Request) {
 }
 
 /**
- * The account a request acts on: the email it names, else the value of the
- * session or pending two-factor cookie. Only those named cookies count, so
- * adding junk cookies cannot open a fresh bucket. Null when there is none.
+ * Every account a request names: the email on sign-in and recovery paths,
+ * and the values of the session and pending two-factor cookies. The caller
+ * charges each one, so changing one of them never opens a fresh limit while
+ * another stays the same. Only the named cookies count. Empty when none.
  */
-export async function readAccountIdentity(
+export async function readAccountIdentities(
   request: Request,
+  path: string,
   cookieNames: string[],
 ) {
-  const email = await readEmail(request);
-  if (email) return `email:${hash(email)}`;
+  const identities: string[] = [];
+  if (EMAIL_ACCOUNT_PATHS.some((prefix) => path.startsWith(prefix))) {
+    const email = await readEmail(request);
+    if (email) identities.push(`email:${hash(email)}`);
+  }
   const cookies = parseCookies(request.headers.get("cookie") ?? "");
   for (const name of cookieNames) {
     const value = cookies.get(name);
-    if (value) return `cookie:${hash(value)}`;
+    if (value) identities.push(`${name}:${hash(value)}`);
   }
-  return null;
+  return identities;
 }

@@ -123,6 +123,51 @@ describe("auth rate limits without TRUSTED_PROXIES", () => {
     expect(otherSignIn.status).not.toBe(429);
   });
 
+  it("charges the session when each request names another email", async () => {
+    const context = await auth.$context;
+    const sessionCookie = context.authCookies.sessionToken.name;
+    let n = 0;
+    const guesses = await statuses(app, 4, () => ({
+      path: "/api/auth/two-factor/generate-backup-codes",
+      body: JSON.stringify({
+        password: "wrong-password-123",
+        code: "000000",
+        email: `rotated-${n++}@example.test`,
+      }),
+      cookie: `${sessionCookie}=one-session`,
+    }));
+    expect(guesses[3]).toBe(429);
+  });
+
+  it("charges the pending sign-in when the session cookie changes", async () => {
+    const context = await auth.$context;
+    const sessionCookie = context.authCookies.sessionToken.name;
+    const twoFactorCookie = context.createAuthCookie("two_factor").name;
+    let n = 0;
+    const guesses = await statuses(app, 4, () => ({
+      path: "/api/auth/two-factor/verify-totp",
+      body: JSON.stringify({ code: "000000" }),
+      cookie: `${twoFactorCookie}=one-sign-in; ${sessionCookie}=junk-${n++}`,
+    }));
+    expect(guesses[3]).toBe(429);
+  });
+
+  it("counts invitations per inviter, not per invitee", async () => {
+    const context = await auth.$context;
+    const sessionCookie = context.authCookies.sessionToken.name;
+    let n = 0;
+    const invites = await statuses(app, 6, () => ({
+      path: "/api/auth/organization/invite-member",
+      body: JSON.stringify({
+        email: `invitee-${n++}@example.test`,
+        role: "member",
+      }),
+      cookie: `${sessionCookie}=one-inviter`,
+    }));
+    expect(invites.slice(0, 5)).not.toContain(429);
+    expect(invites[5]).toBe(429);
+  });
+
   it("keeps the shared limit for requests that name no account", async () => {
     const anonymous = await statuses(app, 4, () => ({
       path: "/api/auth/sign-in/social",
