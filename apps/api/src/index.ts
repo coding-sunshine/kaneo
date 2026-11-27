@@ -75,6 +75,7 @@ import agent from "./agent";
 import { setSelfFetch } from "./agent/self-client";
 import loop from "./loop";
 import chat from "./chat";
+import { callsConfigured, logCallsOffOnce } from "./chat/call/call-config";
 import { findChannelWorkspace } from "./chat/controllers/find-channel-workspace";
 import { loadChannel } from "./chat/controllers/load-channel";
 import savedView from "./saved-view";
@@ -1208,6 +1209,7 @@ export async function startServer(
       console.log(
         `⚡ API is running at ${process.env.KANEO_API_URL || "http://localhost:1337"}`,
       );
+      if (!callsConfigured()) logCallsOffOnce();
     },
   );
 

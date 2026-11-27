@@ -24,6 +24,7 @@ function notFound(hostname: string) {
 
 export function createDestinationLookup(
   resolve: ResolveAll = dns.lookup,
+  allowPrivate: () => boolean = privateDestinationsAllowed,
 ): LookupFunction {
   return (hostname, options, callback) => {
     resolve(
@@ -37,7 +38,7 @@ export function createDestinationLookup(
       (error, addresses) => {
         if (error) return callback(error, []);
         const blocked =
-          !privateDestinationsAllowed() &&
+          !allowPrivate() &&
           addresses.some(({ address }) => isDisallowedAddress(address));
         if (blocked) return callback(blockedDestinationError(), []);
 

@@ -1,3 +1,4 @@
+import { callsConfigured } from "../chat/call/call-config";
 import { isSmtpConfigured } from "@kaneo/email";
 import { config } from "dotenv-mono";
 import { isAgentEnabled } from "../agent/openrouter";
@@ -68,6 +69,7 @@ function getSettings(
     customOAuthAccountUrl: parseCustomOAuthAccountUrl(),
     billingEnabled: isBillingAvailable(),
     hasAgent: isAgentEnabled(),
+    hasCalls: callsConfigured(),
   };
 }
 

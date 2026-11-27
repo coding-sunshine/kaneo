@@ -1,3 +1,4 @@
+import { CallRoom } from "@/components/call/call-room";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { needsTwoFactorSetup } from "@/components/auth/two-factor-state";
 import { GlobalShortcuts } from "@/components/shortcuts/global-shortcuts";
@@ -59,6 +60,7 @@ function AuthenticatedLayout() {
     <>
       <GlobalShortcuts />
       <Outlet />
+      <CallRoom />
     </>
   );
 }

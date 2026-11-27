@@ -26,6 +26,7 @@ import type { AuditWebhookPayload } from "../admin/webhooks/audit-webhook-payloa
 import type { GitHubImportState } from "../github-integration/import-state";
 import type { ImportRunProject } from "../import/import-run-project";
 import type { TaskRecurrence } from "../task/recurrence/schema";
+import type { LinkPreview } from "../chat/link-preview/link-preview-type";
 
 // Timestamp columns without a time zone hold UTC (Drizzle reads and writes
 // them as UTC). A bare now() default would be cast through the session time
@@ -3434,6 +3435,8 @@ export const chatMessageTable = pgTable(
       onUpdate: "cascade",
     }),
     body: text("body").notNull(),
+    // Filled after posting from the first web link; the author can remove it.
+    linkPreview: jsonb("link_preview").$type<LinkPreview>(),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),

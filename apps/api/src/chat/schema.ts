@@ -33,6 +33,8 @@ export const removedMemberSchema = z.object({
   userId: z.string(),
 });
 
+export const messageParam = channelParam.extend({ messageId: z.string() });
+
 export const listMessagesQuery = z.object({
   before: z.iso.datetime().optional().openapi({
     description: "Return messages posted before this time.",
@@ -78,6 +80,15 @@ export const channelDetailSchema = channelSchema
 export const channelListSchema = z.array(channelSchema);
 export const directMessageListSchema = z.array(channelDetailSchema);
 
+const linkPreviewSchema = z
+  .object({
+    url: z.string(),
+    title: z.string(),
+    description: z.string().nullable(),
+    siteName: z.string(),
+  })
+  .openapi("ChatLinkPreview");
+
 export const messageSchema = z
   .object({
     id: z.string(),
@@ -86,9 +97,26 @@ export const messageSchema = z
     authorName: z.string().nullable(),
     authorImage: z.string().nullable(),
     body: z.string(),
+    linkPreview: linkPreviewSchema.nullable().openapi({
+      description:
+        "A card for the first web link, added shortly after posting. Links inside code get none.",
+    }),
     createdAt: responseTimestamp,
   })
   .openapi("ChatMessage");
 
 export const messageListSchema = z.array(messageSchema);
 export const leftChannelSchema = z.object({ channelId: z.string() });
+
+export const callSessionSchema = z
+  .object({
+    serverUrl: z
+      .string()
+      .openapi({ description: "The LiveKit server to join." }),
+    roomName: z.string(),
+    token: z.string().openapi({
+      description:
+        "A LiveKit access token for this room only, valid for one minute. LiveKit renews it once connected.",
+    }),
+  })
+  .openapi("ChatCallSession");

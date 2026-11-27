@@ -1,8 +1,18 @@
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { LinkPreviewCard } from "@/components/chat/link-preview-card";
+import { MessageBody } from "@/components/chat/message-body";
 import type { ChatMessage } from "@/components/chat/types";
 
-export function MessageList({ messages }: { messages: ChatMessage[] }) {
+export function MessageList({
+  messages,
+  currentUserId,
+  onRemovePreview,
+}: {
+  messages: ChatMessage[];
+  currentUserId?: string;
+  onRemovePreview?: (messageId: string) => void;
+}) {
   const { t, i18n } = useTranslation();
   const end = useRef<HTMLDivElement>(null);
   const last = messages.at(-1)?.id;
@@ -40,9 +50,17 @@ export function MessageList({ messages }: { messages: ChatMessage[] }) {
               })}
             </time>
           </span>
-          <p className="whitespace-pre-wrap break-words text-sm">
-            {message.body}
-          </p>
+          <MessageBody body={message.body} />
+          {message.linkPreview && (
+            <LinkPreviewCard
+              preview={message.linkPreview}
+              onRemove={
+                onRemovePreview && message.userId === currentUserId
+                  ? () => onRemovePreview(message.id)
+                  : undefined
+              }
+            />
+          )}
         </li>
       ))}
       <div ref={end} />

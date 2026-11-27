@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { CallButton } from "@/components/chat/call-button";
 import { ChannelActions } from "@/components/chat/channel-actions";
 import { ChannelIcon } from "@/components/chat/channel-icon";
 import type { ChatChannelDetail } from "@/components/chat/types";
@@ -38,6 +39,10 @@ export function ChannelHeader({
       <span className="text-xs text-muted-foreground">
         {t("navigation:chat.memberCount", { count: channel.memberIds.length })}
       </span>
+      <CallButton
+        workspaceId={workspaceId}
+        channel={{ ...channel, name: title }}
+      />
       {!channel.isDirect && (
         <ChannelActions workspaceId={workspaceId} channel={channel} />
       )}

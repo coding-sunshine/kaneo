@@ -13,7 +13,7 @@ import {
   userTable,
   workspaceUserTable,
 } from "../database/schema";
-import { subscribeToEvent } from "../events";
+import { publishEvent, subscribeToEvent } from "../events";
 import { findInaccessibleProjectIds } from "../project-access/find-inaccessible-project-ids";
 import { filterUsersWithProjectAccess } from "../project-access/filter-users-with-project-access";
 import { listWorkspaceProjectIds } from "../project-access/list-workspace-project-ids";
@@ -117,10 +117,15 @@ export function broadcastToUser(userId: string, message: UserBroadcastMessage) {
 
 /**
  * Tells every reader watching a chat channel, on this and other instances,
- * that it has a new message. Local sockets never wait on Redis fan-out.
+ * that its messages changed. Local sockets never wait on Redis fan-out.
  */
-export async function broadcastToChatChannel(channelId: string) {
-  const message = { type: "CHAT_MESSAGE_CREATED", channelId };
+export async function broadcastToChatChannel(
+  channelId: string,
+  type:
+    | "CHAT_MESSAGE_CREATED"
+    | "CHAT_MESSAGE_UPDATED" = "CHAT_MESSAGE_CREATED",
+) {
+  const message = { type, channelId };
   await deliverToLocalChatConnections(channelId, message);
   try {
     await adapter?.publishToChat({ channelId, message, origin: INSTANCE_ID });
@@ -670,6 +675,16 @@ export async function revokeWorkspaceConnections(
     } catch (error) {
       console.error("Failed to read role after membership removal:", error);
     }
+  }
+  // Calls run outside Kaneo, so closing sockets alone would leave them in.
+  // Revoking sockets must not depend on it.
+  try {
+    await publishEvent("chat.workspace_access_revoked", {
+      userId,
+      workspaceId,
+    });
+  } catch (error) {
+    console.error("Failed to end workspace calls for a removed member:", error);
   }
   const reason = options.reason ? { reason: options.reason } : {};
   deliverToLocalUserConnections(userId, {
@@ -1258,5 +1273,33 @@ subscribeToEvent<{ channelId: string }>(
   "chat.message_created",
   async ({ channelId }) => {
     if (channelId) await broadcastToChatChannel(channelId);
+  },
+);
+
+// Rings each channel member on every device; the caller is already in.
+subscribeToEvent<{
+  workspaceId: string;
+  channelId: string;
+  channelName: string;
+  isDirect: boolean;
+  callerName: string;
+  recipientIds: string[];
+}>("chat.call_started", async (data) => {
+  for (const userId of data.recipientIds)
+    broadcastToUser(userId, {
+      type: "CALL_RINGING",
+      workspaceId: data.workspaceId,
+      channelId: data.channelId,
+      channelName: data.channelName,
+      isDirect: data.isDirect,
+      callerName: data.callerName,
+    });
+});
+
+subscribeToEvent<{ channelId: string }>(
+  "chat.message_updated",
+  async ({ channelId }) => {
+    if (channelId)
+      await broadcastToChatChannel(channelId, "CHAT_MESSAGE_UPDATED");
   },
 );

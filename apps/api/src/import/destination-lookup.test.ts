@@ -101,6 +101,15 @@ describe("createDestinationLookup", () => {
     );
   });
 
+  it("keeps private addresses out for callers that never allow them", async () => {
+    vi.stubEnv("KANEO_ALLOW_PRIVATE_WEBHOOK_DESTINATIONS", "true");
+    const lookup = createDestinationLookup(resolver([PRIVATE_V4]), () => false);
+
+    await expect(lookupOne(lookup, "rebind.example.com")).rejects.toMatchObject(
+      { code: BLOCKED_DESTINATION_CODE },
+    );
+  });
+
   it("passes resolver failures through", async () => {
     const failure = Object.assign(new Error("getaddrinfo ENOTFOUND"), {
       code: "ENOTFOUND",

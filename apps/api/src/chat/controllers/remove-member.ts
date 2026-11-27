@@ -5,6 +5,7 @@ import {
   chatChannelMemberTable,
   chatChannelTable,
 } from "../../database/schema";
+import { publishEvent } from "../../events";
 
 // An admin takes someone out of a channel. Every chat read checks membership,
 // so the person loses the channel with their next request.
@@ -45,5 +46,11 @@ export async function removeMember(
     .returning({ userId: chatChannelMemberTable.userId });
   if (removed.length === 0)
     throw new HTTPException(404, { message: "Member not found" });
+  // Calls run outside Kaneo, so they need telling too.
+  await publishEvent("chat.member_left", {
+    workspaceId,
+    channelId,
+    userId: memberId,
+  });
   return { channelId, userId: memberId };
 }
