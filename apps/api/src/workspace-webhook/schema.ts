@@ -36,7 +36,14 @@ export const webhookSchema = z
     url: z.string(),
     enabled: z.boolean(),
     resourceTypes: z.array(z.string()),
-    projectIds: z.array(z.string()),
+    projectIds: z.array(z.string()).openapi({
+      description:
+        "The teams events come from, among those the caller can open. Empty with no hidden teams means every team.",
+    }),
+    hiddenProjectCount: z.number().int().openapi({
+      description:
+        "How many teams in the filter the caller cannot open. They are kept when the caller saves the filter.",
+    }),
     createdBy: z.string().nullable(),
     createdAt: z.string(),
   })

@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, ne } from "drizzle-orm";
+import { and, asc, eq, inArray, ne, sql } from "drizzle-orm";
 import db from "../../database";
 import {
   documentShareTable,
@@ -11,7 +11,7 @@ import {
   userTable,
 } from "../../database/schema";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
-import { topicAccess } from "../visibility";
+import { documentVisibility, topicAccess } from "../visibility";
 import { readLineage } from "./lineage";
 import { documentParentName, openParentId } from "./list-documents";
 import { loadDocument } from "./load-document";
@@ -59,6 +59,20 @@ export async function getDocument(
         projectId: openParentId(userId, documentTable.projectId),
         taskId: openParentId(userId, documentTable.taskId),
         topicName: topicTable.name,
+        supersedesDocumentId: sql<string | null>`(
+          SELECT replaced_document.id FROM document AS replaced_document
+          WHERE replaced_document.id = ${documentTable.supersedesDocumentId}
+            AND replaced_document.workspace_id = ${documentTable.workspaceId}
+            AND ${documentVisibility(userId, {
+              id: sql`replaced_document.id`,
+              workspaceId: sql`replaced_document.workspace_id`,
+              creatorId: sql`replaced_document.creator_id`,
+              scope: sql`replaced_document.scope`,
+              projectId: sql`replaced_document.project_id`,
+              workProjectId: sql`replaced_document.work_project_id`,
+              taskId: sql`replaced_document.task_id`,
+            })}
+        )`,
       })
       .from(documentTable)
       .leftJoin(
@@ -132,8 +146,9 @@ export async function getDocument(
     sourceClient: doc.sourceClient,
     topicId: topicName === null ? null : doc.topicId,
     topicName,
-    // It was current on the same topic, so it is named to the same people.
-    supersedesDocumentId: topicName === null ? null : doc.supersedesDocumentId,
+    // Named only to someone who can open the topic and the replaced document.
+    supersedesDocumentId:
+      topicName === null ? null : (parent?.supersedesDocumentId ?? null),
     filedAt: doc.filedAt,
     statusReason: doc.statusReason,
     approvedById: doc.approvedBy,

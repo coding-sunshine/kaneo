@@ -3164,7 +3164,9 @@
 				"project": "Teams and projects",
 				"task": "Issues"
 			},
-			"url": "URL"
+			"url": "URL",
+			"hiddenTeams_one": "{{count}} team you cannot open",
+			"hiddenTeams_other": "{{count}} teams you cannot open"
 		},
 		"aiUsage": {
 			"budgets": "Budgets",
@@ -4732,7 +4734,8 @@
 			"openDocument": "Open document",
 			"unreadCount_one": "{{count}} unread notification",
 			"unreadCount_other": "{{count}} unread notifications"
-		}
+		},
+		"privateTopic": "Private topic"
 	},
 	"activity": {
 		"assignedToSelf": "Tapşırığı özünə təyin etdi",

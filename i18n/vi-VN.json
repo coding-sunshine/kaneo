@@ -3112,7 +3112,8 @@
 				"project": "Teams and projects",
 				"task": "Issues"
 			},
-			"url": "URL"
+			"url": "URL",
+			"hiddenTeams_other": "{{count}} teams you cannot open"
 		},
 		"aiUsage": {
 			"budgets": "Budgets",
@@ -4654,7 +4655,8 @@
 			"documentUnavailable": "This document is no longer available.",
 			"openDocument": "Open document",
 			"unreadCount_other": "{{count}} unread notifications"
-		}
+		},
+		"privateTopic": "Private topic"
 	},
 	"activity": {
 		"assignedToSelf": "đã tự giao công việc này cho mình",

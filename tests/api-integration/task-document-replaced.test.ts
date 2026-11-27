@@ -256,6 +256,31 @@ describe("API integration: telling the assignee that a linked document was repla
     expect(await told(limited, "document_replaced")).toEqual([]);
   });
 
+  it("leaves the topic unnamed for an assignee who cannot open its place", async () => {
+    const world = await buildDocumentWorld();
+    const { owner, limited } = world;
+    // A topic in team Beta, which `limited` cannot enter. The new document is
+    // shared with them by name, so they may hear of it.
+    const { topic, before, after } = await scene(world, world.beta.id);
+    await issue(world, world.alpha, 2, limited, [before]);
+    const shared = await world.as(owner)(
+      `/document/workspace/${world.ws}/${after}/share/${limited.id}`,
+      json("PUT", { access: "view" }),
+    );
+    expect(shared.status).toBe(200);
+
+    await makeCurrent(world, owner, topic.id, after);
+
+    const sent = await told(limited, "document_replaced");
+    expect(sent).toHaveLength(1);
+    expect(sent[0]).toMatchObject({
+      resourceId: after,
+      eventData: { taskNumber: 2, projectSlug: "alpha" },
+    });
+    expect(sent[0]?.eventData).not.toHaveProperty("topicName");
+    expect(sent[0]?.eventData).not.toHaveProperty("topicId");
+  });
+
   it("tells nobody who can no longer enter the issue's team", async () => {
     const world = await buildDocumentWorld();
     const { owner, limited } = world;

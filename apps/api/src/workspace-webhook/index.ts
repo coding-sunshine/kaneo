@@ -102,14 +102,21 @@ const deleteRoute = createRoute({
 
 const workspaceWebhook = apiRouter()
   .openapi(listRoute, async (c) =>
-    c.json(await listWebhooks(c.req.valid("param").workspaceId), 200),
+    c.json(
+      await listWebhooks(c.req.valid("param").workspaceId, c.get("userId")),
+      200,
+    ),
   )
   .openapi(createRoute_, async (c) =>
     c.json(await createWebhook(c.req.valid("json"), c.get("userId")), 200),
   )
   .openapi(updateRoute, async (c) =>
     c.json(
-      await updateWebhook(c.req.valid("param").id, c.req.valid("json")),
+      await updateWebhook(
+        c.req.valid("param").id,
+        c.req.valid("json"),
+        c.get("userId"),
+      ),
       200,
     ),
   )

@@ -39,6 +39,8 @@ function documentValues(
     actorName: eventData.actorName || t("common:people.someone"),
     documentTitle:
       eventData.documentTitle || t("navigation:documents.untitled"),
+    // Left out for someone who cannot open the topic's place.
+    topicName: eventData.topicName || t("notifications:privateTopic"),
   };
 }
 

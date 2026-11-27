@@ -3216,7 +3216,10 @@
 				"project": "Teams and projects",
 				"task": "Issues"
 			},
-			"url": "URL"
+			"url": "URL",
+			"hiddenTeams_many": "{{count}} teams you cannot open",
+			"hiddenTeams_one": "{{count}} team you cannot open",
+			"hiddenTeams_other": "{{count}} teams you cannot open"
 		},
 		"aiUsage": {
 			"budgets": "Budgets",
@@ -4811,7 +4814,8 @@
 			"unreadCount_many": "{{count}} unread notifications",
 			"unreadCount_one": "{{count}} unread notification",
 			"unreadCount_other": "{{count}} unread notifications"
-		}
+		},
+		"privateTopic": "Private topic"
 	},
 	"activity": {
 		"assignedToSelf": "atribuiu a tarefa a si mesmo",

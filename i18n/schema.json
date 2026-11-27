@@ -12727,6 +12727,24 @@
 						"allTeams": {
 							"type": "string"
 						},
+						"hiddenTeams_one": {
+							"type": "string"
+						},
+						"hiddenTeams_zero": {
+							"type": "string"
+						},
+						"hiddenTeams_two": {
+							"type": "string"
+						},
+						"hiddenTeams_few": {
+							"type": "string"
+						},
+						"hiddenTeams_many": {
+							"type": "string"
+						},
+						"hiddenTeams_other": {
+							"type": "string"
+						},
 						"enabled": {
 							"type": "string"
 						},
@@ -18884,6 +18902,9 @@
 				"clearDialogDescription": {
 					"type": "string"
 				},
+				"privateTopic": {
+					"type": "string"
+				},
 				"reminderLeadTime": {
 					"type": "object",
 					"additionalProperties": false,
@@ -19396,6 +19417,7 @@
 				"clearAll",
 				"clearDialogTitle",
 				"clearDialogDescription",
+				"privateTopic",
 				"reminderLeadTime",
 				"events",
 				"inbox"
