@@ -2769,7 +2769,12 @@
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "The teams events come from, among those the caller can open. Empty with no hidden teams means every team."
+          },
+          "hiddenProjectCount": {
+            "type": "integer",
+            "description": "How many teams in the filter the caller cannot open. They are kept when the caller saves the filter."
           },
           "createdBy": {
             "type": [
@@ -2789,6 +2794,7 @@
           "enabled",
           "resourceTypes",
           "projectIds",
+          "hiddenProjectCount",
           "createdBy",
           "createdAt"
         ]

@@ -97,7 +97,8 @@ export default function WorkspaceWebhooksPanel() {
                         {t(`settings:workspaceWebhooks.types.${type}`)}
                       </Badge>
                     ))}
-                    {webhook.projectIds.length === 0 ? (
+                    {webhook.projectIds.length === 0 &&
+                    webhook.hiddenProjectCount === 0 ? (
                       <Badge variant="secondary">
                         {t("settings:workspaceWebhooks.allTeams")}
                       </Badge>
@@ -108,6 +109,13 @@ export default function WorkspaceWebhooksPanel() {
                         </Badge>
                       ))
                     )}
+                    {webhook.hiddenProjectCount > 0 ? (
+                      <Badge variant="secondary">
+                        {t("settings:workspaceWebhooks.hiddenTeams", {
+                          count: webhook.hiddenProjectCount,
+                        })}
+                      </Badge>
+                    ) : null}
                   </div>
                 </div>
                 <Switch

@@ -28,13 +28,22 @@ export async function isWorkspaceOwner(workspaceId: string, userId: string) {
 
 // The topics the user can open, each with whether they decide on it. The
 // current document lives in the topic's place, so everyone who can open the
-// topic can open it too. Its title is still checked: a title is content, and a
-// document moved past the topic must not be named to someone it is closed to.
+// topic can open it too. It is still checked: a document moved past the topic
+// must not be named to someone it is closed to.
 export async function listTopics(
   workspaceId: string,
   userId: string,
   id?: string,
 ) {
+  const opensCurrent = documentVisibility(userId, {
+    id: sql`current_document.id`,
+    workspaceId: sql`current_document.workspace_id`,
+    creatorId: sql`current_document.creator_id`,
+    scope: sql`current_document.scope`,
+    projectId: sql`current_document.project_id`,
+    workProjectId: sql`current_document.work_project_id`,
+    taskId: sql`current_document.task_id`,
+  });
   const [topics, owner] = await Promise.all([
     db
       .select({
@@ -63,21 +72,14 @@ export async function listTopics(
           WHERE current_document.topic_id = ${topicTable.id}
             AND current_document.status = 'current'
             AND current_document.deleted_at IS NULL
+            AND ${opensCurrent}
         )`,
         currentDocumentTitle: sql<string | null>`(
           SELECT current_document.title FROM document AS current_document
           WHERE current_document.topic_id = ${topicTable.id}
             AND current_document.status = 'current'
             AND current_document.deleted_at IS NULL
-            AND ${documentVisibility(userId, {
-              id: sql`current_document.id`,
-              workspaceId: sql`current_document.workspace_id`,
-              creatorId: sql`current_document.creator_id`,
-              scope: sql`current_document.scope`,
-              projectId: sql`current_document.project_id`,
-              workProjectId: sql`current_document.work_project_id`,
-              taskId: sql`current_document.task_id`,
-            })}
+            AND ${opensCurrent}
         )`,
         hasReplaced: sql<boolean>`EXISTS (
           SELECT 1 FROM document AS replaced_document
