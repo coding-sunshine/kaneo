@@ -53,6 +53,16 @@ const workspaceExport = apiRouter().openapi(exportRoute, async (c) => {
   if (!workspace) {
     throw new HTTPException(404, { message: "Workspace not found" });
   }
+  c.header("Content-Type", "application/zip");
+  c.header(
+    "Content-Disposition",
+    `attachment; filename="${fileSlug(workspace.name, "workspace")}-export.zip"`,
+  );
+  c.header("Cache-Control", "private, no-store");
+  c.header("X-Content-Type-Options", "nosniff");
+  // Hono answers HEAD through this handler and drops the body; a stream
+  // nobody reads would hold the lease until it expires.
+  if (c.req.method === "HEAD") return c.body(null, 200);
   const guest = await isWorkspaceGuest(workspaceId, userId);
   const release = await takeExportLease(workspaceId);
   const exportedAt = new Date();
@@ -61,13 +71,6 @@ const workspaceExport = apiRouter().openapi(exportRoute, async (c) => {
     workspace,
     exportedAt,
   );
-  c.header("Content-Type", "application/zip");
-  c.header(
-    "Content-Disposition",
-    `attachment; filename="${fileSlug(workspace.name, "workspace")}-export.zip"`,
-  );
-  c.header("Cache-Control", "private, no-store");
-  c.header("X-Content-Type-Options", "nosniff");
   return c.body(toReadableStream(zipChunks(entries, exportedAt), release), 200);
 });
 

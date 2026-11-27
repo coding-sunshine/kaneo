@@ -386,6 +386,23 @@ describe("API integration: workspace export", () => {
     await readChunks(again);
   });
 
+  it("does not hold the lease for a request that reads no body", async () => {
+    const { ws, app, admin, as } = await seed();
+    mockAuthenticatedSession(admin);
+    const head = await app.request(`/api/workspace-export/${ws}`, {
+      method: "HEAD",
+    });
+    expect(head.status).toBe(200);
+    const leases = await db
+      .select()
+      .from(schema.jobLeaseTable)
+      .where(eq(schema.jobLeaseTable.name, `workspace-export:${ws}`));
+    expect(leases).toEqual([]);
+    const download = await as(admin);
+    expect(download.status).toBe(200);
+    await readChunks(download);
+  });
+
   it("refuses an API key, even an admin's", async () => {
     const { ws, app, admin } = await seed();
     mockAnonymousSession();
