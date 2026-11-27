@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it } from "vite-plus/test";
+import { eq, sql } from "drizzle-orm";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import { resetTestDatabase } from "./helpers/database";
 import {
@@ -243,6 +244,64 @@ describe("API integration: ripple flags", () => {
     expect(byTask.cause).toEqual(byTask.dependsOn);
     expect(byDoc.cause).toEqual(byDoc.dependsOn);
     expect(byTask.flaggedAt).toEqual(expect.any(String));
+  });
+
+  it("flags a link during approval that changes its value", async () => {
+    const s = await setup();
+    const { world, api, r, topicId, docId, cost } = s;
+    // A second document ready to state another price, all but approved.
+    const next = await api.filed(
+      topicId,
+      "Launch plan v2",
+      textOf([DATE, price(45)]),
+    );
+    await confirmAll(api, next, [DATE, price(45)]);
+    for (const conflict of (await api.receipt(next)).conflicts) {
+      await expectStatus(
+        await api.settleConflict(next, conflict.id, {
+          decision: "replace",
+          reason: "Changed.",
+        }),
+        200,
+      );
+    }
+    const waiting = async () =>
+      (await db.execute(sql`select 1 from pg_locks where not granted`)).rows
+        .length;
+
+    let linking: Promise<Response> | undefined;
+    let approving: Promise<Response> | undefined;
+    let approved = false;
+    // The link has checked the price and waits to write its row, which names
+    // the issue held here. The approval runs meanwhile.
+    await db.transaction(async (tx) => {
+      await tx
+        .select({ id: schema.taskTable.id })
+        .from(schema.taskTable)
+        .where(eq(schema.taskTable.id, world.alphaTask.id))
+        .for("update");
+      linking = r.depend(docId, cost.id, { taskId: world.alphaTask.id });
+      await vi.waitFor(async () => expect(await waiting()).toBe(1));
+      approving = api.approve(topicId, next).then((response) => {
+        approved = true;
+        return response;
+      });
+      await vi.waitFor(async () =>
+        expect(approved || (await waiting()) >= 2).toBe(true),
+      );
+    });
+
+    const linked = await linking;
+    await expectStatus((await approving) as Response, 200);
+    if (linked?.status === 200) {
+      const link = (await linked.json()) as Dependency;
+      expect(link.statementId).toBe(cost.id);
+      expect((await r.needsReview()).map((item) => item.task?.id)).toContain(
+        world.alphaTask.id,
+      );
+    } else {
+      expect(linked?.status).toBe(409);
+    }
   });
 
   it("lists the topics a document relies on, only to someone who can open it", async () => {
