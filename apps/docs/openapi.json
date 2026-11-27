@@ -3392,6 +3392,9 @@
           "body": {
             "type": "string"
           },
+          "linkPreview": {
+            "$ref": "#/components/schemas/ChatLinkPreview"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -3404,8 +3407,39 @@
           "authorName",
           "authorImage",
           "body",
+          "linkPreview",
           "createdAt"
         ]
+      },
+      "ChatLinkPreview": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "siteName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "title",
+          "description",
+          "siteName"
+        ],
+        "description": "A card for the first web link, added shortly after posting. Links inside code get none."
       },
       "AgentChatSummary": {
         "type": "object",
@@ -28536,6 +28570,87 @@
           },
           "409": {
             "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/messages/{messageId}/preview": {
+      "delete": {
+        "operationId": "removeChatLinkPreview",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Remove link preview",
+        "description": "Remove the link preview from your own message.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Preview removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only the author can remove the preview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or message not found",
             "content": {
               "application/json": {
                 "schema": {

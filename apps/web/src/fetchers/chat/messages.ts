@@ -17,3 +17,11 @@ export async function postMessage(param: ChannelParam, body: string) {
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }
+
+export async function removeLinkPreview(
+  param: ChannelParam & { messageId: string },
+) {
+  const response = await messages[":messageId"].preview.$delete({ param });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}

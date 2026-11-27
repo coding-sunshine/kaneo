@@ -15,6 +15,7 @@ import { leaveChannel } from "./controllers/leave-channel";
 import { listChannels } from "./controllers/list-channels";
 import { listMessages } from "./controllers/list-messages";
 import { postMessage } from "./controllers/post-message";
+import { removeLinkPreview } from "./controllers/remove-link-preview";
 import { updateChannel } from "./controllers/update-channel";
 import {
   channelDetailSchema,
@@ -26,11 +27,13 @@ import {
   leftChannelSchema,
   listMessagesQuery,
   messageListSchema,
+  messageParam,
   messageSchema,
   postMessageBody,
   updateChannelBody,
   workspaceIdParam,
 } from "./schema";
+import "./link-preview/subscribe";
 
 const body = <T extends z.ZodType>(schema: T) => ({
   required: true as const,
@@ -202,6 +205,22 @@ const postMessageRoute = createRoute({
   },
 });
 
+const removePreviewRoute = createRoute({
+  method: "delete",
+  operationId: "removeChatLinkPreview",
+  path: `${channelPath}/messages/{messageId}/preview`,
+  tags,
+  summary: "Remove link preview",
+  description: "Remove the link preview from your own message.",
+  middleware: [...write] as const,
+  request: { params: messageParam },
+  responses: {
+    200: jsonResponse("Preview removed", messageSchema),
+    403: errorResponse("Only the author can remove the preview"),
+    404: errorResponse("Channel or message not found"),
+  },
+});
+
 const chat = apiRouter()
   .openapi(listRoute, async (c) =>
     c.json(
@@ -284,6 +303,18 @@ const chat = apiRouter()
         channelId,
         c.get("userId"),
         c.req.valid("json").body,
+      ),
+      200,
+    );
+  })
+  .openapi(removePreviewRoute, async (c) => {
+    const { workspaceId, channelId, messageId } = c.req.valid("param");
+    return c.json(
+      await removeLinkPreview(
+        workspaceId,
+        channelId,
+        messageId,
+        c.get("userId"),
       ),
       200,
     );

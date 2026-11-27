@@ -28,6 +28,8 @@ export const updateChannelBody = z.object({
 
 export const inviteMemberBody = z.object({ userId: z.string() });
 
+export const messageParam = channelParam.extend({ messageId: z.string() });
+
 export const listMessagesQuery = z.object({
   before: z.iso.datetime().optional().openapi({
     description: "Return messages posted before this time.",
@@ -61,6 +63,15 @@ export const channelDetailSchema = channelSchema
 
 export const channelListSchema = z.array(channelSchema);
 
+const linkPreviewSchema = z
+  .object({
+    url: z.string(),
+    title: z.string(),
+    description: z.string().nullable(),
+    siteName: z.string(),
+  })
+  .openapi("ChatLinkPreview");
+
 export const messageSchema = z
   .object({
     id: z.string(),
@@ -69,6 +80,10 @@ export const messageSchema = z
     authorName: z.string().nullable(),
     authorImage: z.string().nullable(),
     body: z.string(),
+    linkPreview: linkPreviewSchema.nullable().openapi({
+      description:
+        "A card for the first web link, added shortly after posting. Links inside code get none.",
+    }),
     createdAt: responseTimestamp,
   })
   .openapi("ChatMessage");

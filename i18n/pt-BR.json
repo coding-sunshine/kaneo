@@ -4432,7 +4432,8 @@
 			"setTopic": "Set topic",
 			"topic": "Topic",
 			"topicPlaceholder": "What is this channel about?",
-			"unarchive": "Unarchive channel"
+			"unarchive": "Unarchive channel",
+			"removePreview": "Remove preview"
 		}
 	},
 	"notifications": {

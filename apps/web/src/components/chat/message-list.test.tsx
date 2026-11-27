@@ -51,6 +51,54 @@ describe("MessageList", () => {
     );
   });
 
+  it("shows a card for the link preview that opens the page in a new tab", () => {
+    const linkPreview = {
+      url: "https://example.com/",
+      title: "Example Domain",
+      description: "For documentation examples.",
+      siteName: "example.com",
+    };
+    render(<MessageList messages={[message({ linkPreview })]} />);
+    const card = screen.getByRole("link", { name: /Example Domain/ });
+    expect(card).toHaveAttribute("href", "https://example.com/");
+    expect(card).toHaveAttribute("target", "_blank");
+    expect(card).toHaveAttribute("rel", "noopener noreferrer");
+    expect(card).toHaveTextContent("For documentation examples.");
+    expect(card).toHaveTextContent("example.com");
+  });
+
+  it("lets only the author remove a link preview", () => {
+    const linkPreview = {
+      url: "https://example.com/",
+      title: "Example Domain",
+      description: null,
+      siteName: "example.com",
+    };
+    const onRemovePreview = vi.fn();
+    const { rerender } = render(
+      <MessageList
+        messages={[message({ userId: "user-2", linkPreview })]}
+        currentUserId="user-1"
+        onRemovePreview={onRemovePreview}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: "navigation:chat.removePreview" }),
+    ).toBeNull();
+
+    rerender(
+      <MessageList
+        messages={[message({ userId: "user-1", linkPreview })]}
+        currentUserId="user-1"
+        onRemovePreview={onRemovePreview}
+      />,
+    );
+    screen
+      .getByRole("button", { name: "navigation:chat.removePreview" })
+      .click();
+    expect(onRemovePreview).toHaveBeenCalledWith("message-1");
+  });
+
   it("invites the first message in an empty channel", () => {
     render(<MessageList messages={[]} />);
     expect(screen.getByText("navigation:chat.noMessages")).toBeTruthy();

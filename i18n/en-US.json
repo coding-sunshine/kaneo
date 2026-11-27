@@ -4360,7 +4360,8 @@
 			"deletedUser": "Deleted user",
 			"messageLabel": "Message",
 			"messagePlaceholder": "Message {{name}}",
-			"send": "Send"
+			"send": "Send",
+			"removePreview": "Remove preview"
 		}
 	},
 	"notifications": {
