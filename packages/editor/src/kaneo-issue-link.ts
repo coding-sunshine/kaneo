@@ -55,12 +55,16 @@ export const KaneoIssueLink = Node.create({
   renderMarkdown(
     node: { attrs?: { url?: string; issueKey?: string; taskId?: string } },
     _helpers: unknown,
-    _context: unknown,
+    context: { level?: number },
   ) {
     const url = String(node.attrs?.url || "");
     const issueKey = String(node.attrs?.issueKey || "");
     const taskId = String(node.attrs?.taskId || "");
     if (!url) return "";
-    return `\n<kaneo-issue-link url="${escapeHtml(url)}" issue-key="${escapeHtml(issueKey)}" task-id="${escapeHtml(taskId)}" />\n`;
+    const attrs = `url="${escapeHtml(url)}" issue-key="${escapeHtml(issueKey)}" task-id="${escapeHtml(taskId)}"`;
+    // In a list item a new line ends the item, and a lone self-closing tag
+    // opens an HTML block that swallows nested lists, so stay inline there.
+    if (context?.level) return `<kaneo-issue-link ${attrs}></kaneo-issue-link>`;
+    return `\n<kaneo-issue-link ${attrs} />\n`;
   },
 });

@@ -10,7 +10,7 @@ import { CHECKED_TASK, UNCHECKED_TASK } from "./task-item";
  */
 const attrRegex = /([a-zA-Z-]+)="([^"]*)"/g;
 const mentionRegex = /<kaneo-mention\b([^>]*)>([\s\S]*?)<\/kaneo-mention>/g;
-const selfClosingRegex = /<(kaneo-[a-z-]+|img)\b([^>]*?)\/?>/g;
+const selfClosingRegex = /<(kaneo-[a-z-]+|img)\b([^>]*?)\/?>(?:<\/\1>)?/g;
 const spanRegex = /<span class="kaneo-embed-invalid-link">([\s\S]*?)<\/span>/g;
 
 function unescape(s: string) {
