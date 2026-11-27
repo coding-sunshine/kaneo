@@ -167,12 +167,34 @@ describe("API integration: draft lineage", () => {
     expect((await edit(world, owner, typed, OTHER_TEXT)).revisionOf?.id).toBe(
       other,
     );
-    expect(
-      (await edit(world, owner, typed, REWORDED.join(" "))).revisionOf,
-    ).toBeNull();
+    // Not the six rewritten sentences alone: those are most of OTHER_TEXT.
+    const unrelated =
+      "<p>Lunch orders for the offsite go to the front desk by Friday noon.</p>";
+    expect((await edit(world, owner, typed, unrelated)).revisionOf).toBeNull();
     expect(await rows()).toEqual([
       { documentId: copy, sourceDocumentId: plan },
     ]);
+  });
+
+  // The threshold is 0.30 of all five-word runs. Of ten sentences, three
+  // rewritten share 0.45 and five rewritten 0.20.
+  it("proposes a text with three of ten sentences rewritten, not five", async () => {
+    const world = await buildDocumentWorld();
+    const { owner } = world;
+    const team = { projectId: world.alpha.id };
+    const plan = await write(world, owner, "Launch plan", PLAN, team);
+
+    const draft = await write(
+      world,
+      owner,
+      "Rewritten",
+      revised(0, 2, 4, 6, 8),
+      team,
+    );
+    expect(await link(world, owner, draft)).toBeNull();
+    expect(
+      (await edit(world, owner, draft, revised(0, 2, 4))).revisionOf,
+    ).toMatchObject({ id: plan, overlap: 44 });
   });
 
   it("names the document in the receipt of a saved draft", async () => {
