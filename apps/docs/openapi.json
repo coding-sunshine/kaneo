@@ -26418,6 +26418,79 @@
         }
       }
     },
+    "/workspace-export/{workspaceId}": {
+      "get": {
+        "operationId": "exportWorkspace",
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Export workspace",
+        "description": "Download a zip of the workspace's tickets, documents, channel messages and members, each as JSON and as Markdown, with a manifest of the counts. Holds what the caller can open in the app. Admins and owners only, from a signed-in session (not an API key). The zip is streamed. One export runs at a time per workspace, at most one a minute; others get 429 with Retry-After.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The export as a zip file, streamed",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing workspace:manage_settings, a guest, or an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "An export of this workspace is running or just ran",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/cycle/project/{projectId}": {
       "get": {
         "operationId": "listCycles",
@@ -37313,6 +37386,99 @@
           },
           "403": {
             "description": "Only a workspace owner can hand over private documents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/export": {
+      "get": {
+        "operationId": "exportDocument",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Export document",
+        "description": "Download a document you can open as Markdown or PDF. The title comes first, as the top heading.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "markdown",
+                "pdf"
+              ],
+              "description": "markdown for a .md file, pdf for a printable file."
+            },
+            "required": true,
+            "description": "markdown for a .md file, pdf for a printable file.",
+            "name": "format",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The document file",
+            "content": {
+              "text/markdown": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
             "content": {
               "application/json": {
                 "schema": {

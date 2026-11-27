@@ -5375,6 +5375,38 @@
 						"dangerZone": {
 							"type": "string"
 						},
+						"export": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"rowTitle": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"button": {
+									"type": "string"
+								},
+								"pending": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"rowTitle",
+								"description",
+								"button",
+								"pending",
+								"failed"
+							]
+						},
 						"deleteWorkspace": {
 							"type": "string"
 						},
@@ -5485,6 +5517,7 @@
 						"descriptionLabel",
 						"descriptionPlaceholder",
 						"dangerZone",
+						"export",
 						"deleteWorkspace",
 						"deleteWorkspaceDescription",
 						"deleteModalTitle",
@@ -15358,6 +15391,25 @@
 						"shareMenu": {
 							"type": "string"
 						},
+						"export": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"markdown": {
+									"type": "string"
+								},
+								"pdf": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								}
+							},
+							"required": ["label", "markdown", "pdf", "failed"]
+						},
 						"copyLink": {
 							"type": "string"
 						},
@@ -17645,6 +17697,7 @@
 						"moveTo",
 						"rename",
 						"shareMenu",
+						"export",
 						"copyLink",
 						"copyUrl",
 						"linkCopied",

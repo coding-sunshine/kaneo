@@ -931,7 +931,15 @@
 				"confirm": "स्वामित्व स्थानांतरित करें"
 			},
 			"ownershipSubtitle": "यह केवल मालिक को दिखता है।",
-			"ownershipTitle": "स्वामित्व"
+			"ownershipTitle": "स्वामित्व",
+			"export": {
+				"button": "Export workspace",
+				"description": "Download a zip of tickets, documents, channel messages and members, as JSON and Markdown. It holds what you can open in Kaneo.",
+				"failed": "Could not export the workspace",
+				"pending": "Exporting…",
+				"rowTitle": "Workspace data",
+				"title": "Export"
+			}
 		},
 		"workspaceRoles": {
 			"pageTitle": "भूमिकाएँ",
@@ -4396,6 +4404,12 @@
 				"empty": "No pages yet",
 				"expand": "Show pages inside",
 				"title": "Pages"
+			},
+			"export": {
+				"failed": "Could not export the document",
+				"label": "Export",
+				"markdown": "Markdown",
+				"pdf": "PDF"
 			}
 		},
 		"drafts": {
