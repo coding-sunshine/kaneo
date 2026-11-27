@@ -822,6 +822,37 @@ export const conflictSchema = comparedSchema
     tolerateUntil: nullableResponseTimestamp,
   })
   .openapi("StatementConflict");
+const suggestedTicketSchema = z
+  .object({
+    key: z.string().openapi({
+      description:
+        "Names the slot, the document and the value. An edit elsewhere in the text keeps it.",
+    }),
+    kind: z.enum(["change", "new"]).openapi({
+      description:
+        "change: the value differs from the current document. new: the current document states nothing for the slot.",
+    }),
+    slot: z.string(),
+    slotName: z.string(),
+    value: z.string(),
+    previousValue: z.string().nullable(),
+    title: z.string().openapi({ description: "The ticket's title." }),
+    accepted: z.boolean().openapi({
+      description: "Someone accepted it, and the ticket was made.",
+    }),
+    ticket: z
+      .object({
+        id: z.string(),
+        number: z.number().int().nullable(),
+        projectId: z.string(),
+      })
+      .nullable()
+      .openapi({
+        description:
+          "The ticket made from it. Null until it is accepted, and for a ticket in a team the caller cannot enter.",
+      }),
+  })
+  .openapi("SuggestedTicket");
 export const receiptSchema = z
   .object({
     repeats: z.array(comparedSchema).openapi({
@@ -849,5 +880,24 @@ export const receiptSchema = z
       .openapi({
         description: "Slots of the topic the document has no statement for.",
       }),
+    suggestedTickets: z.array(suggestedTicketSchema).openapi({
+      description:
+        "A ticket per change: each conflict, unless the decider said the two do not contradict each other, and each new fact. A person accepts each one on its own.",
+    }),
   })
   .openapi("DocumentReceipt");
+
+export const suggestedTicketParam = documentParam.extend({
+  key: z.string().openapi({ description: "The suggestion's key." }),
+});
+
+export const acceptSuggestedTicketBody = z.object({
+  projectId: z.string().optional().openapi({
+    description:
+      "The team the ticket goes to, for a topic with no team. A topic's own team always wins.",
+  }),
+});
+
+export const acceptedTicketSchema = z
+  .object({ key: z.string(), taskId: z.string() })
+  .openapi("AcceptedSuggestedTicket");

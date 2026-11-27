@@ -50,6 +50,8 @@ it.each([
   ["POST", "/api/documentx"],
   ["POST", "/api/topics"],
   ["POST", "/api/document-export"],
+  // Accepting a suggested ticket makes a ticket, not a document change.
+  ["POST", "/api/document/workspace/w1/d1/receipt/tickets/k1/accept"],
   // Under /auth a read can reveal a full session, so it is refused too.
   ["GET", "/api/auth/list-sessions"],
   ["GET", "/api/auth/api-key/list"],

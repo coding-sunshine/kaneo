@@ -32,6 +32,11 @@ const AUTH_ALLOWED = new Set([
   "POST /api/auth/sign-out",
 ]);
 
+// Writes under those routers that change something else: accepting a
+// receipt's suggested ticket makes a ticket.
+const MAKES_TICKET =
+  /^\/api\/document\/workspace\/[^/]+\/[^/]+\/receipt\/tickets\//;
+
 function isUnder(path: string, prefix: string) {
   return path === prefix || path.startsWith(`${prefix}/`);
 }
@@ -40,6 +45,7 @@ function isUnder(path: string, prefix: string) {
 export function scopedSessionAllows(method: string, path: string): boolean {
   const verb = method.toUpperCase();
   if (isUnder(path, "/api/auth")) return AUTH_ALLOWED.has(`${verb} ${path}`);
+  if (!READ_METHODS.has(verb) && MAKES_TICKET.test(path)) return false;
   const prefixes = READ_METHODS.has(verb) ? READ_PREFIXES : WRITE_PREFIXES;
   return prefixes.some((prefix) => isUnder(path, prefix));
 }

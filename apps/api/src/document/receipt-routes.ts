@@ -2,11 +2,14 @@ import { createRoute, errorResponse, jsonResponse } from "../openapi";
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import {
+  acceptedTicketSchema,
+  acceptSuggestedTicketBody,
   conflictSchema,
   decideConflictBody,
   documentConflictParam,
   documentParam,
   receiptSchema,
+  suggestedTicketParam,
 } from "./schema";
 
 const tags = ["Documents"];
@@ -54,5 +57,33 @@ export const decideConflictRoute = createRoute({
     400: errorResponse("Tolerating needs a date that lies ahead"),
     403: errorResponse("Only the topic's decider settles a conflict"),
     404: errorResponse("Document or conflict not found"),
+  },
+});
+
+export const acceptSuggestedTicketRoute = createRoute({
+  method: "post",
+  operationId: "acceptSuggestedTicket",
+  path: "/workspace/{workspaceId}/{id}/receipt/tickets/{key}/accept",
+  tags,
+  summary: "Make a ticket the receipt suggests",
+  description:
+    "Makes the ticket one of the receipt's suggestions describes, on the document's topic, in the topic's team or, for a topic with no team, in the team named. Each suggestion becomes one ticket. A suggestion of a document or topic the caller cannot open answers like one that does not exist.",
+  middleware: [
+    workspaceAccess.fromParam(),
+    requireWorkspacePermission({ task: ["create"] }),
+  ] as const,
+  request: {
+    params: suggestedTicketParam,
+    body: {
+      required: true,
+      content: { "application/json": { schema: acceptSuggestedTicketBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("The ticket made", acceptedTicketSchema),
+    400: errorResponse("The topic has no team and none was named"),
+    403: errorResponse("Missing permission to create tickets"),
+    404: errorResponse("Document, suggestion or team not found"),
+    409: errorResponse("The suggestion is already a ticket"),
   },
 });

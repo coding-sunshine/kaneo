@@ -6050,6 +6050,13 @@
               ]
             },
             "description": "Slots of the topic the document has no statement for."
+          },
+          "suggestedTickets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SuggestedTicket"
+            },
+            "description": "A ticket per change: each conflict, unless the decider said the two do not contradict each other, and each new fact. A person accepts each one on its own."
           }
         },
         "required": [
@@ -6057,7 +6064,8 @@
           "new",
           "conflicts",
           "unjudged",
-          "notChecked"
+          "notChecked",
+          "suggestedTickets"
         ]
       },
       "StatementConflict": {
@@ -6167,6 +6175,98 @@
           "status",
           "reason",
           "tolerateUntil"
+        ]
+      },
+      "SuggestedTicket": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Names the slot, the document and the value. An edit elsewhere in the text keeps it."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "change",
+              "new"
+            ],
+            "description": "change: the value differs from the current document. new: the current document states nothing for the slot."
+          },
+          "slot": {
+            "type": "string"
+          },
+          "slotName": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "previousValue": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "description": "The ticket's title."
+          },
+          "accepted": {
+            "type": "boolean",
+            "description": "Someone accepted it, and the ticket was made."
+          },
+          "ticket": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "number": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "projectId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "number",
+              "projectId"
+            ],
+            "description": "The ticket made from it. Null until it is accepted, and for a ticket in a team the caller cannot enter."
+          }
+        },
+        "required": [
+          "key",
+          "kind",
+          "slot",
+          "slotName",
+          "value",
+          "previousValue",
+          "title",
+          "accepted",
+          "ticket"
+        ]
+      },
+      "AcceptedSuggestedTicket": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "taskId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "taskId"
         ]
       },
       "DocumentsHandedOver": {
@@ -34802,6 +34902,125 @@
           },
           "404": {
             "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/receipt/tickets/{key}/accept": {
+      "post": {
+        "operationId": "acceptSuggestedTicket",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Make a ticket the receipt suggests",
+        "description": "Makes the ticket one of the receipt's suggestions describes, on the document's topic, in the topic's team or, for a topic with no team, in the team named. Each suggestion becomes one ticket. A suggestion of a document or topic the caller cannot open answers like one that does not exist.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "The suggestion's key."
+            },
+            "required": true,
+            "description": "The suggestion's key.",
+            "name": "key",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "projectId": {
+                    "type": "string",
+                    "description": "The team the ticket goes to, for a topic with no team. A topic's own team always wins."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The ticket made",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedSuggestedTicket"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The topic has no team and none was named",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission to create tickets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document, suggestion or team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The suggestion is already a ticket",
             "content": {
               "application/json": {
                 "schema": {

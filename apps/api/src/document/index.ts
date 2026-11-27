@@ -115,7 +115,11 @@ import {
   listStatementsRoute,
   rejectStatementRoute,
 } from "./statement-routes";
-import { decideConflictRoute, receiptRoute } from "./receipt-routes";
+import {
+  acceptSuggestedTicketRoute,
+  decideConflictRoute,
+  receiptRoute,
+} from "./receipt-routes";
 import {
   addDependentRoute,
   reliedTopicsRoute,
@@ -128,6 +132,7 @@ import {
 } from "../topic/controllers/dependencies";
 import { decideConflict } from "../topic/controllers/decide-conflict";
 import { getReceipt } from "../topic/controllers/receipt";
+import { acceptSuggestedTicket } from "../topic/controllers/accept-suggested-ticket";
 
 const body = <T extends ZodType>(schema: T) => ({
   required: true as const,
@@ -912,6 +917,19 @@ const document = apiRouter()
   .openapi(receiptRoute, async (c) => {
     const { workspaceId, id } = c.req.valid("param");
     return c.json(await getReceipt(workspaceId, id, c.get("userId")), 200);
+  })
+  .openapi(acceptSuggestedTicketRoute, async (c) => {
+    const { workspaceId, id, key } = c.req.valid("param");
+    return c.json(
+      await acceptSuggestedTicket(
+        workspaceId,
+        id,
+        key,
+        c.get("userId"),
+        c.req.valid("json"),
+      ),
+      200,
+    );
   })
   .openapi(decideConflictRoute, async (c) => {
     const { workspaceId, id, conflictId } = c.req.valid("param");
