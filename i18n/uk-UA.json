@@ -3973,6 +3973,7 @@
 				},
 				"currentValue": "Current: {{value}}",
 				"deciderOnly": "Only the topic's decider confirms or rejects facts on the current document.",
+				"deciderOnlyProposal": "Only the topic's decider confirms or rejects facts on a proposal.",
 				"groupHints": {
 					"conflicts": "This document and the current document say different things.",
 					"new": "The topic states no value for these yet.",

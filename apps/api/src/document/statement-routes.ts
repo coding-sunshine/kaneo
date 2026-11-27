@@ -16,7 +16,7 @@ const statements = "/workspace/{workspaceId}/{id}/statements";
 const decided = `${statements}/{statementId}`;
 const notFound = errorResponse("Document or statement not found");
 const noEdit = errorResponse(
-  "Needs edit access to the document. On a current document, only the topic's decider.",
+  "Needs edit access to the document. On a current document, only the topic's decider or backup; on a proposal, only they confirm or reject.",
 );
 const body = <T extends ZodType>(schema: T) => ({
   required: true as const,

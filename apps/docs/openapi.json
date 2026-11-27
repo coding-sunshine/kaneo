@@ -29556,7 +29556,7 @@
             }
           },
           "403": {
-            "description": "Needs edit access to the document. On a current document, only the topic's decider.",
+            "description": "Needs edit access to the document. On a current document, only the topic's decider or backup; on a proposal, only they confirm or reject.",
             "content": {
               "application/json": {
                 "schema": {
@@ -29647,7 +29647,7 @@
             }
           },
           "403": {
-            "description": "Needs edit access to the document. On a current document, only the topic's decider.",
+            "description": "Needs edit access to the document. On a current document, only the topic's decider or backup; on a proposal, only they confirm or reject.",
             "content": {
               "application/json": {
                 "schema": {
@@ -29758,7 +29758,7 @@
             }
           },
           "403": {
-            "description": "Needs edit access to the document. On a current document, only the topic's decider.",
+            "description": "Needs edit access to the document. On a current document, only the topic's decider or backup; on a proposal, only they confirm or reject.",
             "content": {
               "application/json": {
                 "schema": {

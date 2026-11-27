@@ -325,8 +325,8 @@ export async function statementOf(
 }
 
 // Loads a statement of the document for someone who may decide on it. On a
-// current document that is the people who decide on its topic: what they
-// confirm there is the topic's answer.
+// current document and on a proposal that is the people who decide on its
+// topic: what they confirm there is, or may become, the topic's answer.
 async function forDecision(
   workspaceId: string,
   documentId: string,
@@ -337,7 +337,7 @@ async function forDecision(
     need: "edit",
   });
   const found = await statementOf(doc, statementId, userId);
-  if (doc.status === "current" && doc.topicId) {
+  if ((doc.status === "current" || doc.status === "in_review") && doc.topicId) {
     await assertDecides(workspaceId, doc, userId);
   }
   return { doc, ...found };
@@ -348,7 +348,7 @@ async function assertDecides(workspaceId: string, doc: Loaded, userId: string) {
   if (!topic.canDecide) {
     throw new HTTPException(403, {
       message:
-        "Only the topic's decider changes the statements of its current document",
+        "Only the topic's decider or backup changes the statements of its current document and decides on those of a proposal",
     });
   }
 }

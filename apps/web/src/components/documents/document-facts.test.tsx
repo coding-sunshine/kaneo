@@ -203,6 +203,22 @@ describe("DocumentFacts", () => {
     ).toBeNull();
   });
 
+  it("tells an editor who is not the decider on a proposal and hides confirm and reject", async () => {
+    await show(receipt({ new: [stated("n", "Launch")] }), {
+      document: {
+        workspaceId: "ws",
+        id: "doc",
+        status: "in_review",
+        topicId: "t1",
+      } as never,
+      topic: { id: "t1", canDecide: false, deciderName: "Ann" },
+    });
+    expect(await screen.findByText(`${T}.deciderOnlyProposal`)).toBeTruthy();
+    expect(
+      screen.queryByRole("button", { name: /confirmName|rejectName/ }),
+    ).toBeNull();
+  });
+
   it("offers no add to an editor who is not the decider on the current document", async () => {
     const missing = receipt({
       notChecked: [{ slot: "s", slotName: "Owner", type: "person" }],
