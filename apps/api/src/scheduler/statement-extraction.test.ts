@@ -66,7 +66,7 @@ const document = (id: string, workspaceId: string, updatedAt: Date) => ({
   contentHash: `${id}-hash`,
   topicId: "topic-1",
   updatedAt,
-  asked: null,
+  since: null,
 });
 
 const HOUR_AGO = () => new Date(Date.now() - 60 * 60_000);

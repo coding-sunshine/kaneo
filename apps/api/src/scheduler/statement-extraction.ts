@@ -77,8 +77,9 @@ const isSent = (value: unknown): value is SentStatement =>
 
 /**
  * Asks the model what each filed document states for its topic's slots and
- * stores the answers as proposals, which a person confirms. A document is
- * asked about once per text, set of slots, prompt and model. Drafts that are
+ * stores the answers as proposals, which a person confirms. A text is asked
+ * about each slot once per prompt: a slot made later is asked about alone,
+ * and another model, a renamed or a deleted slot reads nothing again. Drafts that are
  * not on a topic and topics without slots are never sent, nor a document
  * edited in the last five minutes. A workspace whose day's token cap is used
  * up is skipped; the others are still read.
@@ -93,8 +94,8 @@ export async function extractFiledDocuments() {
   );
 
   // ponytail: reads every filed document on a topic with slots each tick and
-  // filters here, because the slots' hash is computed here. Move the hash to
-  // the topic row when that list is large.
+  // filters here, against the slots' times. Filter in the query when that
+  // list is large.
   const rows = await db
     .select({
       id: documentTable.id,
@@ -103,16 +104,16 @@ export async function extractFiledDocuments() {
       contentHash: documentTable.contentHash,
       topicId: documentTable.topicId,
       updatedAt: documentTable.updatedAt,
-      asked: documentExtractionTable.slotsHash,
+      since: documentExtractionTable.createdAt,
     })
     .from(documentTable)
+    // Any model's answer counts: another model reads no text again.
     .leftJoin(
       documentExtractionTable,
       and(
         eq(documentExtractionTable.documentId, documentTable.id),
         eq(documentExtractionTable.contentHash, documentTable.contentHash),
         eq(documentExtractionTable.promptVersion, PROMPT_VERSION),
-        eq(documentExtractionTable.model, model),
       ),
     )
     .where(
@@ -124,16 +125,26 @@ export async function extractFiledDocuments() {
       ),
     )
     .orderBy(desc(documentTable.updatedAt));
-  // One row per earlier question about the text, or one with none.
-  const answered = new Set(
-    rows
-      .filter((row) => row.asked === hashes.get(row.topicId ?? ""))
-      .map((row) => row.id),
-  );
+  // ponytail: slots are told apart by the time they were made, as in the
+  // issue job: a slot whose insert is still open while a newer one is read is
+  // never asked of that text.
+  // One row per earlier question about the text, or one with none. A text
+  // was asked about every slot made up to its newest record.
+  const since = new Map<string, Date>();
+  for (const row of rows) {
+    const known = since.get(row.id);
+    if (row.since && (!known || row.since > known))
+      since.set(row.id, row.since);
+  }
+  const askedAbout = (row: (typeof rows)[number]) =>
+    (slots.get(row.topicId ?? "") ?? []).filter((slot) => {
+      const asked = since.get(row.id);
+      return !asked || slot.createdAt > asked;
+    });
   const settled = Date.now() - QUIET_MS;
   const pending = rows.filter(
     (row, at) =>
-      !answered.has(row.id) &&
+      askedAbout(row).length > 0 &&
       !extractionRetry.waiting(row.id) &&
       row.updatedAt.getTime() <= settled &&
       rows.findIndex((other) => other.id === row.id) === at,
@@ -147,6 +158,7 @@ export async function extractFiledDocuments() {
     if (capped.has(doc.workspaceId)) continue;
     read += 1;
     const topicSlots = slots.get(doc.topicId ?? "") ?? [];
+    const asked = askedAbout(doc);
     const parts = textParts(
       documentText(doc.content),
       MAX_CHARACTERS,
@@ -155,7 +167,7 @@ export async function extractFiledDocuments() {
     // Every part is asked about every slot, so a later part that states
     // another value is seen too. A free-text slot keeps the first wording
     // found: later parts are not asked about it.
-    let open = topicSlots;
+    let open = asked;
     let readable = false;
     let failed = false;
     for (const part of parts) {
@@ -212,6 +224,10 @@ export async function extractFiledDocuments() {
         promptVersion: PROMPT_VERSION,
         model,
         readable,
+        // The newest slot asked about: a slot made later is asked about next.
+        createdAt: new Date(
+          Math.max(...topicSlots.map((slot) => slot.createdAt.getTime())),
+        ),
       })
       .onConflictDoNothing();
   }

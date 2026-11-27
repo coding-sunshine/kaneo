@@ -899,6 +899,33 @@ describe("API integration: statement extraction job", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
+  it("asks a filed document once about a slot added later", async () => {
+    const { api, topicId } = await setup();
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await api.addSlot(topicId, { name: "Seats", type: "number" });
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const asked = body(fetchMock, 1).messages[1].content as string;
+    expect(asked).toContain("- seats (number)");
+    expect(asked).not.toContain("- launch_date (");
+    expect(asked).not.toContain("- price (");
+
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("reads no document again for another model", async () => {
+    await setup();
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    vi.stubEnv("EXTRACTION_MODEL", "another/model");
+    await run();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("does not replace a statement a person wrote", async () => {
     const { api, docId } = await setup();
     await api.add(docId, { ...WHEN, value: "2027-03-06" });
