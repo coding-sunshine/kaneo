@@ -3223,6 +3223,38 @@
 			"selfHostedModel": "Self-hosted model name",
 			"selfHostedModelHint": "The model name your self-hosted server serves, for example llama-3.1-8b-instruct.",
 			"title": "AI"
+		},
+		"calendarSync": {
+			"accountsDescription": "A connection belongs to you alone. Nobody else in your workspaces can see your calendar.",
+			"accountsTitle": "Calendars",
+			"connect": "Connect",
+			"connected": "Connected",
+			"connectedNoEmail": "Connected account",
+			"descriptions": {
+				"google": "Syncs with the main calendar of a Google account.",
+				"microsoft": "Syncs with the calendar of a Microsoft 365 or Outlook.com account."
+			},
+			"disconnect": "Disconnect",
+			"disconnected": "Calendar disconnected",
+			"dueDatesTitle": "Due dates",
+			"howItWorks": "Events from your calendar show up on each team's calendar view. Due dates of issues assigned to you go into your calendar as all-day events.",
+			"loadFailed": "Couldn't load your calendar connections.",
+			"navLabel": "Calendar",
+			"needsReconnect": "Reconnect needed",
+			"needsReconnectDescription": "The calendar stopped accepting access. Reconnect to keep syncing.",
+			"notConfigured": "Not set up on this server yet. An administrator has to add the OAuth keys first.",
+			"pageTitle": "Calendar",
+			"providers": {
+				"google": "Google Calendar",
+				"microsoft": "Outlook calendar"
+			},
+			"reconnect": "Reconnect",
+			"subtitle": "Connect your Google or Microsoft calendar.",
+			"synced_other": "{{count}} issues are in your calendar",
+			"syncNow": "Sync due dates",
+			"syncNowAction": "Sync now",
+			"syncNowDescription": "Adds due dates from the past 30 days onward that aren't in your calendar yet.",
+			"title": "Calendar"
 		}
 	},
 	"navigation": {
@@ -5278,7 +5310,33 @@
 			"loadError": "작업을 불러오지 못했습니다.",
 			"dayTasksAriaLabel": "{{date}}의 모든 작업 보기",
 			"taskAriaLabel": "{{title}}, {{range}}: 작업 열기",
-			"noTasksThisMonth": "이번 달 예정된 항목이 없습니다"
+			"noTasksThisMonth": "이번 달 예정된 항목이 없습니다",
+			"allDay": "All day",
+			"createEvent": {
+				"addMeeting": {
+					"google": "Add a Google Meet link",
+					"microsoft": "Add a Microsoft Teams meeting"
+				},
+				"allDay": "All day",
+				"calendar": "Calendar",
+				"create": "Create event",
+				"created": "Event added to your calendar",
+				"date": "Date",
+				"endTime": "Ends",
+				"eventTitle": "Title",
+				"invalid": "Give the event a title and an end time after its start.",
+				"meetingUrl": "Or paste a meeting link",
+				"meetingUrlPlaceholder": "https://",
+				"startTime": "Starts",
+				"title": "New calendar event",
+				"titlePlaceholder": "What's it about?"
+			},
+			"eventAriaLabel": "{{title}}, {{time}}: open in your calendar",
+			"eventsUnavailable": "Some calendar events couldn't load. Reconnect the calendar in Settings.",
+			"joinMeeting": "Join meeting",
+			"moreEvents": "+{{count}} more",
+			"newEvent": "New event",
+			"untitledEvent": "Untitled event"
 		},
 		"gantt": {
 			"searchPlaceholder": "예약된 티켓 검색...",
