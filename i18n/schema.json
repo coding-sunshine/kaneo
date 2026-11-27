@@ -12561,6 +12561,28 @@
 						},
 						"saveFailed": {
 							"type": "string"
+						},
+						"itIntake": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"action": {
+									"type": "string"
+								},
+								"done": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "description", "action", "done", "failed"]
 						}
 					},
 					"required": [
@@ -12570,7 +12592,8 @@
 						"modeDescription",
 						"notify",
 						"assign",
-						"saveFailed"
+						"saveFailed",
+						"itIntake"
 					]
 				}
 			},
@@ -22181,6 +22204,12 @@
 						},
 						"label": {
 							"type": "string"
+						},
+						"ageTitle": {
+							"type": "string"
+						},
+						"none": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -22191,7 +22220,9 @@
 						"achieved",
 						"failed",
 						"title",
-						"label"
+						"label",
+						"ageTitle",
+						"none"
 					]
 				}
 			},
