@@ -9,9 +9,11 @@ import { loadWorkProjectDetail } from "./load-work-projects";
 
 const dependency = workProjectDependencyTable;
 
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
 // Whether `from` already waits on `to`, directly or through other projects.
-async function waitsOn(from: string, to: string) {
-  const result = await db.execute<{ found: boolean }>(sql`
+async function waitsOn(tx: Tx, from: string, to: string) {
+  const result = await tx.execute<{ found: boolean }>(sql`
     with recursive chain(id) as (
       select ${dependency.dependsOnId} from ${dependency}
       where ${dependency.workProjectId} = ${from}
@@ -46,14 +48,21 @@ export async function addProjectDependency(
     throw new HTTPException(400, {
       message: "Projects must belong to the same workspace",
     });
-  if (await waitsOn(dependsOnId, id))
-    throw new HTTPException(409, {
-      message: "This dependency would make the projects wait on each other",
-    });
-  await db
-    .insert(dependency)
-    .values({ workProjectId: id, dependsOnId })
-    .onConflictDoNothing();
+  // One writer per workspace at a time, so two opposite links made at once
+  // cannot both pass the cycle check.
+  await db.transaction(async (tx) => {
+    await tx.execute(
+      sql`select pg_advisory_xact_lock(hashtext(${`work_project_dependency:${project.workspaceId}`}))`,
+    );
+    if (await waitsOn(tx, dependsOnId, id))
+      throw new HTTPException(409, {
+        message: "This dependency would make the projects wait on each other",
+      });
+    await tx
+      .insert(dependency)
+      .values({ workProjectId: id, dependsOnId })
+      .onConflictDoNothing();
+  });
   return loadWorkProjectDetail(id, userId);
 }
 

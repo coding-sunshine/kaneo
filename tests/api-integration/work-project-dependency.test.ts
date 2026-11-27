@@ -1,3 +1,4 @@
+import { inArray } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
@@ -125,6 +126,34 @@ describe("API integration: work project dependencies", () => {
         (await addDependency(stranger.user, x.id, y.id)).status,
       ),
     ).toBe(true);
+  });
+
+  it("lets only one of two opposite links made at once through", async () => {
+    const owner = await createWorkspaceMember({ role: "owner" });
+    const ws = owner.workspace.id;
+    for (let round = 0; round < 5; round++) {
+      const a = await workProject(owner.user, ws, `A${round}`);
+      const b = await workProject(owner.user, ws, `B${round}`);
+      const statuses = (
+        await Promise.all([
+          addDependency(owner.user, a.id, b.id),
+          addDependency(owner.user, b.id, a.id),
+        ])
+      )
+        .map((response) => response.status)
+        .sort();
+      expect(statuses).toEqual([200, 409]);
+      const rows = await db
+        .select()
+        .from(schema.workProjectDependencyTable)
+        .where(
+          inArray(schema.workProjectDependencyTable.workProjectId, [
+            a.id,
+            b.id,
+          ]),
+        );
+      expect(rows).toHaveLength(1);
+    }
   });
 
   it("lets only people who can update projects change links", async () => {
