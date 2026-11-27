@@ -16,7 +16,10 @@ const previewResponses = {
   400: errorResponse("Not a figma.com file link"),
   403: errorResponse("Missing workspace:read permission"),
   404: errorResponse(
-    "Workspace not found, Figma previews are off (no access token configured), or the file is not shared with the token",
+    "Workspace not found, the caller is a guest, Figma previews are off (no access token configured), the file is not linked in a task, comment or document the caller can read, or the token cannot open it. All answer the same.",
+  ),
+  429: errorResponse(
+    "Too many Figma lookups by the caller; see the Retry-After header",
   ),
   502: errorResponse("Figma did not answer"),
 };
@@ -28,7 +31,7 @@ const getFigmaPreviewRoute = createRoute({
   tags: ["Figma"],
   summary: "Get a Figma link card",
   description:
-    "Get the card for a Figma link: file name, frame name, thumbnail and when it was fetched. The first request for a link in a workspace reads Figma; later ones get the stored card until someone refreshes it.",
+    "Get the card for a Figma link that appears in a task description, comment or document of the workspace the caller can read. The first request for a link reads Figma; later ones get the stored card until someone refreshes it or its signed image link expires. Lookups that reach Figma are capped per person, and failed ones are remembered for five minutes.",
   middleware: [
     workspaceAccess.fromQuery(),
     requireWorkspacePermission({ workspace: ["read"] }),
@@ -60,11 +63,21 @@ const refreshFigmaPreviewRoute = createRoute({
 
 const figma = apiRouter<BaseVariables & { workspaceId: string }>()
   .openapi(getFigmaPreviewRoute, async (c) =>
-    c.json(await getFigmaPreview(c.req.valid("query")), 200),
+    c.json(
+      await getFigmaPreview({
+        ...c.req.valid("query"),
+        userId: c.get("userId"),
+      }),
+      200,
+    ),
   )
   .openapi(refreshFigmaPreviewRoute, async (c) =>
     c.json(
-      await getFigmaPreview({ ...c.req.valid("json"), refresh: true }),
+      await getFigmaPreview({
+        ...c.req.valid("json"),
+        userId: c.get("userId"),
+        refresh: true,
+      }),
       200,
     ),
   );

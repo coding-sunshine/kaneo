@@ -156,11 +156,18 @@ Name | Description | Default |
 
 ### Figma link cards
 
-Figma links in tickets, comments and documents show as a card with a thumbnail, the file name and when it was fetched. The API reads the file through the Figma REST API with a personal access token that has read access to file content. Each workspace stores a card the first time someone opens it; the refresh button on the card reads Figma again. Without a token, cards are off: the API logs that once, and Figma links stay plain links.
+Figma links in tickets, comments and documents show as a card with a thumbnail, the file name and when it was fetched. The API reads the file through the Figma REST API with a personal access token that has read access to file content. Without a token, cards are off: the API logs that once, and Figma links stay plain links.
+
+Use a token that only sees files the whole workspace may see, such as one from a Figma account that is a viewer on your shared team projects. Kaneo limits what a card can reveal, but it cannot know which Figma files are private to whom:
+
+- A card is shown only for a file whose link appears in a task description, comment or document that the person can read in that workspace. Any other link gets the same "not found" answer as a file the token cannot open.
+- Guests never get cards.
+- Each workspace stores its cards. Figma is read again only when someone presses refresh, or when the stored image link expires (after 14 days); if that read fails, the card shows without an image.
+- Each person can make 20 lookups that reach Figma in 10 minutes. A file Figma could not return is not asked again for 5 minutes. Both limits are kept per API instance.
 
 Name | Description | Default |
 --- | --- | --- |
-| `FIGMA_ACCESS_TOKEN` | Figma personal access token used to read file names and thumbnails. Also read from `FIGMA_ACCESS_TOKEN_FILE`. It stays on the server. Every workspace member can see the name and thumbnail of any file the token can open, if they have its link. | Unset |
+| `FIGMA_ACCESS_TOKEN` | Figma personal access token used to read file names and thumbnails. Also read from `FIGMA_ACCESS_TOKEN_FILE`. It stays on the server. Give it access only to files every workspace member may see. | Unset |
 
 ### Imports
 

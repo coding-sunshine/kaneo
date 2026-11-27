@@ -155,6 +155,13 @@ describe("FigmaLinkCards", () => {
     expect(screen.getByText("Checkout flow")).toBeTruthy();
   });
 
+  it("shows the card without an image when the server has none", async () => {
+    api.getFigmaPreview.mockResolvedValue(card({ thumbnailUrl: null }));
+    const { container } = renderCards(FRAME_URL);
+    expect(await screen.findByText("Checkout flow")).toBeTruthy();
+    expect(container.querySelector("img")).toBeNull();
+  });
+
   it("ignores content without Figma links", () => {
     const { container } = renderCards("See https://example.test/design");
     expect(container.innerHTML).toBe("");
