@@ -5,6 +5,7 @@ import { DocumentSharePopover } from "./document-share-popover";
 
 const mocks = vi.hoisted(() => ({
   unshare: vi.fn(),
+  unshareHidden: vi.fn(),
   share: vi.fn(),
   update: vi.fn(),
   success: vi.fn(),
@@ -34,6 +35,10 @@ vi.mock("@/hooks/mutations/document/use-document-mutations", () => ({
   useShareDocument: () => ({ mutate: mocks.share }),
   useUpdateDocument: () => ({ mutate: mocks.update }),
   useUnshareDocumentFromTask: () => ({ mutate: mocks.unshare }),
+  useUnshareDocumentFromHiddenTasks: () => ({
+    mutate: mocks.unshareHidden,
+    isPending: false,
+  }),
 }));
 vi.mock("./document-who-can-open", () => ({
   DocumentWhoCanOpen: () => <p>who can open: 2 people, Ana Lima, Ben Ode</p>,
@@ -44,9 +49,8 @@ vi.mock("./use-copy-document-link", () => ({
 
 const sharedTasks = [
   { id: "t1", title: "Fix it", number: 7, projectId: "p", projectSlug: "eng" },
-  { id: "t2", title: null, number: null, projectId: null, projectSlug: null },
 ];
-const show = (role: string) =>
+const show = (role: string, hidden = 0) =>
   render(
     <DocumentSharePopover
       document={
@@ -61,6 +65,7 @@ const show = (role: string) =>
           scope: "workspace",
           generalAccess: "view",
           sharedTasks,
+          hiddenSharedTaskCount: hidden,
         } as unknown as DocumentDetail
       }
       open
@@ -74,12 +79,27 @@ afterEach(() => {
 });
 
 describe("DocumentSharePopover shared issues", () => {
-  it("lists each issue, hiding the title of one the viewer cannot open", () => {
+  it("lists each issue by key and title", () => {
     show("edit");
     expect(screen.getByText("ENG-7 Fix it")).toBeTruthy();
+  });
+
+  it("counts the shares on issues an editor cannot open and stops them", () => {
+    show("edit", 2);
     expect(
-      screen.getByText("navigation:documents.share.hiddenTask"),
+      screen.getByText('navigation:documents.share.hiddenTasks {"count":2}'),
     ).toBeTruthy();
+    fireEvent.click(
+      screen.getByText("navigation:documents.share.stopHiddenTasks"),
+    );
+    expect(mocks.unshareHidden).toHaveBeenCalled();
+  });
+
+  it("shows no hidden-share row to someone who may only view", () => {
+    show("view", 2);
+    expect(
+      screen.queryByText("navigation:documents.share.stopHiddenTasks"),
+    ).toBeNull();
   });
 
   it("removes a share by issue id", () => {

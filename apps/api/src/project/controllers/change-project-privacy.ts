@@ -52,6 +52,7 @@ export async function changeProjectPrivacy(database: DbOrTx, change: Change) {
     .where(eq(projectTable.id, change.projectId));
 
   let unassigned = false;
+  let removedLinks = false;
   if (change.isPrivate) {
     await grantProjectToRestrictedMember(database, {
       workspaceId: change.workspaceId,
@@ -59,9 +60,13 @@ export async function changeProjectPrivacy(database: DbOrTx, change: Change) {
       projectId: change.projectId,
     });
     unassigned = (await unassignProjectOutsiders(database, change)).length > 0;
-    await database
-      .delete(calendarFeedTable)
-      .where(eq(calendarFeedTable.projectId, change.projectId));
+    removedLinks =
+      (
+        await database
+          .delete(calendarFeedTable)
+          .where(eq(calendarFeedTable.projectId, change.projectId))
+          .returning({ id: calendarFeedTable.id })
+      ).length > 0;
   } else {
     await database.delete(workspaceMemberProjectTable).where(
       and(
@@ -91,6 +96,7 @@ export async function changeProjectPrivacy(database: DbOrTx, change: Change) {
   const after = await membersWithAccess(database, change);
   return {
     unassigned,
+    removedLinks,
     // Everyone whose list of teams just changed, so their open pages catch up.
     changedUserIds: [...new Set([...before, ...after])].filter(
       (userId) => before.has(userId) !== after.has(userId),

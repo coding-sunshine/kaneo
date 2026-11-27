@@ -237,9 +237,13 @@ const documentFields = {
   icon: z.string().nullable(),
   color: z.string().nullable(),
   scope: z.enum(DOCUMENT_SCOPES),
-  projectId: z.string().nullable(),
+  projectId: z.string().nullable().openapi({
+    description: "The parent team. Null when the viewer cannot open it.",
+  }),
   workProjectId: z.string().nullable(),
-  taskId: z.string().nullable(),
+  taskId: z.string().nullable().openapi({
+    description: "The parent issue. Null when the viewer cannot open its team.",
+  }),
   parentName: z.string().nullable().openapi({
     description: "Team name, project name or issue key of the parent.",
   }),
@@ -375,16 +379,20 @@ export const documentSchema = z
       .array(
         z.object({
           id: z.string(),
-          title: z.string().nullable(),
+          title: z.string(),
           number: z.number().nullable(),
-          projectId: z.string().nullable(),
-          projectSlug: z.string().nullable(),
+          projectId: z.string(),
+          projectSlug: z.string(),
         }),
       )
       .openapi({
         description:
-          "Issues the document is shared with: everyone who can open one can view the document. With edit rights you get every issue, without its name when you cannot open it. Otherwise only issues you can open.",
+          "Issues the document is shared with that you can open: everyone who can open one can view the document. An issue you cannot open is left out, also with edit rights.",
       }),
+    hiddenSharedTaskCount: z.number().int().openapi({
+      description:
+        "With edit rights: how many issues you cannot open the document is also shared with. Their ids and names stay hidden. Zero without edit rights.",
+    }),
     shares: z.array(
       z.object({
         userId: z.string(),

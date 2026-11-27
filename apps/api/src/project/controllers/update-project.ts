@@ -60,7 +60,9 @@ async function updateProject(
   > = {},
   // Given only when the request names `isPrivate`. A body without the field
   // leaves the team as it is, so an older client cannot flip it.
-  privacy?: { isPrivate: boolean; actorId: string },
+  // Going private unassigns outsiders and deletes calendar links, and opening
+  // the team again restores neither, so that change waits for `confirmed`.
+  privacy?: { isPrivate: boolean; actorId: string; confirmed?: boolean },
 ) {
   const { updated, privacyChange } = await db.transaction(async (tx) => {
     await tx.execute(
@@ -122,6 +124,15 @@ async function updateProject(
         actorId: privacy.actorId,
         isPrivate,
       });
+      if (
+        (privacyChange.unassigned || privacyChange.removedLinks) &&
+        !privacy.confirmed
+      ) {
+        throw new HTTPException(409, {
+          message:
+            "Making this team private unassigns issues or deletes calendar links, and opening it again does not bring them back. Send confirmPrivate: true to go ahead.",
+        });
+      }
     }
 
     if (!isSameProjectKey(slug, existingProject.slug)) {

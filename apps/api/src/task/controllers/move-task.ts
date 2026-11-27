@@ -11,7 +11,7 @@ import {
   taskTable,
 } from "../../database/schema";
 import { publishEvent } from "../../events";
-import { assertProjectAccess } from "../../project-access/assert-project-access";
+import { hideClosedTeams } from "../../project-access/hide-closed-teams";
 import { filterUsersWithProjectAccess } from "../../project-access/filter-users-with-project-access";
 import { claimTaskNumber } from "./claim-task-numbers";
 import { nextTaskPosition } from "./next-task-position";
@@ -111,7 +111,11 @@ async function moveTask({
     });
   }
 
-  await assertProjectAccess(currentUserId, destinationProjectId);
+  await hideClosedTeams(
+    currentUserId,
+    destinationProjectId,
+    () => new HTTPException(404, { message: "Project not found" }),
+  );
 
   const resolvedColumn = await resolveDestinationStatus(
     destinationProjectId,

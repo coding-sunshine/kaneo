@@ -14580,9 +14580,6 @@
 								"sharedTasksHint": {
 									"type": "string"
 								},
-								"hiddenTask": {
-									"type": "string"
-								},
 								"stopSharingWith": {
 									"type": "string"
 								},
@@ -14590,6 +14587,33 @@
 									"type": "string"
 								},
 								"unshareFromTaskFailed": {
+									"type": "string"
+								},
+								"hiddenTasks_one": {
+									"type": "string"
+								},
+								"hiddenTasks_zero": {
+									"type": "string"
+								},
+								"hiddenTasks_two": {
+									"type": "string"
+								},
+								"hiddenTasks_few": {
+									"type": "string"
+								},
+								"hiddenTasks_many": {
+									"type": "string"
+								},
+								"hiddenTasks_other": {
+									"type": "string"
+								},
+								"stopHiddenTasks": {
+									"type": "string"
+								},
+								"hiddenTasksUnshared": {
+									"type": "string"
+								},
+								"unshareHiddenTasksFailed": {
 									"type": "string"
 								},
 								"added": {
@@ -14639,10 +14663,12 @@
 								"leaveAsItIs",
 								"sharedTasks",
 								"sharedTasksHint",
-								"hiddenTask",
 								"stopSharingWith",
 								"shareWithTaskFailed",
 								"unshareFromTaskFailed",
+								"stopHiddenTasks",
+								"hiddenTasksUnshared",
+								"unshareHiddenTasksFailed",
 								"added",
 								"updated",
 								"taskGains",

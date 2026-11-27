@@ -1,4 +1,5 @@
 import { and, asc, eq, notInArray, or, sql } from "drizzle-orm";
+import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import db from "../database";
 import { favoriteTable } from "../database/schema";
@@ -10,6 +11,7 @@ import {
   errorResponse,
   jsonResponse,
 } from "../openapi";
+import { findAccessibleProjects } from "../project-access/find-accessible-projects";
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 
@@ -77,13 +79,13 @@ const addRoute = createRoute({
   tags,
   summary: "Add favorite",
   description:
-    "Favorite a team, view, document or pull request, or pin a document (documentPin). Repeating the call is a no-op. A document the user cannot open is refused like one that does not exist.",
+    "Favorite a team, view, document or pull request, or pin a document (documentPin). Repeating the call is a no-op. A team or document the user cannot open is refused like one that does not exist.",
   middleware: [...middleware] as const,
   request: { params, body: json(favoriteBody) },
   responses: {
     200: jsonResponse("Favorite saved", favoriteBody),
     403: noAccess,
-    404: errorResponse("Document not found"),
+    404: errorResponse("Team or document not found"),
   },
 });
 
@@ -135,6 +137,14 @@ const favorite = apiRouter()
     const userId = c.get("userId");
     if (isDocument(data.type)) {
       await loadDocument(workspaceId, data.targetId, userId);
+    }
+    if (
+      data.type === "project" &&
+      (await findAccessibleProjects(userId, [data.targetId])).get(
+        data.targetId,
+      ) !== workspaceId
+    ) {
+      throw new HTTPException(404, { message: "Team not found" });
     }
     await db
       .insert(favoriteTable)

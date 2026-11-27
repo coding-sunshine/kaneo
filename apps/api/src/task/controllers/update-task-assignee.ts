@@ -51,6 +51,7 @@ async function updateTaskAssignee({
 
       return updatedTask;
     },
+    { lockTeam: true },
   );
 
   await publishTaskMutation(existingTask, updatedTask, currentUserId, {
