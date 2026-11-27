@@ -12,6 +12,7 @@ export async function listWorkspaceProjectAccess(
       .select({
         userId: schema.workspaceMemberAccessTable.userId,
         projectAccess: schema.workspaceMemberAccessTable.projectAccess,
+        guest: schema.workspaceMemberAccessTable.guest,
       })
       .from(schema.workspaceMemberAccessTable)
       .where(eq(schema.workspaceMemberAccessTable.workspaceId, workspaceId)),
@@ -40,5 +41,6 @@ export async function listWorkspaceProjectAccess(
       projectIds: grants
         .filter((grant) => grant.userId === rule.userId)
         .map((grant) => grant.projectId),
+      ...(rule.guest ? { guest: true } : {}),
     }));
 }

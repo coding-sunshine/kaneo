@@ -42,13 +42,13 @@ const SLUG_PATHS = new Set([
   "/organization/set-active",
 ]);
 
-type OrganizationContext = {
+export type OrganizationContext = {
   path?: string;
   body?: Record<string, unknown> | null;
   query?: Record<string, unknown> | null;
 };
 
-type OrganizationViewer = {
+export type OrganizationViewer = {
   user: { id: string };
   session: { activeOrganizationId?: unknown; activeTeamId?: unknown };
 } | null;
@@ -78,7 +78,7 @@ async function workspaceIdByTeam(teamId: string) {
  * when the request names a target that does not exist (the provider reports
  * that) or has no target at all.
  */
-async function resolveTarget(
+export async function resolveTarget(
   ctx: OrganizationContext,
   viewer: NonNullable<OrganizationViewer>,
 ): Promise<Target | null> {

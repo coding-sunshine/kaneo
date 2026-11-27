@@ -4,6 +4,7 @@ import {
   createChannel,
   joinChannel,
   leaveChannel,
+  removeChannelMember,
   updateChannel,
 } from "@/fetchers/chat/channels";
 import { channelKey } from "@/hooks/queries/chat/use-channel";
@@ -51,3 +52,8 @@ export const useLeaveChannel = (workspaceId: string, channelId: string) =>
 
 export const useAddChannelMember = (workspaceId: string, channelId: string) =>
   useChannelMutation(workspaceId, channelId, addChannelMember);
+
+export const useRemoveChannelMember = (
+  workspaceId: string,
+  channelId: string,
+) => useChannelMutation(workspaceId, channelId, removeChannelMember);

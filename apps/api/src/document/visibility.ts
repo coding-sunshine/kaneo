@@ -1,8 +1,10 @@
 import { type SQLWrapper, sql } from "drizzle-orm";
+import { isGuestCondition } from "../guest/guest-condition";
 import { projectAccessCondition } from "../project-access/project-access-condition";
 
 type DocumentColumns = {
   id: SQLWrapper;
+  workspaceId: SQLWrapper;
   creatorId: SQLWrapper;
   scope: SQLWrapper;
   projectId: SQLWrapper;
@@ -11,15 +13,23 @@ type DocumentColumns = {
 };
 
 // Who may use a work project as a place for documents: anyone who can enter
-// one of its teams. A project with no team is open to the whole workspace.
+// one of its teams. A project with no team is open to the whole workspace,
+// guests aside.
 export function workProjectDocumentAccess(
   userId: string | SQLWrapper,
   workProjectId: SQLWrapper,
 ) {
   return sql<boolean>`(
-    NOT EXISTS (
-      SELECT 1 FROM work_project_team AS document_project_team
-      WHERE document_project_team.work_project_id = ${workProjectId}
+    (
+      NOT EXISTS (
+        SELECT 1 FROM work_project_team AS document_project_team
+        WHERE document_project_team.work_project_id = ${workProjectId}
+      )
+      AND NOT EXISTS (
+        SELECT 1 FROM work_project AS document_work_project
+        WHERE document_work_project.id = ${workProjectId}
+          AND ${isGuestCondition(userId, sql`document_work_project.workspace_id`)}
+      )
     )
     OR EXISTS (
       SELECT 1 FROM work_project_team AS document_project_team
@@ -30,18 +40,18 @@ export function workProjectDocumentAccess(
 }
 
 // Who can see a document through its parent, ignoring direct shares. Workspace
-// documents are open to every workspace member; team and issue documents
+// documents are open to every workspace member but guests; team and issue documents
 // follow team access, and work project documents follow the project's teams.
 // Callers check workspace membership.
 export function documentParentAccess(
   userId: string | SQLWrapper,
   doc: Pick<
     DocumentColumns,
-    "scope" | "projectId" | "workProjectId" | "taskId"
+    "workspaceId" | "scope" | "projectId" | "workProjectId" | "taskId"
   >,
 ) {
   return sql<boolean>`(
-    ${doc.scope} = 'workspace'
+    (${doc.scope} = 'workspace' AND NOT ${isGuestCondition(userId, doc.workspaceId)})
     OR (${doc.scope} = 'project' AND ${workProjectDocumentAccess(userId, doc.workProjectId)})
     OR (${doc.scope} = 'team' AND ${projectAccessCondition(userId, doc.projectId)})
     OR (${doc.scope} = 'issue' AND EXISTS (
@@ -133,6 +143,7 @@ export function topicAccess(userId: string | SQLWrapper, topicId: SQLWrapper) {
     SELECT 1 FROM topic AS visible_topic
     WHERE visible_topic.id = ${topicId}
       AND ${documentParentAccess(userId, {
+        workspaceId: sql`visible_topic.workspace_id`,
         scope: sql`visible_topic.scope`,
         projectId: sql`visible_topic.project_id`,
         workProjectId: sql`visible_topic.work_project_id`,

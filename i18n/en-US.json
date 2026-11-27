@@ -576,6 +576,22 @@
 				"description": "You'll come right back here to review it.",
 				"submit": "Sign in"
 			}
+		},
+		"twoFactor": {
+			"pageTitle": "Two-factor sign-in",
+			"heading": "Enter your sign-in code",
+			"description": "Open your authenticator app and enter the 6-digit code for this account.",
+			"codeLabel": "6-digit code",
+			"recoveryLabel": "Recovery code",
+			"submit": "Continue",
+			"useRecovery": "Use a recovery code instead",
+			"useAuthenticator": "Use your authenticator app instead",
+			"wrongCode": "That code is not right. Try again.",
+			"expired": "This sign-in has expired. Sign in again.",
+			"backToSignIn": "Back to sign in",
+			"setupPageTitle": "Set up two-factor sign-in",
+			"setupHeading": "Set up two-factor sign-in",
+			"setupDescription": "Your administrator requires a second step when you sign in with a password. Set it up to continue."
 		}
 	},
 	"settings": {
@@ -696,6 +712,7 @@
 				"sendPasswordReset": "Send password reset link",
 				"sendVerification": "Resend verification email",
 				"markEmailVerified": "Mark email as verified",
+				"resetTwoFactor": "Reset two-factor sign-in",
 				"security": "Sessions & API keys"
 			},
 			"edit": {
@@ -736,6 +753,12 @@
 				"markEmailVerified": {
 					"title": "Mark this email as verified?",
 					"action": "Mark as verified"
+				},
+				"resetTwoFactor": {
+					"title": "Reset two-factor sign-in?",
+					"description": "{{name}} can sign in with only their password until they turn two-factor on again. Their authenticator app, recovery codes and remembered devices stop working. Do this only after confirming who is asking.",
+					"action": "Reset two-factor",
+					"codeLabel": "Your own authenticator code or a recovery code"
 				}
 			},
 			"toast": {
@@ -753,6 +776,7 @@
 				"passwordResetSent": "Password reset link sent to {{email}}",
 				"verificationSent": "Verification email sent to {{email}}",
 				"emailVerified": "Email marked as verified",
+				"twoFactorReset": "Two-factor sign-in reset for {{email}}",
 				"emailError": "The email could not be sent",
 				"avatarChanged": "Profile picture updated",
 				"avatarRemoved": "Profile picture removed",
@@ -980,6 +1004,7 @@
 				"userPasswordResetSent": "Sent password reset link",
 				"userVerificationSent": "Sent verification email",
 				"userEmailVerified": "Marked email as verified",
+				"userTwoFactorReset": "Reset two-factor sign-in",
 				"userAvatarChanged": "Changed profile picture",
 				"userAvatarRemoved": "Removed profile picture",
 				"apiKeyRevoked": "Revoked an API key",
@@ -2500,6 +2525,39 @@
 				"toastAddError": "Couldn't add the passkey.",
 				"toastDeleted": "Passkey deleted.",
 				"toastDeleteError": "Couldn't delete the passkey."
+			},
+			"twoFactor": {
+				"title": "Two-factor sign-in",
+				"description": "Ask for a code from your authenticator app after your password, or any other sign-in.",
+				"rowTitle": "Authenticator app",
+				"needsPassword": "Set a password first to turn on two-factor sign-in.",
+				"on": "On",
+				"turnOn": "Turn on",
+				"turnOff": "Turn off",
+				"newCodes": "New recovery codes",
+				"setupTitle": "Turn on two-factor sign-in",
+				"setupDescription": "Confirm your password, then scan the code with your authenticator app.",
+				"scanHint": "Scan this code with your authenticator app, then enter the 6-digit code it shows.",
+				"qrLabel": "QR code for your authenticator app",
+				"secretHint": "Can't scan it? Enter this key:",
+				"codeLabel": "6-digit code",
+				"verify": "Verify",
+				"continue": "Continue",
+				"done": "Done",
+				"wrongCode": "That code is not right. Try again.",
+				"failed": "Two-factor sign-in could not be changed.",
+				"turnedOn": "Two-factor sign-in is on",
+				"turnedOff": "Two-factor sign-in is off",
+				"disableTitle": "Turn off two-factor sign-in?",
+				"disableDescription": "Signing in will only need your password or email again.",
+				"regenerateTitle": "Make new recovery codes?",
+				"regenerateDescription": "Your old recovery codes stop working.",
+				"currentCode": "Code from your authenticator app",
+				"codesTitle": "Recovery codes",
+				"codesHint": "Keep these somewhere safe. Each one signs you in once if you lose your authenticator app.",
+				"copyCodes": "Copy codes",
+				"codesCopied": "Recovery codes copied",
+				"copyFailed": "Could not copy the codes"
 			}
 		},
 		"calendarFeeds": {
@@ -2929,7 +2987,9 @@
 			"toast": {
 				"saved": "Settings saved",
 				"error": "Couldn't save settings"
-			}
+			},
+			"requireTwoFactor": "Require two-factor sign-in",
+			"requireTwoFactorHint": "Password users set it up at their next sign-in."
 		},
 		"adminWebhooks": {
 			"title": "Webhooks",
@@ -3124,6 +3184,45 @@
 				"action": "Set up IT intake",
 				"done": "IT intake is ready",
 				"failed": "Could not set up IT intake"
+			}
+		},
+		"adminBackups": {
+			"title": "Backups",
+			"loadError": "Backup status could not be loaded.",
+			"retry": "Retry",
+			"off": {
+				"title": "Backups are off",
+				"description": "Set {{settings}} on the server to turn on daily backups with an offsite copy."
+			},
+			"failed": {
+				"title": "The last backup failed",
+				"description": "The backup started {{time}} failed ({{code}}). It is retried every hour until one succeeds."
+			},
+			"last": {
+				"title": "Last backup",
+				"description": "The database is backed up once a day and copied to offsite storage.",
+				"backup": "Latest backup",
+				"summary": "{{time}} · {{size}}",
+				"none": "No backup yet",
+				"offsite": "Offsite copy",
+				"offsiteOk": "Offsite copy ok",
+				"offsiteNone": "No offsite copy"
+			},
+			"restoreTest": {
+				"title": "Restore test",
+				"description": "Restores the latest backup into a scratch database, counts its rows, then deletes the scratch database.",
+				"run": "Restore the latest backup",
+				"button": "Test restore",
+				"running": "Restoring…",
+				"passed": "Restore passed",
+				"failed": "Restore failed ({{code}})",
+				"error": "The restore test could not be run.",
+				"table": "Table",
+				"restored": "Restored",
+				"live": "Live",
+				"tickets": "Tickets",
+				"documents": "Documents",
+				"chatMessages": "Chat messages"
 			}
 		}
 	},
@@ -4396,6 +4495,11 @@
 			"addMemberTitle": "Add people to {{name}}",
 			"add": "Add",
 			"everyoneIsIn": "Everyone in this workspace is already here.",
+			"manageMembers": "Manage members",
+			"manageMembersTitle": "People in #{{name}}",
+			"onlyYou": "Only you are in this channel.",
+			"remove": "Remove",
+			"removeMemberAria": "Remove {{name}} from the channel",
 			"memberCount_one": "{{count}} member",
 			"memberCount_other": "{{count}} members",
 			"notFound": "Channel not found",
@@ -6341,6 +6445,13 @@
 		}
 	},
 	"team": {
+		"guest": {
+			"badge": "Guest",
+			"inviteLabel": "Invite as a guest",
+			"inviteHint": "Guests see only the projects and channels you pick here. They can't browse the workspace's people, documents or other channels.",
+			"channelsLabel": "Channels",
+			"noChannels": "There are no channels to add yet."
+		},
 		"roles": {
 			"owner": "Owner",
 			"admin": "Admin",

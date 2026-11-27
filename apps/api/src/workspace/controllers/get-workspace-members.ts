@@ -1,6 +1,8 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
+import { isWorkspaceGuest } from "../../guest/is-workspace-guest";
+import { sharesProjectCondition } from "../../guest/shares-project-condition";
 import {
   projectMemberPreferenceTable,
   userTable,
@@ -28,6 +30,9 @@ async function getWorkspaceMembers(request: {
       () => new HTTPException(404, { message: "Project not found" }),
     );
   }
+  // A guest sees only the people of their own projects, and not their
+  // email addresses: name and avatar are enough to work together.
+  const guest = await isWorkspaceGuest(workspaceId, request.userId);
 
   const members = await db
     .select({
@@ -56,12 +61,23 @@ async function getWorkspaceMembers(request: {
         projectId
           ? projectAccessCondition(workspaceUserTable.userId, projectId)
           : undefined,
+        guest
+          ? sharesProjectCondition(
+              request.userId,
+              workspaceUserTable.userId,
+              workspaceId,
+            )
+          : undefined,
       ),
     );
 
-  return members.map(({ leftAt, ...member }) =>
-    projectId ? { ...member, joinedTeam: !leftAt } : member,
-  );
+  return members.map(({ leftAt, email, ...rest }) => {
+    const member = {
+      ...rest,
+      email: guest && rest.id !== request.userId ? "" : email,
+    };
+    return projectId ? { ...member, joinedTeam: !leftAt } : member;
+  });
 }
 
 export default getWorkspaceMembers;

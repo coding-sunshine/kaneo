@@ -5,7 +5,10 @@ import {
   errorResponse,
   jsonResponse,
 } from "../openapi";
-import { requireWorkspacePermission } from "../utils/require-workspace-permission";
+import {
+  hasWorkspacePermission,
+  requireWorkspacePermission,
+} from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import { createChannel } from "./controllers/create-channel";
 import { getChannel } from "./controllers/get-channel";
@@ -17,10 +20,12 @@ import { listDirectMessages } from "./controllers/list-direct-messages";
 import { listMessages } from "./controllers/list-messages";
 import { openDirectMessage } from "./controllers/open-direct-message";
 import { postMessage } from "./controllers/post-message";
+import { removeMember } from "./controllers/remove-member";
 import { updateChannel } from "./controllers/update-channel";
 import {
   channelDetailSchema,
   channelListSchema,
+  channelMemberParam,
   channelParam,
   channelSchema,
   createChannelBody,
@@ -32,6 +37,7 @@ import {
   messageSchema,
   openDirectMessageBody,
   postMessageBody,
+  removedMemberSchema,
   updateChannelBody,
   workspaceIdParam,
 } from "./schema";
@@ -60,6 +66,8 @@ const write = [
   requireWorkspacePermission({ task: ["update"] }),
 ] as const;
 const channelPath = "/workspace/{workspaceId}/channels/{channelId}";
+// Who manages the workspace's people: adds guests to channels, removes anyone.
+const manageMembers = { member: ["update"] };
 const directPath = "/workspace/{workspaceId}/direct-messages";
 
 const listRoute = createRoute({
@@ -178,6 +186,27 @@ const inviteRoute = createRoute({
     403: fixed,
     404: errorResponse("Channel or member not found"),
     409: archived,
+  },
+});
+
+const removeMemberRoute = createRoute({
+  method: "delete",
+  operationId: "removeChatChannelMember",
+  path: `${channelPath}/members/{userId}`,
+  tags,
+  summary: "Remove member",
+  description:
+    "Take a member out of a channel. They lose it with their next request. Workspace admins only.",
+  middleware: [
+    workspaceAccess.fromParam(),
+    requireWorkspacePermission(manageMembers),
+  ] as const,
+  request: { params: channelMemberParam },
+  responses: {
+    200: jsonResponse("Member removed", removedMemberSchema),
+    403: noAccess,
+    404: errorResponse("Channel or member not found"),
+    409: errorResponse("The last member cannot leave a private channel"),
   },
 });
 
@@ -325,9 +354,14 @@ const chat = apiRouter()
         channelId,
         c.get("userId"),
         c.req.valid("json").userId,
+        await hasWorkspacePermission(c, manageMembers),
       ),
       200,
     );
+  })
+  .openapi(removeMemberRoute, async (c) => {
+    const { workspaceId, channelId, userId } = c.req.valid("param");
+    return c.json(await removeMember(workspaceId, channelId, userId), 200);
   })
   .openapi(listMessagesRoute, async (c) => {
     const { workspaceId, channelId } = c.req.valid("param");

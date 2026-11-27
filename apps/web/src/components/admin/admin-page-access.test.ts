@@ -20,6 +20,7 @@ describe("admin page redirects", () => {
     "roles",
     "audit-log",
     "system",
+    "backups",
     "settings",
     "webhooks",
   ])("redirects a support role away from %s", (page) => {

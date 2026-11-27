@@ -7,6 +7,8 @@ export type StoredInstanceSettings = {
   registrationEnabled: boolean;
   passwordRegistrationEnabled: boolean;
   requireEmailVerification: boolean;
+  /** Password users must set up two-factor sign-in. */
+  requireTwoFactor: boolean;
   /** Custom role name, or `user` when no default role is set. */
   defaultRole: string;
   workspaceCreationRestricted: boolean;
@@ -30,6 +32,7 @@ export const DEFAULT_STORED_SETTINGS: StoredInstanceSettings = {
   registrationEnabled: true,
   passwordRegistrationEnabled: true,
   requireEmailVerification: false,
+  requireTwoFactor: false,
   defaultRole: "user",
   workspaceCreationRestricted: false,
   disabledIntegrations: [],

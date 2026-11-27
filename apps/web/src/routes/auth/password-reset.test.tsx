@@ -124,7 +124,11 @@ describe("password recovery", () => {
       reset: vi.fn(),
     } satisfies AuthCaptcha;
     const { rerender } = render(
-      <PasswordSignInForm captcha={captcha} onSuccess={vi.fn()} />,
+      <PasswordSignInForm
+        captcha={captcha}
+        onSuccess={vi.fn()}
+        onTwoFactor={vi.fn()}
+      />,
     );
     expect(
       screen.queryByRole("link", { name: "auth:passwordReset.forgotPassword" }),
@@ -133,6 +137,7 @@ describe("password recovery", () => {
       <PasswordSignInForm
         captcha={captcha}
         onSuccess={vi.fn()}
+        onTwoFactor={vi.fn()}
         canResetPassword
       />,
     );
