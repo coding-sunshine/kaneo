@@ -15,7 +15,9 @@ import { projectSchema } from "../project/response";
 import { filterAssignableUsers } from "../utils/assert-assignable-user";
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
+import { setUpItIntake } from "./it-intake";
 import {
+  itIntakeSchema,
   projectIdParam,
   slaSettingsBody,
   triageResponsibilityBody,
@@ -95,6 +97,26 @@ const setTriageRoute = createRoute({
   },
 });
 
+const itIntakeRoute = createRoute({
+  method: "post",
+  operationId: "setUpItIntake",
+  path: "/it-intake/{projectId}",
+  tags: ["Team automation"],
+  summary: "Set up IT intake for a team",
+  description:
+    'Add a Triage status, a required Category dropdown, an "IT request" template that files high priority requests into Triage, turn SLAs on, and add a shared "IT queue" view of Triage. Running it again reuses what already exists.',
+  middleware: [
+    workspaceAccess.fromProject("projectId"),
+    requireWorkspacePermission({ project: ["update"] }),
+  ] as const,
+  request: { params: projectIdParam },
+  responses: {
+    200: jsonResponse("What the IT intake uses", itIntakeSchema),
+    403: noAccess,
+    404: errorResponse("Team not found"),
+  },
+});
+
 async function loadTriage(projectId: string) {
   const [project] = await db
     .select({ mode: projectTable.triageResponsibilityMode })
@@ -122,6 +144,12 @@ const teamAutomation = apiRouter()
     if (!project) throw new HTTPException(404, { message: "Team not found" });
     return c.json(project, 200);
   })
+  .openapi(itIntakeRoute, async (c) =>
+    c.json(
+      await setUpItIntake(c.req.valid("param").projectId, c.get("userId")),
+      200,
+    ),
+  )
   .openapi(getTriageRoute, async (c) =>
     c.json(await loadTriage(c.req.valid("param").projectId), 200),
   )

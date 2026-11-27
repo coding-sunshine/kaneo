@@ -3063,7 +3063,14 @@
 			"modeDescription": "Notify everyone listed, or assign the issue to them in turn.",
 			"notify": "Notify",
 			"assign": "Auto-assign",
-			"saveFailed": "Could not save triage responsibility"
+			"saveFailed": "Could not save triage responsibility",
+			"itIntake": {
+				"title": "IT intake",
+				"description": "Add an IT request template with a required Category, turn SLAs on, and add a shared IT queue view of Triage.",
+				"action": "Set up IT intake",
+				"done": "IT intake is ready",
+				"failed": "Could not set up IT intake"
+			}
 		}
 	},
 	"navigation": {
@@ -5329,7 +5336,9 @@
 			"achieved": "Achieved",
 			"failed": "Failed",
 			"title": "SLA {{status}} - due {{date}}",
-			"label": "SLA"
+			"label": "SLA",
+			"ageTitle": "Open for {{age}}",
+			"none": "No SLA"
 		}
 	},
 	"invitations": {

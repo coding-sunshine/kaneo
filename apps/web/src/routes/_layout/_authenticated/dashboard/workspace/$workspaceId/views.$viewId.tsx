@@ -7,6 +7,7 @@ import Layout from "@/components/common/layout";
 import ListView from "@/components/list-view";
 import PageTitle from "@/components/page-title";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { SlaQueueContext } from "@/components/views/sla-queue-context";
 import { ViewDetailsPanel } from "@/components/views/view-details-panel";
 import { narrowToIssues } from "@/lib/insights/insight-selection";
 import { useInsightsSelectionStore } from "@/store/insights-selection";
@@ -19,6 +20,7 @@ import { cn } from "@/lib/cn";
 import { useShortcut } from "@/lib/shortcuts/use-shortcut";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 import type { BoardFilters } from "@/hooks/use-task-filters";
+import type { ViewDisplay } from "@/lib/saved-view";
 
 export const Route = createFileRoute(
   "/_layout/_authenticated/dashboard/workspace/$workspaceId/views/$viewId",
@@ -72,6 +74,7 @@ function RouteComponent() {
   if (!view) return null;
 
   const filters = view.filters as Partial<BoardFilters>;
+  const slaQueue = (view.display as ViewDisplay).preset === "it-queue";
   const teams = view.projectId
     ? projects.filter((project) => project.id === view.projectId)
     : projects;
@@ -123,16 +126,18 @@ function RouteComponent() {
       <Layout.Content>
         <div className="flex h-full min-h-0">
           <div className="min-w-0 flex-1 overflow-auto">
-            {teams.map((team) => (
-              <section key={team.id}>
-                {teams.length > 1 && (
-                  <h2 className="px-4 pt-3 text-xs font-medium text-muted-foreground">
-                    {team.name}
-                  </h2>
-                )}
-                <TeamIssues projectId={team.id} filters={filters} />
-              </section>
-            ))}
+            <SlaQueueContext value={slaQueue}>
+              {teams.map((team) => (
+                <section key={team.id}>
+                  {teams.length > 1 && (
+                    <h2 className="px-4 pt-3 text-xs font-medium text-muted-foreground">
+                      {team.name}
+                    </h2>
+                  )}
+                  <TeamIssues projectId={team.id} filters={filters} />
+                </section>
+              ))}
+            </SlaQueueContext>
           </div>
           {insightsOpen && (
             <ViewInsights
