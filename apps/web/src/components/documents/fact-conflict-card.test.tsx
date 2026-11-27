@@ -65,7 +65,19 @@ const base: FactConflict = {
 } as FactConflict;
 const show = (
   conflict: Partial<FactConflict> = {},
-  { canDecide = true, deciderName = "Ana" as string | null } = {},
+  {
+    canDecide = true,
+    deciderName = "Ana" as string | null,
+    canConfirm = false,
+    confirmPending = false,
+    onConfirm,
+  }: {
+    canDecide?: boolean;
+    deciderName?: string | null;
+    canConfirm?: boolean;
+    confirmPending?: boolean;
+    onConfirm?: () => void;
+  } = {},
 ) =>
   render(
     <QueryClientProvider client={new QueryClient()}>
@@ -75,6 +87,9 @@ const show = (
         conflict={{ ...base, ...conflict }}
         canDecide={canDecide}
         deciderName={deciderName}
+        canConfirm={canConfirm}
+        confirmPending={confirmPending}
+        onConfirm={onConfirm}
       />
     </QueryClientProvider>,
   ).container;
@@ -144,5 +159,71 @@ describe("FactConflictCard", () => {
     expect(text).toContain(`${C}.settled`);
     expect(text).toContain("Dates agree");
     expect(text).not.toContain(`${C}.askDecider`);
+  });
+
+  it("lets an editor confirm a tolerated value without changing the decision", () => {
+    const onConfirm = vi.fn();
+    show(
+      {
+        status: "tolerated",
+        tolerateUntil: "2099-01-31T23:59:59.000Z",
+        reason: "Waiting on legal",
+        confirmed: false,
+      },
+      { canDecide: true, canConfirm: true, onConfirm },
+    );
+    const confirm = screen.getByRole("button", {
+      name: 'navigation:documents.facts.confirmName {"name":"Launch date"}',
+    });
+    expect(screen.getByRole("button", { name: `${C}.change` })).toBeTruthy();
+    fireEvent.click(confirm);
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(`${C}.title {"name":"Launch date"}`)).toBeNull();
+  });
+
+  it("lets an editor confirm an unconfirmed not-a-conflict value", () => {
+    const onConfirm = vi.fn();
+    show(
+      { status: "resolved", reason: "Different scope", confirmed: false },
+      { canDecide: false, canConfirm: true, onConfirm },
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: 'navigation:documents.facts.confirmName {"name":"Launch date"}',
+      }),
+    );
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("button", { name: `${C}.change` })).toBeNull();
+  });
+
+  it("hides confirm once confirmed, on open conflicts, and for readers", () => {
+    const onConfirm = vi.fn();
+    show(
+      {
+        status: "tolerated",
+        tolerateUntil: "2099-01-31T23:59:59.000Z",
+        confirmed: true,
+      },
+      { canConfirm: true, onConfirm },
+    );
+    expect(screen.queryByRole("button", { name: /confirmName/ })).toBeNull();
+    expect(
+      screen.getByText("navigation:documents.facts.status.confirmed"),
+    ).toBeTruthy();
+
+    cleanup();
+    show({ status: "open", confirmed: false }, { canConfirm: true, onConfirm });
+    expect(screen.queryByRole("button", { name: /confirmName/ })).toBeNull();
+
+    cleanup();
+    show(
+      {
+        status: "tolerated",
+        tolerateUntil: "2099-01-31T23:59:59.000Z",
+        confirmed: false,
+      },
+      { canDecide: false, canConfirm: false, onConfirm },
+    );
+    expect(screen.queryAllByRole("button")).toEqual([]);
   });
 });

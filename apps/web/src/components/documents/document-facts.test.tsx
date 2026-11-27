@@ -33,8 +33,26 @@ vi.mock("@/fetchers/document/facts", () => mocks);
 vi.mock("@/fetchers/topic/facts", () => ({}));
 vi.mock("@/lib/toast", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("./fact-conflict-card", () => ({
-  FactConflictCard: ({ conflict }: { conflict: { slotName: string } }) => (
-    <div>conflict card {conflict.slotName}</div>
+  FactConflictCard: ({
+    conflict,
+    canConfirm,
+    onConfirm,
+  }: {
+    conflict: { slotName: string; status: string; confirmed: boolean };
+    canConfirm?: boolean;
+    onConfirm?: () => void;
+  }) => (
+    <div>
+      <span>conflict card {conflict.slotName}</span>
+      {conflict.status !== "open" &&
+        !conflict.confirmed &&
+        canConfirm &&
+        onConfirm && (
+          <button type="button" onClick={onConfirm}>
+            confirm conflict {conflict.slotName}
+          </button>
+        )}
+    </div>
   ),
 }));
 vi.mock("./reject-fact-dialog", () => ({
@@ -269,6 +287,25 @@ describe("DocumentFacts", () => {
         slot: "s",
         value: "Ann",
         quote: "abcd",
+      }),
+    );
+  });
+
+  it("confirms an unconfirmed fact under a both-stand decision", async () => {
+    mocks.confirmDocumentFact.mockResolvedValue({});
+    await show(
+      receipt({
+        conflicts: [{ ...stated("c", "Price", false), status: "tolerated" }],
+      }),
+    );
+    fireEvent.click(
+      await screen.findByRole("button", { name: "confirm conflict Price" }),
+    );
+    await waitFor(() =>
+      expect(mocks.confirmDocumentFact.mock.calls[0]?.[0]).toEqual({
+        workspaceId: "ws",
+        id: "doc",
+        statementId: "c",
       }),
     );
   });
