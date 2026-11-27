@@ -220,7 +220,9 @@ const updateProjectRoute = createRoute({
     403: errorResponse(
       "No access to the project, missing project:update, or missing project:share when visibility changes",
     ),
-    409: errorResponse("Another project in the workspace uses the new key"),
+    409: errorResponse(
+      "Another project in the workspace uses the new key, or making the team private needs confirmPrivate",
+    ),
     404: errorResponse("Project not found"),
   },
 });
@@ -624,6 +626,7 @@ const project = apiRouter<BaseVariables & { workspaceId: string }>()
       description,
       isPublic,
       isPrivate,
+      confirmPrivate,
       includeSubtasks,
       autoArchiveMonths,
       ...estimation
@@ -643,7 +646,7 @@ const project = apiRouter<BaseVariables & { workspaceId: string }>()
       estimation,
       isPrivate === undefined
         ? undefined
-        : { isPrivate, actorId: c.get("userId") },
+        : { isPrivate, actorId: c.get("userId"), confirmed: confirmPrivate },
     );
     await publishEvent("project.updated", { projectId: id });
     return c.json(toPublicProject(updatedProject), 200);

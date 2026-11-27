@@ -88,7 +88,10 @@ const putTeam = (user: User, team: Team, extra: Record<string, unknown> = {}) =>
     }),
   );
 const setPrivate = async (user: User, team: Team, value = true) => {
-  const response = await putTeam(user, team, { isPrivate: value });
+  const response = await putTeam(user, team, {
+    isPrivate: value,
+    confirmPrivate: value,
+  });
   expect(response.status).toBe(200);
   expect(((await response.json()) as { isPrivate: boolean }).isPrivate).toBe(
     value,
@@ -364,6 +367,48 @@ describe("private teams: turning privacy on and off", () => {
     expect(await grantsOf(world.open)).toEqual([]);
     expect(await grantsOf(world.limited)).toEqual([world.alpha.id]);
     expect((await getTeam(world.open, world.alpha)).isPrivate).toBe(false);
+  });
+});
+
+describe("private teams: losses need a confirm", () => {
+  const feedCount = async (team: Team) =>
+    (
+      await db
+        .select({ id: schema.calendarFeedTable.id })
+        .from(schema.calendarFeedTable)
+        .where(eq(schema.calendarFeedTable.projectId, team.id))
+    ).length;
+
+  it("refuses a change that unassigns or deletes links until it is confirmed", async () => {
+    const issue = await addIssue(world.alpha, world.open);
+    const feed = await world.as(world.owner)(
+      `/calendar-feed/project/${world.alpha.id}`,
+      json("POST", { timeZone: "UTC" }),
+    );
+    expect(feed.status).toBe(201);
+
+    const refused = await putTeam(world.owner, world.alpha, {
+      isPrivate: true,
+    });
+    expect(refused.status).toBe(409);
+    expect((await getTeam(world.owner, world.alpha)).isPrivate).toBe(false);
+    expect(await assigneeOf(issue.id)).toBe(world.open.id);
+    expect(await feedCount(world.alpha)).toBe(1);
+
+    const confirmed = await putTeam(world.owner, world.alpha, {
+      isPrivate: true,
+      confirmPrivate: true,
+    });
+    expect(confirmed.status).toBe(200);
+    expect(await assigneeOf(issue.id)).toBeNull();
+    expect(await feedCount(world.alpha)).toBe(0);
+  });
+
+  it("needs no confirm when nobody loses anything", async () => {
+    const response = await putTeam(world.owner, world.beta, {
+      isPrivate: true,
+    });
+    expect(response.status).toBe(200);
   });
 });
 

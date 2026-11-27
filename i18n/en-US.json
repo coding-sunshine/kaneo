@@ -2015,7 +2015,7 @@
 			"publicBlockedByPrivate": "A private team can't have a public link.",
 			"membersDescriptionPrivate": "Only the people added below. The workspace owner can always open this team.",
 			"makePrivateTitle": "Make {{project}} private?",
-			"makePrivateBody": "You and members whose access is already limited to this team keep it. Everyone else loses access, and their issues here become unassigned. Calendar links for this team are deleted and webhooks stop receiving its events.",
+			"makePrivateBody": "You and members whose access is already limited to this team keep it. Everyone else loses access, and their issues here become unassigned. Calendar links for this team are deleted and webhooks stop receiving its events. Opening the team again does not bring back assignees or calendar links.",
 			"makePrivateConfirm": "Make private",
 			"openTeamTitle": "Open {{project}} to the workspace?",
 			"openTeamBody": "Everyone in the workspace can open this team again, unless their access is limited to other teams.",

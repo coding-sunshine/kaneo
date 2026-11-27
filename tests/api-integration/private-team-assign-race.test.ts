@@ -91,6 +91,7 @@ describe("private teams: an assign racing the privacy change", () => {
           description: team.description ?? "",
           isPublic: false,
           isPrivate: true,
+          confirmPrivate: true,
         }),
       ),
     ).finally(finishPrivacy);
