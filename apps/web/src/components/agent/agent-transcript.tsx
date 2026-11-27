@@ -1,8 +1,10 @@
 import { ChevronRight, Wrench } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { AgentCitation } from "@/components/agent/agent-citation";
+import { AgentProposalCard } from "@/components/agent/agent-proposal-card";
 import { AgentSources } from "@/components/agent/agent-sources";
 import { withoutSourcesLine } from "@/components/agent/without-sources-line";
+import type { AgentProposal } from "@/fetchers/agent/proposals";
 import { cn } from "@/lib/cn";
 
 export type TranscriptMessage = {
@@ -57,15 +59,22 @@ function ToolCall({
 /**
  * One chat or loop run: messages in order, every tool call shown with its
  * result. A chat's answers end with their sources, which link into
- * `workspaceId`.
+ * `workspaceId`, and a write it proposed shows as a card under its tool call.
  */
 export function AgentTranscript({
   messages,
   workspaceId,
+  chatId,
+  proposals = [],
 }: {
   messages: TranscriptMessage[];
   workspaceId?: string;
+  chatId?: string;
+  proposals?: AgentProposal[];
 }) {
+  const cards = new Map(
+    proposals.map((proposal) => [proposal.toolCallId, proposal]),
+  );
   const results = new Map(
     messages
       .filter((message) => message.role === "tool" && message.tool_call_id)
@@ -107,14 +116,25 @@ export function AgentTranscript({
                 unsourced={message.unsourced ?? false}
               />
             ) : null}
-            {message.tool_calls?.map((call) => (
-              <ToolCall
-                key={call.id}
-                name={call.function.name}
-                args={call.function.arguments}
-                result={results.get(call.id)}
-              />
-            ))}
+            {message.tool_calls?.map((call) => {
+              const proposal = cards.get(call.id);
+              return (
+                <div key={call.id} className="flex flex-col gap-1.5">
+                  <ToolCall
+                    name={call.function.name}
+                    args={call.function.arguments}
+                    result={results.get(call.id)}
+                  />
+                  {proposal && workspaceId && chatId ? (
+                    <AgentProposalCard
+                      workspaceId={workspaceId}
+                      chatId={chatId}
+                      proposal={proposal}
+                    />
+                  ) : null}
+                </div>
+              );
+            })}
           </li>
         );
       })}

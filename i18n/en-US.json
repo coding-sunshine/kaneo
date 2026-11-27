@@ -2998,6 +2998,21 @@
 				"loopDraft": "Loop drafts"
 			}
 		},
+		"aiAudit": {
+			"title": "AI audit",
+			"description": "Every change the agent proposed and someone accepted: the prompt, the tool calls, the sources, who accepted it and what the API answered.",
+			"empty": "No accepted AI changes yet.",
+			"loadError": "The AI audit could not be loaded.",
+			"acceptedBy": "Accepted by {{name}}",
+			"askedBy": "(asked by {{name}})",
+			"unknownUser": "a removed user",
+			"failed": "Failed",
+			"prompt": "Prompt",
+			"change": "Change",
+			"toolCalls": "Tool calls",
+			"sources": "Sources",
+			"result": "Result"
+		},
 		"workspaceWebhooks": {
 			"title": "Webhooks",
 			"add": "Add webhook",
@@ -4107,6 +4122,35 @@
 					"title": "Create automated loop",
 					"description": "Learn what loops can do and create your first one",
 					"prompt": "Explain what loops can do, then suggest a first loop for this workspace."
+				}
+			},
+			"proposal": {
+				"label": "Proposed change",
+				"reason": "Why:",
+				"accept": "Accept",
+				"decline": "Decline",
+				"empty": "None",
+				"changesTo": "changes to",
+				"failed": "The change could not be applied.",
+				"status": {
+					"pending": "Waiting for you",
+					"accepted": "Accepted",
+					"declined": "Declined",
+					"failed": "Could not be applied"
+				},
+				"fields": {
+					"priority": "Priority",
+					"labels": "Labels",
+					"status": "Status",
+					"title": "Title",
+					"description": "Description",
+					"assignee": "Assignee",
+					"team": "Team",
+					"startDate": "Start date",
+					"dueDate": "Due date",
+					"comment": "Comment",
+					"topic": "Topic",
+					"position": "Position"
 				}
 			}
 		},

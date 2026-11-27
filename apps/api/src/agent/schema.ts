@@ -1,5 +1,6 @@
 import { responseTimestamp, z } from "../openapi";
-import { SOURCE_KINDS } from "./sources";
+import { citationSchema } from "./citation-schema";
+import { proposalSchema } from "./proposals/proposal-schema";
 
 export const workspaceParam = z.object({ workspaceId: z.string() });
 export const chatParam = z.object({
@@ -13,29 +14,6 @@ export const sendMessageBody = z.object({
   }),
   message: z.string().trim().min(1).max(10_000),
 });
-
-const citationSchema = z
-  .union([
-    z.object({
-      kind: z.enum(SOURCE_KINDS),
-      restricted: z.literal(false),
-      id: z.string(),
-      title: z.string(),
-      taskId: z.string().optional().openapi({
-        description: "The issue a task or a comment is on.",
-      }),
-      projectId: z.string().optional(),
-      ticket: z.string().optional(),
-    }),
-    z.object({
-      kind: z.enum(SOURCE_KINDS),
-      restricted: z.literal(true),
-    }),
-  ])
-  .openapi("AgentCitation", {
-    description:
-      "A source an answer rests on. One the reader cannot open, or that is gone, is only `restricted`, with no title or id.",
-  });
 
 export const chatMessageSchema = z
   .object({
@@ -76,6 +54,9 @@ export const chatDetailSchema = z
     id: z.string(),
     title: z.string(),
     messages: z.array(chatMessageSchema),
+    proposals: z.array(proposalSchema).openapi({
+      description: "The writes the agent proposed in this chat.",
+    }),
   })
   .openapi("AgentChat");
 
