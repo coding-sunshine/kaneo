@@ -14054,6 +14054,215 @@
 						"newDocument": {
 							"type": "string"
 						},
+						"templates": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"blank": {
+									"type": "string"
+								},
+								"fromTemplate": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"hint": {
+									"type": "string"
+								},
+								"builtInHeading": {
+									"type": "string"
+								},
+								"savedHeading": {
+									"type": "string"
+								},
+								"noneSaved": {
+									"type": "string"
+								},
+								"loading": {
+									"type": "string"
+								},
+								"saveAs": {
+									"type": "string"
+								},
+								"saved": {
+									"type": "string"
+								},
+								"delete": {
+									"type": "string"
+								},
+								"deleted": {
+									"type": "string"
+								},
+								"builtIn": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"meetingNotes": {
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"name": {
+													"type": "string"
+												},
+												"hint": {
+													"type": "string"
+												}
+											},
+											"required": ["name", "hint"]
+										},
+										"runbook": {
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"name": {
+													"type": "string"
+												},
+												"hint": {
+													"type": "string"
+												}
+											},
+											"required": ["name", "hint"]
+										},
+										"postmortem": {
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"name": {
+													"type": "string"
+												},
+												"hint": {
+													"type": "string"
+												}
+											},
+											"required": ["name", "hint"]
+										},
+										"rfc": {
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"name": {
+													"type": "string"
+												},
+												"hint": {
+													"type": "string"
+												}
+											},
+											"required": ["name", "hint"]
+										}
+									},
+									"required": ["meetingNotes", "runbook", "postmortem", "rfc"]
+								},
+								"headings": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"attendees": {
+											"type": "string"
+										},
+										"agenda": {
+											"type": "string"
+										},
+										"notes": {
+											"type": "string"
+										},
+										"decisions": {
+											"type": "string"
+										},
+										"actionItems": {
+											"type": "string"
+										},
+										"overview": {
+											"type": "string"
+										},
+										"whenToUse": {
+											"type": "string"
+										},
+										"prerequisites": {
+											"type": "string"
+										},
+										"steps": {
+											"type": "string"
+										},
+										"rollback": {
+											"type": "string"
+										},
+										"contacts": {
+											"type": "string"
+										},
+										"summary": {
+											"type": "string"
+										},
+										"impact": {
+											"type": "string"
+										},
+										"timeline": {
+											"type": "string"
+										},
+										"rootCause": {
+											"type": "string"
+										},
+										"wentWell": {
+											"type": "string"
+										},
+										"wentWrong": {
+											"type": "string"
+										},
+										"motivation": {
+											"type": "string"
+										},
+										"proposal": {
+											"type": "string"
+										},
+										"alternatives": {
+											"type": "string"
+										},
+										"openQuestions": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"attendees",
+										"agenda",
+										"notes",
+										"decisions",
+										"actionItems",
+										"overview",
+										"whenToUse",
+										"prerequisites",
+										"steps",
+										"rollback",
+										"contacts",
+										"summary",
+										"impact",
+										"timeline",
+										"rootCause",
+										"wentWell",
+										"wentWrong",
+										"motivation",
+										"proposal",
+										"alternatives",
+										"openQuestions"
+									]
+								}
+							},
+							"required": [
+								"blank",
+								"fromTemplate",
+								"title",
+								"hint",
+								"builtInHeading",
+								"savedHeading",
+								"noneSaved",
+								"loading",
+								"saveAs",
+								"saved",
+								"delete",
+								"deleted",
+								"builtIn",
+								"headings"
+							]
+						},
 						"untitled": {
 							"type": "string"
 						},
@@ -16660,6 +16869,7 @@
 						"title",
 						"pageTitle",
 						"newDocument",
+						"templates",
 						"untitled",
 						"tabs",
 						"tabHints",

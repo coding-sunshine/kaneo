@@ -3117,6 +3117,34 @@ export const documentVersionTable = pgTable(
   ],
 );
 
+// A page saved for anyone in the workspace to start a document from. A copy:
+// later edits to the page, or to documents made from it, leave it as it is.
+export const documentTemplateTable = pgTable(
+  "document_template",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    title: text("title").notNull().default(""),
+    content: text("content").notNull().default(""),
+    creatorId: text("creator_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [index("document_template_workspace_idx").on(table.workspaceId)],
+);
+
 export const documentCommentTable = pgTable(
   "document_comment",
   {

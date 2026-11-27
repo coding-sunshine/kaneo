@@ -5,6 +5,7 @@ import {
   Clock,
   Ellipsis,
   FolderInput,
+  LayoutTemplate,
   Link2,
   Lock,
   Pencil,
@@ -33,6 +34,7 @@ import {
   useDeleteDocument,
   useRestoreDocument,
 } from "@/hooks/mutations/document/use-document-mutations";
+import { useSaveDocumentTemplate } from "@/hooks/mutations/document/use-document-template-mutations";
 import { useFavorite } from "@/hooks/queries/favorite/use-favorites";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import { useGetWorkProjects } from "@/hooks/queries/work-project/use-get-work-projects";
@@ -74,6 +76,7 @@ export function DocumentOptionsMenu({
   } | null>(null);
   const remove = useDeleteDocument(workspaceId);
   const restore = useRestoreDocument(workspaceId);
+  const saveTemplate = useSaveDocumentTemplate(workspaceId);
   const favorite = useFavorite(workspaceId, { type: "document", targetId: id });
   const copyLink = useCopyDocumentLink(workspaceId, id);
   const pins = useDocumentPins(workspaceId);
@@ -82,6 +85,13 @@ export function DocumentOptionsMenu({
     (pinned ? pins.unpin(id) : pins.pin([id])).catch((error: Error) =>
       toast.error(error.message),
     );
+
+  // Anyone who can open the page may copy it into a template for everybody.
+  const onSaveTemplate = () =>
+    saveTemplate.mutate(id, {
+      onSuccess: () => toast.success(t("navigation:documents.templates.saved")),
+      onError: (error) => toast.error(error.message),
+    });
 
   const moveTo = (location: MoveLocation, name: string) =>
     setTarget({ location, name });
@@ -227,6 +237,10 @@ export function DocumentOptionsMenu({
             {pinned
               ? t("navigation:documents.pins.unpin")
               : t("navigation:documents.pins.pin")}
+          </MenuItem>
+          <MenuItem onClick={onSaveTemplate}>
+            <LayoutTemplate aria-hidden />
+            {t("navigation:documents.templates.saveAs")}
           </MenuItem>
           <MenuItem onClick={onToggleHistory}>
             <Clock aria-hidden />

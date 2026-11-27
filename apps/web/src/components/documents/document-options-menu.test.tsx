@@ -13,6 +13,7 @@ import { DocumentOptionsMenu } from "./document-options-menu";
 const mocks = vi.hoisted(() => ({
   getFavorites: vi.fn(),
   setFavorite: vi.fn(),
+  saveDocumentTemplate: vi.fn(),
 }));
 
 vi.mock("react-i18next", () => ({
@@ -23,6 +24,12 @@ vi.mock("@tanstack/react-router", () => ({ useNavigate: () => vi.fn() }));
 vi.mock("@/fetchers/favorite", () => ({
   getFavorites: mocks.getFavorites,
   setFavorite: mocks.setFavorite,
+}));
+vi.mock("@/fetchers/document/templates", () => ({
+  saveDocumentTemplate: mocks.saveDocumentTemplate,
+}));
+vi.mock("@/lib/toast", () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
 }));
 vi.mock("@/hooks/queries/project/use-get-projects", () => ({
   default: () => ({ data: [] }),
@@ -135,5 +142,21 @@ describe("DocumentOptionsMenu move", () => {
       await screen.findByRole("menuitem", { name: "Alpha launch" }),
     ).toBeTruthy();
     expect(screen.queryByRole("menuitem", { name: "Beta launch" })).toBeNull();
+  });
+});
+
+describe("DocumentOptionsMenu template", () => {
+  it("saves the page as a template, also for a reader", async () => {
+    mocks.getFavorites.mockResolvedValue([]);
+    mocks.saveDocumentTemplate.mockResolvedValue({ id: "t1" });
+    openMenu();
+    fireEvent.click(
+      await screen.findByRole("menuitem", {
+        name: "navigation:documents.templates.saveAs",
+      }),
+    );
+    await waitFor(() =>
+      expect(mocks.saveDocumentTemplate).toHaveBeenCalledWith("ws", "d1"),
+    );
   });
 });
