@@ -29,10 +29,10 @@ import {
   MERGE_STATUSES,
   parseCustomDate,
   REVIEW_FILTER_IDS,
+  type ReviewFilter,
   type ReviewFilterId,
   type ReviewsFilters,
-  setFilterNegated,
-  toggleFilterValue,
+  SINGLE_VALUE_FILTERS,
 } from "@/lib/reviews-filters";
 import {
   PRIORITY_ORDER,
@@ -47,6 +47,12 @@ type Option = {
   icon?: FilterSubject["options"][number]["icon"];
 };
 
+export type ReviewSubjectBinder = (
+  id: ReviewFilterId,
+  value: ReviewFilter,
+  onChange: (next: ReviewFilter | null) => void,
+) => FilterSubject;
+
 const DATE_FILTER_IDS: ReviewFilterId[] = [
   "opened",
   "updated",
@@ -57,13 +63,11 @@ const DATE_FILTER_IDS: ReviewFilterId[] = [
 const unique = (values: string[]) =>
   [...new Set(values)].sort((a, b) => a.localeCompare(b));
 
-/** The Reviews filter menu's entries, in the shape the shared filter menu and chips read. */
-export function useReviewsFilterSubjects(
+/** Builds a FilterSubject for any single review filter condition, usable in chips or advanced groups. */
+export function useReviewsFilterBinder(
   items: ReviewItem[],
-  filters: ReviewsFilters,
-  onChange: (filters: ReviewsFilters) => void,
   ctx: FilterContext,
-): FilterSubject[] {
+): ReviewSubjectBinder {
   const { t } = useTranslation();
   const person = (login: string): Option => ({
     value: login,
@@ -85,13 +89,6 @@ export function useReviewsFilterSubjects(
       value,
       label: t(`workspace:reviews.${key}.${value}`),
     }));
-  const customDate = (id: ReviewFilterId) => ({
-    label: t("workspace:reviews.filters.customDate"),
-    placeholder: t("workspace:reviews.filters.customDatePlaceholder"),
-    isValid: (text: string) => !!parseCustomDate(text, ctx.now),
-    onApply: (text: string) =>
-      onChange({ ...filters, [id]: { values: [text], negated: false } }),
-  });
   const issues = items.flatMap((pr) => (pr.issue ? [pr.issue] : []));
 
   const definitions: Record<
@@ -241,15 +238,15 @@ export function useReviewsFilterSubjects(
     },
   };
 
-  return REVIEW_FILTER_IDS.map((id): FilterSubject => {
+  return (id, value, onChange): FilterSubject => {
     const { icon, section, options, empty = "" } = definitions[id];
-    const selected = filters[id]?.values ?? [];
+    const selected = value.values;
     // Selected values stay listed so they can be unticked after the data changes.
     const listed = [
       ...options,
       ...selected
-        .filter((value) => !options.some((option) => option.value === value))
-        .map((value) => ({ value, label: value })),
+        .filter((entry) => !options.some((option) => option.value === entry))
+        .map((entry) => ({ value: entry, label: entry })),
     ];
     return {
       id,
@@ -266,25 +263,49 @@ export function useReviewsFilterSubjects(
               count: countMatches(items, id, option.value, ctx),
             })),
       selected,
-      negated: filters[id]?.negated ?? false,
+      negated: value.negated,
       formatCount: (count) => t("workspace:reviews.filters.count", { count }),
-      ...(DATE_FILTER_IDS.includes(id) && { custom: customDate(id) }),
+      ...(DATE_FILTER_IDS.includes(id) && {
+        custom: {
+          label: t("workspace:reviews.filters.customDate"),
+          placeholder: t("workspace:reviews.filters.customDatePlaceholder"),
+          isValid: (text: string) => !!parseCustomDate(text, ctx.now),
+          onApply: (text: string) =>
+            onChange({ values: [text], negated: false }),
+        },
+      }),
       ...(id === "content" && {
         textPlaceholder: t("workspace:reviews.filters.contentPlaceholder"),
-        onTextApply: (value: string) =>
-          onChange({
-            ...filters,
-            content: { values: [value], negated: false },
-          }),
+        onTextApply: (text: string) =>
+          onChange({ values: [text], negated: false }),
       }),
-      onToggle: (value) => {
-        const next = toggleFilterValue(filters, id, value);
+      onToggle: (entry) => {
+        const values = selected.includes(entry)
+          ? selected.filter((v) => v !== entry)
+          : SINGLE_VALUE_FILTERS.includes(id)
+            ? [entry]
+            : [...selected, entry];
         // Dropping the last value drops the condition, so "is not" cannot outlive it.
-        onChange(next[id]?.values.length ? next : clearFilter(next, id));
+        onChange(values.length > 0 ? { ...value, values } : null);
       },
-      onNegate: (negated) => onChange(setFilterNegated(filters, id, negated)),
-      onClear: () => onChange(clearFilter(filters, id)),
+      onNegate: (negated) => onChange({ ...value, negated }),
+      onClear: () => onChange(null),
       emptyLabel: empty,
     };
-  });
+  };
+}
+
+/** The Reviews filter menu's entries, in the shape the shared filter menu and chips read. */
+export function useReviewsFilterSubjects(
+  items: ReviewItem[],
+  filters: ReviewsFilters,
+  onChange: (filters: ReviewsFilters) => void,
+  ctx: FilterContext,
+): FilterSubject[] {
+  const bind = useReviewsFilterBinder(items, ctx);
+  return REVIEW_FILTER_IDS.map((id) =>
+    bind(id, filters[id] ?? { values: [], negated: false }, (next) =>
+      onChange(next ? { ...filters, [id]: next } : clearFilter(filters, id)),
+    ),
+  );
 }

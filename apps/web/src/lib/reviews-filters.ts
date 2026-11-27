@@ -46,16 +46,6 @@ export const REVIEW_FILTER_IDS = [
 export type ReviewFilterId = (typeof REVIEW_FILTER_IDS)[number];
 export type ReviewFilter = { values: string[]; negated: boolean };
 export type ReviewsFilters = Partial<Record<ReviewFilterId, ReviewFilter>>;
-/**
- * Linear's Advanced filter: one group of conditions joined by a single operator, applied
- * on top of the filter chips.
- * ponytail: one condition per subject and no nested groups; make the conditions a list
- * (and a group a condition) when someone needs the same subject twice.
- */
-export type ReviewsAdvancedFilter = {
-  operator: "and" | "or";
-  filters: ReviewsFilters;
-};
 
 /** The signed-in GitHub login (what "Current user" means) and the clock for date presets. */
 export type FilterContext = { me: string | null; now: Date };
@@ -166,6 +156,13 @@ const matchers: Record<
     pr.status === "closed" && within(pr.closedAt, values, now),
 };
 
+export const matchesReviewFilter = (
+  pr: ReviewItem,
+  id: ReviewFilterId,
+  values: string[],
+  ctx: FilterContext,
+) => matchers[id](pr, values, ctx);
+
 /** How many pull requests one value alone would match, for the "N reviews" counts. */
 export const countMatches = (
   items: ReviewItem[],
@@ -178,7 +175,7 @@ export function filterByReviewFilters(
   items: ReviewItem[],
   filters: ReviewsFilters,
   ctx: FilterContext,
-  operator: ReviewsAdvancedFilter["operator"] = "and",
+  operator: "and" | "or" = "and",
 ) {
   const active = (
     Object.entries(filters) as [ReviewFilterId, ReviewFilter][]
@@ -206,19 +203,6 @@ export function sanitizeReviewsFilters(saved: unknown): ReviewsFilters {
     }
   }
   return kept;
-}
-
-/** A saved advanced filter keeps its operator and whichever conditions still fit. */
-export function sanitizeReviewsAdvanced(
-  saved: unknown,
-): ReviewsAdvancedFilter | null {
-  if (!saved || typeof saved !== "object") return null;
-  const { operator, filters } = saved as Record<string, unknown>;
-  if (!filters || typeof filters !== "object") return null;
-  return {
-    operator: operator === "and" ? "and" : "or",
-    filters: sanitizeReviewsFilters(filters),
-  };
 }
 
 export const activeFilterCount = (filters: ReviewsFilters) =>

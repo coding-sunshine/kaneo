@@ -23874,6 +23874,15 @@
 										},
 										"addFilter": {
 											"type": "string"
+										},
+										"addGroup": {
+											"type": "string"
+										},
+										"group": {
+											"type": "string"
+										},
+										"removeGroup": {
+											"type": "string"
 										}
 									},
 									"required": [
@@ -23883,7 +23892,10 @@
 										"and",
 										"or",
 										"toggleOperator",
-										"addFilter"
+										"addFilter",
+										"addGroup",
+										"group",
+										"removeGroup"
 									]
 								},
 								"count_one": {

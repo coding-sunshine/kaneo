@@ -5739,7 +5739,10 @@
 					"and": "and",
 					"or": "or",
 					"toggleOperator": "Toggle filter operator, currently {{operator}}",
-					"addFilter": "Filter"
+					"addFilter": "Filter",
+					"addGroup": "Filter group",
+					"group": "Filter group",
+					"removeGroup": "Remove filter group"
 				},
 				"count_one": "{{count, number}} review",
 				"count_other": "{{count, number}} reviews",

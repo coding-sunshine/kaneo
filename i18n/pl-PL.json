@@ -2347,7 +2347,10 @@
 					"or": "or",
 					"remove": "Remove advanced filter",
 					"toggleOperator": "Toggle filter operator, currently {{operator}}",
-					"triggerLabel": "Advanced filter: {{conditions}}"
+					"triggerLabel": "Advanced filter: {{conditions}}",
+					"addGroup": "Filter group",
+					"group": "Filter group",
+					"removeGroup": "Remove filter group"
 				},
 				"customDate": "Custom date or timeframe...",
 				"customDatePlaceholder": "Try: 10 days ago"

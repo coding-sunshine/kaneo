@@ -340,7 +340,7 @@ describe("ReviewsPage", () => {
     fireEvent.click(await screen.findByText("Advanced filter"));
     expect(
       useUserPreferencesStore.getState().reviewsView.toReview.advanced,
-    ).toEqual({ operator: "or", filters: {} });
+    ).toEqual({ operator: "or", conditions: [] });
     expect(
       await screen.findByRole("button", { name: "Remove advanced filter" }),
     ).toBeInTheDocument();
@@ -360,10 +360,22 @@ describe("ReviewsPage", () => {
             ...DEFAULT_REVIEWS_VIEWS.toReview,
             advanced: {
               operator,
-              filters: {
-                mergeStatus: { values: ["blocked"], negated: false },
-                hasConflicts: { values: ["true"], negated: false },
-              },
+              conditions: [
+                {
+                  kind: "condition",
+                  id: "c1",
+                  subject: "mergeStatus",
+                  values: ["blocked"],
+                  negated: false,
+                },
+                {
+                  kind: "condition",
+                  id: "c2",
+                  subject: "hasConflicts",
+                  values: ["true"],
+                  negated: false,
+                },
+              ],
             },
           },
         },
@@ -378,6 +390,63 @@ describe("ReviewsPage", () => {
     act(() => advanced("and"));
     expect(screen.queryByText("Blocked one")).not.toBeInTheDocument();
     expect(screen.queryByText("Conflicted one")).not.toBeInTheDocument();
+  });
+
+  it("narrows the list differently with a nested group than the same conditions flat", () => {
+    state.list.toReview = [
+      pr(1, "Open blocked", "open", { mergeState: "blocked" }),
+      pr(2, "Open conflicted", "open", {
+        mergeState: "ready",
+        hasConflicts: true,
+      }),
+      pr(3, "Draft blocked", "draft", { mergeState: "blocked" }),
+    ];
+    useUserPreferencesStore.setState({
+      reviewsView: {
+        ...DEFAULT_REVIEWS_VIEWS,
+        toReview: {
+          ...DEFAULT_REVIEWS_VIEWS.toReview,
+          advanced: {
+            operator: "and",
+            conditions: [
+              {
+                kind: "condition",
+                id: "c1",
+                subject: "status",
+                values: ["open"],
+                negated: false,
+              },
+              {
+                kind: "group",
+                id: "g1",
+                operator: "or",
+                conditions: [
+                  {
+                    kind: "condition",
+                    id: "c2",
+                    subject: "mergeStatus",
+                    values: ["blocked"],
+                    negated: false,
+                  },
+                  {
+                    kind: "condition",
+                    id: "c3",
+                    subject: "hasConflicts",
+                    values: ["true"],
+                    negated: false,
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    });
+    render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
+    expect(screen.getByText("3 conditions")).toBeInTheDocument();
+    expect(screen.getByText("Open blocked")).toBeInTheDocument();
+    expect(screen.getByText("Open conflicted")).toBeInTheDocument();
+    expect(screen.queryByText("Draft blocked")).not.toBeInTheDocument();
   });
 
   it("shows a second line with status details and repo#num when those properties are on", () => {

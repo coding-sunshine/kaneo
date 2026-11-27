@@ -241,6 +241,44 @@ describe("reviews view", () => {
     });
   });
 
+  it("keeps nested advanced filter groups and repeated subjects in saved views", () => {
+    const advanced = {
+      operator: "and" as const,
+      conditions: [
+        {
+          kind: "condition" as const,
+          id: "c1",
+          subject: "labels" as const,
+          values: ["bug"],
+          negated: false,
+        },
+        {
+          kind: "condition" as const,
+          id: "c2",
+          subject: "labels" as const,
+          values: ["urgent"],
+          negated: false,
+        },
+        {
+          kind: "group" as const,
+          id: "g1",
+          operator: "or" as const,
+          conditions: [
+            {
+              kind: "condition" as const,
+              id: "c3",
+              subject: "hasConflicts" as const,
+              values: ["true"],
+              negated: false,
+            },
+          ],
+        },
+      ],
+    };
+    const views = sanitizeReviewsViews({ toReview: { advanced } });
+    expect(views.toReview.advanced).toEqual(advanced);
+  });
+
   describe("linked task", () => {
     const issue = (
       priority: string,
