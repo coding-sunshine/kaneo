@@ -403,6 +403,116 @@ describe("API integration: links between tickets and documents", () => {
     },
   );
 
+  it("records only the documents the issue's team can open from text an integration writes", async () => {
+    provider.write.mockResolvedValue({ id: 1 });
+    const world = await buildDocumentWorld();
+    const { docs } = world;
+    await db.insert(schema.integrationTable).values({
+      projectId: world.alpha.id,
+      type: "github",
+      isActive: true,
+      config: JSON.stringify({
+        repositoryOwner: "team",
+        repositoryName: "repo",
+        repositoryId: 1,
+        installationId: 2,
+        verifiedGithubAccountId: "3",
+        verifiedByUserId: world.owner.id,
+        syncRules: { outgoing: { mode: "all" }, incoming: { mode: "all" } },
+      }),
+    });
+    const repository = {
+      id: 1,
+      owner: { login: "team" },
+      name: "repo",
+      full_name: "team/repo",
+    };
+    const elsewhere = await buildDocumentWorld();
+    const addresses = (...ids: [string, string][]) =>
+      ids.map(([ws, id]) => documentAddress(ws, id)).join(" and ");
+    const here = (id: string): [string, string] => [world.ws, id];
+
+    await handleIssueOpened({
+      action: "opened",
+      issue: {
+        number: 8,
+        title: "Gather the notes",
+        body: `See ${addresses(
+          here(docs.teamAlpha),
+          here(docs.issueAlpha),
+          here(docs.workspace),
+          here(docs.project),
+          here(docs.projectAlpha),
+          // Closed to team Alpha: another team, its issue and project, and
+          // somebody's private notes.
+          here(docs.teamBeta),
+          here(docs.issueBeta),
+          here(docs.projectBeta),
+          here(docs.private),
+          // Another workspace's document, at an address naming this one.
+          here(elsewhere.docs.workspace),
+          [elsewhere.ws, elsewhere.docs.workspace],
+        )}.`,
+        html_url: "https://github.com/team/repo/issues/8",
+        labels: [],
+        user: { login: "author" },
+      },
+      installation: { id: 2 },
+      repository,
+    });
+    const [task] = await db
+      .select({ id: schema.taskTable.id })
+      .from(schema.taskTable)
+      .where(eq(schema.taskTable.title, "Gather the notes"));
+    if (!task) throw new Error("no issue opened");
+    const linked = async (source: string) =>
+      (await rows())
+        .filter((row) => row.taskId === task.id && row.source === source)
+        .map((row) => row.documentId)
+        .sort();
+    expect(await linked("description")).toEqual(
+      [
+        docs.teamAlpha,
+        docs.issueAlpha,
+        docs.workspace,
+        docs.project,
+        docs.projectAlpha,
+      ].sort(),
+    );
+
+    // A document shared with the issue is open to its team, so a comment the
+    // webhook brings in links it; a private team's document still is not.
+    const shared = await world.as(world.owner)(
+      `${base(world)}/${docs.teamBeta}/task/${task.id}/share`,
+      json("PUT"),
+    );
+    expect(shared.status).toBe(200);
+    // A member's own comment links a document of another team; the webhook
+    // must not drop that link.
+    await comment(
+      world,
+      world.owner,
+      { ...world.alphaTask, id: task.id },
+      linkTo(world, docs.projectBeta),
+    );
+    await handleIssueCommentCreated({
+      action: "created",
+      issue: { number: 8 },
+      comment: {
+        id: 80,
+        body: `Also ${addresses(here(docs.teamBeta), here(docs.issueBeta))}`,
+        html_url: "https://github.com/team/repo/issues/8#issuecomment-80",
+        user: { login: "author", avatar_url: "" },
+        created_at: new Date().toISOString(),
+      },
+      installation: { id: 2 },
+      repository,
+    });
+    expect(await linked("comment")).toEqual(
+      [docs.teamBeta, docs.projectBeta].sort(),
+    );
+  });
+
   it("records a ticket named in a document, by address or by its key", async () => {
     const world = await buildDocumentWorld();
     const { owner, open, alphaTask, betaTask } = world;
