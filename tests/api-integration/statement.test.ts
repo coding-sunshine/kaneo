@@ -259,7 +259,7 @@ describe("API integration: statements of a document", () => {
     const waiting = (count: number) =>
       vi.waitFor(async () => {
         const rows = await db.execute(
-          sql`select 1 from pg_locks where not granted`,
+          sql`select 1 from pg_locks l join pg_stat_activity a on a.pid = l.pid where not l.granted and a.datname = current_database()`,
         );
         expect(rows.rows).toHaveLength(count);
       });
@@ -304,14 +304,14 @@ describe("API integration: statements of a document", () => {
       first = api.decide(docId, proposal.id, "reject", { reason: "First" });
       await vi.waitFor(async () => {
         const rows = await db.execute(
-          sql`select 1 from pg_locks where not granted`,
+          sql`select 1 from pg_locks l join pg_stat_activity a on a.pid = l.pid where not l.granted and a.datname = current_database()`,
         );
         expect(rows.rows).toHaveLength(1);
       });
       second = api.decide(docId, proposal.id, "reject", { reason: "Second" });
       await vi.waitFor(async () => {
         const rows = await db.execute(
-          sql`select 1 from pg_locks where not granted`,
+          sql`select 1 from pg_locks l join pg_stat_activity a on a.pid = l.pid where not l.granted and a.datname = current_database()`,
         );
         expect(rows.rows).toHaveLength(2);
       });
