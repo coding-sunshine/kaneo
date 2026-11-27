@@ -3,6 +3,7 @@ import { MotionGlobalConfig } from "motion/react";
 import {
   act,
   cleanup,
+  configure,
   fireEvent,
   render as rtlRender,
   screen,
@@ -22,6 +23,9 @@ import { OnboardingFlow } from "./onboarding-flow";
 // Steps swap through AnimatePresence mode="wait"; a real 0.25s exit per step makes a
 // loaded machine miss findBy's 1s. The flow is under test here, not the animation.
 MotionGlobalConfig.skipAnimations = true;
+// A full web run on a busy machine can stall a step past findBy/waitFor's 1s
+// default; testTimeout already allows 15s for the same reason.
+configure({ asyncUtilTimeout: 5000 });
 
 const m = vi.hoisted(() => ({
   navigate: vi.fn(),
