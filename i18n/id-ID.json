@@ -763,7 +763,9 @@
 			"scheduleSave": "Save schedule",
 			"scheduleStart": "Start time",
 			"scheduleTimezone": "Timezone",
-			"scheduleTitle": "Delivery schedule"
+			"scheduleTitle": "Delivery schedule",
+			"eventTopicUpdates": "Followed topics",
+			"eventTopicUpdatesHint": "When a document is proposed or made current on a topic you follow."
 		},
 		"preferencesPage": {
 			"title": "Preferensi",
@@ -7562,7 +7564,9 @@
 				"dueDateHint": "Sebelum tenggat tugas yang ditugaskan kepada Anda",
 				"remindMe": "Ingatkan saya",
 				"remindBefore": "{{time}} sebelumnya",
-				"remindPickerTitle": "Ingatkan saya sebelumnya"
+				"remindPickerTitle": "Ingatkan saya sebelumnya",
+				"topicUpdates": "Followed topics",
+				"topicUpdatesHint": "When a document is proposed or made current on a topic you follow"
 			},
 			"leadTime": {
 				"minutes15": "15 menit",

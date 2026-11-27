@@ -771,7 +771,9 @@
 			"scheduleSave": "Save schedule",
 			"scheduleStart": "Start time",
 			"scheduleTimezone": "Timezone",
-			"scheduleTitle": "Delivery schedule"
+			"scheduleTitle": "Delivery schedule",
+			"eventTopicUpdates": "Followed topics",
+			"eventTopicUpdatesHint": "When a document is proposed or made current on a topic you follow."
 		},
 		"preferencesPage": {
 			"title": "Преференции",
@@ -7700,7 +7702,9 @@
 				"dueDateHint": "Пред крајниот рок на задача што ти е доделена",
 				"remindMe": "Потсети ме",
 				"remindBefore": "{{time}} пред тоа",
-				"remindPickerTitle": "Потсети ме пред"
+				"remindPickerTitle": "Потсети ме пред",
+				"topicUpdates": "Followed topics",
+				"topicUpdatesHint": "When a document is proposed or made current on a topic you follow"
 			},
 			"leadTime": {
 				"minutes15": "15 минути",

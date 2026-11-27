@@ -779,7 +779,9 @@
 			"scheduleSave": "Save schedule",
 			"scheduleStart": "Start time",
 			"scheduleTimezone": "Timezone",
-			"scheduleTitle": "Delivery schedule"
+			"scheduleTitle": "Delivery schedule",
+			"eventTopicUpdates": "Followed topics",
+			"eventTopicUpdatesHint": "When a document is proposed or made current on a topic you follow."
 		},
 		"preferencesPage": {
 			"title": "Preferenze",
@@ -7838,7 +7840,9 @@
 				"dueDateHint": "Prima della scadenza di un'attività assegnata a te",
 				"remindMe": "Ricordamelo",
 				"remindBefore": "{{time}} prima",
-				"remindPickerTitle": "Ricordamelo prima"
+				"remindPickerTitle": "Ricordamelo prima",
+				"topicUpdates": "Followed topics",
+				"topicUpdatesHint": "When a document is proposed or made current on a topic you follow"
 			},
 			"leadTime": {
 				"minutes15": "15 minuti",

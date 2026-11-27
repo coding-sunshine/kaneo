@@ -27,6 +27,10 @@ export const updatePreferencesBody = z.object({
     .max(43_200)
     .optional()
     .openapi({ description: "Between 5 minutes and 30 days." }),
+  topicUpdatesEnabled: z.boolean().optional().openapi({
+    description:
+      "Hear about new proposals and new current documents on followed topics.",
+  }),
   scheduleEnabled: z.boolean().optional().openapi({
     description:
       "Only send email, ntfy and Gotify notifications inside the schedule. The inbox is never affected.",

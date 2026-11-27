@@ -771,7 +771,9 @@
 			"scheduleSave": "Save schedule",
 			"scheduleStart": "Start time",
 			"scheduleTimezone": "Timezone",
-			"scheduleTitle": "Delivery schedule"
+			"scheduleTitle": "Delivery schedule",
+			"eventTopicUpdates": "Followed topics",
+			"eventTopicUpdatesHint": "When a document is proposed or made current on a topic you follow."
 		},
 		"preferencesPage": {
 			"title": "प्राथमिकताएँ",
@@ -7700,7 +7702,9 @@
 				"dueDateHint": "आपको असाइन किए गए कार्य की नियत तारीख से पहले",
 				"remindMe": "मुझे याद दिलाएँ",
 				"remindBefore": "{{time}} पहले",
-				"remindPickerTitle": "इतना पहले याद दिलाएँ"
+				"remindPickerTitle": "इतना पहले याद दिलाएँ",
+				"topicUpdates": "Followed topics",
+				"topicUpdatesHint": "When a document is proposed or made current on a topic you follow"
 			},
 			"leadTime": {
 				"minutes15": "15 मिनट",

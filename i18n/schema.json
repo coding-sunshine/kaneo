@@ -4440,6 +4440,12 @@
 						"eventStatusChanges": {
 							"type": "string"
 						},
+						"eventTopicUpdates": {
+							"type": "string"
+						},
+						"eventTopicUpdatesHint": {
+							"type": "string"
+						},
 						"eventDueDateReminders": {
 							"type": "string"
 						},
@@ -4782,6 +4788,8 @@
 						"eventComments",
 						"eventCommentsHint",
 						"eventStatusChanges",
+						"eventTopicUpdates",
+						"eventTopicUpdatesHint",
 						"eventDueDateReminders",
 						"reminderLeadTimeLabel",
 						"reminderLeadTimeInvalid",
@@ -31938,6 +31946,12 @@
 								"statusChangesHint": {
 									"type": "string"
 								},
+								"topicUpdates": {
+									"type": "string"
+								},
+								"topicUpdatesHint": {
+									"type": "string"
+								},
 								"dueDate": {
 									"type": "string"
 								},
@@ -31962,6 +31976,8 @@
 								"commentsHint",
 								"statusChanges",
 								"statusChangesHint",
+								"topicUpdates",
+								"topicUpdatesHint",
 								"dueDate",
 								"dueDateHint",
 								"remindMe",
