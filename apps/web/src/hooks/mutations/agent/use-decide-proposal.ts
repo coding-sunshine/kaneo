@@ -21,12 +21,14 @@ export function useDecideProposal(
       proposalId: string;
       decision: "accept" | "decline";
       fields?: string[];
+      customFields?: { fieldId: string; value: string }[];
     }) =>
       decideProposal(
         workspaceId,
         input.proposalId,
         input.decision,
         input.fields,
+        input.customFields,
       ),
     onSettled: () =>
       Promise.all([

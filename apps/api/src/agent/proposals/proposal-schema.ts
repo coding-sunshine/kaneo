@@ -16,7 +16,18 @@ export const acceptQuery = z.object({
     description:
       "On a selectable proposal: the fields to apply, comma-separated (such as `labels,priority`). Omitted applies every field.",
   }),
+  customFields: z.string().max(20_000).optional().openapi({
+    description:
+      'On a ticket from a chat thread: a JSON array of `{"fieldId", "value"}` for the team\'s required fields listed in `needsFields`.',
+  }),
 });
+
+/** The values `customFields` holds, once read from its JSON. */
+export const ticketFieldValues = z
+  .array(
+    z.object({ fieldId: z.string().min(1), value: z.string().max(10_000) }),
+  )
+  .max(50);
 
 const statusSchema = z.enum(["pending", "accepted", "declined", "failed"]);
 
@@ -54,6 +65,13 @@ export const proposalSchema = z
     result: z.string().nullable().openapi({
       description: "On a failed proposal: what the API answered.",
     }),
+    needsFields: z
+      .object({ projectId: z.string(), fieldIds: z.array(z.string()) })
+      .nullable()
+      .openapi({
+        description:
+          "On a pending ticket from a chat thread: the team's required fields without a default. Accept with a value for each in `customFields`.",
+      }),
   })
   .openapi("AgentProposal", {
     description:

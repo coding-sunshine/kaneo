@@ -4679,6 +4679,28 @@
               "null"
             ],
             "description": "On a failed proposal: what the API answered."
+          },
+          "needsFields": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "projectId": {
+                "type": "string"
+              },
+              "fieldIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "projectId",
+              "fieldIds"
+            ],
+            "description": "On a pending ticket from a chat thread: the team's required fields without a default. Accept with a value for each in `customFields`."
           }
         },
         "required": [
@@ -4692,7 +4714,8 @@
           "selectable",
           "sources",
           "decidedAt",
-          "result"
+          "result",
+          "needsFields"
         ],
         "description": "A write the agent proposed. Nothing changes until the person who asked accepts it."
       },
@@ -37534,6 +37557,17 @@
             "description": "On a selectable proposal: the fields to apply, comma-separated (such as `labels,priority`). Omitted applies every field.",
             "name": "fields",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 20000,
+              "description": "On a ticket from a chat thread: a JSON array of `{\"fieldId\", \"value\"}` for the team's required fields listed in `needsFields`."
+            },
+            "required": false,
+            "description": "On a ticket from a chat thread: a JSON array of `{\"fieldId\", \"value\"}` for the team's required fields listed in `needsFields`.",
+            "name": "customFields",
+            "in": "query"
           }
         ],
         "responses": {
@@ -37548,7 +37582,7 @@
             }
           },
           "400": {
-            "description": "No field was kept",
+            "description": "No field was kept, or a required field of the ticket's team has no value",
             "content": {
               "application/json": {
                 "schema": {

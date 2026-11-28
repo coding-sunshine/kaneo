@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentFieldDiff } from "@/components/agent/agent-field-diff";
 import { AgentSourceChip } from "@/components/agent/agent-source-chip";
+import { ProposalTicketFields } from "@/components/agent/proposal-ticket-fields";
 import { Button } from "@/components/ui/button";
 import type { AgentProposal } from "@/fetchers/agent/proposals";
 import { useDecideProposal } from "@/hooks/mutations/agent/use-decide-proposal";
@@ -48,12 +49,23 @@ export function AgentProposalCard({
       else next.delete(field);
       return next;
     });
+  const needs = proposal.status === "pending" ? proposal.needsFields : null;
+  const [values, setValues] = useState<Record<string, string>>({});
+  const missingValue =
+    !!needs && needs.fieldIds.some((id) => !values[id]?.trim());
   const submit = (decision: "accept" | "decline") =>
     decide.mutate(
       {
         proposalId: proposal.id,
         decision,
         fields: selectable && decision === "accept" ? [...kept] : undefined,
+        customFields:
+          needs && decision === "accept"
+            ? needs.fieldIds.map((fieldId) => ({
+                fieldId,
+                value: values[fieldId] ?? "",
+              }))
+            : undefined,
       },
       {
         onSuccess: (decided) => {
@@ -103,11 +115,26 @@ export function AgentProposalCard({
           ))}
         </ul>
       ) : null}
+      {needs ? (
+        <ProposalTicketFields
+          projectId={needs.projectId}
+          fieldIds={needs.fieldIds}
+          values={values}
+          onChange={(fieldId, value) =>
+            setValues((current) => ({ ...current, [fieldId]: value }))
+          }
+          disabled={decide.isPending}
+        />
+      ) : null}
       {proposal.status === "pending" ? (
         <div className="flex gap-2">
           <Button
             size="xs"
-            disabled={decide.isPending || (selectable && kept.size === 0)}
+            disabled={
+              decide.isPending ||
+              (selectable && kept.size === 0) ||
+              missingValue
+            }
             onClick={() => submit("accept")}
           >
             <Check aria-hidden="true" />

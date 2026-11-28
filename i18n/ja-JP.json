@@ -3704,7 +3704,8 @@
 					"failed": "Could not be applied",
 					"pending": "Waiting for you"
 				},
-				"keepField": "Apply {{field}}"
+				"keepField": "Apply {{field}}",
+				"requiredFields": "Fill in what this team requires"
 			}
 		},
 		"customizeSidebar": {

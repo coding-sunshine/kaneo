@@ -17,6 +17,18 @@ vi.mock("@/components/agent/agent-source-chip", () => ({
   ),
 }));
 
+vi.mock("@/components/agent/proposal-ticket-fields", () => ({
+  ProposalTicketFields: ({
+    onChange,
+  }: {
+    onChange: (fieldId: string, value: string) => void;
+  }) => (
+    <button type="button" onClick={() => onChange("f1", "Software")}>
+      pick Software
+    </button>
+  ),
+}));
+
 const proposal = (status: AgentProposal["status"]): AgentProposal => ({
   id: "p1",
   toolCallId: "call-1",
@@ -34,6 +46,7 @@ const proposal = (status: AgentProposal["status"]): AgentProposal => ({
   ],
   decidedAt: null,
   result: status === "failed" ? '{"error":"Forbidden"}' : null,
+  needsFields: null,
 });
 
 afterEach(() => {
@@ -129,5 +142,30 @@ describe("AgentProposalCard", () => {
       />,
     );
     expect(screen.getByText('{"error":"Forbidden"}')).toBeTruthy();
+  });
+
+  it("asks for the team's required fields and accepts with their values", () => {
+    render(
+      <AgentProposalCard
+        workspaceId="w1"
+        proposal={{
+          ...proposal("pending"),
+          tool: "create_ticket_from_thread",
+          needsFields: { projectId: "team1", fieldIds: ["f1"] },
+        }}
+      />,
+    );
+    const accept = screen.getByText("navigation:agent.proposal.accept");
+    expect(accept.closest("button")?.disabled).toBe(true);
+    fireEvent.click(screen.getByText("pick Software"));
+    expect(accept.closest("button")?.disabled).toBe(false);
+    fireEvent.click(accept);
+    expect(m.mutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        decision: "accept",
+        customFields: [{ fieldId: "f1", value: "Software" }],
+      }),
+      expect.anything(),
+    );
   });
 });

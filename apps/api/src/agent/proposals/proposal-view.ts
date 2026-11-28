@@ -5,6 +5,8 @@ import { resolveCitations } from "../resolve-citations";
 import { isSelectable } from "./keep-fields";
 import { POST_DIGEST_TOOL } from "../digest/digest-tool";
 import { PROJECT_UPDATE_TOOL } from "./project-update-tool";
+import { missingTicketFields } from "../thread-ticket/missing-fields";
+import { THREAD_TICKET_TOOL } from "../thread-ticket/thread-ticket-tool";
 
 type Row = typeof agentProposalTable.$inferSelect;
 type Reader = Parameters<typeof resolveCitations>[0];
@@ -23,7 +25,24 @@ export async function proposalView(reader: Reader, row: Row) {
     sources: await resolveCitations(reader, row.sources),
     decidedAt: row.decidedAt,
     result: row.status === "failed" ? row.result : null,
+    needsFields: await needsFields(row),
   };
+}
+
+// A pending thread ticket whose team has required fields without a default:
+// the card asks for them, since the ticket cannot be made without.
+async function needsFields(row: Row) {
+  const projectId = row.arguments.projectId;
+  if (
+    row.tool !== THREAD_TICKET_TOOL ||
+    row.status !== "pending" ||
+    typeof projectId !== "string"
+  )
+    return null;
+  const missing = await missingTicketFields(projectId);
+  return missing.length
+    ? { projectId, fieldIds: missing.map((field) => field.id) }
+    : null;
 }
 
 /** The proposals of one of the reader's own chats, in the order they came. */

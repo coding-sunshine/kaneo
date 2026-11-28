@@ -10,12 +10,14 @@ import { readerOf } from "../cite-messages";
 import { workspaceParam } from "../schema";
 import { acceptProposal, declineProposal } from "./decide-proposal";
 import { listAudit } from "./list-audit";
+import { HTTPException } from "hono/http-exception";
 import {
   acceptQuery,
   auditListSchema,
   proposalParam,
   proposalSchema,
   taskProposalsParam,
+  ticketFieldValues,
 } from "./proposal-schema";
 import { z } from "../../openapi";
 import { pendingDrafts, proposalView, taskProposals } from "./proposal-view";
@@ -102,7 +104,9 @@ const acceptRoute = createRoute({
   },
   responses: {
     ...decideRoute("accept").responses,
-    400: errorResponse("No field was kept"),
+    400: errorResponse(
+      "No field was kept, or a required field of the ticket's team has no value",
+    ),
   },
 });
 
@@ -123,6 +127,21 @@ const taskRoute = createRoute({
   },
 });
 
+function readFieldValues(json?: string) {
+  if (json === undefined) return undefined;
+  let parsed: ReturnType<typeof ticketFieldValues.safeParse>;
+  try {
+    parsed = ticketFieldValues.safeParse(JSON.parse(json));
+  } catch {
+    parsed = ticketFieldValues.safeParse(null);
+  }
+  if (!parsed.success)
+    throw new HTTPException(400, {
+      message: "customFields must be a JSON array of fieldId and value",
+    });
+  return parsed.data;
+}
+
 const proposalRoutes = apiRouter()
   .openapi(taskRoute, async (c) => {
     const { workspaceId, taskId } = c.req.valid("param");
@@ -139,13 +158,14 @@ const proposalRoutes = apiRouter()
   )
   .openapi(acceptRoute, async (c) => {
     const { workspaceId, proposalId } = c.req.valid("param");
-    const { fields } = c.req.valid("query");
+    const { fields, customFields } = c.req.valid("query");
     const row = await acceptProposal(
       c.get("userId"),
       workspaceId,
       proposalId,
       c.req.raw.headers,
       fields?.split(",").map((field) => field.trim()),
+      readFieldValues(customFields),
     );
     return c.json(await proposalView(await readerOf(c, workspaceId), row), 200);
   })

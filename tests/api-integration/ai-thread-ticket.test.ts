@@ -212,6 +212,52 @@ describe("API integration: ticket from a chat thread", () => {
     );
   });
 
+  it("asks for a required field without a default, and creates the ticket with it", async () => {
+    // As set up by the IT intake: required, with no default to fall back on.
+    const [field] = await db
+      .insert(schema.customFieldDefinitionTable)
+      .values({
+        projectId: team.project.id,
+        name: "Category",
+        type: "dropdown",
+        required: true,
+        options: ["Hardware", "Software"],
+        position: 1,
+      })
+      .returning();
+    const fieldId = field?.id ?? "";
+    model.queue.push(suggestion());
+    const card = (await (await propose()).json()) as Proposal & {
+      needsFields: { projectId: string; fieldIds: string[] } | null;
+    };
+    expect(card.needsFields).toEqual({
+      projectId: team.project.id,
+      fieldIds: [fieldId],
+    });
+
+    // Without the value nothing runs and the card stays open.
+    const missing = await decide(card.id, "accept");
+    expect(missing.status, await missing.clone().text()).toBe(400);
+    expect(await missing.text()).toContain("Category");
+    expect(await tasks()).toEqual([]);
+
+    const values = encodeURIComponent(
+      JSON.stringify([{ fieldId, value: "Software" }]),
+    );
+    const res = await as(owner).request(
+      `/api/agent/workspace/${ws}/proposals/${card.id}/accept?customFields=${values}`,
+      json("POST"),
+    );
+    expect(res.status, await res.clone().text()).toBe(200);
+    expect((await res.json()).status).toBe("accepted");
+    const [task] = await tasks();
+    const stored = await db
+      .select({ value: schema.customFieldValueTable.value })
+      .from(schema.customFieldValueTable)
+      .where(eq(schema.customFieldValueTable.taskId, task?.id ?? ""));
+    expect(stored).toEqual([{ value: "Software" }]);
+  });
+
   it("creates nothing on Decline", async () => {
     model.queue.push(suggestion());
     const card = (await (await propose()).json()) as Proposal;

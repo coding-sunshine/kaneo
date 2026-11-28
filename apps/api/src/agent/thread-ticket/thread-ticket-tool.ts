@@ -16,6 +16,13 @@ export const threadTicketSchema = z.object({
   userId: z.string().min(1).optional(),
   addLabels: z.array(z.string()).max(10).optional(),
   workProjectId: z.string().min(1).optional(),
+  /** Values the person gave on Accept for the team's required fields. */
+  customFields: z
+    .array(
+      z.object({ fieldId: z.string().min(1), value: z.string().max(10_000) }),
+    )
+    .max(50)
+    .optional(),
 });
 export type ThreadTicketArgs = z.output<typeof threadTicketSchema>;
 
@@ -56,6 +63,7 @@ export async function applyThreadTicket(
         status: column?.slug ?? "to-do",
         userId: args.userId,
         workProjectId: args.workProjectId,
+        customFields: args.customFields,
         sourceMessage: { channelId: args.channelId, messageId: args.messageId },
       }),
     },

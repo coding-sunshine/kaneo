@@ -5,6 +5,11 @@ import db from "../../database";
 import { agentProposalTable } from "../../database/schema";
 import { createSelfClient, forwardedAuthHeaders } from "../self-client";
 import { buildAgentTools, CHAT_WRITE_TOOLS } from "../tools";
+import {
+  type FieldValue,
+  missingTicketFields,
+} from "../thread-ticket/missing-fields";
+import { THREAD_TICKET_TOOL } from "../thread-ticket/thread-ticket-tool";
 import { afterAccept } from "./after-accept";
 import { keepFields } from "./keep-fields";
 import { proposalPlace } from "./proposal-place";
@@ -66,6 +71,7 @@ export const acceptProposal = (
   proposalId: string,
   headers: Headers,
   fields?: string[],
+  customFields?: FieldValue[],
 ) =>
   acceptProposalAs(
     userId,
@@ -73,6 +79,7 @@ export const acceptProposal = (
     proposalId,
     createSelfClient(forwardedAuthHeaders(headers)),
     fields,
+    customFields,
   );
 
 /** Accepts as the person `client` acts for: their request, or a run as them. */
@@ -82,6 +89,7 @@ export async function acceptProposalAs(
   proposalId: string,
   client: ToolClient,
   fields?: string[],
+  customFields?: FieldValue[],
 ) {
   const [pending] = await db
     .select()
@@ -93,9 +101,12 @@ export async function acceptProposalAs(
     pending.status !== "pending"
       ? undefined
       : await proposalPlace(userId, workspaceId, pending);
-  const kept = keepFields(pending, fields);
+  let kept = keepFields(pending, fields);
   if (kept.diff.length === 0)
     throw new HTTPException(400, { message: "Keep at least one field" });
+  if (pending.status === "pending" && pending.tool === THREAD_TICKET_TOOL) {
+    kept = await withTicketFields(kept, customFields);
+  }
   const row = await claim(
     userId,
     workspaceId,
@@ -123,6 +134,25 @@ export async function acceptProposalAs(
     .returning();
   if (!outcome.isError) await afterAccept(row, userId, outcome.text);
   return done ?? row;
+}
+
+/**
+ * A thread ticket with the values the person gave for its team's required
+ * fields. One still missing is a 400 before anything runs, so the proposal
+ * stays pending and they can fill it in.
+ */
+async function withTicketFields<
+  T extends { arguments: Record<string, unknown> },
+>(row: T, customFields: FieldValue[] = []): Promise<T> {
+  const projectId = row.arguments.projectId;
+  if (typeof projectId !== "string") return row;
+  const missing = await missingTicketFields(projectId, customFields);
+  if (missing.length)
+    throw new HTTPException(400, {
+      message: `Fill in ${missing.map((field) => `"${field.name}"`).join(", ")} to create this ticket`,
+    });
+  if (customFields.length === 0) return row;
+  return { ...row, arguments: { ...row.arguments, customFields } };
 }
 
 export const declineProposal = (

@@ -7,6 +7,8 @@ export async function decideProposal(
   decision: "accept" | "decline",
   /** On a selectable proposal: only these fields are applied. */
   fields?: string[],
+  /** On a ticket from a thread: values for its team's required fields. */
+  customFields?: { fieldId: string; value: string }[],
 ) {
   const route = client.agent.workspace[":workspaceId"].proposals[":proposalId"];
   const param = { workspaceId, proposalId };
@@ -14,7 +16,12 @@ export async function decideProposal(
     decision === "accept"
       ? await route.accept.$post({
           param,
-          query: fields ? { fields: fields.join(",") } : {},
+          query: {
+            ...(fields ? { fields: fields.join(",") } : {}),
+            ...(customFields
+              ? { customFields: JSON.stringify(customFields) }
+              : {}),
+          },
         })
       : await route.decline.$post({ param });
   if (!response.ok) throw await HttpError.fromResponse(response);

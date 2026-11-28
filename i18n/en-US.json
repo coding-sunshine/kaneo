@@ -4582,7 +4582,8 @@
 					"decider": "Decided by",
 					"reason": "Reason"
 				},
-				"keepField": "Apply {{field}}"
+				"keepField": "Apply {{field}}",
+				"requiredFields": "Fill in what this team requires"
 			}
 		},
 		"loops": {
