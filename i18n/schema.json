@@ -25445,6 +25445,63 @@
 								"empty",
 								"loadError"
 							]
+						},
+						"checklist": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"progress": {
+									"type": "string"
+								},
+								"dismiss": {
+									"type": "string"
+								},
+								"dismissError": {
+									"type": "string"
+								},
+								"done": {
+									"type": "string"
+								},
+								"items": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"setStatus": {
+											"type": "string"
+										},
+										"readHandbook": {
+											"type": "string"
+										},
+										"sayHello": {
+											"type": "string"
+										},
+										"openSampleTicket": {
+											"type": "string"
+										},
+										"inviteTeammate": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"setStatus",
+										"readHandbook",
+										"sayHello",
+										"openSampleTicket",
+										"inviteTeammate"
+									]
+								}
+							},
+							"required": [
+								"title",
+								"progress",
+								"dismiss",
+								"dismissError",
+								"done",
+								"items"
+							]
 						}
 					},
 					"required": [
@@ -25455,7 +25512,8 @@
 						"upNext",
 						"doneThisWeek",
 						"projects",
-						"activity"
+						"activity",
+						"checklist"
 					]
 				},
 				"myWork": {

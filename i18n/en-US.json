@@ -6119,6 +6119,20 @@
 				"updated": "updated the issue",
 				"empty": "Nothing has happened in the last 30 days.",
 				"loadError": "Activity couldn't be loaded."
+			},
+			"checklist": {
+				"title": "Get started",
+				"progress": "{{done}} of {{total}} done",
+				"dismiss": "Dismiss",
+				"dismissError": "Couldn't dismiss the checklist. Try again.",
+				"done": "Done",
+				"items": {
+					"setStatus": "Set your status",
+					"readHandbook": "Read the Handbook",
+					"sayHello": "Say hello in #welcome",
+					"openSampleTicket": "Open your sample ticket",
+					"inviteTeammate": "Invite a teammate"
+				}
 			}
 		},
 		"myWork": {

@@ -1,6 +1,7 @@
 import type { z } from "../../openapi";
 import db from "../../database";
 import { userProfileTable } from "../../database/schema";
+import { markChecklistItem } from "../../onboarding-checklist/controllers/mark-checklist-item";
 import type { updateProfileBody } from "../profile/profile-schema";
 import getOwnProfile from "./get-own-profile";
 
@@ -34,6 +35,7 @@ async function updateOwnProfile(userId: string, update: ProfileUpdate) {
       target: userProfileTable.userId,
       set: { ...columns, updatedAt: new Date() },
     });
+  if (columns.statusText) await markChecklistItem(userId, "set-status");
   return getOwnProfile(userId);
 }
 

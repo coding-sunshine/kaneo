@@ -6233,6 +6233,20 @@
 			"doneThisWeek": {
 				"empty": "Nothing finished yet this week.",
 				"title": "Done this week"
+			},
+			"checklist": {
+				"dismiss": "Dismiss",
+				"dismissError": "Couldn't dismiss the checklist. Try again.",
+				"done": "Done",
+				"items": {
+					"inviteTeammate": "Invite a teammate",
+					"openSampleTicket": "Open your sample ticket",
+					"readHandbook": "Read the Handbook",
+					"sayHello": "Say hello in #welcome",
+					"setStatus": "Set your status"
+				},
+				"progress": "{{done}} of {{total}} done",
+				"title": "Get started"
 			}
 		},
 		"myTasks": {

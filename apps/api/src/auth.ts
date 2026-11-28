@@ -145,7 +145,8 @@ import {
   getWorkspaceInvitationEmailCopy,
 } from "./utils/get-workspace-invitation-email-copy";
 import { getGithubSsoOAuthCredentials } from "./utils/github-sso-env";
-import { hasInstanceAdminRole } from "./utils/instance-admin-role";
+import { canCreateWorkspace } from "./workspace/can-create-workspace";
+import { createChecklist } from "./onboarding-checklist/controllers/create-checklist";
 import {
   hasRegisteredUsers,
   promoteInitialAdministrator,
@@ -604,18 +605,7 @@ export const auth = betterAuth({
       // instance-wide role is meaningful here; per-workspace roles
       // (owner/admin/member/viewer) don't apply until after a workspace
       // is joined.
-      //
-      // Read the current instance role rather than a session's user snapshot,
-      // which can predate first-user promotion or an administrator's changes.
-      allowUserToCreateOrganization: async (user) => {
-        if (!(await getInstanceSettings()).workspaceCreationRestricted)
-          return true;
-        const [freshUser] = await db
-          .select({ role: schema.userTable.role })
-          .from(schema.userTable)
-          .where(eq(schema.userTable.id, user.id));
-        return hasInstanceAdminRole(freshUser?.role);
-      },
+      allowUserToCreateOrganization: (user) => canCreateWorkspace(user.id),
       // Better Auth defaults this to `true`, which blocks any user whose email
       // is not verified from accepting/rejecting an invitation. Kaneo does not
       // verify emails on signup (and guest/anonymous users are unverified by
@@ -934,6 +924,10 @@ export const auth = betterAuth({
           }
 
           await promoteInitialAdministrator(user.id);
+          // Only people who sign up from now on get the new-hire checklist.
+          await createChecklist(user.id).catch((error) => {
+            console.error("Failed to create the onboarding checklist", error);
+          });
         },
       },
     },

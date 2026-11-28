@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { Route } from "./onboarding";
 
 const getWorkspaces = vi.fn();
+const createWelcomeWorkspace = vi.fn();
+const readCheckoutIntent = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: unknown) => options,
@@ -10,6 +12,14 @@ vi.mock("@tanstack/react-router", () => ({
 
 vi.mock("@/fetchers/workspace/get-workspaces", () => ({
   default: () => getWorkspaces(),
+}));
+
+vi.mock("@/fetchers/onboarding/create-welcome-workspace", () => ({
+  default: () => createWelcomeWorkspace(),
+}));
+
+vi.mock("@/lib/checkout-intent", () => ({
+  readCheckoutIntent: () => readCheckoutIntent(),
 }));
 
 vi.mock("@/lib/http-error", () => ({
@@ -34,10 +44,33 @@ describe("onboarding route", () => {
     await expect(beforeLoad()).rejects.toEqual({
       redirect: { to: "/dashboard" },
     });
+    expect(createWelcomeWorkspace).not.toHaveBeenCalled();
   });
 
   it("shows the flow when there is no workspace yet", async () => {
     getWorkspaces.mockResolvedValue([]);
+    createWelcomeWorkspace.mockResolvedValue({ workspaceId: null });
+    await expect(beforeLoad()).resolves.toBeUndefined();
+  });
+
+  it("sends a new hire to the welcome workspace made for them", async () => {
+    getWorkspaces.mockResolvedValue([]);
+    createWelcomeWorkspace.mockResolvedValue({ workspaceId: "welcome" });
+    await expect(beforeLoad()).rejects.toEqual({
+      redirect: { to: "/dashboard" },
+    });
+  });
+
+  it("keeps the flow for someone who came to buy a plan", async () => {
+    getWorkspaces.mockResolvedValue([]);
+    readCheckoutIntent.mockReturnValue({ plan: "team", interval: "monthly" });
+    await expect(beforeLoad()).resolves.toBeUndefined();
+    expect(createWelcomeWorkspace).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the flow when the welcome workspace cannot be made", async () => {
+    getWorkspaces.mockResolvedValue([]);
+    createWelcomeWorkspace.mockRejectedValue(new Error("offline"));
     await expect(beforeLoad()).resolves.toBeUndefined();
   });
 
