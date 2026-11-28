@@ -49247,7 +49247,7 @@
           "Daily brief"
         ],
         "summary": "Set my daily brief",
-        "description": "Turns your morning brief on or off and picks the channels it reads. Each must be a channel you can read; direct messages are never read.",
+        "description": "Turns your morning brief on or off and picks the channels it reads. Each must be a channel you can read; direct messages and channels marked no AI are never read.",
         "parameters": [
           {
             "schema": {
@@ -49281,7 +49281,7 @@
             }
           },
           "400": {
-            "description": "A direct message was chosen",
+            "description": "A direct message or a channel marked no AI was chosen",
             "content": {
               "application/json": {
                 "schema": {

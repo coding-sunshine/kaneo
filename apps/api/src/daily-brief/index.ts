@@ -44,7 +44,7 @@ const setPreferenceRoute = createRoute({
   tags,
   summary: "Set my daily brief",
   description:
-    "Turns your morning brief on or off and picks the channels it reads. Each must be a channel you can read; direct messages are never read.",
+    "Turns your morning brief on or off and picks the channels it reads. Each must be a channel you can read; direct messages and channels marked no AI are never read.",
   middleware: [...own] as const,
   request: {
     params: workspaceParam,
@@ -55,7 +55,7 @@ const setPreferenceRoute = createRoute({
   },
   responses: {
     200: jsonResponse("Saved", briefPreferenceSchema),
-    400: errorResponse("A direct message was chosen"),
+    400: errorResponse("A direct message or a channel marked no AI was chosen"),
     ...missing,
   },
 });

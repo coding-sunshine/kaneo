@@ -296,6 +296,19 @@ describe("API integration: daily brief", () => {
     expect(await runDailyBriefs(MORNING)).toEqual({ sent: 0 });
   });
 
+  it("refuses a channel marked no AI", async () => {
+    const { b, ws, x, y } = await setup();
+    await db
+      .update(chatChannelTable)
+      .set({ aiDisabled: true })
+      .where(eq(chatChannelTable.id, y.id));
+    const res = await enable(b, ws, [x.id, y.id]);
+    expect(res.status, await res.clone().text()).toBe(400);
+    expect(await (await call(b, `/workspace/${ws}/preference`)).json()).toEqual(
+      { enabled: false, channelIds: [] },
+    );
+  });
+
   it("drops a chosen channel I was removed from", async () => {
     const { a, b, ws, x, post } = await setup();
     const [closed] = await db

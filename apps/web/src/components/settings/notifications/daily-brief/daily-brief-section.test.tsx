@@ -17,10 +17,20 @@ vi.mock("@/hooks/queries/chat/use-channels", () => ({
       { id: "x", name: "x", isDirect: false, archivedAt: null },
       { id: "y", name: "y", isDirect: false, archivedAt: null },
       { id: "dm", name: "dm", isDirect: true, archivedAt: null },
+      {
+        id: "off",
+        name: "off",
+        isDirect: false,
+        archivedAt: null,
+        aiDisabled: true,
+      },
     ],
   }),
 }));
-const saved = { enabled: false, channelIds: [] };
+const saved: { enabled: boolean; channelIds: string[] } = {
+  enabled: false,
+  channelIds: [],
+};
 vi.mock("@/hooks/queries/daily-brief/use-daily-brief", () => ({
   useBriefPreference: () => ({ data: saved }),
   useSetBriefPreference: () => ({ mutate: state.save, isPending: false }),
@@ -46,5 +56,22 @@ describe("DailyBriefSection", () => {
       { enabled: true, channelIds: ["x"] },
       expect.anything(),
     );
+  });
+
+  it("offers no channel marked no AI, and saves without one chosen before", () => {
+    saved.enabled = true;
+    saved.channelIds = ["off", "y"];
+    render(<DailyBriefSection />);
+    expect(screen.queryByText("#off")).toBeNull();
+    fireEvent.click(screen.getByText("#x"));
+    fireEvent.click(
+      screen.getByText("settings:notificationsPage.dailyBrief.save"),
+    );
+    expect(state.save).toHaveBeenCalledWith(
+      { enabled: true, channelIds: ["y", "x"] },
+      expect.anything(),
+    );
+    saved.enabled = false;
+    saved.channelIds = [];
   });
 });

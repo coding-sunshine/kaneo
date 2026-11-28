@@ -29,11 +29,21 @@ export function DailyBriefSection() {
     null,
   );
   if (!workspaceId || !saved) return null;
-  const value = draft?.of === saved ? draft.value : saved;
+  // A channel marked no AI is never read, and the API refuses it: one chosen
+  // before it was marked is dropped from what is saved.
+  const noAi = new Set(
+    channels.filter((channel) => channel.aiDisabled).map(({ id }) => id),
+  );
+  const current = draft?.of === saved ? draft.value : saved;
+  const value = {
+    ...current,
+    channelIds: current.channelIds.filter((id) => !noAi.has(id)),
+  };
   const edit = (next: Partial<Draft>) =>
     setDraft({ of: saved, value: { ...value, ...next } });
   const choosable = channels.filter(
-    (channel) => !channel.isDirect && !channel.archivedAt,
+    (channel) =>
+      !channel.isDirect && !channel.archivedAt && !channel.aiDisabled,
   );
   const dirty =
     value.enabled !== saved.enabled ||

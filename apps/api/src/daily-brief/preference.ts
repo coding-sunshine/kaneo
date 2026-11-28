@@ -35,7 +35,8 @@ export async function getBriefPreference(workspaceId: string, userId: string) {
 
 /**
  * Saves the caller's own brief setting. Each chosen channel must be one they
- * can read now; direct messages are never part of a brief.
+ * can read now; direct messages and channels marked no AI are never part of
+ * a brief.
  */
 export async function setBriefPreference(
   workspaceId: string,
@@ -49,6 +50,10 @@ export async function setBriefPreference(
     if (channel.isDirect)
       throw new HTTPException(400, {
         message: "Direct messages cannot be part of a brief",
+      });
+    if (channel.aiDisabled)
+      throw new HTTPException(400, {
+        message: "A channel marked no AI cannot be part of a brief",
       });
   }
   await db.transaction(async (tx) => {
