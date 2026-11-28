@@ -74,6 +74,7 @@ import {
 } from "./schema";
 import "./call/subscribe";
 import "./link-preview/subscribe";
+import "./mentions/subscribe";
 
 const body = <T extends z.ZodType>(schema: T) => ({
   required: true as const,

@@ -666,9 +666,12 @@
 					"properties": {
 						"title": {
 							"type": "string"
+						},
+						"directMessage": {
+							"type": "string"
 						}
 					},
-					"required": ["title"]
+					"required": ["title", "directMessage"]
 				}
 			},
 			"required": [
@@ -18736,6 +18739,18 @@
 						"drafts": {
 							"type": "string"
 						},
+						"mention": {
+							"type": "string"
+						},
+						"mentionSearch": {
+							"type": "string"
+						},
+						"noMentionMatches": {
+							"type": "string"
+						},
+						"restrictedItem": {
+							"type": "string"
+						},
 						"browse": {
 							"type": "string"
 						},
@@ -18998,6 +19013,10 @@
 					"required": [
 						"channels",
 						"drafts",
+						"mention",
+						"mentionSearch",
+						"noMentionMatches",
+						"restrictedItem",
 						"browse",
 						"directoryTitle",
 						"newChannel",

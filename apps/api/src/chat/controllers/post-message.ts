@@ -2,6 +2,8 @@ import { eq } from "drizzle-orm";
 import db from "../../database";
 import { chatMessageTable } from "../../database/schema";
 import { publishEvent } from "../../events";
+import { syncMessageReferences } from "../../reference/sync-references";
+import { withMentions } from "../mentions/with-mentions";
 import { loadChannel } from "./load-channel";
 import { deleteDraft } from "./save-draft";
 import { selectMessages } from "./select-messages";
@@ -13,10 +15,14 @@ export async function postMessage(
   body: string,
 ) {
   await loadChannel(workspaceId, channelId, userId, "post");
-  const [created] = await db
-    .insert(chatMessageTable)
-    .values({ channelId, userId, body })
-    .returning({ id: chatMessageTable.id });
+  const created = await db.transaction(async (tx) => {
+    const [row] = await tx
+      .insert(chatMessageTable)
+      .values({ channelId, userId, body })
+      .returning({ id: chatMessageTable.id });
+    if (row) await syncMessageReferences(tx, row.id, body);
+    return row;
+  });
   const [message] = await selectMessages().where(
     eq(chatMessageTable.id, created?.id ?? ""),
   );
@@ -29,5 +35,8 @@ export async function postMessage(
     messageId: message.id,
     userId,
   });
-  return { ...message, reactions: [] };
+  const [withCards] = await withMentions(workspaceId, userId, [
+    { ...message, reactions: [] },
+  ]);
+  return withCards as NonNullable<typeof withCards>;
 }

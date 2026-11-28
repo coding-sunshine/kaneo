@@ -170,7 +170,8 @@
 			}
 		},
 		"mentionedIn": {
-			"title": "Mentioned in"
+			"title": "Mentioned in",
+			"directMessage": "Direct message"
 		}
 	},
 	"auth": {
@@ -4578,6 +4579,10 @@
 		"chat": {
 			"channels": "Channels",
 			"drafts": "Drafts",
+			"mention": "Mention",
+			"mentionSearch": "Search people, tickets, documents and teams",
+			"noMentionMatches": "Nothing matches",
+			"restrictedItem": "Restricted item",
 			"browse": "Browse channels",
 			"directoryTitle": "Channels",
 			"newChannel": "New channel",

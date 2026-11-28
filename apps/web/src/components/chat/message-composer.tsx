@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { MentionPicker } from "@/components/chat/mention-picker";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { usePostMessage } from "@/hooks/mutations/chat/use-post-message";
@@ -61,6 +62,12 @@ export function MessageComposer({
             void send();
           }
         }}
+      />
+      <MentionPicker
+        workspaceId={workspaceId}
+        onPick={(token) =>
+          setBody(`${body}${body && !/\s$/.test(body) ? " " : ""}${token} `)
+        }
       />
       <Button type="submit" size="sm" disabled={!body.trim() || post.isPending}>
         {t("navigation:chat.send")}

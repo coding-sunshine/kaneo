@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { FileText, SquareCheck } from "lucide-react";
+import { FileText, MessageSquare, SquareCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { ReferenceTarget } from "@/fetchers/reference/get-references";
 import { useReferences } from "@/hooks/queries/reference/use-references";
@@ -11,7 +11,10 @@ type MentionedInProps = {
   className?: string;
 };
 
-/** The tickets and documents whose text names the target. Hidden when none. */
+/**
+ * The tickets, documents and chat messages whose text names the target.
+ * Hidden when none.
+ */
 export function MentionedIn({
   workspaceId,
   target,
@@ -53,6 +56,23 @@ export function MentionedIn({
                   </span>
                 )}
                 <span className="truncate">{reference.title}</span>
+              </Link>
+            ) : reference.kind === "message" && reference.channelId ? (
+              <Link
+                to="/dashboard/workspace/$workspaceId/channels/$channelId"
+                params={{ workspaceId, channelId: reference.channelId }}
+                search={{ messageId: reference.id }}
+                className={linkClass}
+              >
+                <MessageSquare
+                  aria-hidden
+                  className="size-4 shrink-0 text-muted-foreground"
+                />
+                <span className="truncate">
+                  {reference.title
+                    ? `#${reference.title}`
+                    : t("common:mentionedIn.directMessage")}
+                </span>
               </Link>
             ) : (
               <Link

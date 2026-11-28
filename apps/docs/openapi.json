@@ -3914,6 +3914,13 @@
           "linkPreview": {
             "$ref": "#/components/schemas/ChatLinkPreview"
           },
+          "mentions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatMention"
+            },
+            "description": "Cards for the people, tickets, documents and teams the message names, as you see them now."
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -3930,6 +3937,7 @@
           "pinnedAt",
           "reactions",
           "linkPreview",
+          "mentions",
           "createdAt"
         ]
       },
@@ -3962,6 +3970,64 @@
           "siteName"
         ],
         "description": "A card for the first web link, added shortly after posting. Links inside code get none."
+      },
+      "ChatMention": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "user",
+              "task",
+              "document",
+              "project"
+            ]
+          },
+          "ref": {
+            "type": "string",
+            "description": "How the text names it: a user, document or team id, or a ticket key such as ENG-12."
+          },
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A person's or team's name, a ticket's or document's title. Null when restricted."
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A ticket's status. Null for anything else."
+          },
+          "projectId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The team of a ticket. Null for anything else."
+          },
+          "restricted": {
+            "type": "boolean",
+            "description": "True when you cannot open it: id, title and status are then null."
+          }
+        },
+        "required": [
+          "kind",
+          "ref",
+          "id",
+          "title",
+          "status",
+          "projectId",
+          "restricted"
+        ]
       },
       "ChatCallSession": {
         "type": "object",
@@ -10392,15 +10458,17 @@
             "type": "string",
             "enum": [
               "task",
-              "document"
+              "document",
+              "message"
             ],
-            "description": "Whether the source is a task or a document."
+            "description": "Whether the source is a task, a document or a chat message."
           },
           "id": {
             "type": "string"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "A task's or document's title; a chat message's channel name, empty for a direct message."
           },
           "key": {
             "type": [
@@ -10416,6 +10484,10 @@
             ],
             "description": "The team a task belongs to. Null for a document."
           },
+          "channelId": {
+            "type": "string",
+            "description": "The channel of a chat message. Absent for a task or a document."
+          },
           "places": {
             "type": "array",
             "items": {
@@ -10423,10 +10495,11 @@
               "enum": [
                 "description",
                 "comment",
-                "document"
+                "document",
+                "chat"
               ]
             },
-            "description": "Where the source names the target: a task's `description` or `comment`, or a document's text (`document`)."
+            "description": "Where the source names the target: a task's `description` or `comment`, or a document's text (`document`), or a chat message (`chat`)."
           }
         },
         "required": [
@@ -54718,7 +54791,7 @@
           "References"
         ],
         "summary": "Get a task's references",
-        "description": "List the tasks and documents whose text links to the task or types its key. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
+        "description": "List the tasks, documents and chat messages whose text links to the task or types its key. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
         "parameters": [
           {
             "schema": {
@@ -54731,7 +54804,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Tasks and documents whose text names the target, each once",
+            "description": "Tasks, documents and chat messages whose text names the target, each once",
             "content": {
               "application/json": {
                 "schema": {
@@ -54783,7 +54856,7 @@
           "References"
         ],
         "summary": "Get a project's references",
-        "description": "List the tasks and documents whose text links to the project. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
+        "description": "List the tasks, documents and chat messages whose text links to the project. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
         "parameters": [
           {
             "schema": {
@@ -54796,7 +54869,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Tasks and documents whose text names the target, each once",
+            "description": "Tasks, documents and chat messages whose text names the target, each once",
             "content": {
               "application/json": {
                 "schema": {
@@ -54848,7 +54921,7 @@
           "References"
         ],
         "summary": "Get a document's references",
-        "description": "List the tasks and documents whose text links to the document. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
+        "description": "List the tasks, documents and chat messages whose text links to the document. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
         "parameters": [
           {
             "schema": {
@@ -54869,7 +54942,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Tasks and documents whose text names the target, each once",
+            "description": "Tasks, documents and chat messages whose text names the target, each once",
             "content": {
               "application/json": {
                 "schema": {

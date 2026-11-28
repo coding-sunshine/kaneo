@@ -129,6 +129,31 @@ const linkPreviewSchema = z
   })
   .openapi("ChatLinkPreview");
 
+const mentionSchema = z
+  .object({
+    kind: z.enum(["user", "task", "document", "project"]),
+    ref: z.string().openapi({
+      description:
+        "How the text names it: a user, document or team id, or a ticket key such as ENG-12.",
+    }),
+    id: z.string().nullable(),
+    title: z.string().nullable().openapi({
+      description:
+        "A person's or team's name, a ticket's or document's title. Null when restricted.",
+    }),
+    status: z.string().nullable().openapi({
+      description: "A ticket's status. Null for anything else.",
+    }),
+    projectId: z.string().nullable().openapi({
+      description: "The team of a ticket. Null for anything else.",
+    }),
+    restricted: z.boolean().openapi({
+      description:
+        "True when you cannot open it: id, title and status are then null.",
+    }),
+  })
+  .openapi("ChatMention");
+
 export const messageSchema = z
   .object({
     id: z.string(),
@@ -152,6 +177,10 @@ export const messageSchema = z
     linkPreview: linkPreviewSchema.nullable().openapi({
       description:
         "A card for the first web link, added shortly after posting. Links inside code get none.",
+    }),
+    mentions: z.array(mentionSchema).openapi({
+      description:
+        "Cards for the people, tickets, documents and teams the message names, as you see them now.",
     }),
     createdAt: responseTimestamp,
   })

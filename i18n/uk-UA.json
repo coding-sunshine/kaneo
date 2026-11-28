@@ -170,7 +170,8 @@
 			}
 		},
 		"mentionedIn": {
-			"title": "Mentioned in"
+			"title": "Mentioned in",
+			"directMessage": "Direct message"
 		}
 	},
 	"auth": {
@@ -4805,7 +4806,11 @@
 			"noTicketsFound": "No tickets found",
 			"openInChat": "Open in chat",
 			"searchTickets": "Search tickets",
-			"drafts": "Drafts"
+			"drafts": "Drafts",
+			"mention": "Mention",
+			"mentionSearch": "Search people, tickets, documents and teams",
+			"noMentionMatches": "Nothing matches",
+			"restrictedItem": "Restricted item"
 		}
 	},
 	"notifications": {

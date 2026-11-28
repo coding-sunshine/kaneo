@@ -3341,11 +3341,16 @@ export const taskDocumentTable = pgTable(
   ],
 );
 
-export const REFERENCE_PLACES = ["description", "comment", "document"] as const;
+export const REFERENCE_PLACES = [
+  "description",
+  "comment",
+  "document",
+  "chat",
+] as const;
 export type ReferencePlace = (typeof REFERENCE_PLACES)[number];
 
-// Where a ticket's or a document's text names a ticket, a document or a team,
-// by address or by a typed key. One row per place in the source, kept right on
+// Where a ticket's, a document's or a chat message's text names a ticket, a
+// document or a team, by address or by a typed key. One row per place in the source, kept right on
 // every save of that place. A row lets nobody into anything.
 export const referenceTable = pgTable(
   "reference",
@@ -3366,6 +3371,10 @@ export const referenceTable = pgTable(
     }),
     sourceDocumentId: text("source_document_id").references(
       () => documentTable.id,
+      { onDelete: "cascade", onUpdate: "cascade" },
+    ),
+    sourceMessageId: text("source_message_id").references(
+      () => chatMessageTable.id,
       { onDelete: "cascade", onUpdate: "cascade" },
     ),
     place: text("place").$type<ReferencePlace>().notNull(),
@@ -3390,6 +3399,7 @@ export const referenceTable = pgTable(
       .on(
         table.sourceTaskId,
         table.sourceDocumentId,
+        table.sourceMessageId,
         table.place,
         table.targetTaskId,
         table.targetDocumentId,
@@ -3398,7 +3408,7 @@ export const referenceTable = pgTable(
       .nullsNotDistinct(),
     check(
       "reference_one_source",
-      sql`num_nonnulls(${table.sourceTaskId}, ${table.sourceDocumentId}) = 1`,
+      sql`num_nonnulls(${table.sourceTaskId}, ${table.sourceDocumentId}, ${table.sourceMessageId}) = 1`,
     ),
     check(
       "reference_one_target",
@@ -3406,6 +3416,7 @@ export const referenceTable = pgTable(
     ),
     // The unique index above leads with the source ticket.
     index("reference_source_document_idx").on(table.sourceDocumentId),
+    index("reference_source_message_idx").on(table.sourceMessageId),
     index("reference_target_task_idx").on(table.targetTaskId),
     index("reference_target_document_idx").on(table.targetDocumentId),
     index("reference_target_project_idx").on(table.targetProjectId),

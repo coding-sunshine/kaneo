@@ -2,6 +2,8 @@ import { and, eq, inArray } from "drizzle-orm";
 import type db from "../database";
 import {
   activityTable,
+  chatChannelTable,
+  chatMessageTable,
   documentTable,
   projectTable,
   type ReferencePlace,
@@ -16,7 +18,24 @@ import {
 import { resolveTaskReferences } from "../task-document/resolve-tasks";
 
 type Database = Pick<typeof db, "select" | "insert" | "delete">;
-type Source = { taskId: string } | { documentId: string };
+type Source =
+  | { taskId: string }
+  | { documentId: string }
+  | { messageId: string };
+
+const sourceColumns = (source: Source) =>
+  "taskId" in source
+    ? { sourceTaskId: source.taskId }
+    : "documentId" in source
+      ? { sourceDocumentId: source.documentId }
+      : { sourceMessageId: source.messageId };
+
+const sourceCondition = (source: Source) =>
+  "taskId" in source
+    ? eq(referenceTable.sourceTaskId, source.taskId)
+    : "documentId" in source
+      ? eq(referenceTable.sourceDocumentId, source.documentId)
+      : eq(referenceTable.sourceMessageId, source.messageId);
 
 /**
  * Whether a text can name a ticket, a document or a team. No lookup, so
@@ -38,10 +57,19 @@ async function workspaceOf(database: Database, source: Source) {
           .from(taskTable)
           .innerJoin(projectTable, eq(projectTable.id, taskTable.projectId))
           .where(eq(taskTable.id, source.taskId))
-      : await database
-          .select({ workspaceId: documentTable.workspaceId })
-          .from(documentTable)
-          .where(eq(documentTable.id, source.documentId));
+      : "documentId" in source
+        ? await database
+            .select({ workspaceId: documentTable.workspaceId })
+            .from(documentTable)
+            .where(eq(documentTable.id, source.documentId))
+        : await database
+            .select({ workspaceId: chatChannelTable.workspaceId })
+            .from(chatMessageTable)
+            .innerJoin(
+              chatChannelTable,
+              eq(chatChannelTable.id, chatMessageTable.channelId),
+            )
+            .where(eq(chatMessageTable.id, source.messageId));
   return row?.workspaceId ?? null;
 }
 
@@ -83,7 +111,7 @@ async function findTargets(
           ),
         )
     : [];
-  const self = "taskId" in source ? source.taskId : source.documentId;
+  const self = Object.values(source)[0];
   return [
     ...tasks.filter((id) => id !== self).map((id) => ({ targetTaskId: id })),
     ...documents
@@ -106,20 +134,10 @@ export async function syncReferences(
   const targets = text
     ? await findTargets(database, workspaceId, source, text)
     : [];
-  const columns =
-    "taskId" in source
-      ? { sourceTaskId: source.taskId }
-      : { sourceDocumentId: source.documentId };
+  const columns = sourceColumns(source);
   await database
     .delete(referenceTable)
-    .where(
-      and(
-        "taskId" in source
-          ? eq(referenceTable.sourceTaskId, source.taskId)
-          : eq(referenceTable.sourceDocumentId, source.documentId),
-        eq(referenceTable.place, place),
-      ),
-    );
+    .where(and(sourceCondition(source), eq(referenceTable.place, place)));
   if (!targets.length) return;
   await database
     .insert(referenceTable)
@@ -154,6 +172,13 @@ export async function syncTaskCommentReferences(
     comments.map((comment) => comment.content),
   );
 }
+
+/** The references of a chat message's text. */
+export const syncMessageReferences = (
+  database: Database,
+  messageId: string,
+  body: string,
+) => syncReferences(database, { messageId }, "chat", [body]);
 
 /** The references of a document's text. */
 export const syncDocumentReferences = (
