@@ -31,6 +31,7 @@ import useGetProjectMembers from "@/hooks/queries/workspace-users/use-get-projec
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { getColumnIcon } from "@/lib/column";
 import { getInitials } from "@/lib/get-initials";
+import { memberStatusHint } from "@/lib/people/member-status-hint";
 import { getPriorityLabel } from "@/lib/i18n/domain";
 import { getPriorityIcon } from "@/lib/priority";
 import { toast } from "@/lib/toast";
@@ -113,8 +114,9 @@ export default function TaskCardContextMenuContent({
       value: member.id,
       image: member.image ?? "",
       name: member.name,
+      hint: memberStatusHint(member.profile, t("team:people.outOfOffice")),
     }));
-  }, [projectMembers]);
+  }, [projectMembers, t]);
 
   const handleDuplicateTask = () => {
     duplicateTask({
@@ -255,6 +257,11 @@ export default function TaskCardContextMenuContent({
                 </Avatar>
 
                 {user.label}
+                {user.hint && (
+                  <span className="ml-auto min-w-0 truncate text-muted-foreground text-xs">
+                    {user.hint}
+                  </span>
+                )}
               </ContextMenuCheckboxItem>
             ))}
           </ContextMenuSubContent>

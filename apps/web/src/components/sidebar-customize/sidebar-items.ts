@@ -20,6 +20,7 @@ export type SidebarItemId =
   | "chat"
   | "files"
   | "members"
+  | "people"
   | "loops"
   | "teams";
 export type SidebarSection = "personal" | "workspace";
@@ -62,6 +63,7 @@ export const SIDEBAR_SECTIONS: Record<SidebarSection, SidebarItemId[]> = {
     "views",
     "chat",
     "files",
+    "people",
     "members",
     "loops",
     "teams",

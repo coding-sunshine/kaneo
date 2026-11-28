@@ -15,6 +15,8 @@ type MessageItemProps = {
   currentUserId: string | undefined;
   canWrite: boolean;
   online: boolean;
+  /** The author's status line, when they set one. */
+  status?: string;
   /** Opened from a search result: scrolled into view and marked. */
   focused?: boolean;
   onRemovePreview?: (messageId: string) => void;
@@ -27,6 +29,7 @@ export function MessageItem({
   currentUserId,
   canWrite,
   online,
+  status,
   focused = false,
   onRemovePreview,
 }: MessageItemProps) {
@@ -58,6 +61,11 @@ export function MessageItem({
               title={t("navigation:chat.online")}
               className="size-2 rounded-full bg-emerald-500"
             />
+          )}
+          {status && (
+            <span className="max-w-48 truncate font-normal text-muted-foreground">
+              {status}
+            </span>
           )}
         </span>
         <time

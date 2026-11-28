@@ -41,6 +41,7 @@ export type NotificationPreferences = {
   dueDateReminderEnabled: boolean;
   dueDateReminderLeadTimeMinutes: number;
   topicUpdatesEnabled: boolean;
+  staleItemsEnabled: boolean;
   scheduleEnabled: boolean;
   scheduleTimezone: string;
   scheduleDays: number[];

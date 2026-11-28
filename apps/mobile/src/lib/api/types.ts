@@ -393,6 +393,7 @@ export type NotificationPreferences = {
   dueDateReminderEnabled?: boolean;
   dueDateReminderLeadTimeMinutes?: number;
   topicUpdatesEnabled?: boolean;
+  staleItemsEnabled?: boolean;
 };
 
 /** Fields left undefined are omitted from the request, which keeps the server value. */
@@ -414,6 +415,7 @@ export type UpdateNotificationPreferences = Partial<{
   dueDateReminderEnabled: boolean;
   dueDateReminderLeadTimeMinutes: number;
   topicUpdatesEnabled: boolean;
+  staleItemsEnabled: boolean;
 }>;
 
 export type SearchResult = {

@@ -3,6 +3,7 @@ import {
   type WorkspaceCapability,
 } from "@kaneo/permissions";
 import { PROJECT_ACCESS_MODES } from "../project-access/project-access-mode";
+import { profileSchema } from "../user/profile/profile-schema";
 import { responseTimestamp, z } from "../openapi";
 
 export const workspaceSchema = z
@@ -34,6 +35,10 @@ export const workspaceMemberSchema = z
     role: z.string().openapi({
       description:
         "The member's workspace role: a built-in role (owner, admin, member, viewer) or the name of a custom role defined in the workspace. Several roles are comma-separated, for example owner,viewer.",
+    }),
+    profile: profileSchema.openapi({
+      description:
+        "Profile fields, status, and out-of-office range the member set. Empty fields are null.",
     }),
     joinedTeam: z.boolean().optional().openapi({
       description:

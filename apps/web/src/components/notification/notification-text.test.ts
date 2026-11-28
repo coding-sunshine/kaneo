@@ -22,6 +22,9 @@ const t = (key: string, options?: Record<string, unknown>) => {
   if (key === "notifications:events.team_issue_closed.title") {
     return `Moved to ${options?.newStatus} in ${options?.teamName}`;
   }
+  if (key === "notifications:events.stale_items.content") {
+    return `Still waiting: ${options?.issueList}`;
+  }
   if (key === "notifications:events.task_comment.content") {
     return `New comment on ${options?.taskTitle}: ${options?.commentPreview}`;
   }
@@ -46,6 +49,20 @@ function notification(
 }
 
 describe("notification display content", () => {
+  it("lists the stale issues in one line", () => {
+    const item = notification("stale_items", {
+      count: 2,
+      issueList: "WEB-4 Fix login, WEB-9 Update docs",
+    });
+
+    expect(getNotificationTitle(item, t)).toBe(
+      "notifications:events.stale_items.title",
+    );
+    expect(getNotificationContent(item, t)).toBe(
+      "Still waiting: WEB-4 Fix login, WEB-9 Update docs",
+    );
+  });
+
   it("renders configured due-date lead times", () => {
     const item = notification("due_date_reminder", {
       taskTitle: "Launch website",

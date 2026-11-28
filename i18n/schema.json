@@ -4446,6 +4446,12 @@
 						"eventTopicUpdatesHint": {
 							"type": "string"
 						},
+						"eventStaleItems": {
+							"type": "string"
+						},
+						"eventStaleItemsHint": {
+							"type": "string"
+						},
 						"eventDueDateReminders": {
 							"type": "string"
 						},
@@ -4790,6 +4796,8 @@
 						"eventStatusChanges",
 						"eventTopicUpdates",
 						"eventTopicUpdatesHint",
+						"eventStaleItems",
+						"eventStaleItemsHint",
 						"eventDueDateReminders",
 						"reminderLeadTimeLabel",
 						"reminderLeadTimeInvalid",
@@ -13571,6 +13579,126 @@
 						"syncNowDescription",
 						"syncNowAction"
 					]
+				},
+				"peopleProfile": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"sectionTitle": {
+							"type": "string"
+						},
+						"sectionDescription": {
+							"type": "string"
+						},
+						"jobTitle": {
+							"type": "string"
+						},
+						"jobTitlePlaceholder": {
+							"type": "string"
+						},
+						"department": {
+							"type": "string"
+						},
+						"departmentPlaceholder": {
+							"type": "string"
+						},
+						"location": {
+							"type": "string"
+						},
+						"locationPlaceholder": {
+							"type": "string"
+						},
+						"timeZone": {
+							"type": "string"
+						},
+						"timeZoneNone": {
+							"type": "string"
+						},
+						"saveError": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"sectionTitle",
+						"sectionDescription",
+						"jobTitle",
+						"jobTitlePlaceholder",
+						"department",
+						"departmentPlaceholder",
+						"location",
+						"locationPlaceholder",
+						"timeZone",
+						"timeZoneNone",
+						"saveError"
+					]
+				},
+				"peopleStatus": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"sectionTitle": {
+							"type": "string"
+						},
+						"sectionDescription": {
+							"type": "string"
+						},
+						"text": {
+							"type": "string"
+						},
+						"textPlaceholder": {
+							"type": "string"
+						},
+						"outOfOffice": {
+							"type": "string"
+						},
+						"outOfOfficeHint": {
+							"type": "string"
+						},
+						"from": {
+							"type": "string"
+						},
+						"until": {
+							"type": "string"
+						},
+						"save": {
+							"type": "string"
+						},
+						"clear": {
+							"type": "string"
+						},
+						"saved": {
+							"type": "string"
+						},
+						"cleared": {
+							"type": "string"
+						},
+						"invalidRange": {
+							"type": "string"
+						},
+						"needsText": {
+							"type": "string"
+						},
+						"saveError": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"sectionTitle",
+						"sectionDescription",
+						"text",
+						"textPlaceholder",
+						"outOfOffice",
+						"outOfOfficeHint",
+						"from",
+						"until",
+						"save",
+						"clear",
+						"saved",
+						"cleared",
+						"invalidRange",
+						"needsText",
+						"saveError"
+					]
 				}
 			},
 			"required": [
@@ -13642,7 +13770,9 @@
 				"projectSla",
 				"projectTriage",
 				"adminBackups",
-				"calendarSync"
+				"calendarSync",
+				"peopleProfile",
+				"peopleStatus"
 			]
 		},
 		"navigation": {
@@ -13876,6 +14006,9 @@
 						"chat": {
 							"type": "string"
 						},
+						"people": {
+							"type": "string"
+						},
 						"files": {
 							"type": "string"
 						}
@@ -13916,6 +14049,7 @@
 						"teams",
 						"drafts",
 						"chat",
+						"people",
 						"files"
 					]
 				},
@@ -19465,6 +19599,19 @@
 							},
 							"required": ["title", "content"]
 						},
+						"stale_items": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"content": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "content"]
+						},
 						"task_overdue": {
 							"type": "object",
 							"additionalProperties": false,
@@ -19576,6 +19723,7 @@
 						"due_date_reminder",
 						"sla_warning",
 						"sla_breach",
+						"stale_items",
 						"task_overdue",
 						"time_entry_created",
 						"team_issue_added",
@@ -28563,6 +28711,58 @@
 						"privateTeamsLabel",
 						"privateTeamsHint"
 					]
+				},
+				"people": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"pageTitle": {
+							"type": "string"
+						},
+						"searchLabel": {
+							"type": "string"
+						},
+						"searchPlaceholder": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "string"
+						},
+						"outOfOffice": {
+							"type": "string"
+						},
+						"outOfOfficeRange": {
+							"type": "string"
+						},
+						"assignedOutOfOffice": {
+							"type": "string"
+						},
+						"jobTitle": {
+							"type": "string"
+						},
+						"department": {
+							"type": "string"
+						},
+						"location": {
+							"type": "string"
+						},
+						"timeZone": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"pageTitle",
+						"searchLabel",
+						"searchPlaceholder",
+						"empty",
+						"outOfOffice",
+						"outOfOfficeRange",
+						"assignedOutOfOffice",
+						"jobTitle",
+						"department",
+						"location",
+						"timeZone"
+					]
 				}
 			},
 			"required": [
@@ -28572,7 +28772,8 @@
 				"invitations",
 				"inviteModal",
 				"membersTable",
-				"projectAccess"
+				"projectAccess",
+				"people"
 			]
 		},
 		"publicProject": {
@@ -32496,6 +32697,12 @@
 								"topicUpdatesHint": {
 									"type": "string"
 								},
+								"staleItems": {
+									"type": "string"
+								},
+								"staleItemsHint": {
+									"type": "string"
+								},
 								"dueDate": {
 									"type": "string"
 								},
@@ -32522,6 +32729,8 @@
 								"statusChangesHint",
 								"topicUpdates",
 								"topicUpdatesHint",
+								"staleItems",
+								"staleItemsHint",
 								"dueDate",
 								"dueDateHint",
 								"remindMe",

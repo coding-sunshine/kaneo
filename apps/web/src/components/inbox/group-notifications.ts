@@ -31,7 +31,10 @@ export const NOTIFICATION_TYPE_FILTERS = [
   },
   { label: "Status changes", types: ["task_status_changed"] },
   { label: "Assignments", types: ["task_assignee_changed"] },
-  { label: "Reminders", types: ["due_date_reminder", "task_overdue"] },
+  {
+    label: "Reminders",
+    types: ["due_date_reminder", "task_overdue", "stale_items"],
+  },
 ];
 
 export function filterNotifications(

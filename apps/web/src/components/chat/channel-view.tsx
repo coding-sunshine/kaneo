@@ -10,6 +10,7 @@ import { usePresenceSetting } from "@/hooks/queries/chat/use-presence-setting";
 import { useMessages } from "@/hooks/queries/chat/use-messages";
 import { useChatChannelSocket } from "@/hooks/use-chat-channel-socket";
 import { useMarkChannelRead } from "@/hooks/use-mark-channel-read";
+import { useMemberStatuses } from "@/hooks/use-member-statuses";
 import { usePresenceHeartbeat } from "@/hooks/use-presence-heartbeat";
 import { useDirectMessageTitle } from "@/hooks/use-direct-message-title";
 import { toast } from "@/lib/toast";
@@ -36,6 +37,7 @@ export function ChannelView({
   const { data: online } = useOnline(workspaceId, presenceOn);
   const removePreview = useRemoveLinkPreview(workspaceId, channelId);
   const titleOf = useDirectMessageTitle(workspaceId);
+  const statuses = useMemberStatuses(workspaceId);
   const live = useChatChannelSocket(workspaceId, channelId, Boolean(channel));
   const { data: messages = [] } = useMessages(
     workspaceId,
@@ -71,6 +73,7 @@ export function ChannelView({
           currentUserId={user?.id}
           canWrite={channel.isMember && !channel.archivedAt}
           online={presenceOn ? online : undefined}
+          statuses={statuses}
           onRemovePreview={(id) =>
             removePreview.mutate(id, {
               onError: (error) => toast.error(error.message),
