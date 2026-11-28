@@ -3783,6 +3783,26 @@
           "createdAt"
         ]
       },
+      "ChatDraft": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "channelId",
+          "body",
+          "updatedAt"
+        ]
+      },
       "ChatDirectMessageListItem": {
         "allOf": [
           {
@@ -3894,6 +3914,13 @@
           "linkPreview": {
             "$ref": "#/components/schemas/ChatLinkPreview"
           },
+          "mentions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatMention"
+            },
+            "description": "Cards for the people, tickets, documents and teams the message names, as you see them now."
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -3910,6 +3937,7 @@
           "pinnedAt",
           "reactions",
           "linkPreview",
+          "mentions",
           "createdAt"
         ]
       },
@@ -3942,6 +3970,64 @@
           "siteName"
         ],
         "description": "A card for the first web link, added shortly after posting. Links inside code get none."
+      },
+      "ChatMention": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "user",
+              "task",
+              "document",
+              "project"
+            ]
+          },
+          "ref": {
+            "type": "string",
+            "description": "How the text names it: a user, document or team id, or a ticket key such as ENG-12."
+          },
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A person's or team's name, a ticket's or document's title. Null when restricted."
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A ticket's status. Null for anything else."
+          },
+          "projectId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The team of a ticket. Null for anything else."
+          },
+          "restricted": {
+            "type": "boolean",
+            "description": "True when you cannot open it: id, title and status are then null."
+          }
+        },
+        "required": [
+          "kind",
+          "ref",
+          "id",
+          "title",
+          "status",
+          "projectId",
+          "restricted"
+        ]
       },
       "ChatCallSession": {
         "type": "object",
@@ -10377,15 +10463,17 @@
             "type": "string",
             "enum": [
               "task",
-              "document"
+              "document",
+              "message"
             ],
-            "description": "Whether the source is a task or a document."
+            "description": "Whether the source is a task, a document or a chat message."
           },
           "id": {
             "type": "string"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "A task's or document's title; a chat message's channel name, empty for a direct message."
           },
           "key": {
             "type": [
@@ -10401,6 +10489,10 @@
             ],
             "description": "The team a task belongs to. Null for a document."
           },
+          "channelId": {
+            "type": "string",
+            "description": "The channel of a chat message. Absent for a task or a document."
+          },
           "places": {
             "type": "array",
             "items": {
@@ -10408,10 +10500,11 @@
               "enum": [
                 "description",
                 "comment",
-                "document"
+                "document",
+                "chat"
               ]
             },
-            "description": "Where the source names the target: a task's `description` or `comment`, or a document's text (`document`)."
+            "description": "Where the source names the target: a task's `description` or `comment`, or a document's text (`document`), or a chat message (`chat`)."
           }
         },
         "required": [
@@ -31213,6 +31306,167 @@
           },
           "403": {
             "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/drafts": {
+      "get": {
+        "operationId": "listChatDrafts",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "List your drafts",
+        "description": "Your unsent message drafts in this workspace, newest first. Drafts are private: nobody else can read them.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Drafts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatDraft"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/draft": {
+      "put": {
+        "operationId": "saveChatDraft",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Save draft",
+        "description": "Keep your unsent text for a channel you can post in. An empty body deletes the draft; posting a message deletes it too.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "body": {
+                    "type": "string",
+                    "maxLength": 4000,
+                    "description": "The unsent text. An empty or blank body deletes the draft."
+                  }
+                },
+                "required": [
+                  "body"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Draft saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatDraft"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
             "content": {
               "application/json": {
                 "schema": {
@@ -54707,7 +54961,7 @@
           "References"
         ],
         "summary": "Get a task's references",
-        "description": "List the tasks and documents whose text links to the task or types its key. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
+        "description": "List the tasks, documents and chat messages whose text links to the task or types its key. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
         "parameters": [
           {
             "schema": {
@@ -54720,7 +54974,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Tasks and documents whose text names the target, each once",
+            "description": "Tasks, documents and chat messages whose text names the target, each once",
             "content": {
               "application/json": {
                 "schema": {
@@ -54772,7 +55026,7 @@
           "References"
         ],
         "summary": "Get a project's references",
-        "description": "List the tasks and documents whose text links to the project. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
+        "description": "List the tasks, documents and chat messages whose text links to the project. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
         "parameters": [
           {
             "schema": {
@@ -54785,7 +55039,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Tasks and documents whose text names the target, each once",
+            "description": "Tasks, documents and chat messages whose text names the target, each once",
             "content": {
               "application/json": {
                 "schema": {
@@ -54837,7 +55091,7 @@
           "References"
         ],
         "summary": "Get a document's references",
-        "description": "List the tasks and documents whose text links to the document. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
+        "description": "List the tasks, documents and chat messages whose text links to the document. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
         "parameters": [
           {
             "schema": {
@@ -54858,7 +55112,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Tasks and documents whose text names the target, each once",
+            "description": "Tasks, documents and chat messages whose text names the target, each once",
             "content": {
               "application/json": {
                 "schema": {

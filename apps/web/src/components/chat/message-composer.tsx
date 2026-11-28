@@ -1,8 +1,9 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { MentionPicker } from "@/components/chat/mention-picker";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { usePostMessage } from "@/hooks/mutations/chat/use-post-message";
+import { useChannelDraft } from "@/hooks/use-channel-draft";
 import { toast } from "@/lib/toast";
 
 type MessageComposerProps = {
@@ -19,15 +20,19 @@ export function MessageComposer({
   onPosted,
 }: MessageComposerProps) {
   const { t } = useTranslation();
-  const [body, setBody] = useState("");
+  const { body, setBody, beforeSend, clear } = useChannelDraft(
+    workspaceId,
+    channelId,
+  );
   const post = usePostMessage(workspaceId, channelId);
 
-  const send = () => {
+  const send = async () => {
     const text = body.trim();
     if (!text || post.isPending) return;
+    await beforeSend();
     post.mutate(text, {
       onSuccess: () => {
-        setBody("");
+        clear();
         onPosted?.();
       },
       onError: (error) => toast.error(error.message),
@@ -39,7 +44,7 @@ export function MessageComposer({
       className="flex items-end gap-2 border-t p-3"
       onSubmit={(event) => {
         event.preventDefault();
-        send();
+        void send();
       }}
     >
       <Textarea
@@ -54,9 +59,15 @@ export function MessageComposer({
         onKeyDown={(event) => {
           if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
-            send();
+            void send();
           }
         }}
+      />
+      <MentionPicker
+        workspaceId={workspaceId}
+        onPick={(token) =>
+          setBody(`${body}${body && !/\s$/.test(body) ? " " : ""}${token} `)
+        }
       />
       <Button type="submit" size="sm" disabled={!body.trim() || post.isPending}>
         {t("navigation:chat.send")}

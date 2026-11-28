@@ -1,13 +1,18 @@
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import db from "../../database";
 import {
+  chatChannelTable,
+  chatMessageReferenceTable,
+  chatMessageTable,
   documentTable,
   projectTable,
   type ReferencePlace,
   referenceTable,
   taskTable,
 } from "../../database/schema";
+import { readableChannel } from "../../chat/readable-channel";
 import { documentVisibility } from "../../document/visibility";
+import { isWorkspaceGuest } from "../../guest/is-workspace-guest";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
 
 export type ReferenceTarget =
@@ -30,6 +35,19 @@ const targetCondition = (target: ReferenceTarget) =>
       ? eq(referenceTable.targetDocumentId, target.documentId)
       : eq(referenceTable.targetProjectId, target.projectId);
 
+const chatTargetCondition = (target: ReferenceTarget) => {
+  const [targetKind, targetId] =
+    "taskId" in target
+      ? (["task", target.taskId] as const)
+      : "documentId" in target
+        ? (["document", target.documentId] as const)
+        : (["project", target.projectId] as const);
+  return and(
+    eq(chatMessageReferenceTable.targetKind, targetKind),
+    eq(chatMessageReferenceTable.targetId, targetId),
+  );
+};
+
 // One entry per source, with every place it names the target in.
 function bySource(kind: "task" | "document", rows: Row[]) {
   const sources = new Map<string, Row & { places: ReferencePlace[] }>();
@@ -49,8 +67,9 @@ function bySource(kind: "task" | "document", rows: Row[]) {
 }
 
 /**
- * The tickets and documents of a workspace whose text names the target, only
- * those the reader can open: a hidden source never shows through a reference.
+ * The tickets, documents and chat messages of a workspace whose text names
+ * the target, only those the reader can open: a hidden source, or a message
+ * in a channel the reader cannot read, never shows through a reference.
  * The caller has checked that the reader may open the target.
  */
 export async function getReferences(
@@ -62,7 +81,8 @@ export async function getReferences(
     eq(referenceTable.workspaceId, workspaceId),
     targetCondition(target),
   );
-  const [tasks, documents] = await Promise.all([
+  const guest = await isWorkspaceGuest(workspaceId, userId);
+  const [tasks, documents, messages] = await Promise.all([
     db
       .select({
         id: taskTable.id,
@@ -107,6 +127,30 @@ export async function getReferences(
         ),
       )
       .orderBy(asc(documentTable.title), asc(documentTable.id)),
+    db
+      .select({
+        id: chatMessageTable.id,
+        title: chatChannelTable.name,
+        channelId: chatChannelTable.id,
+      })
+      .from(chatMessageReferenceTable)
+      .innerJoin(
+        chatMessageTable,
+        eq(chatMessageTable.id, chatMessageReferenceTable.messageId),
+      )
+      .innerJoin(
+        chatChannelTable,
+        eq(chatChannelTable.id, chatMessageTable.channelId),
+      )
+      .where(
+        and(
+          eq(chatMessageReferenceTable.workspaceId, workspaceId),
+          chatTargetCondition(target),
+          eq(chatChannelTable.workspaceId, workspaceId),
+          readableChannel(userId, workspaceId, guest),
+        ),
+      )
+      .orderBy(desc(chatMessageTable.createdAt), asc(chatMessageTable.id)),
   ]);
   return {
     references: [
@@ -121,6 +165,13 @@ export async function getReferences(
         "document",
         documents.map((row) => ({ ...row, key: null, projectId: null })),
       ),
+      ...messages.map((row) => ({
+        kind: "message" as const,
+        ...row,
+        key: null,
+        projectId: null,
+        places: ["chat" as const],
+      })),
     ],
   };
 }

@@ -99,7 +99,11 @@ export function MessageItem({
           onDone={() => setEditing(false)}
         />
       ) : (
-        <MessageBody body={message.body} />
+        <MessageBody
+          body={message.body}
+          mentions={message.mentions}
+          workspaceId={workspaceId}
+        />
       )}
       {message.linkPreview && (
         <LinkPreviewCard

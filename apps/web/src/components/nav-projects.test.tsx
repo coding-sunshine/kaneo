@@ -71,6 +71,9 @@ vi.mock("@/components/chat/channels-nav", () => ({
 vi.mock("@/components/chat/direct-messages-nav", () => ({
   DirectMessagesNav: () => null,
 }));
+vi.mock("@/components/chat/drafts-nav", () => ({
+  DraftsNav: () => null,
+}));
 vi.mock("@/components/team/favorites-nav", () => ({
   FavoritesNav: () => null,
 }));

@@ -1,13 +1,35 @@
-import { splitLinks } from "@/lib/split-links";
+import { MentionCard } from "@/components/chat/mention-card";
+import {
+  type ChatMention,
+  splitMentions,
+} from "@/components/chat/split-mentions";
 
-/** Message text with its web links clickable; they open in a new tab. */
-export function MessageBody({ body }: { body: string }) {
+/**
+ * Message text with its web links clickable, opening in a new tab, and what
+ * it names shown as live cards.
+ */
+export function MessageBody({
+  body,
+  mentions = [],
+  workspaceId,
+}: {
+  body: string;
+  mentions?: ChatMention[];
+  workspaceId: string;
+}) {
   return (
     <p className="whitespace-pre-wrap break-words text-sm">
-      {splitLinks(body).map((part, index) =>
-        part.href ? (
+      {splitMentions(body, mentions).map((part, index) =>
+        // Parts never reorder, so the index is a stable key.
+        "mention" in part ? (
+          <MentionCard
+            // oxlint-disable-next-line react/no-array-index-key
+            key={index}
+            workspaceId={workspaceId}
+            mention={part.mention}
+          />
+        ) : part.href ? (
           <a
-            // Parts never reorder, so the index is a stable key.
             // oxlint-disable-next-line react/no-array-index-key
             key={index}
             href={part.href}
