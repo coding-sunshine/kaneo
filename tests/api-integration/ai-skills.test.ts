@@ -18,7 +18,7 @@ import {
 import { restrictToProjects } from "./helpers/project-access/restrict-to-projects";
 
 // The scripted model also reports tokens, as the provider's last chunk does.
-const usage = { tokens: { prompt: 120, completion: 30 } };
+const usage = { tokens: { prompt: 120, completion: 30 }, report: true };
 vi.mock("../../apps/api/src/agent/openrouter", async (original) => ({
   ...(await original<object>()),
   createCompletion: vi.fn(
@@ -31,12 +31,13 @@ vi.mock("../../apps/api/src/agent/openrouter", async (original) => ({
       model.seen.push(messages);
       const next = model.queue.shift();
       if (!next) throw new Error("no scripted reply");
-      onUsage?.({
-        model: "fake-model",
-        promptTokens: usage.tokens.prompt,
-        completionTokens: usage.tokens.completion,
-        cost: null,
-      });
+      if (usage.report)
+        onUsage?.({
+          model: "fake-model",
+          promptTokens: usage.tokens.prompt,
+          completionTokens: usage.tokens.completion,
+          cost: null,
+        });
       return next;
     },
   ),
@@ -109,6 +110,7 @@ describe("API integration: custom AI skills", () => {
     model.queue.length = 0;
     model.seen.length = 0;
     usage.tokens = { prompt: 120, completion: 30 };
+    usage.report = true;
   });
 
   it("saves a skill, runs it in a channel with a cited summary, and lists the run with tokens", async () => {
@@ -263,6 +265,83 @@ describe("API integration: custom AI skills", () => {
     expect((await capped.json()).message).toMatch(
       /blockers.*credit cap of 100 tokens/,
     );
+    expect(model.seen).toHaveLength(1);
+  });
+
+  it("lets at most the allowed runs through when five start at once", async () => {
+    const { owner, ws, channel } = await setup();
+    const skill = await (
+      await createSkill(owner, ws, {
+        name: "blockers",
+        prompt: "List blockers.",
+        monthlyTokenCap: 100,
+      })
+    ).json();
+    for (let i = 0; i < 5; i += 1)
+      model.queue.push(reply(JSON.stringify({ bullets: [] })));
+    const statuses = await Promise.all(
+      Array.from({ length: 5 }, () =>
+        call(owner, `/workspace/${ws}/skills/${skill.id}/run`, "POST", {
+          channelId: channel.id,
+        }).then((res) => res.status),
+      ),
+    );
+    expect(statuses.filter((status) => status === 200)).toHaveLength(1);
+    expect(statuses.filter((status) => status === 429)).toHaveLength(4);
+    expect(model.seen).toHaveLength(1);
+  });
+
+  it("counts a run whose provider reports no usage", async () => {
+    const { owner, ws, channel } = await setup();
+    usage.report = false;
+    const skill = await (
+      await createSkill(owner, ws, {
+        name: "blockers",
+        prompt: "List blockers.",
+        monthlyTokenCap: 50,
+      })
+    ).json();
+    model.queue.push(reply(JSON.stringify({ bullets: [] })));
+    model.queue.push(reply(JSON.stringify({ bullets: [] })));
+    const run = () =>
+      call(owner, `/workspace/${ws}/skills/${skill.id}/run`, "POST", {
+        channelId: channel.id,
+      });
+    expect((await run()).status).toBe(200);
+    const [row] = await db.select().from(aiSkillRunTable);
+    expect(row?.promptTokens).toBeGreaterThan(0);
+    expect((await run()).status).toBe(429);
+  });
+
+  it("keeps the month's usage when a skill is deleted and made again", async () => {
+    const { owner, ws, channel } = await setup();
+    const make = async () =>
+      (
+        await createSkill(owner, ws, {
+          name: "blockers",
+          prompt: "List blockers.",
+          monthlyTokenCap: 100,
+        })
+      ).json();
+    const first = await make();
+    model.queue.push(reply(JSON.stringify({ bullets: [] })));
+    model.queue.push(reply(JSON.stringify({ bullets: [] })));
+    expect(
+      (
+        await call(owner, `/workspace/${ws}/skills/${first.id}/run`, "POST", {
+          channelId: channel.id,
+        })
+      ).status,
+    ).toBe(200);
+    await call(owner, `/workspace/${ws}/skills/${first.id}`, "DELETE");
+    const again = await make();
+    const capped = await call(
+      owner,
+      `/workspace/${ws}/skills/${again.id}/run`,
+      "POST",
+      { channelId: channel.id },
+    );
+    expect(capped.status).toBe(429);
     expect(model.seen).toHaveLength(1);
   });
 

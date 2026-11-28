@@ -4521,6 +4521,29 @@ export const aiSkillRunTable = pgTable(
   ],
 );
 
+// Tokens one person's skill of a name used in a month. Keyed by name, not by
+// skill, so deleting and making the skill again keeps the month's usage.
+// A run reserves its estimate here before the model, then settles it.
+export const aiSkillUsageTable = pgTable(
+  "ai_skill_usage",
+  {
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    skillName: text("skill_name").notNull(),
+    month: text("month").notNull(),
+    tokens: integer("tokens").notNull().default(0),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.workspaceId, table.userId, table.skillName, table.month],
+    }),
+  ],
+);
+
 // Where a workspace's AI calls send its text: each row is one change an admin
 // made, and the newest row is the setting in force. Without a row the server
 // default applies. The rows are also the AI audit's record of the setting.

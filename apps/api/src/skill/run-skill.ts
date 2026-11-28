@@ -1,5 +1,7 @@
 import { HTTPException } from "hono/http-exception";
+import type { ChatMessage } from "../agent/openrouter";
 import { resolveCitations } from "../agent/resolve-citations";
+import { estimateTokens } from "../assist/estimate-tokens";
 import { BULLETS_INSTRUCTION, readBullets } from "../assist/read-bullets";
 import { runModel } from "../assist/run-model";
 import { loadChannel } from "../chat/controllers/load-channel";
@@ -7,7 +9,7 @@ import db from "../database";
 import { aiSkillRunTable } from "../database/schema";
 import { openProjectIds } from "./open-projects";
 import { gatherSkillSources } from "./gather-skill-sources";
-import { assertSkillWithinCap } from "./skill-cap";
+import { reserveSkillTokens } from "./skill-cap";
 import { loadOwnSkill } from "./skill-store";
 
 type Reader = Parameters<typeof resolveCitations>[0];
@@ -30,7 +32,6 @@ export async function runSkill(
     throw new HTTPException(403, {
       message: "AI is turned off in this channel",
     });
-  await assertSkillWithinCap(skill);
 
   const projects = await openProjectIds(
     workspaceId,
@@ -46,7 +47,7 @@ export async function runSkill(
       completionTokens: 0,
     };
 
-  const result = await runModel({ workspaceId, userId, purpose: "skill" }, [
+  const messages: ChatMessage[] = [
     {
       role: "system",
       content: [
@@ -58,7 +59,27 @@ export async function runSkill(
       role: "user",
       content: `<instruction>${skill.prompt}</instruction>\n${input ? `<request>${input}</request>\n` : ""}${sources.text}`,
     },
-  ]);
+  ];
+  const settle = await reserveSkillTokens(
+    {
+      workspaceId,
+      userId,
+      name: skill.name,
+      monthlyTokenCap: skill.monthlyTokenCap,
+    },
+    estimateTokens(messages.map((message) => message.content ?? "").join("\n")),
+  );
+  let result: Awaited<ReturnType<typeof runModel>>;
+  try {
+    result = await runModel(
+      { workspaceId, userId, purpose: "skill" },
+      messages,
+    );
+  } catch (error) {
+    await settle(0);
+    throw error;
+  }
+  await settle(result.promptTokens + result.completionTokens);
   await db.insert(aiSkillRunTable).values({
     skillId: skill.id,
     userId,

@@ -6,6 +6,7 @@ import {
   createCompletion,
 } from "../agent/openrouter";
 import { recordUsage } from "../agent/usage";
+import { estimateTokens } from "./estimate-tokens";
 
 /**
  * One model call made for a person, like `meteredCompletion`, that also
@@ -27,10 +28,20 @@ export async function runModel(
     },
     endpoint,
   );
-  if (usage) await recordUsage({ ...meter, ...usage });
+  const content = reply.content ?? "";
+  // A provider that reports no usage still spent tokens: estimate them.
+  const spent = usage ?? {
+    model: endpoint.model,
+    promptTokens: estimateTokens(
+      messages.map((message) => message.content ?? "").join("\n"),
+    ),
+    completionTokens: estimateTokens(content),
+    cost: null,
+  };
+  await recordUsage({ ...meter, ...spent });
   return {
-    content: reply.content ?? "",
-    promptTokens: usage?.promptTokens ?? 0,
-    completionTokens: usage?.completionTokens ?? 0,
+    content,
+    promptTokens: spent.promptTokens,
+    completionTokens: spent.completionTokens,
   };
 }
