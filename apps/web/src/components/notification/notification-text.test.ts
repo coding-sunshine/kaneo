@@ -220,4 +220,27 @@ describe("notification display content", () => {
       "notifications:events.team_issue_closed.content",
     );
   });
+
+  it("names who wrote a chat message and shows the message itself", () => {
+    const say = (key: string, options?: Record<string, unknown>) =>
+      `${key} ${JSON.stringify(options ?? {})}`;
+    const mention = notification("chat_mention", {
+      actorName: "Sam",
+      channelName: "general",
+      messagePreview: "can you look?",
+    });
+    expect(getNotificationTitle(mention, say)).toContain(
+      'notifications:events.chat_mention.title {"actorName":"Sam","channelName":"general"',
+    );
+    expect(getNotificationContent(mention, say)).toBe("can you look?");
+
+    const direct = notification("chat_direct_message", {
+      actorName: null,
+      messagePreview: "ping",
+    });
+    expect(getNotificationTitle(direct, say)).toContain(
+      'notifications:events.chat_direct_message.title {"actorName":"common:people.someone {}"',
+    );
+    expect(getNotificationContent(direct, say)).toBe("ping");
+  });
 });

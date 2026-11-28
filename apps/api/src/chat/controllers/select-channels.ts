@@ -1,7 +1,8 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, exists, sql } from "drizzle-orm";
 import db from "../../database";
 import {
   chatChannelMemberTable,
+  chatChannelMuteTable,
   chatChannelTable,
 } from "../../database/schema";
 
@@ -16,6 +17,17 @@ export const selectChannels = (userId: string) =>
       isPrivate: chatChannelTable.isPrivate,
       isDirect: sql<boolean>`${chatChannelTable.directKey} is not null`,
       isMember: sql<boolean>`${chatChannelMemberTable.userId} is not null`,
+      isMuted: exists(
+        db
+          .select({ one: chatChannelMuteTable.userId })
+          .from(chatChannelMuteTable)
+          .where(
+            and(
+              eq(chatChannelMuteTable.channelId, chatChannelTable.id),
+              eq(chatChannelMuteTable.userId, userId),
+            ),
+          ),
+      ).mapWith(Boolean),
       archivedAt: chatChannelTable.archivedAt,
       createdAt: chatChannelTable.createdAt,
     })

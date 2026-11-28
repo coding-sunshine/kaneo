@@ -4703,7 +4703,11 @@
 			"replyCount_other": "{{count}} replies",
 			"thread": "Thread replies",
 			"replyLabel": "Reply in thread",
-			"replyPlaceholder": "Reply…"
+			"replyPlaceholder": "Reply…",
+			"mute": "Mute channel",
+			"unmute": "Unmute channel",
+			"mutedNotice": "Muted. Mentions and direct messages here stay out of your Inbox.",
+			"unmutedNotice": "Unmuted. Mentions and direct messages here reach your Inbox again."
 		},
 		"files": {
 			"title": "Files",
@@ -4829,6 +4833,12 @@
 			"document_inbox_waiting": {
 				"title": "Waiting in the Inbox for three days",
 				"content": "{{documentTitle}} has no topic yet"
+			},
+			"chat_mention": {
+				"title": "{{actorName}} mentioned you in #{{channelName}}"
+			},
+			"chat_direct_message": {
+				"title": "{{actorName}} sent you a message"
 			}
 		},
 		"inbox": {
@@ -4855,7 +4865,8 @@
 			"taskLoadError": "This issue couldn’t be loaded.",
 			"documentUnavailable": "This document is no longer available.",
 			"actionError": "Couldn't update your inbox. Try again.",
-			"readCleared": "Deleted read notifications"
+			"readCleared": "Deleted read notifications",
+			"openMessage": "Open message"
 		}
 	},
 	"activity": {

@@ -19185,6 +19185,18 @@
 						},
 						"replyPlaceholder": {
 							"type": "string"
+						},
+						"mute": {
+							"type": "string"
+						},
+						"unmute": {
+							"type": "string"
+						},
+						"mutedNotice": {
+							"type": "string"
+						},
+						"unmutedNotice": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -19274,7 +19286,11 @@
 						"reply",
 						"thread",
 						"replyLabel",
-						"replyPlaceholder"
+						"replyPlaceholder",
+						"mute",
+						"unmute",
+						"mutedNotice",
+						"unmutedNotice"
 					]
 				},
 				"files": {
@@ -19770,6 +19786,26 @@
 								}
 							},
 							"required": ["title", "content"]
+						},
+						"chat_mention": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								}
+							},
+							"required": ["title"]
+						},
+						"chat_direct_message": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								}
+							},
+							"required": ["title"]
 						}
 					},
 					"required": [
@@ -19795,7 +19831,9 @@
 						"team_issue_closed",
 						"team_issue_triage",
 						"document_question",
-						"document_inbox_waiting"
+						"document_inbox_waiting",
+						"chat_mention",
+						"chat_direct_message"
 					]
 				},
 				"inbox": {
@@ -19886,6 +19924,9 @@
 						},
 						"readCleared": {
 							"type": "string"
+						},
+						"openMessage": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -19905,7 +19946,8 @@
 						"taskLoadError",
 						"documentUnavailable",
 						"actionError",
-						"readCleared"
+						"readCleared",
+						"openMessage"
 					]
 				}
 			},

@@ -3820,6 +3820,10 @@
             "type": "boolean",
             "description": "True when the caller has joined the channel."
           },
+          "isMuted": {
+            "type": "boolean",
+            "description": "True when the caller muted the channel: its mentions and direct messages stop reaching their Inbox."
+          },
           "archivedAt": {
             "type": [
               "string",
@@ -3840,6 +3844,7 @@
           "isPrivate",
           "isDirect",
           "isMember",
+          "isMuted",
           "archivedAt",
           "createdAt"
         ]
@@ -4129,6 +4134,21 @@
           "status",
           "projectId",
           "restricted"
+        ]
+      },
+      "ChatChannelMute": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string"
+          },
+          "muted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "channelId",
+          "muted"
         ]
       },
       "ChatCallSession": {
@@ -8417,7 +8437,7 @@
           },
           "type": {
             "type": "string",
-            "description": "One of: info, task_created, workspace_created, task_status_changed, task_assignee_changed, time_entry_created, due_date_reminder, task_overdue, task_mention, task_comment."
+            "description": "One of: info, task_created, workspace_created, task_status_changed, task_assignee_changed, time_entry_created, due_date_reminder, task_overdue, task_mention, task_comment, chat_mention, chat_direct_message."
           },
           "eventData": {
             "description": "Type-specific payload, e.g. { taskTitle, oldStatus, newStatus, projectId, workspaceId }."
@@ -8441,14 +8461,14 @@
               "string",
               "null"
             ],
-            "description": "The id of the task or workspace the notification points at."
+            "description": "The id of the task, workspace, document or chat message the notification points at."
           },
           "resourceType": {
             "type": [
               "string",
               "null"
             ],
-            "description": "`task` or `workspace`."
+            "description": "`task`, `workspace`, `document` or `chat_message`. A chat message notification carries its workspaceId, channelId and messageId in eventData."
           },
           "createdAt": {
             "type": "string",
@@ -33936,6 +33956,98 @@
                   "required": [
                     "channelId"
                   ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/mute": {
+      "put": {
+        "operationId": "muteChatChannel",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Mute channel",
+        "description": "Mute or unmute a channel you can read. A muted channel's mentions and direct messages stop reaching your Inbox. Only you can see that you muted it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "muted": {
+                    "type": "boolean",
+                    "description": "True stops the channel's mentions and direct messages from reaching your Inbox; false lets them through again."
+                  }
+                },
+                "required": [
+                  "muted"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mute saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatChannelMute"
                 }
               }
             }

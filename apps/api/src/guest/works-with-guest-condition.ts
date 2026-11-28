@@ -7,7 +7,7 @@ import { sharesProjectCondition } from "./shares-project-condition";
 export function worksWithGuestCondition(
   guestId: string | SQLWrapper,
   memberId: SQLWrapper,
-  workspaceId: string,
+  workspaceId: string | SQLWrapper,
 ) {
   return or(
     sharesProjectCondition(guestId, memberId, workspaceId),

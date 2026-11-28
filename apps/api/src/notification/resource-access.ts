@@ -6,6 +6,7 @@ import {
   workspaceUserTable,
 } from "../database/schema";
 import { documentVisibility } from "../document/visibility";
+import { directMessageOpenToGuest } from "../guest/direct-message-open-to-guest";
 import { projectAccessCondition } from "../project-access/project-access-condition";
 import { hasInstanceAdminRole } from "../utils/instance-admin-role";
 import { type PermissionMap, rolesAllow } from "../utils/role-permissions";
@@ -75,6 +76,33 @@ export function notificationResourceAccess(
         })}
         AND ${documentRead}
     ))
+    OR (${resourceType}::text = 'chat_message' AND EXISTS (
+      SELECT 1 FROM chat_message AS notification_chat_message
+      JOIN chat_channel AS notification_chat_channel ON notification_chat_channel.id = notification_chat_message.channel_id
+      JOIN workspace_member AS notification_member ON notification_member.workspace_id = notification_chat_channel.workspace_id
+      JOIN workspace AS notification_workspace ON notification_workspace.id = notification_chat_channel.workspace_id
+      LEFT JOIN workspace_member_access AS notification_chat_access
+        ON notification_chat_access.workspace_id = notification_chat_channel.workspace_id
+        AND notification_chat_access.user_id = ${userId}
+      WHERE notification_chat_message.id = ${resourceId} AND notification_member.user_id = ${userId}
+        AND notification_workspace.archived_at IS NULL
+        AND (
+          (notification_chat_channel.is_private = false AND notification_chat_access.guest IS NOT TRUE)
+          OR (
+            EXISTS (
+              SELECT 1 FROM chat_channel_member AS notification_chat_seat
+              WHERE notification_chat_seat.channel_id = notification_chat_channel.id
+                AND notification_chat_seat.user_id = ${userId}
+            )
+            AND (
+              notification_chat_access.guest IS NOT TRUE
+              OR notification_chat_channel.direct_key IS NULL
+              OR ${directMessageOpenToGuest(userId, sql`notification_chat_channel.id`, sql`notification_chat_channel.workspace_id`)}
+            )
+          )
+        )
+        AND ${workspaceRead}
+    ))
   )`;
 }
 
@@ -120,6 +148,11 @@ export async function canReceiveResourceNotification(
     WHEN ${resourceType ?? null}::text = 'document' THEN (
       SELECT recipient_document.workspace_id FROM document AS recipient_document
       WHERE recipient_document.id = ${resourceId ?? null}
+    )
+    WHEN ${resourceType ?? null}::text = 'chat_message' THEN (
+      SELECT recipient_channel.workspace_id FROM chat_message AS recipient_message
+      JOIN chat_channel AS recipient_channel ON recipient_channel.id = recipient_message.channel_id
+      WHERE recipient_message.id = ${resourceId ?? null}
     )
   END`;
   const rows = await database

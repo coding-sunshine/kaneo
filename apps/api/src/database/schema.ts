@@ -3880,6 +3880,34 @@ export const chatThreadReplyTable = pgTable(
   (table) => [index("chat_thread_reply_parent_idx").on(table.parentId)],
 );
 
+// A channel someone muted: its mentions and direct messages stop reaching
+// their Inbox. Anyone who can read the channel may mute it, joined or not.
+// Private to that user: no response shows it to anyone else.
+export const chatChannelMuteTable = pgTable(
+  "chat_channel_mute",
+  {
+    channelId: text("channel_id")
+      .notNull()
+      .references(() => chatChannelTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.channelId, table.userId] }),
+    index("chat_channel_mute_user_idx").on(table.userId),
+  ],
+);
+
 // One row per user and emoji on a chat message, like comment_reaction.
 export const chatMessageReactionTable = pgTable(
   "chat_message_reaction",

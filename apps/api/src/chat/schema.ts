@@ -124,6 +124,10 @@ export const channelSchema = z
     isMember: z.boolean().openapi({
       description: "True when the caller has joined the channel.",
     }),
+    isMuted: z.boolean().openapi({
+      description:
+        "True when the caller muted the channel: its mentions and direct messages stop reaching their Inbox.",
+    }),
     archivedAt: nullableResponseTimestamp,
     createdAt: responseTimestamp,
   })
@@ -254,6 +258,17 @@ export const onlineListSchema = z
 
 export const deletedMessageSchema = z.object({ messageId: z.string() });
 export const leftChannelSchema = z.object({ channelId: z.string() });
+
+export const muteChannelBody = z.object({
+  muted: z.boolean().openapi({
+    description:
+      "True stops the channel's mentions and direct messages from reaching your Inbox; false lets them through again.",
+  }),
+});
+
+export const mutedChannelSchema = z
+  .object({ channelId: z.string(), muted: z.boolean() })
+  .openapi("ChatChannelMute");
 
 export const callSessionSchema = z
   .object({

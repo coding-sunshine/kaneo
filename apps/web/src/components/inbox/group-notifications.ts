@@ -7,13 +7,15 @@ export type InboxFilter = "all" | "unread" | "mentions" | "priority" | "other";
 export const PRIORITY_TYPES = [
   "task_mention",
   "document_mention",
+  "chat_mention",
+  "chat_direct_message",
   "document_question",
   "task_assignee_changed",
   "due_date_reminder",
   "task_overdue",
 ];
 
-const MENTION_TYPES = ["task_mention", "document_mention"];
+const MENTION_TYPES = ["task_mention", "document_mention", "chat_mention"];
 
 export const NOTIFICATION_TYPE_FILTERS = [
   { label: "Mentions", types: MENTION_TYPES },
