@@ -106,6 +106,13 @@ import { hideClosedTeams } from "./project-access/hide-closed-teams";
 import { getPublicProject } from "./project/controllers/get-public-project";
 import { initializeScheduler, shutdownScheduler } from "./scheduler";
 import search from "./search";
+import dailyBrief from "./daily-brief";
+import meetingNotes from "./meeting-notes";
+import semanticSearchRoutes from "./semantic-search";
+import catchUpRoutes from "./catch-up";
+import skill from "./skill";
+import duplicateSuggestion from "./duplicate-suggestion";
+import standup from "./standup";
 import slackIntegration from "./slack-integration";
 import { privateObjectResponse } from "./storage/private-object-response";
 import { getPrivateObject } from "./storage/s3";
@@ -860,6 +867,16 @@ export function createApp() {
     notificationPreferences,
   );
   const searchApi = api.route("/search", search);
+  const dailyBriefApi = api.route("/daily-brief", dailyBrief);
+  const meetingNotesApi = api.route("/meeting-notes", meetingNotes);
+  const semanticSearchApi = api.route("/semantic-search", semanticSearchRoutes);
+  const catchUpApi = api.route("/catch-up", catchUpRoutes);
+  const skillApi = api.route("/skill", skill);
+  const duplicateSuggestionApi = api.route(
+    "/duplicate-suggestion",
+    duplicateSuggestion,
+  );
+  const standupApi = api.route("/standup", standup);
   // Turned-off providers: registered before their routes so they run first.
   // Inbound provider webhooks are mounted earlier and answer on their own;
   // their work is skipped through `activeIntegrationCondition`.
@@ -1115,6 +1132,13 @@ export function createApp() {
     calendarFeedApi,
     publicProjectApi,
     searchApi,
+    dailyBriefApi,
+    meetingNotesApi,
+    semanticSearchApi,
+    catchUpApi,
+    skillApi,
+    duplicateSuggestionApi,
+    standupApi,
     mattermostIntegrationApi,
     slackIntegrationApi,
     taskApi,
@@ -1288,6 +1312,13 @@ const {
   calendarFeedApi,
   publicProjectApi,
   searchApi,
+  dailyBriefApi,
+  meetingNotesApi,
+  semanticSearchApi,
+  catchUpApi,
+  skillApi,
+  duplicateSuggestionApi,
+  standupApi,
   slackIntegrationApi,
   taskApi,
   taskRelationApi,
@@ -1349,6 +1380,13 @@ export type AppType =
   | typeof notificationApi
   | typeof notificationPreferencesApi
   | typeof searchApi
+  | typeof dailyBriefApi
+  | typeof meetingNotesApi
+  | typeof semanticSearchApi
+  | typeof catchUpApi
+  | typeof skillApi
+  | typeof duplicateSuggestionApi
+  | typeof standupApi
   | typeof integrationSyncApi
   | typeof githubReviewsApi
   | typeof calendarSyncApi

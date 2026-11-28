@@ -3,6 +3,9 @@ import { useTranslation } from "react-i18next";
 import { ChatFileButton } from "@/components/chat/chat-file-button";
 import { CommandNotice } from "@/components/chat/command-notice";
 import { MentionPicker } from "@/components/chat/mention-picker";
+import { SkillResultCard } from "@/components/chat/skills/skill-result-card";
+import { SkillsDialog } from "@/components/chat/skills/skills-dialog";
+import { useSkillCommand } from "@/components/chat/skills/use-skill-command";
 import { readSlashCommand } from "@/components/chat/slash-command";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,8 +38,13 @@ export function MessageComposer({
   const sendFile = useSendChatFile(workspaceId, channelId);
   const typing = useTypingSignal(workspaceId, channelId);
   const command = useRunChatCommand(workspaceId, channelId);
+  const skill = useSkillCommand(workspaceId, channelId);
   const [notice, setNotice] = useState<string | null>(null);
-  const busy = post.isPending || sendFile.isPending || command.isPending;
+  const busy =
+    post.isPending ||
+    sendFile.isPending ||
+    command.isPending ||
+    skill.isRunning;
   // Set before the first await: isPending only turns true on a later render,
   // so without it every key press in between would post the message again.
   const sending = useRef(false);
@@ -44,7 +52,15 @@ export function MessageComposer({
   const send = async () => {
     const text = body.trim();
     if (!text || busy || sending.current) return;
+    // Built-in commands win; any other `/name` runs one of my skills, for me
+    // alone and never posted; a name that is neither says so.
     const slash = readSlashCommand(text);
+    if (!(slash && "name" in slash) && skill.tryRun(text)) {
+      typing.stop();
+      setNotice(null);
+      clear();
+      return;
+    }
     if (slash && "unknown" in slash)
       return setNotice(
         t("navigation:chat.commands.unknown", { name: slash.unknown }),
@@ -118,6 +134,13 @@ export function MessageComposer({
 
   return (
     <>
+      {skill.result && (
+        <SkillResultCard
+          workspaceId={workspaceId}
+          result={skill.result}
+          onDismiss={skill.dismiss}
+        />
+      )}
       {notice && (
         <CommandNotice message={notice} onDismiss={() => setNotice(null)} />
       )}
@@ -156,6 +179,7 @@ export function MessageComposer({
             setBody(`${body}${body && !/\s$/.test(body) ? " " : ""}${token} `)
           }
         />
+        <SkillsDialog workspaceId={workspaceId} />
         <ChatFileButton disabled={busy} onPick={attach} />
         <Button type="submit" size="sm" disabled={!body.trim() || busy}>
           {t("navigation:chat.send")}

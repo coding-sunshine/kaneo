@@ -4,6 +4,7 @@ import { replayDeferredIssueEdits } from "../plugins/github/services/deferred-is
 import { replayDeferredLabelFields } from "../plugins/sync/replay-deferred-label-fields";
 import * as Sentry from "@sentry/node";
 import { Cron } from "croner";
+import { assistJobs } from "../assist/assist-jobs";
 import { autoArchiveClosedTasks } from "../task/controllers/task-archive";
 import { reconcileAllCycles } from "../cycle/reconcile";
 import { checkDueDateReminders } from "./due-date-reminders";
@@ -197,6 +198,7 @@ export function initializeScheduler(): void {
       withCheckIn("conflict-questions", askConflictQuestions),
     ),
   );
+  jobs.push(...assistJobs(withCheckIn));
   console.log(
     "⏰ Scheduler started (deferred integration edits every minute, reminders every 5 minutes, seat reconciliation and trial reminders hourly)",
   );

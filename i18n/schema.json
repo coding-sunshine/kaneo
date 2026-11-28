@@ -4590,33 +4590,6 @@
 						"reminderLeadTimeUnitDaysBefore_other": {
 							"type": "string"
 						},
-						"desktopTitle": {
-							"type": "string"
-						},
-						"desktopDescription": {
-							"type": "string"
-						},
-						"desktopEnabled": {
-							"type": "string"
-						},
-						"desktopOnHint": {
-							"type": "string"
-						},
-						"desktopOffHint": {
-							"type": "string"
-						},
-						"desktopServerOff": {
-							"type": "string"
-						},
-						"desktopUnsupported": {
-							"type": "string"
-						},
-						"desktopDenied": {
-							"type": "string"
-						},
-						"desktopFailed": {
-							"type": "string"
-						},
 						"scheduleTitle": {
 							"type": "string"
 						},
@@ -4778,6 +4751,73 @@
 						},
 						"stopping": {
 							"type": "string"
+						},
+						"dailyBrief": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"enabled": {
+									"type": "string"
+								},
+								"enabledHint": {
+									"type": "string"
+								},
+								"channels": {
+									"type": "string"
+								},
+								"channelsHint": {
+									"type": "string"
+								},
+								"save": {
+									"type": "string"
+								},
+								"saved": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"description",
+								"enabled",
+								"enabledHint",
+								"channels",
+								"channelsHint",
+								"save",
+								"saved"
+							]
+						},
+						"desktopTitle": {
+							"type": "string"
+						},
+						"desktopDescription": {
+							"type": "string"
+						},
+						"desktopEnabled": {
+							"type": "string"
+						},
+						"desktopOnHint": {
+							"type": "string"
+						},
+						"desktopOffHint": {
+							"type": "string"
+						},
+						"desktopServerOff": {
+							"type": "string"
+						},
+						"desktopUnsupported": {
+							"type": "string"
+						},
+						"desktopDenied": {
+							"type": "string"
+						},
+						"desktopFailed": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -4861,15 +4901,6 @@
 						"eventStatusChangesHint",
 						"eventDueDateRemindersHint",
 						"reminderLeadTimeUnitLabel",
-						"desktopTitle",
-						"desktopDescription",
-						"desktopEnabled",
-						"desktopOnHint",
-						"desktopOffHint",
-						"desktopServerOff",
-						"desktopUnsupported",
-						"desktopDenied",
-						"desktopFailed",
 						"scheduleTitle",
 						"scheduleDescription",
 						"scheduleEnabled",
@@ -4917,7 +4948,17 @@
 						"stopSending",
 						"stopSendingTitle",
 						"stopSendingDescription",
-						"stopping"
+						"stopping",
+						"dailyBrief",
+						"desktopTitle",
+						"desktopDescription",
+						"desktopEnabled",
+						"desktopOnHint",
+						"desktopOffHint",
+						"desktopServerOff",
+						"desktopUnsupported",
+						"desktopDenied",
+						"desktopFailed"
 					]
 				},
 				"preferencesPage": {
@@ -13828,6 +13869,22 @@
 						"needsText",
 						"saveError"
 					]
+				},
+				"semanticSearch": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"description": {
+							"type": "string"
+						},
+						"egressBlocked": {
+							"type": "string"
+						}
+					},
+					"required": ["title", "description", "egressBlocked"]
 				}
 			},
 			"required": [
@@ -13901,7 +13958,8 @@
 				"adminBackups",
 				"calendarSync",
 				"peopleProfile",
-				"peopleStatus"
+				"peopleStatus",
+				"semanticSearch"
 			]
 		},
 		"navigation": {
@@ -18151,6 +18209,118 @@
 							},
 							"required": ["loading", "failed"]
 						},
+						"meetingNotes": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"open": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"transcript": {
+									"type": "string"
+								},
+								"audio": {
+									"type": "string"
+								},
+								"transcribing": {
+									"type": "string"
+								},
+								"audioOff": {
+									"type": "string"
+								},
+								"keep": {
+									"type": "string"
+								},
+								"run": {
+									"type": "string"
+								},
+								"running": {
+									"type": "string"
+								},
+								"off": {
+									"type": "string"
+								},
+								"proposal": {
+									"type": "string"
+								},
+								"decisions": {
+									"type": "string"
+								},
+								"noDecisions": {
+									"type": "string"
+								},
+								"actionItems": {
+									"type": "string"
+								},
+								"noActionItems": {
+									"type": "string"
+								},
+								"project": {
+									"type": "string"
+								},
+								"accept_one": {
+									"type": "string"
+								},
+								"accept_zero": {
+									"type": "string"
+								},
+								"accept_two": {
+									"type": "string"
+								},
+								"accept_few": {
+									"type": "string"
+								},
+								"accept_many": {
+									"type": "string"
+								},
+								"accept_other": {
+									"type": "string"
+								},
+								"created_one": {
+									"type": "string"
+								},
+								"created_zero": {
+									"type": "string"
+								},
+								"created_two": {
+									"type": "string"
+								},
+								"created_few": {
+									"type": "string"
+								},
+								"created_many": {
+									"type": "string"
+								},
+								"created_other": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"open",
+								"title",
+								"description",
+								"transcript",
+								"audio",
+								"transcribing",
+								"audioOff",
+								"keep",
+								"run",
+								"running",
+								"off",
+								"proposal",
+								"decisions",
+								"noDecisions",
+								"actionItems",
+								"noActionItems",
+								"project"
+							]
+						},
 						"writing": {
 							"type": "object",
 							"additionalProperties": false,
@@ -18300,6 +18470,7 @@
 						"editing",
 						"conflict",
 						"coediting",
+						"meetingNotes",
 						"writing"
 					]
 				},
@@ -19503,6 +19674,130 @@
 						"unmutedNotice": {
 							"type": "string"
 						},
+						"skills": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"open": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"off": {
+									"type": "string"
+								},
+								"name": {
+									"type": "string"
+								},
+								"prompt": {
+									"type": "string"
+								},
+								"scope": {
+									"type": "string"
+								},
+								"scopeHint": {
+									"type": "string"
+								},
+								"cap": {
+									"type": "string"
+								},
+								"capValue_one": {
+									"type": "string"
+								},
+								"capValue_zero": {
+									"type": "string"
+								},
+								"capValue_two": {
+									"type": "string"
+								},
+								"capValue_few": {
+									"type": "string"
+								},
+								"capValue_many": {
+									"type": "string"
+								},
+								"capValue_other": {
+									"type": "string"
+								},
+								"save": {
+									"type": "string"
+								},
+								"saved": {
+									"type": "string"
+								},
+								"none": {
+									"type": "string"
+								},
+								"delete": {
+									"type": "string"
+								},
+								"history": {
+									"type": "string"
+								},
+								"noRuns": {
+									"type": "string"
+								},
+								"tokens_one": {
+									"type": "string"
+								},
+								"tokens_zero": {
+									"type": "string"
+								},
+								"tokens_two": {
+									"type": "string"
+								},
+								"tokens_few": {
+									"type": "string"
+								},
+								"tokens_many": {
+									"type": "string"
+								},
+								"tokens_other": {
+									"type": "string"
+								},
+								"resultTitle": {
+									"type": "string"
+								},
+								"onlyYou": {
+									"type": "string"
+								},
+								"dismiss": {
+									"type": "string"
+								},
+								"empty": {
+									"type": "string"
+								},
+								"running": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"open",
+								"title",
+								"description",
+								"off",
+								"name",
+								"prompt",
+								"scope",
+								"scopeHint",
+								"cap",
+								"save",
+								"saved",
+								"none",
+								"delete",
+								"history",
+								"noRuns",
+								"resultTitle",
+								"onlyYou",
+								"dismiss",
+								"empty",
+								"running"
+							]
+						},
 						"typingOne": {
 							"type": "string"
 						},
@@ -19674,6 +19969,7 @@
 						"unmute",
 						"mutedNotice",
 						"unmutedNotice",
+						"skills",
 						"typingOne",
 						"typingTwo",
 						"typingMany",
@@ -20201,6 +20497,19 @@
 							},
 							"required": ["title"]
 						},
+						"daily_brief": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"content": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "content"]
+						},
 						"chat_reminder": {
 							"type": "object",
 							"additionalProperties": false,
@@ -20251,6 +20560,7 @@
 						"document_inbox_waiting",
 						"chat_mention",
 						"chat_direct_message",
+						"daily_brief",
 						"chat_reminder",
 						"weekly_digest"
 					]
@@ -20368,6 +20678,28 @@
 						"readCleared",
 						"openMessage"
 					]
+				},
+				"dailyBrief": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"dueToday": {
+							"type": "string"
+						},
+						"mentions": {
+							"type": "string"
+						},
+						"moved": {
+							"type": "string"
+						},
+						"none": {
+							"type": "string"
+						},
+						"missing": {
+							"type": "string"
+						}
+					},
+					"required": ["dueToday", "mentions", "moved", "none", "missing"]
 				}
 			},
 			"required": [
@@ -20379,7 +20711,8 @@
 				"privateTopic",
 				"reminderLeadTime",
 				"events",
-				"inbox"
+				"inbox",
+				"dailyBrief"
 			]
 		},
 		"activity": {
@@ -25297,6 +25630,28 @@
 					},
 					"required": ["open", "fetchedAt", "refresh", "refreshError"]
 				},
+				"duplicateSuggestion": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"accept": {
+							"type": "string"
+						},
+						"decline": {
+							"type": "string"
+						},
+						"accepted": {
+							"type": "string"
+						},
+						"failed": {
+							"type": "string"
+						}
+					},
+					"required": ["title", "accept", "decline", "accepted", "failed"]
+				},
 				"delegation": {
 					"type": "object",
 					"additionalProperties": false,
@@ -25410,6 +25765,7 @@
 				"sla",
 				"designReview",
 				"figma",
+				"duplicateSuggestion",
 				"delegation"
 			]
 		},
@@ -25734,6 +26090,38 @@
 						},
 						"directMessage": {
 							"type": "string"
+						},
+						"semantic": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"ask": {
+									"type": "string"
+								},
+								"running": {
+									"type": "string"
+								},
+								"off": {
+									"type": "string"
+								},
+								"noAnswer": {
+									"type": "string"
+								},
+								"matches": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"ask",
+								"running",
+								"off",
+								"noAnswer",
+								"matches"
+							]
 						}
 					},
 					"required": [
@@ -25752,7 +26140,8 @@
 						"suggestionFeature",
 						"suggestionInProgress",
 						"suggestionCompleted",
-						"directMessage"
+						"directMessage",
+						"semantic"
 					]
 				},
 				"create": {
@@ -26059,6 +26448,132 @@
 								"done",
 								"items"
 							]
+						},
+						"standup": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"open": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"private": {
+									"type": "string"
+								},
+								"window": {
+									"type": "string"
+								},
+								"today": {
+									"type": "string"
+								},
+								"week": {
+									"type": "string"
+								},
+								"did": {
+									"type": "string"
+								},
+								"doing": {
+									"type": "string"
+								},
+								"blocked": {
+									"type": "string"
+								},
+								"none": {
+									"type": "string"
+								},
+								"copy": {
+									"type": "string"
+								},
+								"copied": {
+									"type": "string"
+								},
+								"copyFailed": {
+									"type": "string"
+								},
+								"loadError": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"open",
+								"title",
+								"private",
+								"window",
+								"today",
+								"week",
+								"did",
+								"doing",
+								"blocked",
+								"none",
+								"copy",
+								"copied",
+								"copyFailed",
+								"loadError"
+							]
+						},
+						"catchUp": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"open": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"private": {
+									"type": "string"
+								},
+								"off": {
+									"type": "string"
+								},
+								"window": {
+									"type": "string"
+								},
+								"hours_one": {
+									"type": "string"
+								},
+								"hours_zero": {
+									"type": "string"
+								},
+								"hours_two": {
+									"type": "string"
+								},
+								"hours_few": {
+									"type": "string"
+								},
+								"hours_many": {
+									"type": "string"
+								},
+								"hours_other": {
+									"type": "string"
+								},
+								"includeDirectMessages": {
+									"type": "string"
+								},
+								"run": {
+									"type": "string"
+								},
+								"running": {
+									"type": "string"
+								},
+								"empty": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"open",
+								"title",
+								"private",
+								"off",
+								"window",
+								"includeDirectMessages",
+								"run",
+								"running",
+								"empty"
+							]
 						}
 					},
 					"required": [
@@ -26070,7 +26585,9 @@
 						"doneThisWeek",
 						"projects",
 						"activity",
-						"checklist"
+						"checklist",
+						"standup",
+						"catchUp"
 					]
 				},
 				"myWork": {

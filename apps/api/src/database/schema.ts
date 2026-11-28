@@ -13,6 +13,7 @@ import {
   jsonb,
   pgTable,
   primaryKey,
+  real,
   serial,
   text,
   timestamp,
@@ -27,6 +28,8 @@ import type { GitHubImportState } from "../github-integration/import-state";
 import type { ImportRunProject } from "../import/import-run-project";
 import type { TaskRecurrence } from "../task/recurrence/schema";
 import type { LinkPreview } from "../chat/link-preview/link-preview-type";
+import type { MeetingNotesProposal } from "../meeting-notes/proposal-type";
+import type { DailyBriefContent } from "../daily-brief/brief-type";
 
 // Timestamp columns without a time zone hold UTC (Drizzle reads and writes
 // them as UTC). A bare now() default would be cast through the session time
@@ -2578,6 +2581,36 @@ export const taskRelationTable = pgTable(
   ],
 );
 
+// A suggested duplicate someone declined. The pair is stored in id order, so
+// declining A~B also hides B~A, for everyone who opens either ticket.
+export const taskDuplicateDismissalTable = pgTable(
+  "task_duplicate_dismissal",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    lowTaskId: text("low_task_id")
+      .notNull()
+      .references(() => taskTable.id, { onDelete: "cascade" }),
+    highTaskId: text("high_task_id")
+      .notNull()
+      .references(() => taskTable.id, { onDelete: "cascade" }),
+    dismissedBy: text("dismissed_by").references(() => userTable.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("task_duplicate_dismissal_pair_idx").on(
+      table.lowTaskId,
+      table.highTaskId,
+    ),
+    index("task_duplicate_dismissal_high_idx").on(table.highTaskId),
+  ],
+);
+
 export const apikeyTable = pgTable(
   "apikey",
   {
@@ -3912,6 +3945,206 @@ export const chatThreadReplyTable = pgTable(
   (table) => [index("chat_thread_reply_parent_idx").on(table.parentId)],
 );
 
+// What one person lets their private AI catch-up read. Direct messages stay
+// out unless they opt in.
+export const aiCatchUpPreferenceTable = pgTable(
+  "ai_catch_up_preference",
+  {
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    includeDirectMessages: boolean("include_direct_messages")
+      .default(false)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.workspaceId, table.userId] })],
+);
+
+// The embedding of one message, ticket or document for semantic search. Each
+// row goes with its source by cascade, so a deleted source leaves results at
+// once. `contentHash` is the md5 of the embedded text: a changed source is
+// embedded again. Messages of channels marked no AI and direct messages are
+// never embedded. ponytail: real[] scored in SQL; pgvector replaces it.
+export const semanticChunkTable = pgTable(
+  "semantic_chunk",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    messageId: text("message_id").references(() => chatMessageTable.id, {
+      onDelete: "cascade",
+    }),
+    taskId: text("task_id").references(() => taskTable.id, {
+      onDelete: "cascade",
+    }),
+    documentId: text("document_id").references(() => documentTable.id, {
+      onDelete: "cascade",
+    }),
+    contentHash: text("content_hash").notNull(),
+    embedding: real("embedding").array().notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    // When the source was last embedded; a search scores the newest first.
+    indexedAt: timestamp("indexed_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("semantic_chunk_workspace_idx").on(
+      table.workspaceId,
+      table.indexedAt,
+    ),
+    uniqueIndex("semantic_chunk_message_idx").on(table.messageId),
+    uniqueIndex("semantic_chunk_task_idx").on(table.taskId),
+    uniqueIndex("semantic_chunk_document_idx").on(table.documentId),
+  ],
+);
+
+// Whether a workspace sends its content to the embedding service for search
+// by meaning. Off without a row: an admin turns it on.
+export const semanticSearchSettingTable = pgTable("semantic_search_setting", {
+  workspaceId: text("workspace_id")
+    .primaryKey()
+    .references(() => workspaceTable.id, { onDelete: "cascade" }),
+  enabled: boolean("enabled").notNull().default(false),
+  updatedBy: text("updated_by").references(() => userTable.id, {
+    onDelete: "set null",
+  }),
+  updatedAt: timestamp("updated_at", { mode: "date" })
+    .default(utcNow)
+    .notNull(),
+});
+
+// How far the indexer read a workspace's sources of one kind: the change
+// time and id of the last row it saw, kept as text to hold microseconds.
+export const semanticIndexStateTable = pgTable(
+  "semantic_index_state",
+  {
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    lastAt: text("last_at").notNull(),
+    lastId: text("last_id").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.workspaceId, table.kind] })],
+);
+
+// A meeting-notes run its author chose to keep: the transcript and the
+// proposal made from it. A run the author did not keep is never stored.
+export const meetingNotesRunTable = pgTable(
+  "meeting_notes_run",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documentTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    transcript: text("transcript").notNull(),
+    proposal: jsonb("proposal").$type<MeetingNotesProposal>().notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("meeting_notes_run_document_user_idx").on(
+      table.documentId,
+      table.userId,
+      table.createdAt,
+    ),
+  ],
+);
+
+// Who asked for a morning brief in a workspace. Off unless turned on.
+export const dailyBriefPreferenceTable = pgTable(
+  "daily_brief_preference",
+  {
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    enabled: boolean("enabled").notNull().default(false),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.workspaceId, table.userId] }),
+    index("daily_brief_preference_enabled_idx").on(table.enabled),
+  ],
+);
+
+// The channels a person chose for their brief; nothing else is read.
+export const dailyBriefChannelTable = pgTable(
+  "daily_brief_channel",
+  {
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    channelId: text("channel_id")
+      .notNull()
+      .references(() => chatChannelTable.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.userId, table.channelId] }),
+    index("daily_brief_channel_workspace_user_idx").on(
+      table.workspaceId,
+      table.userId,
+    ),
+  ],
+);
+
+// One brief per person, workspace and local day; only its owner opens it.
+export const dailyBriefTable = pgTable(
+  "daily_brief",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    day: text("day").notNull(),
+    content: jsonb("content").$type<DailyBriefContent>().notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("daily_brief_workspace_user_day_idx").on(
+      table.workspaceId,
+      table.userId,
+      table.day,
+    ),
+  ],
+);
+
 // A channel someone muted: its mentions and direct messages stop reaching
 // their Inbox. Anyone who can read the channel may mute it, joined or not.
 // Private to that user: no response shows it to anyone else.
@@ -4246,6 +4479,107 @@ export const aiBudgetTable = pgTable("ai_budget", {
     .default(utcNow)
     .notNull(),
 });
+
+// A saved AI prompt one person runs with /<name> in chat. Private to its
+// owner. `projectScope` "selected" reads only the projects in
+// ai_skill_project, and nothing once none of them is left.
+export const aiSkillTable = pgTable(
+  "ai_skill",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    prompt: text("prompt").notNull(),
+    projectScope: text("project_scope")
+      .$type<"all" | "selected">()
+      .default("all")
+      .notNull(),
+    // Tokens the skill may use per calendar month (UTC); null means no cap.
+    monthlyTokenCap: integer("monthly_token_cap"),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("ai_skill_owner_name_idx").on(
+      table.workspaceId,
+      table.userId,
+      table.name,
+    ),
+  ],
+);
+
+export const aiSkillProjectTable = pgTable(
+  "ai_skill_project",
+  {
+    skillId: text("skill_id")
+      .notNull()
+      .references(() => aiSkillTable.id, { onDelete: "cascade" }),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projectTable.id, { onDelete: "cascade" }),
+  },
+  (table) => [primaryKey({ columns: [table.skillId, table.projectId] })],
+);
+
+// One run of a skill: who ran it where, and its tokens. The answer itself is
+// not kept.
+export const aiSkillRunTable = pgTable(
+  "ai_skill_run",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    skillId: text("skill_id")
+      .notNull()
+      .references(() => aiSkillTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    channelId: text("channel_id").references(() => chatChannelTable.id, {
+      onDelete: "set null",
+    }),
+    promptTokens: integer("prompt_tokens").notNull(),
+    completionTokens: integer("completion_tokens").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("ai_skill_run_skill_created_idx").on(table.skillId, table.createdAt),
+    index("ai_skill_run_user_created_idx").on(table.userId, table.createdAt),
+  ],
+);
+
+// Tokens one person's skill of a name used in a month. Keyed by name, not by
+// skill, so deleting and making the skill again keeps the month's usage.
+// A run reserves its estimate here before the model, then settles it.
+export const aiSkillUsageTable = pgTable(
+  "ai_skill_usage",
+  {
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    skillName: text("skill_name").notNull(),
+    month: text("month").notNull(),
+    tokens: integer("tokens").notNull().default(0),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.workspaceId, table.userId, table.skillName, table.month],
+    }),
+  ],
+);
 
 // Where a workspace's AI calls send its text: each row is one change an admin
 // made, and the newest row is the setting in force. Without a row the server

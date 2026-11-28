@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Newspaper,
   SquarePlus,
+  Sunrise,
   Timer,
   UserRound,
 } from "lucide-react";
@@ -48,6 +49,7 @@ const icons: Record<string, LucideIcon> = {
   team_issue_added: SquarePlus,
   team_issue_closed: CircleCheck,
   team_issue_triage: Inbox,
+  daily_brief: Sunrise,
 };
 
 export function NotificationIcon({ type }: { type: string }) {
