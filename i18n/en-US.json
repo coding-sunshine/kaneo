@@ -1128,6 +1128,8 @@
 			"eventTopicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision.",
 			"eventStaleItems": "Stale issues",
 			"eventStaleItemsHint": "One weekday line a week listing your issues that have stayed in the same status for over a week.",
+			"eventChatEmail": "Email for unread chat",
+			"eventChatEmailHint": "One email listing direct messages and mentions you left unread while away. At most one an hour, held during quiet hours.",
 			"eventDueDateReminders": "Due date reminders",
 			"reminderLeadTimeLabel": "Remind me before the due date",
 			"reminderLeadTimeInvalid": "Enter a whole number between 1 and {{max}}.",

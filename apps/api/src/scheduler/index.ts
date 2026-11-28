@@ -18,6 +18,7 @@ import { checkTrialReminders } from "./trial-reminders";
 import { runBackupIfDue } from "../backup/run-backup-if-due";
 import { checkInboxReminders } from "./inbox-reminders";
 import { checkChatReminders } from "./chat-reminders";
+import { sendChatEmailFallbacks } from "./chat-email-fallback";
 import { checkStaleItemNudges } from "./stale-item-nudges";
 import {
   pollIntakeMailbox,
@@ -156,6 +157,13 @@ export function initializeScheduler(): void {
       "* * * * *",
       { protect: true },
       withCheckIn("chat-reminders", () => checkChatReminders()),
+    ),
+  );
+  jobs.push(
+    new Cron(
+      "* * * * *",
+      { protect: true },
+      withCheckIn("chat-email-fallback", () => sendChatEmailFallbacks()),
     ),
   );
   // Hourly; each owner gets one line per week on their first weekday run.

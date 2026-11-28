@@ -4455,6 +4455,12 @@
 						"eventStaleItemsHint": {
 							"type": "string"
 						},
+						"eventChatEmail": {
+							"type": "string"
+						},
+						"eventChatEmailHint": {
+							"type": "string"
+						},
 						"eventDueDateReminders": {
 							"type": "string"
 						},
@@ -4828,6 +4834,8 @@
 						"eventTopicUpdatesHint",
 						"eventStaleItems",
 						"eventStaleItemsHint",
+						"eventChatEmail",
+						"eventChatEmailHint",
 						"eventDueDateReminders",
 						"reminderLeadTimeLabel",
 						"reminderLeadTimeInvalid",

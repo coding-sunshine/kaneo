@@ -44,6 +44,7 @@ const preferences = {
   dueDateReminderLeadTimeMinutes: 1440,
   topicUpdatesEnabled: true,
   staleItemsEnabled: true,
+  chatEmailEnabled: true,
   workspaces: [],
 } as unknown as NotificationPreferences;
 
@@ -116,6 +117,24 @@ describe("NotifyMeSection", () => {
     fireEvent.click(toggle);
     expect(updatePreferences).toHaveBeenLastCalledWith({
       staleItemsEnabled: true,
+    });
+  });
+
+  it("turns email for unread chat off and on again", () => {
+    render(<NotifyMeSection preferences={preferences} />);
+    const toggle = screen.getByRole("switch", {
+      name: "settings:notificationsPage.eventChatEmail",
+    });
+
+    fireEvent.click(toggle);
+    expect(updatePreferences).toHaveBeenLastCalledWith({
+      chatEmailEnabled: false,
+    });
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+
+    fireEvent.click(toggle);
+    expect(updatePreferences).toHaveBeenLastCalledWith({
+      chatEmailEnabled: true,
     });
   });
 
