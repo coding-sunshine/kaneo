@@ -1002,6 +1002,13 @@
       "when": 1795825654184,
       "tag": "0142_uneven_jackal",
       "breakpoints": true
+    },
+    {
+      "idx": 143,
+      "version": "7",
+      "when": 1795827109759,
+      "tag": "0143_broken_marten_broadcloak",
+      "breakpoints": true
     }
   ]
 }
