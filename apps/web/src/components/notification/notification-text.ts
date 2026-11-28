@@ -128,6 +128,10 @@ export function getNotificationTitle(
           channelName: eventData.channelName ?? "",
           defaultValue: notification.title ?? notification.type,
         });
+      case "daily_brief":
+        return t("notifications:events.daily_brief.title", {
+          defaultValue: notification.title ?? notification.type,
+        });
       case "chat_direct_message":
         return t("notifications:events.chat_direct_message.title", {
           actorName: eventData.actorName || t("common:people.someone"),
@@ -226,6 +230,13 @@ export function getNotificationContent(
         return t(`notifications:events.${notification.type}.content`, {
           ...eventData,
           newStatus: getStatusLabel(String(eventData.newStatus ?? "")),
+          defaultValue: notification.content ?? "",
+        });
+      case "daily_brief":
+        return t("notifications:events.daily_brief.content", {
+          dueToday: Number(eventData.dueToday ?? 0),
+          mentions: Number(eventData.mentions ?? 0),
+          moved: Number(eventData.moved ?? 0),
           defaultValue: notification.content ?? "",
         });
       // The message itself, as the sender wrote it, with markup dropped.

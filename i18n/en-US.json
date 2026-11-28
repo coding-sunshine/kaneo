@@ -1214,7 +1214,17 @@
 			"stopSending": "Stop sending",
 			"stopSendingTitle": "Stop sending from {{workspaceName}}?",
 			"stopSendingDescription": "Notifications from this workspace will only show in {{appName}}.",
-			"stopping": "Stopping..."
+			"stopping": "Stopping...",
+			"dailyBrief": {
+				"title": "Daily brief",
+				"description": "Each morning, a private brief in your Inbox: tickets due today, mentions in the channels you choose, and your tickets someone moved. Only you can open it.",
+				"enabled": "Daily brief",
+				"enabledHint": "Arrives after 8:00 in your time zone, once a day.",
+				"channels": "Channels",
+				"channelsHint": "Only these channels are read. Direct messages never are.",
+				"save": "Save",
+				"saved": "Daily brief saved"
+			}
 		},
 		"preferencesPage": {
 			"title": "Preferences",
@@ -4910,6 +4920,10 @@
 			},
 			"chat_direct_message": {
 				"title": "{{actorName}} sent you a message"
+			},
+			"daily_brief": {
+				"title": "Your daily brief",
+				"content": "Due today: {{dueToday}} · Mentions: {{mentions}} · Moved: {{moved}}"
 			}
 		},
 		"inbox": {
@@ -4938,6 +4952,13 @@
 			"actionError": "Couldn't update your inbox. Try again.",
 			"readCleared": "Deleted read notifications",
 			"openMessage": "Open message"
+		},
+		"dailyBrief": {
+			"dueToday": "Due today",
+			"mentions": "Mentions in your channels",
+			"moved": "Your tickets that moved",
+			"none": "Nothing here.",
+			"missing": "This brief is not available."
 		}
 	},
 	"activity": {

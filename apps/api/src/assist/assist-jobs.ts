@@ -1,4 +1,5 @@
 import { Cron } from "croner";
+import { runDailyBriefs } from "../daily-brief/run-daily-briefs";
 import { indexSemanticChunks } from "../semantic-search/index-chunks";
 import { isSpeechToTextEnabled } from "../meeting-notes/transcribe";
 import { isSemanticSearchEnabled } from "./embeddings";
@@ -7,7 +8,13 @@ type Wrap = (name: string, fn: () => Promise<unknown>) => () => Promise<void>;
 
 /** The scheduled jobs of this lane's AI features, each wrapped for monitoring. */
 export function assistJobs(wrap: Wrap): Cron[] {
-  const jobs: Cron[] = [];
+  const jobs: Cron[] = [
+    new Cron(
+      "*/15 * * * *",
+      { protect: true },
+      wrap("daily-brief", () => runDailyBriefs()),
+    ),
+  ];
   if (isSemanticSearchEnabled())
     jobs.push(
       new Cron(

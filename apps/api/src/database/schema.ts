@@ -29,6 +29,7 @@ import type { ImportRunProject } from "../import/import-run-project";
 import type { TaskRecurrence } from "../task/recurrence/schema";
 import type { LinkPreview } from "../chat/link-preview/link-preview-type";
 import type { MeetingNotesProposal } from "../meeting-notes/proposal-type";
+import type { DailyBriefContent } from "../daily-brief/brief-type";
 
 // Timestamp columns without a time zone hold UTC (Drizzle reads and writes
 // them as UTC). A bare now() default would be cast through the session time
@@ -4035,6 +4036,79 @@ export const meetingNotesRunTable = pgTable(
       table.documentId,
       table.userId,
       table.createdAt,
+    ),
+  ],
+);
+
+// Who asked for a morning brief in a workspace. Off unless turned on.
+export const dailyBriefPreferenceTable = pgTable(
+  "daily_brief_preference",
+  {
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    enabled: boolean("enabled").notNull().default(false),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.workspaceId, table.userId] }),
+    index("daily_brief_preference_enabled_idx").on(table.enabled),
+  ],
+);
+
+// The channels a person chose for their brief; nothing else is read.
+export const dailyBriefChannelTable = pgTable(
+  "daily_brief_channel",
+  {
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    channelId: text("channel_id")
+      .notNull()
+      .references(() => chatChannelTable.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.userId, table.channelId] }),
+    index("daily_brief_channel_workspace_user_idx").on(
+      table.workspaceId,
+      table.userId,
+    ),
+  ],
+);
+
+// One brief per person, workspace and local day; only its owner opens it.
+export const dailyBriefTable = pgTable(
+  "daily_brief",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    day: text("day").notNull(),
+    content: jsonb("content").$type<DailyBriefContent>().notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("daily_brief_workspace_user_day_idx").on(
+      table.workspaceId,
+      table.userId,
+      table.day,
     ),
   ],
 );

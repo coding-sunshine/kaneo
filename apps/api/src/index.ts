@@ -105,6 +105,7 @@ import { hideClosedTeams } from "./project-access/hide-closed-teams";
 import { getPublicProject } from "./project/controllers/get-public-project";
 import { initializeScheduler, shutdownScheduler } from "./scheduler";
 import search from "./search";
+import dailyBrief from "./daily-brief";
 import meetingNotes from "./meeting-notes";
 import semanticSearchRoutes from "./semantic-search";
 import channelAi from "./channel-ai";
@@ -863,6 +864,7 @@ export function createApp() {
     notificationPreferences,
   );
   const searchApi = api.route("/search", search);
+  const dailyBriefApi = api.route("/daily-brief", dailyBrief);
   const meetingNotesApi = api.route("/meeting-notes", meetingNotes);
   const semanticSearchApi = api.route("/semantic-search", semanticSearchRoutes);
   const channelAiApi = api.route("/channel-ai", channelAi);
@@ -1128,6 +1130,7 @@ export function createApp() {
     calendarFeedApi,
     publicProjectApi,
     searchApi,
+    dailyBriefApi,
     meetingNotesApi,
     semanticSearchApi,
     channelAiApi,
@@ -1308,6 +1311,7 @@ const {
   calendarFeedApi,
   publicProjectApi,
   searchApi,
+  dailyBriefApi,
   meetingNotesApi,
   semanticSearchApi,
   channelAiApi,
@@ -1376,6 +1380,7 @@ export type AppType =
   | typeof notificationApi
   | typeof notificationPreferencesApi
   | typeof searchApi
+  | typeof dailyBriefApi
   | typeof meetingNotesApi
   | typeof semanticSearchApi
   | typeof channelAiApi
