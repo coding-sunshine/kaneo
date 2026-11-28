@@ -781,7 +781,9 @@
 			"scheduleTimezone": "Timezone",
 			"scheduleTitle": "Delivery schedule",
 			"eventTopicUpdates": "Followed topics",
-			"eventTopicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision."
+			"eventTopicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision.",
+			"eventStaleItems": "Stale issues",
+			"eventStaleItemsHint": "One weekday line a week listing your issues that have stayed in the same status for over a week."
 		},
 		"preferencesPage": {
 			"title": "Preferências",
@@ -4873,6 +4875,10 @@
 			"document_inbox_waiting": {
 				"content": "{{documentTitle}} has no topic yet",
 				"title": "Waiting in the Inbox for three days"
+			},
+			"stale_items": {
+				"content": "Still in the same status: {{issueList}}",
+				"title": "Issues stuck for over a week"
 			}
 		},
 		"newCount_many": "{{count}} novas",
@@ -7696,7 +7702,9 @@
 				"statusChangesHint": "Quando suas tarefas mudam de coluna",
 				"title": "Notificar sobre",
 				"topicUpdates": "Followed topics",
-				"topicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision"
+				"topicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision",
+				"staleItems": "Stale issues",
+				"staleItemsHint": "One weekday line a week listing your issues that have stayed in the same status for over a week"
 			},
 			"leadTime": {
 				"day1": "1 dia",
