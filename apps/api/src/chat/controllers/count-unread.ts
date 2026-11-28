@@ -1,14 +1,17 @@
-import { and, count, eq, gt, ne, or, isNull } from "drizzle-orm";
+import { and, count, eq, gt, ne, notExists, or, isNull } from "drizzle-orm";
 import db from "../../database";
 import {
   chatChannelMemberTable,
   chatChannelTable,
   chatMessageTable,
+  chatThreadReplyTable,
 } from "../../database/schema";
 
 /**
  * Messages from others since the caller last read each channel they joined,
- * in one aggregate. Channels with nothing new are left out.
+ * in one aggregate. Channels with nothing new are left out. Thread replies
+ * are left out too: they never become the timeline's newest message, so an
+ * open channel would never mark them read.
  */
 export async function countUnread(workspaceId: string, userId: string) {
   const rows = await db
@@ -32,6 +35,12 @@ export async function countUnread(workspaceId: string, userId: string) {
         or(
           isNull(chatMessageTable.userId),
           ne(chatMessageTable.userId, userId),
+        ),
+        notExists(
+          db
+            .select()
+            .from(chatThreadReplyTable)
+            .where(eq(chatThreadReplyTable.messageId, chatMessageTable.id)),
         ),
       ),
     )

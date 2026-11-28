@@ -55,7 +55,13 @@ export const openDirectMessageBody = z.object({
 
 export const postMessageBody = z.object({
   body: z.string().trim().min(1).max(4000),
+  parentId: z.string().min(1).optional().openapi({
+    description:
+      "Reply in the thread of this message in the same channel. A reply to a reply goes under the thread's first message.",
+  }),
 });
+
+export const editMessageBody = postMessageBody.pick({ body: true });
 
 export const saveDraftBody = z.object({
   body: z.string().max(4000).openapi({
@@ -216,6 +222,13 @@ export const messageSchema = z
     mentions: z.array(mentionSchema).openapi({
       description:
         "Cards for the people, tickets, documents and teams the message names, as you see them now.",
+    }),
+    parentId: z.string().nullable().openapi({
+      description:
+        "The message whose thread this reply sits in. Null for a message in the channel timeline.",
+    }),
+    replyCount: z.number().int().openapi({
+      description: "How many replies the message's thread holds.",
     }),
     createdAt: responseTimestamp,
   })

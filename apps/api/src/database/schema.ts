@@ -3863,6 +3863,23 @@ export const chatMessageFileTable = pgTable(
   ],
 );
 
+// A thread reply: the message sits under `parentId` instead of in the channel
+// timeline. Threads are one level deep, so a parent is never itself a reply.
+// Both ids are messages of the same channel; deleting either removes the row,
+// and deleting a parent deletes its replies (see delete-message.ts).
+export const chatThreadReplyTable = pgTable(
+  "chat_thread_reply",
+  {
+    messageId: text("message_id")
+      .primaryKey()
+      .references(() => chatMessageTable.id, { onDelete: "cascade" }),
+    parentId: text("parent_id")
+      .notNull()
+      .references(() => chatMessageTable.id, { onDelete: "cascade" }),
+  },
+  (table) => [index("chat_thread_reply_parent_idx").on(table.parentId)],
+);
+
 // One row per user and emoji on a chat message, like comment_reaction.
 export const chatMessageReactionTable = pgTable(
   "chat_message_reaction",

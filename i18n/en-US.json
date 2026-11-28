@@ -4697,7 +4697,13 @@
 			"noOneElse": "Nobody else is in this workspace yet.",
 			"attachFile": "Attach a file",
 			"copyCode": "Copy code",
-			"copyCodeFailed": "Could not copy the code"
+			"copyCodeFailed": "Could not copy the code",
+			"reply": "Reply",
+			"replyCount_one": "{{count}} reply",
+			"replyCount_other": "{{count}} replies",
+			"thread": "Thread replies",
+			"replyLabel": "Reply in thread",
+			"replyPlaceholder": "Reply…"
 		},
 		"files": {
 			"title": "Files",

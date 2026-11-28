@@ -2,10 +2,10 @@ import { and, asc, desc, eq, lt, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
-import { chatMessageTable } from "../../database/schema";
+import { chatMessageTable, chatThreadReplyTable } from "../../database/schema";
 import { withMentions } from "../mentions/with-mentions";
 import { loadChannel } from "./load-channel";
-import { selectMessages } from "./select-messages";
+import { inTimeline, selectMessages } from "./select-messages";
 import { withFiles } from "./with-files";
 import { withReactions } from "./with-reactions";
 
@@ -32,6 +32,7 @@ async function listPage(channelId: string, before?: string) {
     .where(
       and(
         eq(chatMessageTable.channelId, channelId),
+        inTimeline,
         before ? lt(chatMessageTable.createdAt, new Date(before)) : undefined,
       ),
     )
@@ -41,18 +42,24 @@ async function listPage(channelId: string, before?: string) {
 }
 
 // Compared in SQL, not through a JS Date, which would drop the microseconds
-// that order messages posted within one millisecond.
+// that order messages posted within one millisecond. A reply opens the page
+// that holds its thread's first message.
 async function listAround(channelId: string, messageId: string) {
+  const [reply] = await db
+    .select({ parentId: chatThreadReplyTable.parentId })
+    .from(chatThreadReplyTable)
+    .where(eq(chatThreadReplyTable.messageId, messageId));
+  const targetId = reply?.parentId ?? messageId;
   const target = alias(chatMessageTable, "target");
   const targetKey = db
     .select({ createdAt: target.createdAt, id: target.id })
     .from(target)
-    .where(and(eq(target.id, messageId), eq(target.channelId, channelId)));
+    .where(and(eq(target.id, targetId), eq(target.channelId, channelId)));
   const [found] = await targetKey;
   if (!found) throw new HTTPException(404, { message: "Message not found" });
 
   const key = sql`(${chatMessageTable.createdAt}, ${chatMessageTable.id})`;
-  const inChannel = eq(chatMessageTable.channelId, channelId);
+  const inChannel = and(eq(chatMessageTable.channelId, channelId), inTimeline);
   const older = await selectMessages()
     .where(and(inChannel, sql`${key} < (${targetKey})`))
     .orderBy(desc(chatMessageTable.createdAt), desc(chatMessageTable.id))

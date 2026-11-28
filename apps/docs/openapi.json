@@ -4009,6 +4009,17 @@
             },
             "description": "Cards for the people, tickets, documents and teams the message names, as you see them now."
           },
+          "parentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The message whose thread this reply sits in. Null for a message in the channel timeline."
+          },
+          "replyCount": {
+            "type": "integer",
+            "description": "How many replies the message's thread holds."
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -4027,6 +4038,8 @@
           "files",
           "linkPreview",
           "mentions",
+          "parentId",
+          "replyCount",
           "createdAt"
         ]
       },
@@ -32488,7 +32501,7 @@
           "Chat"
         ],
         "summary": "Post message",
-        "description": "Post to a channel you belong to.",
+        "description": "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline.",
         "parameters": [
           {
             "schema": {
@@ -32518,6 +32531,11 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 4000
+                  },
+                  "parentId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Reply in the thread of this message in the same channel. A reply to a reply goes under the thread's first message."
                   }
                 },
                 "required": [
@@ -32559,7 +32577,7 @@
             }
           },
           "404": {
-            "description": "Channel not found",
+            "description": "Channel or message not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -32570,6 +32588,90 @@
           },
           "409": {
             "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/messages/{messageId}/replies": {
+      "get": {
+        "operationId": "listChatReplies",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "List thread replies",
+        "description": "The replies in a message's thread, oldest first, for whoever can read the channel.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Replies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatMessage"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or message not found",
             "content": {
               "application/json": {
                 "schema": {
