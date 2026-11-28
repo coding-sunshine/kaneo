@@ -37,6 +37,9 @@ export function useDecideProposal(
               }),
               queryClient.invalidateQueries({ queryKey: ["task", taskId] }),
               queryClient.invalidateQueries({
+                queryKey: ["activities", taskId],
+              }),
+              queryClient.invalidateQueries({
                 queryKey: taskDelegationsKey(workspaceId, taskId),
               }),
             ]

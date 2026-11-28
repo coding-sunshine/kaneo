@@ -17,6 +17,7 @@ const FEATURE_LABELS: Record<string, string> = {
   summary: "settings:aiUsage.features.summary",
   triage: "settings:aiUsage.features.triage",
   writing: "settings:aiUsage.features.writing",
+  "pr-summary": "settings:aiUsage.features.prSummary",
 };
 
 /** Settings, AI usage: budgets, then tokens by feature and by day. */

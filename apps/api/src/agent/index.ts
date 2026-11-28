@@ -32,6 +32,7 @@ import triageRoutes from "./triage/triage-routes";
 import delegationRoutes from "./delegation/delegation-routes";
 import "./delegation/mention-events";
 import writingRoutes from "./writing/writing-routes";
+import "./pr-summary/pr-summary-events";
 import "./triage/triage-events";
 
 const noAccess = errorResponse("Missing permission for this workspace");

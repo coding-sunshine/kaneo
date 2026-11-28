@@ -18,7 +18,8 @@ export type Meter = {
     | "filter"
     | "summary"
     | "triage"
-    | "writing";
+    | "writing"
+    | "pr-summary";
 };
 
 // A model call made for a person: refused once a budget is spent, sent only to

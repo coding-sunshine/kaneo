@@ -8,10 +8,12 @@ import {
   describe,
   expect,
   it,
+  vi,
 } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import { settleEvents } from "../../apps/api/src/events";
 import { createApp } from "../../apps/api/src/index";
+import { model, reply } from "./helpers/agent-model";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
 import {
@@ -21,6 +23,16 @@ import {
 import { addWorkspaceMember } from "./helpers/project-access/add-workspace-member";
 import { createTaskFixture } from "./helpers/project-access/create-task-fixture";
 import { restrictToProjects } from "./helpers/project-access/restrict-to-projects";
+
+vi.mock("../../apps/api/src/agent/openrouter", async (original) => ({
+  ...(await original<object>()),
+  createCompletion: vi.fn(async (messages: never) => {
+    model.seen.push(messages);
+    const next = model.queue.shift();
+    if (!next) throw new Error("no scripted reply");
+    return next;
+  }),
+}));
 
 type User = typeof schema.userTable.$inferSelect;
 type Received = { path: string; auth: string | undefined; body: any };
@@ -87,6 +99,8 @@ describe("API integration: delegate a ticket to a coding agent", () => {
     process.env.CODING_AGENT_NAME = "Test agent";
     fake.received.length = 0;
     fake.fail = false;
+    model.queue.length = 0;
+    model.seen.length = 0;
     const member = await createWorkspaceMember({ role: "owner" });
     owner = member.user;
     ws = member.workspace.id;
@@ -237,11 +251,29 @@ describe("API integration: delegate a ticket to a coding agent", () => {
       merged: false,
     });
 
+    model.queue.push(
+      reply(
+        JSON.stringify({
+          summary: "The redirect keeps the session.",
+          risk: "low",
+          riskReason: "Small change.",
+        }),
+      ),
+    );
     const merged = await callback(runId, token, {
       type: "pull_request.merged",
     });
     expect(merged.status).toBe(200);
     expect((await ticket())?.status).toBe("done");
+    // The merge also drafts a summary comment for the person who delegated.
+    await settleEvents();
+    const cards = await as(owner).request(
+      `/api/agent/workspace/${ws}/tasks/${task.id}/proposals`,
+    );
+    const summary = (
+      (await cards.json()) as { tool: string; diff: { to: string }[] }[]
+    ).find((card) => card.tool === "create_task_comment");
+    expect(summary?.diff[0]?.to).toContain("The redirect keeps the session.");
     const [after] = await links();
     expect(JSON.parse(after?.metadata ?? "{}")).toMatchObject({
       merged: true,

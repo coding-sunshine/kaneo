@@ -58,8 +58,9 @@ async function linkPullRequest(
 // The merge closes the link and moves the ticket to the team's first final
 // column, as the person who delegated it.
 async function echoMerge(run: Run, task: Task) {
+  let title: string | null = null;
   if (run.pullRequestUrl) {
-    await db
+    const [link] = await db
       .update(externalLinkTable)
       .set({
         metadata: JSON.stringify({
@@ -74,7 +75,9 @@ async function echoMerge(run: Run, task: Task) {
           eq(externalLinkTable.resourceType, "pull_request"),
           eq(externalLinkTable.url, run.pullRequestUrl),
         ),
-      );
+      )
+      .returning({ title: externalLinkTable.title });
+    title = link?.title ?? null;
   }
   const [done] = await db
     .select({ slug: columnTable.slug })
@@ -98,6 +101,15 @@ async function echoMerge(run: Run, task: Task) {
     .update(codingAgentRunTable)
     .set({ status: "merged" })
     .where(eq(codingAgentRunTable.id, run.id));
+  if (run.pullRequestUrl) {
+    await publishEvent("pull_request.merged", {
+      taskId: task.id,
+      projectId: task.projectId,
+      url: run.pullRequestUrl,
+      title: title ?? run.pullRequestUrl,
+      body: null,
+    });
+  }
 }
 
 /**

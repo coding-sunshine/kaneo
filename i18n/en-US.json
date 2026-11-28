@@ -3080,7 +3080,8 @@
 				"filter": "Plain-English filters",
 				"summary": "Ticket summaries",
 				"triage": "Triage suggestions",
-				"writing": "Writing help"
+				"writing": "Writing help",
+				"prSummary": "Pull request summaries"
 			}
 		},
 		"aiAudit": {
