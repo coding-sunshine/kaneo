@@ -2,7 +2,9 @@ import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
 import { useEffect, useRef } from "react";
 
-/** Opens the task behind a tapped system notification. */
+import { notificationRoute } from "@/lib/notification-route";
+
+/** Opens the task or chat channel behind a tapped system notification. */
 export function NotificationOpener({ enabled }: { enabled: boolean }) {
   const response = Notifications.useLastNotificationResponse();
   const handled = useRef<string | null>(null);
@@ -14,9 +16,10 @@ export function NotificationOpener({ enabled }: { enabled: boolean }) {
     // replays a notification from an earlier session.
     handled.current = id;
     Notifications.clearLastNotificationResponse();
-    const taskId = response.notification.request.content.data?.taskId;
-    if (enabled && typeof taskId === "string")
-      router.push({ pathname: "/task/[taskId]", params: { taskId } });
+    const route = notificationRoute(
+      response.notification.request.content.data ?? undefined,
+    );
+    if (enabled && route) router.push(route);
   }, [response, enabled]);
   return null;
 }

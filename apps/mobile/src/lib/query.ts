@@ -40,6 +40,11 @@ export const qk = {
   canCancelInvitations: (workspaceId: string) =>
     ["canCancelInvitations", workspaceId] as const,
   notificationPrefs: ["notificationPrefs"] as const,
+  documentTree: (workspaceId: string) => ["documentTree", workspaceId] as const,
+  document: (id: string) => ["document", id] as const,
+  chatChannels: (workspaceId: string) => ["chatChannels", workspaceId] as const,
+  chatChannel: (id: string) => ["chatChannel", id] as const,
+  chatMessages: (id: string) => ["chatMessages", id] as const,
   search: (workspaceId: string, q: string, type: string) =>
     ["search", workspaceId, q, type] as const,
 };

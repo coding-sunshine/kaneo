@@ -7112,7 +7112,14 @@
 				"permissionDenied": "먼저 시스템 설정에서 Kaneo 알림을 허용하세요.",
 				"phone": "휴대폰 알림",
 				"phoneHint": "약 15분마다 확인",
-				"title": "알림"
+				"title": "알림",
+				"push": "Instant chat pushes",
+				"pushChecking": "Checking…",
+				"pushDisabled": "Turn on phone notifications to get them.",
+				"pushNeedsSession": "Needs a password or browser sign-in, not an API key.",
+				"pushNoToken": "This phone could not get a push token. Chat arrives with the 15-minute check.",
+				"pushOn": "New chat messages arrive right away.",
+				"pushServerOff": "Off on this server: it needs an APNs or FCM key. Chat arrives with the 15-minute check."
 			},
 			"password": {
 				"confirm": "새 비밀번호 확인",
@@ -7465,7 +7472,10 @@
 			"home": "홈",
 			"inbox": "받은 편지함",
 			"inboxUnread": "받은 편지함, 읽지 않음 {{count}}개",
-			"tasks": "내 작업"
+			"tasks": "내 작업",
+			"chat": "Chat",
+			"chatUnread": "Chat, {{count}} unread",
+			"docs": "Docs"
 		},
 		"notificationSettings": {
 			"channel": {
@@ -7930,6 +7940,37 @@
 		},
 		"permissions": {
 			"photos": "Kaneo는 작업과 댓글에 이미지를 첨부하고 프로필 사진을 설정하기 위해 사진을 사용합니다."
+		},
+		"chat": {
+			"archived": "This channel is archived.",
+			"channels": "Channels",
+			"directMessages": "Direct messages",
+			"edited": "edited",
+			"empty": {
+				"message": "Channels you can see in this workspace show up here.",
+				"title": "No channels yet"
+			},
+			"join": "Join channel",
+			"joinHint": "Join to post in this channel.",
+			"noMessages": "No messages yet.",
+			"placeholder": "Message {{name}}",
+			"readOnly": "You can read this channel but not post in it.",
+			"send": "Send",
+			"title": "Chat",
+			"unknownAuthor": "Someone",
+			"unread": "{{count}} unread",
+			"you": "You"
+		},
+		"documents": {
+			"edited": "Edited {{when}}",
+			"editedBy": "Edited {{when}} by {{name}}",
+			"empty": {
+				"message": "Pages you can open in this workspace show up here.",
+				"title": "No pages yet"
+			},
+			"subpages": "Pages inside",
+			"title": "Docs",
+			"untitled": "Untitled"
 		}
 	}
 }

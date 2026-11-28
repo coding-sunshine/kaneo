@@ -7112,7 +7112,14 @@
 				"permissionDenied": "まずシステム設定で Kaneo の通知を許可してください。",
 				"phone": "スマートフォンの通知",
 				"phoneHint": "約15分ごとに確認",
-				"title": "通知"
+				"title": "通知",
+				"push": "Instant chat pushes",
+				"pushChecking": "Checking…",
+				"pushDisabled": "Turn on phone notifications to get them.",
+				"pushNeedsSession": "Needs a password or browser sign-in, not an API key.",
+				"pushNoToken": "This phone could not get a push token. Chat arrives with the 15-minute check.",
+				"pushOn": "New chat messages arrive right away.",
+				"pushServerOff": "Off on this server: it needs an APNs or FCM key. Chat arrives with the 15-minute check."
 			},
 			"password": {
 				"confirm": "新しいパスワードを確認",
@@ -7465,7 +7472,10 @@
 			"home": "ホーム",
 			"inbox": "受信トレイ",
 			"inboxUnread": "受信トレイ、未読{{count}}件",
-			"tasks": "自分のタスク"
+			"tasks": "自分のタスク",
+			"chat": "Chat",
+			"chatUnread": "Chat, {{count}} unread",
+			"docs": "Docs"
 		},
 		"notificationSettings": {
 			"channel": {
@@ -7930,6 +7940,37 @@
 		},
 		"permissions": {
 			"photos": "Kaneo は、タスクやコメントへの画像の添付と、プロフィール写真のために写真を使用します。"
+		},
+		"chat": {
+			"archived": "This channel is archived.",
+			"channels": "Channels",
+			"directMessages": "Direct messages",
+			"edited": "edited",
+			"empty": {
+				"message": "Channels you can see in this workspace show up here.",
+				"title": "No channels yet"
+			},
+			"join": "Join channel",
+			"joinHint": "Join to post in this channel.",
+			"noMessages": "No messages yet.",
+			"placeholder": "Message {{name}}",
+			"readOnly": "You can read this channel but not post in it.",
+			"send": "Send",
+			"title": "Chat",
+			"unknownAuthor": "Someone",
+			"unread": "{{count}} unread",
+			"you": "You"
+		},
+		"documents": {
+			"edited": "Edited {{when}}",
+			"editedBy": "Edited {{when}} by {{name}}",
+			"empty": {
+				"message": "Pages you can open in this workspace show up here.",
+				"title": "No pages yet"
+			},
+			"subpages": "Pages inside",
+			"title": "Docs",
+			"untitled": "Untitled"
 		}
 	}
 }

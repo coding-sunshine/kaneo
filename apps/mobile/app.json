@@ -68,6 +68,7 @@
 			"expo-font",
 			"./plugins/with-gradle-memory",
 			"./plugins/with-release-signing",
+			"./plugins/with-firebase-config",
 			"./plugins/with-permission-locales",
 			[
 				"expo-build-properties",

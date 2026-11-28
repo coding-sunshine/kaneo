@@ -4652,3 +4652,40 @@ export const backupRunTable = pgTable(
   },
   (table) => [index("backup_run_started_idx").on(table.startedAt)],
 );
+
+// A phone that gets chat pushes: the native APNs or FCM token of one app
+// install. A token belongs to one sign-in; signing in elsewhere moves it, and
+// ending the session (sign-out, revoke) drops it, so a lost phone goes quiet.
+export const pushDeviceTable = pgTable(
+  "push_device",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    sessionId: text("session_id")
+      .notNull()
+      .references(() => sessionTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    platform: text("platform").$type<"ios" | "android">().notNull(),
+    token: text("token").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("push_device_token_idx").on(table.token),
+    index("push_device_user_idx").on(table.userId),
+    index("push_device_session_idx").on(table.sessionId),
+  ],
+);

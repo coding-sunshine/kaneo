@@ -12214,6 +12214,30 @@
           "dismissed"
         ]
       },
+      "PushDeviceRegistration": {
+        "type": "object",
+        "properties": {
+          "delivering": {
+            "type": "boolean",
+            "description": "Whether this server can push to the platform now. False until the operator sets the APNs or FCM key; the device stays registered."
+          }
+        },
+        "required": [
+          "delivering"
+        ]
+      },
+      "PushDeviceRemoval": {
+        "type": "object",
+        "properties": {
+          "removed": {
+            "type": "boolean",
+            "description": "False when no device of yours had this token."
+          }
+        },
+        "required": [
+          "removed"
+        ]
+      },
       "CurrentUser": {
         "type": "object",
         "properties": {
@@ -59592,6 +59616,143 @@
           },
           "404": {
             "description": "You have no open checklist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/push/device": {
+      "put": {
+        "operationId": "registerPushDevice",
+        "tags": [
+          "Push"
+        ],
+        "summary": "Register a phone for chat pushes",
+        "description": "Store this app install's native push token for your sign-in, so new chat messages reach the phone. Signing out or revoking the session drops it. Requires a user session; API keys are rejected.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "platform": {
+                    "type": "string",
+                    "enum": [
+                      "ios",
+                      "android"
+                    ]
+                  },
+                  "token": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4096,
+                    "description": "The native APNs device token or FCM registration token."
+                  }
+                },
+                "required": [
+                  "platform",
+                  "token"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushDeviceRegistration"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated with an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "unregisterPushDevice",
+        "tags": [
+          "Push"
+        ],
+        "summary": "Stop chat pushes to a phone",
+        "description": "Forget one of your push tokens. Another person's token is left alone.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4096
+                  }
+                },
+                "required": [
+                  "token"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushDeviceRemoval"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated with an API key",
             "content": {
               "application/json": {
                 "schema": {

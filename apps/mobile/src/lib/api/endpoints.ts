@@ -1,14 +1,20 @@
+import type { Session } from "../session";
 import { ApiError, request } from "./client";
 import type {
   Activity,
   AssignedTasks,
   BoardResponse,
+  ChatChannel,
+  ChatDirectMessage,
+  ChatMessage,
   Column,
   CreateTaskBody,
   CurrentUser,
   CustomFieldDefinition,
   CustomFieldValue,
   DescriptionPage,
+  DocumentDetail,
+  DocumentTreePage,
   ExternalLink,
   FinalizedAsset,
   FullOrganization,
@@ -364,6 +370,55 @@ export const api = {
     get<NotificationPreferences>("api/notification-preferences"),
   updateNotificationPreferences: (body: UpdateNotificationPreferences) =>
     put<unknown>("api/notification-preferences", body),
+
+  // --- Documents ---
+  documentTree: (workspaceId: string) =>
+    get<DocumentTreePage[]>(`api/document/workspace/${workspaceId}/tree`),
+  document: (workspaceId: string, documentId: string) =>
+    get<DocumentDetail>(`api/document/workspace/${workspaceId}/${documentId}`),
+
+  // --- Chat ---
+  chatChannels: (workspaceId: string) =>
+    get<ChatChannel[]>(`api/chat/workspace/${workspaceId}/channels`),
+  chatDirectMessages: (workspaceId: string) =>
+    get<ChatDirectMessage[]>(
+      `api/chat/workspace/${workspaceId}/direct-messages`,
+    ),
+  chatChannel: (workspaceId: string, channelId: string) =>
+    get<Omit<ChatDirectMessage, "unreadCount">>(
+      `api/chat/workspace/${workspaceId}/channels/${channelId}`,
+    ),
+  chatMessages: (workspaceId: string, channelId: string) =>
+    get<ChatMessage[]>(
+      `api/chat/workspace/${workspaceId}/channels/${channelId}/messages`,
+    ),
+  postChatMessage: (workspaceId: string, channelId: string, body: string) =>
+    post<ChatMessage>(
+      `api/chat/workspace/${workspaceId}/channels/${channelId}/messages`,
+      { body },
+    ),
+  joinChatChannel: (workspaceId: string, channelId: string) =>
+    post<unknown>(
+      `api/chat/workspace/${workspaceId}/channels/${channelId}/join`,
+    ),
+  markChatRead: (workspaceId: string, channelId: string) =>
+    post<unknown>(
+      `api/chat/workspace/${workspaceId}/channels/${channelId}/read`,
+    ),
+
+  // --- Push ---
+  registerPushDevice: (body: { platform: "ios" | "android"; token: string }) =>
+    put<{ delivering: boolean }>("api/push/device", body),
+  /** Sent with explicit credentials, so a 401 on an already ended session stays quiet. */
+  unregisterPushDevice: (
+    token: string,
+    credentials: Pick<Session, "credentialType" | "token">,
+  ) =>
+    request<{ removed: boolean }>("api/push/device", {
+      method: "DELETE",
+      body: { token },
+      credentials,
+    }),
 
   // --- Search ---
   search: (q: string, workspaceId: string, type = "all") =>
