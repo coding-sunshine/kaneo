@@ -15,6 +15,7 @@ import {
 } from "../database/schema";
 import { publishEvent, subscribeToEvent } from "../events";
 import type { LinkChange } from "../task-document/sync-links";
+import type { ReaderHint } from "../document/reader-hint";
 import { findInaccessibleProjectIds } from "../project-access/find-inaccessible-project-ids";
 import { filterUsersWithProjectAccess } from "../project-access/filter-users-with-project-access";
 import { listWorkspaceProjectIds } from "../project-access/list-workspace-project-ids";
@@ -1293,6 +1294,17 @@ async function announceLinkChange({
 }
 
 subscribeToEvent<LinkChange>("task_document.links_changed", announceLinkChange);
+
+// Live document hints (who is typing, co-editing changes) reach only the
+// people who can open the document at the time of delivery.
+subscribeToEvent<ReaderHint>(
+  "document.reader_hint",
+  async ({ workspaceId, documentId, exceptUserId, message }) => {
+    const [readers] = await findDocumentReaders(workspaceId, [documentId]);
+    for (const readerId of readers?.userIds ?? [])
+      if (readerId !== exceptUserId) broadcastToUser(readerId, message);
+  },
+);
 
 // A new issue writes its links inside its own transaction, which has
 // committed by the time this event is out.

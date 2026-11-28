@@ -814,6 +814,10 @@
           "hasFigmaPreviews": {
             "type": "boolean",
             "description": "Whether Figma links show as cards with a thumbnail (a Figma access token is configured). Without it they stay plain links."
+          },
+          "documentCoediting": {
+            "type": "boolean",
+            "description": "Whether several people can edit a document at once with live cursors (DOCUMENT_COEDITING_KEY is set). Without it, a save made over a newer version asks first."
           }
         },
         "required": [
@@ -841,7 +845,8 @@
           "billingEnabled",
           "hasAgent",
           "hasCalls",
-          "hasFigmaPreviews"
+          "hasFigmaPreviews",
+          "documentCoediting"
         ]
       },
       "McpClientRegistration": {
@@ -7158,6 +7163,56 @@
         "required": [
           "topicsWithCurrent",
           "weeks"
+        ]
+      },
+      "DocumentEditingAnnounced": {
+        "type": "object",
+        "properties": {
+          "announced": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "announced"
+        ]
+      },
+      "DocumentCollabState": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The merged Yjs state, base64. Null when the document has none for its current text: seed it from `content`."
+          },
+          "contentHash": {
+            "type": "string",
+            "description": "The `contentHash` of the document's current text."
+          },
+          "content": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The current text to seed from, when `state` is null."
+          }
+        },
+        "required": [
+          "state",
+          "contentHash",
+          "content"
+        ]
+      },
+      "DocumentCollabApplied": {
+        "type": "object",
+        "properties": {
+          "applied": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "applied"
         ]
       },
       "DocumentSnooze": {
@@ -39001,6 +39056,11 @@
                       "reference"
                     ],
                     "description": "What the document is for. The status is not set by editing."
+                  },
+                  "baseHash": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "description": "The `contentHash` of the text this edit started from. When someone else saved the content since, the save is refused with 409 and code DOCUMENT_CHANGED. Leave it out to overwrite."
                   }
                 }
               }
@@ -39151,6 +39211,607 @@
           },
           "409": {
             "description": "The document is current on its topic, or it has pages under it and no choice for them",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/editing": {
+      "post": {
+        "operationId": "announceDocumentEditing",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Say you are editing",
+        "description": "Tells the document's other readers, over their live connection, that you are typing in it. Send it every few seconds while typing; a burst counts once.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Announced",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentEditingAnnounced"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/collab": {
+      "get": {
+        "operationId": "getDocumentCollabState",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Co-editing state",
+        "description": "The live Yjs state of the document, when co-editing is on (DOCUMENT_COEDITING_KEY).",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "State",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentCollabState"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Co-editing is off (COEDITING_OFF), or the state does not match the text",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/collab/seed": {
+      "post": {
+        "operationId": "seedDocumentCollabState",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Start co-editing",
+        "description": "Stores the first Yjs state, made from the current text. 409 COEDIT_SEEDED when someone else did first: load theirs.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "update": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000000,
+                    "description": "A Yjs update, base64."
+                  },
+                  "baseHash": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "description": "The `contentHash` of the text the state was made from."
+                  }
+                },
+                "required": [
+                  "update",
+                  "baseHash"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Seeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentCollabApplied"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not a Yjs update",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Co-editing is off (COEDITING_OFF), or the state does not match the text",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/collab/update": {
+      "post": {
+        "operationId": "updateDocumentCollabState",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Send co-editing changes",
+        "description": "Merges a Yjs update into the state and passes it on to the document's readers.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "update": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000000,
+                    "description": "A Yjs update, base64."
+                  }
+                },
+                "required": [
+                  "update"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Merged",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentCollabApplied"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not a Yjs update",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Co-editing is off (COEDITING_OFF), or the state does not match the text",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/collab/awareness": {
+      "post": {
+        "operationId": "announceDocumentCollabAwareness",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Send cursor",
+        "description": "Passes a Yjs awareness update (cursor, selection, name) to the document's other readers. Not stored.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "update": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000000,
+                    "description": "A Yjs update, base64."
+                  }
+                },
+                "required": [
+                  "update"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Passed on",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentCollabApplied"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Co-editing is off (COEDITING_OFF), or the state does not match the text",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/document/workspace/{workspaceId}/{id}/collab/text": {
+      "put": {
+        "operationId": "saveDocumentCollabText",
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Save co-edited text",
+        "description": "Saves the Markdown of the co-edited state as the document's text. 409 DOCUMENT_CHANGED when the text was changed outside co-editing since.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "maxLength": 1000000
+                  },
+                  "baseHash": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "description": "Only after reviewing a newer text someone saved outside co-editing: its `contentHash`, to save over it."
+                  }
+                },
+                "required": [
+                  "content"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Document updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Co-editing is off (COEDITING_OFF), or the state does not match the text",
             "content": {
               "application/json": {
                 "schema": {

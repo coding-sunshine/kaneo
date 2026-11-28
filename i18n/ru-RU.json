@@ -4599,6 +4599,24 @@
 				"label": "Export",
 				"markdown": "Markdown",
 				"pdf": "PDF"
+			},
+			"conflict": {
+				"banner": "{{name}} saved a newer version while you were typing. Your changes are not saved yet.",
+				"description": "{{name}} saved this document after you started editing. Compare the two versions, then keep yours or take theirs.",
+				"keepMine": "Save my version",
+				"mine": "Your version",
+				"review": "Review",
+				"theirs": "{{name}}'s version",
+				"title": "Someone else changed this document",
+				"useTheirs": "Use their version"
+			},
+			"editing": {
+				"many": "{{names}} are editing",
+				"one": "{{name}} is editing"
+			},
+			"coediting": {
+				"failed": "Live editing is unavailable right now. Reload the page to try again.",
+				"loading": "Joining the live document…"
 			}
 		},
 		"drafts": {

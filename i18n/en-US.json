@@ -4389,6 +4389,24 @@
 				"selectRow": "Select {{title}}",
 				"search": "Search documents",
 				"done": "Done"
+			},
+			"editing": {
+				"one": "{{name}} is editing",
+				"many": "{{names}} are editing"
+			},
+			"conflict": {
+				"banner": "{{name}} saved a newer version while you were typing. Your changes are not saved yet.",
+				"review": "Review",
+				"title": "Someone else changed this document",
+				"description": "{{name}} saved this document after you started editing. Compare the two versions, then keep yours or take theirs.",
+				"theirs": "{{name}}'s version",
+				"mine": "Your version",
+				"keepMine": "Save my version",
+				"useTheirs": "Use their version"
+			},
+			"coediting": {
+				"loading": "Joining the live document…",
+				"failed": "Live editing is unavailable right now. Reload the page to try again."
 			}
 		},
 		"agent": {

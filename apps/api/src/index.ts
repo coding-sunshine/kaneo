@@ -149,6 +149,10 @@ import { drainSignInEmails } from "./utils/sign-in-email-tasks";
 import { validateWorkspaceAccess } from "./utils/validate-workspace-access";
 import { listenPort } from "./utils/listen-port";
 import { requireWorkspacePermission } from "./utils/require-workspace-permission";
+import {
+  coeditingOn,
+  logCoeditingOffOnce,
+} from "./document/collab/coediting-config";
 import { PROJECT_READ_PERMISSIONS } from "./ws/project-read-permissions";
 import { apiKeyResponseHeaders } from "./utils/rate-limit-headers";
 import { readApiKeyCheck, verifyApiKey } from "./utils/verify-api-key";
@@ -1188,6 +1192,7 @@ export async function startServer(
       );
       if (!callsConfigured()) logCallsOffOnce();
       if (!figmaConfigured()) logFigmaOffOnce();
+      if (!coeditingOn()) logCoeditingOffOnce();
     },
   );
 

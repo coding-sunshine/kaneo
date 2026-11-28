@@ -169,6 +169,14 @@ Name | Description | Default |
 --- | --- | --- |
 | `FIGMA_ACCESS_TOKEN` | Figma personal access token used to read file names and thumbnails. Also read from `FIGMA_ACCESS_TOKEN_FILE`. It stays on the server. Give it access only to files every workspace member may see. | Unset |
 
+### Document co-editing
+
+Several people can type in one document at once, with live cursors, when `DOCUMENT_COEDITING_KEY` is set. The live edits are kept as Yjs state next to the Markdown text, which stays the record. Set the key only once the owner has approved that storage change and a restore has been rehearsed. Without it, co-editing is off: the API logs that at startup, and a save made over a newer version still asks before it overwrites.
+
+Name | Description | Default |
+--- | --- | --- |
+| `DOCUMENT_COEDITING_KEY` | Any value turns real-time co-editing of documents on. | Unset |
+
 ### Imports
 
 The [in-app importer](/core/migrations) reads from the source on the API server. Sources on a private network, such as a PLANKA container in the same Docker network, also need `KANEO_ALLOW_PRIVATE_WEBHOOK_DESTINATIONS=true` (see [Notifications](#notifications)).

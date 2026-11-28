@@ -18,6 +18,7 @@ export function createEditorExtensions({
   image,
   extra = [],
   mermaidErrorKey,
+  collaboration,
 }: {
   placeholder: string;
   highlighter: () => Highlighter | null;
@@ -25,9 +26,11 @@ export function createEditorExtensions({
   image: AnyExtension;
   extra?: AnyExtension[];
   mermaidErrorKey?: string;
+  collaboration?: boolean;
 }) {
   return createBaseExtensions({
     placeholder,
+    collaboration,
     keymap: [EditorKeymap],
     decorations: [
       ShikiCodeBlock.configure({

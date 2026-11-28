@@ -3,6 +3,7 @@ import { isSmtpConfigured } from "@kaneo/email";
 import { config } from "dotenv-mono";
 import { isAgentEnabled } from "../agent/openrouter";
 import { isBillingEnabled } from "../billing/config";
+import { coeditingOn } from "../document/collab/coediting-config";
 import { figmaConfigured } from "../figma/figma-config";
 import {
   DEFAULT_STORED_SETTINGS,
@@ -72,6 +73,7 @@ function getSettings(
     hasAgent: isAgentEnabled(),
     hasCalls: callsConfigured(),
     hasFigmaPreviews: figmaConfigured(),
+    documentCoediting: coeditingOn(),
   };
 }
 

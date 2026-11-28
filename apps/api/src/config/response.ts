@@ -57,5 +57,9 @@ export const configSchema = z
       description:
         "Whether Figma links show as cards with a thumbnail (a Figma access token is configured). Without it they stay plain links.",
     }),
+    documentCoediting: z.boolean().openapi({
+      description:
+        "Whether several people can edit a document at once with live cursors (DOCUMENT_COEDITING_KEY is set). Without it, a save made over a newer version asks first.",
+    }),
   })
   .openapi("Config");
