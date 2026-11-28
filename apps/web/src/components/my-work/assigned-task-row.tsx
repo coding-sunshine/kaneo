@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 import type { AssignedTask } from "@/fetchers/task/get-assigned-tasks";
 import { getColumnIcon } from "@/lib/column";
 import { getStatusDisplayLabel } from "@/lib/i18n/domain";
@@ -14,6 +15,8 @@ type AssignedTaskRowProps = {
   showActivity?: boolean;
   /** Needs my review rows show how long the design review has waited. */
   showReview?: boolean;
+  /** Shown before the due date, such as Home's Up next reason. */
+  aside?: ReactNode;
 };
 
 const ACTIVITY_VERBS: Record<string, string> = {
@@ -37,6 +40,7 @@ export function AssignedTaskRow({
   showLabels = false,
   showActivity = false,
   showReview = false,
+  aside,
 }: AssignedTaskRowProps) {
   return (
     <Link
@@ -81,6 +85,7 @@ export function AssignedTaskRow({
       <span className="hidden w-28 shrink-0 truncate text-muted-foreground text-xs sm:block">
         {task.projectName}
       </span>
+      {aside}
       {showReview && task.reviewRequestedAt ? (
         <ReviewAgeChip
           requestedAt={task.reviewRequestedAt}

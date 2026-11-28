@@ -4,8 +4,10 @@ import {
   count,
   desc,
   eq,
+  gt,
   inArray,
   isNull,
+  lte,
   ne,
   sql,
 } from "drizzle-orm";
@@ -13,6 +15,7 @@ import db from "../../database";
 import {
   activityTable,
   columnTable,
+  cycleTable,
   labelTable,
   projectTable,
   taskDesignReviewTable,
@@ -21,7 +24,10 @@ import {
 } from "../../database/schema";
 import { designReviewSlaDueAt } from "../../design-review/sla";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
-import { taskIsCompleted } from "../task-is-completed";
+import { taskIsUnfinished } from "../task-is-unfinished";
+import { loadOpenBlockers, type OpenBlockers } from "./load-open-blockers";
+
+const noBlockers: OpenBlockers = { blockedBy: [], hasHiddenBlocker: false };
 
 // Home and My tasks render this list whole, so it stays one bounded page.
 export const ASSIGNED_TASKS_LIMIT = 100;
@@ -48,6 +54,7 @@ async function getAssignedTasks(
   tab: MyTasksTab = "assigned",
 ) {
   const isActivity = tab === "activity";
+  const now = new Date();
   const isReview = tab === "review";
   // The caller's pending design review on the task, for the review tab.
   const pendingReviewAt = sql<Date | null>`(select ${taskDesignReviewTable.requestedAt} from ${taskDesignReviewTable} where ${taskDesignReviewTable.taskId} = ${taskTable.id} and ${taskDesignReviewTable.reviewerId} = ${userId} and ${taskDesignReviewTable.status} = 'pending')`;
@@ -67,13 +74,7 @@ async function getAssignedTasks(
     relation,
     ne(taskTable.status, "archived"),
     isNull(taskTable.archivedAt),
-    isActivity
-      ? sql`true`
-      : sql`not coalesce((
-      select ${columnTable.isFinal} from ${columnTable}
-      where ${columnTable.id} = ${taskTable.columnId}
-        and ${columnTable.projectId} = ${taskTable.projectId}
-    ), ${taskIsCompleted})`,
+    isActivity ? sql`true` : taskIsUnfinished,
     projectAccessCondition(userId, projectTable.id),
   );
 
@@ -120,6 +121,18 @@ async function getAssignedTasks(
         statusIcon: statusColumn.icon,
         priority: taskTable.priority,
         dueDate: taskTable.dueDate,
+        position: taskTable.position,
+        inCycle: sql<boolean>`exists ${db
+          .select({ one: sql`1` })
+          .from(cycleTable)
+          .where(
+            and(
+              eq(cycleTable.id, taskTable.cycleId),
+              lte(cycleTable.startsAt, now),
+              gt(cycleTable.endsAt, now),
+              isNull(cycleTable.completedAt),
+            ),
+          )}`,
         lastActivityAt: isActivity
           ? sql<Date | null>`(select max(${activityTable.createdAt}) from ${activityTable} where ${activityTable.taskId} = ${taskTable.id} and ${activityTable.userId} = ${userId})`.as(
               "last_activity_at",
@@ -188,6 +201,11 @@ async function getAssignedTasks(
     labelsByTask.set(taskId, taskLabels);
   }
 
+  const blockers = await loadOpenBlockers(
+    tasks.map((task) => task.id),
+    userId,
+  );
+
   // Raw subselects skip drizzle's timestamp mapping; the column stores UTC.
   const utcDate = (value: Date | null) =>
     value ? new Date(`${String(value).replace(" ", "T")}Z`) : null;
@@ -203,6 +221,7 @@ async function getAssignedTasks(
           ? designReviewSlaDueAt(reviewRequestedAt)
           : null,
         labels: labelsByTask.get(task.id) ?? [],
+        ...(blockers.get(task.id) ?? noBlockers),
       };
     }),
     total: Number(totals?.total ?? 0),

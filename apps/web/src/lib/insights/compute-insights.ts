@@ -95,7 +95,7 @@ function percentile(sorted: number[], percent: number) {
   return sorted[Math.max(0, Math.ceil((percent / 100) * sorted.length) - 1)];
 }
 
-function median(values: number[]) {
+export function median(values: number[]) {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
   const mid = sorted.length >> 1;

@@ -3,7 +3,9 @@ import { useTranslation } from "react-i18next";
 import { AssignedTaskRow } from "@/components/my-work/assigned-task-row";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { AssignedTask } from "@/fetchers/task/get-assigned-tasks";
+import { orderUpNext } from "./order-up-next";
 import { SectionHeader } from "./section-header";
+import { UpNextReason } from "./up-next-reason";
 
 type UpNextProps = {
   tasks: AssignedTask[] | undefined;
@@ -70,13 +72,16 @@ export function UpNext({
         </p>
       ) : (
         <div className="flex flex-col">
-          {tasks.slice(0, VISIBLE_TASKS).map((task) => (
-            <AssignedTaskRow
-              key={task.id}
-              task={task}
-              workspaceId={workspaceId}
-            />
-          ))}
+          {orderUpNext(tasks)
+            .slice(0, VISIBLE_TASKS)
+            .map(({ task, reason }) => (
+              <AssignedTaskRow
+                key={task.id}
+                task={task}
+                workspaceId={workspaceId}
+                aside={<UpNextReason reason={reason} />}
+              />
+            ))}
         </div>
       )}
     </section>

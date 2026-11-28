@@ -35,6 +35,7 @@ import { InsightsBarChart } from "./insights-bar-chart";
 import { InsightsBurnUp } from "./insights-burn-up";
 import { InsightsScatter } from "./insights-scatter";
 import { InsightsTable } from "./insights-table";
+import { ReportPack } from "./report-pack";
 import { segmentColor } from "./segment-color";
 
 type InsightsPanelProps = {
@@ -57,6 +58,8 @@ export function InsightsPanel({ project: source, group }: InsightsPanelProps) {
     () => (showArchived ? withArchived(source) : source),
     [source, showArchived],
   );
+  // Done issues are archived automatically, so the report always counts them.
+  const reportSource = useMemo(() => withArchived(source), [source]);
   const [picked, setMeasure] = useState<InsightMeasure>("count");
   const { data: workspace } = useActiveWorkspace();
   const { data: teams = [] } = useGetProjects({
@@ -263,6 +266,7 @@ export function InsightsPanel({ project: source, group }: InsightsPanelProps) {
           />
         </>
       )}
+      <ReportPack project={reportSource} />
     </aside>
   );
 }

@@ -24159,6 +24159,103 @@
 						},
 						"chartLabel": {
 							"type": "string"
+						},
+						"report": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"aging": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"title": {
+											"type": "string"
+										},
+										"empty": {
+											"type": "string"
+										},
+										"issue": {
+											"type": "string"
+										},
+										"age": {
+											"type": "string"
+										},
+										"teamMedian": {
+											"type": "string"
+										}
+									},
+									"required": ["title", "empty", "issue", "age", "teamMedian"]
+								},
+								"throughput": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"title": {
+											"type": "string"
+										},
+										"completed": {
+											"type": "string"
+										},
+										"rollingMedian": {
+											"type": "string"
+										},
+										"week_one": {
+											"type": "string"
+										},
+										"week_zero": {
+											"type": "string"
+										},
+										"week_two": {
+											"type": "string"
+										},
+										"week_few": {
+											"type": "string"
+										},
+										"week_many": {
+											"type": "string"
+										},
+										"week_other": {
+											"type": "string"
+										}
+									},
+									"required": ["title", "completed", "rollingMedian"]
+								},
+								"reviewWait": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"title": {
+											"type": "string"
+										},
+										"empty": {
+											"type": "string"
+										},
+										"summary_one": {
+											"type": "string"
+										},
+										"summary_zero": {
+											"type": "string"
+										},
+										"summary_two": {
+											"type": "string"
+										},
+										"summary_few": {
+											"type": "string"
+										},
+										"summary_many": {
+											"type": "string"
+										},
+										"summary_other": {
+											"type": "string"
+										}
+									},
+									"required": ["title", "empty"]
+								}
+							},
+							"required": ["title", "aging", "throughput", "reviewWait"]
 						}
 					},
 					"required": [
@@ -24180,7 +24277,8 @@
 						"intervals",
 						"burnUpSeries",
 						"empty",
-						"chartLabel"
+						"chartLabel",
+						"report"
 					]
 				},
 				"filterBar": {
@@ -25237,9 +25335,41 @@
 								},
 								"viewAll": {
 									"type": "string"
+								},
+								"reasons": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"blocked": {
+											"type": "string"
+										},
+										"hiddenBlocker": {
+											"type": "string"
+										},
+										"cycle": {
+											"type": "string"
+										},
+										"priority": {
+											"type": "string"
+										},
+										"due": {
+											"type": "string"
+										},
+										"position": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"blocked",
+										"hiddenBlocker",
+										"cycle",
+										"priority",
+										"due",
+										"position"
+									]
 								}
 							},
-							"required": ["title", "viewAll"]
+							"required": ["title", "viewAll", "reasons"]
 						},
 						"doneThisWeek": {
 							"type": "object",
@@ -27378,6 +27508,15 @@
 								"targetDate": {
 									"type": "string"
 								},
+								"lastUpdate": {
+									"type": "string"
+								},
+								"nextMilestone": {
+									"type": "string"
+								},
+								"overdue": {
+									"type": "string"
+								},
 								"issues": {
 									"type": "string"
 								},
@@ -27391,9 +27530,30 @@
 								"priority",
 								"lead",
 								"targetDate",
+								"lastUpdate",
+								"nextMilestone",
+								"overdue",
 								"issues",
 								"status"
 							]
+						},
+						"updateAge_one": {
+							"type": "string"
+						},
+						"updateAge_zero": {
+							"type": "string"
+						},
+						"updateAge_two": {
+							"type": "string"
+						},
+						"updateAge_few": {
+							"type": "string"
+						},
+						"updateAge_many": {
+							"type": "string"
+						},
+						"updateAge_other": {
+							"type": "string"
 						},
 						"health": {
 							"type": "object",

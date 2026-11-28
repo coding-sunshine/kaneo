@@ -2248,7 +2248,15 @@
 				"assigned_one": "{{count}} assigned to you",
 				"assigned_other": "{{count}} assigned to you",
 				"title": "Up next",
-				"viewAll": "View all"
+				"viewAll": "View all",
+				"reasons": {
+					"blocked": "Blocked by {{issues}}",
+					"cycle": "In the current cycle",
+					"due": "Due soonest",
+					"position": "Next in manual order",
+					"priority": "{{priority}} priority",
+					"hiddenBlocker": "an issue you can't open"
+				}
 			},
 			"week": {
 				"more_few": "+{{count}} more",
@@ -2807,7 +2815,10 @@
 				"name": "Name",
 				"priority": "Priority",
 				"status": "Status",
-				"targetDate": "Target date"
+				"targetDate": "Target date",
+				"lastUpdate": "Last update",
+				"nextMilestone": "Next milestone",
+				"overdue": "Overdue"
 			},
 			"comments": {
 				"cancel": "Cancel",
@@ -2945,7 +2956,11 @@
 			"views": {
 				"list": "List",
 				"timeline": "Timeline"
-			}
+			},
+			"updateAge_few": "{{count}} days",
+			"updateAge_many": "{{count}} days",
+			"updateAge_one": "{{count}} day",
+			"updateAge_other": "{{count}} days"
 		},
 		"initiative": {
 			"create": {
@@ -7133,7 +7148,34 @@
 			"showArchived": "Show archived issues",
 			"slice": "Slice",
 			"title": "Insights",
-			"toggle": "Toggle insights"
+			"toggle": "Toggle insights",
+			"report": {
+				"aging": {
+					"age": "Age",
+					"empty": "No in-progress issue is older than its team's median cycle time.",
+					"issue": "Issue",
+					"teamMedian": "Team median",
+					"title": "Aging in progress"
+				},
+				"reviewWait": {
+					"empty": "Nothing is waiting for review.",
+					"summary_few": "{{count}} issues in review. Median wait {{median}} days, longest {{longest}} days.",
+					"summary_many": "{{count}} issues in review. Median wait {{median}} days, longest {{longest}} days.",
+					"summary_one": "{{count}} issue in review. Median wait {{median}} days, longest {{longest}} days.",
+					"summary_other": "{{count}} issues in review. Median wait {{median}} days, longest {{longest}} days.",
+					"title": "Review wait"
+				},
+				"throughput": {
+					"completed": "Completed",
+					"rollingMedian": "4-week rolling median",
+					"title": "Weekly throughput",
+					"week_few": "Week of {{week}}: {{count}} completed, rolling median {{median}}",
+					"week_many": "Week of {{week}}: {{count}} completed, rolling median {{median}}",
+					"week_one": "Week of {{week}}: {{count}} completed, rolling median {{median}}",
+					"week_other": "Week of {{week}}: {{count}} completed, rolling median {{median}}"
+				},
+				"title": "Team report"
+			}
 		},
 		"sla": {
 			"achieved": "Achieved",

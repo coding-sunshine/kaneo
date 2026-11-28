@@ -5826,7 +5826,30 @@
 			"hours_one": "{{count}} hour",
 			"hours_other": "{{count}} hours",
 			"empty": "No issues in this view",
-			"chartLabel": "{{measure}} by {{slice}}"
+			"chartLabel": "{{measure}} by {{slice}}",
+			"report": {
+				"title": "Team report",
+				"aging": {
+					"title": "Aging in progress",
+					"empty": "No in-progress issue is older than its team's median cycle time.",
+					"issue": "Issue",
+					"age": "Age",
+					"teamMedian": "Team median"
+				},
+				"throughput": {
+					"title": "Weekly throughput",
+					"completed": "Completed",
+					"rollingMedian": "4-week rolling median",
+					"week_one": "Week of {{week}}: {{count}} completed, rolling median {{median}}",
+					"week_other": "Week of {{week}}: {{count}} completed, rolling median {{median}}"
+				},
+				"reviewWait": {
+					"title": "Review wait",
+					"empty": "Nothing is waiting for review.",
+					"summary_one": "{{count}} issue in review. Median wait {{median}} days, longest {{longest}} days.",
+					"summary_other": "{{count}} issues in review. Median wait {{median}} days, longest {{longest}} days."
+				}
+			}
 		},
 		"filterBar": {
 			"label": "Active filters",
@@ -6069,7 +6092,15 @@
 				"title": "Up next",
 				"assigned_one": "{{count}} assigned to you",
 				"assigned_other": "{{count}} assigned to you",
-				"viewAll": "View all"
+				"viewAll": "View all",
+				"reasons": {
+					"blocked": "Blocked by {{issues}}",
+					"hiddenBlocker": "an issue you can't open",
+					"cycle": "In the current cycle",
+					"priority": "{{priority}} priority",
+					"due": "Due soonest",
+					"position": "Next in manual order"
+				}
 			},
 			"doneThisWeek": {
 				"title": "Done this week",
@@ -6591,9 +6622,14 @@
 				"priority": "Priority",
 				"lead": "Lead",
 				"targetDate": "Target date",
+				"lastUpdate": "Last update",
+				"nextMilestone": "Next milestone",
+				"overdue": "Overdue",
 				"issues": "Issues",
 				"status": "Status"
 			},
+			"updateAge_one": "{{count}} day",
+			"updateAge_other": "{{count}} days",
 			"health": {
 				"onTrack": "On track",
 				"atRisk": "At risk",

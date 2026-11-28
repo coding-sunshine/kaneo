@@ -15,7 +15,7 @@ export type BurnUpBucket = {
 
 const DAY = 86_400_000;
 
-function periodStart(ms: number, interval: BurnUpInterval) {
+export function periodStart(ms: number, interval: BurnUpInterval) {
   const d = new Date(ms);
   return interval === "month"
     ? Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1)

@@ -1422,6 +1422,17 @@
             ],
             "format": "date-time"
           },
+          "position": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "The task's manual position in its column."
+          },
+          "inCycle": {
+            "type": "boolean",
+            "description": "Whether the task is in its team's running cycle."
+          },
           "lastActivityAt": {
             "type": [
               "string",
@@ -1481,6 +1492,17 @@
             "items": {
               "$ref": "#/components/schemas/TaskLabel"
             }
+          },
+          "blockedBy": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Open tasks that block this one, as keys such as ENG-12. Blockers in teams you cannot open are left out."
+          },
+          "hasHiddenBlocker": {
+            "type": "boolean",
+            "description": "Whether an open task in a team you cannot open blocks this one. It says nothing about how many."
           }
         },
         "required": [
@@ -1493,6 +1515,8 @@
           "statusIcon",
           "priority",
           "dueDate",
+          "position",
+          "inCycle",
           "lastActivityAt",
           "lastActivityType",
           "reviewRequestedAt",
@@ -1502,7 +1526,9 @@
           "projectName",
           "projectSlug",
           "projectIcon",
-          "labels"
+          "labels",
+          "blockedBy",
+          "hasHiddenBlocker"
         ]
       },
       "DoneTasks": {
@@ -3183,6 +3209,38 @@
               "total",
               "done"
             ]
+          },
+          "lastUpdateAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the latest project update was posted. Null when none."
+          },
+          "nextMilestone": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "targetDate": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "name",
+              "targetDate"
+            ],
+            "description": "The earliest milestone with a target date of today or later. Null when none."
+          },
+          "overdueCount": {
+            "type": "integer",
+            "description": "Open issues in the project past their due date, among the teams you can open."
           }
         },
         "required": [
@@ -3207,7 +3265,10 @@
           "labelIds",
           "dependsOnIds",
           "dependentIds",
-          "progress"
+          "progress",
+          "lastUpdateAt",
+          "nextMilestone",
+          "overdueCount"
         ]
       },
       "WorkProjectUpdate": {

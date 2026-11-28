@@ -375,6 +375,12 @@ export const assignedTasksSchema = z
           statusIcon: z.string().nullable(),
           priority: z.string().openapi({ description: priorityDescription }),
           dueDate: nullableResponseTimestamp,
+          position: z.number().nullable().openapi({
+            description: "The task's manual position in its column.",
+          }),
+          inCycle: z.boolean().openapi({
+            description: "Whether the task is in its team's running cycle.",
+          }),
           lastActivityAt: nullableResponseTimestamp.openapi({
             description:
               "The caller's latest activity on the task. Set on the activity tab only.",
@@ -394,6 +400,14 @@ export const assignedTasksSchema = z
           projectSlug: z.string(),
           projectIcon: z.string().nullable(),
           labels: z.array(taskLabelSchema),
+          blockedBy: z.array(z.string()).openapi({
+            description:
+              "Open tasks that block this one, as keys such as ENG-12. Blockers in teams you cannot open are left out.",
+          }),
+          hasHiddenBlocker: z.boolean().openapi({
+            description:
+              "Whether an open task in a team you cannot open blocks this one. It says nothing about how many.",
+          }),
         })
         .openapi("AssignedTask"),
     ),
