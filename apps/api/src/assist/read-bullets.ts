@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { sourceId } from "./source-id";
 
 const bulletsSchema = z.object({
   bullets: z
@@ -32,7 +33,9 @@ export function readBullets(
   return parsed.data.bullets
     .map((bullet) => ({
       text: bullet.text,
-      sources: [...new Set(bullet.sources)].filter((id) => givenIds.has(id)),
+      sources: [...new Set(bullet.sources.map(sourceId))].filter((id) =>
+        givenIds.has(id),
+      ),
     }))
     .filter((bullet) => bullet.sources.length > 0);
 }

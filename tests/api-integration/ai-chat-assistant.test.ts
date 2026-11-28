@@ -431,4 +431,45 @@ describe("API integration: the assistant in chat", () => {
       expect.objectContaining({ feature: "chat-assistant", tokens: 50 }),
     ]);
   });
+  it("sums up an 8-message thread when the model cites messages as written in the transcript", async () => {
+    await turnOn();
+    const points = [
+      "We ship the EU retry on Friday.",
+      "Legal still has to approve the refund copy.",
+      "Card declines doubled after the bank change.",
+      "Ops will watch the decline dashboard.",
+      "The retry runs at most three times.",
+      "Support needs a macro for failed cards.",
+    ];
+    const ids = [rootId, replyId];
+    for (const text of points)
+      ids.push(await post(owner, channelId, text, rootId));
+    // The transcript shows each message as "[id] Name: body"; models answer
+    // with the id as they saw it.
+    model.queue.push(
+      answer(
+        [
+          { text: "The EU retry ships Friday.", sources: [`[${ids[2]}]`] },
+          { text: "Declines doubled.", sources: [` [${ids[4]}] `] },
+        ],
+        [
+          {
+            text: "Legal must approve the refund copy.",
+            sources: [`[${ids[3]}]`],
+          },
+        ],
+      ),
+    );
+    const [answered] = await ask("summarise this");
+    const sent = model.seen[0]?.at(-1)?.content ?? "";
+    expect(sent).toContain("Checkout fails for EU cards");
+    expect(sent).toContain("The retry still needs a decision.");
+    for (const text of points) expect(sent).toContain(text);
+    expect(answered?.body).not.toContain("found nothing");
+    expect(answered?.body).toContain("The EU retry ships Friday.");
+    expect(answered?.body).toContain("Declines doubled.");
+    expect(answered?.body).toContain("Legal must approve the refund copy.");
+    expect(answered?.body).toContain(`messageId=${ids[2]}`);
+    expect(answered?.body).not.toContain(`[${ids[2]}]`);
+  });
 });

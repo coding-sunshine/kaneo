@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { sourceId } from "../../assist/source-id";
 
 const MAX_ITEMS = 5;
 const MAX_SOURCES = 5;
@@ -43,7 +44,7 @@ export function readAssistantAnswer(
     list
       .map((item) => ({
         text: item.text,
-        sources: [...new Set(item.sources)]
+        sources: [...new Set(item.sources.map(sourceId))]
           .filter((id) => givenIds.has(id))
           .slice(0, MAX_SOURCES),
       }))
