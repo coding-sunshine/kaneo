@@ -29,6 +29,8 @@ import destinationRoutes from "./destination/destination-routes";
 import filterRoutes from "./filters/filter-routes";
 import summaryRoutes from "./summary/summary-routes";
 import triageRoutes from "./triage/triage-routes";
+import delegationRoutes from "./delegation/delegation-routes";
+import "./delegation/mention-events";
 import "./triage/triage-events";
 
 const noAccess = errorResponse("Missing permission for this workspace");
@@ -207,6 +209,7 @@ const routes = agent
   .route("/", destinationRoutes)
   .route("/", filterRoutes)
   .route("/", summaryRoutes)
-  .route("/", triageRoutes);
+  .route("/", triageRoutes)
+  .route("/", delegationRoutes);
 
 export default routes;

@@ -4473,7 +4473,8 @@
 					"model": "Model",
 					"project": "Project",
 					"health": "Health",
-					"update": "Update"
+					"update": "Update",
+					"agent": "Coding agent"
 				},
 				"keepField": "Apply {{field}}"
 			}
@@ -5991,6 +5992,19 @@
 			"fetchedAt": "Fetched {{time}}",
 			"refresh": "Refresh Figma preview",
 			"refreshError": "Could not refresh the Figma preview."
+		},
+		"delegation": {
+			"title": "Coding agent",
+			"action": "Delegate to {{name}}",
+			"notConfigured": "No coding agent is set up on this server. An admin can add one with CODING_AGENT_URL and CODING_AGENT_API_KEY.",
+			"pullRequest": "Pull request",
+			"status": {
+				"starting": "Starting",
+				"running": "Working",
+				"prOpened": "Pull request open",
+				"merged": "Merged",
+				"failed": "Failed"
+			}
 		}
 	},
 	"invitations": {

@@ -11,6 +11,7 @@ import useGetTaskRelations from "@/hooks/queries/task-relation/use-get-task-rela
 import { cn } from "@/lib/cn";
 import type { ExternalLink } from "@/types/external-link";
 import { TaskActivity } from "./task-activity";
+import { TaskDelegation } from "./task-delegation/task-delegation";
 import { TaskProposals } from "./task-proposals";
 import { TaskSummary } from "./task-summary/task-summary";
 import TaskArchivedBanner from "./task-archived-banner";
@@ -138,6 +139,8 @@ export default function TaskDetailsContent({
       {!isPeek && <TaskProposals workspaceId={workspaceId} taskId={taskId} />}
 
       {!isPeek && <TaskSummary workspaceId={workspaceId} taskId={taskId} />}
+
+      {!isPeek && <TaskDelegation workspaceId={workspaceId} taskId={taskId} />}
 
       {!isPeek && (
         <TaskActivity

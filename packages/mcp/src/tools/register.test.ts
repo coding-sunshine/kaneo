@@ -49,6 +49,22 @@ describe("registerTools", () => {
     );
   });
 
+  it("proposes a delegation card instead of starting the coding agent", async () => {
+    const { server, tools } = createServerMock();
+    const client = { json: vi.fn().mockResolvedValue({ id: "card-1" }) };
+
+    registerTools(server as never, { client: client as never });
+
+    await tools
+      .get("delegate_task_to_agent")
+      ?.handler({ workspaceId: "ws 1", taskId: "task/1" });
+
+    expect(client.json).toHaveBeenCalledWith(
+      "/api/agent/workspace/ws%201/tasks/task%2F1/delegate",
+      { method: "POST" },
+    );
+  });
+
   it("uses the API-key current-user endpoint for whoami", async () => {
     const { server, tools } = createServerMock();
     const client = {

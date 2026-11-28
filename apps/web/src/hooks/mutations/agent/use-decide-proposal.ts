@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { decideProposal } from "@/fetchers/agent/proposals";
 import { agentChatKey } from "@/hooks/queries/agent/use-agent";
 import { agentDraftsKey } from "@/hooks/queries/agent/use-agent-drafts";
+import { taskDelegationsKey } from "@/hooks/queries/agent/use-task-delegations";
 import { taskProposalsKey } from "@/hooks/queries/agent/use-task-proposals";
 import { aiAuditKey } from "@/hooks/queries/agent/use-ai-audit";
 
@@ -35,6 +36,9 @@ export function useDecideProposal(
                 queryKey: taskProposalsKey(workspaceId, taskId),
               }),
               queryClient.invalidateQueries({ queryKey: ["task", taskId] }),
+              queryClient.invalidateQueries({
+                queryKey: taskDelegationsKey(workspaceId, taskId),
+              }),
             ]
           : []),
         ...(chatId

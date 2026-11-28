@@ -475,6 +475,25 @@ export function registerTools(
   );
 
   registerTool(
+    "delegate_task_to_agent",
+    {
+      description:
+        "Propose handing a task to the server's coding agent. It puts a card on the task for you to accept in the app; nothing is sent to the agent before that.",
+      inputSchema: z.object({
+        workspaceId: nonEmptyString,
+        taskId: nonEmptyString,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/agent/workspace/${encodeURIComponent(args.workspaceId)}/tasks/${encodeURIComponent(args.taskId)}/delegate`,
+          { method: "POST" },
+        ),
+      ),
+  );
+
+  registerTool(
     "update_task_comment",
     {
       description: "Update one of your comments on a task.",

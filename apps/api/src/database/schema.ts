@@ -4194,6 +4194,49 @@ export const aiDestinationChangeTable = pgTable(
   ],
 );
 
+// A ticket handed to the server's coding agent after someone accepted the
+// delegation card. The agent reports back with the run's own token (kept here
+// only as a hash): a pull request it opened, the merge, or a failure. The task
+// id has no foreign key so the record outlives the ticket.
+export const codingAgentRunTable = pgTable(
+  "coding_agent_run",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    taskId: text("task_id").notNull(),
+    // The accepted delegation card; one run per card.
+    proposalId: text("proposal_id").notNull().unique(),
+    requestedBy: text("requested_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    agent: text("agent").notNull(),
+    status: text("status")
+      .$type<"starting" | "running" | "pr_opened" | "merged" | "failed">()
+      .default("starting")
+      .notNull(),
+    externalId: text("external_id"),
+    pullRequestUrl: text("pull_request_url"),
+    tokenHash: text("token_hash").notNull(),
+    error: text("error"),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("coding_agent_run_task_idx").on(table.taskId)],
+);
+
 // A team's AI triage settings: the guidance sent with each new triage ticket,
 // and whether the suggestion is applied without a person accepting it. No row
 // means no guidance and auto-apply off.

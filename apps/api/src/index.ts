@@ -2,6 +2,7 @@ import { brand } from "@kaneo/brand";
 import { startWebhookWorker } from "./admin/webhooks/start-webhook-worker";
 import { startWorkspaceWebhookWorker } from "./workspace-webhook/worker";
 import workspaceWebhook from "./workspace-webhook";
+import { handleCodingAgentCallback } from "./agent/delegation/run-callback";
 import workspaceExport from "./workspace-export";
 import integrationSync from "./integration-sync";
 import { syncWorkspaceAccess } from "./ws/workspace-access";
@@ -451,6 +452,9 @@ export function createApp() {
   api.route("/calendar-feed", publicCalendarFeed);
 
   api.post("/github-integration/webhook", handleGithubWebhookRoute);
+
+  // The coding agent reports on a run with that run's own token.
+  api.post("/coding-agent/runs/:runId/events", handleCodingAgentCallback);
 
   api.post(
     "/gitea-integration/webhook/:integrationId",
