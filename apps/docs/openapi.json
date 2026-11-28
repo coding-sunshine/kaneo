@@ -32706,7 +32706,7 @@
           "Chat"
         ],
         "summary": "Post message",
-        "description": "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline.",
+        "description": "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline. One person may post 20 messages per channel in 10 seconds, replies included.",
         "parameters": [
           {
             "schema": {
@@ -32802,7 +32802,14 @@
             }
           },
           "429": {
-            "$ref": "#/components/responses/ApiKeyRateLimited"
+            "description": "Too many messages in this channel at once; see the retry-after header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }

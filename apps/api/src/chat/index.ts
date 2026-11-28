@@ -320,7 +320,7 @@ const postMessageRoute = createRoute({
   tags,
   summary: "Post message",
   description:
-    "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline.",
+    "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline. One person may post 20 messages per channel in 10 seconds, replies included.",
   middleware: [...write] as const,
   request: { params: channelParam, body: body(postMessageBody) },
   responses: {
@@ -328,6 +328,9 @@ const postMessageRoute = createRoute({
     403: notMember,
     404: messageNotFound,
     409: archived,
+    429: errorResponse(
+      "Too many messages in this channel at once; see the retry-after header",
+    ),
   },
 });
 

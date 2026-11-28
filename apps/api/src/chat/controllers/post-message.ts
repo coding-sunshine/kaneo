@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import db from "../../database";
 import { chatMessageTable, chatThreadReplyTable } from "../../database/schema";
 import { publishEvent } from "../../events";
+import { assertCanPostMessage } from "../post-message-limit";
 import { syncMessageReferences } from "../mentions/sync-message-references";
 import { withMentions } from "../mentions/with-mentions";
 import { findThreadRoot } from "./find-thread-root";
@@ -17,6 +18,7 @@ export async function postMessage(
   replyTo?: string,
 ) {
   await loadChannel(workspaceId, channelId, userId, "post");
+  assertCanPostMessage(userId, channelId);
   const parentId = replyTo
     ? await findThreadRoot(channelId, replyTo)
     : undefined;
