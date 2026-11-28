@@ -270,6 +270,17 @@ export const mutedChannelSchema = z
   .object({ channelId: z.string(), muted: z.boolean() })
   .openapi("ChatChannelMute");
 
+export const typingBody = z.object({
+  typing: z.boolean().openapi({
+    description:
+      "True while you type; false when you stop or send. Readers forget it after a few seconds without a new one.",
+  }),
+});
+
+export const typingSchema = z
+  .object({ channelId: z.string(), typing: z.boolean() })
+  .openapi("ChatTyping");
+
 export const callSessionSchema = z
   .object({
     serverUrl: z

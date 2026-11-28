@@ -4734,7 +4734,10 @@
 			"mute": "Mute channel",
 			"unmute": "Unmute channel",
 			"mutedNotice": "Muted. Mentions and direct messages here stay out of your Inbox.",
-			"unmutedNotice": "Unmuted. Mentions and direct messages here reach your Inbox again."
+			"unmutedNotice": "Unmuted. Mentions and direct messages here reach your Inbox again.",
+			"typingOne": "{{name}} is typing…",
+			"typingTwo": "{{first}} and {{second}} are typing…",
+			"typingMany": "Several people are typing…"
 		},
 		"files": {
 			"title": "Files",

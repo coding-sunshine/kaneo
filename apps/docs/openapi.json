@@ -4141,6 +4141,21 @@
           "restricted"
         ]
       },
+      "ChatTyping": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string"
+          },
+          "typing": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "channelId",
+          "typing"
+        ]
+      },
       "ChatChannelMute": {
         "type": "object",
         "properties": {
@@ -34115,6 +34130,108 @@
           },
           "404": {
             "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/typing": {
+      "post": {
+        "operationId": "sendChatTyping",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Send typing",
+        "description": "Tell the people who have the channel open that you started or stopped typing. Only members who may post can send it. Nothing is stored.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "typing": {
+                    "type": "boolean",
+                    "description": "True while you type; false when you stop or send. Readers forget it after a few seconds without a new one."
+                  }
+                },
+                "required": [
+                  "typing"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Typing sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatTyping"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
             "content": {
               "application/json": {
                 "schema": {

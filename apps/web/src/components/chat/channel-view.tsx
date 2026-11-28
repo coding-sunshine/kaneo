@@ -2,6 +2,7 @@ import { ChannelFooter } from "@/components/chat/channel-footer";
 import { ChannelHeader } from "@/components/chat/channel-header";
 import { ChannelNotFound } from "@/components/chat/channel-not-found";
 import { MessageList } from "@/components/chat/message-list";
+import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { useAuth } from "@/components/providers/auth-provider/hooks/use-auth";
 import { useRemoveLinkPreview } from "@/hooks/mutations/chat/use-remove-link-preview";
 import { useChannel } from "@/hooks/queries/chat/use-channel";
@@ -13,6 +14,7 @@ import { useMarkChannelRead } from "@/hooks/use-mark-channel-read";
 import { useMemberStatuses } from "@/hooks/use-member-statuses";
 import { usePresenceHeartbeat } from "@/hooks/use-presence-heartbeat";
 import { useDirectMessageTitle } from "@/hooks/use-direct-message-title";
+import { useTypingUsers } from "@/hooks/use-typing-users";
 import { toast } from "@/lib/toast";
 
 /**
@@ -38,7 +40,13 @@ export function ChannelView({
   const removePreview = useRemoveLinkPreview(workspaceId, channelId);
   const titleOf = useDirectMessageTitle(workspaceId);
   const statuses = useMemberStatuses(workspaceId);
-  const live = useChatChannelSocket(workspaceId, channelId, Boolean(channel));
+  const { typing, onTyping } = useTypingUsers(channelId, user?.id);
+  const live = useChatChannelSocket(
+    workspaceId,
+    channelId,
+    Boolean(channel),
+    onTyping,
+  );
   const { data: messages = [] } = useMessages(
     workspaceId,
     channelId,
@@ -81,6 +89,7 @@ export function ChannelView({
           }
         />
       </div>
+      <TypingIndicator workspaceId={workspaceId} userIds={typing} />
       <ChannelFooter
         workspaceId={workspaceId}
         channel={channel}

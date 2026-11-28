@@ -27,10 +27,20 @@ export type UserBroadcast = {
   origin?: string;
 };
 
-/** Only says that a channel changed; clients refetch what they may read. */
+/**
+ * Says that a channel changed, so clients refetch what they may read, or that
+ * a member started or stopped typing in it. Typing is never stored.
+ */
+export type ChatBroadcastMessage = {
+  type: string;
+  channelId: string;
+  userId?: string;
+  typing?: boolean;
+};
+
 export type ChatBroadcast = {
   channelId: string;
-  message: { type: string; channelId: string };
+  message: ChatBroadcastMessage;
   origin?: string;
 };
 

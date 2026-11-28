@@ -43,6 +43,7 @@ import {
   finalizeChatFile,
 } from "./controllers/send-chat-file";
 import { saveDraft } from "./controllers/save-draft";
+import { sendTyping } from "./controllers/send-typing";
 import { startCall } from "./controllers/start-call";
 import { updateChannel } from "./controllers/update-channel";
 import { listOnline } from "./presence/list-online";
@@ -84,6 +85,8 @@ import {
   removedMemberSchema,
   saveDraftBody,
   ticketCommentBody,
+  typingBody,
+  typingSchema,
   updateChannelBody,
   workspaceIdParam,
 } from "./schema";
@@ -556,6 +559,24 @@ const markReadRoute = createRoute({
   },
 });
 
+const typingRoute = createRoute({
+  method: "post",
+  operationId: "sendChatTyping",
+  path: `${channelPath}/typing`,
+  tags,
+  summary: "Send typing",
+  description:
+    "Tell the people who have the channel open that you started or stopped typing. Only members who may post can send it. Nothing is stored.",
+  middleware: [...write] as const,
+  request: { params: channelParam, body: body(typingBody) },
+  responses: {
+    200: jsonResponse("Typing sent", typingSchema),
+    403: notMember,
+    404: notFound,
+    409: archived,
+  },
+});
+
 const muteRoute = createRoute({
   method: "put",
   operationId: "muteChatChannel",
@@ -1000,6 +1021,18 @@ const chat = apiRouter()
   .openapi(markReadRoute, async (c) => {
     const { workspaceId, channelId } = c.req.valid("param");
     return c.json(await markRead(workspaceId, channelId, c.get("userId")), 200);
+  })
+  .openapi(typingRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(
+      await sendTyping(
+        workspaceId,
+        channelId,
+        c.get("userId"),
+        c.req.valid("json").typing,
+      ),
+      200,
+    );
   })
   .openapi(muteRoute, async (c) => {
     const { workspaceId, channelId } = c.req.valid("param");

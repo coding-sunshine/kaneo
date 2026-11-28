@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { usePostMessage } from "@/hooks/mutations/chat/use-post-message";
 import { useSendChatFile } from "@/hooks/mutations/chat/use-send-chat-file";
 import { useChannelDraft } from "@/hooks/use-channel-draft";
+import { useTypingSignal } from "@/hooks/use-typing-signal";
 import { toast } from "@/lib/toast";
 
 type MessageComposerProps = {
@@ -29,6 +30,7 @@ export function MessageComposer({
   );
   const post = usePostMessage(workspaceId, channelId);
   const sendFile = useSendChatFile(workspaceId, channelId);
+  const typing = useTypingSignal(workspaceId, channelId);
   const busy = post.isPending || sendFile.isPending;
   // Set before the first await: isPending only turns true on a later render,
   // so without it every key press in between would post the message again.
@@ -38,6 +40,7 @@ export function MessageComposer({
     const text = body.trim();
     if (!text || busy || sending.current) return;
     sending.current = true;
+    typing.stop();
     try {
       await beforeSend();
     } catch {
@@ -58,6 +61,7 @@ export function MessageComposer({
 
   // The typed text goes with the files, as their one message.
   const attach = async (files: File[]) => {
+    typing.stop();
     await beforeSend();
     sendFile.mutate(
       { files, body: body.trim() || undefined },
@@ -87,7 +91,10 @@ export function MessageComposer({
         placeholder={t("navigation:chat.messagePlaceholder", {
           name: channelName,
         })}
-        onChange={(event) => setBody(event.target.value)}
+        onChange={(event) => {
+          setBody(event.target.value);
+          typing.typed(event.target.value);
+        }}
         onKeyDown={(event) => {
           if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();

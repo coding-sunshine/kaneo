@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getApiUrl } from "@/fetchers/get-api-url";
 import { channelKey } from "@/hooks/queries/chat/use-channel";
 import { messagesKey } from "@/hooks/queries/chat/use-messages";
@@ -16,16 +16,20 @@ const WS_PING_INTERVAL_MS = 30_000;
 
 /**
  * Watches one channel and refetches its messages when one is posted, edited,
- * pinned, reacted to, previewed or deleted.
- * Returns whether the socket is open, so callers poll only while it is not.
+ * pinned, reacted to, previewed or deleted, and passes on who starts or
+ * stops typing. Returns whether the socket is open, so callers poll only
+ * while it is not.
  */
 export function useChatChannelSocket(
   workspaceId: string,
   channelId: string,
   enabled: boolean,
+  onTyping?: (userId: string, typing: boolean) => void,
 ) {
   const queryClient = useQueryClient();
   const [live, setLive] = useState(false);
+  const typingListener = useRef(onTyping);
+  typingListener.current = onTyping;
 
   useEffect(() => {
     if (!enabled) return;
@@ -74,8 +78,12 @@ export function useChatChannelSocket(
           const message = JSON.parse(event.data as string) as {
             type?: string;
             channelId?: string;
+            userId?: string;
+            typing?: boolean;
           };
           if (message.channelId !== channelId) return;
+          if (message.type === "CHAT_TYPING" && message.userId)
+            typingListener.current?.(message.userId, Boolean(message.typing));
           if (message.type === "CHAT_MESSAGE_CREATED") refetchMessages();
           if (message.type === "CHAT_MESSAGE_UPDATED") {
             refetchMessages();

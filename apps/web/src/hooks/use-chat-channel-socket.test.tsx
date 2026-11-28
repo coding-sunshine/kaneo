@@ -165,4 +165,26 @@ describe("useChatChannelSocket", () => {
     act(() => vi.advanceTimersByTime(60_000));
     expect(TestSocket.instances).toHaveLength(1);
   });
+
+  it("passes typing in this channel to the listener, and nothing else", () => {
+    const onTyping = vi.fn();
+    renderHook(() => useChatChannelSocket("ws-1", "channel-1", true, onTyping));
+    act(() => latest().open());
+    const typing = (channelId: string, typing: boolean) =>
+      latest().onmessage?.({
+        data: JSON.stringify({
+          type: "CHAT_TYPING",
+          channelId,
+          userId: "user-a",
+          typing,
+        }),
+      });
+    act(() => typing("channel-2", true));
+    act(() => typing("channel-1", true));
+    act(() => typing("channel-1", false));
+    expect(onTyping.mock.calls).toEqual([
+      ["user-a", true],
+      ["user-a", false],
+    ]);
+  });
 });
