@@ -51,6 +51,20 @@ export const workProjectSchema = z
       description: "Projects that wait on this project.",
     }),
     progress,
+    lastUpdateAt: nullableResponseTimestamp.openapi({
+      description: "When the latest project update was posted. Null when none.",
+    }),
+    nextMilestone: z
+      .object({ name: z.string(), targetDate: responseTimestamp })
+      .nullable()
+      .openapi({
+        description:
+          "The earliest milestone with a target date of today or later. Null when none.",
+      }),
+    overdueCount: z.number().int().openapi({
+      description:
+        "Open issues in the project past their due date, among the teams you can open.",
+    }),
   })
   .openapi("WorkProject");
 

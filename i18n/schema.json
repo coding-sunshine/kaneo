@@ -13579,6 +13579,126 @@
 						"syncNowDescription",
 						"syncNowAction"
 					]
+				},
+				"peopleProfile": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"sectionTitle": {
+							"type": "string"
+						},
+						"sectionDescription": {
+							"type": "string"
+						},
+						"jobTitle": {
+							"type": "string"
+						},
+						"jobTitlePlaceholder": {
+							"type": "string"
+						},
+						"department": {
+							"type": "string"
+						},
+						"departmentPlaceholder": {
+							"type": "string"
+						},
+						"location": {
+							"type": "string"
+						},
+						"locationPlaceholder": {
+							"type": "string"
+						},
+						"timeZone": {
+							"type": "string"
+						},
+						"timeZoneNone": {
+							"type": "string"
+						},
+						"saveError": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"sectionTitle",
+						"sectionDescription",
+						"jobTitle",
+						"jobTitlePlaceholder",
+						"department",
+						"departmentPlaceholder",
+						"location",
+						"locationPlaceholder",
+						"timeZone",
+						"timeZoneNone",
+						"saveError"
+					]
+				},
+				"peopleStatus": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"sectionTitle": {
+							"type": "string"
+						},
+						"sectionDescription": {
+							"type": "string"
+						},
+						"text": {
+							"type": "string"
+						},
+						"textPlaceholder": {
+							"type": "string"
+						},
+						"outOfOffice": {
+							"type": "string"
+						},
+						"outOfOfficeHint": {
+							"type": "string"
+						},
+						"from": {
+							"type": "string"
+						},
+						"until": {
+							"type": "string"
+						},
+						"save": {
+							"type": "string"
+						},
+						"clear": {
+							"type": "string"
+						},
+						"saved": {
+							"type": "string"
+						},
+						"cleared": {
+							"type": "string"
+						},
+						"invalidRange": {
+							"type": "string"
+						},
+						"needsText": {
+							"type": "string"
+						},
+						"saveError": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"sectionTitle",
+						"sectionDescription",
+						"text",
+						"textPlaceholder",
+						"outOfOffice",
+						"outOfOfficeHint",
+						"from",
+						"until",
+						"save",
+						"clear",
+						"saved",
+						"cleared",
+						"invalidRange",
+						"needsText",
+						"saveError"
+					]
 				}
 			},
 			"required": [
@@ -13650,7 +13770,9 @@
 				"projectSla",
 				"projectTriage",
 				"adminBackups",
-				"calendarSync"
+				"calendarSync",
+				"peopleProfile",
+				"peopleStatus"
 			]
 		},
 		"navigation": {
@@ -13883,6 +14005,9 @@
 						},
 						"chat": {
 							"type": "string"
+						},
+						"people": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -13920,7 +14045,8 @@
 						"pulse",
 						"teams",
 						"drafts",
-						"chat"
+						"chat",
+						"people"
 					]
 				},
 				"projectList": {
@@ -27172,6 +27298,15 @@
 								"targetDate": {
 									"type": "string"
 								},
+								"lastUpdate": {
+									"type": "string"
+								},
+								"nextMilestone": {
+									"type": "string"
+								},
+								"overdue": {
+									"type": "string"
+								},
 								"issues": {
 									"type": "string"
 								},
@@ -27185,9 +27320,30 @@
 								"priority",
 								"lead",
 								"targetDate",
+								"lastUpdate",
+								"nextMilestone",
+								"overdue",
 								"issues",
 								"status"
 							]
+						},
+						"updateAge_one": {
+							"type": "string"
+						},
+						"updateAge_zero": {
+							"type": "string"
+						},
+						"updateAge_two": {
+							"type": "string"
+						},
+						"updateAge_few": {
+							"type": "string"
+						},
+						"updateAge_many": {
+							"type": "string"
+						},
+						"updateAge_other": {
+							"type": "string"
 						},
 						"health": {
 							"type": "object",
@@ -28528,6 +28684,58 @@
 						"privateTeamsLabel",
 						"privateTeamsHint"
 					]
+				},
+				"people": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"pageTitle": {
+							"type": "string"
+						},
+						"searchLabel": {
+							"type": "string"
+						},
+						"searchPlaceholder": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "string"
+						},
+						"outOfOffice": {
+							"type": "string"
+						},
+						"outOfOfficeRange": {
+							"type": "string"
+						},
+						"assignedOutOfOffice": {
+							"type": "string"
+						},
+						"jobTitle": {
+							"type": "string"
+						},
+						"department": {
+							"type": "string"
+						},
+						"location": {
+							"type": "string"
+						},
+						"timeZone": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"pageTitle",
+						"searchLabel",
+						"searchPlaceholder",
+						"empty",
+						"outOfOffice",
+						"outOfOfficeRange",
+						"assignedOutOfOffice",
+						"jobTitle",
+						"department",
+						"location",
+						"timeZone"
+					]
 				}
 			},
 			"required": [
@@ -28537,7 +28745,8 @@
 				"invitations",
 				"inviteModal",
 				"membersTable",
-				"projectAccess"
+				"projectAccess",
+				"people"
 			]
 		},
 		"publicProject": {

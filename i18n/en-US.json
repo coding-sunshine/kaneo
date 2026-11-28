@@ -6571,9 +6571,14 @@
 				"priority": "Priority",
 				"lead": "Lead",
 				"targetDate": "Target date",
+				"lastUpdate": "Last update",
+				"nextMilestone": "Next milestone",
+				"overdue": "Overdue",
 				"issues": "Issues",
 				"status": "Status"
 			},
+			"updateAge_one": "{{count}} day",
+			"updateAge_other": "{{count}} days",
 			"health": {
 				"onTrack": "On track",
 				"atRisk": "At risk",

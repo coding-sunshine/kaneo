@@ -14,6 +14,8 @@ import { WorkProjectHealth } from "./work-project-health";
 import { WorkProjectIcon } from "./work-project-icon";
 import { WorkProjectStatusIcon } from "./work-project-status-icon";
 
+const DAY = 86_400_000;
+
 type Lead = { name?: string | null; image?: string | null } | undefined;
 
 type WorkProjectRowProps = {
@@ -29,6 +31,7 @@ export function WorkProjectRow({
 }: WorkProjectRowProps) {
   const { t } = useTranslation();
   const percent = progressPercent(project.progress);
+  const milestone = project.nextMilestone;
 
   return (
     <Link
@@ -64,6 +67,32 @@ export function WorkProjectRow({
       </span>
       <span className="text-muted-foreground text-xs">
         {project.targetDate ? formatDateShort(project.targetDate) : ""}
+      </span>
+      <span
+        data-testid="work-project-update-age"
+        className="text-muted-foreground text-xs tabular-nums"
+      >
+        {project.lastUpdateAt
+          ? t("workspace:workProject.updateAge", {
+              count: Math.floor(
+                (Date.now() - Date.parse(project.lastUpdateAt)) / DAY,
+              ),
+            })
+          : ""}
+      </span>
+      <span
+        data-testid="work-project-next-milestone"
+        className="truncate text-muted-foreground text-xs"
+      >
+        {milestone
+          ? `${milestone.name} · ${formatDateShort(milestone.targetDate)}`
+          : ""}
+      </span>
+      <span
+        data-testid="work-project-overdue"
+        className="text-right text-muted-foreground tabular-nums"
+      >
+        {project.overdueCount}
       </span>
       <span className="text-right text-muted-foreground tabular-nums">
         {project.progress.total}

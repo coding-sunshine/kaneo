@@ -29,6 +29,9 @@ const COLUMNS = [
   "priority",
   "lead",
   "targetDate",
+  "lastUpdate",
+  "nextMilestone",
+  "overdue",
   "issues",
   "status",
 ] as const;
@@ -128,7 +131,11 @@ export function WorkProjectList({ workspaceId, teamId }: WorkProjectListProps) {
         {COLUMNS.map((column) => (
           <span
             key={column}
-            className={column === "issues" ? "text-right" : undefined}
+            className={
+              column === "issues" || column === "overdue"
+                ? "text-right"
+                : undefined
+            }
           >
             {t(`workspace:workProject.columns.${column}`)}
           </span>

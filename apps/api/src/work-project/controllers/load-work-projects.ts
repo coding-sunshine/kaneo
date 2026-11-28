@@ -23,6 +23,7 @@ import {
 import { workProjectDocumentAccess } from "../../document/visibility";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
 import { listProjectLinks } from "./work-project-links";
+import { loadPortfolioSignals } from "./portfolio-signals";
 
 // Linear's progress: completed issues out of all issues, canceled ones excluded.
 const countedTasks = and(
@@ -87,37 +88,39 @@ export async function loadWorkProjects(
   const ids = rows.map((row) => row.id);
   if (ids.length === 0) return [];
 
-  const [teams, members, labels, dependencies, progress] = await Promise.all([
-    db
-      .select()
-      .from(workProjectTeamTable)
-      // A team the reader cannot open is not named.
-      .where(
-        and(
-          inArray(workProjectTeamTable.workProjectId, ids),
-          projectAccessCondition(userId, workProjectTeamTable.projectId),
+  const [teams, members, labels, dependencies, progress, signals] =
+    await Promise.all([
+      db
+        .select()
+        .from(workProjectTeamTable)
+        // A team the reader cannot open is not named.
+        .where(
+          and(
+            inArray(workProjectTeamTable.workProjectId, ids),
+            projectAccessCondition(userId, workProjectTeamTable.projectId),
+          ),
         ),
-      ),
-    db
-      .select()
-      .from(workProjectMemberTable)
-      .where(inArray(workProjectMemberTable.workProjectId, ids)),
-    db
-      .select()
-      .from(workProjectLabelTable)
-      .where(inArray(workProjectLabelTable.workProjectId, ids)),
-    db
-      .select()
-      .from(workProjectDependencyTable)
-      .where(
-        or(
-          inArray(workProjectDependencyTable.workProjectId, ids),
-          inArray(workProjectDependencyTable.dependsOnId, ids),
-        ),
-      )
-      .orderBy(asc(workProjectDependencyTable.createdAt)),
-    progressBy(taskTable.workProjectId, ids, userId),
-  ]);
+      db
+        .select()
+        .from(workProjectMemberTable)
+        .where(inArray(workProjectMemberTable.workProjectId, ids)),
+      db
+        .select()
+        .from(workProjectLabelTable)
+        .where(inArray(workProjectLabelTable.workProjectId, ids)),
+      db
+        .select()
+        .from(workProjectDependencyTable)
+        .where(
+          or(
+            inArray(workProjectDependencyTable.workProjectId, ids),
+            inArray(workProjectDependencyTable.dependsOnId, ids),
+          ),
+        )
+        .orderBy(asc(workProjectDependencyTable.createdAt)),
+      progressBy(taskTable.workProjectId, ids, userId),
+      loadPortfolioSignals(ids, userId),
+    ]);
 
   return rows.map((row) => ({
     ...row,
@@ -137,6 +140,7 @@ export async function loadWorkProjects(
       .filter((d) => d.dependsOnId === row.id)
       .map((d) => d.workProjectId),
     progress: progress.get(row.id) ?? noProgress,
+    ...signals(row.id),
   }));
 }
 

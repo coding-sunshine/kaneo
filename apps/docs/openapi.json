@@ -3183,6 +3183,38 @@
               "total",
               "done"
             ]
+          },
+          "lastUpdateAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the latest project update was posted. Null when none."
+          },
+          "nextMilestone": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "targetDate": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "name",
+              "targetDate"
+            ],
+            "description": "The earliest milestone with a target date of today or later. Null when none."
+          },
+          "overdueCount": {
+            "type": "integer",
+            "description": "Open issues in the project past their due date, among the teams you can open."
           }
         },
         "required": [
@@ -3207,7 +3239,10 @@
           "labelIds",
           "dependsOnIds",
           "dependentIds",
-          "progress"
+          "progress",
+          "lastUpdateAt",
+          "nextMilestone",
+          "overdueCount"
         ]
       },
       "WorkProjectUpdate": {

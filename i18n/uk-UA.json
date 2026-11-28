@@ -6839,7 +6839,10 @@
 				"name": "Name",
 				"priority": "Priority",
 				"status": "Status",
-				"targetDate": "Target date"
+				"targetDate": "Target date",
+				"lastUpdate": "Last update",
+				"nextMilestone": "Next milestone",
+				"overdue": "Overdue"
 			},
 			"comments": {
 				"cancel": "Cancel",
@@ -6977,7 +6980,11 @@
 			"views": {
 				"list": "List",
 				"timeline": "Timeline"
-			}
+			},
+			"updateAge_few": "{{count}} days",
+			"updateAge_many": "{{count}} days",
+			"updateAge_one": "{{count}} day",
+			"updateAge_other": "{{count}} days"
 		},
 		"initiative": {
 			"create": {
