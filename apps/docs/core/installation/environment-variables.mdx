@@ -156,7 +156,7 @@ Name | Description | Default |
 
 ### Mobile push
 
-The mobile app can get a push for each new chat message in channels the person belongs to. Tapping it opens the channel. iOS pushes go through Apple Push Notification service with a key from an Apple Developer account; Android pushes go through Firebase Cloud Messaging with a service account key. Each platform stays off until its key is set: the API logs that once, the app says so on its Account screen, and phones keep the background check every 15 minutes. A phone is registered against the sign-in session, so signing out or revoking that session stops its pushes. The lock screen shows the channel, the author and the start of the message, which pass through Apple or Google.
+The mobile app gets a push when someone mentions the person in a channel they can read or sends them a direct message, the same messages that reach their Inbox. Plain channel messages and muted channels push nothing. Tapping a push opens that message. Each delivery writes one info line to the API log with the platform, device id and message id, never the token or the text. iOS pushes go through Apple Push Notification service with a key from an Apple Developer account; Android pushes go through Firebase Cloud Messaging with a service account key. Each platform stays off until its key is set: the API logs that once, the app says so on its Account screen, and phones keep the background check every 15 minutes. A phone is registered against the sign-in session, so signing out or revoking that session stops its pushes. The lock screen shows the channel, the author and the start of the message, which pass through Apple or Google.
 
 Name | Description | Default |
 --- | --- | --- |

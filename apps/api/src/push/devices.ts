@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import db from "../database";
 import { pushDeviceTable } from "../database/schema";
 
@@ -35,4 +35,17 @@ export async function unregisterDevice(userId: string, token: string) {
     )
     .returning({ id: pushDeviceTable.id });
   return removed.length > 0;
+}
+
+/** Your registered phones and browsers. Tokens stay on the server. */
+export function listDevices(userId: string) {
+  return db
+    .select({
+      id: pushDeviceTable.id,
+      platform: pushDeviceTable.platform,
+      createdAt: pushDeviceTable.createdAt,
+    })
+    .from(pushDeviceTable)
+    .where(eq(pushDeviceTable.userId, userId))
+    .orderBy(asc(pushDeviceTable.createdAt));
 }

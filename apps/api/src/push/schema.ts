@@ -81,3 +81,16 @@ export const unregisteredDeviceSchema = z
     }),
   })
   .openapi("PushDeviceRemoval");
+
+export const pushDeviceListSchema = z
+  .array(
+    z.object({
+      id: z.string(),
+      platform: z.enum(["ios", "android", "web"]),
+      delivering: z.boolean().openapi({
+        description: "Whether this server can push to the platform now.",
+      }),
+      createdAt: z.string(),
+    }),
+  )
+  .openapi("PushDeviceList");

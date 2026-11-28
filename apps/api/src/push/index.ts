@@ -6,9 +6,10 @@ import {
   jsonResponse,
 } from "../openapi";
 import { requireUserSession } from "../utils/require-user-session";
-import { registerDevice, unregisterDevice } from "./devices";
+import { listDevices, registerDevice, unregisterDevice } from "./devices";
 import { logPushOffOnce } from "./push-config";
 import {
+  pushDeviceListSchema,
   registerDeviceBody,
   registeredDeviceSchema,
   unregisterDeviceBody,
@@ -35,7 +36,7 @@ const registerRoute = createRoute({
   tags,
   summary: "Register a phone or browser for chat pushes",
   description:
-    "Store this app install's native push token, or this browser's push subscription, for your sign-in, so chat messages reach the device. Signing out or revoking the session drops it. Requires a user session; API keys are rejected.",
+    "Store this app install's native push token, or this browser's push subscription, for your sign-in, so mentions and direct messages reach the device. Signing out or revoking the session drops it. Requires a user session; API keys are rejected.",
   middleware: [requireUserSession] as const,
   request: { body: body(registerDeviceBody) },
   responses: {
@@ -78,6 +79,22 @@ const webKeyRoute = createRoute({
   },
 });
 
+const listRoute = createRoute({
+  method: "get",
+  operationId: "listPushDevices",
+  path: "/devices",
+  tags,
+  summary: "List your phones and browsers that get chat pushes",
+  description:
+    "Your registered push devices, oldest first, without their tokens. Requires a user session; API keys are rejected.",
+  middleware: [requireUserSession] as const,
+  responses: {
+    200: jsonResponse("Your devices", pushDeviceListSchema),
+    401: unauthorized,
+    403: sessionOnly,
+  },
+});
+
 const push = apiRouter()
   .openapi(registerRoute, async (c) => {
     const body = c.req.valid("json");
@@ -96,6 +113,18 @@ const push = apiRouter()
       "token" in body ? body.token : webPushToken(body.subscription);
     return c.json(
       { removed: await unregisterDevice(c.get("userId"), token) },
+      200,
+    );
+  })
+  .openapi(listRoute, async (c) => {
+    const devices = await listDevices(c.get("userId"));
+    return c.json(
+      devices.map((device) => ({
+        id: device.id,
+        platform: device.platform,
+        delivering: pushSender(device.platform) !== null,
+        createdAt: device.createdAt.toISOString(),
+      })),
       200,
     );
   })

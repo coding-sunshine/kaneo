@@ -12313,6 +12313,38 @@
           "removed"
         ]
       },
+      "PushDeviceList": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "platform": {
+              "type": "string",
+              "enum": [
+                "ios",
+                "android",
+                "web"
+              ]
+            },
+            "delivering": {
+              "type": "boolean",
+              "description": "Whether this server can push to the platform now."
+            },
+            "createdAt": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "platform",
+            "delivering",
+            "createdAt"
+          ]
+        }
+      },
       "WebPushKey": {
         "type": "object",
         "properties": {
@@ -60438,7 +60470,7 @@
           "Push"
         ],
         "summary": "Register a phone or browser for chat pushes",
-        "description": "Store this app install's native push token, or this browser's push subscription, for your sign-in, so chat messages reach the device. Signing out or revoking the session drops it. Requires a user session; API keys are rejected.",
+        "description": "Store this app install's native push token, or this browser's push subscription, for your sign-in, so mentions and direct messages reach the device. Signing out or revoking the session drops it. Requires a user session; API keys are rejected.",
         "requestBody": {
           "required": true,
           "content": {
@@ -60632,6 +60664,51 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PushDeviceRemoval"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated with an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/push/devices": {
+      "get": {
+        "operationId": "listPushDevices",
+        "tags": [
+          "Push"
+        ],
+        "summary": "List your phones and browsers that get chat pushes",
+        "description": "Your registered push devices, oldest first, without their tokens. Requires a user session; API keys are rejected.",
+        "responses": {
+          "200": {
+            "description": "Your devices",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushDeviceList"
                 }
               }
             }
