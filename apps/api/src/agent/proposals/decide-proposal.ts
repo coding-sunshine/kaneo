@@ -8,7 +8,11 @@ import { buildAgentTools, CHAT_WRITE_TOOLS } from "../tools";
 import { workProjectName } from "./create-proposal";
 import { currentTeam } from "./current-team";
 import { keepFields } from "./keep-fields";
+import { notifyDigestPosted } from "../digest/notify-digest";
+import { POST_DIGEST_TOOL } from "../digest/digest-tool";
 import { PROJECT_UPDATE_TOOL } from "./project-update-tool";
+
+const POSTS_UPDATE: readonly string[] = [PROJECT_UPDATE_TOOL, POST_DIGEST_TOOL];
 
 // A drafted project update needs its project still in the workspace.
 async function currentProject(workspaceId: string, id: string) {
@@ -100,7 +104,7 @@ export async function acceptProposalAs(
   const projectId =
     pending.status !== "pending"
       ? undefined
-      : pending.tool === PROJECT_UPDATE_TOOL
+      : POSTS_UPDATE.includes(pending.tool)
         ? await currentProject(workspaceId, pending.projectId)
         : await currentTeam(userId, workspaceId, pending);
   const kept = keepFields(pending, fields);
@@ -131,6 +135,9 @@ export async function acceptProposalAs(
     })
     .where(eq(agentProposalTable.id, row.id))
     .returning();
+  if (!outcome.isError && row.tool === POST_DIGEST_TOOL) {
+    await notifyDigestPosted(workspaceId, row.projectId, userId);
+  }
   return done ?? row;
 }
 

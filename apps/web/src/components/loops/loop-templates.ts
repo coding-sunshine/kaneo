@@ -31,7 +31,8 @@ export type LoopAction =
   | "update_task_status"
   | "update_task_assignee"
   | "create_task_comment"
-  | "create_project_update";
+  | "create_project_update"
+  | "draft_weekly_digest";
 export const LOOP_ACTIONS: LoopAction[] = [
   "create_task_comment",
   "update_task",
@@ -39,6 +40,7 @@ export const LOOP_ACTIONS: LoopAction[] = [
   "update_task_assignee",
   "create_task",
   "create_project_update",
+  "draft_weekly_digest",
 ];
 export type LoopCategory =
   | "featured"
@@ -79,6 +81,15 @@ export type LoopTemplate = {
 // Copy (title, description, action, instructions) lives under
 // navigation:loops.templates.<id>.
 export const LOOP_TEMPLATES: LoopTemplate[] = [
+  {
+    id: "digest",
+    icon: CalendarDays,
+    iconClass: "text-emerald-500",
+    categories: ["featured", "reporting"],
+    actions: ["draft_weekly_digest"],
+    trigger: "schedule",
+    frequency: "weekly",
+  },
   {
     id: "autofix",
     icon: Bug,

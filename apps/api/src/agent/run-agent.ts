@@ -33,7 +33,7 @@ const PROPOSAL_INSTRUCTION =
   "Write tools do not change anything: each call becomes a proposal card the user accepts or declines. Give every write a reason, and its sources. Propose only what the user asked for in their own message, at most one change per ticket; use change_task to set a ticket's priority and labels together. Never say a change is done: say it waits for the user to accept it.";
 
 const DRAFT_INSTRUCTION =
-  "create_project_update does not post anything: it becomes a draft on Pulse that a person accepts or declines. Give it a reason. Never say the update is posted.";
+  "create_project_update and draft_weekly_digest do not post anything: each becomes a draft on Pulse that a person accepts or declines. Give it a reason. Never say the update is posted. For the weekly digest, read the week's tickets and name each under exactly one section by its id; the server writes the headings and links.";
 
 function systemPrompt(workspaceId: string, options: AgentOptions) {
   const { unattended, cite, propose, proposeOnly } = options;

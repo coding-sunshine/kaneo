@@ -4522,7 +4522,8 @@
 				"update_task_status": "Change status",
 				"update_task_assignee": "Assign",
 				"create_task": "Create issue",
-				"create_project_update": "Draft project update"
+				"create_project_update": "Draft project update",
+				"draft_weekly_digest": "Draft weekly digest"
 			},
 			"permissionNote": "Each run uses your permissions at the time it runs, limited to the changes above.",
 			"save": "Save loop",
@@ -4603,6 +4604,12 @@
 					"description": "Raises issue priority when duplicate reports or customer requests reach a chosen threshold.",
 					"action": "Raise priority",
 					"instructions": "Find open issues that have three or more duplicate reports or related requests. Raise their priority one level and add a comment explaining why."
+				},
+				"digest": {
+					"title": "Weekly digest",
+					"description": "Drafts a weekly digest for leadership: what shipped, what is at risk, what needs a decision and what is blocked, with a link to every issue.",
+					"action": "Draft the digest",
+					"instructions": "Review the issues updated in the last 7 days. Put each one under shipped, at risk, needs decision or blocked, with a short note, and draft the weekly digest for the company-wide project. Leave out anything that fits none of them."
 				}
 			}
 		},
@@ -4857,6 +4864,10 @@
 			"document_inbox_waiting": {
 				"title": "Waiting in the Inbox for three days",
 				"content": "{{documentTitle}} has no topic yet"
+			},
+			"weekly_digest": {
+				"title": "Weekly digest posted",
+				"content": "The weekly digest for {{projectName}} is ready to read."
 			}
 		},
 		"inbox": {

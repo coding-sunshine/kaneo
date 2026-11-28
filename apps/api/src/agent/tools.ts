@@ -20,6 +20,16 @@ import {
   projectUpdateSchema,
 } from "./proposals/project-update-tool";
 import {
+  DIGEST_DESCRIPTION,
+  DIGEST_TOOL,
+  digestSchema,
+  POST_DIGEST_DESCRIPTION,
+  POST_DIGEST_TOOL,
+  postDigest,
+  postDigestSchema,
+  refuseDigestRun,
+} from "./digest/digest-tool";
+import {
   DELEGATE_DESCRIPTION,
   DELEGATE_TOOL,
   delegateTaskSchema,
@@ -44,25 +54,34 @@ export const WRITE_TOOLS = [
   "update_task_assignee",
   "create_task_comment",
   PROJECT_UPDATE_TOOL,
+  DIGEST_TOOL,
 ] as const;
 // Writes that are only ever proposed: they run when a person accepts them.
-const ALWAYS_PROPOSED: readonly string[] = [PROJECT_UPDATE_TOOL];
+export const ALWAYS_PROPOSED: readonly string[] = [
+  PROJECT_UPDATE_TOOL,
+  DIGEST_TOOL,
+];
 // The writes offered when none are named: a project update is opt-in.
 const DEFAULT_WRITES = WRITE_TOOLS.filter(
   (name) => !ALWAYS_PROPOSED.includes(name),
 );
 // Writes only a feature proposes (never the model in a chat or loop).
-const FEATURE_WRITES: readonly string[] = [TRIAGE_TOOL, DELEGATE_TOOL];
+const FEATURE_WRITES: readonly string[] = [
+  TRIAGE_TOOL,
+  DELEGATE_TOOL,
+  POST_DIGEST_TOOL,
+];
 // Every write a proposal can hold: change_task sets priority and labels.
 export const CHAT_WRITE_TOOLS = [
   ...WRITE_TOOLS,
   "change_task",
   TRIAGE_TOOL,
   DELEGATE_TOOL,
+  POST_DIGEST_TOOL,
 ] as const;
-// The writes a chat offers: a project update is drafted by loops only.
+// The writes a chat offers: project updates and digests are drafted by loops.
 export const CHAT_OFFERED_WRITES = CHAT_WRITE_TOOLS.filter(
-  (name) => name !== PROJECT_UPDATE_TOOL && !FEATURE_WRITES.includes(name),
+  (name) => !ALWAYS_PROPOSED.includes(name) && !FEATURE_WRITES.includes(name),
 );
 
 export type ProposeRequest = {
@@ -190,6 +209,10 @@ export function buildAgentTools(
     LIST_WORK_PROJECTS_DESCRIPTION,
     listWorkProjectsSchema,
     (args) => listWorkProjects(client, args),
+  );
+  local(DIGEST_TOOL, DIGEST_DESCRIPTION, digestSchema, refuseDigestRun);
+  local(POST_DIGEST_TOOL, POST_DIGEST_DESCRIPTION, postDigestSchema, (args) =>
+    postDigest(client, args),
   );
   local(
     PROJECT_UPDATE_TOOL,

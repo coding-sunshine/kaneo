@@ -1,8 +1,9 @@
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import db from "../../database";
 import { agentProposalTable } from "../../database/schema";
 import { resolveCitations } from "../resolve-citations";
 import { isSelectable } from "./keep-fields";
+import { POST_DIGEST_TOOL } from "../digest/digest-tool";
 import { PROJECT_UPDATE_TOOL } from "./project-update-tool";
 
 type Row = typeof agentProposalTable.$inferSelect;
@@ -49,7 +50,10 @@ export async function pendingDrafts(reader: Reader) {
       and(
         eq(agentProposalTable.workspaceId, reader.workspaceId),
         eq(agentProposalTable.userId, reader.userId),
-        eq(agentProposalTable.tool, PROJECT_UPDATE_TOOL),
+        inArray(agentProposalTable.tool, [
+          PROJECT_UPDATE_TOOL,
+          POST_DIGEST_TOOL,
+        ]),
         eq(agentProposalTable.status, "pending"),
       ),
     )

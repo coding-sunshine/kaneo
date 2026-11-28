@@ -5203,10 +5203,11 @@
                 "update_task_status",
                 "update_task_assignee",
                 "create_task_comment",
-                "create_project_update"
+                "create_project_update",
+                "draft_weekly_digest"
               ]
             },
-            "maxItems": 6
+            "maxItems": 7
           },
           "trigger": {
             "type": "string",
@@ -5322,10 +5323,11 @@
                 "update_task_status",
                 "update_task_assignee",
                 "create_task_comment",
-                "create_project_update"
+                "create_project_update",
+                "draft_weekly_digest"
               ]
             },
-            "maxItems": 6,
+            "maxItems": 7,
             "default": []
           }
         },
@@ -37062,10 +37064,11 @@
                         "update_task_status",
                         "update_task_assignee",
                         "create_task_comment",
-                        "create_project_update"
+                        "create_project_update",
+                        "draft_weekly_digest"
                       ]
                     },
-                    "maxItems": 6
+                    "maxItems": 7
                   },
                   "enabled": {
                     "type": "boolean"
@@ -37269,10 +37272,11 @@
                         "update_task_status",
                         "update_task_assignee",
                         "create_task_comment",
-                        "create_project_update"
+                        "create_project_update",
+                        "draft_weekly_digest"
                       ]
                     },
-                    "maxItems": 6,
+                    "maxItems": 7,
                     "default": []
                   }
                 },
