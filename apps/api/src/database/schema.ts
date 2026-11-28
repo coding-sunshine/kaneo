@@ -13,6 +13,7 @@ import {
   jsonb,
   pgTable,
   primaryKey,
+  real,
   serial,
   text,
   timestamp,
@@ -3966,6 +3967,43 @@ export const aiCatchUpPreferenceTable = pgTable(
       .notNull(),
   },
   (table) => [primaryKey({ columns: [table.workspaceId, table.userId] })],
+);
+
+// The embedding of one message, ticket or document for semantic search. Each
+// row goes with its source by cascade, so a deleted source leaves results at
+// once. `contentHash` is the md5 of the embedded text: a changed source is
+// embedded again. Messages of channels marked no AI and direct messages are
+// never embedded. ponytail: real[] scored in SQL; pgvector replaces it.
+export const semanticChunkTable = pgTable(
+  "semantic_chunk",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    messageId: text("message_id").references(() => chatMessageTable.id, {
+      onDelete: "cascade",
+    }),
+    taskId: text("task_id").references(() => taskTable.id, {
+      onDelete: "cascade",
+    }),
+    documentId: text("document_id").references(() => documentTable.id, {
+      onDelete: "cascade",
+    }),
+    contentHash: text("content_hash").notNull(),
+    embedding: real("embedding").array().notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("semantic_chunk_workspace_idx").on(table.workspaceId),
+    uniqueIndex("semantic_chunk_message_idx").on(table.messageId),
+    uniqueIndex("semantic_chunk_task_idx").on(table.taskId),
+    uniqueIndex("semantic_chunk_document_idx").on(table.documentId),
+  ],
 );
 
 // A channel someone muted: its mentions and direct messages stop reaching

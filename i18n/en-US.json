@@ -6133,7 +6133,15 @@
 			"suggestionFeature": "Feature",
 			"suggestionInProgress": "In progress",
 			"suggestionCompleted": "Completed",
-			"directMessage": "Direct message"
+			"directMessage": "Direct message",
+			"semantic": {
+				"title": "Answer by meaning",
+				"ask": "Ask by meaning",
+				"running": "Searching by meaning…",
+				"off": "Search by meaning is off on this server. An admin can turn it on with an embedding key.",
+				"noAnswer": "No answer, but these matches came close.",
+				"matches": "Closest matches"
+			}
 		},
 		"create": {
 			"pageTitle": "Create Workspace",

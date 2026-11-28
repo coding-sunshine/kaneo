@@ -1,7 +1,11 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { loadChannel } from "../chat/controllers/load-channel";
 import db from "../database";
-import { chatChannelAiExclusionTable } from "../database/schema";
+import {
+  chatChannelAiExclusionTable,
+  chatMessageTable,
+  semanticChunkTable,
+} from "../database/schema";
 
 /** Whether the channel is marked "no AI"; anyone who can read it may ask. */
 export async function getChannelAi(
@@ -25,12 +29,24 @@ export async function setChannelAi(
   excluded: boolean,
 ) {
   await loadChannel(workspaceId, channelId, userId, "manage");
-  if (excluded)
+  if (excluded) {
     await db
       .insert(chatChannelAiExclusionTable)
       .values({ channelId, setBy: userId })
       .onConflictDoNothing();
-  else
+    // Its messages leave semantic search now, not at the next index run.
+    await db
+      .delete(semanticChunkTable)
+      .where(
+        inArray(
+          semanticChunkTable.messageId,
+          db
+            .select({ id: chatMessageTable.id })
+            .from(chatMessageTable)
+            .where(eq(chatMessageTable.channelId, channelId)),
+        ),
+      );
+  } else
     await db
       .delete(chatChannelAiExclusionTable)
       .where(eq(chatChannelAiExclusionTable.channelId, channelId));

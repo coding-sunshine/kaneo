@@ -208,6 +208,16 @@ Name | Description | Default |
 | `AI_MONTHLY_USD_CAP` | Dollars all AI calls of the instance may spend in a calendar month (UTC), by the cost the provider reports. At the cap, AI pauses until the 1st of the next month. | `20` |
 | `EXTRACTION_TOTAL_USD_CAP` | No longer read. `AI_MONTHLY_USD_CAP` replaced this total cap; move any value you set to it. | Unset |
 
+### Search by meaning
+
+The search page can answer a question by meaning, citing the messages, tickets and documents it used, when `EMBEDDING_API_KEY` is set. A job embeds new and changed content every minute, which also backfills an existing install over its first runs; that backfill sends the text of every message, ticket and document once to the embedding service, so check its cost first. Messages of channels marked no AI and direct messages are never sent. Without the key the feature is off and the API logs that at startup. Embeddings are stored as plain arrays and ranked in SQL; on a large instance switch to a Postgres image with pgvector.
+
+Name | Description | Default |
+--- | --- | --- |
+| `EMBEDDING_API_KEY` | Key of an OpenAI-compatible embeddings endpoint. Turns search by meaning on. | Unset |
+| `EMBEDDING_API_URL` | The embeddings endpoint. | `https://api.openai.com/v1/embeddings` |
+| `EMBEDDING_MODEL` | The embedding model. | `text-embedding-3-small` |
+
 ### GitHub SSO
 
 Sign in with GitHub uses a [GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app). Set `GITHUB_OAUTH_CLIENT_ID` and `GITHUB_OAUTH_CLIENT_SECRET` (or rely on the legacy variables below).

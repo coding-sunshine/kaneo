@@ -8949,6 +8949,230 @@
           "relevanceScore"
         ]
       },
+      "SemanticSearch": {
+        "type": "object",
+        "properties": {
+          "answer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An answer from the matches, or null when there is none or no chat model."
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/MessageCitation"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "task",
+                        "document",
+                        "comment"
+                      ]
+                    },
+                    "restricted": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "taskId": {
+                      "type": "string",
+                      "description": "The issue a task or a comment is on."
+                    },
+                    "projectId": {
+                      "type": "string"
+                    },
+                    "ticket": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "restricted",
+                    "id",
+                    "title"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "task",
+                        "document",
+                        "comment"
+                      ]
+                    },
+                    "restricted": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "restricted"
+                  ]
+                }
+              ]
+            }
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "message",
+                    "task",
+                    "document"
+                  ]
+                },
+                "id": {
+                  "type": "string"
+                },
+                "snippet": {
+                  "type": "string"
+                },
+                "citation": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/MessageCitation"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "task",
+                            "document",
+                            "comment"
+                          ]
+                        },
+                        "restricted": {
+                          "type": "boolean",
+                          "enum": [
+                            false
+                          ]
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "taskId": {
+                          "type": "string",
+                          "description": "The issue a task or a comment is on."
+                        },
+                        "projectId": {
+                          "type": "string"
+                        },
+                        "ticket": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "restricted",
+                        "id",
+                        "title"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "task",
+                            "document",
+                            "comment"
+                          ]
+                        },
+                        "restricted": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "restricted"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "kind",
+                "id",
+                "snippet",
+                "citation"
+              ]
+            }
+          }
+        },
+        "required": [
+          "answer",
+          "sources",
+          "results"
+        ]
+      },
+      "MessageCitation": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "message"
+            ]
+          },
+          "restricted": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "id": {
+            "type": "string",
+            "description": "The message, or the thread a reply is in."
+          },
+          "channelId": {
+            "type": "string"
+          },
+          "channelName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "restricted",
+          "id",
+          "channelId",
+          "channelName"
+        ]
+      },
       "ChannelAi": {
         "type": "object",
         "properties": {
@@ -9056,40 +9280,6 @@
         },
         "required": [
           "bullets"
-        ]
-      },
-      "MessageCitation": {
-        "type": "object",
-        "properties": {
-          "kind": {
-            "type": "string",
-            "enum": [
-              "message"
-            ]
-          },
-          "restricted": {
-            "type": "boolean",
-            "enum": [
-              false
-            ]
-          },
-          "id": {
-            "type": "string",
-            "description": "The message, or the thread a reply is in."
-          },
-          "channelId": {
-            "type": "string"
-          },
-          "channelName": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "kind",
-          "restricted",
-          "id",
-          "channelId",
-          "channelName"
         ]
       },
       "CatchUpPreference": {
@@ -46780,6 +46970,99 @@
           },
           "429": {
             "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/semantic-search/workspace/{workspaceId}": {
+      "post": {
+        "operationId": "semanticSearch",
+        "tags": [
+          "Search"
+        ],
+        "summary": "Search by meaning",
+        "description": "Finds messages, tickets and documents close in meaning to the question, among those you can open now, and answers with citations. Channels marked no AI and direct messages are never searched. Off until the server has EMBEDDING_API_KEY.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "query"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Answer and matches",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SemanticSearch"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Semantic search is off, or the workspace was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI budget used up",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
