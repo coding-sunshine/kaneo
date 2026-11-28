@@ -3891,6 +3891,73 @@ export const chatMessageReactionTable = pgTable(
   ],
 );
 
+// What a user has typed into a channel's composer and not sent. Private to
+// that user: no response, event or socket shows it to anyone else.
+export const chatDraftTable = pgTable(
+  "chat_draft",
+  {
+    channelId: text("channel_id")
+      .notNull()
+      .references(() => chatChannelTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    body: text("body").notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.channelId, table.userId] }),
+    index("chat_draft_user_idx").on(table.userId),
+  ],
+);
+
+export const CHAT_REFERENCE_KINDS = ["task", "document", "project"] as const;
+export type ChatReferenceKind = (typeof CHAT_REFERENCE_KINDS)[number];
+
+// What a chat message names: a ticket, a document or a team of its own
+// workspace, kept right on every post and edit. Like reference, a row lets
+// nobody into anything; readers see it only through the message's channel.
+export const chatMessageReferenceTable = pgTable(
+  "chat_message_reference",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    messageId: text("message_id")
+      .notNull()
+      .references(() => chatMessageTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    targetKind: text("target_kind").$type<ChatReferenceKind>().notNull(),
+    targetId: text("target_id").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("chat_message_reference_message_idx").on(table.messageId),
+    index("chat_message_reference_target_idx").on(
+      table.targetKind,
+      table.targetId,
+    ),
+  ],
+);
+
 // Chat presence is opt-in: a row exists only while the user has it on, so
 // turning it off deletes the row and the dot is gone at once.
 export const chatPresenceTable = pgTable("chat_presence", {

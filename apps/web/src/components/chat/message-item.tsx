@@ -100,7 +100,13 @@ export function MessageItem({
           onDone={() => setEditing(false)}
         />
       ) : (
-        message.body && <MessageBody body={message.body} />
+        message.body && (
+          <MessageBody
+            body={message.body}
+            mentions={message.mentions}
+            workspaceId={workspaceId}
+          />
+        )
       )}
       <MessageFiles
         workspaceId={workspaceId}

@@ -3,6 +3,7 @@ import { alias } from "drizzle-orm/pg-core";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { chatMessageTable } from "../../database/schema";
+import { withMentions } from "../mentions/with-mentions";
 import { loadChannel } from "./load-channel";
 import { selectMessages } from "./select-messages";
 import { withFiles } from "./with-files";
@@ -20,8 +21,13 @@ export async function listMessages(
   query: { before?: string; around?: string } = {},
 ) {
   await loadChannel(workspaceId, channelId, userId, "read");
-  if (query.around) return listAround(channelId, query.around);
-  const { before } = query;
+  const page = query.around
+    ? await listAround(channelId, query.around)
+    : await listPage(channelId, query.before);
+  return withMentions(workspaceId, userId, page);
+}
+
+async function listPage(channelId: string, before?: string) {
   const rows = await selectMessages()
     .where(
       and(

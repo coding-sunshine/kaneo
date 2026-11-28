@@ -16,8 +16,10 @@ import {
   verifyTaskAssetUpload,
 } from "../../storage/s3";
 import type { chatFileUploadBody, finalizeChatFileBody } from "../schema";
+import { syncMessageReferences } from "../mentions/sync-message-references";
 import { loadChannel } from "./load-channel";
 import { loadMessage } from "./load-message";
+import { deleteDraft } from "./save-draft";
 
 const wrongKey = "The upload key does not match the channel.";
 
@@ -111,11 +113,13 @@ export async function finalizeChatFile(
         }
         return { messageId: stored.messageId, created: false };
       }
+      const text = body.body ?? "";
       const [message] = await tx
         .insert(chatMessageTable)
-        .values({ channelId, userId, body: body.body ?? "" })
+        .values({ channelId, userId, body: text })
         .returning({ id: chatMessageTable.id });
       if (!message) throw new Error("Message insert returned no row");
+      await syncMessageReferences(tx, workspaceId, message.id, text);
       await tx.insert(chatMessageFileTable).values({
         workspaceId,
         channelId,
@@ -130,6 +134,8 @@ export async function finalizeChatFile(
     },
   );
   if (created) {
+    // The text sent with the file came from the composer, as in a post.
+    await deleteDraft(channelId, userId);
     await publishEvent("chat.message_created", {
       workspaceId,
       channelId,

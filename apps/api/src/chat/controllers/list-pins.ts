@@ -1,5 +1,6 @@
 import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { chatMessageTable } from "../../database/schema";
+import { withMentions } from "../mentions/with-mentions";
 import { loadChannel } from "./load-channel";
 import { selectMessages } from "./select-messages";
 import { withFiles } from "./with-files";
@@ -20,5 +21,9 @@ export async function listPins(
       ),
     )
     .orderBy(desc(chatMessageTable.pinnedAt));
-  return withFiles(await withReactions(pins));
+  return withMentions(
+    workspaceId,
+    userId,
+    await withFiles(await withReactions(pins)),
+  );
 }

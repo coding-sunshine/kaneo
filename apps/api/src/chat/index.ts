@@ -24,6 +24,7 @@ import { joinCall } from "./controllers/join-call";
 import { joinChannel } from "./controllers/join-channel";
 import { leaveChannel } from "./controllers/leave-channel";
 import { listChannels } from "./controllers/list-channels";
+import { listDrafts } from "./controllers/list-drafts";
 import { listDirectMessages } from "./controllers/list-direct-messages";
 import { listMessages } from "./controllers/list-messages";
 import { listPins } from "./controllers/list-pins";
@@ -38,6 +39,7 @@ import {
   createChatFileUpload,
   finalizeChatFile,
 } from "./controllers/send-chat-file";
+import { saveDraft } from "./controllers/save-draft";
 import { startCall } from "./controllers/start-call";
 import { updateChannel } from "./controllers/update-channel";
 import { listOnline } from "./presence/list-online";
@@ -58,6 +60,8 @@ import {
   createChannelBody,
   deletedMessageSchema,
   directMessageListSchema,
+  draftListSchema,
+  draftSchema,
   finalizeChatFileBody,
   inviteMemberBody,
   leftChannelSchema,
@@ -72,12 +76,14 @@ import {
   presenceSettingSchema,
   reactionBody,
   removedMemberSchema,
+  saveDraftBody,
   ticketCommentBody,
   updateChannelBody,
   workspaceIdParam,
 } from "./schema";
 import "./call/subscribe";
 import "./link-preview/subscribe";
+import "./mentions/subscribe";
 
 const body = <T extends z.ZodType>(schema: T) => ({
   required: true as const,
@@ -533,6 +539,40 @@ const listPinsRoute = createRoute({
   },
 });
 
+const listDraftsRoute = createRoute({
+  method: "get",
+  operationId: "listChatDrafts",
+  path: "/workspace/{workspaceId}/drafts",
+  tags,
+  summary: "List your drafts",
+  description:
+    "Your unsent message drafts in this workspace, newest first. Drafts are private: nobody else can read them.",
+  middleware: [...access] as const,
+  request: { params: workspaceIdParam },
+  responses: {
+    200: jsonResponse("Drafts", draftListSchema),
+    403: noAccess,
+  },
+});
+
+const saveDraftRoute = createRoute({
+  method: "put",
+  operationId: "saveChatDraft",
+  path: `${channelPath}/draft`,
+  tags,
+  summary: "Save draft",
+  description:
+    "Keep your unsent text for a channel you can post in. An empty body deletes the draft; posting a message deletes it too.",
+  middleware: [...write] as const,
+  request: { params: channelParam, body: body(saveDraftBody) },
+  responses: {
+    200: jsonResponse("Draft saved", draftSchema),
+    403: notMember,
+    404: notFound,
+    409: archived,
+  },
+});
+
 const getPresenceRoute = createRoute({
   method: "get",
   operationId: "getChatPresenceSetting",
@@ -673,6 +713,24 @@ const chat = apiRouter()
       200,
     ),
   )
+  .openapi(listDraftsRoute, async (c) =>
+    c.json(
+      await listDrafts(c.req.valid("param").workspaceId, c.get("userId")),
+      200,
+    ),
+  )
+  .openapi(saveDraftRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(
+      await saveDraft(
+        workspaceId,
+        channelId,
+        c.get("userId"),
+        c.req.valid("json").body,
+      ),
+      200,
+    );
+  })
   .openapi(listDirectRoute, async (c) =>
     c.json(
       await listDirectMessages(

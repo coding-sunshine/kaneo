@@ -14,7 +14,7 @@ import { documentParam, projectIdParam, taskIdParam } from "./schema";
 
 const tags = ["References"];
 const listed = jsonResponse(
-  "Tasks and documents whose text names the target, each once",
+  "Tasks, documents and chat messages whose text names the target, each once",
   referenceListSchema,
 );
 const sources =
@@ -26,7 +26,7 @@ const taskReferencesRoute = createRoute({
   path: "/task/{taskId}",
   tags,
   summary: "Get a task's references",
-  description: `List the tasks and documents whose text links to the task or types its key. ${sources}`,
+  description: `List the tasks, documents and chat messages whose text links to the task or types its key. ${sources}`,
   middleware: [
     workspaceAccess.fromTaskId("taskId"),
     requireWorkspacePermission({ task: ["read"] }),
@@ -45,7 +45,7 @@ const projectReferencesRoute = createRoute({
   path: "/project/{projectId}",
   tags,
   summary: "Get a project's references",
-  description: `List the tasks and documents whose text links to the project. ${sources}`,
+  description: `List the tasks, documents and chat messages whose text links to the project. ${sources}`,
   middleware: [
     workspaceAccess.fromProject("projectId"),
     requireWorkspacePermission({ task: ["read"] }),
@@ -64,7 +64,7 @@ const documentReferencesRoute = createRoute({
   path: "/workspace/{workspaceId}/document/{documentId}",
   tags,
   summary: "Get a document's references",
-  description: `List the tasks and documents whose text links to the document. ${sources}`,
+  description: `List the tasks, documents and chat messages whose text links to the document. ${sources}`,
   middleware: [
     workspaceAccess.fromParam(),
     requireWorkspacePermission({ task: ["read"] }),
