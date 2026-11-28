@@ -2,6 +2,7 @@ import { eq, isNull, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import db from "../../database";
 import {
+  chatAssistantReplyTable,
   chatMessageTable,
   chatThreadReplyTable,
   userTable,
@@ -20,6 +21,7 @@ export const selectMessages = () =>
       userId: chatMessageTable.userId,
       authorName: userTable.name,
       authorImage: userTable.image,
+      byAssistant: sql<boolean>`${chatAssistantReplyTable.messageId} is not null`,
       body: chatMessageTable.body,
       editedAt: chatMessageTable.editedAt,
       pinnedAt: chatMessageTable.pinnedAt,
@@ -30,4 +32,8 @@ export const selectMessages = () =>
     })
     .from(chatMessageTable)
     .leftJoin(userTable, eq(userTable.id, chatMessageTable.userId))
-    .leftJoin(threadLink, eq(threadLink.messageId, chatMessageTable.id));
+    .leftJoin(threadLink, eq(threadLink.messageId, chatMessageTable.id))
+    .leftJoin(
+      chatAssistantReplyTable,
+      eq(chatAssistantReplyTable.messageId, chatMessageTable.id),
+    );

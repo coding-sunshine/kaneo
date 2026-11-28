@@ -3945,6 +3945,25 @@ export const chatThreadReplyTable = pgTable(
   (table) => [index("chat_thread_reply_parent_idx").on(table.parentId)],
 );
 
+// A chat message the assistant wrote, answering the person who asked it. The
+// message has no author of its own; this row says who it answered.
+export const chatAssistantReplyTable = pgTable(
+  "chat_assistant_reply",
+  {
+    messageId: text("message_id")
+      .primaryKey()
+      .references(() => chatMessageTable.id, { onDelete: "cascade" }),
+    askedBy: text("asked_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [index("chat_assistant_reply_asked_by_idx").on(table.askedBy)],
+);
+
 // What one person lets their private AI catch-up read. Direct messages stay
 // out unless they opt in.
 export const aiCatchUpPreferenceTable = pgTable(
@@ -4694,6 +4713,7 @@ export const aiFeatureSettingTable = pgTable("ai_feature_setting", {
     }),
   triage: boolean("triage").notNull().default(false),
   prSummary: boolean("pr_summary").notNull().default(false),
+  chatAssistant: boolean("chat_assistant").notNull().default(false),
   updatedBy: text("updated_by").references(() => userTable.id, {
     onDelete: "set null",
     onUpdate: "cascade",

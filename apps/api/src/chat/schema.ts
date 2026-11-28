@@ -200,6 +200,10 @@ export const messageSchema = z
     userId: z.string().nullable(),
     authorName: z.string().nullable(),
     authorImage: z.string().nullable(),
+    byAssistant: z.boolean().openapi({
+      description:
+        "The assistant wrote it, answering someone who mentioned @assistant. Such a message has no author.",
+    }),
     body: z.string(),
     editedAt: nullableResponseTimestamp.openapi({
       description: "When the author last edited the message. Null if never.",

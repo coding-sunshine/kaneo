@@ -60,7 +60,9 @@ export function MessageItem({
     >
       <span className="flex items-baseline gap-2 text-xs">
         <span className="flex items-center gap-1.5 font-medium">
-          {message.authorName ?? t("navigation:chat.deletedUser")}
+          {message.byAssistant
+            ? t("navigation:chat.assistant")
+            : (message.authorName ?? t("navigation:chat.deletedUser"))}
           {online && (
             <span
               role="img"

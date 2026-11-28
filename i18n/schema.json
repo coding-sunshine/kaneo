@@ -12640,6 +12640,9 @@
 								},
 								"decision": {
 									"type": "string"
+								},
+								"chatAssistant": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -12652,7 +12655,8 @@
 								"writing",
 								"prSummary",
 								"threadTicket",
-								"decision"
+								"decision",
+								"chatAssistant"
 							]
 						},
 						"switches": {
@@ -12677,6 +12681,12 @@
 								"prSummaryDescription": {
 									"type": "string"
 								},
+								"chatAssistant": {
+									"type": "string"
+								},
+								"chatAssistantDescription": {
+									"type": "string"
+								},
 								"saveFailed": {
 									"type": "string"
 								}
@@ -12688,6 +12698,8 @@
 								"triageDescription",
 								"prSummary",
 								"prSummaryDescription",
+								"chatAssistant",
+								"chatAssistantDescription",
 								"saveFailed"
 							]
 						}
@@ -19494,6 +19506,12 @@
 						"deletedUser": {
 							"type": "string"
 						},
+						"assistant": {
+							"type": "string"
+						},
+						"messageLink": {
+							"type": "string"
+						},
 						"messageLabel": {
 							"type": "string"
 						},
@@ -19921,6 +19939,8 @@
 						"messages",
 						"noMessages",
 						"deletedUser",
+						"assistant",
+						"messageLink",
 						"messageLabel",
 						"messagePlaceholder",
 						"send",

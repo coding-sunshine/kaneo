@@ -22,6 +22,7 @@ const FEATURE_LABELS: Record<string, string> = {
   "pr-summary": "settings:aiUsage.features.prSummary",
   "thread-ticket": "settings:aiUsage.features.threadTicket",
   decision: "settings:aiUsage.features.decision",
+  "chat-assistant": "settings:aiUsage.features.chatAssistant",
 };
 
 /** Settings, AI usage: budgets, background AI switches, then tokens by feature and by day. */

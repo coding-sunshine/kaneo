@@ -3946,6 +3946,10 @@
               "null"
             ]
           },
+          "byAssistant": {
+            "type": "boolean",
+            "description": "The assistant wrote it, answering someone who mentioned @assistant. Such a message has no author."
+          },
           "body": {
             "type": "string"
           },
@@ -4046,6 +4050,7 @@
           "userId",
           "authorName",
           "authorImage",
+          "byAssistant",
           "body",
           "editedAt",
           "pinnedAt",
@@ -5301,13 +5306,18 @@
           "prSummary": {
             "type": "boolean",
             "description": "Ask the model for a summary comment when a linked pull request merges."
+          },
+          "chatAssistant": {
+            "type": "boolean",
+            "description": "Let people mention @assistant in a chat thread to get a summary posted there, built from what the asker can open."
           }
         },
         "required": [
           "triage",
-          "prSummary"
+          "prSummary",
+          "chatAssistant"
         ],
-        "description": "AI features that call the model on their own. All off until an admin turns them on."
+        "description": "AI features that are off until an admin turns them on."
       },
       "Loop": {
         "type": "object",
@@ -33911,7 +33921,7 @@
           "Chat"
         ],
         "summary": "Post message",
-        "description": "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline. One person may post 20 messages per channel in 10 seconds, replies included. `@channel` puts the message in every other member's Inbox and `@here` in those not shown away; in a channel of more than 5 members only its owner may use them.",
+        "description": "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline. One person may post 20 messages per channel in 10 seconds, replies included. `@channel` puts the message in every other member's Inbox and `@here` in those not shown away; in a channel of more than 5 members only its owner may use them. `@assistant` asks the assistant, when an admin turned it on, to reply in the thread with a summary of it built from what you can open.",
         "parameters": [
           {
             "schema": {
@@ -38595,7 +38605,7 @@
           "Agent"
         ],
         "summary": "Set AI feature switches",
-        "description": "Turn AI triage suggestions and pull request summaries on or off for the workspace. Admins and owners only.",
+        "description": "Turn AI triage suggestions, pull request summaries and the chat assistant on or off for the workspace. Admins and owners only.",
         "parameters": [
           {
             "schema": {
@@ -38611,7 +38621,22 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AiFeatures"
+                "type": "object",
+                "properties": {
+                  "triage": {
+                    "type": "boolean",
+                    "description": "Ask the model for a triage suggestion on every new ticket in triage."
+                  },
+                  "prSummary": {
+                    "type": "boolean",
+                    "description": "Ask the model for a summary comment when a linked pull request merges."
+                  },
+                  "chatAssistant": {
+                    "type": "boolean",
+                    "description": "Let people mention @assistant in a chat thread to get a summary posted there, built from what the asker can open."
+                  }
+                },
+                "description": "The switches to change; any left out keep their value."
               }
             }
           }

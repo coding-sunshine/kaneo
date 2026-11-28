@@ -20,10 +20,13 @@ const aiFeaturesSchema = z
       description:
         "Ask the model for a summary comment when a linked pull request merges.",
     }),
+    chatAssistant: z.boolean().openapi({
+      description:
+        "Let people mention @assistant in a chat thread to get a summary posted there, built from what the asker can open.",
+    }),
   })
   .openapi("AiFeatures", {
-    description:
-      "AI features that call the model on their own. All off until an admin turns them on.",
+    description: "AI features that are off until an admin turns them on.",
   });
 
 const tags = ["Agent"];
@@ -57,7 +60,7 @@ const putRoute = createRoute({
   tags,
   summary: "Set AI feature switches",
   description:
-    "Turn AI triage suggestions and pull request summaries on or off for the workspace. Admins and owners only.",
+    "Turn AI triage suggestions, pull request summaries and the chat assistant on or off for the workspace. Admins and owners only.",
   middleware: [
     workspaceAccess.fromParam(),
     requireWorkspacePermission({ workspace: ["manage_settings"] }),
@@ -66,7 +69,14 @@ const putRoute = createRoute({
     params: workspaceParam,
     body: {
       required: true as const,
-      content: { "application/json": { schema: aiFeaturesSchema } },
+      content: {
+        "application/json": {
+          schema: aiFeaturesSchema.partial().openapi({
+            description:
+              "The switches to change; any left out keep their value.",
+          }),
+        },
+      },
     },
   },
   responses: {

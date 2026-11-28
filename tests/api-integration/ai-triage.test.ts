@@ -333,7 +333,11 @@ describe("API integration: AI triage suggestions", () => {
     const fresh = await as(elsewhere.user).request(
       `/api/agent/workspace/${elsewhere.workspace.id}/ai-features`,
     );
-    expect(await fresh.json()).toEqual({ triage: false, prSummary: false });
+    expect(await fresh.json()).toEqual({
+      triage: false,
+      prSummary: false,
+      chatAssistant: false,
+    });
     await features(owner, { triage: false, prSummary: false });
     model.queue.push(suggestion());
     const id = await createTicket();

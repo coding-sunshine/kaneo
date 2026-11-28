@@ -2127,7 +2127,9 @@
 				"tokens_many": "{{count}} tokens",
 				"tokens_one": "{{count}} token",
 				"tokens_other": "{{count}} tokens"
-			}
+			},
+			"assistant": "Assistant",
+			"messageLink": "Message"
 		},
 		"files": {
 			"deletedUser": "Deleted user",
@@ -6350,7 +6352,8 @@
 				"prSummary": "Pull request summaries",
 				"threadTicket": "Tickets from threads",
 				"triage": "Triage suggestions",
-				"writing": "Writing help"
+				"writing": "Writing help",
+				"chatAssistant": "Chat assistant"
 			},
 			"invalid": "Enter a whole number of tokens, or leave the field empty.",
 			"loadError": "AI usage could not be loaded.",
@@ -6369,13 +6372,15 @@
 			"workspaceMonthly": "Monthly budget for the workspace",
 			"workspaceMonthlyHint": "Tokens everyone may use together per calendar month (UTC). 0 turns AI off. Leave empty for no limit.",
 			"switches": {
-				"description": "Features that call the model on their own, without anyone asking. Each is off until an admin turns it on.",
+				"description": "AI features that stay off until an admin turns them on.",
 				"prSummary": "Summarize merged pull requests",
 				"prSummaryDescription": "The model writes a short summary on a ticket when a pull request linked to it merges.",
 				"saveFailed": "Could not save the AI setting.",
 				"title": "Background AI",
 				"triage": "Suggest triage for new tickets",
-				"triageDescription": "The model suggests labels, an assignee, a project and a priority for each new triage ticket."
+				"triageDescription": "The model suggests labels, an assignee, a project and a priority for each new triage ticket.",
+				"chatAssistant": "Answer @assistant in chat",
+				"chatAssistantDescription": "Mention @assistant in a thread to get a summary and what is still open, posted in the thread. It reads only that thread and the tickets the asker can open, and never answers in a channel marked no AI."
 			}
 		},
 		"adminBackups": {

@@ -7,9 +7,9 @@ import type { AiFeatures } from "@/fetchers/agent/ai-features";
 import { useSetAiFeatures } from "@/hooks/mutations/agent/use-set-ai-features";
 import { useAiFeatures } from "@/hooks/queries/agent/use-ai-features";
 
-const SWITCHES = ["triage", "prSummary"] as const;
+const SWITCHES = ["triage", "prSummary", "chatAssistant"] as const;
 
-/** Background AI features that call the model on their own; each off by default. */
+/** AI features that stay off until an admin turns them on. */
 export function AiFeaturesCard({ workspaceId }: { workspaceId: string }) {
   const { t } = useTranslation();
   const { data } = useAiFeatures(workspaceId);

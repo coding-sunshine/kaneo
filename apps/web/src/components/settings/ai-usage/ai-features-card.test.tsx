@@ -3,8 +3,8 @@ import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { AiFeaturesCard } from "./ai-features-card";
 
 const m = vi.hoisted(() => ({
-  data: { triage: false, prSummary: true } as
-    | { triage: boolean; prSummary: boolean }
+  data: { triage: false, prSummary: true, chatAssistant: false } as
+    | { triage: boolean; prSummary: boolean; chatAssistant: boolean }
     | undefined,
   mutate: vi.fn(),
 }));
@@ -32,7 +32,20 @@ describe("AiFeaturesCard", () => {
       screen.getByRole("switch", { name: "settings:aiUsage.switches.triage" }),
     );
     expect(m.mutate).toHaveBeenCalledWith(
-      { triage: true, prSummary: true },
+      { triage: true, prSummary: true, chatAssistant: false },
+      expect.anything(),
+    );
+  });
+
+  it("turns the chat assistant on", () => {
+    render(<AiFeaturesCard workspaceId="w1" />);
+    fireEvent.click(
+      screen.getByRole("switch", {
+        name: "settings:aiUsage.switches.chatAssistant",
+      }),
+    );
+    expect(m.mutate).toHaveBeenCalledWith(
+      { triage: false, prSummary: true, chatAssistant: true },
       expect.anything(),
     );
   });
