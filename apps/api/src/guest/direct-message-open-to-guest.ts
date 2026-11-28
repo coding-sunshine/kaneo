@@ -6,7 +6,7 @@ import { worksWithGuestCondition } from "./works-with-guest-condition";
 export function directMessageOpenToGuest(
   guestId: string,
   channelId: SQLWrapper,
-  workspaceId: string,
+  workspaceId: string | SQLWrapper,
 ) {
   return sql<boolean>`NOT EXISTS (
     SELECT 1 FROM chat_channel_member AS other_seat

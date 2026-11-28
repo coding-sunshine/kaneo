@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { formatDateTime, formatRelativeTime } from "@/lib/format";
 import type { Notification } from "@/types/notification";
+import { InboxChatMessage } from "./inbox-chat-message";
 import { InboxDocument } from "./inbox-document";
 import { InboxTask } from "./inbox-task";
 import { NotificationIcon } from "./notification-icon";
@@ -28,9 +29,13 @@ export function InboxDetail({
     notification.resourceType === "task" ? notification.resourceId : null;
   const documentId =
     notification.resourceType === "document" ? notification.resourceId : null;
-  const eventWorkspaceId = getEventDataRecord(
-    notification.eventData,
-  )?.workspaceId;
+  const eventData = getEventDataRecord(notification.eventData);
+  const eventWorkspaceId = eventData?.workspaceId;
+  const chatChannelId =
+    notification.resourceType === "chat_message" &&
+    typeof eventData?.channelId === "string"
+      ? eventData.channelId
+      : null;
   const content = getNotificationContent(notification, t);
 
   return (
@@ -69,6 +74,13 @@ export function InboxDetail({
             </div>
           </div>
 
+          {chatChannelId && notification.resourceId && (
+            <InboxChatMessage
+              workspaceId={workspaceId}
+              channelId={chatChannelId}
+              messageId={notification.resourceId}
+            />
+          )}
           {taskId && (
             <InboxTask key={taskId} taskId={taskId} workspaceId={workspaceId} />
           )}

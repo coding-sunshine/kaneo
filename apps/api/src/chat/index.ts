@@ -31,6 +31,7 @@ import { listMessages } from "./controllers/list-messages";
 import { listPins } from "./controllers/list-pins";
 import { listReplies } from "./controllers/list-replies";
 import { markRead } from "./controllers/mark-read";
+import { muteChannel } from "./controllers/mute-channel";
 import { pinMessage } from "./controllers/pin-message";
 import { openDirectMessage } from "./controllers/open-direct-message";
 import { postMessage } from "./controllers/post-message";
@@ -72,6 +73,8 @@ import {
   messageListSchema,
   messageParam,
   messageSchema,
+  muteChannelBody,
+  mutedChannelSchema,
   onlineListSchema,
   openDirectMessageBody,
   postMessageBody,
@@ -87,6 +90,7 @@ import {
 import "./call/subscribe";
 import "./link-preview/subscribe";
 import "./mentions/subscribe";
+import "./notifications/subscribe";
 
 const body = <T extends z.ZodType>(schema: T) => ({
   required: true as const,
@@ -549,6 +553,23 @@ const markReadRoute = createRoute({
   },
 });
 
+const muteRoute = createRoute({
+  method: "put",
+  operationId: "muteChatChannel",
+  path: `${channelPath}/mute`,
+  tags,
+  summary: "Mute channel",
+  description:
+    "Mute or unmute a channel you can read. A muted channel's mentions and direct messages stop reaching your Inbox. Only you can see that you muted it.",
+  middleware: [...access] as const,
+  request: { params: channelParam, body: body(muteChannelBody) },
+  responses: {
+    200: jsonResponse("Mute saved", mutedChannelSchema),
+    403: noAccess,
+    404: notFound,
+  },
+});
+
 const listPinsRoute = createRoute({
   method: "get",
   operationId: "listChatPins",
@@ -976,6 +997,18 @@ const chat = apiRouter()
   .openapi(markReadRoute, async (c) => {
     const { workspaceId, channelId } = c.req.valid("param");
     return c.json(await markRead(workspaceId, channelId, c.get("userId")), 200);
+  })
+  .openapi(muteRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(
+      await muteChannel(
+        workspaceId,
+        channelId,
+        c.get("userId"),
+        c.req.valid("json").muted,
+      ),
+      200,
+    );
   })
   .openapi(listPinsRoute, async (c) => {
     const { workspaceId, channelId } = c.req.valid("param");

@@ -6,7 +6,7 @@ import { projectAccessCondition } from "../project-access/project-access-conditi
 export function sharesProjectCondition(
   viewerId: string | SQLWrapper,
   memberId: SQLWrapper,
-  workspaceId: string,
+  workspaceId: string | SQLWrapper,
 ) {
   return sql<boolean>`EXISTS (
     SELECT 1 FROM project AS shared_project

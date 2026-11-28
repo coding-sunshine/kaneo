@@ -20,5 +20,11 @@ export function notificationWorkspaceFilter(workspaceId?: string) {
       WHERE inbox_document.id = ${notificationTable.resourceId}
         AND inbox_document.workspace_id = ${workspaceId}
     ))
+    OR (${notificationTable.resourceType} = 'chat_message' AND EXISTS (
+      SELECT 1 FROM chat_message AS inbox_chat_message
+      JOIN chat_channel AS inbox_chat_channel ON inbox_chat_channel.id = inbox_chat_message.channel_id
+      WHERE inbox_chat_message.id = ${notificationTable.resourceId}
+        AND inbox_chat_channel.workspace_id = ${workspaceId}
+    ))
   )`;
 }

@@ -67,3 +67,9 @@ export async function markChannelRead(param: ChannelParam) {
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }
+
+export async function muteChannel(param: ChannelParam, muted: boolean) {
+  const response = await channel.mute.$put({ param, json: { muted } });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
