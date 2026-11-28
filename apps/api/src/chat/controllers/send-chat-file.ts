@@ -16,6 +16,7 @@ import {
   verifyTaskAssetUpload,
 } from "../../storage/s3";
 import type { chatFileUploadBody, finalizeChatFileBody } from "../schema";
+import { assertCanBroadcast } from "../mentions/assert-can-broadcast";
 import { syncMessageReferences } from "../mentions/sync-message-references";
 import { loadChannel } from "./load-channel";
 import { loadMessage, loadOwnMessage } from "./load-message";
@@ -83,6 +84,7 @@ export async function finalizeChatFile(
   if (!isChatFileKey(key, { workspaceId, channelId })) {
     throw new HTTPException(400, { message: wrongKey });
   }
+  await assertCanBroadcast(channelId, userId, body.body);
   if (body.messageId) {
     if (body.body) {
       throw new HTTPException(400, {

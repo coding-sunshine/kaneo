@@ -32768,7 +32768,7 @@
           "Chat"
         ],
         "summary": "Post message",
-        "description": "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline. One person may post 20 messages per channel in 10 seconds, replies included.",
+        "description": "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline. One person may post 20 messages per channel in 10 seconds, replies included. `@channel` puts the message in every other member's Inbox and `@here` in those not shown away; in a channel of more than 5 members only its owner may use them.",
         "parameters": [
           {
             "schema": {
@@ -32834,7 +32834,7 @@
             }
           },
           "403": {
-            "description": "Join the channel first",
+            "description": "Join the channel first, or only the channel owner can use @channel or @here in a channel of more than 5 members",
             "content": {
               "application/json": {
                 "schema": {
@@ -33198,7 +33198,7 @@
             }
           },
           "403": {
-            "description": "Not a channel member, or the message to add to is someone else's",
+            "description": "Not a channel member, the message to add to is someone else's, or the text uses @channel or @here where only the channel owner may",
             "content": {
               "application/json": {
                 "schema": {
@@ -33411,7 +33411,7 @@
             }
           },
           "403": {
-            "description": "Only the author can change this message",
+            "description": "Only the author can change this message, and only the channel owner can add @channel or @here in a channel of more than 5 members",
             "content": {
               "application/json": {
                 "schema": {

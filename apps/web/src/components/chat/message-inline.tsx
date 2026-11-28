@@ -1,3 +1,4 @@
+import { BroadcastMention } from "@/components/chat/broadcast-mention";
 import { MentionCard } from "@/components/chat/mention-card";
 import type { InlineNode } from "@/components/chat/parse-message-markdown";
 import {
@@ -36,7 +37,13 @@ export function MessageInline({
       </strong>
     ) : (
       splitMentions(node.text, mentions).map((part, at) =>
-        "mention" in part ? (
+        "broadcast" in part ? (
+          <BroadcastMention
+            // oxlint-disable-next-line react/no-array-index-key
+            key={`${index}-${at}`}
+            token={part.broadcast}
+          />
+        ) : "mention" in part ? (
           <MentionCard
             // oxlint-disable-next-line react/no-array-index-key
             key={`${index}-${at}`}

@@ -104,6 +104,9 @@ const noAccess = errorResponse("Missing permission for this workspace");
 const notFound = errorResponse("Channel not found");
 const notMember = errorResponse("Join the channel first");
 const archived = errorResponse("Channel is archived");
+const broadcastRefused = errorResponse(
+  "Join the channel first, or only the channel owner can use @channel or @here in a channel of more than 5 members",
+);
 const fixed = errorResponse(
   "Not a channel member, or a direct message, whose members are fixed",
 );
@@ -323,12 +326,12 @@ const postMessageRoute = createRoute({
   tags,
   summary: "Post message",
   description:
-    "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline. One person may post 20 messages per channel in 10 seconds, replies included.",
+    "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline. One person may post 20 messages per channel in 10 seconds, replies included. `@channel` puts the message in every other member's Inbox and `@here` in those not shown away; in a channel of more than 5 members only its owner may use them.",
   middleware: [...write] as const,
   request: { params: channelParam, body: body(postMessageBody) },
   responses: {
     200: jsonResponse("Message posted", messageSchema),
-    403: notMember,
+    403: broadcastRefused,
     404: messageNotFound,
     409: archived,
     429: errorResponse(
@@ -395,7 +398,7 @@ const finalizeFileUploadRoute = createRoute({
       "The key does not belong to this channel, the stored object does not match the name and size, or text came with a file added to a sent message",
     ),
     403: errorResponse(
-      "Not a channel member, or the message to add to is someone else's",
+      "Not a channel member, the message to add to is someone else's, or the text uses @channel or @here where only the channel owner may",
     ),
     404: errorResponse("Channel or message not found"),
     409: archived,
@@ -438,7 +441,9 @@ const editMessageRoute = createRoute({
   request: { params: messageParam, body: body(editMessageBody) },
   responses: {
     200: jsonResponse("Message edited", messageSchema),
-    403: errorResponse("Only the author can change this message"),
+    403: errorResponse(
+      "Only the author can change this message, and only the channel owner can add @channel or @here in a channel of more than 5 members",
+    ),
     404: messageNotFound,
     409: archived,
   },
