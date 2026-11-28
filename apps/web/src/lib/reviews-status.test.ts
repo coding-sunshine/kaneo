@@ -30,8 +30,12 @@ describe("reviewStatus", () => {
   });
 
   it("calls a pull request with a submitted review In review", () => {
-    expect(reviewStatus(pr({ approvedBy: ["ada"] }))).toBe("inReview");
-    expect(reviewStatus(pr({ changesRequestedBy: ["bo"] }))).toBe("inReview");
+    expect(reviewStatus(pr({ approvedBy: ["synthetic-author"] }))).toBe(
+      "inReview",
+    );
+    expect(
+      reviewStatus(pr({ changesRequestedBy: ["synthetic-reviewer"] })),
+    ).toBe("inReview");
     expect(reviewStatus(pr({ reviewDecision: "changes_requested" }))).toBe(
       "inReview",
     );

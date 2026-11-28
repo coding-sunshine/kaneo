@@ -28,13 +28,19 @@ it("is never quick for a draft, a closed pull request or one the viewer reviewed
   expect(isQuickToReview(pr({ status: "merged" }), "me")).toBe(false);
   expect(isQuickToReview(pr({ approvedBy: ["me"] }), "me")).toBe(false);
   expect(isQuickToReview(pr({ changesRequestedBy: ["me"] }), "me")).toBe(false);
-  expect(isQuickToReview(pr({ approvedBy: ["ada"] }), "me")).toBe(true);
-  expect(isQuickToReview(pr({ approvedBy: ["ada"] }), null)).toBe(true);
+  expect(
+    isQuickToReview(pr({ approvedBy: ["synthetic-reviewer"] }), "me"),
+  ).toBe(true);
+  expect(
+    isQuickToReview(pr({ approvedBy: ["synthetic-reviewer"] }), null),
+  ).toBe(true);
 });
 
 it("counts a comment-only review as reviewed", () => {
   expect(isQuickToReview(pr({ reviewedBy: ["me"] }), "me")).toBe(false);
-  expect(isQuickToReview(pr({ reviewedBy: ["ada"] }), "me")).toBe(true);
+  expect(
+    isQuickToReview(pr({ reviewedBy: ["synthetic-reviewer"] }), "me"),
+  ).toBe(true);
 });
 
 it("leaves generated lines out of the size", () => {

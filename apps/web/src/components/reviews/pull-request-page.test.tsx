@@ -33,7 +33,7 @@ const basePull = {
   number: 7,
   title: "Add thing",
   url: "https://github.com/acme/web/pull/7",
-  author: { login: "ada", avatarUrl: "" },
+  author: { login: "synthetic-author", avatarUrl: "" },
   status: "open",
   body: "",
   mergeable: true,
@@ -123,8 +123,8 @@ vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => ({
   useAddPullRequestComment: () => ({ mutate: vi.fn(), isPending: false }),
   useReviewerCandidates: () => ({
     data: [
-      { login: "ada", avatarUrl: "" },
-      { login: "grace", avatarUrl: "" },
+      { login: "synthetic-author", avatarUrl: "" },
+      { login: "synthetic-second", avatarUrl: "" },
       { login: "linus", avatarUrl: "" },
     ],
     isLoading: false,
@@ -230,11 +230,11 @@ describe("PullRequestPage", () => {
   it("shows requested reviewers", () => {
     mocks.pull = {
       ...basePull,
-      requestedReviewers: [{ login: "grace", avatarUrl: "" }],
+      requestedReviewers: [{ login: "synthetic-second", avatarUrl: "" }],
     };
     renderPage();
     expect(screen.getByText("Reviewers").nextElementSibling).toHaveTextContent(
-      "grace",
+      "synthetic-second",
     );
   });
 
@@ -455,16 +455,18 @@ describe("PullRequestPage", () => {
   it("requests the chosen person and hides the author and people already asked", async () => {
     mocks.pull = {
       ...basePull,
-      requestedReviewers: [{ login: "grace", avatarUrl: "" }],
+      requestedReviewers: [{ login: "synthetic-second", avatarUrl: "" }],
     };
     renderPage();
     fireEvent.click(screen.getByRole("button", { name: "Add reviewers" }));
     expect(await screen.findByRole("button", { name: /linus/ })).toBeVisible();
-    // ada wrote the pull request; grace is already requested.
-    expect(screen.queryByRole("button", { name: /ada/ })).toBeNull();
+    // synthetic-author wrote the pull request; synthetic-second is already requested.
+    expect(
+      screen.queryByRole("button", { name: /synthetic-author/ }),
+    ).toBeNull();
     expect(
       screen
-        .getAllByText("grace")
+        .getAllByText("synthetic-second")
         .every((node) => node.closest("button") === null),
     ).toBe(true);
     fireEvent.click(screen.getByRole("button", { name: /linus/ }));

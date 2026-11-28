@@ -21,7 +21,7 @@ const pr = (number: number, over: object = {}) =>
     deletions: 0,
     hasConflicts: false,
     mergeState: "unknown",
-    author: { login: "ada", avatarUrl: "" },
+    author: { login: "synthetic-author", avatarUrl: "" },
     reviewers: [],
     teamReviewers: [],
     approvedBy: [],
@@ -43,7 +43,7 @@ describe("reviews advanced filter", () => {
       pr(1, {
         title: "Auth login",
         labels: [{ name: "bug", color: "f00" }],
-        approvedBy: ["ada"],
+        approvedBy: ["synthetic-author"],
       }),
       pr(2, {
         title: "Auth refactor",
@@ -51,12 +51,12 @@ describe("reviews advanced filter", () => {
           { name: "bug", color: "f00" },
           { name: "urgent", color: "0f0" },
         ],
-        approvedBy: ["ada", "bo"],
+        approvedBy: ["synthetic-author", "synthetic-reviewer"],
       }),
       pr(3, {
         title: "Auth wip",
         labels: [{ name: "urgent", color: "0f0" }],
-        approvedBy: ["bo"],
+        approvedBy: ["synthetic-reviewer"],
       }),
     ];
 

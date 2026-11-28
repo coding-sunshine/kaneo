@@ -1,20 +1,24 @@
 import { describe, expect, it } from "vite-plus/test";
 import { toReviewOwner } from "./review-owner";
 
-const ada = { userId: "u1", name: "Ada", image: null };
-const bo = { userId: "u2", name: "Bo", image: "https://img.test/bo" };
+const author = { userId: "u1", name: "Synthetic Author", image: null };
+const reviewer = {
+  userId: "u2",
+  name: "Synthetic Reviewer",
+  image: "https://img.test/reviewer",
+};
 
 describe("toReviewOwner", () => {
   it("defaults to the author's member", () => {
-    expect(toReviewOwner(undefined, ada)).toEqual({
-      reviewOwner: ada,
+    expect(toReviewOwner(undefined, author)).toEqual({
+      reviewOwner: author,
       originalAuthorUserId: "u1",
     });
   });
 
   it("lets a saved owner replace the author but still reports the author", () => {
-    expect(toReviewOwner(bo, ada)).toEqual({
-      reviewOwner: bo,
+    expect(toReviewOwner(reviewer, author)).toEqual({
+      reviewOwner: reviewer,
       originalAuthorUserId: "u1",
     });
   });
@@ -27,8 +31,8 @@ describe("toReviewOwner", () => {
   });
 
   it("keeps a saved owner when the author is not a member", () => {
-    expect(toReviewOwner(bo, undefined)).toEqual({
-      reviewOwner: bo,
+    expect(toReviewOwner(reviewer, undefined)).toEqual({
+      reviewOwner: reviewer,
       originalAuthorUserId: null,
     });
   });

@@ -313,6 +313,7 @@ export function ReviewsPage({
                 workspaceId={workspaceId}
                 selectedKey={selectedKey}
                 onViewChange={(patch) => setView(tab, patch)}
+                me={me}
               />
             )}
           </div>

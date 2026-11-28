@@ -27183,6 +27183,30 @@
 								"promptUnresolved": {
 									"type": "string"
 								},
+								"promptUnresolvedMore": {
+									"type": "string"
+								},
+								"promptUnresolvedMore_zero": {
+									"type": "string"
+								},
+								"promptUnresolvedMore_one": {
+									"type": "string"
+								},
+								"promptUnresolvedMore_two": {
+									"type": "string"
+								},
+								"promptUnresolvedMore_few": {
+									"type": "string"
+								},
+								"promptUnresolvedMore_many": {
+									"type": "string"
+								},
+								"promptUnresolvedMore_other": {
+									"type": "string"
+								},
+								"promptThreadsUnknown": {
+									"type": "string"
+								},
 								"promptFailed": {
 									"type": "string"
 								}
@@ -27206,6 +27230,7 @@
 								"promptIssue",
 								"promptFailingChecks",
 								"promptUnresolved",
+								"promptThreadsUnknown",
 								"promptFailed"
 							]
 						},

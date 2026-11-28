@@ -75,11 +75,12 @@ export function parseGitattributes(text: string): CategoryRules {
 
 // ponytail: path heuristics for repos without review-* attributes, a fixed list
 // that misses odd layouts; extend it or set the attributes in .gitattributes.
+// Same pattern as the API's GENERATED_PATH. generated-lines.test.ts fails if they drift.
+export const GENERATED_PATH =
+  /(^|\/)(__snapshots__|dist)\/|\.generated\.|\.min\.(js|css)$|(^|\/)(package-lock\.json|pnpm-lock\.yaml|yarn\.lock|bun\.lockb?|Cargo\.lock|composer\.lock|poetry\.lock|uv\.lock)$/;
+
 const HEURISTICS: [Category, RegExp][] = [
-  [
-    "generated",
-    /(^|\/)(__snapshots__|dist)\/|\.generated\.|\.min\.(js|css)$|(^|\/)(package-lock\.json|pnpm-lock\.yaml|yarn\.lock|bun\.lockb?|Cargo\.lock|composer\.lock|poetry\.lock|uv\.lock)$/,
-  ],
+  ["generated", GENERATED_PATH],
   ["test", /\.(test|spec)\.|(^|\/)(__tests__|tests?)\//],
   ["documentation", /\.mdx?$|(^|\/)docs\//],
 ];

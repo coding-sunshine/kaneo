@@ -32,6 +32,18 @@ function toChecks(state: string | undefined) {
   return "none" as const;
 }
 
+// OWNER is not MEMBER in GitHub's enum. COLLABORATOR is an invited writer.
+// A stranger is NONE, CONTRIBUTOR, FIRST_TIMER, FIRST_TIME_CONTRIBUTOR or MANNEQUIN.
+const TRUSTED_ASSOCIATION = new Set(["OWNER", "MEMBER", "COLLABORATOR"]);
+
+function riskTexts(pull: GithubSearchPull) {
+  const comments = (pull.comments.nodes ?? []).filter((comment) => {
+    if (comment.author?.__typename === "Bot") return true;
+    return TRUSTED_ASSOCIATION.has(comment.authorAssociation ?? "");
+  });
+  return [pull.body ?? "", ...comments.map((comment) => comment.body)];
+}
+
 function toGenerated(pull: GithubSearchPull) {
   const lines = generatedLines(pull.files);
   return lines
@@ -72,11 +84,9 @@ export function toSummary(pull: GithubSearchPull) {
     deletions: pull.deletions,
     labels: pull.labels?.nodes ?? [],
     ...toReviewFields(pull),
-    // ponytail: PR body plus the last 10 comments only; review bodies and older comments are not read.
-    riskLevel: parseRiskLevel(
-      [pull.body ?? "", ...(pull.comments.nodes ?? []).map((c) => c.body)],
-      pull.headRefOid ?? "",
-    ),
+    // ponytail: body plus trusted comments from the newest 100. Review bodies
+    // and older comments are not read. A stranger's comment never counts.
+    riskLevel: parseRiskLevel(riskTexts(pull), pull.headRefOid ?? ""),
     reviewedBy: [
       ...new Set(
         (pull.reviews?.nodes ?? []).flatMap((review) =>

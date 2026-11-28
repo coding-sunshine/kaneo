@@ -48,6 +48,7 @@ export async function listPullRequestConversation(
       line: comment.line ?? comment.original_line,
       side: comment.side,
       resolved: resolution.get(String(comment.id)),
+      inReplyToId: comment.in_reply_to_id ?? null,
       createdAt: comment.created_at,
     })),
     // A review with no body and state COMMENTED only carries inline comments.

@@ -19,14 +19,56 @@ describe("parseRiskLevel", () => {
     );
   });
 
-  it("skips entries for another head and takes the highest of the rest", () => {
+  it("skips a stale head and keeps the newest entry that remains", () => {
     const texts = [
       block(risk({ level: 4, sha: "b".repeat(40) })),
       block(risk({ level: 1 })),
       block(risk({ level: 3 })),
       block(risk({ level: 2 })),
     ];
-    expect(parseRiskLevel(texts, sha)).toBe(3);
+    expect(parseRiskLevel(texts, sha)).toBe(2);
+  });
+
+  it("lets the newest valid entry win, including over an older higher one", () => {
+    expect(
+      parseRiskLevel(
+        [block(risk({ level: 4 })), block(risk({ level: 1 }))],
+        sha,
+      ),
+    ).toBe(1);
+    expect(
+      parseRiskLevel(
+        [
+          block(risk({ level: 4, sha: "b".repeat(40) })),
+          block(risk({ level: 3 })),
+          block(risk({ level: 2 })),
+        ],
+        sha,
+      ),
+    ).toBe(2);
+  });
+
+  it("keeps the level when an explanation or area name is not used", () => {
+    expect(
+      parseRiskLevel(
+        [
+          block(
+            risk({
+              level: 2,
+              explanations: ["x".repeat(500)],
+              areas: [
+                {
+                  name: "line\nbreak",
+                  level: 4,
+                  explanation: "y".repeat(500),
+                },
+              ],
+            }),
+          ),
+        ],
+        sha,
+      ),
+    ).toBe(4);
   });
 
   it("still finds the valid block in a large text of unclosed openers", () => {

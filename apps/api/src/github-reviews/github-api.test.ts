@@ -56,4 +56,11 @@ describe("searchPullRequests", () => {
     }
     expect(lean).toContain("comments { totalCount }");
   });
+
+  it("asks who wrote the newest 100 comments", async () => {
+    const detailed = await sentQuery(true);
+    expect(detailed).toContain("comments(last: 100)");
+    expect(detailed).toContain("authorAssociation");
+    expect(detailed).toContain("author { __typename }");
+  });
 });

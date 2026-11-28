@@ -13,7 +13,7 @@ const comment = (over: Record<string, unknown>) =>
     path: "a.ts",
     line: 3,
     body: "fix",
-    author: { login: "bo" },
+    author: { login: "synthetic-reviewer" },
     ...over,
   }) as never;
 
@@ -46,9 +46,34 @@ it("lists inline comments from open threads, one line each, capped", () => {
       comment({ kind: "comment" }),
       comment({ line: null, author: null, body: "x".repeat(250) }),
     ]),
-  ).toEqual(["- a.ts:3 @bo a b", `- a.ts ${"x".repeat(200)}…`]);
+  ).toEqual(["- a.ts:3 @synthetic-reviewer a b", `- a.ts ${"x".repeat(200)}…`]);
   const emoji = unresolvedCommentLines([comment({ body: "😀".repeat(201) })]);
-  expect(emoji).toEqual([`- a.ts:3 @bo ${"😀".repeat(200)}…`]);
+  expect(emoji).toEqual([`- a.ts:3 @synthetic-reviewer ${"😀".repeat(200)}…`]);
   const many = Array.from({ length: 30 }, () => comment({}));
-  expect(unresolvedCommentLines(many)).toHaveLength(20);
+  const lines = unresolvedCommentLines(many);
+  expect(lines).toHaveLength(21);
+  expect(lines.at(-1)).toBe("- …and 10 more");
+});
+
+it("lists only the thread root, not a reply in the same open thread", () => {
+  expect(
+    unresolvedCommentLines([
+      comment({ body: "fix the name", inReplyToId: null }),
+      comment({ body: "Done", inReplyToId: 11 }),
+    ]),
+  ).toEqual(["- a.ts:3 @synthetic-reviewer fix the name"]);
+});
+
+it("caps thread roots and says how many were left out", () => {
+  const lines = unresolvedCommentLines(
+    Array.from({ length: 25 }, () => comment({ inReplyToId: null })),
+  );
+  expect(lines).toHaveLength(21);
+  expect(lines.at(-1)).toBe("- …and 5 more");
+});
+
+it("says when thread state never arrived instead of listing nothing", () => {
+  expect(
+    unresolvedCommentLines([comment({ resolved: undefined, body: "maybe" })]),
+  ).toEqual(["- Thread state could not be loaded"]);
 });

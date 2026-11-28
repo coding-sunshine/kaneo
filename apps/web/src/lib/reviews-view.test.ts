@@ -24,7 +24,7 @@ const pr = (over: Partial<ReviewPullRequest>) =>
     number: 1,
     title: "t",
     status: "open",
-    author: { login: "ada", avatarUrl: "" },
+    author: { login: "synthetic-author", avatarUrl: "" },
     reviewDecision: null,
     approvedBy: [],
     changesRequestedBy: [],
@@ -75,7 +75,7 @@ describe("reviews view", () => {
     const items = [
       pr({ number: 1, status: "closed" }),
       pr({ number: 2, status: "open", reviewDecision: "approved" }),
-      pr({ number: 3, status: "open", approvedBy: ["ada"] }),
+      pr({ number: 3, status: "open", approvedBy: ["synthetic-author"] }),
       pr({ number: 4, status: "open" }),
       pr({ number: 5, status: "merged" }),
       pr({ number: 6, status: "draft" }),

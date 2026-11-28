@@ -126,7 +126,14 @@ export type GithubSearchPull = {
   additions: number;
   deletions: number;
   reviewDecision: "APPROVED" | "CHANGES_REQUESTED" | "REVIEW_REQUIRED" | null;
-  comments: { totalCount: number; nodes?: { body: string }[] };
+  comments: {
+    totalCount: number;
+    nodes?: {
+      body: string;
+      authorAssociation?: string;
+      author?: { __typename?: string } | null;
+    }[];
+  };
   body?: string;
   headRefOid?: string;
   /** Every submitted or pending review, newest 20; the viewer's own pending one shows too. */
@@ -178,7 +185,7 @@ const searchQuery = (details: boolean) => `query($q: String!) {
         ${
           details
             ? `body headRefOid
-        comments(last: 10) { totalCount nodes { body } }
+        comments(last: 100) { totalCount nodes { body authorAssociation author { __typename } } }
         reviews(last: 20) { nodes { state author { login } } }
         files(first: 50) { totalCount nodes { path additions deletions } }`
             : "comments { totalCount }"
@@ -479,6 +486,8 @@ export type GithubReviewComment = {
   original_line: number | null;
   side: "LEFT" | "RIGHT";
   created_at: string;
+  /** Set when this comment replies in a thread. Absent on the thread root. */
+  in_reply_to_id?: number | null;
 };
 
 export const listReviewComments = (
