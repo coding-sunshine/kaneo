@@ -466,3 +466,52 @@ export type UpdateTaskBody = {
   position: number;
   userId?: string | null;
 };
+
+// --- Documents ---
+export type DocumentTreePage = {
+  id: string;
+  title: string;
+  icon: string | null;
+  parentDocumentId: string | null;
+};
+
+/** The fields of `GET api/document/workspace/{id}/{documentId}` the app shows. */
+export type DocumentDetail = {
+  id: string;
+  workspaceId: string;
+  title: string;
+  icon: string | null;
+  content: string;
+  updatedAt: string;
+  updatedByName: string | null;
+  ancestors: { id: string; title: string }[];
+  hasChildren: boolean;
+};
+
+// --- Chat ---
+export type ChatChannel = {
+  id: string;
+  workspaceId: string;
+  name: string;
+  topic: string | null;
+  isPrivate: boolean;
+  isDirect: boolean;
+  isMember: boolean;
+  archivedAt: string | null;
+  createdAt: string;
+  unreadCount: number;
+};
+
+export type ChatDirectMessage = ChatChannel & { memberIds: string[] };
+
+export type ChatMessage = {
+  id: string;
+  channelId: string;
+  userId: string | null;
+  authorName: string | null;
+  authorImage: string | null;
+  body: string;
+  editedAt: string | null;
+  createdAt: string;
+  files: { id: string; filename: string; mimeType: string; size: number }[];
+};

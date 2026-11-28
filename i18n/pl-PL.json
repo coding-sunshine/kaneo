@@ -7973,7 +7973,10 @@
 			"tasks": "Moje zadania",
 			"inbox": "Skrzynka",
 			"activity": "Aktywność",
-			"inboxUnread": "Skrzynka, nieprzeczytane: {{count}}"
+			"inboxUnread": "Skrzynka, nieprzeczytane: {{count}}",
+			"chat": "Chat",
+			"chatUnread": "Chat, {{count}} unread",
+			"docs": "Docs"
 		},
 		"workspaceSwitcher": {
 			"title": "Obszary robocze",
@@ -8146,7 +8149,14 @@
 				"delivery": "Dostarczanie i zdarzenia",
 				"deliveryHint": "E-mail, ntfy, Gotify, webhooki",
 				"invitations": "Zaproszenia",
-				"permissionDenied": "Najpierw zezwól na powiadomienia dla Kaneo w ustawieniach systemu."
+				"permissionDenied": "Najpierw zezwól na powiadomienia dla Kaneo w ustawieniach systemu.",
+				"push": "Instant chat pushes",
+				"pushChecking": "Checking…",
+				"pushDisabled": "Turn on phone notifications to get them.",
+				"pushNeedsSession": "Needs a password or browser sign-in, not an API key.",
+				"pushNoToken": "This phone could not get a push token. Chat arrives with the 15-minute check.",
+				"pushOn": "New chat messages arrive right away.",
+				"pushServerOff": "Off on this server: it needs an APNs or FCM key. Chat arrives with the 15-minute check."
 			},
 			"connection": {
 				"title": "Połączenie",
@@ -8365,6 +8375,37 @@
 		},
 		"permissions": {
 			"photos": "Kaneo używa Twoich zdjęć, aby dołączać obrazy do zadań i komentarzy oraz jako zdjęcie profilowe."
+		},
+		"chat": {
+			"archived": "This channel is archived.",
+			"channels": "Channels",
+			"directMessages": "Direct messages",
+			"edited": "edited",
+			"empty": {
+				"message": "Channels you can see in this workspace show up here.",
+				"title": "No channels yet"
+			},
+			"join": "Join channel",
+			"joinHint": "Join to post in this channel.",
+			"noMessages": "No messages yet.",
+			"placeholder": "Message {{name}}",
+			"readOnly": "You can read this channel but not post in it.",
+			"send": "Send",
+			"title": "Chat",
+			"unknownAuthor": "Someone",
+			"unread": "{{count}} unread",
+			"you": "You"
+		},
+		"documents": {
+			"edited": "Edited {{when}}",
+			"editedBy": "Edited {{when}} by {{name}}",
+			"empty": {
+				"message": "Pages you can open in this workspace show up here.",
+				"title": "No pages yet"
+			},
+			"subpages": "Pages inside",
+			"title": "Docs",
+			"untitled": "Untitled"
 		}
 	}
 }

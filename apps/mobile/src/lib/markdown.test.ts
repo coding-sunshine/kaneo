@@ -18,4 +18,20 @@ describe("toDisplayMarkdown", () => {
       ),
     ).toBe(`- [KAN-3](${url}) next\n\n[KAN-3](${url})`);
   });
+
+  it("keeps a document's pipe table and turns its page and issue links into links", () => {
+    const table = [
+      "| Name  | Status |",
+      "| ----- | ------ |",
+      "| Board | Done   |",
+    ].join("\n");
+    const page = "https://kaneo.example/workspace/w/documents/d1";
+    const issue = "https://kaneo.example/task/1";
+    expect(
+      toDisplayMarkdown(
+        `${table}\n\n<kaneo-document-link url="${page}" />\n\n<kaneo-issue-link url="${issue}" issue-key="KAN-3" task-id="1" />`,
+        "",
+      ),
+    ).toBe(`${table}\n\n[${page}](${page})\n\n[KAN-3](${issue})`);
+  });
 });

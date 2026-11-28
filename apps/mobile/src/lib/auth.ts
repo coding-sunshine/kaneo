@@ -7,6 +7,7 @@ import type {
   DeviceTokenResponse,
   InstanceConfig,
 } from "./api/types";
+import { stopPush } from "./push";
 import { sessionStore, type CredentialType } from "./session";
 
 export type DevicePoll =
@@ -197,6 +198,7 @@ export async function completeWithToken(
 
 export async function signOut() {
   const session = sessionStore.get().session;
+  await stopPush();
   if (session?.credentialType === "bearer") {
     try {
       await api.signOut();

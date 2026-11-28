@@ -31983,9 +31983,36 @@
 						},
 						"inboxUnread_other": {
 							"type": "string"
+						},
+						"chat": {
+							"type": "string"
+						},
+						"docs": {
+							"type": "string"
+						},
+						"chatUnread": {
+							"type": "string"
+						},
+						"chatUnread_zero": {
+							"type": "string"
+						},
+						"chatUnread_one": {
+							"type": "string"
+						},
+						"chatUnread_two": {
+							"type": "string"
+						},
+						"chatUnread_few": {
+							"type": "string"
+						},
+						"chatUnread_many": {
+							"type": "string"
+						},
+						"chatUnread_other": {
+							"type": "string"
 						}
 					},
-					"required": ["home", "tasks", "inbox", "activity"]
+					"required": ["home", "tasks", "inbox", "activity", "chat", "docs"]
 				},
 				"workspaceSwitcher": {
 					"type": "object",
@@ -32645,6 +32672,27 @@
 								},
 								"permissionDenied": {
 									"type": "string"
+								},
+								"push": {
+									"type": "string"
+								},
+								"pushOn": {
+									"type": "string"
+								},
+								"pushServerOff": {
+									"type": "string"
+								},
+								"pushNeedsSession": {
+									"type": "string"
+								},
+								"pushNoToken": {
+									"type": "string"
+								},
+								"pushDisabled": {
+									"type": "string"
+								},
+								"pushChecking": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -32654,7 +32702,14 @@
 								"delivery",
 								"deliveryHint",
 								"invitations",
-								"permissionDenied"
+								"permissionDenied",
+								"push",
+								"pushOn",
+								"pushServerOff",
+								"pushNeedsSession",
+								"pushNoToken",
+								"pushDisabled",
+								"pushChecking"
 							]
 						},
 						"connection": {
@@ -33502,6 +33557,143 @@
 						}
 					},
 					"required": ["photos"]
+				},
+				"documents": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"untitled": {
+							"type": "string"
+						},
+						"subpages": {
+							"type": "string"
+						},
+						"edited": {
+							"type": "string"
+						},
+						"editedBy": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"message": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "message"]
+						}
+					},
+					"required": [
+						"title",
+						"untitled",
+						"subpages",
+						"edited",
+						"editedBy",
+						"empty"
+					]
+				},
+				"chat": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"channels": {
+							"type": "string"
+						},
+						"directMessages": {
+							"type": "string"
+						},
+						"you": {
+							"type": "string"
+						},
+						"unread": {
+							"type": "string"
+						},
+						"unread_zero": {
+							"type": "string"
+						},
+						"unread_one": {
+							"type": "string"
+						},
+						"unread_two": {
+							"type": "string"
+						},
+						"unread_few": {
+							"type": "string"
+						},
+						"unread_many": {
+							"type": "string"
+						},
+						"unread_other": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"message": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "message"]
+						},
+						"noMessages": {
+							"type": "string"
+						},
+						"placeholder": {
+							"type": "string"
+						},
+						"send": {
+							"type": "string"
+						},
+						"join": {
+							"type": "string"
+						},
+						"joinHint": {
+							"type": "string"
+						},
+						"archived": {
+							"type": "string"
+						},
+						"readOnly": {
+							"type": "string"
+						},
+						"edited": {
+							"type": "string"
+						},
+						"unknownAuthor": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"title",
+						"channels",
+						"directMessages",
+						"you",
+						"empty",
+						"noMessages",
+						"placeholder",
+						"send",
+						"join",
+						"joinHint",
+						"archived",
+						"readOnly",
+						"edited",
+						"unknownAuthor"
+					]
 				}
 			},
 			"required": [
@@ -33536,7 +33728,9 @@
 				"workspaceSettings",
 				"members",
 				"labels",
-				"permissions"
+				"permissions",
+				"documents",
+				"chat"
 			]
 		}
 	},

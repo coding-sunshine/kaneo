@@ -7703,7 +7703,10 @@
 			"tasks": "My issues",
 			"inbox": "Inbox",
 			"activity": "Activity",
-			"inboxUnread": "Inbox, {{count}} unread"
+			"inboxUnread": "Inbox, {{count}} unread",
+			"chat": "Chat",
+			"docs": "Docs",
+			"chatUnread": "Chat, {{count}} unread"
 		},
 		"workspaceSwitcher": {
 			"title": "Workspaces",
@@ -7860,7 +7863,14 @@
 				"delivery": "Delivery and events",
 				"deliveryHint": "Email, ntfy, Gotify, webhooks",
 				"invitations": "Invitations",
-				"permissionDenied": "Allow notifications for Kaneo in system settings first."
+				"permissionDenied": "Allow notifications for Kaneo in system settings first.",
+				"push": "Instant chat pushes",
+				"pushOn": "New chat messages arrive right away.",
+				"pushServerOff": "Off on this server: it needs an APNs or FCM key. Chat arrives with the 15-minute check.",
+				"pushNeedsSession": "Needs a password or browser sign-in, not an API key.",
+				"pushNoToken": "This phone could not get a push token. Chat arrives with the 15-minute check.",
+				"pushDisabled": "Turn on phone notifications to get them.",
+				"pushChecking": "Checking…"
 			},
 			"connection": {
 				"title": "Connection",
@@ -8075,6 +8085,37 @@
 		},
 		"permissions": {
 			"photos": "Kaneo uses your photos to attach images to issues and comments, and for your profile photo."
+		},
+		"documents": {
+			"title": "Docs",
+			"untitled": "Untitled",
+			"subpages": "Pages inside",
+			"edited": "Edited {{when}}",
+			"editedBy": "Edited {{when}} by {{name}}",
+			"empty": {
+				"title": "No pages yet",
+				"message": "Pages you can open in this workspace show up here."
+			}
+		},
+		"chat": {
+			"title": "Chat",
+			"channels": "Channels",
+			"directMessages": "Direct messages",
+			"you": "You",
+			"unread": "{{count}} unread",
+			"empty": {
+				"title": "No channels yet",
+				"message": "Channels you can see in this workspace show up here."
+			},
+			"noMessages": "No messages yet.",
+			"placeholder": "Message {{name}}",
+			"send": "Send",
+			"join": "Join channel",
+			"joinHint": "Join to post in this channel.",
+			"archived": "This channel is archived.",
+			"readOnly": "You can read this channel but not post in it.",
+			"edited": "edited",
+			"unknownAuthor": "Someone"
 		}
 	}
 }

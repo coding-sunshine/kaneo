@@ -11,8 +11,9 @@ import { i18n, loadDeviceLocale } from "./i18n";
 import { sessionStore } from "./session";
 
 /**
- * Kaneo has no mobile push service, so unread notifications are polled in the background
- * (the OS runs this at most every 15 minutes) and surfaced as local notifications.
+ * Inbox notifications have no push, so unread ones are polled in the background (the OS
+ * runs this at most every 15 minutes) and surfaced as local notifications. Chat messages
+ * also come as pushes when the server has an APNs or FCM key (see `push.ts`).
  */
 export const BACKGROUND_TASK = "kaneo-notifications";
 const SINCE_KEY = "kaneo.notifications.since";

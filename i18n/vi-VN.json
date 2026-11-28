@@ -7703,7 +7703,10 @@
 			"tasks": "Công việc của tôi",
 			"inbox": "Hộp thư đến",
 			"activity": "Hoạt động",
-			"inboxUnread": "Hộp thư đến, {{count}} chưa đọc"
+			"inboxUnread": "Hộp thư đến, {{count}} chưa đọc",
+			"chat": "Chat",
+			"chatUnread": "Chat, {{count}} unread",
+			"docs": "Docs"
 		},
 		"workspaceSwitcher": {
 			"title": "Không gian làm việc",
@@ -7860,7 +7863,14 @@
 				"delivery": "Kênh gửi và sự kiện",
 				"deliveryHint": "Email, ntfy, Gotify, webhook",
 				"invitations": "Lời mời",
-				"permissionDenied": "Hãy cho phép Kaneo gửi thông báo trong cài đặt hệ thống trước."
+				"permissionDenied": "Hãy cho phép Kaneo gửi thông báo trong cài đặt hệ thống trước.",
+				"push": "Instant chat pushes",
+				"pushChecking": "Checking…",
+				"pushDisabled": "Turn on phone notifications to get them.",
+				"pushNeedsSession": "Needs a password or browser sign-in, not an API key.",
+				"pushNoToken": "This phone could not get a push token. Chat arrives with the 15-minute check.",
+				"pushOn": "New chat messages arrive right away.",
+				"pushServerOff": "Off on this server: it needs an APNs or FCM key. Chat arrives with the 15-minute check."
 			},
 			"connection": {
 				"title": "Kết nối",
@@ -8075,6 +8085,37 @@
 		},
 		"permissions": {
 			"photos": "Kaneo dùng ảnh của bạn để đính kèm hình ảnh vào công việc và bình luận, cũng như làm ảnh hồ sơ."
+		},
+		"chat": {
+			"archived": "This channel is archived.",
+			"channels": "Channels",
+			"directMessages": "Direct messages",
+			"edited": "edited",
+			"empty": {
+				"message": "Channels you can see in this workspace show up here.",
+				"title": "No channels yet"
+			},
+			"join": "Join channel",
+			"joinHint": "Join to post in this channel.",
+			"noMessages": "No messages yet.",
+			"placeholder": "Message {{name}}",
+			"readOnly": "You can read this channel but not post in it.",
+			"send": "Send",
+			"title": "Chat",
+			"unknownAuthor": "Someone",
+			"unread": "{{count}} unread",
+			"you": "You"
+		},
+		"documents": {
+			"edited": "Edited {{when}}",
+			"editedBy": "Edited {{when}} by {{name}}",
+			"empty": {
+				"message": "Pages you can open in this workspace show up here.",
+				"title": "No pages yet"
+			},
+			"subpages": "Pages inside",
+			"title": "Docs",
+			"untitled": "Untitled"
 		}
 	}
 }

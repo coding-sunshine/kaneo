@@ -27,6 +27,7 @@ import {
   requestNotificationPermission,
   setBackgroundChecks,
 } from "@/lib/background";
+import { usePushStatus } from "@/lib/push";
 import { useMe } from "@/lib/hooks";
 import { qk, useAction } from "@/lib/query";
 import { sessionStore, usePrefs, useRequiredSession } from "@/lib/session";
@@ -81,6 +82,8 @@ export default function AccountScreen() {
       { success: t("mobile:account.toast.photoUpdated") },
     );
   };
+
+  const push = usePushStatus();
 
   const toggleBackground = async (enabled: boolean) => {
     if (enabled && !(await requestNotificationPermission())) {
@@ -180,6 +183,26 @@ export default function AccountScreen() {
                 value={prefs.backgroundNotifications}
                 onChange={toggleBackground}
               />
+            </GroupRow>
+            <GroupRow>
+              <View style={{ flex: 1, gap: 2 }}>
+                <Txt variant="body">
+                  {t("mobile:account.notifications.push")}
+                </Txt>
+                <Txt variant="caption" tone="faint">
+                  {!prefs.backgroundNotifications
+                    ? t("mobile:account.notifications.pushDisabled")
+                    : push === "on"
+                      ? t("mobile:account.notifications.pushOn")
+                      : push === "serverOff"
+                        ? t("mobile:account.notifications.pushServerOff")
+                        : push === "needsSession"
+                          ? t("mobile:account.notifications.pushNeedsSession")
+                          : push === "noToken"
+                            ? t("mobile:account.notifications.pushNoToken")
+                            : t("mobile:account.notifications.pushChecking")}
+                </Txt>
+              </View>
             </GroupRow>
             <GroupRow onPress={() => router.push("/notification-settings")}>
               <View style={{ flex: 1, gap: 2 }}>

@@ -1,4 +1,11 @@
-import { Activity, CircleCheck, House, Inbox } from "lucide-react-native";
+import {
+  Activity,
+  CircleCheck,
+  FileText,
+  House,
+  Inbox,
+  MessageSquare,
+} from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
@@ -7,17 +14,19 @@ import { Txt } from "@/components/text";
 import { CountBadge, Touch } from "@/components/ui";
 import { useColors } from "@/theme";
 
-export type HomeTab = "home" | "tasks" | "inbox" | "activity";
+export type HomeTab = "home" | "tasks" | "chat" | "docs" | "inbox" | "activity";
 
 /** Slim bar of outline icons: the active tab is ink, the rest gray. No pill indicator. */
 export function BottomNav({
   tab,
   onChange,
   unread,
+  chatUnread,
 }: {
   tab: HomeTab;
   onChange: (t: HomeTab) => void;
   unread: number;
+  chatUnread: number;
 }) {
   const { t } = useTranslation(["mobile"]);
   const c = useColors();
@@ -25,6 +34,8 @@ export function BottomNav({
   const items: { key: HomeTab; label: string }[] = [
     { key: "home", label: t("mobile:nav.home") },
     { key: "tasks", label: t("mobile:nav.tasks") },
+    { key: "chat", label: t("mobile:nav.chat") },
+    { key: "docs", label: t("mobile:nav.docs") },
     { key: "inbox", label: t("mobile:nav.inbox") },
     { key: "activity", label: t("mobile:nav.activity") },
   ];
@@ -50,7 +61,9 @@ export function BottomNav({
               accessibilityLabel={
                 item.key === "inbox" && unread
                   ? t("mobile:nav.inboxUnread", { count: unread })
-                  : item.label
+                  : item.key === "chat" && chatUnread
+                    ? t("mobile:nav.chatUnread", { count: chatUnread })
+                    : item.label
               }
               style={{
                 flex: 1,
@@ -64,12 +77,17 @@ export function BottomNav({
                   <House size={22} color={color} strokeWidth={2} />
                 ) : item.key === "tasks" ? (
                   <CircleCheck size={22} color={color} strokeWidth={2} />
+                ) : item.key === "chat" ? (
+                  <MessageSquare size={22} color={color} strokeWidth={2} />
+                ) : item.key === "docs" ? (
+                  <FileText size={22} color={color} strokeWidth={2} />
                 ) : item.key === "inbox" ? (
                   <Inbox size={22} color={color} strokeWidth={2} />
                 ) : (
                   <Activity size={22} color={color} strokeWidth={2} />
                 )}
-                {item.key === "inbox" && unread > 0 ? (
+                {(item.key === "inbox" && unread > 0) ||
+                (item.key === "chat" && chatUnread > 0) ? (
                   <View
                     style={{
                       position: "absolute",
@@ -80,7 +98,10 @@ export function BottomNav({
                       borderRadius: 999,
                     }}
                   >
-                    <CountBadge count={unread} tone="info" />
+                    <CountBadge
+                      count={item.key === "chat" ? chatUnread : unread}
+                      tone="info"
+                    />
                   </View>
                 ) : null}
               </View>

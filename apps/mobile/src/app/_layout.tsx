@@ -27,6 +27,7 @@ import {
   setBackgroundChecks,
 } from "@/lib/background";
 import { loadDeviceLocale } from "@/lib/i18n";
+import { startPush, stopPush, watchPushToken } from "@/lib/push";
 import { queryClient } from "@/lib/query";
 import { sessionStore, useSessionState } from "@/lib/session";
 import { useColors } from "@/theme";
@@ -104,10 +105,13 @@ function AppStack() {
       return;
     }
     if (prefs.backgroundNotifications) {
-      void requestNotificationPermission().then(() =>
-        setBackgroundChecks(true),
-      );
+      void requestNotificationPermission().then(async (granted) => {
+        await setBackgroundChecks(true);
+        if (granted) await startPush();
+      });
+      return watchPushToken();
     }
+    void stopPush();
   }, [signedIn, prefs.backgroundNotifications]);
 
   return (

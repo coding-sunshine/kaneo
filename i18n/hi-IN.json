@@ -7703,7 +7703,10 @@
 			"tasks": "मेरे कार्य",
 			"inbox": "इनबॉक्स",
 			"activity": "गतिविधि",
-			"inboxUnread": "इनबॉक्स, {{count}} अपठित"
+			"inboxUnread": "इनबॉक्स, {{count}} अपठित",
+			"chat": "Chat",
+			"chatUnread": "Chat, {{count}} unread",
+			"docs": "Docs"
 		},
 		"workspaceSwitcher": {
 			"title": "वर्कस्पेस",
@@ -7860,7 +7863,14 @@
 				"delivery": "डिलीवरी और इवेंट",
 				"deliveryHint": "ईमेल, ntfy, Gotify, वेबहुक",
 				"invitations": "निमंत्रण",
-				"permissionDenied": "पहले सिस्टम सेटिंग में Kaneo के लिए सूचनाओं की अनुमति दें।"
+				"permissionDenied": "पहले सिस्टम सेटिंग में Kaneo के लिए सूचनाओं की अनुमति दें।",
+				"push": "Instant chat pushes",
+				"pushChecking": "Checking…",
+				"pushDisabled": "Turn on phone notifications to get them.",
+				"pushNeedsSession": "Needs a password or browser sign-in, not an API key.",
+				"pushNoToken": "This phone could not get a push token. Chat arrives with the 15-minute check.",
+				"pushOn": "New chat messages arrive right away.",
+				"pushServerOff": "Off on this server: it needs an APNs or FCM key. Chat arrives with the 15-minute check."
 			},
 			"connection": {
 				"title": "कनेक्शन",
@@ -8075,6 +8085,37 @@
 		},
 		"permissions": {
 			"photos": "Kaneo आपकी फ़ोटो का उपयोग कार्यों और टिप्पणियों में चित्र जोड़ने और आपकी प्रोफ़ाइल फ़ोटो के लिए करता है।"
+		},
+		"chat": {
+			"archived": "This channel is archived.",
+			"channels": "Channels",
+			"directMessages": "Direct messages",
+			"edited": "edited",
+			"empty": {
+				"message": "Channels you can see in this workspace show up here.",
+				"title": "No channels yet"
+			},
+			"join": "Join channel",
+			"joinHint": "Join to post in this channel.",
+			"noMessages": "No messages yet.",
+			"placeholder": "Message {{name}}",
+			"readOnly": "You can read this channel but not post in it.",
+			"send": "Send",
+			"title": "Chat",
+			"unknownAuthor": "Someone",
+			"unread": "{{count}} unread",
+			"you": "You"
+		},
+		"documents": {
+			"edited": "Edited {{when}}",
+			"editedBy": "Edited {{when}} by {{name}}",
+			"empty": {
+				"message": "Pages you can open in this workspace show up here.",
+				"title": "No pages yet"
+			},
+			"subpages": "Pages inside",
+			"title": "Docs",
+			"untitled": "Untitled"
 		}
 	}
 }

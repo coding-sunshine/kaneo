@@ -70,6 +70,10 @@ base64 -i kaneo-release.keystore | pbcopy   # paste into the ANDROID_KEYSTORE_BA
 
 CI reads the repository secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD`. Locally, export the `KANEO_ANDROID_*` variables and run `pnpm --filter @kaneo/mobile exec expo run:android --variant release`. For iOS, build with `pnpm --filter @kaneo/mobile exec expo run:ios --configuration Release`.
 
+## Chat pushes
+
+New chat messages come as pushes once the server has an APNs or FCM key (see the Mobile push environment variables in the docs). The app registers the phone's native token after notification permission is granted, and the Account screen says when pushes are off and why. iOS builds get the push entitlement from the `expo-notifications` plugin. Android builds need your Firebase project's `google-services.json`: point `KANEO_GOOGLE_SERVICES_FILE` at it when you build (see `plugins/with-firebase-config.js`). Never commit that file.
+
 ## Project layout
 
 ```

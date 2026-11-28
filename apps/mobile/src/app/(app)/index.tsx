@@ -7,6 +7,9 @@ import { View } from "react-native";
 import { ErrorState, Loading, Screen } from "@/components/screen";
 import { Txt } from "@/components/text";
 import { Button, Touch } from "@/components/ui";
+import { ChatTab } from "@/features/chat/chat-tab";
+import { useChatLists } from "@/features/chat/use-chat-lists";
+import { DocumentsTab } from "@/features/documents/documents-tab";
 import { ActivityTab } from "@/features/home/activity-tab";
 import { BottomNav, type HomeTab } from "@/features/home/bottom-nav";
 import { HomeTabView } from "@/features/home/home-tab";
@@ -27,6 +30,7 @@ export default function HomeScreen() {
   const [switcher, setSwitcher] = useState(false);
   const { workspace, isLoading, error, refetch } = useCurrentWorkspace();
   const unread = useUnreadCount(workspace?.id);
+  const chat = useChatLists(workspace?.id ?? "");
 
   useRealtime("api/ws/user", (event) => {
     if (event.type === "NOTIFICATION_CREATED") {
@@ -35,6 +39,11 @@ export default function HomeScreen() {
           queryKey: qk.notifications(workspace.id),
         });
       void client.invalidateQueries({ queryKey: ["activity"] });
+    } else if (event.type === "CHAT_UNREAD_CHANGED") {
+      if (workspace)
+        void client.invalidateQueries({
+          queryKey: qk.chatChannels(workspace.id),
+        });
     } else if (
       [
         "WORKSPACE_ACCESS_REVOKED",
@@ -63,7 +72,7 @@ export default function HomeScreen() {
   if (!workspace) return <NoWorkspace />;
 
   return (
-    <Screen surface={tab === "inbox" || tab === "activity"}>
+    <Screen surface={tab !== "home" && tab !== "tasks"}>
       <View style={{ flex: 1 }}>
         {tab === "home" ? (
           <HomeTabView
@@ -73,13 +82,22 @@ export default function HomeScreen() {
           />
         ) : tab === "tasks" ? (
           <MyTasksTab workspaceId={workspace.id} />
+        ) : tab === "chat" ? (
+          <ChatTab workspaceId={workspace.id} />
+        ) : tab === "docs" ? (
+          <DocumentsTab workspaceId={workspace.id} />
         ) : tab === "inbox" ? (
           <InboxTab workspaceId={workspace.id} />
         ) : (
           <ActivityTab workspace={workspace} />
         )}
       </View>
-      <BottomNav tab={tab} onChange={setTab} unread={unread} />
+      <BottomNav
+        tab={tab}
+        onChange={setTab}
+        unread={unread}
+        chatUnread={chat.unread}
+      />
       <WorkspaceSheet
         visible={switcher}
         onClose={() => setSwitcher(false)}
