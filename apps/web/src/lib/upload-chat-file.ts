@@ -1,17 +1,22 @@
 import { createChatFileUpload, finalizeChatFile } from "@/fetchers/chat/files";
 import { formatFileSize, MAX_UPLOAD_BYTES } from "./upload-task-image";
 
-/** Uploads a file to storage, then posts it to the channel as a message. */
+/**
+ * Uploads a file to storage, then posts it to the channel as a message, or
+ * adds it to the sender's message `messageId`.
+ */
 export async function uploadChatFile({
   workspaceId,
   channelId,
   file,
   body,
+  messageId,
 }: {
   workspaceId: string;
   channelId: string;
   file: File;
   body?: string;
+  messageId?: string;
 }) {
   if (file.size <= 0) {
     throw new Error("Only non-empty file uploads are supported.");
@@ -41,5 +46,6 @@ export async function uploadChatFile({
     filename: name,
     size: file.size,
     body,
+    messageId,
   });
 }

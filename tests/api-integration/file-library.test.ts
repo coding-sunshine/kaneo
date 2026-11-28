@@ -213,8 +213,8 @@ describe("API integration: the file library", () => {
       `${channelBase()}/no-such-channel/files/${fileId}`,
     );
     const hidden = await world.as(world.open)(fileUrl(channels.leads, fileId));
-    expect(unknown.status).toBe(404);
-    expect(hidden.status).toBe(404);
+    expect(unknown.status).toBe(403);
+    expect(hidden.status).toBe(403);
     expect(await hidden.json()).toEqual(await unknown.json());
 
     await world.as(world.owner)(
@@ -348,7 +348,7 @@ describe("API integration: the file library", () => {
     const hidden = await world.as(world.limited)(
       fileUrl(channels.leads, message.files[0]?.id ?? ""),
     );
-    expect(hidden.status).toBe(404);
+    expect(hidden.status).toBe(403);
 
     await world.as(world.owner)(
       `${channelBase()}/${channels.general}/members`,
