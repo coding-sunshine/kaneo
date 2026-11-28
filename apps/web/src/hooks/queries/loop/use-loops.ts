@@ -17,6 +17,8 @@ export function useLoopRuns(workspaceId: string, loopId: string) {
   return useQuery({
     queryKey: ["loop-runs", workspaceId, loopId],
     queryFn: () => getRuns(workspaceId, loopId),
+    // Scheduled and event runs happen on the server, so reread on every open.
+    refetchOnMount: "always",
   });
 }
 

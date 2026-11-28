@@ -102,6 +102,7 @@ describe("API integration: loop drafts a project update", () => {
     );
     expect(run.status, await run.clone().text()).toBe(200);
     expect((await run.json()).status).toBe("succeeded");
+    return loop.id as string;
   }
 
   const drafts = async (user: User) => {
@@ -162,6 +163,17 @@ describe("API integration: loop drafts a project update", () => {
       tool: "create_project_update",
       acceptedBy: { id: owner.id },
     });
+  });
+
+  it("lists each manual run in the loop's run history", async () => {
+    const loopId = await runLoop();
+    const res = await as(owner).request(
+      `/api/loop/workspace/${ws}/${loopId}/runs`,
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject([
+      { trigger: "manual", status: "succeeded", error: null },
+    ]);
   });
 
   it("counts the run's tokens on the usage page", async () => {

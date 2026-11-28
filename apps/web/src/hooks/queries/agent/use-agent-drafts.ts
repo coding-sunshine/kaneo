@@ -14,5 +14,7 @@ export function useAgentDrafts(workspaceId: string) {
     enabled: hasAgent && Boolean(workspaceId),
     queryKey: agentDraftsKey(workspaceId),
     queryFn: () => getAgentDrafts(workspaceId),
+    // Loops draft these on the server, so reread each time Pulse opens.
+    refetchOnMount: "always",
   });
 }
