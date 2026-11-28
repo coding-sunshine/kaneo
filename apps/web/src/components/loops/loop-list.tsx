@@ -82,8 +82,14 @@ export function LoopList({
                   <ContextMenuItem
                     onClick={() =>
                       run.mutate(loop.id, {
-                        onSuccess: () =>
-                          toast.success(t("navigation:loops.ran")),
+                        // The run answers 200 even when it failed.
+                        onSuccess: (result) =>
+                          result.status === "failed"
+                            ? toast.error(
+                                result.error ??
+                                  t("navigation:loops.status.failed"),
+                              )
+                            : toast.success(t("navigation:loops.ran")),
                         onError: fail,
                       })
                     }
