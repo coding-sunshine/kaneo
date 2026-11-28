@@ -350,6 +350,52 @@ describe("API integration: meeting notes", () => {
     delete process.env.STT_API_URL;
   });
 
+  it("refuses a recording over 25 MB before reading it", async () => {
+    const { owner, ws } = await setup();
+    process.env.STT_API_KEY = "test-stt-key";
+    const sttCalls: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string | URL) => {
+        sttCalls.push(String(url));
+        return new Response(JSON.stringify({ text: "never" }));
+      }),
+    );
+    const path = `/api/meeting-notes/workspace/${ws}/transcribe`;
+    // A declared size over the limit is refused from the header alone.
+    mockAuthenticatedSession(owner);
+    const declared = await app.request(path, {
+      method: "POST",
+      headers: {
+        "Content-Type": "multipart/form-data; boundary=x",
+        "Content-Length": String(30 * 1024 * 1024),
+      },
+      body: "--x--",
+    });
+    expect(declared.status).toBe(413);
+
+    // Without a size, reading stops once the limit is passed.
+    let pulled = 0;
+    const chunk = new Uint8Array(1024 * 1024);
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        pulled += 1;
+        if (pulled > 40) controller.close();
+        else controller.enqueue(chunk);
+      },
+    });
+    mockAuthenticatedSession(owner);
+    const streamed = await app.request(path, {
+      method: "POST",
+      headers: { "Content-Type": "multipart/form-data; boundary=x" },
+      body: stream,
+      duplex: "half",
+    } as RequestInit);
+    expect(streamed.status).toBe(413);
+    expect(pulled).toBeLessThan(40);
+    expect(sttCalls).toEqual([]);
+  });
+
   it("is off without a model key", async () => {
     const { owner, ws, doc } = await setup();
     delete process.env.OPENROUTER_API_KEY;

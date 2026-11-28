@@ -4,6 +4,9 @@ const DEFAULT_URL = "https://api.openai.com/v1/audio/transcriptions";
 const DEFAULT_MODEL = "whisper-1";
 export const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
 
+export const SPEECH_TO_TEXT_OFF =
+  "Speech to text is off on this server. Paste the transcript as text instead.";
+
 /** Speech to text is on when the server has a key for it. */
 export const isSpeechToTextEnabled = () =>
   Boolean(process.env.STT_API_KEY?.trim());
@@ -14,10 +17,7 @@ export const isSpeechToTextEnabled = () =>
  */
 export async function transcribe(file: File) {
   if (!isSpeechToTextEnabled())
-    throw new HTTPException(404, {
-      message:
-        "Speech to text is off on this server. Paste the transcript as text instead.",
-    });
+    throw new HTTPException(404, { message: SPEECH_TO_TEXT_OFF });
   if (file.size > MAX_AUDIO_BYTES)
     throw new HTTPException(413, { message: "The recording is over 25 MB." });
   const form = new FormData();

@@ -1,3 +1,4 @@
+import { bodyLimit } from "hono/body-limit";
 import { HTTPException } from "hono/http-exception";
 import { isAgentEnabled } from "../agent/openrouter";
 import {
@@ -22,7 +23,12 @@ import {
   transcriptSchema,
   workspaceParam,
 } from "./schema";
-import { transcribe } from "./transcribe";
+import {
+  isSpeechToTextEnabled,
+  MAX_AUDIO_BYTES,
+  SPEECH_TO_TEXT_OFF,
+  transcribe,
+} from "./transcribe";
 
 const tags = ["Meeting notes"];
 const read = [
@@ -99,7 +105,19 @@ const transcribeRoute = createRoute({
   summary: "Transcribe a recording",
   description:
     "Turns a meeting recording (up to 25 MB) into text with the server's speech-to-text service. The audio is not stored. Off until the server has STT_API_KEY.",
-  middleware: [...read] as const,
+  middleware: [
+    // Refused from the declared size, or once a body without one passes
+    // the limit, before anything is buffered. Room for the form's framing.
+    bodyLimit({
+      maxSize: MAX_AUDIO_BYTES + 64 * 1024,
+      onError: () => {
+        throw new HTTPException(413, {
+          message: "The recording is over 25 MB.",
+        });
+      },
+    }),
+    ...read,
+  ] as const,
   request: {
     params: workspaceParam,
     body: {
@@ -160,6 +178,8 @@ const meetingNotes = router
     );
   })
   .openapi(transcribeRoute, async (c) => {
+    if (!isSpeechToTextEnabled())
+      throw new HTTPException(404, { message: SPEECH_TO_TEXT_OFF });
     const body = await c.req.parseBody();
     const file = body.file;
     if (!(file instanceof File))
