@@ -213,6 +213,43 @@ describe("API integration: semantic search", () => {
     expect(sent).not.toContain("Pizza lunch");
   });
 
+  it("never embeds or answers from a direct message, even after the opt-in", async () => {
+    const { owner, ws } = await setup();
+    const [dm] = await db
+      .insert(chatChannelTable)
+      .values({
+        workspaceId: ws,
+        name: "dm",
+        isPrivate: true,
+        directKey: owner.id,
+        createdBy: owner.id,
+      })
+      .returning();
+    await db
+      .insert(chatChannelMemberTable)
+      .values({ channelId: dm.id, userId: owner.id });
+    await db.insert(chatMessageTable).values({
+      channelId: dm.id,
+      body: "Contoso supplier chosen quietly",
+      userId: owner.id,
+    });
+    mockAuthenticatedSession(owner);
+    const optIn = await app.request(
+      `/api/catch-up/workspace/${ws}/preference`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ includeDirectMessages: true }),
+      },
+    );
+    expect(optIn.status).toBe(200);
+    await indexSemanticChunks();
+    expect(JSON.stringify(embeddingCalls)).not.toContain("chosen quietly");
+    model.queue.push(reply(JSON.stringify({ answer: "-", sources: [] })));
+    await search(owner, ws, "which supplier was chosen");
+    expect(JSON.stringify(model.seen)).not.toContain("chosen quietly");
+  });
+
   it("leaves out what the searcher cannot open", async () => {
     const { ws, owner, project, task } = await setup();
     await indexSemanticChunks();

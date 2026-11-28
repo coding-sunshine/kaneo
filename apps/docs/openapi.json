@@ -9876,7 +9876,7 @@
         "properties": {
           "includeDirectMessages": {
             "type": "boolean",
-            "description": "Let your catch-up read your direct messages. Off by default."
+            "description": "Let AI answers for you read your direct messages: catch-up and the assistant's search. Direct messages marked no AI stay out. Off by default."
           }
         },
         "required": [
@@ -33383,7 +33383,7 @@
           "Chat"
         ],
         "summary": "Update channel",
-        "description": "Rename, set the topic, or archive and unarchive. Members only.",
+        "description": "Rename, set the topic, archive and unarchive, or turn AI off and on. Members only; in a direct message only AI can be switched.",
         "parameters": [
           {
             "schema": {
@@ -33427,7 +33427,7 @@
                   },
                   "aiDisabled": {
                     "type": "boolean",
-                    "description": "Keep AI features out of the channel: no ticket or decision is drafted from its threads."
+                    "description": "Keep AI features out of the channel or direct message: no AI reads it, and what AI stored from it (embeddings, daily brief lines) is deleted."
                   }
                 }
               }
@@ -50127,7 +50127,7 @@
           "Catch-up"
         ],
         "summary": "My catch-up settings",
-        "description": "Whether your catch-up may read your direct messages.",
+        "description": "Whether AI answers for you (catch-up, the assistant's search) may read your direct messages.",
         "parameters": [
           {
             "schema": {
@@ -50191,7 +50191,7 @@
           "Catch-up"
         ],
         "summary": "Change my catch-up settings",
-        "description": "Opt your direct messages in or out of your own catch-up.",
+        "description": "Opt your direct messages in or out of AI answers for you: your catch-up and the assistant's search.",
         "parameters": [
           {
             "schema": {

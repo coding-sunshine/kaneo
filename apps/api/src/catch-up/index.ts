@@ -56,7 +56,8 @@ const getPreferenceRoute = createRoute({
   path: "/workspace/{workspaceId}/preference",
   tags,
   summary: "My catch-up settings",
-  description: "Whether your catch-up may read your direct messages.",
+  description:
+    "Whether AI answers for you (catch-up, the assistant's search) may read your direct messages.",
   middleware: [...middleware] as const,
   request: { params: workspaceParam },
   responses: {
@@ -71,7 +72,8 @@ const setPreferenceRoute = createRoute({
   path: "/workspace/{workspaceId}/preference",
   tags,
   summary: "Change my catch-up settings",
-  description: "Opt your direct messages in or out of your own catch-up.",
+  description:
+    "Opt your direct messages in or out of AI answers for you: your catch-up and the assistant's search.",
   middleware: [...middleware] as const,
   request: { params: workspaceParam, body: json(catchUpPreferenceSchema) },
   responses: {

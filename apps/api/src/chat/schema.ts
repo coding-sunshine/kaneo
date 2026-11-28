@@ -26,7 +26,7 @@ export const updateChannelBody = z.object({
   }),
   aiDisabled: z.boolean().optional().openapi({
     description:
-      "Keep AI features out of the channel: no ticket or decision is drafted from its threads.",
+      "Keep AI features out of the channel or direct message: no AI reads it, and what AI stored from it (embeddings, daily brief lines) is deleted.",
   }),
 });
 

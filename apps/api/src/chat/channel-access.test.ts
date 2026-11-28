@@ -27,6 +27,7 @@ const actions: ChannelAction[] = [
   "join",
   "post",
   "manage",
+  "ai",
   "invite",
   "leave",
 ];
@@ -100,5 +101,19 @@ describe("chat channel access", () => {
     expect(check(direct, "post")).toBe(200);
     for (const action of ["join", "manage", "invite", "leave"] as const)
       expect(check(direct, action)).toBe(403);
+  });
+
+  it("lets members who are not guests switch AI, in direct messages too", () => {
+    expect(check(publicChannel, "ai")).toBe(403);
+    expect(check({ ...publicChannel, isMember: true }, "ai")).toBe(200);
+    const direct = {
+      ...publicChannel,
+      isPrivate: true,
+      isDirect: true,
+      isMember: true,
+    };
+    expect(check(direct, "ai")).toBe(200);
+    expect(check({ ...direct, archived: true }, "ai")).toBe(200);
+    expect(check({ ...direct, guest: true }, "ai")).toBe(403);
   });
 });

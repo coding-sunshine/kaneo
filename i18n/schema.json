@@ -5151,6 +5151,15 @@
 						"chatPresenceDescription": {
 							"type": "string"
 						},
+						"aiTitle": {
+							"type": "string"
+						},
+						"aiDirectMessages": {
+							"type": "string"
+						},
+						"aiDirectMessagesDescription": {
+							"type": "string"
+						},
 						"advancedTitle": {
 							"type": "string"
 						}
@@ -5203,6 +5212,9 @@
 						"chatTitle",
 						"chatPresence",
 						"chatPresenceDescription",
+						"aiTitle",
+						"aiDirectMessages",
+						"aiDirectMessagesDescription",
 						"advancedTitle"
 					]
 				},
@@ -19931,6 +19943,15 @@
 						},
 						"aiOn": {
 							"type": "string"
+						},
+						"aiOffDirect": {
+							"type": "string"
+						},
+						"aiOnDirect": {
+							"type": "string"
+						},
+						"aiOffBadge": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -20048,7 +20069,10 @@
 						"extractDecision",
 						"aiDecision",
 						"aiOff",
-						"aiOn"
+						"aiOn",
+						"aiOffDirect",
+						"aiOnDirect",
+						"aiOffBadge"
 					]
 				},
 				"files": {
