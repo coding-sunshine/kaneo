@@ -3,6 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import db from "../database";
 import { activityTable, projectTable, taskTable } from "../database/schema";
 import { loadDocument } from "../document/controllers/load-document";
+import { readableMessages } from "./readable-messages";
 import { projectAccessCondition } from "../project-access/project-access-condition";
 import type { Cited, SourceKind } from "./sources";
 
@@ -16,6 +17,8 @@ export type Citation =
       taskId?: string;
       projectId?: string;
       ticket?: string;
+      /** The channel a chat message is in. */
+      channelId?: string;
     }
   | { kind: SourceKind; restricted: true };
 
@@ -108,12 +111,24 @@ export async function resolveCitations(
     mayReadTasks
       ? cited.filter((source) => source.kind === kind).map(({ id }) => id)
       : [];
-  const [tasks, comments] = await Promise.all([
+  const [tasks, comments, messages] = await Promise.all([
     openTasks(userId, workspaceId, ids("task")),
     openComments(userId, workspaceId, ids("comment")),
+    // Chat is open to anyone who reads the workspace, not only to task readers.
+    readableMessages(
+      userId,
+      workspaceId,
+      cited.filter((source) => source.kind === "message").map(({ id }) => id),
+    ),
   ]);
   return Promise.all(
     cited.map(async ({ kind, id }): Promise<Citation> => {
+      if (kind === "message") {
+        const message = messages.get(id);
+        return message
+          ? { kind, restricted: false, id, ...message }
+          : { kind, restricted: true };
+      }
       if (!mayReadTasks) return { kind, restricted: true };
       if (kind === "document") {
         const doc = await openDocument(userId, workspaceId, id);

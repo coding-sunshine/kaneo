@@ -4398,7 +4398,8 @@
                 "enum": [
                   "task",
                   "document",
-                  "comment"
+                  "comment",
+                  "message"
                 ]
               },
               "restricted": {
@@ -4422,6 +4423,10 @@
               },
               "ticket": {
                 "type": "string"
+              },
+              "channelId": {
+                "type": "string",
+                "description": "The channel a chat message is in."
               }
             },
             "required": [
@@ -4439,7 +4444,8 @@
                 "enum": [
                   "task",
                   "document",
-                  "comment"
+                  "comment",
+                  "message"
                 ]
               },
               "restricted": {

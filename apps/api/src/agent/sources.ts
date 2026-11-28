@@ -1,14 +1,14 @@
-export const SOURCE_KINDS = ["task", "document", "comment"] as const;
+export const SOURCE_KINDS = ["task", "document", "comment", "message"] as const;
 export type SourceKind = (typeof SOURCE_KINDS)[number];
 export type Cited = { kind: SourceKind; id: string };
 
 /** Told to the model in a chat, so every answer names what it rests on. */
 export const SOURCES_INSTRUCTION =
-  "End every answer with one last line that starts with `Sources:` and lists the tasks, documents and comments the answer rests on, as task:<id>, document:<id> or comment:<id>, separated by spaces. Use the `id` field that appeared in tool results, never a ticket key such as ABC-12. Write `Sources: none` when no workspace data supports the answer.";
+  "End every answer with one last line that starts with `Sources:` and lists the tasks, documents, comments and chat messages the answer rests on, as task:<id>, document:<id>, comment:<id> or message:<id>, separated by spaces. Use the `id` field that appeared in tool results, never a ticket key such as ABC-12. Write `Sources: none` when no workspace data supports the answer.";
 
 // The last line, with any Markdown a model puts around the word.
 const LINE = /(?:^|\n)[ \t*_#>-]*sources[*_]*\s*:[^\n]*\s*$/i;
-const TOKEN = /\b(task|document|comment):\s*`?([A-Za-z0-9_-]+)/g;
+const TOKEN = /\b(task|document|comment|message):\s*`?([A-Za-z0-9_-]+)/g;
 
 /** Splits an answer into its text and the sources its last line names. */
 export function splitSources(content: string): {

@@ -3689,7 +3689,9 @@ export const agentProposalTable = pgTable(
       .$type<{ id: string; name: string; arguments: string }[]>()
       .notNull(),
     sources: jsonb("sources")
-      .$type<{ kind: "task" | "document" | "comment"; id: string }[]>()
+      .$type<
+        { kind: "task" | "document" | "comment" | "message"; id: string }[]
+      >()
       .notNull(),
     // `reason` is set on a suggestion that explains each field (AI triage).
     diff: jsonb("diff")
