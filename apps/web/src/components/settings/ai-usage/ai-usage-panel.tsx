@@ -7,6 +7,7 @@ import { SettingsSection } from "@/components/settings/settings-section";
 import { useAiUsage } from "@/hooks/queries/agent/use-ai-usage";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { AiBudgetForm } from "./ai-budget-form";
+import { SemanticSearchCard } from "@/components/settings/semantic-search/semantic-search-card";
 import { AiFeaturesCard } from "./ai-features-card";
 import { UsageList } from "./usage-list";
 
@@ -75,6 +76,7 @@ export default function AiUsagePanel() {
             description={t("settings:aiUsage.switches.description")}
           >
             <AiFeaturesCard workspaceId={workspaceId} />
+            <SemanticSearchCard workspaceId={workspaceId} />
           </SettingsSection>
           <SettingsSection
             title={t("settings:aiUsage.byFeature")}

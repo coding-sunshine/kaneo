@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { formatDateTime, formatRelativeTime } from "@/lib/format";
 import type { Notification } from "@/types/notification";
 import { InboxChatMessage } from "./inbox-chat-message";
+import { InboxDailyBrief } from "./inbox-daily-brief";
 import { InboxDocument } from "./inbox-document";
 import { InboxTask } from "./inbox-task";
 import { NotificationIcon } from "./notification-icon";
@@ -37,6 +38,11 @@ export function InboxDetail({
       ? eventData.channelId
       : null;
   const content = getNotificationContent(notification, t);
+  const briefId =
+    notification.type === "daily_brief" &&
+    typeof eventData?.briefId === "string"
+      ? eventData.briefId
+      : null;
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -79,6 +85,17 @@ export function InboxDetail({
               workspaceId={workspaceId}
               channelId={chatChannelId}
               messageId={notification.resourceId}
+            />
+          )}
+          {briefId && (
+            <InboxDailyBrief
+              key={briefId}
+              workspaceId={
+                typeof eventWorkspaceId === "string"
+                  ? eventWorkspaceId
+                  : workspaceId
+              }
+              briefId={briefId}
             />
           )}
           {taskId && (

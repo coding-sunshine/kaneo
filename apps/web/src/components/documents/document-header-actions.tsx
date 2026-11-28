@@ -8,6 +8,7 @@ import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
 import { DocumentKindMenu } from "./document-kind-menu";
 import { DocumentSharePopover } from "./document-share-popover";
+import { MeetingNotesDialog } from "./meeting-notes/meeting-notes-dialog";
 import { useCopyDocumentLink } from "./use-copy-document-link";
 
 type DocumentHeaderActionsProps = {
@@ -76,6 +77,7 @@ export function DocumentHeaderActions({
       >
         <ListChecks aria-hidden />
       </HeaderIconButton>
+      <MeetingNotesDialog workspaceId={workspaceId} documentId={id} />
       <HeaderIconButton
         label={
           commentsOpen

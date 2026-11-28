@@ -786,6 +786,16 @@
 			"desktopServerOff": "Desktop notifications are off on this server. An admin turns them on by setting a VAPID key pair.",
 			"desktopTitle": "Desktop",
 			"desktopUnsupported": "This browser cannot show push notifications.",
+			"dailyBrief": {
+				"channels": "Channels",
+				"channelsHint": "Only these channels are read. Direct messages never are.",
+				"description": "Each morning, a private brief in your Inbox: tickets due today, mentions in the channels you choose, and your tickets someone moved. Only you can open it.",
+				"enabled": "Daily brief",
+				"enabledHint": "Arrives after 8:00 in your time zone, once a day.",
+				"save": "Save",
+				"saved": "Daily brief saved",
+				"title": "Daily brief"
+			},
 			"eventChatEmail": "Email for unread chat",
 			"eventChatEmailHint": "Only while email is on: one email listing direct messages and mentions you left unread while away. At most one an hour, held during quiet hours."
 		},
@@ -3386,6 +3396,11 @@
 			"text": "Status",
 			"textPlaceholder": "In a meeting",
 			"until": "Last day"
+		},
+		"semanticSearch": {
+			"description": "Sends this workspace's messages, tickets and documents to the server's embedding service so search can answer by meaning. Channels with AI turned off and direct messages are never sent. Off until you turn it on.",
+			"egressBlocked": "This workspace keeps its AI text on its own model server, and the embedding service is elsewhere, so search by meaning stays off.",
+			"title": "Search by meaning"
 		}
 	},
 	"navigation": {
@@ -4519,6 +4534,29 @@
 				"diff": "Proposed change",
 				"menu": "Write with AI",
 				"working": "Writing…"
+			},
+			"meetingNotes": {
+				"accept_one": "Accept {{count}} ticket",
+				"accept_other": "Accept {{count}} tickets",
+				"actionItems": "Proposed tickets",
+				"audio": "Or add a recording",
+				"audioOff": "Speech to text is off on this server. Paste the transcript as text instead.",
+				"created_one": "{{count}} ticket created",
+				"created_other": "{{count}} tickets created",
+				"decisions": "Decisions",
+				"description": "Paste a transcript or add a recording. You get decisions and proposed tickets, each with the words it came from. Nothing is created until you accept.",
+				"keep": "Keep the transcript with this document",
+				"noActionItems": "No action items found.",
+				"noDecisions": "No decisions found.",
+				"off": "AI is off on this server, so meeting notes are not available.",
+				"open": "Notes from a meeting",
+				"project": "Choose a team",
+				"proposal": "Proposed notes",
+				"run": "Notes",
+				"running": "Reading the transcript…",
+				"title": "Meeting notes",
+				"transcribing": "Turning the recording into text…",
+				"transcript": "Transcript"
 			}
 		},
 		"drafts": {
@@ -4810,6 +4848,32 @@
 			"typingMany": "Several people are typing…",
 			"typingOne": "{{name}} is typing…",
 			"typingTwo": "{{first}} and {{second}} are typing…",
+			"skills": {
+				"cap": "Monthly token cap (optional)",
+				"capValue_one": "Cap {{count}} token",
+				"capValue_other": "Cap {{count}} tokens",
+				"delete": "Delete /{{name}}",
+				"description": "Save a prompt as a skill and run it with /name in any channel. Only you see your skills and their answers.",
+				"dismiss": "Dismiss",
+				"empty": "Nothing found in the tickets this skill can read.",
+				"history": "Recent runs",
+				"name": "Name",
+				"none": "No skills yet.",
+				"noRuns": "No runs yet.",
+				"off": "AI is off on this server, so skills cannot run. An admin can turn it on with a model key.",
+				"onlyYou": "Only you can see this",
+				"open": "My skills",
+				"prompt": "Prompt",
+				"resultTitle": "/{{name}}",
+				"running": "Running skill…",
+				"save": "Save skill",
+				"saved": "Skill saved",
+				"scope": "Projects",
+				"scopeHint": "Pick projects to limit what the skill reads. Leave all unticked for every project you can open.",
+				"title": "My skills",
+				"tokens_one": "{{count}} token",
+				"tokens_other": "{{count}} tokens"
+			},
 			"noSaved": "Nothing saved yet. Save a message from its menu to find it here.",
 			"openSaved": "Open message",
 			"reminderSet": "Reminder set for {{time}}",
@@ -4957,6 +5021,10 @@
 			},
 			"chat_reminder": {
 				"title": "Reminder you set in chat"
+			},
+			"daily_brief": {
+				"content": "Due today: {{dueToday}} · Mentions: {{mentions}} · Moved: {{moved}}",
+				"title": "Your daily brief"
 			}
 		},
 		"inbox": {
@@ -4986,7 +5054,14 @@
 			"unreadCount_other": "{{count}} unread notifications",
 			"openMessage": "Open message"
 		},
-		"privateTopic": "Private topic"
+		"privateTopic": "Private topic",
+		"dailyBrief": {
+			"dueToday": "Due today",
+			"mentions": "Mentions in your channels",
+			"missing": "This brief is not available.",
+			"moved": "Your tickets that moved",
+			"none": "Nothing here."
+		}
 	},
 	"activity": {
 		"assignedToSelf": "Tapşırığı özünə təyin etdi",
@@ -6125,6 +6200,13 @@
 				"starting": "Starting"
 			},
 			"title": "Coding agent"
+		},
+		"duplicateSuggestion": {
+			"accept": "Mark as duplicate",
+			"accepted": "Marked as duplicate",
+			"decline": "Not a duplicate",
+			"failed": "Could not update the suggestion. Try again.",
+			"title": "This ticket may duplicate:"
 		}
 	},
 	"invitations": {
@@ -6210,7 +6292,15 @@
 			"suggestionFeature": "İmkan",
 			"suggestionInProgress": "İcra olunur",
 			"suggestionCompleted": "Tamamlanıb",
-			"directMessage": "Direct message"
+			"directMessage": "Direct message",
+			"semantic": {
+				"ask": "Ask by meaning",
+				"matches": "Closest matches",
+				"noAnswer": "No answer, but these matches came close.",
+				"off": "Search by meaning is off on this server. An admin can turn it on with an embedding key.",
+				"running": "Searching by meaning…",
+				"title": "Answer by meaning"
+			}
 		},
 		"create": {
 			"pageTitle": "İş sahəsi yarat",
@@ -6284,6 +6374,35 @@
 				},
 				"progress": "{{done}} of {{total}} done",
 				"title": "Get started"
+			},
+			"catchUp": {
+				"empty": "Nothing new in this window.",
+				"hours_one": "{{count}} hour",
+				"hours_other": "{{count}} hours",
+				"includeDirectMessages": "Include my direct messages",
+				"off": "AI is off on this server, so catch-up is not available. An admin can turn it on with a model key.",
+				"open": "Catch up",
+				"private": "A summary of your unread channels, your threads and the tickets you follow. Only you see it, and it is not saved.",
+				"run": "Catch me up",
+				"running": "Catching up…",
+				"title": "What did I miss",
+				"window": "Time window"
+			},
+			"standup": {
+				"blocked": "Blocked",
+				"copied": "Draft copied",
+				"copy": "Copy draft",
+				"copyFailed": "Could not copy the draft",
+				"did": "Did",
+				"doing": "Doing",
+				"loadError": "Could not load your tickets. Try again.",
+				"none": "Nothing here",
+				"open": "Draft my standup",
+				"private": "Only you can see this draft. It is not saved or posted anywhere; copy it where you want it.",
+				"title": "My standup draft",
+				"today": "Last day",
+				"week": "Last week",
+				"window": "Time window"
 			}
 		},
 		"myTasks": {

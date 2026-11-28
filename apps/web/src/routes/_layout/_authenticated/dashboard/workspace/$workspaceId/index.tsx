@@ -5,9 +5,11 @@ import { useTranslation } from "react-i18next";
 import { TrialExpiredCallout } from "@/components/billing/trial-expired-callout";
 import WorkspaceLayout from "@/components/common/workspace-layout";
 import { ActivityFeed } from "@/components/home/activity-feed";
+import { CatchUpDialog } from "@/components/home/catch-up/catch-up-dialog";
 import { getDayPart } from "@/components/home/day-part";
 import { DoneThisWeek } from "@/components/home/done-this-week";
 import { HomeProjects } from "@/components/home/home-projects";
+import { StandupDraftDialog } from "@/components/home/standup/standup-draft-dialog";
 import { UpNext } from "@/components/home/up-next";
 import { WeekStrip } from "@/components/home/week-strip";
 import { OnboardingChecklist } from "@/components/onboarding-checklist/onboarding-checklist";
@@ -71,19 +73,23 @@ function RouteComponent() {
                   {greetings[getDayPart()]}
                 </h1>
               </div>
-              {canCreateTasks() && (
-                <Button
-                  size="sm"
-                  onClick={() =>
-                    needsProjectFirst
-                      ? setIsCreateProjectOpen(true)
-                      : setIsCreateTaskOpen(true)
-                  }
-                >
-                  <Plus />
-                  {t("workspace:home.newTask")}
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                <CatchUpDialog workspaceId={workspaceId} />
+                <StandupDraftDialog workspaceId={workspaceId} />
+                {canCreateTasks() && (
+                  <Button
+                    size="sm"
+                    onClick={() =>
+                      needsProjectFirst
+                        ? setIsCreateProjectOpen(true)
+                        : setIsCreateTaskOpen(true)
+                    }
+                  >
+                    <Plus />
+                    {t("workspace:home.newTask")}
+                  </Button>
+                )}
+              </div>
             </header>
 
             <OnboardingChecklist />

@@ -219,6 +219,26 @@ Name | Description | Default |
 | `AI_MONTHLY_USD_CAP` | Dollars all AI calls of the instance may spend in a calendar month (UTC), by the cost the provider reports. At the cap, AI pauses until the 1st of the next month. | `20` |
 | `EXTRACTION_TOTAL_USD_CAP` | No longer read. `AI_MONTHLY_USD_CAP` replaced this total cap; move any value you set to it. | Unset |
 
+### Search by meaning
+
+The search page can answer a question by meaning, citing the messages, tickets and documents it used, when `EMBEDDING_API_KEY` is set and a workspace admin turns it on under AI usage (off by default). A job sends what changed since its last run to the embedding service every minute; for a workspace just turned on, that first sends the text of every message, ticket and document once, so check its cost first. Channels with AI turned off and direct messages are never sent. A workspace whose AI destination is its own model server sends nothing unless `EMBEDDING_API_URL` is on that same server. Without the key the feature is off and the API logs that at startup. Embeddings are stored as plain arrays and a question scores the newest 5,000 the reader can open; on a large instance switch to a Postgres image with pgvector.
+
+Name | Description | Default |
+--- | --- | --- |
+| `EMBEDDING_API_KEY` | Key of an OpenAI-compatible embeddings endpoint. Turns search by meaning on. | Unset |
+| `EMBEDDING_API_URL` | The embeddings endpoint. | `https://api.openai.com/v1/embeddings` |
+| `EMBEDDING_MODEL` | The embedding model. | `text-embedding-3-small` |
+
+### Meeting notes from recordings
+
+A document's Notes action reads a pasted meeting transcript and proposes decisions and tickets, each with the quote it came from. It needs the AI model above. To also accept recordings, set `STT_API_KEY`: the audio (up to 25 MB) goes to the speech-to-text service once and is not stored. Without the key, recordings are off, the dialog says so and the API logs it at startup. A transcript is stored only when the person ticks "Keep the transcript".
+
+Name | Description | Default |
+--- | --- | --- |
+| `STT_API_KEY` | Key of an OpenAI-compatible transcription endpoint. Turns recordings on. | Unset |
+| `STT_API_URL` | The transcription endpoint. | `https://api.openai.com/v1/audio/transcriptions` |
+| `STT_MODEL` | The transcription model. | `whisper-1` |
+
 ### Coding agent
 
 A ticket can be handed to a coding agent once AI is on and both `CODING_AGENT_URL` and `CODING_AGENT_API_KEY` are set. Without them the Delegate button says no agent is set up, and the API logs it once. The person who delegates first accepts a card; Kaneo then sends `POST {CODING_AGENT_URL}/runs` with the ticket, a callback address and a token for that run only. The agent posts `pull_request.opened`, `pull_request.merged` or `failed` events to the callback address with that token. The pull request is linked on the ticket and its merge moves the ticket to done.

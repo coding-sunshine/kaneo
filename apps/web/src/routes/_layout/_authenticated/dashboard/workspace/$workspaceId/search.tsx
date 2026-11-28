@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import WorkspaceLayout from "@/components/common/workspace-layout";
 import PageTitle from "@/components/page-title";
+import { SemanticAnswer } from "@/components/search-page/semantic/semantic-answer";
 import { groupSearchResults } from "@/components/search-page/group-search-results";
 import { SearchResultGroup } from "@/components/search-page/search-result-group";
 import { Button } from "@/components/ui/button";
@@ -107,6 +108,14 @@ function SearchComponent() {
               {t("workspace:search.hint")}
             </p>
           </div>
+
+          {hasQuery && (
+            <SemanticAnswer
+              key={debouncedQuery}
+              workspaceId={workspaceId}
+              query={debouncedQuery}
+            />
+          )}
 
           {hasQuery ? (
             <div>
