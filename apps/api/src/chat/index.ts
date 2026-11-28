@@ -17,6 +17,7 @@ import { createChannel } from "./controllers/create-channel";
 import { deleteMessage } from "./controllers/delete-message";
 import { editMessage } from "./controllers/edit-message";
 import { getChannel } from "./controllers/get-channel";
+import { getChatFile } from "./controllers/get-chat-file";
 import { requireCalls } from "./call/require-calls";
 import { inviteMember } from "./controllers/invite-member";
 import { joinCall } from "./controllers/join-call";
@@ -52,6 +53,7 @@ import {
   channelMemberParam,
   channelParam,
   channelSchema,
+  chatFileParam,
   chatFileUploadBody,
   createChannelBody,
   deletedMessageSchema,
@@ -360,6 +362,26 @@ const finalizeFileUploadRoute = createRoute({
     409: archived,
     415: fileRefused,
     503: errorResponse("The stored object could not be checked"),
+  },
+});
+
+const getFileRoute = createRoute({
+  method: "get",
+  operationId: "getChatFile",
+  path: `${channelPath}/files/{fileId}`,
+  tags,
+  summary: "Download a file",
+  description:
+    "Download a file sent in a channel you can read. Image types are served inline, everything else as an attachment. In a channel you cannot read it answers like a missing channel.",
+  middleware: [...access] as const,
+  request: { params: chatFileParam },
+  responses: {
+    200: {
+      description: "The file's bytes",
+      content: { "*/*": { schema: { type: "string", format: "binary" } } },
+    },
+    403: noAccess,
+    404: errorResponse("Channel or file not found"),
   },
 });
 
@@ -767,6 +789,10 @@ const chat = apiRouter()
       ),
       200,
     );
+  })
+  .openapi(getFileRoute, async (c) => {
+    const { workspaceId, channelId, fileId } = c.req.valid("param");
+    return getChatFile(workspaceId, channelId, fileId, c.get("userId"));
   })
   .openapi(editMessageRoute, async (c) => {
     const { workspaceId, channelId, messageId } = c.req.valid("param");

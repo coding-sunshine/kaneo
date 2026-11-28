@@ -34,6 +34,7 @@ export const removedMemberSchema = z.object({
 });
 
 export const messageParam = channelParam.extend({ messageId: z.string() });
+export const chatFileParam = channelParam.extend({ fileId: z.string() });
 
 export const listMessagesQuery = z.object({
   before: z.iso.datetime().optional().openapi({
@@ -162,7 +163,7 @@ export const messageSchema = z
       )
       .openapi({
         description:
-          "Files sent with the message, oldest first. Each downloads from /asset/{id} for whoever can read the channel.",
+          "Files sent with the message, oldest first. Each downloads from the channel's files/{id} route for whoever can read the channel.",
       }),
     linkPreview: linkPreviewSchema.nullable().openapi({
       description:

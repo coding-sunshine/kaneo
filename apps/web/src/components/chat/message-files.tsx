@@ -6,14 +6,22 @@ import { formatFileSize } from "@/lib/upload-task-image";
 const apiBase = resolveApiBaseUrl(import.meta.env.VITE_API_URL);
 
 /** The files sent with a message, each a download link. */
-export function MessageFiles({ files }: { files: ChatMessage["files"] }) {
+export function MessageFiles({
+  workspaceId,
+  channelId,
+  files,
+}: {
+  workspaceId: string;
+  channelId: string;
+  files: ChatMessage["files"];
+}) {
   if (files.length === 0) return null;
   return (
     <ul className="flex flex-wrap gap-2">
       {files.map((file) => (
         <li key={file.id}>
           <a
-            href={`${apiBase}/asset/${file.id}`}
+            href={`${apiBase}/chat/workspace/${workspaceId}/channels/${channelId}/files/${file.id}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex max-w-72 items-center gap-1.5 rounded-md border px-2 py-1 text-sm hover:bg-accent/60"

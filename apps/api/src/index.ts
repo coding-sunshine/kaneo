@@ -45,7 +45,6 @@ import issueTemplate from "./issue-template";
 import documentTemplate from "./document-template";
 import emoji from "./emoji";
 import db, { getDatabase, schema } from "./database";
-import { chatMessageTable } from "./database/schema";
 import { apiErrorSchema } from "./errors/api-error-schema";
 import { httpExceptionResponse } from "./errors/http-exception-response";
 import { notFoundResponse } from "./errors/not-found-response";
@@ -107,6 +106,7 @@ import { getPublicProject } from "./project/controllers/get-public-project";
 import { initializeScheduler, shutdownScheduler } from "./scheduler";
 import search from "./search";
 import slackIntegration from "./slack-integration";
+import { privateObjectResponse } from "./storage/private-object-response";
 import { getPrivateObject } from "./storage/s3";
 import task from "./task";
 import {
@@ -196,41 +196,6 @@ type ApiVariables = {
     workspaceId?: string;
   };
 };
-
-const SAFE_INLINE_ASSET_TYPES = new Set([
-  "image/apng",
-  "image/avif",
-  "image/gif",
-  "image/heic",
-  "image/heif",
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-]);
-
-function buildContentDisposition(filename: string, inline: boolean) {
-  const normalized = filename
-    .normalize("NFC")
-    .replace(/[\r\n"]/g, "")
-    .trim();
-  const safeFilename = normalized || "file";
-  const asciiFallback =
-    safeFilename
-      .normalize("NFKD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[\\/]/g, "-")
-      .replace(/[^\x20-\x7E]+/g, "_")
-      .replace(/\s+/g, " ")
-      .trim() || "file";
-  const encodedFilename = encodeURIComponent(safeFilename).replace(
-    /['()*]/g,
-    (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
-  );
-
-  const disposition = inline ? "inline" : "attachment";
-  return `${disposition}; filename="${asciiFallback}"; filename*=UTF-8''${encodedFilename}`;
-}
 
 export function createApp() {
   const app = new Hono<AppVariables>();
@@ -602,7 +567,6 @@ export function createApp() {
           workspaceId: schema.assetTable.workspaceId,
           projectId: schema.assetTable.projectId,
           documentId: schema.assetTable.documentId,
-          chatChannelId: chatMessageTable.channelId,
           isPublic: schema.projectTable.isPublic,
           workspaceArchived: sql<boolean>`${schema.workspaceTable.archivedAt} is not null`,
         })
@@ -616,10 +580,6 @@ export function createApp() {
           schema.projectTable,
           eq(schema.assetTable.projectId, schema.projectTable.id),
         )
-        .leftJoin(
-          chatMessageTable,
-          eq(schema.assetTable.chatMessageId, chatMessageTable.id),
-        )
         .where(eq(schema.assetTable.id, id))
         .limit(1);
 
@@ -631,30 +591,12 @@ export function createApp() {
 
       try {
         const object = await getPrivateObject(asset.objectKey);
-        const storedContentType =
-          (object.contentType || asset.mimeType)
-            .toLowerCase()
-            .split(";")[0]
-            ?.trim() ?? "";
-        const inline = SAFE_INLINE_ASSET_TYPES.has(storedContentType);
-
-        return new Response(object.body as BodyInit, {
-          headers: {
-            "Cache-Control": isPublicAsset(asset)
-              ? "public, max-age=300"
-              : "private, max-age=120",
-            "Content-Disposition": buildContentDisposition(
-              asset.filename,
-              inline,
-            ),
-            "Content-Length": object.contentLength?.toString() || "",
-            "Content-Type": inline
-              ? storedContentType
-              : "application/octet-stream",
-            "X-Content-Type-Options": "nosniff",
-            ETag: object.etag || "",
-            "Last-Modified": object.lastModified?.toUTCString() || "",
-          },
+        return privateObjectResponse(object, {
+          filename: asset.filename,
+          mimeType: asset.mimeType,
+          cacheControl: isPublicAsset(asset)
+            ? "public, max-age=300"
+            : "private, max-age=120",
         });
       } catch (error) {
         console.error("Failed to stream asset:", error);

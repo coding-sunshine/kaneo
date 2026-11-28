@@ -125,7 +125,9 @@ describe("MessageList", () => {
       }),
     ]);
     const file = screen.getByRole("link", { name: /minutes\.pdf/ });
-    expect(file.getAttribute("href")).toMatch(/\/api\/asset\/asset-1$/);
+    expect(file.getAttribute("href")).toMatch(
+      /\/api\/chat\/workspace\/[^/]+\/channels\/channel-1\/files\/asset-1$/,
+    );
     expect(file).toHaveAttribute("target", "_blank");
   });
 

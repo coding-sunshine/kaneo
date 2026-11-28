@@ -10,6 +10,7 @@ import {
 } from "vite-plus/test";
 import { S3Client } from "../../apps/api/node_modules/@aws-sdk/client-s3";
 import db, { schema } from "../../apps/api/src/database";
+import { chatMessageFileTable } from "../../apps/api/src/database/schema";
 import { createApp } from "../../apps/api/src/index";
 import { resetTestDatabase } from "./helpers/database";
 import { createWorkspaceMember } from "./helpers/fixtures";
@@ -101,6 +102,8 @@ describe("API integration: the file library", () => {
         createdBy: world.owner.id,
       })
       .returning();
+  const fileUrl = (channelId: string, fileId: string) =>
+    `${channelBase()}/${channelId}/files/${fileId}`;
   const list = async (request: Request, q?: string) => {
     const query = q ? `?q=${encodeURIComponent(q)}` : "";
     const response = await request(
@@ -158,8 +161,15 @@ describe("API integration: the file library", () => {
         id: world.owner.id,
         name: world.owner.name,
       });
-      expect(file.url).toMatch(new RegExp(`/asset/${file.id}$`));
     }
+    expect(byName.get("alpha-spec.pdf")?.url).toMatch(/\/api\/asset\/[^/]+$/);
+    expect(byName.get("handbook.pdf")?.url).toMatch(/\/api\/asset\/[^/]+$/);
+    const chatFile = byName.get("minutes.pdf");
+    expect(chatFile?.url).toMatch(
+      new RegExp(
+        `/api/chat/workspace/${world.ws}/channels/${channels.general}/files/${chatFile?.id}$`,
+      ),
+    );
     expect(byName.get("alpha-spec.pdf")?.source).toMatchObject({
       kind: "ticket",
       id: world.alphaTask.id,
@@ -199,8 +209,10 @@ describe("API integration: the file library", () => {
     expect(names(await list(world.as(world.open)))).toEqual(["lunch.pdf"]);
     expect(await list(world.as(world.open), "salaries")).toEqual([]);
 
-    const unknown = await world.as(world.open)("/asset/no-such-file");
-    const hidden = await world.as(world.open)(`/asset/${fileId}`);
+    const unknown = await world.as(world.open)(
+      `${channelBase()}/no-such-channel/files/${fileId}`,
+    );
+    const hidden = await world.as(world.open)(fileUrl(channels.leads, fileId));
     expect(unknown.status).toBe(404);
     expect(hidden.status).toBe(404);
     expect(await hidden.json()).toEqual(await unknown.json());
@@ -213,6 +225,39 @@ describe("API integration: the file library", () => {
       "lunch.pdf",
       "salaries.pdf",
     ]);
+  });
+
+  it("serves a chat file to people who can read its channel", async () => {
+    const message = await postFile(channels.leads, "salaries.pdf");
+    const fileId = message.files[0]?.id ?? "";
+    send().mockResolvedValueOnce({
+      Body: { transformToWebStream: () => new Blob(["pdf"]).stream() },
+      ContentType: "application/pdf",
+      ContentLength: 3,
+    });
+
+    const served = await world.as(world.owner)(fileUrl(channels.leads, fileId));
+    expect(served.status).toBe(200);
+    expect(served.headers.get("content-disposition")).toMatch(/^attachment/);
+    expect(served.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(await served.text()).toBe("pdf");
+
+    // A file id from another channel is missing there.
+    const elsewhere = await world.as(world.owner)(
+      fileUrl(channels.general, fileId),
+    );
+    expect(elsewhere.status).toBe(404);
+  });
+
+  it("never serves a chat file through /asset, even to its channel's members", async () => {
+    const message = await postFile(channels.general, "notes.pdf");
+    const fileId = message.files[0]?.id ?? "";
+
+    const unknown = await world.as(world.owner)("/asset/no-such-file");
+    const chatFile = await world.as(world.owner)(`/asset/${fileId}`);
+    expect(unknown.status).toBe(404);
+    expect(chatFile.status).toBe(404);
+    expect(await chatFile.json()).toEqual(await unknown.json());
   });
 
   it("hides a direct message's file from people outside it", async () => {
@@ -301,7 +346,7 @@ describe("API integration: the file library", () => {
 
     expect(await list(world.as(world.limited))).toEqual([]);
     const hidden = await world.as(world.limited)(
-      `/asset/${message.files[0]?.id}`,
+      fileUrl(channels.leads, message.files[0]?.id ?? ""),
     );
     expect(hidden.status).toBe(404);
 
@@ -343,7 +388,7 @@ describe("API integration: the file library", () => {
         );
         expect(response.status).toBe(404);
       }
-      expect(await db.select().from(schema.assetTable)).toEqual([]);
+      expect(await db.select().from(chatMessageFileTable)).toEqual([]);
     });
 
     it("refuses an archived channel", async () => {
@@ -358,7 +403,7 @@ describe("API integration: the file library", () => {
         finalizeBody(channels.general, "x.pdf"),
       );
       expect(response.status).toBe(409);
-      expect(await db.select().from(schema.assetTable)).toEqual([]);
+      expect(await db.select().from(chatMessageFileTable)).toEqual([]);
     });
 
     it("refuses a key issued for another channel", async () => {
@@ -371,7 +416,7 @@ describe("API integration: the file library", () => {
         }),
       );
       expect(response.status).toBe(400);
-      expect(await db.select().from(schema.assetTable)).toEqual([]);
+      expect(await db.select().from(chatMessageFileTable)).toEqual([]);
     });
 
     it("hands out an upload URL under the channel's own prefix", async () => {
@@ -387,14 +432,16 @@ describe("API integration: the file library", () => {
 
     it("removes the file with its message", async () => {
       const message = await postFile(channels.general, "gone.pdf");
+      const [stored] = await db.select().from(chatMessageFileTable);
+      const storedKey = stored?.objectKey;
       const removed = await world.as(world.owner)(
         `${channelBase()}/${channels.general}/messages/${message.id}`,
         { method: "DELETE" } as ReturnType<typeof json>,
       );
       expect(removed.status).toBe(200);
-      expect(await db.select().from(schema.assetTable)).toEqual([]);
+      expect(await db.select().from(chatMessageFileTable)).toEqual([]);
       const queued = await db.select().from(schema.storageCleanupTable);
-      expect(queued).toHaveLength(1);
+      expect(queued.map((row) => row.objectKey)).toEqual([storedKey]);
     });
   });
 });

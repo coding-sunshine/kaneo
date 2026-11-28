@@ -102,7 +102,11 @@ export function MessageItem({
       ) : (
         message.body && <MessageBody body={message.body} />
       )}
-      <MessageFiles files={message.files} />
+      <MessageFiles
+        workspaceId={workspaceId}
+        channelId={channelId}
+        files={message.files}
+      />
       {message.linkPreview && (
         <LinkPreviewCard
           preview={message.linkPreview}

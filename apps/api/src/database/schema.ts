@@ -2036,12 +2036,6 @@ export const assetTable = pgTable(
       (): AnyPgColumn => documentTable.id,
       { onDelete: "cascade", onUpdate: "cascade" },
     ),
-    // The team chat message a file was sent with. Who may read it is who may
-    // read the message's channel; the row goes by cascade with the message.
-    chatMessageId: text("chat_message_id").references(
-      (): AnyPgColumn => chatMessageTable.id,
-      { onDelete: "cascade", onUpdate: "cascade" },
-    ),
     objectKey: text("object_key").notNull().unique(),
     filename: text("filename").notNull(),
     mimeType: text("mime_type").notNull(),
@@ -2063,7 +2057,6 @@ export const assetTable = pgTable(
     index("asset_activityId_idx").on(table.activityId),
     index("asset_createdBy_idx").on(table.createdBy),
     index("asset_documentId_idx").on(table.documentId),
-    index("asset_chatMessageId_idx").on(table.chatMessageId),
     index("asset_draft_expiry_idx")
       .on(table.createdAt, table.id)
       .where(
@@ -2071,7 +2064,7 @@ export const assetTable = pgTable(
       ),
     check(
       "asset_one_owner",
-      sql`num_nonnulls(${table.projectId}, ${table.documentId}, ${table.chatMessageId}) = 1`,
+      sql`(${table.projectId} IS NOT NULL) <> (${table.documentId} IS NOT NULL)`,
     ),
     check(
       "asset_document_file_unattached",
@@ -3828,6 +3821,45 @@ export const chatMessageTable = pgTable(
       table.createdAt,
     ),
     index("chat_message_search_idx").using("gin", bodyVector(table.body)),
+  ],
+);
+
+// A file sent with a chat message. Who may read it is who may read the
+// channel; the row goes by cascade with the message, and deleting a message
+// queues its stored objects for cleanup. Only the message is a foreign key:
+// the workspace, channel and uploader ids are copies for filtering, and the
+// message's own cascades remove the row.
+export const chatMessageFileTable = pgTable(
+  "chat_message_file",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id").notNull(),
+    channelId: text("channel_id").notNull(),
+    messageId: text("message_id")
+      .notNull()
+      .references(() => chatMessageTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    objectKey: text("object_key").notNull(),
+    filename: text("filename").notNull(),
+    mimeType: text("mime_type").notNull(),
+    size: integer("size").notNull(),
+    uploadedBy: text("uploaded_by"),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("chat_message_file_workspace_created_idx").on(
+      table.workspaceId,
+      table.createdAt,
+    ),
+    index("chat_message_file_channel_idx").on(table.channelId),
+    index("chat_message_file_message_idx").on(table.messageId),
+    index("chat_message_file_object_key_idx").on(table.objectKey),
   ],
 );
 

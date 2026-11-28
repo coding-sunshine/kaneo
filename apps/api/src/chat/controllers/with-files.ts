@@ -1,6 +1,6 @@
 import { asc, inArray } from "drizzle-orm";
 import db from "../../database";
-import { assetTable } from "../../database/schema";
+import { chatMessageFileTable } from "../../database/schema";
 
 /** Attaches every message's files with one query for the whole page. */
 export async function withFiles<T extends { id: string }>(messages: T[]) {
@@ -8,15 +8,18 @@ export async function withFiles<T extends { id: string }>(messages: T[]) {
   const files = ids.length
     ? await db
         .select({
-          messageId: assetTable.chatMessageId,
-          id: assetTable.id,
-          filename: assetTable.filename,
-          mimeType: assetTable.mimeType,
-          size: assetTable.size,
+          messageId: chatMessageFileTable.messageId,
+          id: chatMessageFileTable.id,
+          filename: chatMessageFileTable.filename,
+          mimeType: chatMessageFileTable.mimeType,
+          size: chatMessageFileTable.size,
         })
-        .from(assetTable)
-        .where(inArray(assetTable.chatMessageId, ids))
-        .orderBy(asc(assetTable.createdAt), asc(assetTable.id))
+        .from(chatMessageFileTable)
+        .where(inArray(chatMessageFileTable.messageId, ids))
+        .orderBy(
+          asc(chatMessageFileTable.createdAt),
+          asc(chatMessageFileTable.id),
+        )
     : [];
   return messages.map((message) => ({
     ...message,

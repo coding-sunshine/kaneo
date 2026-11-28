@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
-import { assetTable, chatMessageTable } from "../../database/schema";
+import { chatMessageFileTable, chatMessageTable } from "../../database/schema";
 import {
   documentFileContentType,
   fileTypeRefused,
@@ -12,7 +12,6 @@ import {
   createChatFileUploadUrl,
   InvalidUploadedAssetError,
   isChatFileKey,
-  isImageContentType,
   validateTaskAssetUploadInput,
   verifyTaskAssetUpload,
 } from "../../storage/s3";
@@ -99,19 +98,15 @@ export async function finalizeChatFile(
     async (tx, uploaded) => {
       const [stored] = await tx
         .select({
-          messageId: assetTable.chatMessageId,
-          channelId: chatMessageTable.channelId,
+          messageId: chatMessageFileTable.messageId,
+          channelId: chatMessageFileTable.channelId,
         })
-        .from(assetTable)
-        .leftJoin(
-          chatMessageTable,
-          eq(chatMessageTable.id, assetTable.chatMessageId),
-        )
-        .where(eq(assetTable.objectKey, key))
+        .from(chatMessageFileTable)
+        .where(eq(chatMessageFileTable.objectKey, key))
         .limit(1);
       if (stored) {
         // A second finalize of the same upload answers with the same message.
-        if (!stored.messageId || stored.channelId !== channelId) {
+        if (stored.channelId !== channelId) {
           throw new HTTPException(400, { message: wrongKey });
         }
         return { messageId: stored.messageId, created: false };
@@ -121,16 +116,15 @@ export async function finalizeChatFile(
         .values({ channelId, userId, body: body.body ?? "" })
         .returning({ id: chatMessageTable.id });
       if (!message) throw new Error("Message insert returned no row");
-      await tx.insert(assetTable).values({
+      await tx.insert(chatMessageFileTable).values({
         workspaceId,
-        chatMessageId: message.id,
+        channelId,
+        messageId: message.id,
         objectKey: key,
         filename: body.filename,
         mimeType: uploaded.contentType,
         size: uploaded.size,
-        kind: isImageContentType(uploaded.contentType) ? "image" : "attachment",
-        surface: "chat",
-        createdBy: userId,
+        uploadedBy: userId,
       });
       return { messageId: message.id, created: true };
     },

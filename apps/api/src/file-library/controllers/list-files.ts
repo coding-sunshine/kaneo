@@ -1,9 +1,10 @@
 import { and, desc, eq, ilike, isNull, sql } from "drizzle-orm";
+import type { PgColumn } from "drizzle-orm/pg-core";
 import db from "../../database";
 import {
   assetTable,
   chatChannelTable,
-  chatMessageTable,
+  chatMessageFileTable,
   documentTable,
   projectTable,
   taskTable,
@@ -46,9 +47,8 @@ export async function listFiles(
   query: string | undefined,
   apiBaseUrl: string,
 ) {
-  const named = query
-    ? ilike(assetTable.filename, `%${escapeLikePattern(query)}%`)
-    : undefined;
+  const named = (filename: PgColumn) =>
+    query ? ilike(filename, `%${escapeLikePattern(query)}%`) : undefined;
   const guest = await isWorkspaceGuest(workspaceId, userId);
 
   const tickets = await db
@@ -69,7 +69,7 @@ export async function listFiles(
         isAttachment,
         notDraft,
         projectAccessCondition(userId, projectTable.id),
-        named,
+        named(assetTable.filename),
       ),
     )
     .orderBy(...newestFirst)
@@ -89,7 +89,7 @@ export async function listFiles(
         eq(documentTable.workspaceId, workspaceId),
         isNull(documentTable.deletedAt),
         documentVisibility(userId, documentTable),
-        named,
+        named(assetTable.filename),
       ),
     )
     .orderBy(...newestFirst)
@@ -97,30 +97,36 @@ export async function listFiles(
 
   const chat = await db
     .select({
-      ...fileColumns,
+      id: chatMessageFileTable.id,
+      filename: chatMessageFileTable.filename,
+      mimeType: chatMessageFileTable.mimeType,
+      size: chatMessageFileTable.size,
+      createdAt: chatMessageFileTable.createdAt,
+      addedById: userTable.id,
+      addedByName: userTable.name,
       sourceId: chatChannelTable.id,
       sourceName: chatChannelTable.name,
-      messageId: chatMessageTable.id,
+      messageId: chatMessageFileTable.messageId,
       isDirect: sql<boolean>`${chatChannelTable.directKey} is not null`,
     })
-    .from(assetTable)
-    .innerJoin(
-      chatMessageTable,
-      eq(chatMessageTable.id, assetTable.chatMessageId),
-    )
+    .from(chatMessageFileTable)
     .innerJoin(
       chatChannelTable,
-      eq(chatChannelTable.id, chatMessageTable.channelId),
+      eq(chatChannelTable.id, chatMessageFileTable.channelId),
     )
-    .leftJoin(userTable, eq(userTable.id, assetTable.createdBy))
+    .leftJoin(userTable, eq(userTable.id, chatMessageFileTable.uploadedBy))
     .where(
       and(
+        eq(chatMessageFileTable.workspaceId, workspaceId),
         eq(chatChannelTable.workspaceId, workspaceId),
         readableChannel(userId, workspaceId, guest),
-        named,
+        named(chatMessageFileTable.filename),
       ),
     )
-    .orderBy(...newestFirst)
+    .orderBy(
+      desc(chatMessageFileTable.createdAt),
+      desc(chatMessageFileTable.id),
+    )
     .limit(LIMIT);
 
   const rows = [
@@ -160,7 +166,12 @@ export async function listFiles(
       mimeType: row.mimeType,
       size: row.size,
       createdAt: row.createdAt,
-      url: `${apiBaseUrl}/asset/${row.id}`,
+      // A chat file is served by its channel's route, which checks the
+      // channel; every other file by /asset.
+      url:
+        row.kind === "chat"
+          ? `${apiBaseUrl}/chat/workspace/${workspaceId}/channels/${row.sourceId}/files/${row.id}`
+          : `${apiBaseUrl}/asset/${row.id}`,
       addedBy:
         row.addedById && row.addedByName !== null
           ? { id: row.addedById, name: row.addedByName }
