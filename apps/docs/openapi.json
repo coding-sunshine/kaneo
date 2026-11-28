@@ -8949,6 +8949,58 @@
           "relevanceScore"
         ]
       },
+      "StandupDraft": {
+        "type": "object",
+        "properties": {
+          "did": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StandupItem"
+            }
+          },
+          "doing": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StandupItem"
+            }
+          },
+          "blocked": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StandupItem"
+            }
+          }
+        },
+        "required": [
+          "did",
+          "doing",
+          "blocked"
+        ]
+      },
+      "StandupItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "ticket": {
+            "type": "string",
+            "example": "WEB-12"
+          },
+          "projectId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "ticket",
+          "projectId"
+        ]
+      },
       "IntegrationSyncPreview": {
         "type": "object",
         "properties": {
@@ -46335,6 +46387,93 @@
           },
           "403": {
             "description": "Missing read permission for the requested search type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/standup/workspace/{workspaceId}/draft": {
+      "get": {
+        "operationId": "getStandupDraft",
+        "tags": [
+          "Standup"
+        ],
+        "summary": "Draft my standup",
+        "description": "A private did, doing and blocked draft from the caller's own tickets: tickets they completed in the window, their started open tickets, and their open tickets with an open blocker. Only tickets in teams the caller can open. Nothing is stored, posted or sent; the caller copies the text where they want it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "description": "1 for a daily standup, 7 for a weekly reflection: how far back completed tickets are listed."
+            },
+            "required": false,
+            "description": "1 for a daily standup, 7 for a weekly reflection: how far back completed tickets are listed.",
+            "name": "days",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Standup draft",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandupDraft"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid window",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing project:read or task:read permission",
             "content": {
               "application/json": {
                 "schema": {

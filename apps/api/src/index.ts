@@ -105,6 +105,7 @@ import { hideClosedTeams } from "./project-access/hide-closed-teams";
 import { getPublicProject } from "./project/controllers/get-public-project";
 import { initializeScheduler, shutdownScheduler } from "./scheduler";
 import search from "./search";
+import standup from "./standup";
 import slackIntegration from "./slack-integration";
 import { privateObjectResponse } from "./storage/private-object-response";
 import { getPrivateObject } from "./storage/s3";
@@ -856,6 +857,7 @@ export function createApp() {
     notificationPreferences,
   );
   const searchApi = api.route("/search", search);
+  const standupApi = api.route("/standup", standup);
   // Turned-off providers: registered before their routes so they run first.
   // Inbound provider webhooks are mounted earlier and answer on their own;
   // their work is skipped through `activeIntegrationCondition`.
@@ -1111,6 +1113,7 @@ export function createApp() {
     calendarFeedApi,
     publicProjectApi,
     searchApi,
+    standupApi,
     mattermostIntegrationApi,
     slackIntegrationApi,
     taskApi,
@@ -1284,6 +1287,7 @@ const {
   calendarFeedApi,
   publicProjectApi,
   searchApi,
+  standupApi,
   slackIntegrationApi,
   taskApi,
   taskRelationApi,
@@ -1345,6 +1349,7 @@ export type AppType =
   | typeof notificationApi
   | typeof notificationPreferencesApi
   | typeof searchApi
+  | typeof standupApi
   | typeof integrationSyncApi
   | typeof githubReviewsApi
   | typeof calendarSyncApi

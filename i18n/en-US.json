@@ -6170,6 +6170,22 @@
 					"openSampleTicket": "Open your sample ticket",
 					"inviteTeammate": "Invite a teammate"
 				}
+			},
+			"standup": {
+				"open": "Draft my standup",
+				"title": "My standup draft",
+				"private": "Only you can see this draft. It is not saved or posted anywhere; copy it where you want it.",
+				"window": "Time window",
+				"today": "Last day",
+				"week": "Last week",
+				"did": "Did",
+				"doing": "Doing",
+				"blocked": "Blocked",
+				"none": "Nothing here",
+				"copy": "Copy draft",
+				"copied": "Draft copied",
+				"copyFailed": "Could not copy the draft",
+				"loadError": "Could not load your tickets. Try again."
 			}
 		},
 		"myWork": {
