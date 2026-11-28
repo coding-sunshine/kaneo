@@ -33,6 +33,15 @@ export async function applyThreadTicket(
   client: ToolClient,
   args: ThreadTicketArgs,
 ) {
+  // The link back is a reply: without it the ticket would stand alone.
+  const channel = await client.json<{
+    isMember: boolean;
+    archivedAt: string | null;
+  }>(
+    `/api/chat/workspace/${path(args.workspaceId)}/channels/${path(args.channelId)}`,
+  );
+  if (!channel.isMember || channel.archivedAt)
+    throw new Error("You can no longer post in this thread");
   const [column] = await client.json<{ slug: string }[]>(
     `/api/column/${path(args.projectId)}`,
   );

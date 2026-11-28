@@ -9,6 +9,7 @@ import {
   workProjectTable,
   workspaceUserTable,
 } from "../../database/schema";
+import { loadChannel } from "../../chat/controllers/load-channel";
 import { isWorkspaceGuest } from "../../guest/is-workspace-guest";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
 import { meteredCompletion } from "../metered-completion";
@@ -125,6 +126,8 @@ export async function proposeThreadTicket(
   messageId: string,
 ) {
   const thread = await readThread(workspaceId, channelId, messageId, userId);
+  // Accepting replies in the thread: only someone who may post there asks.
+  await loadChannel(workspaceId, channelId, userId, "post");
   const choices = await readChoices(workspaceId, userId, thread.mentionedIds);
   const reply = await meteredCompletion(
     { workspaceId, userId, purpose: "thread-ticket" },

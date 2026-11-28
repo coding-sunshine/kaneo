@@ -231,6 +231,10 @@ describe("API integration: ticket from a chat thread", () => {
 
   it("never offers a team the asker cannot open, and refuses one the model makes up", async () => {
     await restrictToProjects(ws, dana.id, [team.project.id]);
+    await as(dana).request(
+      `${chat}/${ws}/channels/${channelId}/join`,
+      json("POST"),
+    );
     model.queue.push(suggestion({ teamId: secretTeam.project.id }));
     const res = await propose(dana);
     expect(res.status).toBe(422);
@@ -257,6 +261,23 @@ describe("API integration: ticket from a chat thread", () => {
     const viewer = await addWorkspaceMember(ws, "viewer");
     expect((await propose(viewer)).status).toBe(403);
     expect(model.seen).toHaveLength(0);
+  });
+
+  it("asks only someone who may post in the thread, and creates nothing once they cannot", async () => {
+    const outsider = await addWorkspaceMember(ws, "member");
+    expect((await propose(outsider)).status).toBe(403);
+    expect(model.seen).toHaveLength(0);
+
+    model.queue.push(suggestion());
+    const card = (await (await propose()).json()) as Proposal;
+    await as(owner).request(
+      `${chat}/${ws}/channels/${channelId}`,
+      json("PATCH", { archived: true }),
+    );
+    const res = await decide(card.id, "accept");
+    expect((await res.json()).status).toBe("failed");
+    expect(await tasks()).toEqual([]);
+    expect((await propose()).status).toBe(409);
   });
 
   it("only lets the person who asked decide, and answers 404 when AI is off", async () => {
