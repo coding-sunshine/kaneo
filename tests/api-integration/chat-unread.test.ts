@@ -81,6 +81,21 @@ describe("API integration: chat unread state", () => {
     expect(await unread(b)).toEqual({ general: 1 });
   });
 
+  // A reply never becomes the channel's newest message, so an open channel
+  // would not mark it read: it would leave a count nobody can clear.
+  it("leaves thread replies out of the count", async () => {
+    const { a, b, as, base, pub, post, unread, markRead } = await setup();
+    const parent = await (await post(pub.id, "question", b)).json();
+    await markRead(b, pub.id);
+
+    const reply = await as(a)(
+      `${base}/${pub.id}/messages`,
+      json("POST", { body: "answer", parentId: parent.id }),
+    );
+    expect(reply.status).toBe(200);
+    expect(await unread(b)).toEqual({ general: 0 });
+  });
+
   it("tells the author nothing about who read their message", async () => {
     const { a, b, base, as, pub, post, markRead } = await setup();
     await post(pub.id, "one");

@@ -17,8 +17,21 @@ export async function getMessages(param: ChannelParam, around?: string) {
   return response.json();
 }
 
-export async function postMessage(param: ChannelParam, body: string) {
-  const response = await messages.$post({ param, json: { body } });
+export async function postMessage(
+  param: ChannelParam,
+  body: string,
+  parentId?: string,
+) {
+  const response = await messages.$post({
+    param,
+    json: parentId ? { body, parentId } : { body },
+  });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function getReplies(param: MessageParam) {
+  const response = await message.replies.$get({ param });
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }

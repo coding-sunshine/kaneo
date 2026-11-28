@@ -29,6 +29,7 @@ import { listDrafts } from "./controllers/list-drafts";
 import { listDirectMessages } from "./controllers/list-direct-messages";
 import { listMessages } from "./controllers/list-messages";
 import { listPins } from "./controllers/list-pins";
+import { listReplies } from "./controllers/list-replies";
 import { markRead } from "./controllers/mark-read";
 import { pinMessage } from "./controllers/pin-message";
 import { openDirectMessage } from "./controllers/open-direct-message";
@@ -62,6 +63,7 @@ import {
   deletedMessageSchema,
   directMessageListSchema,
   draftListSchema,
+  editMessageBody,
   draftSchema,
   finalizeChatFileBody,
   inviteMemberBody,
@@ -313,14 +315,32 @@ const postMessageRoute = createRoute({
   path: `${channelPath}/messages`,
   tags,
   summary: "Post message",
-  description: "Post to a channel you belong to.",
+  description:
+    "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline.",
   middleware: [...write] as const,
   request: { params: channelParam, body: body(postMessageBody) },
   responses: {
     200: jsonResponse("Message posted", messageSchema),
     403: notMember,
-    404: notFound,
+    404: messageNotFound,
     409: archived,
+  },
+});
+
+const listRepliesRoute = createRoute({
+  method: "get",
+  operationId: "listChatReplies",
+  path: `${messagePath}/replies`,
+  tags,
+  summary: "List thread replies",
+  description:
+    "The replies in a message's thread, oldest first, for whoever can read the channel.",
+  middleware: [...access] as const,
+  request: { params: messageParam },
+  responses: {
+    200: jsonResponse("Replies", messageListSchema),
+    403: noAccess,
+    404: messageNotFound,
   },
 });
 
@@ -405,7 +425,7 @@ const editMessageRoute = createRoute({
   summary: "Edit message",
   description: "Change the text of your own message. It then shows as edited.",
   middleware: [...write] as const,
-  request: { params: messageParam, body: body(postMessageBody) },
+  request: { params: messageParam, body: body(editMessageBody) },
   responses: {
     200: jsonResponse("Message edited", messageSchema),
     403: errorResponse("Only the author can change this message"),
@@ -826,7 +846,15 @@ const chat = apiRouter()
         channelId,
         c.get("userId"),
         c.req.valid("json").body,
+        c.req.valid("json").parentId,
       ),
+      200,
+    );
+  })
+  .openapi(listRepliesRoute, async (c) => {
+    const { workspaceId, channelId, messageId } = c.req.valid("param");
+    return c.json(
+      await listReplies(workspaceId, channelId, messageId, c.get("userId")),
       200,
     );
   })

@@ -6,7 +6,9 @@ import { MessageBody } from "@/components/chat/message-body";
 import { MessageEditForm } from "@/components/chat/message-edit-form";
 import { MessageFiles } from "@/components/chat/message-files";
 import { MessageReactions } from "@/components/chat/message-reactions";
+import { MessageThread } from "@/components/chat/message-thread";
 import type { ChatMessage } from "@/components/chat/types";
+import { Button } from "@/components/ui/button";
 
 type MessageItemProps = {
   message: ChatMessage;
@@ -19,6 +21,8 @@ type MessageItemProps = {
   status?: string;
   /** Opened from a search result: scrolled into view and marked. */
   focused?: boolean;
+  /** A reply shown inside a thread: it has no thread of its own. */
+  inThread?: boolean;
   onRemovePreview?: (messageId: string) => void;
 };
 
@@ -31,10 +35,13 @@ export function MessageItem({
   online,
   status,
   focused = false,
+  inThread = false,
   onRemovePreview,
 }: MessageItemProps) {
   const { t, i18n } = useTranslation();
   const [editing, setEditing] = useState(false);
+  // Opened by Reply (focus the box) or by the reply count (just read).
+  const [thread, setThread] = useState<"read" | "reply" | null>(null);
   const item = useRef<HTMLLIElement>(null);
   useEffect(() => {
     if (focused) item.current?.scrollIntoView({ block: "center" });
@@ -91,6 +98,16 @@ export function MessageItem({
             onEdit={() => setEditing(true)}
           />
         )}
+        {canWrite && !editing && !inThread && (
+          <Button
+            variant="ghost"
+            size="xs"
+            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+            onClick={() => setThread("reply")}
+          >
+            {t("navigation:chat.reply")}
+          </Button>
+        )}
       </span>
       {editing ? (
         <MessageEditForm
@@ -131,6 +148,26 @@ export function MessageItem({
         reactions={message.reactions}
         canReact={canWrite}
       />
+      {!inThread && message.replyCount > 0 && (
+        <button
+          type="button"
+          aria-expanded={thread !== null}
+          className="self-start text-xs font-medium text-primary hover:underline"
+          onClick={() => setThread(thread ? null : "read")}
+        >
+          {t("navigation:chat.replyCount", { count: message.replyCount })}
+        </button>
+      )}
+      {!inThread && thread && (
+        <MessageThread
+          workspaceId={workspaceId}
+          channelId={channelId}
+          parentId={message.id}
+          currentUserId={currentUserId}
+          canWrite={canWrite}
+          focusReply={thread === "reply"}
+        />
+      )}
     </li>
   );
 }

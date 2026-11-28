@@ -19149,6 +19149,42 @@
 						},
 						"attachFile": {
 							"type": "string"
+						},
+						"copyCode": {
+							"type": "string"
+						},
+						"copyCodeFailed": {
+							"type": "string"
+						},
+						"reply": {
+							"type": "string"
+						},
+						"replyCount_one": {
+							"type": "string"
+						},
+						"replyCount_zero": {
+							"type": "string"
+						},
+						"replyCount_two": {
+							"type": "string"
+						},
+						"replyCount_few": {
+							"type": "string"
+						},
+						"replyCount_many": {
+							"type": "string"
+						},
+						"replyCount_other": {
+							"type": "string"
+						},
+						"thread": {
+							"type": "string"
+						},
+						"replyLabel": {
+							"type": "string"
+						},
+						"replyPlaceholder": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -19232,7 +19268,13 @@
 						"directHint",
 						"openDirect",
 						"noOneElse",
-						"attachFile"
+						"attachFile",
+						"copyCode",
+						"copyCodeFailed",
+						"reply",
+						"thread",
+						"replyLabel",
+						"replyPlaceholder"
 					]
 				},
 				"files": {
