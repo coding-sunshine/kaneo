@@ -6058,7 +6058,16 @@
 				"assigned_other": "{{count}} assigned to you",
 				"title": "Up next",
 				"viewAll": "View all",
-				"assigned_one": "{{count}} assigned to you"
+				"assigned_one": "{{count}} assigned to you",
+				"reasons": {
+					"blocked": "Blocked by {{issues}}",
+					"cycle": "In the current cycle",
+					"due": "Due soonest",
+					"hiddenBlockers_one": "{{count}} issue you can't open",
+					"hiddenBlockers_other": "{{count}} issues you can't open",
+					"position": "Next in manual order",
+					"priority": "{{priority}} priority"
+				}
 			},
 			"week": {
 				"more_other": "+{{count}} more",

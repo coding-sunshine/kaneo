@@ -1422,6 +1422,17 @@
             ],
             "format": "date-time"
           },
+          "position": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "The task's manual position in its column."
+          },
+          "inCycle": {
+            "type": "boolean",
+            "description": "Whether the task is in its team's running cycle."
+          },
           "lastActivityAt": {
             "type": [
               "string",
@@ -1481,6 +1492,16 @@
             "items": {
               "$ref": "#/components/schemas/TaskLabel"
             }
+          },
+          "blockedBy": {
+            "type": "array",
+            "items": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "description": "Open tasks that block this one, as keys such as ENG-12. A blocker in a team you cannot open is null."
           }
         },
         "required": [
@@ -1493,6 +1514,8 @@
           "statusIcon",
           "priority",
           "dueDate",
+          "position",
+          "inCycle",
           "lastActivityAt",
           "lastActivityType",
           "reviewRequestedAt",
@@ -1502,7 +1525,8 @@
           "projectName",
           "projectSlug",
           "projectIcon",
-          "labels"
+          "labels",
+          "blockedBy"
         ]
       },
       "DoneTasks": {

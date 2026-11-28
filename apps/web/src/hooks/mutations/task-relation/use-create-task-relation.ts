@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import createTaskRelation from "@/fetchers/task-relation/create-task-relation";
 
+import { invalidateMyWork } from "@/lib/invalidate-my-work";
 import { invalidateRelationTaskProject } from "./invalidate-relation-task-project";
 
 function useCreateTaskRelation() {
@@ -10,6 +11,8 @@ function useCreateTaskRelation() {
     mutationFn: createTaskRelation,
     onSuccess: (_, variables) => {
       void invalidateRelationTaskProject(queryClient, variables.sourceTaskId);
+      // Up next moves blocked work down, so a blocker changes its order.
+      invalidateMyWork(queryClient);
       // Queries default to refetchOnMount: false, so a closed but cached end
       // must refetch now or reopening it shows the old relations.
       queryClient.invalidateQueries({

@@ -42,4 +42,32 @@ describe("useCreateTaskRelation", () => {
     });
     expect(reloadTarget).toHaveBeenCalledTimes(1);
   });
+
+  it("marks Up next stale, since a blocker moves the blocked task", async () => {
+    const client = new QueryClient();
+    const upNext = [
+      "assigned-tasks",
+      "w",
+      { countOnly: false, tab: "assigned" },
+    ];
+    client.setQueryData(upNext, { tasks: [], total: 0 });
+    vi.mocked(createTaskRelation).mockResolvedValue(
+      {} as Awaited<ReturnType<typeof createTaskRelation>>,
+    );
+    const { result } = renderHook(useCreateTaskRelation, {
+      wrapper: ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={client}>{children}</QueryClientProvider>
+      ),
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        sourceTaskId: "task-a",
+        targetTaskId: "task-b",
+        relationType: "blocks",
+      });
+    });
+
+    expect(client.getQueryState(upNext)?.isInvalidated).toBe(true);
+  });
 });

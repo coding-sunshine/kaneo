@@ -1,13 +1,12 @@
 import { and, asc, gte, inArray, isNull, lt, max, ne, sql } from "drizzle-orm";
 import db from "../../database";
 import {
-  columnTable,
   taskTable,
   workProjectMilestoneTable,
   workProjectUpdateTable,
 } from "../../database/schema";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
-import { taskIsCompleted } from "../../task/task-is-completed";
+import { taskIsUnfinished } from "../../task/task-is-unfinished";
 
 export type PortfolioSignals = {
   lastUpdateAt: Date | null;
@@ -68,11 +67,7 @@ export async function loadPortfolioSignals(ids: string[], userId: string) {
           ne(taskTable.status, "archived"),
           ne(taskTable.status, "canceled"),
           lt(taskTable.dueDate, now),
-          sql`not coalesce((
-            select ${columnTable.isFinal} from ${columnTable}
-            where ${columnTable.id} = ${taskTable.columnId}
-              and ${columnTable.projectId} = ${taskTable.projectId}
-          ), ${taskIsCompleted})`,
+          taskIsUnfinished,
           // Issues in a team the reader cannot open are not counted for them.
           projectAccessCondition(userId, taskTable.projectId),
         ),

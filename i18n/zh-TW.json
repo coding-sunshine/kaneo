@@ -5938,7 +5938,15 @@
 			"upNext": {
 				"title": "接下來",
 				"assigned_other": "{{count}} 個指派給你",
-				"viewAll": "查看全部"
+				"viewAll": "查看全部",
+				"reasons": {
+					"blocked": "Blocked by {{issues}}",
+					"cycle": "In the current cycle",
+					"due": "Due soonest",
+					"hiddenBlockers_other": "{{count}} issues you can't open",
+					"position": "Next in manual order",
+					"priority": "{{priority}} priority"
+				}
 			},
 			"projects": {
 				"title": "你的專案",

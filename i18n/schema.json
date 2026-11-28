@@ -25157,9 +25157,55 @@
 								},
 								"viewAll": {
 									"type": "string"
+								},
+								"reasons": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"blocked": {
+											"type": "string"
+										},
+										"hiddenBlockers_one": {
+											"type": "string"
+										},
+										"hiddenBlockers_zero": {
+											"type": "string"
+										},
+										"hiddenBlockers_two": {
+											"type": "string"
+										},
+										"hiddenBlockers_few": {
+											"type": "string"
+										},
+										"hiddenBlockers_many": {
+											"type": "string"
+										},
+										"hiddenBlockers_other": {
+											"type": "string"
+										},
+										"cycle": {
+											"type": "string"
+										},
+										"priority": {
+											"type": "string"
+										},
+										"due": {
+											"type": "string"
+										},
+										"position": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"blocked",
+										"cycle",
+										"priority",
+										"due",
+										"position"
+									]
 								}
 							},
-							"required": ["title", "viewAll"]
+							"required": ["title", "viewAll", "reasons"]
 						},
 						"doneThisWeek": {
 							"type": "object",

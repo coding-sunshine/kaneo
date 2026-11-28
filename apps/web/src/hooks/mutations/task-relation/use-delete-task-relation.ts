@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import deleteTaskRelation from "@/fetchers/task-relation/delete-task-relation";
 
+import { invalidateMyWork } from "@/lib/invalidate-my-work";
 import { invalidateRelationTaskProject } from "./invalidate-relation-task-project";
 
 function useDeleteTaskRelation(taskId: string) {
@@ -10,6 +11,8 @@ function useDeleteTaskRelation(taskId: string) {
     mutationFn: deleteTaskRelation,
     onSuccess: (deleted) => {
       void invalidateRelationTaskProject(queryClient, deleted.sourceTaskId);
+      // Up next moves blocked work down, so a blocker changes its order.
+      invalidateMyWork(queryClient);
       // Both ends go stale, and only one of them is the task this hook was
       // opened for. Queries default to refetchOnMount: false, so a closed but
       // cached end must refetch now or reopening it still lists the relation.

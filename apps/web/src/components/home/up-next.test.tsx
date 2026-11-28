@@ -10,16 +10,36 @@ vi.mock("@/fetchers/task/get-assigned-tasks", () => ({
   default: getAssignedTasks,
 }));
 vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({
+    t: (key: string, values?: Record<string, unknown>) =>
+      values ? `${key} ${JSON.stringify(values)}` : key,
+  }),
 }));
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: PropsWithChildren) => <a href="/my-tasks">{children}</a>,
 }));
 vi.mock("@/components/my-work/assigned-task-row", () => ({
-  AssignedTaskRow: ({ task }: { task: { title: string } }) => (
-    <span>{task.title}</span>
+  AssignedTaskRow: ({
+    task,
+    aside,
+  }: {
+    task: { title: string };
+    aside?: React.ReactNode;
+  }) => (
+    <div data-testid="up-next-row">
+      <span>{task.title}</span>
+      {aside}
+    </div>
   ),
 }));
+
+const open = {
+  priority: "no-priority",
+  dueDate: null,
+  position: null,
+  inCycle: false,
+  blockedBy: [],
+};
 
 let client: QueryClient;
 beforeEach(() => {
@@ -54,7 +74,7 @@ function mount() {
 
 it("keeps loaded tasks visible after a transient background refresh failure", async () => {
   getAssignedTasks.mockResolvedValue({
-    tasks: [{ id: "task", title: "Still here" }],
+    tasks: [{ ...open, id: "task", title: "Still here" }],
     total: 1,
   });
   mount();
@@ -73,4 +93,46 @@ it("shows the load error when no tasks have been loaded", async () => {
   getAssignedTasks.mockRejectedValue(new Error("Network unavailable"));
   mount();
   expect(await screen.findByText("workspace:myWork.loadError")).toBeVisible();
+});
+
+it("orders rows by cycle, priority and blockers and prints each row's reason", async () => {
+  getAssignedTasks.mockResolvedValue({
+    tasks: [
+      {
+        ...open,
+        id: "a",
+        title: "Overdue low",
+        priority: "low",
+        dueDate: "2020-01-01T00:00:00Z",
+      },
+      {
+        ...open,
+        id: "b",
+        title: "Blocked urgent",
+        priority: "urgent",
+        blockedBy: ["web-6", null],
+      },
+      { ...open, id: "c", title: "Urgent", priority: "urgent" },
+      { ...open, id: "d", title: "In cycle", inCycle: true },
+    ],
+    total: 4,
+  });
+  mount();
+  await screen.findByText("In cycle");
+  const rows = screen.getAllByTestId("up-next-row");
+  expect(rows.map((row) => row.firstChild?.textContent)).toEqual([
+    "In cycle",
+    "Urgent",
+    "Overdue low",
+    "Blocked urgent",
+  ]);
+  expect(rows[0]).toHaveTextContent("workspace:home.upNext.reasons.cycle");
+  expect(rows[1]).toHaveTextContent("workspace:home.upNext.reasons.priority");
+  expect(rows[3]).toHaveTextContent("workspace:home.upNext.reasons.blocked");
+  expect(rows[3]).toHaveTextContent("web-6");
+  expect(rows[3]).toHaveTextContent(
+    "workspace:home.upNext.reasons.hiddenBlockers",
+  );
+  for (const row of rows)
+    expect(row.querySelector("[data-up-next-reason]")).not.toBeNull();
 });
