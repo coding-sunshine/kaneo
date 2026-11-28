@@ -4494,6 +4494,10 @@
           "reason": {
             "type": "string"
           },
+          "selectable": {
+            "type": "boolean",
+            "description": "True when the person may keep some fields and drop others: accept with `fields`."
+          },
           "sources": {
             "type": "array",
             "items": {
@@ -4523,6 +4527,7 @@
           "status",
           "diff",
           "reason",
+          "selectable",
           "sources",
           "decidedAt",
           "result"
@@ -4547,6 +4552,10 @@
               "string",
               "null"
             ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why this one field is suggested, when the card says so."
           }
         },
         "required": [
@@ -5060,6 +5069,24 @@
           "currentState",
           "blockers",
           "sources"
+        ]
+      },
+      "AiTriageSettings": {
+        "type": "object",
+        "properties": {
+          "guidance": {
+            "type": "string",
+            "maxLength": 4000,
+            "description": "Sent to the model with every new triage ticket of the team, such as which labels or people handle what."
+          },
+          "autoApply": {
+            "type": "boolean",
+            "description": "Apply the suggestion without anyone accepting it. Off by default."
+          }
+        },
+        "required": [
+          "guidance",
+          "autoApply"
         ]
       },
       "Loop": {
@@ -35414,6 +35441,82 @@
         }
       }
     },
+    "/agent/workspace/{workspaceId}/tasks/{taskId}/proposals": {
+      "get": {
+        "operationId": "listTaskProposals",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "List your proposals about a ticket",
+        "description": "The proposals made for you about one ticket, such as an AI triage suggestion, newest first. Other people's proposals are not shown.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "taskId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Proposals",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AgentProposal"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or proposal not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/agent/workspace/{workspaceId}/proposals/drafts": {
       "get": {
         "operationId": "listAgentDrafts",
@@ -35506,6 +35609,17 @@
             "required": true,
             "name": "proposalId",
             "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 200,
+              "description": "On a selectable proposal: the fields to apply, comma-separated (such as `labels,priority`). Omitted applies every field."
+            },
+            "required": false,
+            "description": "On a selectable proposal: the fields to apply, comma-separated (such as `labels,priority`). Omitted applies every field.",
+            "name": "fields",
+            "in": "query"
           }
         ],
         "responses": {
@@ -35515,6 +35629,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AgentProposal"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No field was kept",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -36018,6 +36142,163 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/teams/{projectId}/triage-settings": {
+      "get": {
+        "operationId": "getAiTriageSettings",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Get a team's AI triage settings",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "The team's id."
+            },
+            "required": true,
+            "description": "The team's id.",
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The team's AI triage settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiTriageSettings"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateAiTriageSettings",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Update a team's AI triage settings",
+        "description": "Set the guidance the model reads for the team's new triage tickets, and whether its suggestion applies without anyone accepting it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "The team's id."
+            },
+            "required": true,
+            "description": "The team's id.",
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiTriageSettings"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The team's AI triage settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiTriageSettings"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
           }
         }
       }

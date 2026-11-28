@@ -2,6 +2,7 @@ import { and, asc, desc, eq } from "drizzle-orm";
 import db from "../../database";
 import { agentProposalTable } from "../../database/schema";
 import { resolveCitations } from "../resolve-citations";
+import { isSelectable } from "./keep-fields";
 import { PROJECT_UPDATE_TOOL } from "./project-update-tool";
 
 type Row = typeof agentProposalTable.$inferSelect;
@@ -17,6 +18,7 @@ export async function proposalView(reader: Reader, row: Row) {
     status: row.status,
     diff: row.diff,
     reason: row.reason,
+    selectable: isSelectable(row.tool),
     sources: await resolveCitations(reader, row.sources),
     decidedAt: row.decidedAt,
     result: row.status === "failed" ? row.result : null,
@@ -53,5 +55,22 @@ export async function pendingDrafts(reader: Reader) {
     )
     .orderBy(desc(agentProposalTable.createdAt))
     .limit(50);
+  return Promise.all(rows.map((row) => proposalView(reader, row)));
+}
+
+/** The reader's own proposals about one ticket, newest first. */
+export async function taskProposals(reader: Reader, taskId: string) {
+  const rows = await db
+    .select()
+    .from(agentProposalTable)
+    .where(
+      and(
+        eq(agentProposalTable.workspaceId, reader.workspaceId),
+        eq(agentProposalTable.userId, reader.userId),
+        eq(agentProposalTable.taskId, taskId),
+      ),
+    )
+    .orderBy(desc(agentProposalTable.createdAt))
+    .limit(20);
   return Promise.all(rows.map((row) => proposalView(reader, row)));
 }

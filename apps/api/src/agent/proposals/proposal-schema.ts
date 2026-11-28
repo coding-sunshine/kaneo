@@ -6,6 +6,18 @@ export const proposalParam = z.object({
   proposalId: z.string(),
 });
 
+export const taskProposalsParam = z.object({
+  workspaceId: z.string(),
+  taskId: z.string(),
+});
+
+export const acceptQuery = z.object({
+  fields: z.string().max(200).optional().openapi({
+    description:
+      "On a selectable proposal: the fields to apply, comma-separated (such as `labels,priority`). Omitted applies every field.",
+  }),
+});
+
 const statusSchema = z.enum(["pending", "accepted", "declined", "failed"]);
 
 const fieldChangeSchema = z
@@ -16,6 +28,9 @@ const fieldChangeSchema = z
     }),
     from: z.string().nullable(),
     to: z.string().nullable(),
+    reason: z.string().optional().openapi({
+      description: "Why this one field is suggested, when the card says so.",
+    }),
   })
   .openapi("AgentFieldChange");
 
@@ -30,6 +45,10 @@ export const proposalSchema = z
     status: statusSchema,
     diff: z.array(fieldChangeSchema),
     reason: z.string(),
+    selectable: z.boolean().openapi({
+      description:
+        "True when the person may keep some fields and drop others: accept with `fields`.",
+    }),
     sources: z.array(citationSchema),
     decidedAt: nullableResponseTimestamp,
     result: z.string().nullable().openapi({

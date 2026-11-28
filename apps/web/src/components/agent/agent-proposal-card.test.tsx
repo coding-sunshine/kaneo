@@ -28,6 +28,7 @@ const proposal = (status: AgentProposal["status"]): AgentProposal => ({
     { field: "labels", from: null, to: "bug" },
   ],
   reason: "It blocks every login",
+  selectable: false,
   sources: [
     { kind: "task", restricted: false, id: "t1", title: "Login fails" },
   ],
@@ -70,6 +71,37 @@ describe("AgentProposalCard", () => {
     );
     expect(m.mutate).toHaveBeenLastCalledWith(
       { proposalId: "p1", decision: "decline" },
+      expect.anything(),
+    );
+  });
+
+  it("applies only the fields left ticked on a selectable card, with each field's reason", () => {
+    const triage: AgentProposal = {
+      ...proposal("pending"),
+      tool: "triage_task",
+      selectable: true,
+      diff: [
+        {
+          field: "priority",
+          from: "low",
+          to: "high",
+          reason: "Nobody can sign in",
+        },
+        { field: "labels", from: null, to: "Bug", reason: "Safari only" },
+      ],
+    };
+    render(
+      <AgentProposalCard workspaceId="w1" taskId="t1" proposal={triage} />,
+    );
+    expect(screen.getByText("Nobody can sign in")).toBeTruthy();
+    expect(screen.getByText("Safari only")).toBeTruthy();
+    const [priority] = screen.getAllByRole("checkbox");
+    fireEvent.click(priority as HTMLElement);
+    fireEvent.click(
+      screen.getByRole("button", { name: "navigation:agent.proposal.accept" }),
+    );
+    expect(m.mutate).toHaveBeenCalledWith(
+      { proposalId: "p1", decision: "accept", fields: ["labels"] },
       expect.anything(),
     );
   });

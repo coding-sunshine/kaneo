@@ -11,7 +11,13 @@ import { recordUsage } from "./usage";
 export type Meter = {
   workspaceId: string;
   userId: string;
-  purpose: "assistant" | "loop" | "loop-draft" | "filter" | "summary";
+  purpose:
+    | "assistant"
+    | "loop"
+    | "loop-draft"
+    | "filter"
+    | "summary"
+    | "triage";
 };
 
 // A model call made for a person: refused once a budget is spent, sent only to

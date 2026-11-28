@@ -15,6 +15,7 @@ const FEATURE_LABELS: Record<string, string> = {
   "loop-draft": "settings:aiUsage.features.loopDraft",
   filter: "settings:aiUsage.features.filter",
   summary: "settings:aiUsage.features.summary",
+  triage: "settings:aiUsage.features.triage",
 };
 
 /** Settings, AI usage: budgets, then tokens by feature and by day. */

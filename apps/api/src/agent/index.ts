@@ -28,6 +28,8 @@ import usageRoutes from "./usage-routes";
 import destinationRoutes from "./destination/destination-routes";
 import filterRoutes from "./filters/filter-routes";
 import summaryRoutes from "./summary/summary-routes";
+import triageRoutes from "./triage/triage-routes";
+import "./triage/triage-events";
 
 const noAccess = errorResponse("Missing permission for this workspace");
 const notFound = errorResponse("Agent is disabled or chat not found");
@@ -204,6 +206,7 @@ const routes = agent
   .route("/", proposalRoutes)
   .route("/", destinationRoutes)
   .route("/", filterRoutes)
-  .route("/", summaryRoutes);
+  .route("/", summaryRoutes)
+  .route("/", triageRoutes);
 
 export default routes;

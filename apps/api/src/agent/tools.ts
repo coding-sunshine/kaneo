@@ -19,6 +19,12 @@ import {
   postProjectUpdate,
   projectUpdateSchema,
 } from "./proposals/project-update-tool";
+import {
+  applyTriage,
+  TRIAGE_DESCRIPTION,
+  TRIAGE_TOOL,
+  triageTaskSchema,
+} from "./triage/triage-tool";
 
 const MAX_RESULT_CHARS = 20_000;
 
@@ -39,11 +45,17 @@ const ALWAYS_PROPOSED: readonly string[] = [PROJECT_UPDATE_TOOL];
 const DEFAULT_WRITES = WRITE_TOOLS.filter(
   (name) => !ALWAYS_PROPOSED.includes(name),
 );
+// Writes only a feature proposes (never the model in a chat or loop).
+const FEATURE_WRITES: readonly string[] = [TRIAGE_TOOL];
 // Every write a proposal can hold: change_task sets priority and labels.
-export const CHAT_WRITE_TOOLS = [...WRITE_TOOLS, "change_task"] as const;
+export const CHAT_WRITE_TOOLS = [
+  ...WRITE_TOOLS,
+  "change_task",
+  TRIAGE_TOOL,
+] as const;
 // The writes a chat offers: a project update is drafted by loops only.
 export const CHAT_OFFERED_WRITES = CHAT_WRITE_TOOLS.filter(
-  (name) => name !== PROJECT_UPDATE_TOOL,
+  (name) => name !== PROJECT_UPDATE_TOOL && !FEATURE_WRITES.includes(name),
 );
 
 export type ProposeRequest = {
@@ -159,6 +171,9 @@ export function buildAgentTools(
     });
   local("change_task", CHANGE_TASK_DESCRIPTION, changeTaskSchema, (args) =>
     applyChangeTask(client, args),
+  );
+  local(TRIAGE_TOOL, TRIAGE_DESCRIPTION, triageTaskSchema, (args) =>
+    applyTriage(client, args),
   );
   local(
     "list_work_projects",

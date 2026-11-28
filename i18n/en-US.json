@@ -3078,7 +3078,8 @@
 				"loop": "Loop runs",
 				"loopDraft": "Loop drafts",
 				"filter": "Plain-English filters",
-				"summary": "Ticket summaries"
+				"summary": "Ticket summaries",
+				"triage": "Triage suggestions"
 			}
 		},
 		"aiAudit": {
@@ -3250,6 +3251,13 @@
 				"copyFailed": "Could not copy the address",
 				"repliesOff": "This instance cannot send email yet, so replies from tickets will not be delivered until SMTP is set up.",
 				"failed": "Could not change email intake"
+			},
+			"ai": {
+				"autoApply": "Apply AI triage suggestions automatically",
+				"autoApplyDescription": "New triage tickets get the suggested labels, assignee, project and priority without anyone accepting them. Off by default.",
+				"guidance": "AI triage guidance",
+				"guidanceDescription": "Tell the model how this team triages: which labels, people and projects handle what.",
+				"save": "Save guidance"
 			}
 		},
 		"adminBackups": {
@@ -4466,7 +4474,8 @@
 					"project": "Project",
 					"health": "Health",
 					"update": "Update"
-				}
+				},
+				"keepField": "Apply {{field}}"
 			}
 		},
 		"loops": {

@@ -2,21 +2,41 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { decideProposal } from "@/fetchers/agent/proposals";
 import { agentChatKey } from "@/hooks/queries/agent/use-agent";
 import { agentDraftsKey } from "@/hooks/queries/agent/use-agent-drafts";
+import { taskProposalsKey } from "@/hooks/queries/agent/use-task-proposals";
 import { aiAuditKey } from "@/hooks/queries/agent/use-ai-audit";
 
 /**
  * Accepts or declines one proposal, then rereads where it came from: its
- * chat, or, for a loop's draft, the drafts and the project updates.
+ * chat, its ticket, or, for a loop's draft, the drafts and the project updates.
  */
-export function useDecideProposal(workspaceId: string, chatId?: string) {
+export function useDecideProposal(
+  workspaceId: string,
+  chatId?: string,
+  taskId?: string,
+) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: {
       proposalId: string;
       decision: "accept" | "decline";
-    }) => decideProposal(workspaceId, input.proposalId, input.decision),
+      fields?: string[];
+    }) =>
+      decideProposal(
+        workspaceId,
+        input.proposalId,
+        input.decision,
+        input.fields,
+      ),
     onSettled: () =>
       Promise.all([
+        ...(taskId
+          ? [
+              queryClient.invalidateQueries({
+                queryKey: taskProposalsKey(workspaceId, taskId),
+              }),
+              queryClient.invalidateQueries({ queryKey: ["task", taskId] }),
+            ]
+          : []),
         ...(chatId
           ? [
               queryClient.invalidateQueries({

@@ -3691,8 +3691,16 @@ export const agentProposalTable = pgTable(
     sources: jsonb("sources")
       .$type<{ kind: "task" | "document" | "comment"; id: string }[]>()
       .notNull(),
+    // `reason` is set on a suggestion that explains each field (AI triage).
     diff: jsonb("diff")
-      .$type<{ field: string; from: string | null; to: string | null }[]>()
+      .$type<
+        {
+          field: string;
+          from: string | null;
+          to: string | null;
+          reason?: string;
+        }[]
+      >()
       .notNull(),
     reason: text("reason").notNull(),
     status: text("status")
@@ -4185,6 +4193,27 @@ export const aiDestinationChangeTable = pgTable(
     ),
   ],
 );
+
+// A team's AI triage settings: the guidance sent with each new triage ticket,
+// and whether the suggestion is applied without a person accepting it. No row
+// means no guidance and auto-apply off.
+export const aiTriageSettingTable = pgTable("ai_triage_setting", {
+  projectId: text("project_id")
+    .primaryKey()
+    .references(() => projectTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  guidance: text("guidance").notNull().default(""),
+  autoApply: boolean("auto_apply").notNull().default(false),
+  updatedBy: text("updated_by").references(() => userTable.id, {
+    onDelete: "set null",
+    onUpdate: "cascade",
+  }),
+  updatedAt: timestamp("updated_at", { mode: "date" })
+    .default(utcNow)
+    .notNull(),
+});
 
 export const SLOT_TYPES = [
   "date",
