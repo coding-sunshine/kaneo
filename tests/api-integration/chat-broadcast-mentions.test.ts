@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it } from "vite-plus/test";
-import db, { schema } from "../../apps/api/src/database";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import db, { getDatabase, schema } from "../../apps/api/src/database";
 import {
   chatMessageTable,
+  notificationTable,
   chatPresenceTable,
 } from "../../apps/api/src/database/schema";
 import { settleEvents } from "../../apps/api/src/events";
@@ -221,5 +222,29 @@ describe("API integration: @channel and @here", () => {
     await settleEvents();
     for (const member of [c, d, e]) expect(await inbox(member)).toHaveLength(1);
     expect(await inbox(b)).toEqual([]);
+  });
+
+  it("writes the Inbox rows of an @channel to 30 members in one insert", async () => {
+    const { owner, channels, as, createChannel, post } = await setup();
+    const general = await createChannel("general");
+    for (let i = 0; i < 30; i++) {
+      const member = await createWorkspaceMember();
+      await db.insert(schema.workspaceUserTable).values({
+        workspaceId: owner.workspace.id,
+        userId: member.user.id,
+        role: "member",
+        joinedAt: new Date(),
+      });
+      await as(member)(`${channels}/${general.id}/join`, json("POST"));
+    }
+    const insert = vi.spyOn(getDatabase(), "insert");
+
+    await post(general.id, "@channel all hands at 3");
+
+    const notificationInserts = insert.mock.calls.filter(
+      ([table]) => table === notificationTable,
+    );
+    expect(notificationInserts).toHaveLength(1);
+    expect(await db.select().from(notificationTable)).toHaveLength(30);
   });
 });

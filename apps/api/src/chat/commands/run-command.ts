@@ -10,6 +10,7 @@ import { postMessage } from "../controllers/post-message";
 import { deleteDraft } from "../controllers/save-draft";
 import { parseCommand } from "./parse-command";
 import { pickTicketTeam } from "./pick-ticket-team";
+import { assertReminderRoom } from "./reminder-cap";
 
 const USAGE = {
   remind:
@@ -46,6 +47,7 @@ export async function runChatCommand({
 
   switch (command.name) {
     case "remind": {
+      await assertReminderRoom(userId);
       const remindAt = new Date(Date.now() + command.delayMs);
       await db.insert(chatReminderTable).values({
         userId,

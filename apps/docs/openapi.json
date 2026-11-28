@@ -34314,7 +34314,7 @@
             }
           },
           "409": {
-            "description": "Channel is archived, or there is no team you can add tickets to",
+            "description": "Channel is archived, there is no team you can add tickets to, or 50 of your reminders are already waiting",
             "content": {
               "application/json": {
                 "schema": {
@@ -34426,7 +34426,14 @@
             }
           },
           "429": {
-            "$ref": "#/components/responses/ApiKeyRateLimited"
+            "description": "More than one start, or one stop, per second in this channel; clients drop it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }

@@ -138,6 +138,38 @@ describe("API integration: chat slash commands", () => {
     expect(await inbox(owner)).toEqual([]);
   });
 
+  it("refuses a reminder past 50 waiting ones, counting only unsent ones", async () => {
+    const { member, ws, general, command, reminders } = await setup();
+    const later = new Date(Date.now() + 24 * HOUR);
+    await db.insert(chatReminderTable).values(
+      Array.from({ length: 50 }, () => ({
+        userId: member.user.id,
+        workspaceId: ws,
+        channelId: general.id,
+        remindAt: later,
+      })),
+    );
+
+    const refused = await command(member, general.id, "/remind in 1 hour");
+    expect(refused).toEqual({
+      status: 409,
+      body: expect.objectContaining({
+        message:
+          "You already have 50 reminders waiting. Wait for one to arrive before setting another.",
+      }),
+    });
+    expect(await reminders()).toHaveLength(50);
+
+    const [first] = await reminders();
+    await db
+      .update(chatReminderTable)
+      .set({ sentAt: new Date() })
+      .where(eq(chatReminderTable.id, first?.id ?? ""));
+    expect(
+      (await command(member, general.id, "/remind in 1 hour")).status,
+    ).toBe(200);
+  });
+
   it("drops a due reminder once its owner can no longer read the channel", async () => {
     const { member, channels, leads, as, command, inbox } = await setup();
     expect(

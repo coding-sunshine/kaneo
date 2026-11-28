@@ -585,7 +585,7 @@ const commandRoute = createRoute({
     ),
     404: notFound,
     409: errorResponse(
-      "Channel is archived, or there is no team you can add tickets to",
+      "Channel is archived, there is no team you can add tickets to, or 50 of your reminders are already waiting",
     ),
   },
 });
@@ -605,6 +605,9 @@ const typingRoute = createRoute({
     403: notMember,
     404: notFound,
     409: archived,
+    429: errorResponse(
+      "More than one start, or one stop, per second in this channel; clients drop it",
+    ),
   },
 });
 

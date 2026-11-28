@@ -1,4 +1,5 @@
 import { broadcastChatTyping } from "../../ws";
+import { assertCanSendTyping } from "../typing-limit";
 import { loadChannel } from "./load-channel";
 
 /**
@@ -12,6 +13,7 @@ export async function sendTyping(
   typing: boolean,
 ) {
   await loadChannel(workspaceId, channelId, userId, "post");
+  assertCanSendTyping(userId, channelId, typing);
   await broadcastChatTyping(channelId, userId, typing);
   return { channelId, typing };
 }
