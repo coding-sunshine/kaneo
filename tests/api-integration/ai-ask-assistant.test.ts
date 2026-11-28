@@ -5,6 +5,7 @@ import {
   chatChannelMemberTable,
   chatChannelTable,
 } from "../../apps/api/src/database/schema";
+import { resolveCitations } from "../../apps/api/src/agent/resolve-citations";
 import { createApp } from "../../apps/api/src/index";
 import { callTool, model, reply } from "./helpers/agent-model";
 import { mockAuthenticatedSession } from "./helpers/auth";
@@ -248,6 +249,37 @@ describe("API integration: ask the assistant", () => {
     expect(again.at(-1)?.citations).toEqual([
       { kind: "message", restricted: true },
     ]);
+  });
+
+  it("keeps a channel marked no AI out of what the model reads and cites", async () => {
+    const quiet = await channel("quiet");
+    const secret = await post(owner, quiet, "Layoffs are planned for March.");
+    const off = await as(owner).request(
+      `/api/chat/workspace/${ws}/channels/${quiet}`,
+      json("PATCH", { aiDisabled: true }),
+    );
+    expect(off.status).toBe(200);
+    model.queue.push(
+      step("search", { q: "Layoffs", workspaceId: ws }, 1),
+      step("search", { q: "Layoffs", workspaceId: ws, type: "messages" }, 2),
+      reply(`Nothing found.\n\nSources: message:${secret}`),
+    );
+    const { messages } = await ask(owner, "anything about layoffs?");
+    expect(JSON.stringify(model.seen)).not.toContain("planned for March");
+    expect(JSON.stringify(messages)).not.toContain("planned for March");
+    expect(messages.at(-1)?.citations ?? []).toEqual([]);
+    // Even a cited id resolves to no excerpt.
+    expect(
+      await resolveCitations(
+        { userId: owner.id, workspaceId: ws, mayReadTasks: true },
+        [{ kind: "message", id: secret }],
+      ),
+    ).toEqual([{ kind: "message", restricted: true }]);
+    // The person still finds it in their own search.
+    const own = await as(owner).request(
+      `/api/search?q=Layoffs&workspaceId=${ws}&type=messages`,
+    );
+    expect(await own.text()).toContain("planned for March");
   });
 
   it("does not change any ticket when a chat message orders it to, and only proposes changes", async () => {

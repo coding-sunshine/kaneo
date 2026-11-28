@@ -25,6 +25,8 @@ import { TASK_SHORT_ID_PATTERN } from "../task-short-id";
 
 type SearchParams = {
   query: string;
+  /** An AI reads the results: channels marked no AI are left out. */
+  forAi?: boolean;
   userEmail?: string;
   userId?: string;
   type?:
@@ -104,6 +106,7 @@ async function globalSearch(params: SearchParams): Promise<{
     workspaceId,
     projectId,
     limit = 20,
+    forAi = false,
   } = params;
 
   let resolvedUserId = userId;
@@ -609,6 +612,7 @@ async function globalSearch(params: SearchParams): Promise<{
           userId: resolvedUserId,
           workspaceId,
           limit,
+          forAi,
         })),
       );
     if (type === "all" || type === "people")

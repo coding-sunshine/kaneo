@@ -13,7 +13,8 @@ const excerpt = (body: string) => {
 
 /**
  * The chat messages the reader can open now, in channels of the workspace,
- * by id: an excerpt as the title, and the channel to link to.
+ * by id: an excerpt as the title, and the channel to link to. A channel
+ * marked no AI gives no excerpt to an answer.
  */
 export async function readableMessages(
   userId: string,
@@ -38,6 +39,7 @@ export async function readableMessages(
         inArray(chatMessageTable.id, ids),
         eq(chatChannelTable.workspaceId, workspaceId),
         readableChannel(userId, workspaceId, guest),
+        eq(chatChannelTable.aiDisabled, false),
       ),
     );
   return new Map<string, Readable>(

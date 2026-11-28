@@ -8,6 +8,13 @@ import { readOn } from "./read-on.js";
 
 export { SERVER_INSTRUCTIONS } from "./instructions.js";
 
+/**
+ * Sent with every read an AI makes through these tools: the API then leaves
+ * out chat channels whose members marked them no AI. It only narrows what
+ * comes back, so a caller who sends it on its own gains nothing.
+ */
+export const AI_READER_HEADER = "x-kaneo-ai-reader";
+
 export type ToolClient = {
   readonly usingApiKey?: boolean;
   json<T = unknown>(path: string, init?: RequestInit): Promise<T>;
@@ -739,7 +746,11 @@ export function registerTools(
       if (args.workspaceId) qs.set("workspaceId", args.workspaceId);
       if (args.projectId) qs.set("projectId", args.projectId);
       if (args.limit !== undefined) qs.set("limit", String(args.limit));
-      return run(() => client.json(`/api/search?${qs.toString()}`));
+      return run(() =>
+        client.json(`/api/search?${qs.toString()}`, {
+          headers: { [AI_READER_HEADER]: "1" },
+        }),
+      );
     },
   );
 

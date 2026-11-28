@@ -801,6 +801,15 @@ describe("registerTools", () => {
     expect(search?.config.description).toContain("documents");
   });
 
+  it("tells the API that an AI reads the search, so channels marked no AI stay out", async () => {
+    const { server, tools } = createServerMock();
+    const client = { json: vi.fn().mockResolvedValue([]) };
+    registerTools(server as never, { client: client as never });
+    await tools.get("search")?.handler({ q: "plan" });
+    const [, init] = client.json.mock.calls[0] as [string, RequestInit];
+    expect(new Headers(init.headers).get("x-kaneo-ai-reader")).toBe("1");
+  });
+
   it("refuses a text too long for one call before it sends anything", async () => {
     const { server, tools } = createServerMock();
     const client = { json: vi.fn().mockResolvedValue({ id: "doc-1" }) };

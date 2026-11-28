@@ -1,3 +1,4 @@
+import { AI_READER_HEADER } from "@kaneo/mcp/tools";
 import {
   apiRouter,
   createRoute,
@@ -43,6 +44,8 @@ const search = apiRouter().openapi(globalSearchRoute, async (c) => {
       workspaceId,
       projectId,
       limit,
+      // An AI reading for someone never sees channels marked no AI.
+      forAi: c.req.header(AI_READER_HEADER) === "1",
     }),
     200,
   );
