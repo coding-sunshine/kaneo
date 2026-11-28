@@ -194,6 +194,7 @@ describe("NavMain customization", () => {
       "navigation:sidebar.projects",
       "navigation:sidebar.views",
       "navigation:sidebar.chat",
+      "navigation:sidebar.files",
       "navigation:sidebar.people",
       "navigation:sidebar.more",
     ]);
@@ -216,6 +217,7 @@ describe("NavMain customization", () => {
       "navigation:sidebar.pulse",
       "navigation:sidebar.views",
       "navigation:sidebar.chat",
+      "navigation:sidebar.files",
       "navigation:sidebar.people",
       "navigation:sidebar.members",
       "navigation:sidebar.more",

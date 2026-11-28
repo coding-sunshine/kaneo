@@ -666,9 +666,12 @@
 					"properties": {
 						"title": {
 							"type": "string"
+						},
+						"directMessage": {
+							"type": "string"
 						}
 					},
-					"required": ["title"]
+					"required": ["title", "directMessage"]
 				}
 			},
 			"required": [
@@ -14008,6 +14011,9 @@
 						},
 						"people": {
 							"type": "string"
+						},
+						"files": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -14046,7 +14052,8 @@
 						"teams",
 						"drafts",
 						"chat",
-						"people"
+						"people",
+						"files"
 					]
 				},
 				"projectList": {
@@ -18867,6 +18874,21 @@
 						"channels": {
 							"type": "string"
 						},
+						"drafts": {
+							"type": "string"
+						},
+						"mention": {
+							"type": "string"
+						},
+						"mentionSearch": {
+							"type": "string"
+						},
+						"noMentionMatches": {
+							"type": "string"
+						},
+						"restrictedItem": {
+							"type": "string"
+						},
 						"browse": {
 							"type": "string"
 						},
@@ -19124,10 +19146,18 @@
 						},
 						"noOneElse": {
 							"type": "string"
+						},
+						"attachFile": {
+							"type": "string"
 						}
 					},
 					"required": [
 						"channels",
+						"drafts",
+						"mention",
+						"mentionSearch",
+						"noMentionMatches",
+						"restrictedItem",
 						"browse",
 						"directoryTitle",
 						"newChannel",
@@ -19201,7 +19231,56 @@
 						"directTitle",
 						"directHint",
 						"openDirect",
-						"noOneElse"
+						"noOneElse",
+						"attachFile"
+					]
+				},
+				"files": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"search": {
+							"type": "string"
+						},
+						"searchPlaceholder": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "string"
+						},
+						"noMatches": {
+							"type": "string"
+						},
+						"loading": {
+							"type": "string"
+						},
+						"loadFailed": {
+							"type": "string"
+						},
+						"deletedUser": {
+							"type": "string"
+						},
+						"untitled": {
+							"type": "string"
+						},
+						"directMessage": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"title",
+						"search",
+						"searchPlaceholder",
+						"empty",
+						"noMatches",
+						"loading",
+						"loadFailed",
+						"deletedUser",
+						"untitled",
+						"directMessage"
 					]
 				}
 			},
@@ -19224,7 +19303,8 @@
 				"loops",
 				"customizeSidebar",
 				"drafts",
-				"chat"
+				"chat",
+				"files"
 			]
 		},
 		"notifications": {

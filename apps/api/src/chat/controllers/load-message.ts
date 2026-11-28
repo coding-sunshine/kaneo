@@ -2,8 +2,10 @@ import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { chatMessageTable } from "../../database/schema";
 import type { ChannelAction } from "../channel-access";
+import { withMentions } from "../mentions/with-mentions";
 import { loadChannel } from "./load-channel";
 import { selectMessages } from "./select-messages";
+import { withFiles } from "./with-files";
 import { withReactions } from "./with-reactions";
 
 // The channel rules run first, so a hidden channel's messages answer 404 like
@@ -23,8 +25,12 @@ export async function loadMessage(
     ),
   );
   if (!message) throw new HTTPException(404, { message: "Message not found" });
-  const [withTheirReactions] = await withReactions([message]);
-  return withTheirReactions as NonNullable<typeof withTheirReactions>;
+  const [withCards] = await withMentions(
+    workspaceId,
+    userId,
+    await withFiles(await withReactions([message])),
+  );
+  return withCards as NonNullable<typeof withCards>;
 }
 
 export async function loadOwnMessage(...args: Parameters<typeof loadMessage>) {

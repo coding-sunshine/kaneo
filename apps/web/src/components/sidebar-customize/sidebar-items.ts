@@ -18,6 +18,7 @@ export type SidebarItemId =
   | "projects"
   | "views"
   | "chat"
+  | "files"
   | "members"
   | "people"
   | "loops"
@@ -61,6 +62,7 @@ export const SIDEBAR_SECTIONS: Record<SidebarSection, SidebarItemId[]> = {
     "projects",
     "views",
     "chat",
+    "files",
     "people",
     "members",
     "loops",

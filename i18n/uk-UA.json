@@ -170,7 +170,8 @@
 			}
 		},
 		"mentionedIn": {
-			"title": "Mentioned in"
+			"title": "Mentioned in",
+			"directMessage": "Direct message"
 		}
 	},
 	"auth": {
@@ -3531,7 +3532,8 @@
 			"workProjects": "Projects",
 			"workspace": "Workspace",
 			"yourTeams": "Your teams",
-			"people": "People"
+			"people": "People",
+			"files": "Files"
 		},
 		"projectList": {
 			"viewProject": "Переглянути проєкт",
@@ -4837,7 +4839,25 @@
 			"createTicket": "Create ticket",
 			"noTicketsFound": "No tickets found",
 			"openInChat": "Open in chat",
-			"searchTickets": "Search tickets"
+			"searchTickets": "Search tickets",
+			"drafts": "Drafts",
+			"mention": "Mention",
+			"mentionSearch": "Search people, tickets, documents and teams",
+			"noMentionMatches": "Nothing matches",
+			"restrictedItem": "Restricted item",
+			"attachFile": "Attach a file"
+		},
+		"files": {
+			"deletedUser": "Deleted user",
+			"directMessage": "Direct message",
+			"empty": "No files yet. Files attached to tickets, documents and chat show up here.",
+			"loadFailed": "Files could not be loaded.",
+			"loading": "Loading files…",
+			"noMatches": "No file names contain “{{query}}”.",
+			"search": "Search files",
+			"searchPlaceholder": "Search by file name",
+			"title": "Files",
+			"untitled": "Untitled"
 		}
 	},
 	"notifications": {

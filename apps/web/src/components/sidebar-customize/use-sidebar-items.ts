@@ -11,6 +11,7 @@ import {
   Mail,
   MessagesSquare,
   MousePointer2,
+  Paperclip,
   SquareUser,
   Users,
   Workflow,
@@ -168,6 +169,7 @@ export function useSidebarItems() {
       MessagesSquare,
       `${homeUrl}/channels`,
     ),
+    item("files", t("navigation:sidebar.files"), Paperclip, `${homeUrl}/files`),
     item(
       "people",
       t("navigation:sidebar.people"),

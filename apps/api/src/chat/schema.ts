@@ -34,6 +34,7 @@ export const removedMemberSchema = z.object({
 });
 
 export const messageParam = channelParam.extend({ messageId: z.string() });
+export const chatFileParam = channelParam.extend({ fileId: z.string() });
 
 export const listMessagesQuery = z.object({
   before: z.iso.datetime().optional().openapi({
@@ -54,6 +55,37 @@ export const openDirectMessageBody = z.object({
 
 export const postMessageBody = z.object({
   body: z.string().trim().min(1).max(4000),
+});
+
+export const saveDraftBody = z.object({
+  body: z.string().max(4000).openapi({
+    description: "The unsent text. An empty or blank body deletes the draft.",
+  }),
+});
+
+export const draftSchema = z
+  .object({
+    channelId: z.string(),
+    body: z.string(),
+    updatedAt: responseTimestamp,
+  })
+  .openapi("ChatDraft");
+export const draftListSchema = z.array(draftSchema);
+export const chatFileUploadBody = z.object({
+  filename: z.string().min(1).max(255).openapi({
+    description:
+      "The file's name. Its extension decides the stored type: PDF, Office and OpenDocument files, plain text, Markdown, CSV and images.",
+  }),
+  size: z.number().openapi({ description: "Size of the file in bytes." }),
+});
+
+export const finalizeChatFileBody = chatFileUploadBody.extend({
+  key: z
+    .string()
+    .openapi({ description: "The key returned when the URL was issued." }),
+  body: z.string().trim().max(4000).optional().openapi({
+    description: "Text sent with the file. Empty when left out.",
+  }),
 });
 
 export const ticketCommentBody = z.object({
@@ -114,6 +146,31 @@ const linkPreviewSchema = z
   })
   .openapi("ChatLinkPreview");
 
+const mentionSchema = z
+  .object({
+    kind: z.enum(["user", "task", "document", "project"]),
+    ref: z.string().openapi({
+      description:
+        "How the text names it: a user, document or team id, or a ticket key such as ENG-12.",
+    }),
+    id: z.string().nullable(),
+    title: z.string().nullable().openapi({
+      description:
+        "A person's or team's name, a ticket's or document's title. Null when restricted.",
+    }),
+    status: z.string().nullable().openapi({
+      description: "A ticket's status. Null for anything else.",
+    }),
+    projectId: z.string().nullable().openapi({
+      description: "The team of a ticket. Null for anything else.",
+    }),
+    restricted: z.boolean().openapi({
+      description:
+        "True when you cannot open it: id, title and status are then null.",
+    }),
+  })
+  .openapi("ChatMention");
+
 export const messageSchema = z
   .object({
     id: z.string(),
@@ -134,9 +191,26 @@ export const messageSchema = z
         description:
           "Emoji reactions, in the order each emoji was first used; userIds oldest first.",
       }),
+    files: z
+      .array(
+        z.object({
+          id: z.string(),
+          filename: z.string(),
+          mimeType: z.string(),
+          size: z.number(),
+        }),
+      )
+      .openapi({
+        description:
+          "Files sent with the message, oldest first. Each downloads from the channel's files/{id} route for whoever can read the channel.",
+      }),
     linkPreview: linkPreviewSchema.nullable().openapi({
       description:
         "A card for the first web link, added shortly after posting. Links inside code get none.",
+    }),
+    mentions: z.array(mentionSchema).openapi({
+      description:
+        "Cards for the people, tickets, documents and teams the message names, as you see them now.",
     }),
     createdAt: responseTimestamp,
   })

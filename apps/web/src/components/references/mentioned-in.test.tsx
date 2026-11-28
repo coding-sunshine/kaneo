@@ -17,16 +17,18 @@ vi.mock("@tanstack/react-router", () => ({
     children,
     to,
     params,
+    search,
   }: {
     children: ReactNode;
     to: string;
     params: Record<string, string>;
+    search?: Record<string, string>;
   }) => (
     <a
-      href={Object.entries(params).reduce(
+      href={`${Object.entries(params).reduce(
         (href, [name, value]) => href.replace(`$${name}`, value),
         to,
-      )}
+      )}${search ? `?${new URLSearchParams(search)}` : ""}`}
     >
       {children}
     </a>
@@ -59,6 +61,16 @@ const show = (references?: Reference[]) => {
   ).container;
 };
 
+const message = (id: string, title: string): Reference => ({
+  kind: "message",
+  id,
+  title,
+  key: null,
+  projectId: null,
+  channelId: "c1",
+  places: ["chat"],
+});
+
 afterEach(cleanup);
 
 describe("MentionedIn", () => {
@@ -82,5 +94,18 @@ describe("MentionedIn", () => {
     expect(
       screen.getByRole("link", { name: /Release notes/ }).getAttribute("href"),
     ).toBe("/dashboard/workspace/ws/document/d1");
+  });
+
+  it("lists a chat message with a link that opens it in its channel", () => {
+    show([message("m1", "general"), message("m2", "")]);
+
+    expect(
+      screen.getByRole("link", { name: /general/ }).getAttribute("href"),
+    ).toBe("/dashboard/workspace/ws/channels/c1?messageId=m1");
+    expect(
+      screen
+        .getByRole("link", { name: /common:mentionedIn.directMessage/ })
+        .getAttribute("href"),
+    ).toBe("/dashboard/workspace/ws/channels/c1?messageId=m2");
   });
 });

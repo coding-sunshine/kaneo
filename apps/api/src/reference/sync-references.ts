@@ -46,11 +46,12 @@ async function workspaceOf(database: Database, source: Source) {
 }
 
 // What one place of a source names, only things of its own workspace, and
-// never the source itself.
-async function findTargets(
+// never the source itself. A chat message is no ticket or document, so it
+// passes no source.
+export async function findTargets(
   database: Database,
   workspaceId: string,
-  source: Source,
+  source: Source | null,
   text: string,
 ) {
   const documentIds = findDocumentIds(text, workspaceId);
@@ -83,7 +84,11 @@ async function findTargets(
           ),
         )
     : [];
-  const self = "taskId" in source ? source.taskId : source.documentId;
+  const self = !source
+    ? null
+    : "taskId" in source
+      ? source.taskId
+      : source.documentId;
   return [
     ...tasks.filter((id) => id !== self).map((id) => ({ targetTaskId: id })),
     ...documents

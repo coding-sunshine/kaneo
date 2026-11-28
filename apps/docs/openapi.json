@@ -3844,6 +3844,26 @@
           "createdAt"
         ]
       },
+      "ChatDraft": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "channelId",
+          "body",
+          "updatedAt"
+        ]
+      },
       "ChatDirectMessageListItem": {
         "allOf": [
           {
@@ -3952,8 +3972,42 @@
             },
             "description": "Emoji reactions, in the order each emoji was first used; userIds oldest first."
           },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "filename": {
+                  "type": "string"
+                },
+                "mimeType": {
+                  "type": "string"
+                },
+                "size": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "id",
+                "filename",
+                "mimeType",
+                "size"
+              ]
+            },
+            "description": "Files sent with the message, oldest first. Each downloads from the channel's files/{id} route for whoever can read the channel."
+          },
           "linkPreview": {
             "$ref": "#/components/schemas/ChatLinkPreview"
+          },
+          "mentions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatMention"
+            },
+            "description": "Cards for the people, tickets, documents and teams the message names, as you see them now."
           },
           "createdAt": {
             "type": "string",
@@ -3970,7 +4024,9 @@
           "editedAt",
           "pinnedAt",
           "reactions",
+          "files",
           "linkPreview",
+          "mentions",
           "createdAt"
         ]
       },
@@ -4004,6 +4060,64 @@
         ],
         "description": "A card for the first web link, added shortly after posting. Links inside code get none."
       },
+      "ChatMention": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "user",
+              "task",
+              "document",
+              "project"
+            ]
+          },
+          "ref": {
+            "type": "string",
+            "description": "How the text names it: a user, document or team id, or a ticket key such as ENG-12."
+          },
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A person's or team's name, a ticket's or document's title. Null when restricted."
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A ticket's status. Null for anything else."
+          },
+          "projectId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The team of a ticket. Null for anything else."
+          },
+          "restricted": {
+            "type": "boolean",
+            "description": "True when you cannot open it: id, title and status are then null."
+          }
+        },
+        "required": [
+          "kind",
+          "ref",
+          "id",
+          "title",
+          "status",
+          "projectId",
+          "restricted"
+        ]
+      },
       "ChatCallSession": {
         "type": "object",
         "properties": {
@@ -4023,6 +4137,117 @@
           "serverUrl",
           "roomName",
           "token"
+        ]
+      },
+      "FileLibraryItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "url": {
+            "type": "string"
+          },
+          "addedBy": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "description": "Who uploaded the file. Null once their account is gone."
+          },
+          "source": {
+            "$ref": "#/components/schemas/FileLibrarySource"
+          }
+        },
+        "required": [
+          "id",
+          "filename",
+          "mimeType",
+          "size",
+          "createdAt",
+          "url",
+          "addedBy",
+          "source"
+        ]
+      },
+      "FileLibrarySource": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "ticket",
+              "document",
+              "chat"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "description": "The ticket, document or channel the file belongs to."
+          },
+          "name": {
+            "type": "string",
+            "description": "The ticket's or document's title, or the channel's name. Empty for a direct message."
+          },
+          "projectId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The ticket's team. Null for documents and chat."
+          },
+          "number": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "The ticket's number in its team. Null otherwise."
+          },
+          "messageId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The chat message the file was sent with. Null otherwise."
+          },
+          "isDirect": {
+            "type": "boolean",
+            "description": "True for a file sent in a direct message."
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "name",
+          "projectId",
+          "number",
+          "messageId",
+          "isDirect"
         ]
       },
       "AgentChatSummary": {
@@ -10438,15 +10663,17 @@
             "type": "string",
             "enum": [
               "task",
-              "document"
+              "document",
+              "message"
             ],
-            "description": "Whether the source is a task or a document."
+            "description": "Whether the source is a task, a document or a chat message."
           },
           "id": {
             "type": "string"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "A task's or document's title; a chat message's channel name, empty for a direct message."
           },
           "key": {
             "type": [
@@ -10462,6 +10689,10 @@
             ],
             "description": "The team a task belongs to. Null for a document."
           },
+          "channelId": {
+            "type": "string",
+            "description": "The channel of a chat message. Absent for a task or a document."
+          },
           "places": {
             "type": "array",
             "items": {
@@ -10469,10 +10700,11 @@
               "enum": [
                 "description",
                 "comment",
-                "document"
+                "document",
+                "chat"
               ]
             },
-            "description": "Where the source names the target: a task's `description` or `comment`, or a document's text (`document`)."
+            "description": "Where the source names the target: a task's `description` or `comment`, or a document's text (`document`), or a chat message (`chat`)."
           }
         },
         "required": [
@@ -31288,6 +31520,167 @@
         }
       }
     },
+    "/chat/workspace/{workspaceId}/drafts": {
+      "get": {
+        "operationId": "listChatDrafts",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "List your drafts",
+        "description": "Your unsent message drafts in this workspace, newest first. Drafts are private: nobody else can read them.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Drafts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatDraft"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/draft": {
+      "put": {
+        "operationId": "saveChatDraft",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Save draft",
+        "description": "Keep your unsent text for a channel you can post in. An empty body deletes the draft; posting a message deletes it too.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "body": {
+                    "type": "string",
+                    "maxLength": 4000,
+                    "description": "The unsent text. An empty or blank body deletes the draft."
+                  }
+                },
+                "required": [
+                  "body"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Draft saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatDraft"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/chat/workspace/{workspaceId}/direct-messages": {
       "get": {
         "operationId": "listChatDirectMessages",
@@ -32177,6 +32570,376 @@
           },
           "409": {
             "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/upload": {
+      "put": {
+        "operationId": "createChatFileUpload",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Start a file upload",
+        "description": "Get a presigned URL for sending a file to a channel you belong to. The stored type comes from the file name's extension: PDF, Office and OpenDocument files, plain text, Markdown, CSV and images are accepted. Send the bytes to the URL with the returned headers, then call the finalize route.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filename": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "description": "The file's name. Its extension decides the stored type: PDF, Office and OpenDocument files, plain text, Markdown, CSV and images."
+                  },
+                  "size": {
+                    "type": "number",
+                    "description": "Size of the file in bytes."
+                  }
+                },
+                "required": [
+                  "filename",
+                  "size"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The presigned upload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskImageUpload"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The file is empty or too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The file's name does not end in a type chat can hold",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "503": {
+            "description": "File uploads are not configured on this instance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/upload/finalize": {
+      "post": {
+        "operationId": "finalizeChatFileUpload",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Send an uploaded file",
+        "description": "Post an uploaded file to the channel as a message, with optional text. The file opens for whoever can read the channel, and for nobody else; it goes when the message is deleted.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filename": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "description": "The file's name. Its extension decides the stored type: PDF, Office and OpenDocument files, plain text, Markdown, CSV and images."
+                  },
+                  "size": {
+                    "type": "number",
+                    "description": "Size of the file in bytes."
+                  },
+                  "key": {
+                    "type": "string",
+                    "description": "The key returned when the URL was issued."
+                  },
+                  "body": {
+                    "type": "string",
+                    "maxLength": 4000,
+                    "description": "Text sent with the file. Empty when left out."
+                  }
+                },
+                "required": [
+                  "filename",
+                  "size",
+                  "key"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Message posted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The key does not belong to this channel, or the stored object does not match the name and size",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The file's name does not end in a type chat can hold",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "503": {
+            "description": "The stored object could not be checked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/files/{fileId}": {
+      "get": {
+        "operationId": "getChatFile",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Download a file",
+        "description": "Download a file sent in a channel you can read. Image types are served inline, everything else as an attachment. In a channel you cannot read it answers like a missing channel.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "fileId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The file's bytes",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or file not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -33316,6 +34079,85 @@
           },
           "404": {
             "description": "Channel or message not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/file-library/workspace/{workspaceId}/files": {
+      "get": {
+        "operationId": "listLibraryFiles",
+        "tags": [
+          "Files"
+        ],
+        "summary": "List files",
+        "description": "Files uploaded in the workspace that you can open, newest first: ticket attachments in teams you can enter, files of documents you can open, and files sent in channels and direct messages you can read. Each comes with who added it and where. Pictures pasted into a ticket's text and uploads not yet saved are left out. At most 200.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 200,
+              "description": "Only files whose name contains this text, in any case."
+            },
+            "required": false,
+            "description": "Only files whose name contains this text, in any case.",
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileLibraryItem"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -54768,7 +55610,7 @@
           "References"
         ],
         "summary": "Get a task's references",
-        "description": "List the tasks and documents whose text links to the task or types its key. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
+        "description": "List the tasks, documents and chat messages whose text links to the task or types its key. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
         "parameters": [
           {
             "schema": {
@@ -54781,7 +55623,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Tasks and documents whose text names the target, each once",
+            "description": "Tasks, documents and chat messages whose text names the target, each once",
             "content": {
               "application/json": {
                 "schema": {
@@ -54833,7 +55675,7 @@
           "References"
         ],
         "summary": "Get a project's references",
-        "description": "List the tasks and documents whose text links to the project. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
+        "description": "List the tasks, documents and chat messages whose text links to the project. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
         "parameters": [
           {
             "schema": {
@@ -54846,7 +55688,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Tasks and documents whose text names the target, each once",
+            "description": "Tasks, documents and chat messages whose text names the target, each once",
             "content": {
               "application/json": {
                 "schema": {
@@ -54898,7 +55740,7 @@
           "References"
         ],
         "summary": "Get a document's references",
-        "description": "List the tasks and documents whose text links to the document. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
+        "description": "List the tasks, documents and chat messages whose text links to the document. Each source is listed once with the places it names the target in. Sources the caller cannot open are left out.",
         "parameters": [
           {
             "schema": {
@@ -54919,7 +55761,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Tasks and documents whose text names the target, each once",
+            "description": "Tasks, documents and chat messages whose text names the target, each once",
             "content": {
               "application/json": {
                 "schema": {

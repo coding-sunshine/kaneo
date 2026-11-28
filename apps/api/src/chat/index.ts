@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import { activitySchema } from "../activity/response";
+import { imageUploadSchema } from "../task/response";
 import {
   apiRouter,
   createRoute,
@@ -16,12 +17,14 @@ import { createChannel } from "./controllers/create-channel";
 import { deleteMessage } from "./controllers/delete-message";
 import { editMessage } from "./controllers/edit-message";
 import { getChannel } from "./controllers/get-channel";
+import { getChatFile } from "./controllers/get-chat-file";
 import { requireCalls } from "./call/require-calls";
 import { inviteMember } from "./controllers/invite-member";
 import { joinCall } from "./controllers/join-call";
 import { joinChannel } from "./controllers/join-channel";
 import { leaveChannel } from "./controllers/leave-channel";
 import { listChannels } from "./controllers/list-channels";
+import { listDrafts } from "./controllers/list-drafts";
 import { listDirectMessages } from "./controllers/list-direct-messages";
 import { listMessages } from "./controllers/list-messages";
 import { listPins } from "./controllers/list-pins";
@@ -32,6 +35,11 @@ import { postMessage } from "./controllers/post-message";
 import { reactToMessage } from "./controllers/react-to-message";
 import { removeLinkPreview } from "./controllers/remove-link-preview";
 import { removeMember } from "./controllers/remove-member";
+import {
+  createChatFileUpload,
+  finalizeChatFile,
+} from "./controllers/send-chat-file";
+import { saveDraft } from "./controllers/save-draft";
 import { startCall } from "./controllers/start-call";
 import { updateChannel } from "./controllers/update-channel";
 import { listOnline } from "./presence/list-online";
@@ -47,9 +55,14 @@ import {
   channelMemberParam,
   channelParam,
   channelSchema,
+  chatFileParam,
+  chatFileUploadBody,
   createChannelBody,
   deletedMessageSchema,
   directMessageListSchema,
+  draftListSchema,
+  draftSchema,
+  finalizeChatFileBody,
   inviteMemberBody,
   leftChannelSchema,
   listMessagesQuery,
@@ -63,12 +76,14 @@ import {
   presenceSettingSchema,
   reactionBody,
   removedMemberSchema,
+  saveDraftBody,
   ticketCommentBody,
   updateChannelBody,
   workspaceIdParam,
 } from "./schema";
 import "./call/subscribe";
 import "./link-preview/subscribe";
+import "./mentions/subscribe";
 
 const body = <T extends z.ZodType>(schema: T) => ({
   required: true as const,
@@ -308,6 +323,74 @@ const postMessageRoute = createRoute({
   },
 });
 
+const fileRefused = errorResponse(
+  "The file's name does not end in a type chat can hold",
+);
+
+const startFileUploadRoute = createRoute({
+  method: "put",
+  operationId: "createChatFileUpload",
+  path: `${channelPath}/upload`,
+  tags,
+  summary: "Start a file upload",
+  description:
+    "Get a presigned URL for sending a file to a channel you belong to. The stored type comes from the file name's extension: PDF, Office and OpenDocument files, plain text, Markdown, CSV and images are accepted. Send the bytes to the URL with the returned headers, then call the finalize route.",
+  middleware: [...write] as const,
+  request: { params: channelParam, body: body(chatFileUploadBody) },
+  responses: {
+    200: jsonResponse("The presigned upload", imageUploadSchema),
+    400: errorResponse("The file is empty or too large"),
+    403: notMember,
+    404: notFound,
+    409: archived,
+    415: fileRefused,
+    503: errorResponse("File uploads are not configured on this instance"),
+  },
+});
+
+const finalizeFileUploadRoute = createRoute({
+  method: "post",
+  operationId: "finalizeChatFileUpload",
+  path: `${channelPath}/upload/finalize`,
+  tags,
+  summary: "Send an uploaded file",
+  description:
+    "Post an uploaded file to the channel as a message, with optional text. The file opens for whoever can read the channel, and for nobody else; it goes when the message is deleted.",
+  middleware: [...write] as const,
+  request: { params: channelParam, body: body(finalizeChatFileBody) },
+  responses: {
+    200: jsonResponse("Message posted", messageSchema),
+    400: errorResponse(
+      "The key does not belong to this channel, or the stored object does not match the name and size",
+    ),
+    403: notMember,
+    404: notFound,
+    409: archived,
+    415: fileRefused,
+    503: errorResponse("The stored object could not be checked"),
+  },
+});
+
+const getFileRoute = createRoute({
+  method: "get",
+  operationId: "getChatFile",
+  path: `${channelPath}/files/{fileId}`,
+  tags,
+  summary: "Download a file",
+  description:
+    "Download a file sent in a channel you can read. Image types are served inline, everything else as an attachment. In a channel you cannot read it answers like a missing channel.",
+  middleware: [...access] as const,
+  request: { params: chatFileParam },
+  responses: {
+    200: {
+      description: "The file's bytes",
+      content: { "*/*": { schema: { type: "string", format: "binary" } } },
+    },
+    403: noAccess,
+    404: errorResponse("Channel or file not found"),
+  },
+});
+
 const editMessageRoute = createRoute({
   method: "patch",
   operationId: "editChatMessage",
@@ -456,6 +539,40 @@ const listPinsRoute = createRoute({
   },
 });
 
+const listDraftsRoute = createRoute({
+  method: "get",
+  operationId: "listChatDrafts",
+  path: "/workspace/{workspaceId}/drafts",
+  tags,
+  summary: "List your drafts",
+  description:
+    "Your unsent message drafts in this workspace, newest first. Drafts are private: nobody else can read them.",
+  middleware: [...access] as const,
+  request: { params: workspaceIdParam },
+  responses: {
+    200: jsonResponse("Drafts", draftListSchema),
+    403: noAccess,
+  },
+});
+
+const saveDraftRoute = createRoute({
+  method: "put",
+  operationId: "saveChatDraft",
+  path: `${channelPath}/draft`,
+  tags,
+  summary: "Save draft",
+  description:
+    "Keep your unsent text for a channel you can post in. An empty body deletes the draft; posting a message deletes it too.",
+  middleware: [...write] as const,
+  request: { params: channelParam, body: body(saveDraftBody) },
+  responses: {
+    200: jsonResponse("Draft saved", draftSchema),
+    403: notMember,
+    404: notFound,
+    409: archived,
+  },
+});
+
 const getPresenceRoute = createRoute({
   method: "get",
   operationId: "getChatPresenceSetting",
@@ -596,6 +713,24 @@ const chat = apiRouter()
       200,
     ),
   )
+  .openapi(listDraftsRoute, async (c) =>
+    c.json(
+      await listDrafts(c.req.valid("param").workspaceId, c.get("userId")),
+      200,
+    ),
+  )
+  .openapi(saveDraftRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(
+      await saveDraft(
+        workspaceId,
+        channelId,
+        c.get("userId"),
+        c.req.valid("json").body,
+      ),
+      200,
+    );
+  })
   .openapi(listDirectRoute, async (c) =>
     c.json(
       await listDirectMessages(
@@ -688,6 +823,34 @@ const chat = apiRouter()
       ),
       200,
     );
+  })
+  .openapi(startFileUploadRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(
+      await createChatFileUpload(
+        workspaceId,
+        channelId,
+        c.get("userId"),
+        c.req.valid("json"),
+      ),
+      200,
+    );
+  })
+  .openapi(finalizeFileUploadRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(
+      await finalizeChatFile(
+        workspaceId,
+        channelId,
+        c.get("userId"),
+        c.req.valid("json"),
+      ),
+      200,
+    );
+  })
+  .openapi(getFileRoute, async (c) => {
+    const { workspaceId, channelId, fileId } = c.req.valid("param");
+    return getChatFile(workspaceId, channelId, fileId, c.get("userId"));
   })
   .openapi(editMessageRoute, async (c) => {
     const { workspaceId, channelId, messageId } = c.req.valid("param");

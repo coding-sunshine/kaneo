@@ -4,6 +4,7 @@ import { and, eq, sql } from "drizzle-orm";
 import db from "../database";
 import {
   assetTable,
+  chatMessageFileTable,
   jobLeaseTable,
   projectTable,
   storageCleanupTable,
@@ -64,7 +65,12 @@ export async function retryStorageCleanup(): Promise<{ degraded: boolean }> {
         .from(projectTable)
         .where(eq(projectTable.backgroundObjectKey, item.objectKey))
         .for("key share");
-      if (asset || background) {
+      const [chatFile] = await tx
+        .select({ id: chatMessageFileTable.id })
+        .from(chatMessageFileTable)
+        .where(eq(chatMessageFileTable.objectKey, item.objectKey))
+        .for("key share");
+      if (asset || background || chatFile) {
         await tx
           .delete(storageCleanupTable)
           .where(eq(storageCleanupTable.objectKey, item.objectKey));
