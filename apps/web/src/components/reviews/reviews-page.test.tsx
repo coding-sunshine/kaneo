@@ -33,7 +33,7 @@ const pr = (
   number,
   title,
   url: `https://github.com/acme/web/pull/${number}`,
-  author: { login: "ada", avatarUrl: "" },
+  author: { login: "synthetic-author", avatarUrl: "" },
   status,
   comments: 0,
   createdAt: "2026-01-01T00:00:00Z",
@@ -264,7 +264,7 @@ describe("ReviewsPage", () => {
   it("shows reviewers, GitHub team and labels when those properties are on", () => {
     state.list.toReview = [
       pr(1, "Chips", "open", {
-        reviewers: [{ login: "bo", avatarUrl: "" }],
+        reviewers: [{ login: "synthetic-reviewer", avatarUrl: "" }],
         teamReviewers: ["core"],
         labels: [{ name: "bug", color: "d73a4a" }],
       }),
@@ -279,7 +279,7 @@ describe("ReviewsPage", () => {
       },
     });
     render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
-    expect(screen.getByTitle("bo")).toBeInTheDocument();
+    expect(screen.getByTitle("synthetic-reviewer")).toBeInTheDocument();
     expect(screen.getByText("core")).toBeInTheDocument();
     expect(screen.getByText("bug")).toBeInTheDocument();
   });

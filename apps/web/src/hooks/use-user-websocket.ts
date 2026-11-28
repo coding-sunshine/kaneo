@@ -11,6 +11,8 @@ import {
   evictWorkspaceCache,
 } from "@/lib/evict-workspace-cache";
 import { authClient } from "@/lib/auth-client";
+import { collabRegistry } from "@/lib/document-collab/collab-registry";
+import { documentEditors } from "@/lib/document-editors";
 import { reconcileProjectAccess } from "@/lib/reconcile-project-access";
 import { ringIncomingCall } from "@/lib/ring-incoming-call";
 
@@ -47,6 +49,7 @@ export function useUserWebSocket() {
     let userRevoked = false;
     let activeSocket: WebSocket | null = null;
     let retryDelay = BASE_DELAY;
+    let wasDown = false;
     let retryTimeout: ReturnType<typeof setTimeout> | null = null;
     let pingInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -103,6 +106,9 @@ export function useUserWebSocket() {
 
       ws.onopen = () => {
         if (disposed || activeSocket !== ws) return;
+        // Live document changes sent while it was down never arrived.
+        if (wasDown) void collabRegistry.resync();
+        wasDown = false;
         retryDelay = BASE_DELAY;
         clearPing();
         pingInterval = setInterval(() => {
@@ -121,6 +127,9 @@ export function useUserWebSocket() {
             workspaceIds?: string[] | null;
             reason?: string;
             documentId?: string;
+            userId?: unknown;
+            name?: unknown;
+            update?: unknown;
           };
           if (message.type === "USER_ACCESS_REVOKED") {
             leaveSession();
@@ -206,6 +215,19 @@ export function useUserWebSocket() {
               queryKey: documentKey(message.workspaceId, message.documentId),
               exact: true,
             });
+          if (
+            message.type === "DOCUMENT_EDITING" &&
+            typeof message.documentId === "string" &&
+            typeof message.userId === "string" &&
+            typeof message.name === "string"
+          )
+            documentEditors.note(
+              message.documentId,
+              message.userId,
+              message.name,
+            );
+          if (message.type?.startsWith("DOCUMENT_COLLAB_"))
+            collabRegistry.deliver(message);
           if (message.type === "CHAT_UNREAD_CHANGED" && message.workspaceId) {
             void queryClient.invalidateQueries({
               queryKey: ["chat-channels", message.workspaceId],
@@ -243,6 +265,7 @@ export function useUserWebSocket() {
 
       ws.onclose = (event) => {
         if (disposed || activeSocket !== ws) return;
+        wasDown = true;
         clearPing();
         activeSocket = null;
         // 4001 reaches only the sockets of a session the provider ended.

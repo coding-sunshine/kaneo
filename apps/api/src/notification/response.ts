@@ -11,7 +11,7 @@ export const notificationSchema = z
     }),
     type: z.string().openapi({
       description:
-        "One of: info, task_created, workspace_created, task_status_changed, task_assignee_changed, time_entry_created, due_date_reminder, task_overdue, task_mention, task_comment.",
+        "One of: info, task_created, workspace_created, task_status_changed, task_assignee_changed, time_entry_created, due_date_reminder, task_overdue, task_mention, task_comment, chat_mention, chat_direct_message.",
     }),
     eventData: z.unknown().openapi({
       description:
@@ -24,10 +24,11 @@ export const notificationSchema = z
     }),
     resourceId: z.string().nullable().openapi({
       description:
-        "The id of the task or workspace the notification points at.",
+        "The id of the task, workspace, document or chat message the notification points at.",
     }),
     resourceType: z.string().nullable().openapi({
-      description: "`task` or `workspace`.",
+      description:
+        "`task`, `workspace`, `document` or `chat_message`. A chat message notification carries its workspaceId, channelId and messageId in eventData.",
     }),
     createdAt: responseTimestamp,
     updatedAt: responseTimestamp,

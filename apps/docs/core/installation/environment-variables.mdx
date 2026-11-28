@@ -60,7 +60,7 @@ following [Keep secrets in files](/core/installation/docker-compose#keep-secrets
 
 For the supported `_FILE` variables, a non-empty direct value takes precedence. Kaneo removes trailing line endings from secret files but keeps other whitespace. Missing, unreadable, or empty files are an error instead of silently using a fallback. The database and authentication secrets are read at startup. Restart Kaneo after rotating any secret file; API secrets are cached after the first successful read. `DATABASE_URL` takes precedence over both PostgreSQL password variables.
 
-The same `_FILE` form works for these secrets: `SMTP_PASSWORD`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `GITHUB_PRIVATE_KEY`, `GITHUB_PRIVATE_KEY_BASE64`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_OAUTH_CLIENT_SECRET`, `GITHUB_CLIENT_SECRET`, `TURNSTILE_SECRET_KEY`, `NOTIFICATION_SECRET_ENCRYPTION_KEY`, `CREEM_API_KEY`, `CREEM_WEBHOOK_SECRET`, `LIVEKIT_API_SECRET`, `APNS_PRIVATE_KEY`, and `FCM_SERVICE_ACCOUNT`. For example, set `SMTP_PASSWORD_FILE=/run/secrets/smtp_password`. SMTP password files are read at startup only when `SMTP_HOST`, `SMTP_FROM`, and `SMTP_USER` are set. The GitHub sign-in secrets are read at startup when their client IDs are set, and so are the GitHub App secrets when `GITHUB_APP_ID` is set. The S3, Turnstile, notification, billing, and LiveKit secrets are read when that feature is first used, so a bad file for one of those shows up as an error from that feature instead of at startup.
+The same `_FILE` form works for these secrets: `SMTP_PASSWORD`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `GITHUB_PRIVATE_KEY`, `GITHUB_PRIVATE_KEY_BASE64`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_OAUTH_CLIENT_SECRET`, `GITHUB_CLIENT_SECRET`, `TURNSTILE_SECRET_KEY`, `NOTIFICATION_SECRET_ENCRYPTION_KEY`, `CREEM_API_KEY`, `CREEM_WEBHOOK_SECRET`, `LIVEKIT_API_SECRET`, `APNS_PRIVATE_KEY`, `FCM_SERVICE_ACCOUNT`, and `VAPID_PRIVATE_KEY`. For example, set `SMTP_PASSWORD_FILE=/run/secrets/smtp_password`. SMTP password files are read at startup only when `SMTP_HOST`, `SMTP_FROM`, and `SMTP_USER` are set. The GitHub sign-in secrets are read at startup when their client IDs are set, and so are the GitHub App secrets when `GITHUB_APP_ID` is set. The S3, Turnstile, notification, billing, and LiveKit secrets are read when that feature is first used, so a bad file for one of those shows up as an error from that feature instead of at startup.
 
 ## Optional variables
 
@@ -156,7 +156,7 @@ Name | Description | Default |
 
 ### Mobile push
 
-The mobile app can get a push for each new chat message in channels the person belongs to. Tapping it opens the channel. iOS pushes go through Apple Push Notification service with a key from an Apple Developer account; Android pushes go through Firebase Cloud Messaging with a service account key. Each platform stays off until its key is set: the API logs that once, the app says so on its Account screen, and phones keep the background check every 15 minutes. A phone is registered against the sign-in session, so signing out or revoking that session stops its pushes. The lock screen shows the channel, the author and the start of the message, which pass through Apple or Google.
+The mobile app gets a push when someone mentions the person in a channel they can read or sends them a direct message, the same messages that reach their Inbox. Plain channel messages and muted channels push nothing. Tapping a push opens that message. Each delivery writes one info line to the API log with the platform, device id and message id, never the token or the text. iOS pushes go through Apple Push Notification service with a key from an Apple Developer account; Android pushes go through Firebase Cloud Messaging with a service account key. Each platform stays off until its key is set: the API logs that once, the app says so on its Account screen, and phones keep the background check every 15 minutes. A phone is registered against the sign-in session, so signing out or revoking that session stops its pushes. The lock screen shows the channel, the author and the start of the message, which pass through Apple or Google.
 
 Name | Description | Default |
 --- | --- | --- |
@@ -166,6 +166,16 @@ Name | Description | Default |
 | `APNS_TOPIC` | Bundle identifier of the iOS app. | `app.kaneo` |
 | `APNS_SANDBOX` | `true` to send through Apple's sandbox, for development builds. | `false` |
 | `FCM_SERVICE_ACCOUNT` | The Firebase service account JSON key. Also read from `FCM_SERVICE_ACCOUNT_FILE`. | Unset |
+
+### Desktop push
+
+The web app installs as a desktop app and can show a browser notification when someone mentions you or sends you a direct message. Plain channel messages show none. Each person turns it on for their browser under Settings, Notifications, Desktop. Pushes are signed with a VAPID key pair; create one with `npx web-push generate-vapid-keys` and set both keys. Until both are set, desktop push stays off: the API logs that once and the Settings row says so. The notification shows the channel, the sender and the start of the message, encrypted end to end through the browser vendor's push service.
+
+Name | Description | Default |
+--- | --- | --- |
+| `VAPID_PUBLIC_KEY` | The VAPID public key, base64url, as `web-push generate-vapid-keys` prints it. | Unset |
+| `VAPID_PRIVATE_KEY` | The matching VAPID private key. Also read from `VAPID_PRIVATE_KEY_FILE`. | Unset |
+| `VAPID_SUBJECT` | A `mailto:` or `https:` contact that push services can reach about this server. | `KANEO_CLIENT_URL` |
 
 ### Figma link cards
 
@@ -181,6 +191,14 @@ Use a token that only sees files the whole workspace may see, such as one from a
 Name | Description | Default |
 --- | --- | --- |
 | `FIGMA_ACCESS_TOKEN` | Figma personal access token used to read file names and thumbnails. Also read from `FIGMA_ACCESS_TOKEN_FILE`. It stays on the server. Give it access only to files every workspace member may see. | Unset |
+
+### Document co-editing
+
+Several people can type in one document at once, with live cursors, when `DOCUMENT_COEDITING_KEY` is set. The live edits are kept as Yjs state next to the Markdown text, which stays the record. Set the key only once the owner has approved that storage change and a restore has been rehearsed. Without it, co-editing is off: the API logs that at startup, and a save made over a newer version still asks before it overwrites.
+
+Name | Description | Default |
+--- | --- | --- |
+| `DOCUMENT_COEDITING_KEY` | Any value turns real-time co-editing of documents on. | Unset |
 
 ### Imports
 

@@ -29,12 +29,14 @@ export function ReviewsList({
   workspaceId,
   selectedKey,
   onViewChange,
+  me,
 }: {
   groups: ReviewsGroup[];
   view: ReviewsView;
   workspaceId: string;
   selectedKey?: string;
   onViewChange: (patch: Partial<ReviewsView>) => void;
+  me: string | null;
 }) {
   const navigate = useNavigate();
   const order = useMemo(
@@ -88,6 +90,7 @@ export function ReviewsList({
         selected={reviewRowKey(pr) === selectedKey}
         onFocus={() => setActive(reviewRowKey(pr))}
         onAction={(row, action) => setPending({ pr: row, action })}
+        me={me}
       />
     ));
 

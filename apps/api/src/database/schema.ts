@@ -3494,6 +3494,26 @@ export const documentSubscriberTable = pgTable(
 );
 
 // Version history. An author's edits within a few minutes fold into one row.
+// The live co-editing state of a document, as one merged Yjs update. Only
+// written while DOCUMENT_COEDITING_KEY is set. The Markdown in
+// `document.content` stays the record: this row is a cache of it, good only
+// while `seededHash` equals the document's `contentHash`. A write that does
+// not come from co-editing (restore, MCP, SQL) leaves it stale, and the next
+// opening seeds it again from the text.
+export const documentCollabStateTable = pgTable("document_collab_state", {
+  documentId: text("document_id")
+    .primaryKey()
+    .references(() => documentTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  state: bytea("state").notNull(),
+  seededHash: text("seeded_hash").notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" })
+    .default(utcNow)
+    .notNull(),
+});
+
 export const documentVersionTable = pgTable(
   "document_version",
   {
@@ -3890,6 +3910,34 @@ export const chatThreadReplyTable = pgTable(
       .references(() => chatMessageTable.id, { onDelete: "cascade" }),
   },
   (table) => [index("chat_thread_reply_parent_idx").on(table.parentId)],
+);
+
+// A channel someone muted: its mentions and direct messages stop reaching
+// their Inbox. Anyone who can read the channel may mute it, joined or not.
+// Private to that user: no response shows it to anyone else.
+export const chatChannelMuteTable = pgTable(
+  "chat_channel_mute",
+  {
+    channelId: text("channel_id")
+      .notNull()
+      .references(() => chatChannelTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.channelId, table.userId] }),
+    index("chat_channel_mute_user_idx").on(table.userId),
+  ],
 );
 
 // One row per user and emoji on a chat message, like comment_reaction.
@@ -4770,7 +4818,7 @@ export const pushDeviceTable = pgTable(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
-    platform: text("platform").$type<"ios" | "android">().notNull(),
+    platform: text("platform").$type<"ios" | "android" | "web">().notNull(),
     token: text("token").notNull(),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)

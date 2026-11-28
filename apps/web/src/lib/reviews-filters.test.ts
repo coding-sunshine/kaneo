@@ -23,8 +23,11 @@ const pr = (number: number, over: object) =>
   }) as never;
 const items = [
   pr(1, { hasConflicts: true, mergeState: "blocked" }),
-  pr(2, { mergeState: "ready", approvedBy: ["ada"] }),
-  pr(3, { mergeState: "behind", approvedBy: ["bo", "ada"] }),
+  pr(2, { mergeState: "ready", approvedBy: ["synthetic-author"] }),
+  pr(3, {
+    mergeState: "behind",
+    approvedBy: ["synthetic-reviewer", "synthetic-author"],
+  }),
   pr(4, {}),
 ];
 const numbers = (list: unknown[]) =>
@@ -56,12 +59,12 @@ describe("filterByReviewFilters", () => {
     expect(
       only({ mergeStatus: { values: ["ready", "behind"], negated: false } }),
     ).toEqual([2, 3]);
-    expect(only({ approvedBy: { values: ["bo"], negated: false } })).toEqual([
-      3,
-    ]);
+    expect(
+      only({ approvedBy: { values: ["synthetic-reviewer"], negated: false } }),
+    ).toEqual([3]);
     expect(
       only({
-        approvedBy: { values: ["ada"], negated: false },
+        approvedBy: { values: ["synthetic-author"], negated: false },
         mergeStatus: { values: ["ready"], negated: false },
       }),
     ).toEqual([2]);
@@ -70,13 +73,19 @@ describe("filterByReviewFilters", () => {
 
 describe("filter state", () => {
   it("toggles values, negates, clears and counts", () => {
-    let filters = toggleFilterValue({}, "approvedBy", "ada");
-    filters = toggleFilterValue(filters, "approvedBy", "bo");
-    expect(filters.approvedBy?.values).toEqual(["ada", "bo"]);
-    filters = toggleFilterValue(filters, "approvedBy", "ada");
-    expect(filters.approvedBy?.values).toEqual(["bo"]);
+    let filters = toggleFilterValue({}, "approvedBy", "synthetic-author");
+    filters = toggleFilterValue(filters, "approvedBy", "synthetic-reviewer");
+    expect(filters.approvedBy?.values).toEqual([
+      "synthetic-author",
+      "synthetic-reviewer",
+    ]);
+    filters = toggleFilterValue(filters, "approvedBy", "synthetic-author");
+    expect(filters.approvedBy?.values).toEqual(["synthetic-reviewer"]);
     filters = setFilterNegated(filters, "approvedBy", true);
-    expect(filters.approvedBy).toEqual({ values: ["bo"], negated: true });
+    expect(filters.approvedBy).toEqual({
+      values: ["synthetic-reviewer"],
+      negated: true,
+    });
     expect(activeFilterCount(filters)).toBe(1);
     expect(clearFilter(filters, "approvedBy")).toEqual({});
   });
@@ -136,16 +145,16 @@ describe("every subject", () => {
     full(1, { status: "draft", checks: "failure", additions: 5 }),
     full(2, {
       reviewDecision: "approved",
-      approvedBy: ["ada"],
+      approvedBy: ["synthetic-author"],
       checks: "success",
       mergeState: "ready",
       additions: 30,
       author: person("me"),
-      reviewers: [person("ada")],
+      reviewers: [person("synthetic-author")],
       issue: issue("urgent", "Core", "Q1"),
     }),
     full(3, {
-      approvedBy: ["ada", "bo"],
+      approvedBy: ["synthetic-author", "synthetic-reviewer"],
       changesRequestedBy: ["cy"],
       checks: "pending",
       mergeState: "queued",
@@ -192,10 +201,10 @@ describe("every subject", () => {
   it("people, with Current user", () => {
     expect(only("author", "@me")).toEqual([2]);
     expect(only("author", "zed")).toEqual([1, 3, 4, 5]);
-    expect(only("reviewers", "ada")).toEqual([2]);
+    expect(only("reviewers", "synthetic-author")).toEqual([2]);
     expect(only("reviewers", "@me")).toEqual([]);
     expect(only("teamReviewers", "platform")).toEqual([3]);
-    expect(only("approvedBy", "bo")).toEqual([3]);
+    expect(only("approvedBy", "synthetic-reviewer")).toEqual([3]);
     expect(only("changesRequestedBy", "cy")).toEqual([3]);
   });
   it("approvals", () => {
@@ -226,7 +235,7 @@ describe("every subject", () => {
     expect(only("closed", "3m")).toEqual([5]);
   });
   it("counts one value alone", () => {
-    expect(countMatches(list, "approvedBy", "ada", ctx)).toBe(2);
+    expect(countMatches(list, "approvedBy", "synthetic-author", ctx)).toBe(2);
   });
 });
 

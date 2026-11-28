@@ -17,7 +17,10 @@ const pull = (over: Partial<GithubSearchPull>) =>
     closedAt: null,
     additions: 500,
     deletions: 10,
-    comments: { totalCount: 1, nodes: [{ body: extension }] },
+    comments: {
+      totalCount: 1,
+      nodes: [{ body: extension, authorAssociation: "MEMBER" }],
+    },
     repository: { name: "web", owner: { login: "acme" } },
     commits: { nodes: [] },
     headRefOid: sha,
@@ -81,5 +84,38 @@ describe("toSummary review signals", () => {
   it("leaves generated lines out when the file list is cut off", () => {
     const item = toSummary(pull({ files: { totalCount: 80, nodes: [] } }));
     expect(item).not.toHaveProperty("generatedAdditions");
+  });
+
+  it("reads a risk block from the body or a member or bot, not from anyone else", () => {
+    const comment = (
+      authorAssociation: string,
+      author?: { __typename: string },
+    ) =>
+      toSummary(
+        pull({
+          body: "",
+          comments: {
+            totalCount: 1,
+            nodes: [{ body: extension, authorAssociation, author }],
+          },
+        }),
+      ).riskLevel;
+    expect(comment("NONE")).toBeNull();
+    expect(comment("CONTRIBUTOR")).toBeNull();
+    expect(comment("OWNER")).toBe(3);
+    expect(comment("MEMBER")).toBe(3);
+    expect(comment("COLLABORATOR")).toBe(3);
+    expect(comment("NONE", { __typename: "Bot" })).toBe(3);
+    expect(
+      toSummary(
+        pull({
+          body: extension,
+          comments: {
+            totalCount: 1,
+            nodes: [{ body: extension, authorAssociation: "NONE" }],
+          },
+        }),
+      ).riskLevel,
+    ).toBe(3);
   });
 });

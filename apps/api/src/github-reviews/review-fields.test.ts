@@ -3,7 +3,7 @@ import type { GithubSearchPull } from "./github-api";
 import { toMergeState, toReviewFields } from "./review-fields";
 
 const pull = (over: Partial<GithubSearchPull>) => over as GithubSearchPull;
-const ada = { login: "ada", avatarUrl: "a.png" };
+const author = { login: "synthetic-author", avatarUrl: "a.png" };
 
 describe("toMergeState", () => {
   it("maps GitHub's merge state, with the merge queue first", () => {
@@ -24,24 +24,30 @@ describe("toReviewFields", () => {
       pull({
         reviewRequests: {
           nodes: [
-            { requestedReviewer: { __typename: "User", ...ada } },
+            { requestedReviewer: { __typename: "User", ...author } },
             { requestedReviewer: { __typename: "Team", slug: "core" } },
             { requestedReviewer: null },
           ],
         },
         latestOpinionatedReviews: {
           nodes: [
-            { state: "APPROVED", author: ada },
-            { state: "CHANGES_REQUESTED", author: { ...ada, login: "bo" } },
+            { state: "APPROVED", author },
+            {
+              state: "CHANGES_REQUESTED",
+              author: { ...author, login: "synthetic-reviewer" },
+            },
             { state: "APPROVED", author: null },
           ],
         },
       }),
     );
-    expect(fields.reviewers.map((p) => p.login)).toEqual(["ada", "bo"]);
+    expect(fields.reviewers.map((p) => p.login)).toEqual([
+      "synthetic-author",
+      "synthetic-reviewer",
+    ]);
     expect(fields.teamReviewers).toEqual(["core"]);
-    expect(fields.approvedBy).toEqual(["ada"]);
-    expect(fields.changesRequestedBy).toEqual(["bo"]);
+    expect(fields.approvedBy).toEqual(["synthetic-author"]);
+    expect(fields.changesRequestedBy).toEqual(["synthetic-reviewer"]);
   });
 
   it("tolerates a pull request with none of it", () => {

@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ChatFileButton } from "@/components/chat/chat-file-button";
 import { MentionPicker } from "@/components/chat/mention-picker";
@@ -29,17 +30,29 @@ export function MessageComposer({
   const post = usePostMessage(workspaceId, channelId);
   const sendFile = useSendChatFile(workspaceId, channelId);
   const busy = post.isPending || sendFile.isPending;
+  // Set before the first await: isPending only turns true on a later render,
+  // so without it every key press in between would post the message again.
+  const sending = useRef(false);
 
   const send = async () => {
     const text = body.trim();
-    if (!text || busy) return;
-    await beforeSend();
+    if (!text || busy || sending.current) return;
+    sending.current = true;
+    try {
+      await beforeSend();
+    } catch {
+      sending.current = false;
+      return;
+    }
     post.mutate(text, {
       onSuccess: () => {
         clear();
         onPosted?.();
       },
       onError: (error) => toast.error(error.message),
+      onSettled: () => {
+        sending.current = false;
+      },
     });
   };
 
@@ -78,7 +91,8 @@ export function MessageComposer({
         onKeyDown={(event) => {
           if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
-            void send();
+            // A held key repeats; only the first press sends.
+            if (!event.repeat) void send();
           }
         }}
       />

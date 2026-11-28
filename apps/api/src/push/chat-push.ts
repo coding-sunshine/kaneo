@@ -8,14 +8,15 @@ import {
   sessionTable,
   userTable,
 } from "../database/schema";
-import { findUnreadRecipients } from "../ws/chat-unread-recipients";
+import { findChatAlertRecipients } from "../chat/notifications/alert-recipients";
 import type { PushMessage } from "./push-message";
 import { chatPushText } from "./push-text";
 import { pushSender } from "./senders";
 
 /**
- * Pushes a new chat message to the phones of the channel members who may
- * read it, except the author, on sessions that are still live. Tokens the
+ * Pushes a mention or a direct message to the phones and browsers of the
+ * people it alerts, the same people its Inbox row reaches, on sessions that
+ * are still live. A plain channel message pushes nothing. Tokens the
  * provider calls dead are forgotten.
  */
 export async function sendChatPush(event: {
@@ -24,24 +25,6 @@ export async function sendChatPush(event: {
   messageId: string;
   userId?: string;
 }) {
-  const recipients = await findUnreadRecipients(event.channelId, event.userId);
-  if (recipients.length === 0) return;
-  const devices = await db
-    .select({
-      id: pushDeviceTable.id,
-      platform: pushDeviceTable.platform,
-      token: pushDeviceTable.token,
-    })
-    .from(pushDeviceTable)
-    .innerJoin(sessionTable, eq(sessionTable.id, pushDeviceTable.sessionId))
-    .where(
-      and(
-        inArray(pushDeviceTable.userId, recipients),
-        gt(sessionTable.expiresAt, new Date()),
-      ),
-    );
-  if (devices.length === 0) return;
-
   const [row] = await db
     .select({
       body: chatMessageTable.body,
@@ -62,6 +45,30 @@ export async function sendChatPush(event: {
       ),
     );
   if (!row) return;
+
+  const recipients = await findChatAlertRecipients({
+    channelId: event.channelId,
+    authorId: event.userId,
+    body: row.body,
+    isDirect: row.isDirect,
+  });
+  if (recipients.length === 0) return;
+  const devices = await db
+    .select({
+      id: pushDeviceTable.id,
+      platform: pushDeviceTable.platform,
+      token: pushDeviceTable.token,
+    })
+    .from(pushDeviceTable)
+    .innerJoin(sessionTable, eq(sessionTable.id, pushDeviceTable.sessionId))
+    .where(
+      and(
+        inArray(pushDeviceTable.userId, recipients),
+        gt(sessionTable.expiresAt, new Date()),
+      ),
+    );
+  if (devices.length === 0) return;
+
   const [file] = await db
     .select({ filename: chatMessageFileTable.filename })
     .from(chatMessageFileTable)
@@ -75,6 +82,7 @@ export async function sendChatPush(event: {
       kind: "chat",
       workspaceId: event.workspaceId,
       chatChannelId: event.channelId,
+      messageId: event.messageId,
     },
   };
   const dead: string[] = [];
@@ -82,7 +90,12 @@ export async function sendChatPush(event: {
     devices.map(async (device) => {
       const send = pushSender(device.platform);
       if (!send) return;
-      if ((await send(device.token, message)) === "dead") dead.push(device.id);
+      const result = await send(device.token, message);
+      // The push log: never the token or the text.
+      console.info(
+        `Push ${result} to ${device.platform} device ${device.id} for message ${event.messageId}`,
+      );
+      if (result === "dead") dead.push(device.id);
     }),
   );
   if (dead.length)

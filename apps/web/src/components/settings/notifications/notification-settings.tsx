@@ -4,6 +4,7 @@ import { SettingsCard } from "@/components/settings/settings-card";
 import { SettingsEmpty } from "@/components/settings/settings-empty";
 import useGetNotificationPreferences from "@/hooks/queries/notification-preferences/use-get-notification-preferences";
 import { ChannelsSection } from "./channels/channels-section";
+import { DesktopPushSection } from "./desktop/desktop-push-section";
 import { NotifyMeSection } from "./events/notify-me-section";
 import { ScheduleSection } from "./schedule/schedule-section";
 import { NotificationSettingsSkeleton } from "./notification-settings-skeleton";
@@ -30,6 +31,7 @@ export function NotificationSettings() {
     <>
       <NotifyMeSection preferences={preferences} />
       <ChannelsSection preferences={preferences} />
+      <DesktopPushSection />
       <ScheduleSection preferences={preferences} />
       <WorkspacesSection preferences={preferences} />
     </>

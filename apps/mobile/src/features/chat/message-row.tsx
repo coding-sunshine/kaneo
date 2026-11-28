@@ -12,9 +12,12 @@ import { inset, useColors } from "@/theme";
 export function MessageRow({
   message,
   showAuthor,
+  highlighted = false,
 }: {
   message: ChatMessage;
   showAuthor: boolean;
+  /** The message a tapped push opened on. */
+  highlighted?: boolean;
 }) {
   const { t } = useTranslation(["mobile"]);
   const c = useColors();
@@ -26,6 +29,7 @@ export function MessageRow({
         gap: 10,
         paddingHorizontal: inset,
         paddingTop: showAuthor ? 12 : 2,
+        backgroundColor: highlighted ? c.mentionBg : undefined,
       }}
     >
       <View style={{ width: 28 }}>

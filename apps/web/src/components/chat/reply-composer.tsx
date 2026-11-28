@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,12 +23,20 @@ export function ReplyComposer({
   const [body, setBody] = useState("");
   const post = usePostReply(workspaceId, channelId, parentId);
 
+  // isPending only turns true on a later render; this stops a second post
+  // from key presses that land before it.
+  const sending = useRef(false);
+
   const send = () => {
     const text = body.trim();
-    if (!text || post.isPending) return;
+    if (!text || post.isPending || sending.current) return;
+    sending.current = true;
     post.mutate(text, {
       onSuccess: () => setBody(""),
       onError: (error) => toast.error(error.message),
+      onSettled: () => {
+        sending.current = false;
+      },
     });
   };
 
@@ -52,7 +60,7 @@ export function ReplyComposer({
         onKeyDown={(event) => {
           if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
-            send();
+            if (!event.repeat) send();
           }
         }}
       />

@@ -3,6 +3,8 @@ import type { PushPlatform } from "./devices";
 import { createFcmSender } from "./fcm";
 import { logPushOffOnce, readApnsConfig, readFcmConfig } from "./push-config";
 import type { PushSender } from "./push-message";
+import { readVapidConfig } from "./vapid-config";
+import { createWebPushSender } from "./web-push";
 
 // Senders hold a connection and a token, so one per configuration is kept.
 const cache = new Map<string, PushSender>();
@@ -28,9 +30,12 @@ export function pushSender(platform: PushPlatform): PushSender | null {
   if (platform === "ios") {
     const config = readApnsConfig();
     if (config) return cached(platform, config, createApnsSender);
-  } else {
+  } else if (platform === "android") {
     const config = readFcmConfig();
     if (config) return cached(platform, config, createFcmSender);
+  } else {
+    const config = readVapidConfig();
+    if (config) return cached(platform, config, createWebPushSender);
   }
   logPushOffOnce(platform);
   return null;

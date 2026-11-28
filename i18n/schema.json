@@ -4590,6 +4590,33 @@
 						"reminderLeadTimeUnitDaysBefore_other": {
 							"type": "string"
 						},
+						"desktopTitle": {
+							"type": "string"
+						},
+						"desktopDescription": {
+							"type": "string"
+						},
+						"desktopEnabled": {
+							"type": "string"
+						},
+						"desktopOnHint": {
+							"type": "string"
+						},
+						"desktopOffHint": {
+							"type": "string"
+						},
+						"desktopServerOff": {
+							"type": "string"
+						},
+						"desktopUnsupported": {
+							"type": "string"
+						},
+						"desktopDenied": {
+							"type": "string"
+						},
+						"desktopFailed": {
+							"type": "string"
+						},
 						"scheduleTitle": {
 							"type": "string"
 						},
@@ -4834,6 +4861,15 @@
 						"eventStatusChangesHint",
 						"eventDueDateRemindersHint",
 						"reminderLeadTimeUnitLabel",
+						"desktopTitle",
+						"desktopDescription",
+						"desktopEnabled",
+						"desktopOnHint",
+						"desktopOffHint",
+						"desktopServerOff",
+						"desktopUnsupported",
+						"desktopDenied",
+						"desktopFailed",
 						"scheduleTitle",
 						"scheduleDescription",
 						"scheduleEnabled",
@@ -18049,6 +18085,72 @@
 								"done"
 							]
 						},
+						"editing": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"one": {
+									"type": "string"
+								},
+								"many": {
+									"type": "string"
+								}
+							},
+							"required": ["one", "many"]
+						},
+						"conflict": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"banner": {
+									"type": "string"
+								},
+								"review": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"theirs": {
+									"type": "string"
+								},
+								"mine": {
+									"type": "string"
+								},
+								"keepMine": {
+									"type": "string"
+								},
+								"useTheirs": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"banner",
+								"review",
+								"title",
+								"description",
+								"theirs",
+								"mine",
+								"keepMine",
+								"useTheirs"
+							]
+						},
+						"coediting": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"loading": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								}
+							},
+							"required": ["loading", "failed"]
+						},
 						"writing": {
 							"type": "object",
 							"additionalProperties": false,
@@ -18195,6 +18297,9 @@
 						"groups",
 						"filter",
 						"pins",
+						"editing",
+						"conflict",
+						"coediting",
 						"writing"
 					]
 				},
@@ -19386,6 +19491,18 @@
 						"replyPlaceholder": {
 							"type": "string"
 						},
+						"mute": {
+							"type": "string"
+						},
+						"unmute": {
+							"type": "string"
+						},
+						"mutedNotice": {
+							"type": "string"
+						},
+						"unmutedNotice": {
+							"type": "string"
+						},
 						"createTicketWithAi": {
 							"type": "string"
 						},
@@ -19516,6 +19633,10 @@
 						"thread",
 						"replyLabel",
 						"replyPlaceholder",
+						"mute",
+						"unmute",
+						"mutedNotice",
+						"unmutedNotice",
 						"createTicketWithAi",
 						"aiTicket",
 						"aiThreadLoading",
@@ -20019,6 +20140,26 @@
 							},
 							"required": ["title", "content"]
 						},
+						"chat_mention": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								}
+							},
+							"required": ["title"]
+						},
+						"chat_direct_message": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								}
+							},
+							"required": ["title"]
+						},
 						"weekly_digest": {
 							"type": "object",
 							"additionalProperties": false,
@@ -20057,6 +20198,8 @@
 						"team_issue_triage",
 						"document_question",
 						"document_inbox_waiting",
+						"chat_mention",
+						"chat_direct_message",
 						"weekly_digest"
 					]
 				},
@@ -20148,6 +20291,9 @@
 						},
 						"readCleared": {
 							"type": "string"
+						},
+						"openMessage": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -20167,7 +20313,8 @@
 						"taskLoadError",
 						"documentUnavailable",
 						"actionError",
-						"readCleared"
+						"readCleared",
+						"openMessage"
 					]
 				}
 			},
@@ -27457,6 +27604,30 @@
 								"promptUnresolved": {
 									"type": "string"
 								},
+								"promptUnresolvedMore": {
+									"type": "string"
+								},
+								"promptUnresolvedMore_zero": {
+									"type": "string"
+								},
+								"promptUnresolvedMore_one": {
+									"type": "string"
+								},
+								"promptUnresolvedMore_two": {
+									"type": "string"
+								},
+								"promptUnresolvedMore_few": {
+									"type": "string"
+								},
+								"promptUnresolvedMore_many": {
+									"type": "string"
+								},
+								"promptUnresolvedMore_other": {
+									"type": "string"
+								},
+								"promptThreadsUnknown": {
+									"type": "string"
+								},
 								"promptFailed": {
 									"type": "string"
 								}
@@ -27480,6 +27651,7 @@
 								"promptIssue",
 								"promptFailingChecks",
 								"promptUnresolved",
+								"promptThreadsUnknown",
 								"promptFailed"
 							]
 						},

@@ -24,6 +24,8 @@ import { cn } from "@/lib/cn";
 const icons: Record<string, LucideIcon> = {
   task_mention: AtSign,
   task_comment: MessageSquare,
+  chat_mention: AtSign,
+  chat_direct_message: MessageSquare,
   document_mention: AtSign,
   document_comment: MessageSquare,
   document_proposed: FilePlus,

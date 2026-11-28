@@ -102,7 +102,16 @@ async function setup() {
     );
     expect(response.status).toBe(200);
     await settleEvents();
+    return (await response.json()) as { id: string };
   };
+  const openDirect = async (member: Seeded, others: Seeded[]) =>
+    (await (
+      await as(member)(
+        `/api/chat/workspace/${ws}/direct-messages`,
+        json("POST", { userIds: others.map((o) => o.user.id) }),
+      )
+    ).json()) as { id: string };
+  const listDevices = (member: Seeded) => as(member)("/api/push/devices");
   const devices = () => db.select().from(pushDeviceTable);
   return {
     a,
@@ -117,9 +126,19 @@ async function setup() {
     unregister,
     create,
     post,
+    openDirect,
+    listDevices,
     devices,
   };
 }
+
+const mention = (id: string) =>
+  `<kaneo-mention id="${id}" label="Reader">@Reader</kaneo-mention>`;
+// One line per delivery, so a dev server shows what went out.
+const deliveries = (info: ReturnType<typeof vi.spyOn>) =>
+  info.mock.calls
+    .map(([line]) => String(line))
+    .filter((line) => line.startsWith("Push sent"));
 
 const devices = () => db.select().from(pushDeviceTable);
 
@@ -234,6 +253,50 @@ describe("API integration: push devices", () => {
   });
 });
 
+describe("API integration: listing push devices", () => {
+  beforeEach(async () => {
+    await resetTestDatabase();
+  });
+
+  it("lists your own devices without their tokens", async () => {
+    const { b, c, register, listDevices } = await setup();
+    pushOn();
+    await register(b, "b-iphone");
+    await register(c, "c-android", "android");
+    const response = await listDevices(b);
+    expect(response.status).toBe(200);
+    const listed = await response.json();
+    expect(listed).toEqual([
+      {
+        id: expect.any(String),
+        platform: "ios",
+        delivering: true,
+        createdAt: expect.any(String),
+      },
+    ]);
+    expect(JSON.stringify(listed)).not.toContain("b-iphone");
+  });
+
+  it("refuses the list without a sign-in or with an API key", async () => {
+    const { b, app } = await setup();
+    mockAnonymousSession();
+    expect((await app.request("/api/push/devices")).status).toBe(401);
+    const key = `push-list-${b.user.id}`.padEnd(64, "x");
+    await db.insert(schema.apikeyTable).values({
+      referenceId: b.user.id,
+      userId: b.user.id,
+      key: createHash("sha256").update(key).digest("base64url"),
+      permissions: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    const response = await app.request("/api/push/devices", {
+      headers: { "x-api-key": key },
+    });
+    expect(response.status).toBe(403);
+  });
+});
+
 describe("API integration: chat pushes", () => {
   beforeEach(async () => {
     await resetTestDatabase();
@@ -241,31 +304,64 @@ describe("API integration: chat pushes", () => {
     fake.deadTokens.clear();
   });
 
-  it("pushes a new message to the other members' phones, opening its channel", async () => {
-    const { a, b, ws, as, base, create, register, post } = await setup();
+  it("pushes a mention and a direct message to the phone, each opening its message", async () => {
+    const { a, b, ws, as, base, create, register, post, openDirect } =
+      await setup();
     pushOn();
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
     const general = await create("general");
     await as(b)(`${base}/${general.id}/join`, json("POST"));
     await register(a, "a-phone");
     await register(b, "b-iphone");
-    await register(b, "b-android", "android");
 
-    await post(general.id, "Ship it");
+    await post(general.id, "plain update");
+    expect(fake.pushes).toEqual([]);
+    expect(deliveries(info)).toEqual([]);
 
-    expect(fake.pushes).toHaveLength(2);
-    for (const push of fake.pushes)
-      expect(push).toMatchObject({
+    const mentioned = await post(general.id, `${mention(b.user.id)} ship it`);
+    const direct = await openDirect(a, [b]);
+    const dm = await post(direct.id, "quick question");
+
+    expect(fake.pushes).toEqual([
+      {
+        platform: "ios",
+        token: "b-iphone",
         title: "#general",
-        body: "Writer: Ship it",
-        data: { kind: "chat", workspaceId: ws, chatChannelId: general.id },
-      });
-    expect(fake.pushes.map((push) => push.token).sort()).toEqual([
-      "b-android",
-      "b-iphone",
+        body: "Writer: @Reader ship it",
+        data: {
+          kind: "chat",
+          workspaceId: ws,
+          chatChannelId: general.id,
+          messageId: mentioned.id,
+        },
+      },
+      {
+        platform: "ios",
+        token: "b-iphone",
+        title: "Writer",
+        body: "quick question",
+        data: {
+          kind: "chat",
+          workspaceId: ws,
+          chatChannelId: direct.id,
+          messageId: dm.id,
+        },
+      },
     ]);
+    expect(deliveries(info)).toHaveLength(2);
+    for (const line of deliveries(info)) expect(line).not.toContain("b-iphone");
   });
 
-  it("pushes nothing to people who cannot read the channel", async () => {
+  it("pushes to Android the same way", async () => {
+    const { a, b, register, post, openDirect } = await setup();
+    pushOn();
+    await register(b, "b-android", "android");
+    const direct = await openDirect(a, [b]);
+    await post(direct.id, "hello");
+    expect(fake.pushes.map((push) => push.platform)).toEqual(["android"]);
+  });
+
+  it("pushes nothing to people mentioned in a channel they cannot read", async () => {
     const { b, c, outsider, as, base, create, register, post } = await setup();
     pushOn();
     const leads = await create("leads", true);
@@ -276,62 +372,65 @@ describe("API integration: chat pushes", () => {
     await register(outsider, "outsider-phone");
 
     // b and the outsider are not in the private channel.
-    await post(leads.id, "secret");
+    await post(
+      leads.id,
+      `${mention(b.user.id)} ${mention(outsider.user.id)} secret`,
+    );
     expect(fake.pushes).toEqual([]);
 
     // c left the workspace but is still a channel member.
     await db
       .delete(schema.workspaceUserTable)
       .where(eq(schema.workspaceUserTable.userId, c.user.id));
-    await post(general.id, "after c left");
+    await post(general.id, `${mention(c.user.id)} after c left`);
+    expect(fake.pushes).toEqual([]);
+  });
+
+  it("pushes nothing for a muted channel or your own message", async () => {
+    const { a, b, as, base, register, post, openDirect } = await setup();
+    pushOn();
+    await register(a, "a-phone");
+    await register(b, "b-phone");
+    const direct = await openDirect(a, [b]);
+    await as(b)(`${base}/${direct.id}/mute`, json("PUT", { muted: true }));
+    await post(direct.id, "muted ping");
+    await post(direct.id, `${mention(a.user.id)} me`, a);
     expect(fake.pushes).toEqual([]);
   });
 
   // The off line is logged once per process; the registration test checks it.
   it("sends nothing while push is off", async () => {
-    const { b, as, base, create, register, post } = await setup();
+    const { a, b, register, post, openDirect } = await setup();
     pushOff();
     vi.spyOn(console, "info").mockImplementation(() => {});
-    const general = await create("general");
-    await as(b)(`${base}/${general.id}/join`, json("POST"));
     await register(b, "b-phone");
-    await post(general.id, "hello");
+    const direct = await openDirect(a, [b]);
+    await post(direct.id, "hello");
     expect(fake.pushes).toEqual([]);
   });
 
   it("pushes nothing to a phone whose session has expired", async () => {
-    const { b, as, base, create, register, post } = await setup();
+    const { a, b, register, post, openDirect } = await setup();
     pushOn();
-    const general = await create("general");
-    await as(b)(`${base}/${general.id}/join`, json("POST"));
     await register(b, "b-phone");
     await db
       .update(schema.sessionTable)
       .set({ expiresAt: new Date(Date.now() - 1000) })
       .where(eq(schema.sessionTable.id, `session-${b.user.id}`));
-    await post(general.id, "hello");
-    expect(fake.pushes).toEqual([]);
-  });
-
-  it("pushes nothing to a member who has not joined a public channel", async () => {
-    const { b, create, register, post } = await setup();
-    pushOn();
-    const general = await create("general");
-    await register(b, "b-phone");
-    await post(general.id, "hello");
+    const direct = await openDirect(a, [b]);
+    await post(direct.id, "hello");
     expect(fake.pushes).toEqual([]);
   });
 
   it("forgets a token the provider says is gone", async () => {
-    const { b, as, base, create, register, post, devices } = await setup();
+    const { a, b, register, post, openDirect, devices } = await setup();
     pushOn();
-    const general = await create("general");
-    await as(b)(`${base}/${general.id}/join`, json("POST"));
     await register(b, "gone-iphone");
     await register(b, "gone-android", "android");
     fake.deadTokens.add("gone-iphone");
     fake.deadTokens.add("gone-android");
-    await post(general.id, "hello");
+    const direct = await openDirect(a, [b]);
+    await post(direct.id, "hello");
     expect(await devices()).toEqual([]);
   });
 });

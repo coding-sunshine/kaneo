@@ -22,6 +22,20 @@ import { pageTree } from "./controllers/page-tree";
 import { exportDocumentRoute } from "./export-routes";
 import { exportDocument } from "./controllers/export-document";
 import { deletePageRoute, movePageRoute, pageTreeRoute } from "./page-routes";
+import { announceEditing } from "./editing/announce-editing";
+import { announceEditingRoute } from "./editing/editing-routes";
+import { announceAwareness } from "./collab/announce-awareness";
+import { applyCollabUpdate } from "./collab/apply-collab-update";
+import {
+  collabAwarenessRoute,
+  getCollabRoute,
+  saveCollabTextRoute,
+  seedCollabRoute,
+  updateCollabRoute,
+} from "./collab/collab-routes";
+import { loadCollab } from "./collab/load-collab";
+import { saveCoeditedText } from "./collab/save-coedited-text";
+import { seedCollab } from "./collab/seed-collab";
 import { purgeDocument, restoreDocument } from "./controllers/delete-document";
 import { documentAudience } from "./controllers/document-audience";
 import { documentUsage } from "./controllers/document-usage";
@@ -1043,6 +1057,46 @@ const document = apiRouter()
     const userId = c.get("userId");
     return c.json(
       await updateDocument(workspaceId, id, userId, c.req.valid("json")),
+      200,
+    );
+  })
+  .openapi(announceEditingRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(await announceEditing(workspaceId, id, c.get("userId")), 200);
+  })
+  .openapi(getCollabRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    return c.json(await loadCollab(workspaceId, id, c.get("userId")), 200);
+  })
+  .openapi(seedCollabRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    const json = c.req.valid("json");
+    return c.json(
+      await seedCollab(workspaceId, id, c.get("userId"), json),
+      200,
+    );
+  })
+  .openapi(updateCollabRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    const json = c.req.valid("json");
+    return c.json(
+      await applyCollabUpdate(workspaceId, id, c.get("userId"), json),
+      200,
+    );
+  })
+  .openapi(collabAwarenessRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    const json = c.req.valid("json");
+    return c.json(
+      await announceAwareness(workspaceId, id, c.get("userId"), json),
+      200,
+    );
+  })
+  .openapi(saveCollabTextRoute, async (c) => {
+    const { workspaceId, id } = c.req.valid("param");
+    const json = c.req.valid("json");
+    return c.json(
+      await saveCoeditedText(workspaceId, id, c.get("userId"), json),
       200,
     );
   })

@@ -123,6 +123,17 @@ export function getNotificationTitle(
           ...documentValues(eventData, t),
           defaultValue: notification.title ?? notification.type,
         });
+      case "chat_mention":
+        return t("notifications:events.chat_mention.title", {
+          actorName: eventData.actorName || t("common:people.someone"),
+          channelName: eventData.channelName ?? "",
+          defaultValue: notification.title ?? notification.type,
+        });
+      case "chat_direct_message":
+        return t("notifications:events.chat_direct_message.title", {
+          actorName: eventData.actorName || t("common:people.someone"),
+          defaultValue: notification.title ?? notification.type,
+        });
       case "document_replaced": {
         // One notification covers every open issue of the person that links
         // to the replaced document. It names the first and counts the rest.
@@ -219,6 +230,12 @@ export function getNotificationContent(
           newStatus: getStatusLabel(String(eventData.newStatus ?? "")),
           defaultValue: notification.content ?? "",
         });
+      // The message itself, as the sender wrote it, with markup dropped.
+      case "chat_mention":
+      case "chat_direct_message":
+        return typeof eventData.messagePreview === "string"
+          ? eventData.messagePreview
+          : (notification.content ?? "");
       case "document_mention":
       case "document_comment":
       case "document_proposed":

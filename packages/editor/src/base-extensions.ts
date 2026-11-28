@@ -32,6 +32,8 @@ export type BaseExtensionsOptions = {
   extra?: AnyExtension[];
   nodes?: BaseExtensionNodes;
   tableResizable?: boolean;
+  /** Yjs keeps the history while co-editing, so the plain one is left out. */
+  collaboration?: boolean;
 };
 
 export function createBaseExtensions({
@@ -41,6 +43,7 @@ export function createBaseExtensions({
   extra = [],
   nodes = {},
   tableResizable = true,
+  collaboration = false,
 }: BaseExtensionsOptions): AnyExtension[] {
   const image = nodes.image ?? KaneoImage;
   const taskItem = nodes.taskItem ?? TaskItem;
@@ -51,6 +54,7 @@ export function createBaseExtensions({
       trailingNode: false,
       heading: { levels: [1, 2, 3] },
       hardBreak: false,
+      ...(collaboration && { undoRedo: false as const }),
     }),
     SafeHardBreak,
     ...keymap,

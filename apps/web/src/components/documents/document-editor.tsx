@@ -4,11 +4,15 @@ import { useRef, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import CommentEditor from "@/components/activity/comment-editor";
 import type { WritingAction } from "@/fetchers/agent/writing-help";
+import useAuth from "@/components/providers/auth-provider/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   type DocumentDetail,
+  getDocument,
   updateDocument,
 } from "@/fetchers/document/documents";
+import { saveCoeditedText } from "@/fetchers/document/collab";
+import useGetConfig from "@/hooks/queries/config/use-get-config";
 import {
   documentKey,
   documentsKey,
@@ -19,14 +23,20 @@ import { getInitials } from "@/lib/get-initials";
 import { HttpError } from "@/lib/http-error";
 import { uploadDocumentFile } from "@/lib/upload-document-file";
 import { ChecklistIssuesButton } from "./checklist-issues-button";
+import { DocumentCollabBody } from "./collab/document-collab-body";
 import type { ChecklistLine } from "./checklist-issues";
 import { ChecklistToIssuesDialog } from "./checklist-to-issues-dialog";
+import { DocumentConflictBanner } from "./document-conflict-banner";
+import { DocumentConflictDialog } from "./document-conflict-dialog";
+import { DocumentEditingIndicator } from "./document-editing-indicator";
 import { DocumentKindMenu } from "./document-kind-menu";
 import {
   DOCUMENT_SAVE_OWNER,
+  documentBases,
   documentSaveKey,
   latestDocumentValue,
 } from "./document-save";
+import { useEditingAnnouncer } from "./use-editing-announcer";
 import { useScrollToIssueLine } from "./use-scroll-to-issue-line";
 import type { TextRange } from "./writing-help/replace-selection";
 import { WritingHelpButton } from "./writing-help/writing-help-button";
@@ -55,11 +65,30 @@ export function DocumentEditor({
   const { workspaceId, id } = document;
   const titleKey = documentSaveKey("title", id);
   const contentKey = documentSaveKey("content", id);
-  const [initial] = useState(() => ({
-    title: latestDocumentValue(titleKey, document.title),
-    content: latestDocumentValue(contentKey, document.content),
-  }));
+  const [initial] = useState(() => {
+    documentBases.adopt(id, document.contentHash);
+    return {
+      title: latestDocumentValue(titleKey, document.title),
+      content: latestDocumentValue(contentKey, document.content),
+    };
+  });
   const [title, setTitle] = useState(initial.title);
+  // What the body editor shows; it changes only when the person takes
+  // someone else's text.
+  const [seed, setSeed] = useState(initial.content);
+  // The newer text someone else saved, while this person decides.
+  const [conflict, setConflict] = useState<DocumentDetail | null>(null);
+  const conflictRef = useRef(conflict);
+  const [reviewing, setReviewing] = useState(false);
+  const announce = useEditingAnnouncer(workspaceId, id);
+  const { data: config } = useGetConfig();
+  const { user } = useAuth();
+  // Several people type in the body at once; the title still saves alone.
+  const coediting = config?.documentCoediting === true && !readOnly;
+  // A new co-editing session, after taking someone else's text.
+  const [generation, setGeneration] = useState(0);
+  // The next co-edited save goes over a text this person has reviewed.
+  const reviewed = useRef(false);
   const last = useRef(initial);
   const bodyRef = useRef<HTMLDivElement>(null);
   useScrollToIssueLine(bodyRef);
@@ -79,23 +108,83 @@ export function DocumentEditor({
     ),
   );
 
-  const schedule = (field: "title" | "content", value: string) => {
+  const showConflict = (latest: DocumentDetail | null) => {
+    conflictRef.current = latest;
+    setConflict(latest);
+    if (!latest) setReviewing(false);
+  };
+
+  const saved = (fresh: DocumentDetail) => {
+    queryClient.setQueryData(documentKey(workspaceId, id), fresh);
+    queryClient.invalidateQueries({
+      queryKey: [...documentsKey(workspaceId), "list"],
+    });
+  };
+
+  // The body saves on top of the text it started from, so a newer save by
+  // someone else stops it until this person has seen that text.
+  const saveContent = async (content: string) => {
+    if (conflictRef.current) throw new Error("Waiting for review");
+    try {
+      const fresh = coediting
+        ? await saveCoeditedText(workspaceId, id, {
+            content,
+            ...(reviewed.current && { baseHash: documentBases.get(id) }),
+          })
+        : await updateDocument(workspaceId, id, {
+            content,
+            baseHash: documentBases.get(id),
+          });
+      reviewed.current = false;
+      documentBases.set(id, fresh.contentHash);
+      saved(fresh);
+    } catch (error) {
+      if (error instanceof HttpError && error.code === "DOCUMENT_CHANGED") {
+        const latest = await getDocument(workspaceId, id);
+        queryClient.setQueryData(documentKey(workspaceId, id), latest);
+        showConflict(latest);
+      }
+      throw error;
+    }
+  };
+
+  const schedule = (
+    field: "title" | "content",
+    value: string,
+    change = { remote: false },
+  ) => {
     if (readOnly || last.current[field] === value) return;
     last.current[field] = value;
+    // A co-editor's change also arrives here; only typing is announced.
+    if (!change.remote) announce();
     descriptionSaveQueue.schedule(
       field === "title" ? titleKey : contentKey,
       value,
-      async (saved) => {
-        const fresh = await updateDocument(workspaceId, id, {
-          [field]: saved,
-        });
-        queryClient.setQueryData(documentKey(workspaceId, id), fresh);
-        queryClient.invalidateQueries({
-          queryKey: [...documentsKey(workspaceId), "list"],
-        });
-      },
+      field === "title"
+        ? async (title) =>
+            saved(await updateDocument(workspaceId, id, { title }))
+        : saveContent,
       ownerId,
     );
+  };
+
+  const keepMine = () => {
+    if (!conflict) return;
+    documentBases.set(id, conflict.contentHash);
+    reviewed.current = true;
+    showConflict(null);
+    descriptionSaveQueue.retry(contentKey, ownerId);
+  };
+
+  const takeTheirs = () => {
+    if (!conflict) return;
+    documentBases.set(id, conflict.contentHash);
+    descriptionSaveQueue.discard(contentKey, ownerId);
+    last.current.content = conflict.content;
+    setSeed(conflict.content);
+    // The live state no longer matches their text: a new session seeds from it.
+    if (coediting) setGeneration((count) => count + 1);
+    showConflict(null);
   };
 
   const uploadAsset = async (file: File) => {
@@ -109,7 +198,35 @@ export function DocumentEditor({
     }
   };
 
+  const bodyProps = {
+    onChange: readOnly
+      ? undefined
+      : (value: string, change?: { remote: boolean }) =>
+          schedule("content", value, change),
+    readOnly,
+    uploadAsset: readOnly ? undefined : uploadAsset,
+    showBubbleMenu: !readOnly,
+    bubbleMenuExtra: (editor: Editor) => (
+      <>
+        <WritingHelpButton
+          editor={editor}
+          onPick={(from, action, range) =>
+            setWriting({ editor: from, action, range })
+          }
+        />
+        <ChecklistIssuesButton
+          editor={editor}
+          onOpen={(from, lines) => setChecklist({ editor: from, lines })}
+        />
+      </>
+    ),
+    placeholder: t("navigation:documents.bodyPlaceholder"),
+    slashMenuPosition: "fixed" as const,
+    className: bodyClass,
+  };
+
   const editorName = document.updatedByName ?? document.creatorName;
+  const conflictName = conflict?.updatedByName ?? conflict?.creatorName ?? "";
   const editorImage =
     !document.updatedById || document.updatedById === document.creatorId
       ? document.creatorImage
@@ -157,7 +274,14 @@ export function DocumentEditor({
             {t("navigation:documents.viewOnly")}
           </span>
         )}
-        {failed && (
+        <DocumentEditingIndicator documentId={id} />
+        {conflict && (
+          <DocumentConflictBanner
+            name={conflictName}
+            onReview={() => setReviewing(true)}
+          />
+        )}
+        {failed && !conflict && (
           <span role="alert" className="ml-1 text-destructive">
             {t("navigation:documents.saveFailed")}{" "}
             <button
@@ -171,38 +295,33 @@ export function DocumentEditor({
         )}
       </div>
       <div ref={bodyRef} className="kaneo-document-body mt-8">
-        <CommentEditor
-          value={initial.content}
-          onChange={
-            readOnly ? undefined : (value) => schedule("content", value)
-          }
-          readOnly={readOnly}
-          uploadAsset={readOnly ? undefined : uploadAsset}
-          showBubbleMenu={!readOnly}
-          bubbleMenuExtra={(editor) => (
-            <>
-              <WritingHelpButton
-                editor={editor}
-                onPick={(from, action, range) =>
-                  setWriting({ editor: from, action, range })
-                }
-              />
-              <ChecklistIssuesButton
-                editor={editor}
-                onOpen={(from, lines) => setChecklist({ editor: from, lines })}
-              />
-            </>
-          )}
-          placeholder={t("navigation:documents.bodyPlaceholder")}
-          slashMenuPosition="fixed"
-          className={bodyClass}
-        />
+        {coediting ? (
+          <DocumentCollabBody
+            {...bodyProps}
+            workspaceId={workspaceId}
+            documentId={id}
+            generation={generation}
+            user={{ id: user?.id ?? "", name: user?.name ?? "" }}
+          />
+        ) : (
+          <CommentEditor {...bodyProps} value={seed} />
+        )}
       </div>
       {writing && (
         <WritingHelpDialog
           workspaceId={workspaceId}
           {...writing}
           onClose={() => setWriting(null)}
+        />
+      )}
+      {conflict && reviewing && (
+        <DocumentConflictDialog
+          name={conflictName}
+          theirs={conflict.content}
+          mine={last.current.content}
+          onKeepMine={keepMine}
+          onUseTheirs={takeTheirs}
+          onClose={() => setReviewing(false)}
         />
       )}
       {checklist && (

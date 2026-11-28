@@ -17,6 +17,7 @@ import { ErrorBoundary } from "./components/ui/error-boundary";
 import { ShortcutListener } from "./lib/shortcuts/shortcut-listener";
 import { captureCheckoutIntent } from "./lib/checkout-intent";
 import { preloadRouteComponents } from "./lib/preload-route-components";
+import { registerServiceWorker } from "./lib/push/register-service-worker";
 import { AppI18nProvider } from "./lib/i18n/provider";
 import { routeTree } from "./routeTree.gen";
 
@@ -57,6 +58,7 @@ const router = createRouter({
 });
 
 preloadRouteComponents(router, window.location.pathname);
+registerServiceWorker();
 
 function App() {
   const { user } = useAuth();

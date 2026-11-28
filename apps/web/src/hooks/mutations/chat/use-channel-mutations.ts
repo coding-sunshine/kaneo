@@ -5,6 +5,7 @@ import {
   joinChannel,
   leaveChannel,
   markChannelRead,
+  muteChannel,
   removeChannelMember,
   updateChannel,
 } from "@/fetchers/chat/channels";
@@ -54,6 +55,9 @@ export const useLeaveChannel = (workspaceId: string, channelId: string) =>
 
 export const useAddChannelMember = (workspaceId: string, channelId: string) =>
   useChannelMutation(workspaceId, channelId, addChannelMember);
+
+export const useMuteChannel = (workspaceId: string, channelId: string) =>
+  useChannelMutation(workspaceId, channelId, muteChannel);
 
 // Reading changes only your own unread counts.
 export function useMarkChannelRead(workspaceId: string, channelId: string) {

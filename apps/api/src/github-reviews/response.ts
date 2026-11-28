@@ -181,6 +181,8 @@ export const conversationSchema = z.array(
     side: z.enum(["LEFT", "RIGHT"]).nullable(),
     // Inline review comments only, when GitHub reported the thread's state.
     resolved: z.boolean().optional(),
+    /** Parent comment id. Null on a thread root. Omitted on other entries. */
+    inReplyToId: z.number().nullable().optional(),
     createdAt: z.string(),
   }),
 );

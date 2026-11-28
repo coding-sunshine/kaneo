@@ -65,7 +65,12 @@ const message: PushMessage = {
   title: "#general",
   body: "Writer: hello",
   threadId: "channel-1",
-  data: { kind: "chat", workspaceId: "ws-1", chatChannelId: "channel-1" },
+  data: {
+    kind: "chat",
+    workspaceId: "ws-1",
+    chatChannelId: "channel-1",
+    messageId: "message-1",
+  },
 };
 const sends = () => seen.filter((s) => s.url !== "/token");
 
@@ -119,6 +124,7 @@ describe("FCM sender", () => {
         kind: "chat",
         workspaceId: "ws-1",
         chatChannelId: "channel-1",
+        messageId: "message-1",
       }),
       channelId: "kaneo_activity",
       threadIdentifier: "channel-1",

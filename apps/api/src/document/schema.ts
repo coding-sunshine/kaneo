@@ -132,6 +132,10 @@ export const updateDocumentBody = z.object({
   kind: z.enum(DOCUMENT_KINDS).optional().openapi({
     description: "What the document is for. The status is not set by editing.",
   }),
+  baseHash: z.string().max(128).optional().openapi({
+    description:
+      "The `contentHash` of the text this edit started from. When someone else saved the content since, the save is refused with 409 and code DOCUMENT_CHANGED. Leave it out to overwrite.",
+  }),
 });
 
 export const saveDraftBody = z.object({
