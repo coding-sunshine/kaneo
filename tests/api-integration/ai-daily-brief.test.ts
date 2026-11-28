@@ -194,6 +194,25 @@ describe("API integration: daily brief", () => {
     expect(text).not.toContain(a.id);
   });
 
+  it("leaves out a chosen channel once its AI is turned off", async () => {
+    const { b, ws, x, post } = await setup();
+    await enable(b, ws, [x.id]);
+    await post(x.id, mention(b, "words from a no-AI channel"));
+    await db
+      .update(chatChannelTable)
+      .set({ aiDisabled: true })
+      .where(eq(chatChannelTable.id, x.id));
+    await runDailyBriefs(MORNING);
+    const [note] = await db.select().from(schema.notificationTable);
+    const briefId =
+      (note?.eventData as { briefId: string } | undefined)?.briefId ?? "";
+    const brief = await (
+      await call(b, `/workspace/${ws}/briefs/${briefId}`)
+    ).json();
+    expect(brief.mentions).toEqual([]);
+    expect(JSON.stringify(brief)).not.toContain("no-AI channel");
+  });
+
   it("no other user can open my brief", async () => {
     const { a, b, ws, x } = await setup();
     await enable(b, ws, [x.id]);

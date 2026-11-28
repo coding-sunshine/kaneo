@@ -12,6 +12,7 @@ import {
   or,
   sql,
 } from "drizzle-orm";
+import { aiEnabledChannel } from "../assist/ai-allowed-channel";
 import { readableChannel } from "../chat/readable-channel";
 import db from "../database";
 import {
@@ -118,6 +119,8 @@ export async function gatherBrief(
       and(
         eq(chatChannelTable.workspaceId, workspaceId),
         isNull(chatChannelTable.directKey),
+        // A channel with AI turned off stays out, like every AI feature.
+        aiEnabledChannel(),
         readableChannel(userId, workspaceId, guest),
         or(
           isNull(chatMessageTable.userId),
