@@ -213,6 +213,50 @@ describe("API integration: daily brief", () => {
     expect(JSON.stringify(brief)).not.toContain("no-AI channel");
   });
 
+  it("drops lines I can no longer open when I read the brief later", async () => {
+    const { a, b, ws, post, task, project } = await setup();
+    const [closed] = await db
+      .insert(chatChannelTable)
+      .values({
+        workspaceId: ws,
+        name: "closed",
+        isPrivate: true,
+        createdBy: a.id,
+      })
+      .returning();
+    await db.insert(chatChannelMemberTable).values([
+      { channelId: closed.id, userId: a.id },
+      { channelId: closed.id, userId: b.id },
+    ]);
+    await enable(b, ws, [closed.id]);
+    await post(closed.id, mention(b, "words from the closed channel"));
+    const due = await task("Due in a team I lose", {
+      dueDate: new Date("2026-03-10T00:00:00.000Z"),
+    });
+    await runDailyBriefs(MORNING);
+    const [note] = await db.select().from(schema.notificationTable);
+    const briefId =
+      (note?.eventData as { briefId: string } | undefined)?.briefId ?? "";
+    const before = await (
+      await call(b, `/workspace/${ws}/briefs/${briefId}`)
+    ).json();
+    expect(before.mentions).toHaveLength(1);
+    expect(before.dueToday.map((t: { id: string }) => t.id)).toEqual([due.id]);
+
+    await db
+      .delete(chatChannelMemberTable)
+      .where(eq(chatChannelMemberTable.userId, b.id));
+    const other = await createProjectFixture({ workspaceId: ws });
+    await restrictToProjects(ws, b.id, [other.project.id]);
+    const after = await (
+      await call(b, `/workspace/${ws}/briefs/${briefId}`)
+    ).json();
+    expect(after.mentions).toEqual([]);
+    expect(after.dueToday).toEqual([]);
+    expect(JSON.stringify(after)).not.toContain("closed channel");
+    expect(project).toBeTruthy();
+  });
+
   it("no other user can open my brief", async () => {
     const { a, b, ws, x } = await setup();
     await enable(b, ws, [x.id]);

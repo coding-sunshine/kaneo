@@ -2,8 +2,12 @@ import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../database";
 import { dailyBriefTable } from "../database/schema";
+import { stillOpen } from "./still-open";
 
-/** A brief opens only for its owner; anyone else gets a missing brief. */
+/**
+ * A brief opens only for its owner; anyone else gets a missing brief. Its
+ * lines are checked again on every read, so lost access hides them.
+ */
 export async function openBrief(
   workspaceId: string,
   userId: string,
@@ -28,7 +32,7 @@ export async function openBrief(
   return {
     id: brief.id,
     day: brief.day,
-    ...brief.content,
+    ...(await stillOpen(workspaceId, userId, brief.content)),
     createdAt: brief.createdAt.toISOString(),
   };
 }
