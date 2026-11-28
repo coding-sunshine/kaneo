@@ -1981,6 +1981,12 @@ export const assetTable = pgTable(
       (): AnyPgColumn => documentTable.id,
       { onDelete: "cascade", onUpdate: "cascade" },
     ),
+    // The team chat message a file was sent with. Who may read it is who may
+    // read the message's channel; the row goes by cascade with the message.
+    chatMessageId: text("chat_message_id").references(
+      (): AnyPgColumn => chatMessageTable.id,
+      { onDelete: "cascade", onUpdate: "cascade" },
+    ),
     objectKey: text("object_key").notNull().unique(),
     filename: text("filename").notNull(),
     mimeType: text("mime_type").notNull(),
@@ -2002,6 +2008,7 @@ export const assetTable = pgTable(
     index("asset_activityId_idx").on(table.activityId),
     index("asset_createdBy_idx").on(table.createdBy),
     index("asset_documentId_idx").on(table.documentId),
+    index("asset_chatMessageId_idx").on(table.chatMessageId),
     index("asset_draft_expiry_idx")
       .on(table.createdAt, table.id)
       .where(
@@ -2009,7 +2016,7 @@ export const assetTable = pgTable(
       ),
     check(
       "asset_one_owner",
-      sql`(${table.projectId} IS NOT NULL) <> (${table.documentId} IS NOT NULL)`,
+      sql`num_nonnulls(${table.projectId}, ${table.documentId}, ${table.chatMessageId}) = 1`,
     ),
     check(
       "asset_document_file_unattached",

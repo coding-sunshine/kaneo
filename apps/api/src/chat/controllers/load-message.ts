@@ -4,6 +4,7 @@ import { chatMessageTable } from "../../database/schema";
 import type { ChannelAction } from "../channel-access";
 import { loadChannel } from "./load-channel";
 import { selectMessages } from "./select-messages";
+import { withFiles } from "./with-files";
 import { withReactions } from "./with-reactions";
 
 // The channel rules run first, so a hidden channel's messages answer 404 like
@@ -23,7 +24,7 @@ export async function loadMessage(
     ),
   );
   if (!message) throw new HTTPException(404, { message: "Message not found" });
-  const [withTheirReactions] = await withReactions([message]);
+  const [withTheirReactions] = await withFiles(await withReactions([message]));
   return withTheirReactions as NonNullable<typeof withTheirReactions>;
 }
 

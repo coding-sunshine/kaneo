@@ -3388,7 +3388,8 @@
 			"views": "Views",
 			"workProjects": "Projects",
 			"workspace": "Workspace",
-			"yourTeams": "Your teams"
+			"yourTeams": "Your teams",
+			"files": "Files"
 		},
 		"projectList": {
 			"viewProject": "प्रोजेक्ट देखें",
@@ -4654,7 +4655,20 @@
 			"createTicket": "Create ticket",
 			"noTicketsFound": "No tickets found",
 			"openInChat": "Open in chat",
-			"searchTickets": "Search tickets"
+			"searchTickets": "Search tickets",
+			"attachFile": "Attach a file"
+		},
+		"files": {
+			"deletedUser": "Deleted user",
+			"directMessage": "Direct message",
+			"empty": "No files yet. Files attached to tickets, documents and chat show up here.",
+			"loadFailed": "Files could not be loaded.",
+			"loading": "Loading files…",
+			"noMatches": "No file names contain “{{query}}”.",
+			"search": "Search files",
+			"searchPlaceholder": "Search by file name",
+			"title": "Files",
+			"untitled": "Untitled"
 		}
 	},
 	"notifications": {

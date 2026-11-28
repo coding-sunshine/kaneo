@@ -2,6 +2,7 @@ import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { chatMessageTable } from "../../database/schema";
 import { loadChannel } from "./load-channel";
 import { selectMessages } from "./select-messages";
+import { withFiles } from "./with-files";
 import { withReactions } from "./with-reactions";
 
 // Its own query: a pinned message can be older than the newest page.
@@ -19,5 +20,5 @@ export async function listPins(
       ),
     )
     .orderBy(desc(chatMessageTable.pinnedAt));
-  return withReactions(pins);
+  return withFiles(await withReactions(pins));
 }

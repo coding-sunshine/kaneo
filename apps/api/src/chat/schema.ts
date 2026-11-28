@@ -56,6 +56,23 @@ export const postMessageBody = z.object({
   body: z.string().trim().min(1).max(4000),
 });
 
+export const chatFileUploadBody = z.object({
+  filename: z.string().min(1).max(255).openapi({
+    description:
+      "The file's name. Its extension decides the stored type: PDF, Office and OpenDocument files, plain text, Markdown, CSV and images.",
+  }),
+  size: z.number().openapi({ description: "Size of the file in bytes." }),
+});
+
+export const finalizeChatFileBody = chatFileUploadBody.extend({
+  key: z
+    .string()
+    .openapi({ description: "The key returned when the URL was issued." }),
+  body: z.string().trim().max(4000).optional().openapi({
+    description: "Text sent with the file. Empty when left out.",
+  }),
+});
+
 export const ticketCommentBody = z.object({
   taskId: z.string().openapi({
     description: "A ticket in this workspace, in a team you can open.",
@@ -133,6 +150,19 @@ export const messageSchema = z
       .openapi({
         description:
           "Emoji reactions, in the order each emoji was first used; userIds oldest first.",
+      }),
+    files: z
+      .array(
+        z.object({
+          id: z.string(),
+          filename: z.string(),
+          mimeType: z.string(),
+          size: z.number(),
+        }),
+      )
+      .openapi({
+        description:
+          "Files sent with the message, oldest first. Each downloads from /asset/{id} for whoever can read the channel.",
       }),
     linkPreview: linkPreviewSchema.nullable().openapi({
       description:

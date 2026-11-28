@@ -13875,6 +13875,9 @@
 						},
 						"chat": {
 							"type": "string"
+						},
+						"files": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -13912,7 +13915,8 @@
 						"pulse",
 						"teams",
 						"drafts",
-						"chat"
+						"chat",
+						"files"
 					]
 				},
 				"projectList": {
@@ -18990,6 +18994,9 @@
 						},
 						"noOneElse": {
 							"type": "string"
+						},
+						"attachFile": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -19067,7 +19074,56 @@
 						"directTitle",
 						"directHint",
 						"openDirect",
-						"noOneElse"
+						"noOneElse",
+						"attachFile"
+					]
+				},
+				"files": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"search": {
+							"type": "string"
+						},
+						"searchPlaceholder": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "string"
+						},
+						"noMatches": {
+							"type": "string"
+						},
+						"loading": {
+							"type": "string"
+						},
+						"loadFailed": {
+							"type": "string"
+						},
+						"deletedUser": {
+							"type": "string"
+						},
+						"untitled": {
+							"type": "string"
+						},
+						"directMessage": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"title",
+						"search",
+						"searchPlaceholder",
+						"empty",
+						"noMatches",
+						"loading",
+						"loadFailed",
+						"deletedUser",
+						"untitled",
+						"directMessage"
 					]
 				}
 			},
@@ -19090,7 +19146,8 @@
 				"loops",
 				"customizeSidebar",
 				"drafts",
-				"chat"
+				"chat",
+				"files"
 			]
 		},
 		"notifications": {

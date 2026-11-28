@@ -4,6 +4,7 @@ import { LinkPreviewCard } from "@/components/chat/link-preview-card";
 import { MessageActions } from "@/components/chat/message-actions";
 import { MessageBody } from "@/components/chat/message-body";
 import { MessageEditForm } from "@/components/chat/message-edit-form";
+import { MessageFiles } from "@/components/chat/message-files";
 import { MessageReactions } from "@/components/chat/message-reactions";
 import type { ChatMessage } from "@/components/chat/types";
 
@@ -91,8 +92,9 @@ export function MessageItem({
           onDone={() => setEditing(false)}
         />
       ) : (
-        <MessageBody body={message.body} />
+        message.body && <MessageBody body={message.body} />
       )}
+      <MessageFiles files={message.files} />
       {message.linkPreview && (
         <LinkPreviewCard
           preview={message.linkPreview}

@@ -45,6 +45,7 @@ import issueTemplate from "./issue-template";
 import documentTemplate from "./document-template";
 import emoji from "./emoji";
 import db, { getDatabase, schema } from "./database";
+import { chatMessageTable } from "./database/schema";
 import { apiErrorSchema } from "./errors/api-error-schema";
 import { httpExceptionResponse } from "./errors/http-exception-response";
 import { notFoundResponse } from "./errors/not-found-response";
@@ -89,6 +90,7 @@ import { loadChannel } from "./chat/controllers/load-channel";
 import savedView from "./saved-view";
 import taskDraft from "./task-draft";
 import document from "./document";
+import fileLibrary from "./file-library";
 import favorite from "./favorite";
 import mattermostIntegration from "./mattermost-integration";
 import mcpRoutes, { mcpWellKnownRoutes } from "./mcp";
@@ -600,6 +602,7 @@ export function createApp() {
           workspaceId: schema.assetTable.workspaceId,
           projectId: schema.assetTable.projectId,
           documentId: schema.assetTable.documentId,
+          chatChannelId: chatMessageTable.channelId,
           isPublic: schema.projectTable.isPublic,
           workspaceArchived: sql<boolean>`${schema.workspaceTable.archivedAt} is not null`,
         })
@@ -612,6 +615,10 @@ export function createApp() {
         .leftJoin(
           schema.projectTable,
           eq(schema.assetTable.projectId, schema.projectTable.id),
+        )
+        .leftJoin(
+          chatMessageTable,
+          eq(schema.assetTable.chatMessageId, chatMessageTable.id),
         )
         .where(eq(schema.assetTable.id, id))
         .limit(1);
@@ -887,6 +894,7 @@ export function createApp() {
   const initiativeApi = api.route("/initiative", initiative);
   const savedViewApi = api.route("/view", savedView);
   const chatApi = api.route("/chat", chat);
+  const fileLibraryApi = api.route("/file-library", fileLibrary);
   const taskDraftApi = api.route("/task-draft", taskDraft);
   const agentApi = api.route("/agent", agent);
   const loopApi = api.route("/loop", loop);
@@ -1139,6 +1147,7 @@ export function createApp() {
     initiativeApi,
     savedViewApi,
     chatApi,
+    fileLibraryApi,
     taskDraftApi,
     agentApi,
     loopApi,
@@ -1307,6 +1316,7 @@ const {
   initiativeApi,
   savedViewApi,
   chatApi,
+  fileLibraryApi,
   taskDraftApi,
   agentApi,
   loopApi,
@@ -1369,6 +1379,7 @@ export type AppType =
   | typeof initiativeApi
   | typeof savedViewApi
   | typeof chatApi
+  | typeof fileLibraryApi
   | typeof taskDraftApi
   | typeof agentApi
   | typeof loopApi

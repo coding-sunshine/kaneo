@@ -56,6 +56,7 @@ const message = (patch: Partial<ChatMessage> = {}) =>
     editedAt: null,
     pinnedAt: null,
     reactions: [],
+    files: [],
     createdAt: "2026-01-02T03:04:05.000Z",
     ...patch,
   }) as ChatMessage;
@@ -98,6 +99,25 @@ describe("MessageList", () => {
     expect(screen.getByRole("listitem")).toHaveTextContent(
       "navigation:chat.deletedUser",
     );
+  });
+
+  it("links each file sent with a message to its download", () => {
+    renderList([
+      message({
+        body: "",
+        files: [
+          {
+            id: "asset-1",
+            filename: "minutes.pdf",
+            mimeType: "application/pdf",
+            size: 2048,
+          },
+        ],
+      }),
+    ]);
+    const file = screen.getByRole("link", { name: /minutes\.pdf/ });
+    expect(file.getAttribute("href")).toMatch(/\/api\/asset\/asset-1$/);
+    expect(file).toHaveAttribute("target", "_blank");
   });
 
   it("shows a card for the link preview that opens the page in a new tab", () => {

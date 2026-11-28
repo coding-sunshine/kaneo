@@ -3388,7 +3388,8 @@
 			"pulse": "Pulse",
 			"teams": "Teams",
 			"drafts": "Drafts",
-			"chat": "Chat"
+			"chat": "Chat",
+			"files": "Files"
 		},
 		"projectList": {
 			"viewProject": "View Project",
@@ -4654,7 +4655,20 @@
 			"directTitle": "New message",
 			"directHint": "Pick one person, or several for a group conversation.",
 			"openDirect": "Open conversation",
-			"noOneElse": "Nobody else is in this workspace yet."
+			"noOneElse": "Nobody else is in this workspace yet.",
+			"attachFile": "Attach a file"
+		},
+		"files": {
+			"title": "Files",
+			"search": "Search files",
+			"searchPlaceholder": "Search by file name",
+			"empty": "No files yet. Files attached to tickets, documents and chat show up here.",
+			"noMatches": "No file names contain “{{query}}”.",
+			"loading": "Loading files…",
+			"loadFailed": "Files could not be loaded.",
+			"deletedUser": "Deleted user",
+			"untitled": "Untitled",
+			"directMessage": "Direct message"
 		}
 	},
 	"notifications": {

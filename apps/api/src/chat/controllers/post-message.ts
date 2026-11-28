@@ -27,5 +27,5 @@ export async function postMessage(
     messageId: message.id,
     userId,
   });
-  return { ...message, reactions: [] };
+  return { ...message, reactions: [], files: [] };
 }

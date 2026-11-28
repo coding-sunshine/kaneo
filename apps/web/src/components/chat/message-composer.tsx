@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ChatFileButton } from "@/components/chat/chat-file-button";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { usePostMessage } from "@/hooks/mutations/chat/use-post-message";
+import { useSendChatFile } from "@/hooks/mutations/chat/use-send-chat-file";
 import { toast } from "@/lib/toast";
 
 type MessageComposerProps = {
@@ -21,10 +23,12 @@ export function MessageComposer({
   const { t } = useTranslation();
   const [body, setBody] = useState("");
   const post = usePostMessage(workspaceId, channelId);
+  const sendFile = useSendChatFile(workspaceId, channelId);
+  const busy = post.isPending || sendFile.isPending;
 
   const send = () => {
     const text = body.trim();
-    if (!text || post.isPending) return;
+    if (!text || busy) return;
     post.mutate(text, {
       onSuccess: () => {
         setBody("");
@@ -33,6 +37,19 @@ export function MessageComposer({
       onError: (error) => toast.error(error.message),
     });
   };
+
+  // The typed text goes with the file, as its message.
+  const attach = (file: File) =>
+    sendFile.mutate(
+      { file, body: body.trim() || undefined },
+      {
+        onSuccess: () => {
+          setBody("");
+          onPosted?.();
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
 
   return (
     <form
@@ -58,7 +75,8 @@ export function MessageComposer({
           }
         }}
       />
-      <Button type="submit" size="sm" disabled={!body.trim() || post.isPending}>
+      <ChatFileButton disabled={busy} onPick={attach} />
+      <Button type="submit" size="sm" disabled={!body.trim() || busy}>
         {t("navigation:chat.send")}
       </Button>
     </form>

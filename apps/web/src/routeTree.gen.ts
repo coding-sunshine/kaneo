@@ -71,6 +71,7 @@ import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceWebhooksRouteImpo
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/index'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/agent'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/drafts'
+import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdFilesRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/files'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/inbox'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/initiatives'
 import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/loops'
@@ -470,6 +471,12 @@ const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRoute =
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRouteImport.update({
     id: '/drafts',
     path: '/drafts',
+    getParentRoute: () => LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
+  } as any)
+const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdFilesRoute =
+  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdFilesRouteImport.update({
+    id: '/files',
+    path: '/files',
     getParentRoute: () => LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
   } as any)
 const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute =
@@ -905,6 +912,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/workspace/webhooks': typeof LayoutAuthenticatedDashboardSettingsWorkspaceWebhooksRoute
   '/dashboard/workspace/$workspaceId/agent': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute
   '/dashboard/workspace/$workspaceId/drafts': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRoute
+  '/dashboard/workspace/$workspaceId/files': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdFilesRoute
   '/dashboard/workspace/$workspaceId/inbox': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute
   '/dashboard/workspace/$workspaceId/initiatives': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteWithChildren
   '/dashboard/workspace/$workspaceId/loops': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute
@@ -1009,6 +1017,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings/workspace/webhooks': typeof LayoutAuthenticatedDashboardSettingsWorkspaceWebhooksRoute
   '/dashboard/workspace/$workspaceId/agent': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute
   '/dashboard/workspace/$workspaceId/drafts': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRoute
+  '/dashboard/workspace/$workspaceId/files': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdFilesRoute
   '/dashboard/workspace/$workspaceId/inbox': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute
   '/dashboard/workspace/$workspaceId/initiatives': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteWithChildren
   '/dashboard/workspace/$workspaceId/loops': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute
@@ -1120,6 +1129,7 @@ export interface FileRoutesById {
   '/_layout/_authenticated/dashboard/settings/workspace/webhooks': typeof LayoutAuthenticatedDashboardSettingsWorkspaceWebhooksRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/agent': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/drafts': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRoute
+  '/_layout/_authenticated/dashboard/workspace/$workspaceId/files': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdFilesRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/inbox': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/initiatives': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteWithChildren
   '/_layout/_authenticated/dashboard/workspace/$workspaceId/loops': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute
@@ -1230,6 +1240,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/workspace/webhooks'
     | '/dashboard/workspace/$workspaceId/agent'
     | '/dashboard/workspace/$workspaceId/drafts'
+    | '/dashboard/workspace/$workspaceId/files'
     | '/dashboard/workspace/$workspaceId/inbox'
     | '/dashboard/workspace/$workspaceId/initiatives'
     | '/dashboard/workspace/$workspaceId/loops'
@@ -1334,6 +1345,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/workspace/webhooks'
     | '/dashboard/workspace/$workspaceId/agent'
     | '/dashboard/workspace/$workspaceId/drafts'
+    | '/dashboard/workspace/$workspaceId/files'
     | '/dashboard/workspace/$workspaceId/inbox'
     | '/dashboard/workspace/$workspaceId/initiatives'
     | '/dashboard/workspace/$workspaceId/loops'
@@ -1444,6 +1456,7 @@ export interface FileRouteTypes {
     | '/_layout/_authenticated/dashboard/settings/workspace/webhooks'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/agent'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/drafts'
+    | '/_layout/_authenticated/dashboard/workspace/$workspaceId/files'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/inbox'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/initiatives'
     | '/_layout/_authenticated/dashboard/workspace/$workspaceId/loops'
@@ -1939,6 +1952,13 @@ declare module '@tanstack/react-router' {
       path: '/drafts'
       fullPath: '/dashboard/workspace/$workspaceId/drafts'
       preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
+    }
+    '/_layout/_authenticated/dashboard/workspace/$workspaceId/files': {
+      id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/files'
+      path: '/files'
+      fullPath: '/dashboard/workspace/$workspaceId/files'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdFilesRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
     }
     '/_layout/_authenticated/dashboard/workspace/$workspaceId/inbox': {
@@ -2500,6 +2520,7 @@ const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdWorkProjectsRouteWithChild
 interface LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteChildren {
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRoute
+  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdFilesRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdFilesRoute
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRouteWithChildren
   LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdLoopsRoute
@@ -2540,6 +2561,8 @@ const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteChildren: LayoutAuthe
       LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAgentRoute,
     LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRoute:
       LayoutAuthenticatedDashboardWorkspaceWorkspaceIdDraftsRoute,
+    LayoutAuthenticatedDashboardWorkspaceWorkspaceIdFilesRoute:
+      LayoutAuthenticatedDashboardWorkspaceWorkspaceIdFilesRoute,
     LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute:
       LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInboxRoute,
     LayoutAuthenticatedDashboardWorkspaceWorkspaceIdInitiativesRoute:
