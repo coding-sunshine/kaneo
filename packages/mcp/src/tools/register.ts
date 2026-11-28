@@ -8,6 +8,13 @@ import { readOn } from "./read-on.js";
 
 export { SERVER_INSTRUCTIONS } from "./instructions.js";
 
+/**
+ * Sent with every read an AI makes through these tools: the API then leaves
+ * out chat channels whose members marked them no AI. It only narrows what
+ * comes back, so a caller who sends it on its own gains nothing.
+ */
+export const AI_READER_HEADER = "x-kaneo-ai-reader";
+
 export type ToolClient = {
   readonly usingApiKey?: boolean;
   json<T = unknown>(path: string, init?: RequestInit): Promise<T>;
@@ -475,6 +482,25 @@ export function registerTools(
   );
 
   registerTool(
+    "delegate_task_to_agent",
+    {
+      description:
+        "Propose handing a task to the server's coding agent. It puts a card on the task for you to accept in the app; nothing is sent to the agent before that.",
+      inputSchema: z.object({
+        workspaceId: nonEmptyString,
+        taskId: nonEmptyString,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/agent/workspace/${encodeURIComponent(args.workspaceId)}/tasks/${encodeURIComponent(args.taskId)}/delegate`,
+          { method: "POST" },
+        ),
+      ),
+  );
+
+  registerTool(
     "update_task_comment",
     {
       description: "Update one of your comments on a task.",
@@ -720,7 +746,11 @@ export function registerTools(
       if (args.workspaceId) qs.set("workspaceId", args.workspaceId);
       if (args.projectId) qs.set("projectId", args.projectId);
       if (args.limit !== undefined) qs.set("limit", String(args.limit));
-      return run(() => client.json(`/api/search?${qs.toString()}`));
+      return run(() =>
+        client.json(`/api/search?${qs.toString()}`, {
+          headers: { [AI_READER_HEADER]: "1" },
+        }),
+      );
     },
   );
 

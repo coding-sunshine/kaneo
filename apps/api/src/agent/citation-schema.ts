@@ -13,6 +13,9 @@ export const citationSchema = z
       }),
       projectId: z.string().optional(),
       ticket: z.string().optional(),
+      channelId: z.string().optional().openapi({
+        description: "The channel a chat message is in.",
+      }),
     }),
     z.object({
       kind: z.enum(SOURCE_KINDS),

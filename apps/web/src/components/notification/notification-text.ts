@@ -94,6 +94,7 @@ export function getNotificationTitle(
       case "sla_warning":
       case "sla_breach":
       case "stale_items":
+      case "weekly_digest":
         return t(`notifications:events.${notification.type}.title`, {
           ...eventData,
           defaultValue: notification.title ?? notification.type,
@@ -135,6 +136,10 @@ export function getNotificationTitle(
       case "chat_direct_message":
         return t("notifications:events.chat_direct_message.title", {
           actorName: eventData.actorName || t("common:people.someone"),
+          defaultValue: notification.title ?? notification.type,
+        });
+      case "chat_reminder":
+        return t("notifications:events.chat_reminder.title", {
           defaultValue: notification.title ?? notification.type,
         });
       case "document_replaced": {
@@ -215,6 +220,7 @@ export function getNotificationContent(
       case "sla_warning":
       case "sla_breach":
       case "stale_items":
+      case "weekly_digest":
         return t(`notifications:events.${notification.type}.content`, {
           ...eventData,
           defaultValue: notification.content ?? "",
@@ -244,6 +250,11 @@ export function getNotificationContent(
       case "chat_direct_message":
         return typeof eventData.messagePreview === "string"
           ? eventData.messagePreview
+          : (notification.content ?? "");
+      // The note the person wrote with /remind, if any.
+      case "chat_reminder":
+        return typeof eventData.note === "string"
+          ? eventData.note
           : (notification.content ?? "");
       case "document_mention":
       case "document_comment":

@@ -42,6 +42,10 @@ vi.mock("@/components/references/mentioned-in", () => ({
 }));
 vi.mock("./task-activity", () => ({ TaskActivity: () => null }));
 vi.mock("./task-summary/task-summary", () => ({ TaskSummary: () => null }));
+vi.mock("./task-proposals", () => ({ TaskProposals: () => null }));
+vi.mock("./task-delegation/task-delegation", () => ({
+  TaskDelegation: () => null,
+}));
 vi.mock("./task-description", () => ({ default: () => null }));
 vi.mock("./task-relations", () => ({ default: () => null }));
 vi.mock("./task-subtasks", () => ({ default: () => null }));

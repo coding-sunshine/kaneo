@@ -1224,7 +1224,16 @@
 				"channelsHint": "Only these channels are read. Direct messages never are.",
 				"save": "Save",
 				"saved": "Daily brief saved"
-			}
+			},
+			"desktopTitle": "Desktop",
+			"desktopDescription": "Alerts from this browser when you are not looking at the tab.",
+			"desktopEnabled": "Mentions and direct messages",
+			"desktopOnHint": "This browser shows a notification when someone mentions you or sends you a direct message.",
+			"desktopOffHint": "Turn on to get a notification in this browser for mentions and direct messages.",
+			"desktopServerOff": "Desktop notifications are off on this server. An admin turns them on by setting a VAPID key pair.",
+			"desktopUnsupported": "This browser cannot show push notifications.",
+			"desktopDenied": "This browser blocks notifications from this site. Allow them in the browser's site settings, then try again.",
+			"desktopFailed": "Could not change desktop notifications. Try again."
 		},
 		"preferencesPage": {
 			"title": "Preferences",
@@ -3088,7 +3097,21 @@
 				"loop": "Loop runs",
 				"loopDraft": "Loop drafts",
 				"filter": "Plain-English filters",
-				"summary": "Ticket summaries"
+				"summary": "Ticket summaries",
+				"triage": "Triage suggestions",
+				"writing": "Writing help",
+				"prSummary": "Pull request summaries",
+				"threadTicket": "Tickets from threads",
+				"decision": "Decisions from threads"
+			},
+			"switches": {
+				"title": "Background AI",
+				"description": "Features that call the model on their own, without anyone asking. Each is off until an admin turns it on.",
+				"triage": "Suggest triage for new tickets",
+				"triageDescription": "The model suggests labels, an assignee, a project and a priority for each new triage ticket.",
+				"prSummary": "Summarize merged pull requests",
+				"prSummaryDescription": "The model writes a short summary on a ticket when a pull request linked to it merges.",
+				"saveFailed": "Could not save the AI setting."
 			}
 		},
 		"aiAudit": {
@@ -3260,6 +3283,14 @@
 				"copyFailed": "Could not copy the address",
 				"repliesOff": "This instance cannot send email yet, so replies from tickets will not be delivered until SMTP is set up.",
 				"failed": "Could not change email intake"
+			},
+			"ai": {
+				"autoApply": "Apply AI triage suggestions automatically",
+				"autoApplyDescription": "New triage tickets get the suggested labels, assignee, project and priority without anyone accepting them. Off by default.",
+				"guidance": "AI triage guidance",
+				"guidanceDescription": "Tell the model how this team triages: which labels, people and projects handle what.",
+				"save": "Save guidance",
+				"autoApplyWarning": "Text in a ticket can steer which fields the model suggests and applies."
 			}
 		},
 		"adminBackups": {
@@ -4440,6 +4471,22 @@
 				"accept_other": "Accept {{count}} tickets",
 				"created_one": "{{count}} ticket created",
 				"created_other": "{{count}} tickets created"
+			},
+			"writing": {
+				"menu": "Write with AI",
+				"description": "Check the change. Accept puts it in place of your selection; one undo brings the original back.",
+				"diff": "Proposed change",
+				"working": "Writing…",
+				"accept": "Accept",
+				"decline": "Decline",
+				"changed": "The text changed while the suggestion was written, so nothing was replaced.",
+				"actions": {
+					"shorten": "Shorten",
+					"simplify": "Simplify",
+					"fix": "Fix spelling and grammar",
+					"professional": "Make professional",
+					"lengthen": "Lengthen"
+				}
 			}
 		},
 		"agent": {
@@ -4516,8 +4563,13 @@
 					"model": "Model",
 					"project": "Project",
 					"health": "Health",
-					"update": "Update"
-				}
+					"update": "Update",
+					"agent": "Coding agent",
+					"decision": "Decision",
+					"decider": "Decided by",
+					"reason": "Reason"
+				},
+				"keepField": "Apply {{field}}"
 			}
 		},
 		"loops": {
@@ -4545,7 +4597,8 @@
 				"update_task_status": "Change status",
 				"update_task_assignee": "Assign",
 				"create_task": "Create issue",
-				"create_project_update": "Draft project update"
+				"create_project_update": "Draft project update",
+				"draft_weekly_digest": "Draft weekly digest"
 			},
 			"permissionNote": "Each run uses your permissions at the time it runs, limited to the changes above.",
 			"save": "Save loop",
@@ -4626,6 +4679,12 @@
 					"description": "Raises issue priority when duplicate reports or customer requests reach a chosen threshold.",
 					"action": "Raise priority",
 					"instructions": "Find open issues that have three or more duplicate reports or related requests. Raise their priority one level and add a comment explaining why."
+				},
+				"digest": {
+					"title": "Weekly digest",
+					"description": "Drafts a weekly digest for leadership: what shipped, what is at risk, what needs a decision and what is blocked, with a link to every issue.",
+					"action": "Draft the digest",
+					"instructions": "Review the issues updated in the last 7 days. Put each one under shipped, at risk, needs decision or blocked, with a short note, and draft the weekly digest for the company-wide project. Leave out anything that fits none of them."
 				}
 			}
 		},
@@ -4788,7 +4847,30 @@
 			"ai": {
 				"exclude": "Mark as no AI",
 				"allow": "Allow AI to read this channel"
-			}
+			},
+			"typingOne": "{{name}} is typing…",
+			"typingTwo": "{{first}} and {{second}} are typing…",
+			"typingMany": "Several people are typing…",
+			"commands": {
+				"reminderSet": "Reminder set for {{time}}. Only you can see this.",
+				"statusSet": "Your status is now “{{status}}”.",
+				"statusCleared": "Your status is cleared.",
+				"unknown": "/{{name}} is not a command. Try /remind in 1 hour, /status away or /ticket Fix login.",
+				"dismiss": "Dismiss"
+			},
+			"createTicketWithAi": "Create ticket with AI",
+			"aiTicket": {
+				"title": "Create ticket with AI",
+				"description": "A ticket drafted from the whole thread. Nothing is created until you accept it."
+			},
+			"aiThreadLoading": "Reading the thread…",
+			"extractDecision": "Extract decision",
+			"aiDecision": {
+				"title": "Extract decision",
+				"description": "The decision this thread reached, who took it and why. Nothing is filed until you accept it; then it waits on the topic for its decider to approve."
+			},
+			"aiOff": "Turn off AI in this channel",
+			"aiOn": "Turn on AI in this channel"
 		},
 		"files": {
 			"title": "Files",
@@ -4924,6 +5006,13 @@
 			"daily_brief": {
 				"title": "Your daily brief",
 				"content": "Due today: {{dueToday}} · Mentions: {{mentions}} · Moved: {{moved}}"
+			},
+			"chat_reminder": {
+				"title": "Reminder you set in chat"
+			},
+			"weekly_digest": {
+				"title": "Weekly digest posted",
+				"content": "The weekly digest for {{projectName}} is ready to read."
 			}
 		},
 		"inbox": {
@@ -6092,6 +6181,19 @@
 			"decline": "Not a duplicate",
 			"accepted": "Marked as duplicate",
 			"failed": "Could not update the suggestion. Try again."
+		},
+		"delegation": {
+			"title": "Coding agent",
+			"action": "Delegate to {{name}}",
+			"notConfigured": "No coding agent is set up on this server. An admin can add one with CODING_AGENT_URL and CODING_AGENT_API_KEY.",
+			"pullRequest": "Pull request",
+			"status": {
+				"starting": "Starting",
+				"running": "Working",
+				"prOpened": "Pull request open",
+				"merged": "Merged",
+				"failed": "Failed"
+			}
 		}
 	},
 	"invitations": {
@@ -8021,8 +8123,8 @@
 				"deliveryHint": "Email, ntfy, Gotify, webhooks",
 				"invitations": "Invitations",
 				"permissionDenied": "Allow notifications for Kaneo in system settings first.",
-				"push": "Instant chat pushes",
-				"pushOn": "New chat messages arrive right away.",
+				"push": "Instant pushes for mentions and direct messages",
+				"pushOn": "Mentions and direct messages arrive right away.",
 				"pushServerOff": "Off on this server: it needs an APNs or FCM key. Chat arrives with the 15-minute check.",
 				"pushNeedsSession": "Needs a password or browser sign-in, not an API key.",
 				"pushNoToken": "This phone could not get a push token. Chat arrives with the 15-minute check.",

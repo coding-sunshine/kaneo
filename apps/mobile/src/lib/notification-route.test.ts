@@ -16,6 +16,20 @@ describe("notificationRoute", () => {
     });
   });
 
+  it("opens the message a chat push is about", () => {
+    expect(
+      notificationRoute({
+        kind: "chat",
+        workspaceId: "ws-1",
+        chatChannelId: "ch-1",
+        messageId: "m-1",
+      }),
+    ).toEqual({
+      pathname: "/chat/[channelId]",
+      params: { channelId: "ch-1", workspaceId: "ws-1", messageId: "m-1" },
+    });
+  });
+
   it("opens the task of a background notification", () => {
     expect(notificationRoute({ taskId: "t-1" })).toEqual({
       pathname: "/task/[taskId]",

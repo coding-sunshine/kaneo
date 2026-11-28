@@ -49,6 +49,22 @@ describe("registerTools", () => {
     );
   });
 
+  it("proposes a delegation card instead of starting the coding agent", async () => {
+    const { server, tools } = createServerMock();
+    const client = { json: vi.fn().mockResolvedValue({ id: "card-1" }) };
+
+    registerTools(server as never, { client: client as never });
+
+    await tools
+      .get("delegate_task_to_agent")
+      ?.handler({ workspaceId: "ws 1", taskId: "task/1" });
+
+    expect(client.json).toHaveBeenCalledWith(
+      "/api/agent/workspace/ws%201/tasks/task%2F1/delegate",
+      { method: "POST" },
+    );
+  });
+
   it("uses the API-key current-user endpoint for whoami", async () => {
     const { server, tools } = createServerMock();
     const client = {
@@ -783,6 +799,15 @@ describe("registerTools", () => {
       search?.config.inputSchema.parse({ q: "plan", type: "documents" }),
     ).not.toThrow();
     expect(search?.config.description).toContain("documents");
+  });
+
+  it("tells the API that an AI reads the search, so channels marked no AI stay out", async () => {
+    const { server, tools } = createServerMock();
+    const client = { json: vi.fn().mockResolvedValue([]) };
+    registerTools(server as never, { client: client as never });
+    await tools.get("search")?.handler({ q: "plan" });
+    const [, init] = client.json.mock.calls[0] as [string, RequestInit];
+    expect(new Headers(init.headers).get("x-kaneo-ai-reader")).toBe("1");
   });
 
   it("refuses a text too long for one call before it sends anything", async () => {

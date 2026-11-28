@@ -50,7 +50,12 @@ const userBroadcastSchema = v.object({
 
 const chatBroadcastSchema = v.object({
   channelId: v.string(),
-  message: v.object({ type: v.string(), channelId: v.string() }),
+  message: v.object({
+    type: v.string(),
+    channelId: v.string(),
+    userId: v.optional(v.string()),
+    typing: v.optional(v.boolean()),
+  }),
   origin: v.optional(v.string()),
 });
 

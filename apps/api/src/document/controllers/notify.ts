@@ -75,6 +75,26 @@ function send(
   );
 }
 
+/**
+ * Asks a topic's deciders to approve a document filed on it, unless they
+ * filed it or were already told. Followers hear of it from the filing.
+ */
+export async function askDecidersToApprove(
+  doc: NotifiedDocument,
+  topic: { id: string; name: string; deciderIds: string[] },
+  actorId: string,
+  told: string[],
+) {
+  const recipients = [...new Set(topic.deciderIds)].filter(
+    (id) => id !== actorId && !told.includes(id),
+  );
+  if (!recipients.length) return;
+  await send(doc, recipients, "document_proposed", await userName(actorId), {
+    topicId: topic.id,
+    topicName: topic.name,
+  });
+}
+
 // Mentions added to the body since the last save.
 export async function notifyBodyMentions(
   doc: NotifiedDocument,

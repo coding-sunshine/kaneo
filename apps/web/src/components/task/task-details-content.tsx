@@ -12,6 +12,8 @@ import { cn } from "@/lib/cn";
 import type { ExternalLink } from "@/types/external-link";
 import { DuplicateSuggestionBanner } from "./duplicate-suggestion/duplicate-suggestion-banner";
 import { TaskActivity } from "./task-activity";
+import { TaskDelegation } from "./task-delegation/task-delegation";
+import { TaskProposals } from "./task-proposals";
 import { TaskSummary } from "./task-summary/task-summary";
 import TaskArchivedBanner from "./task-archived-banner";
 import TaskAttachments from "./task-attachments";
@@ -141,7 +143,11 @@ export default function TaskDetailsContent({
         )}
       </div>
 
+      {!isPeek && <TaskProposals workspaceId={workspaceId} taskId={taskId} />}
+
       {!isPeek && <TaskSummary workspaceId={workspaceId} taskId={taskId} />}
+
+      {!isPeek && <TaskDelegation workspaceId={workspaceId} taskId={taskId} />}
 
       {!isPeek && (
         <TaskActivity

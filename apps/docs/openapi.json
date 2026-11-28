@@ -3825,6 +3825,10 @@
             "type": "boolean",
             "description": "True when the caller has joined the channel."
           },
+          "aiDisabled": {
+            "type": "boolean",
+            "description": "True when the channel's members turned AI features off."
+          },
           "isMuted": {
             "type": "boolean",
             "description": "True when the caller muted the channel: its mentions and direct messages stop reaching their Inbox."
@@ -3849,6 +3853,7 @@
           "isPrivate",
           "isDirect",
           "isMember",
+          "aiDisabled",
           "isMuted",
           "archivedAt",
           "createdAt"
@@ -4141,6 +4146,92 @@
           "restricted"
         ]
       },
+      "ChatCommandResult": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "enum": [
+                  "remind"
+                ]
+              },
+              "remindAt": {
+                "type": "string",
+                "description": "When your Inbox gets the reminder. Nobody else sees it."
+              }
+            },
+            "required": [
+              "command",
+              "remindAt"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "enum": [
+                  "status"
+                ]
+              },
+              "status": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "command",
+              "status"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "enum": [
+                  "ticket"
+                ]
+              },
+              "taskId": {
+                "type": "string"
+              },
+              "key": {
+                "type": "string"
+              },
+              "messageId": {
+                "type": "string",
+                "description": "The message that shows the new ticket's card."
+              }
+            },
+            "required": [
+              "command",
+              "taskId",
+              "key",
+              "messageId"
+            ]
+          }
+        ]
+      },
+      "ChatTyping": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string"
+          },
+          "typing": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "channelId",
+          "typing"
+        ]
+      },
       "ChatChannelMute": {
         "type": "object",
         "properties": {
@@ -4423,7 +4514,8 @@
                 "enum": [
                   "task",
                   "document",
-                  "comment"
+                  "comment",
+                  "message"
                 ]
               },
               "restricted": {
@@ -4447,6 +4539,10 @@
               },
               "ticket": {
                 "type": "string"
+              },
+              "channelId": {
+                "type": "string",
+                "description": "The channel a chat message is in."
               }
             },
             "required": [
@@ -4464,7 +4560,8 @@
                 "enum": [
                   "task",
                   "document",
-                  "comment"
+                  "comment",
+                  "message"
                 ]
               },
               "restricted": {
@@ -4519,6 +4616,10 @@
           "reason": {
             "type": "string"
           },
+          "selectable": {
+            "type": "boolean",
+            "description": "True when the person may keep some fields and drop others: accept with `fields`."
+          },
           "sources": {
             "type": "array",
             "items": {
@@ -4548,6 +4649,7 @@
           "status",
           "diff",
           "reason",
+          "selectable",
           "sources",
           "decidedAt",
           "result"
@@ -4572,6 +4674,10 @@
               "string",
               "null"
             ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why this one field is suggested, when the card says so."
           }
         },
         "required": [
@@ -5087,6 +5193,122 @@
           "sources"
         ]
       },
+      "AiTriageSettings": {
+        "type": "object",
+        "properties": {
+          "guidance": {
+            "type": "string",
+            "maxLength": 4000,
+            "description": "Sent to the model with every new triage ticket of the team, such as which labels or people handle what."
+          },
+          "autoApply": {
+            "type": "boolean",
+            "description": "Apply the suggestion without anyone accepting it. Off by default."
+          }
+        },
+        "required": [
+          "guidance",
+          "autoApply"
+        ]
+      },
+      "CodingAgent": {
+        "type": "object",
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "description": "False while the server has no coding agent address or key; delegation is then off."
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "configured",
+          "name"
+        ]
+      },
+      "CodingAgentRun": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "taskId": {
+            "type": "string"
+          },
+          "agent": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "starting",
+              "running",
+              "pr_opened",
+              "merged",
+              "failed"
+            ]
+          },
+          "pullRequestUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "taskId",
+          "agent",
+          "status",
+          "pullRequestUrl",
+          "error",
+          "createdAt"
+        ]
+      },
+      "WritingSuggestion": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "description": "The rewritten passage. Nothing is saved."
+      },
+      "AiFeatures": {
+        "type": "object",
+        "properties": {
+          "triage": {
+            "type": "boolean",
+            "description": "Ask the model for a triage suggestion on every new ticket in triage."
+          },
+          "prSummary": {
+            "type": "boolean",
+            "description": "Ask the model for a summary comment when a linked pull request merges."
+          }
+        },
+        "required": [
+          "triage",
+          "prSummary"
+        ],
+        "description": "AI features that call the model on their own. All off until an admin turns them on."
+      },
       "Loop": {
         "type": "object",
         "properties": {
@@ -5121,10 +5343,11 @@
                 "update_task_status",
                 "update_task_assignee",
                 "create_task_comment",
-                "create_project_update"
+                "create_project_update",
+                "draft_weekly_digest"
               ]
             },
-            "maxItems": 6
+            "maxItems": 7
           },
           "trigger": {
             "type": "string",
@@ -5240,10 +5463,11 @@
                 "update_task_status",
                 "update_task_assignee",
                 "create_task_comment",
-                "create_project_update"
+                "create_project_update",
+                "draft_weekly_digest"
               ]
             },
-            "maxItems": 6,
+            "maxItems": 7,
             "default": []
           }
         },
@@ -9267,7 +9491,8 @@
                       "enum": [
                         "task",
                         "document",
-                        "comment"
+                        "comment",
+                        "message"
                       ]
                     },
                     "restricted": {
@@ -9291,6 +9516,10 @@
                     },
                     "ticket": {
                       "type": "string"
+                    },
+                    "channelId": {
+                      "type": "string",
+                      "description": "The channel a chat message is in."
                     }
                   },
                   "required": [
@@ -9308,7 +9537,8 @@
                       "enum": [
                         "task",
                         "document",
-                        "comment"
+                        "comment",
+                        "message"
                       ]
                     },
                     "restricted": {
@@ -9358,7 +9588,8 @@
                           "enum": [
                             "task",
                             "document",
-                            "comment"
+                            "comment",
+                            "message"
                           ]
                         },
                         "restricted": {
@@ -9382,6 +9613,10 @@
                         },
                         "ticket": {
                           "type": "string"
+                        },
+                        "channelId": {
+                          "type": "string",
+                          "description": "The channel a chat message is in."
                         }
                       },
                       "required": [
@@ -9399,7 +9634,8 @@
                           "enum": [
                             "task",
                             "document",
-                            "comment"
+                            "comment",
+                            "message"
                           ]
                         },
                         "restricted": {
@@ -9504,7 +9740,8 @@
                             "enum": [
                               "task",
                               "document",
-                              "comment"
+                              "comment",
+                              "message"
                             ]
                           },
                           "restricted": {
@@ -9528,6 +9765,10 @@
                           },
                           "ticket": {
                             "type": "string"
+                          },
+                          "channelId": {
+                            "type": "string",
+                            "description": "The channel a chat message is in."
                           }
                         },
                         "required": [
@@ -9545,7 +9786,8 @@
                             "enum": [
                               "task",
                               "document",
-                              "comment"
+                              "comment",
+                              "message"
                             ]
                           },
                           "restricted": {
@@ -13202,7 +13444,7 @@
         "properties": {
           "delivering": {
             "type": "boolean",
-            "description": "Whether this server can push to the platform now. False until the operator sets the APNs or FCM key; the device stays registered."
+            "description": "Whether this server can push to the platform now. False until the operator sets the APNs, FCM or VAPID key; the device stays registered."
           }
         },
         "required": [
@@ -13219,6 +13461,53 @@
         },
         "required": [
           "removed"
+        ]
+      },
+      "PushDeviceList": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "platform": {
+              "type": "string",
+              "enum": [
+                "ios",
+                "android",
+                "web"
+              ]
+            },
+            "delivering": {
+              "type": "boolean",
+              "description": "Whether this server can push to the platform now."
+            },
+            "createdAt": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "platform",
+            "delivering",
+            "createdAt"
+          ]
+        }
+      },
+      "WebPushKey": {
+        "type": "object",
+        "properties": {
+          "publicKey": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The VAPID public key a browser subscribes with. Null while the operator has not set a key pair, so desktop push is off."
+          }
+        },
+        "required": [
+          "publicKey"
         ]
       },
       "CurrentUser": {
@@ -33081,6 +33370,10 @@
                   "archived": {
                     "type": "boolean",
                     "description": "Archive or unarchive. Archived channels stay readable."
+                  },
+                  "aiDisabled": {
+                    "type": "boolean",
+                    "description": "Keep AI features out of the channel: no ticket or decision is drafted from its threads."
                   }
                 }
               }
@@ -33614,7 +33907,7 @@
           "Chat"
         ],
         "summary": "Post message",
-        "description": "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline. One person may post 20 messages per channel in 10 seconds, replies included.",
+        "description": "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline. One person may post 20 messages per channel in 10 seconds, replies included. `@channel` puts the message in every other member's Inbox and `@here` in those not shown away; in a channel of more than 5 members only its owner may use them.",
         "parameters": [
           {
             "schema": {
@@ -33680,7 +33973,7 @@
             }
           },
           "403": {
-            "description": "Join the channel first",
+            "description": "Join the channel first, or only the channel owner can use @channel or @here in a channel of more than 5 members",
             "content": {
               "application/json": {
                 "schema": {
@@ -34044,7 +34337,7 @@
             }
           },
           "403": {
-            "description": "Not a channel member, or the message to add to is someone else's",
+            "description": "Not a channel member, the message to add to is someone else's, or the text uses @channel or @here where only the channel owner may",
             "content": {
               "application/json": {
                 "schema": {
@@ -34257,7 +34550,7 @@
             }
           },
           "403": {
-            "description": "Only the author can change this message",
+            "description": "Only the author can change this message, and only the channel owner can add @channel or @here in a channel of more than 5 members",
             "content": {
               "application/json": {
                 "schema": {
@@ -34986,6 +35279,229 @@
           },
           "429": {
             "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/commands": {
+      "post": {
+        "operationId": "runChatCommand",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Run slash command",
+        "description": "Run a slash command in a channel you may post to. `/remind in 1 hour` sets a reminder only your Inbox gets; `/status away` sets your status (`/status clear` clears it); neither posts anything. `/ticket Fix login` files a ticket in the workspace's oldest team you can open and posts its key, which shows as its card. Status needs a user session; tickets need permission to create them.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 4000,
+                    "description": "The line as typed, starting with a slash: `/remind in 1 hour [note]`, `/status <text>` or `/status clear`, or `/ticket <title>`."
+                  }
+                },
+                "required": [
+                  "text"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Command run",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatCommandResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown command, or one used the wrong way",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not a channel member, no user session for /status, or no permission to create tickets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived, there is no team you can add tickets to, or 50 of your reminders are already waiting",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/typing": {
+      "post": {
+        "operationId": "sendChatTyping",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Send typing",
+        "description": "Tell the people who have the channel open that you started or stopped typing. Only members who may post can send it. Nothing is stored.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "typing": {
+                    "type": "boolean",
+                    "description": "True while you type; false when you stop or send. Readers forget it after a few seconds without a new one."
+                  }
+                },
+                "required": [
+                  "typing"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Typing sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatTyping"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Join the channel first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "More than one start, or one stop, per second in this channel; clients drop it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -36496,6 +37012,82 @@
         }
       }
     },
+    "/agent/workspace/{workspaceId}/tasks/{taskId}/proposals": {
+      "get": {
+        "operationId": "listTaskProposals",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "List your proposals about a ticket",
+        "description": "The proposals made for you about one ticket, such as an AI triage suggestion, newest first. Other people's proposals are not shown.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "taskId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Proposals",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AgentProposal"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or proposal not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/agent/workspace/{workspaceId}/proposals/drafts": {
       "get": {
         "operationId": "listAgentDrafts",
@@ -36588,6 +37180,17 @@
             "required": true,
             "name": "proposalId",
             "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 200,
+              "description": "On a selectable proposal: the fields to apply, comma-separated (such as `labels,priority`). Omitted applies every field."
+            },
+            "required": false,
+            "description": "On a selectable proposal: the fields to apply, comma-separated (such as `labels,priority`). Omitted applies every field.",
+            "name": "fields",
+            "in": "query"
           }
         ],
         "responses": {
@@ -36597,6 +37200,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AgentProposal"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No field was kept",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -37104,6 +37717,948 @@
         }
       }
     },
+    "/agent/workspace/{workspaceId}/teams/{projectId}/triage-settings": {
+      "get": {
+        "operationId": "getAiTriageSettings",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Get a team's AI triage settings",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "The team's id."
+            },
+            "required": true,
+            "description": "The team's id.",
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The team's AI triage settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiTriageSettings"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateAiTriageSettings",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Update a team's AI triage settings",
+        "description": "Set the guidance the model reads for the team's new triage tickets, and whether its suggestion applies without anyone accepting it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "The team's id."
+            },
+            "required": true,
+            "description": "The team's id.",
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiTriageSettings"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The team's AI triage settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiTriageSettings"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/coding-agent": {
+      "get": {
+        "operationId": "getCodingAgent",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Get the coding agent",
+        "description": "Whether the server has a coding agent tickets can be handed to, and its name.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The coding agent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CodingAgent"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or ticket not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/tasks/{taskId}/delegate": {
+      "post": {
+        "operationId": "delegateTask",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Propose handing a ticket to the coding agent",
+        "description": "Puts a delegation card on the ticket for you. Nothing is sent to the coding agent until you accept it; then the ticket moves to In Progress, the pull request the agent opens is linked, and its merge moves the ticket to done.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "taskId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The delegation card",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentProposal"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or ticket not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "503": {
+            "description": "No coding agent is configured on this server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/delegations": {
+      "post": {
+        "operationId": "startCodingAgentRun",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Start the coding agent on a ticket",
+        "description": "Starts the run of a delegation card you accepted. Accepting the card calls this; without an accepted card it answers 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "taskId": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "taskId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The started run",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CodingAgentRun"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or ticket not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The run already started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "502": {
+            "description": "The coding agent refused the run",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No coding agent is configured on this server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/tasks/{taskId}/delegations": {
+      "get": {
+        "operationId": "listCodingAgentRuns",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "List a ticket's coding agent runs",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "taskId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Runs, newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CodingAgentRun"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or ticket not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/writing": {
+      "post": {
+        "operationId": "rewriteSelection",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Rewrite a selected passage",
+        "description": "Rewrites the passage a person selected in the editor and returns the result to show beside the original. Nothing is saved; the editor replaces the selection only when the person accepts. Needs the permission to edit documents. Counted as writing help in AI usage.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "shorten",
+                      "lengthen",
+                      "simplify",
+                      "fix",
+                      "professional"
+                    ],
+                    "description": "shorten, lengthen, simplify, fix (spelling and grammar) or professional."
+                  },
+                  "text": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 8000,
+                    "description": "The selected passage."
+                  }
+                },
+                "required": [
+                  "action",
+                  "text"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The rewritten passage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WritingSuggestion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "502": {
+            "description": "The model request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/channels/{channelId}/messages/{messageId}/ticket-proposal": {
+      "post": {
+        "operationId": "proposeTicketFromThread",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Propose a ticket from a chat thread",
+        "description": "Drafts a ticket from the whole thread the message is in: a title, a description, an assignee among the people the thread mentions, labels, a team and a project. It is a card for you; nothing is created until you accept it, and then the ticket links back to the thread and the thread links to the ticket. Counted as thread tickets in AI usage.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The ticket card",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentProposal"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission, or AI is off in the channel",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled, or the message was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The model suggested no usable ticket",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "502": {
+            "description": "The model request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/channels/{channelId}/messages/{messageId}/decision-proposal": {
+      "post": {
+        "operationId": "proposeDecisionFromThread",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Propose a decision from a chat thread",
+        "description": "Finds the decision the thread the message is in reached: what was decided, who decided, the reason, the messages it rests on and a topic you can open. It is a card for you; nothing is filed until you accept it, and then the decision is filed as a draft on the topic for its decider to approve. A channel marked no AI refuses it. Counted as decisions in AI usage.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The decision card",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentProposal"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission, or AI is off in the channel",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled, or the message was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The model found no usable decision",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "502": {
+            "description": "The model request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/ai-features": {
+      "get": {
+        "operationId": "getAiFeatures",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Get AI feature switches",
+        "description": "Which AI features run on their own in this workspace. Readable by every member, so settings can say whether a feature is on.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AI feature switches",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiFeatures"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "put": {
+        "operationId": "setAiFeatures",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Set AI feature switches",
+        "description": "Turn AI triage suggestions and pull request summaries on or off for the workspace. Admins and owners only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiFeatures"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AI feature switches",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiFeatures"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/loop/workspace/{workspaceId}": {
       "get": {
         "operationId": "listLoops",
@@ -37338,10 +38893,11 @@
                         "update_task_status",
                         "update_task_assignee",
                         "create_task_comment",
-                        "create_project_update"
+                        "create_project_update",
+                        "draft_weekly_digest"
                       ]
                     },
-                    "maxItems": 6
+                    "maxItems": 7
                   },
                   "enabled": {
                     "type": "boolean"
@@ -37545,10 +39101,11 @@
                         "update_task_status",
                         "update_task_assignee",
                         "create_task_comment",
-                        "create_project_update"
+                        "create_project_update",
+                        "draft_weekly_digest"
                       ]
                     },
-                    "maxItems": 6,
+                    "maxItems": 7,
                     "default": []
                   }
                 },
@@ -63127,32 +64684,83 @@
         "tags": [
           "Push"
         ],
-        "summary": "Register a phone for chat pushes",
-        "description": "Store this app install's native push token for your sign-in, so new chat messages reach the phone. Signing out or revoking the session drops it. Requires a user session; API keys are rejected.",
+        "summary": "Register a phone or browser for chat pushes",
+        "description": "Store this app install's native push token, or this browser's push subscription, for your sign-in, so mentions and direct messages reach the device. Signing out or revoking the session drops it. Requires a user session; API keys are rejected.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "platform": {
-                    "type": "string",
-                    "enum": [
-                      "ios",
-                      "android"
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "platform": {
+                        "type": "string",
+                        "enum": [
+                          "ios",
+                          "android"
+                        ]
+                      },
+                      "token": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 4096,
+                        "description": "The native APNs device token or FCM registration token."
+                      }
+                    },
+                    "required": [
+                      "platform",
+                      "token"
                     ]
                   },
-                  "token": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 4096,
-                    "description": "The native APNs device token or FCM registration token."
+                  {
+                    "type": "object",
+                    "properties": {
+                      "platform": {
+                        "type": "string",
+                        "enum": [
+                          "web"
+                        ]
+                      },
+                      "subscription": {
+                        "type": "object",
+                        "properties": {
+                          "endpoint": {
+                            "type": "string",
+                            "maxLength": 2048,
+                            "format": "uri"
+                          },
+                          "keys": {
+                            "type": "object",
+                            "properties": {
+                              "p256dh": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z0-9_-]+=*$"
+                              },
+                              "auth": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z0-9_-]+=*$"
+                              }
+                            },
+                            "required": [
+                              "p256dh",
+                              "auth"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "endpoint",
+                          "keys"
+                        ],
+                        "description": "The browser's PushSubscription, as its toJSON() gives it."
+                      }
+                    },
+                    "required": [
+                      "platform",
+                      "subscription"
+                    ]
                   }
-                },
-                "required": [
-                  "platform",
-                  "token"
                 ]
               }
             }
@@ -63199,23 +64807,66 @@
         "tags": [
           "Push"
         ],
-        "summary": "Stop chat pushes to a phone",
-        "description": "Forget one of your push tokens. Another person's token is left alone.",
+        "summary": "Stop chat pushes to a phone or browser",
+        "description": "Forget one of your push tokens or browser subscriptions. Another person's is left alone.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "token": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 4096
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "token": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 4096
+                      }
+                    },
+                    "required": [
+                      "token"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "subscription": {
+                        "type": "object",
+                        "properties": {
+                          "endpoint": {
+                            "type": "string",
+                            "maxLength": 2048
+                          },
+                          "keys": {
+                            "type": "object",
+                            "properties": {
+                              "p256dh": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z0-9_-]+=*$"
+                              },
+                              "auth": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z0-9_-]+=*$"
+                              }
+                            },
+                            "required": [
+                              "p256dh",
+                              "auth"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "endpoint",
+                          "keys"
+                        ],
+                        "description": "The browser's PushSubscription, as its toJSON() gives it."
+                      }
+                    },
+                    "required": [
+                      "subscription"
+                    ]
                   }
-                },
-                "required": [
-                  "token"
                 ]
               }
             }
@@ -63228,6 +64879,96 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PushDeviceRemoval"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated with an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/push/devices": {
+      "get": {
+        "operationId": "listPushDevices",
+        "tags": [
+          "Push"
+        ],
+        "summary": "List your phones and browsers that get chat pushes",
+        "description": "Your registered push devices, oldest first, without their tokens. Requires a user session; API keys are rejected.",
+        "responses": {
+          "200": {
+            "description": "Your devices",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushDeviceList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated with an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/push/web-key": {
+      "get": {
+        "operationId": "getWebPushKey",
+        "tags": [
+          "Push"
+        ],
+        "summary": "Get the key a browser subscribes to desktop pushes with",
+        "description": "The server's VAPID public key, or null while desktop push is off. Requires a user session.",
+        "responses": {
+          "200": {
+            "description": "The key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebPushKey"
                 }
               }
             }

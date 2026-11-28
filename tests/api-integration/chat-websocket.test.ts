@@ -12,6 +12,7 @@ import {
 } from "vite-plus/test";
 import { serve } from "../../apps/api/node_modules/@hono/node-server";
 import type { NodeWebSocket } from "../../apps/api/node_modules/@hono/node-ws";
+import { sql } from "drizzle-orm";
 import { auth } from "../../apps/api/src/auth";
 import db, { schema } from "../../apps/api/src/database";
 import { settleEvents } from "../../apps/api/src/events";
@@ -101,11 +102,15 @@ async function subscribe(member: Seeded, channelId: string, path = "chat/") {
   return { socket, status, received };
 }
 
-async function addToWorkspace(workspaceId: string, member: Seeded) {
+async function addToWorkspace(
+  workspaceId: string,
+  member: Seeded,
+  role = "member",
+) {
   await db.insert(schema.workspaceUserTable).values({
     workspaceId,
     userId: member.user.id,
-    role: "member",
+    role,
     joinedAt: new Date(),
   });
 }
@@ -302,5 +307,160 @@ describe("API integration: chat over WebSocket", () => {
     expect((await post(pub.id, "two")).status).toBe(200);
 
     await vi.waitFor(() => expect(reader.received).toHaveLength(2));
+  });
+});
+
+describe("API integration: typing over the chat socket", () => {
+  const typing = (channelId: string, userId: string, on: boolean) => ({
+    type: "CHAT_TYPING",
+    channelId,
+    userId,
+    typing: on,
+  });
+  const typingIn = (socket: { received: unknown[] }) =>
+    socket.received.filter(
+      (message) => (message as { type?: string }).type === "CHAT_TYPING",
+    );
+  const sendTyping = (
+    member: Seeded,
+    channels: string,
+    channelId: string,
+    on = true,
+  ) => request(member, `${channels}/${channelId}/typing`, { typing: on });
+
+  async function countRows() {
+    const tables = await db.execute<{ table_name: string }>(
+      sql`select table_name from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE'`,
+    );
+    const counts: Record<string, number> = {};
+    for (const { table_name } of tables.rows) {
+      const result = await db.execute<{ count: number }>(
+        sql`select count(*)::int as count from ${sql.identifier(table_name)}`,
+      );
+      counts[table_name] = result.rows[0]?.count ?? 0;
+    }
+    return counts;
+  }
+
+  it("tells another reader with the channel open when a member starts and stops typing", async () => {
+    const { a, b, channels, pub } = await setup();
+    const reader = await subscribe(b, pub.id);
+    expect(reader.status).toBe(101);
+
+    expect((await sendTyping(a, channels, pub.id)).status).toBe(200);
+    await vi.waitFor(() =>
+      expect(typingIn(reader)).toEqual([typing(pub.id, a.user.id, true)]),
+    );
+    expect((await sendTyping(a, channels, pub.id, false)).status).toBe(200);
+    await vi.waitFor(() =>
+      expect(typingIn(reader)).toEqual([
+        typing(pub.id, a.user.id, true),
+        typing(pub.id, a.user.id, false),
+      ]),
+    );
+  });
+
+  it("sends nothing to a user who does not have the channel open", async () => {
+    const { a, b, channels, pub, post } = await setup();
+    const userSocket = await subscribe(b, "user", "");
+    const marker = await subscribe(b, pub.id);
+
+    await sendTyping(a, channels, pub.id);
+    await post(pub.id, "marker");
+    await vi.waitFor(() =>
+      expect(marker.received).toContainEqual(created(pub.id)),
+    );
+    expect(typingIn(userSocket)).toEqual([]);
+  });
+
+  it("never delivers typing in a private channel to a non-member", async () => {
+    const { a, b, c, channels, priv, pub, post } = await setup();
+    const member = await subscribe(b, priv.id);
+    const nonMember = await subscribe(c, priv.id);
+    const elsewhere = await subscribe(c, pub.id);
+    const userSocket = await subscribe(c, "user", "");
+    expect(member.status).toBe(101);
+    expect(nonMember.status).toBe(404);
+
+    expect((await sendTyping(a, channels, priv.id)).status).toBe(200);
+    await vi.waitFor(() =>
+      expect(typingIn(member)).toEqual([typing(priv.id, a.user.id, true)]),
+    );
+    await post(pub.id, "marker");
+    await vi.waitFor(() =>
+      expect(elsewhere.received).toContainEqual(created(pub.id)),
+    );
+    for (const socket of [nonMember, elsewhere, userSocket])
+      expect(JSON.stringify(socket.received)).not.toContain(priv.id);
+  });
+
+  it("stops typing reaching a member who left a private channel", async () => {
+    const { a, b, channels, priv } = await setup();
+    const reader = await subscribe(b, priv.id);
+    expect((await request(b, `${channels}/${priv.id}/leave`, {})).status).toBe(
+      200,
+    );
+
+    await sendTyping(a, channels, priv.id);
+    await vi.waitFor(() =>
+      expect(reader.socket.readyState).toBe(reader.socket.CLOSED),
+    );
+    expect(typingIn(reader)).toEqual([]);
+  });
+
+  it("lets only members who may post send typing", async () => {
+    const { a, b, c, outsider, workspaceId, channels, pub, priv } =
+      await setup();
+    const viewer = await createWorkspaceMember();
+    await addToWorkspace(workspaceId, viewer, "viewer");
+    users.set(tokenFor(viewer), viewer.user);
+    const reader = await subscribe(a, pub.id);
+    const privReader = await subscribe(a, priv.id);
+
+    expect((await sendTyping(c, channels, priv.id)).status).toBe(404);
+    expect((await sendTyping(outsider, channels, pub.id)).status).toBe(404);
+    expect((await sendTyping(b, channels, pub.id)).status).toBe(403);
+    expect((await sendTyping(viewer, channels, pub.id)).status).toBe(403);
+
+    expect(
+      (await request(a, `${channels}/${pub.id}`, { archived: true }, "PATCH"))
+        .status,
+    ).toBe(200);
+    expect((await sendTyping(a, channels, pub.id)).status).toBe(409);
+
+    await settleEvents();
+    expect(typingIn(reader)).toEqual([]);
+    expect(typingIn(privReader)).toEqual([]);
+  });
+
+  it("stores no typing in the database", async () => {
+    const { a, b, channels, pub } = await setup();
+    const reader = await subscribe(b, pub.id);
+    await settleEvents();
+    const before = await countRows();
+
+    await sendTyping(a, channels, pub.id);
+    await sendTyping(a, channels, pub.id, false);
+    await vi.waitFor(() => expect(typingIn(reader)).toHaveLength(2));
+    await settleEvents();
+
+    expect(await countRows()).toEqual(before);
+  });
+
+  it("answers 429 to more than one start, or one stop, per second in a channel", async () => {
+    const { a, b, channels, pub } = await setup();
+    const reader = await subscribe(b, pub.id);
+
+    expect((await sendTyping(a, channels, pub.id)).status).toBe(200);
+    expect((await sendTyping(a, channels, pub.id)).status).toBe(429);
+    // A stop right after a start still goes through, once.
+    expect((await sendTyping(a, channels, pub.id, false)).status).toBe(200);
+    expect((await sendTyping(a, channels, pub.id, false)).status).toBe(429);
+
+    await vi.waitFor(() => expect(typingIn(reader)).toHaveLength(2));
+    expect(typingIn(reader)).toEqual([
+      typing(pub.id, a.user.id, true),
+      typing(pub.id, a.user.id, false),
+    ]);
   });
 });

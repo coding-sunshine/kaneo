@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import db from "../../database";
 import { chatMessageTable } from "../../database/schema";
 import { publishEvent } from "../../events";
+import { assertCanBroadcast } from "../mentions/assert-can-broadcast";
 import { syncMessageReferences } from "../mentions/sync-message-references";
 import { loadMessage, loadOwnMessage } from "./load-message";
 
@@ -13,6 +14,7 @@ export async function editMessage(
   body: string,
 ) {
   await loadOwnMessage(workspaceId, channelId, messageId, userId, "post");
+  await assertCanBroadcast(channelId, userId, body);
   await db.transaction(async (tx) => {
     await tx
       .update(chatMessageTable)

@@ -32,6 +32,7 @@ import type {
   BroadcastAdapter,
   BroadcastMessage,
   ChatBroadcast,
+  ChatBroadcastMessage,
   ProjectBroadcastMessage,
   UserBroadcast,
   UserBroadcastMessage,
@@ -134,7 +135,27 @@ export async function broadcastToChatChannel(
     | "CHAT_MESSAGE_CREATED"
     | "CHAT_MESSAGE_UPDATED" = "CHAT_MESSAGE_CREATED",
 ) {
-  const message = { type, channelId };
+  await fanOutToChat(channelId, { type, channelId });
+}
+
+/**
+ * Tells the readers who have the channel open that a member started or
+ * stopped typing. Nothing is stored, and a closed channel hears nothing.
+ */
+export async function broadcastChatTyping(
+  channelId: string,
+  userId: string,
+  typing: boolean,
+) {
+  await fanOutToChat(channelId, {
+    type: "CHAT_TYPING",
+    channelId,
+    userId,
+    typing,
+  });
+}
+
+async function fanOutToChat(channelId: string, message: ChatBroadcastMessage) {
   await deliverToLocalChatConnections(channelId, message);
   try {
     await adapter?.publishToChat({ channelId, message, origin: INSTANCE_ID });

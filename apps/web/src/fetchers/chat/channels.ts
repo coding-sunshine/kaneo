@@ -29,7 +29,12 @@ export async function getChannel(param: ChannelParam) {
 
 export async function updateChannel(
   param: ChannelParam,
-  json: { name?: string; topic?: string | null; archived?: boolean },
+  json: {
+    name?: string;
+    topic?: string | null;
+    archived?: boolean;
+    aiDisabled?: boolean;
+  },
 ) {
   const response = await channel.$patch({ param, json });
   if (!response.ok) throw await HttpError.fromResponse(response);

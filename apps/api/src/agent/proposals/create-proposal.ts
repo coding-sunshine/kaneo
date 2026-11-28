@@ -14,6 +14,8 @@ import type { ProposeRequest } from "../tools";
 import { canPostProjectUpdate } from "./can-post-project-update";
 import { type ChangeTaskArgs, unknownLabels } from "./change-task-tool";
 import { type FieldChange, fieldDiff } from "./field-diff";
+import { DIGEST_TOOL } from "../digest/digest-tool";
+import { proposeDigest } from "../digest/propose-digest";
 import { PROJECT_UPDATE_TOOL } from "./project-update-tool";
 import { asksForStatus } from "./status-guard";
 import { readTaskState } from "./task-state";
@@ -110,6 +112,9 @@ export function proposer(turn: ProposalTurn) {
     context: { toolCallId: string; added: ChatMessage[] },
   ) => {
     const { tool, args } = request;
+    if (tool === DIGEST_TOOL) {
+      return proposeDigest(turn, request, context.toolCallId);
+    }
     const taskId = typeof args.taskId === "string" ? args.taskId : null;
     const slot = `${tool === "create_task_comment" ? "comment" : "change"}:${taskId}`;
     let projectId: string;

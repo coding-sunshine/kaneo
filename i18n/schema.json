@@ -4751,6 +4751,73 @@
 						},
 						"stopping": {
 							"type": "string"
+						},
+						"dailyBrief": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"enabled": {
+									"type": "string"
+								},
+								"enabledHint": {
+									"type": "string"
+								},
+								"channels": {
+									"type": "string"
+								},
+								"channelsHint": {
+									"type": "string"
+								},
+								"save": {
+									"type": "string"
+								},
+								"saved": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"description",
+								"enabled",
+								"enabledHint",
+								"channels",
+								"channelsHint",
+								"save",
+								"saved"
+							]
+						},
+						"desktopTitle": {
+							"type": "string"
+						},
+						"desktopDescription": {
+							"type": "string"
+						},
+						"desktopEnabled": {
+							"type": "string"
+						},
+						"desktopOnHint": {
+							"type": "string"
+						},
+						"desktopOffHint": {
+							"type": "string"
+						},
+						"desktopServerOff": {
+							"type": "string"
+						},
+						"desktopUnsupported": {
+							"type": "string"
+						},
+						"desktopDenied": {
+							"type": "string"
+						},
+						"desktopFailed": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -4881,7 +4948,17 @@
 						"stopSending",
 						"stopSendingTitle",
 						"stopSendingDescription",
-						"stopping"
+						"stopping",
+						"dailyBrief",
+						"desktopTitle",
+						"desktopDescription",
+						"desktopEnabled",
+						"desktopOnHint",
+						"desktopOffHint",
+						"desktopServerOff",
+						"desktopUnsupported",
+						"desktopDenied",
+						"desktopFailed"
 					]
 				},
 				"preferencesPage": {
@@ -12548,6 +12625,21 @@
 								},
 								"summary": {
 									"type": "string"
+								},
+								"triage": {
+									"type": "string"
+								},
+								"writing": {
+									"type": "string"
+								},
+								"prSummary": {
+									"type": "string"
+								},
+								"threadTicket": {
+									"type": "string"
+								},
+								"decision": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -12555,7 +12647,48 @@
 								"loop",
 								"loopDraft",
 								"filter",
-								"summary"
+								"summary",
+								"triage",
+								"writing",
+								"prSummary",
+								"threadTicket",
+								"decision"
+							]
+						},
+						"switches": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"triage": {
+									"type": "string"
+								},
+								"triageDescription": {
+									"type": "string"
+								},
+								"prSummary": {
+									"type": "string"
+								},
+								"prSummaryDescription": {
+									"type": "string"
+								},
+								"saveFailed": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"description",
+								"triage",
+								"triageDescription",
+								"prSummary",
+								"prSummaryDescription",
+								"saveFailed"
 							]
 						}
 					},
@@ -12577,7 +12710,8 @@
 						"period",
 						"empty",
 						"loadError",
-						"features"
+						"features",
+						"switches"
 					]
 				},
 				"aiAudit": {
@@ -13277,6 +13411,38 @@
 								"repliesOff",
 								"failed"
 							]
+						},
+						"ai": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"autoApply": {
+									"type": "string"
+								},
+								"autoApplyDescription": {
+									"type": "string"
+								},
+								"guidance": {
+									"type": "string"
+								},
+								"guidanceDescription": {
+									"type": "string"
+								},
+								"save": {
+									"type": "string"
+								},
+								"autoApplyWarning": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"autoApply",
+								"autoApplyDescription",
+								"guidance",
+								"guidanceDescription",
+								"save",
+								"autoApplyWarning"
+							]
 						}
 					},
 					"required": [
@@ -13288,7 +13454,8 @@
 						"assign",
 						"saveFailed",
 						"itIntake",
-						"emailIntake"
+						"emailIntake",
+						"ai"
 					]
 				},
 				"adminBackups": {
@@ -17958,6 +18125,249 @@
 								"search",
 								"done"
 							]
+						},
+						"editing": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"one": {
+									"type": "string"
+								},
+								"many": {
+									"type": "string"
+								}
+							},
+							"required": ["one", "many"]
+						},
+						"conflict": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"banner": {
+									"type": "string"
+								},
+								"review": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"theirs": {
+									"type": "string"
+								},
+								"mine": {
+									"type": "string"
+								},
+								"keepMine": {
+									"type": "string"
+								},
+								"useTheirs": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"banner",
+								"review",
+								"title",
+								"description",
+								"theirs",
+								"mine",
+								"keepMine",
+								"useTheirs"
+							]
+						},
+						"coediting": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"loading": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								}
+							},
+							"required": ["loading", "failed"]
+						},
+						"meetingNotes": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"open": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"transcript": {
+									"type": "string"
+								},
+								"audio": {
+									"type": "string"
+								},
+								"transcribing": {
+									"type": "string"
+								},
+								"audioOff": {
+									"type": "string"
+								},
+								"keep": {
+									"type": "string"
+								},
+								"run": {
+									"type": "string"
+								},
+								"running": {
+									"type": "string"
+								},
+								"off": {
+									"type": "string"
+								},
+								"proposal": {
+									"type": "string"
+								},
+								"decisions": {
+									"type": "string"
+								},
+								"noDecisions": {
+									"type": "string"
+								},
+								"actionItems": {
+									"type": "string"
+								},
+								"noActionItems": {
+									"type": "string"
+								},
+								"project": {
+									"type": "string"
+								},
+								"accept_one": {
+									"type": "string"
+								},
+								"accept_zero": {
+									"type": "string"
+								},
+								"accept_two": {
+									"type": "string"
+								},
+								"accept_few": {
+									"type": "string"
+								},
+								"accept_many": {
+									"type": "string"
+								},
+								"accept_other": {
+									"type": "string"
+								},
+								"created_one": {
+									"type": "string"
+								},
+								"created_zero": {
+									"type": "string"
+								},
+								"created_two": {
+									"type": "string"
+								},
+								"created_few": {
+									"type": "string"
+								},
+								"created_many": {
+									"type": "string"
+								},
+								"created_other": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"open",
+								"title",
+								"description",
+								"transcript",
+								"audio",
+								"transcribing",
+								"audioOff",
+								"keep",
+								"run",
+								"running",
+								"off",
+								"proposal",
+								"decisions",
+								"noDecisions",
+								"actionItems",
+								"noActionItems",
+								"project"
+							]
+						},
+						"writing": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"menu": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"diff": {
+									"type": "string"
+								},
+								"working": {
+									"type": "string"
+								},
+								"accept": {
+									"type": "string"
+								},
+								"decline": {
+									"type": "string"
+								},
+								"changed": {
+									"type": "string"
+								},
+								"actions": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"shorten": {
+											"type": "string"
+										},
+										"simplify": {
+											"type": "string"
+										},
+										"fix": {
+											"type": "string"
+										},
+										"professional": {
+											"type": "string"
+										},
+										"lengthen": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"shorten",
+										"simplify",
+										"fix",
+										"professional",
+										"lengthen"
+									]
+								}
+							},
+							"required": [
+								"menu",
+								"description",
+								"diff",
+								"working",
+								"accept",
+								"decline",
+								"changed",
+								"actions"
+							]
 						}
 					},
 					"required": [
@@ -18039,7 +18449,12 @@
 						"columns",
 						"groups",
 						"filter",
-						"pins"
+						"pins",
+						"editing",
+						"conflict",
+						"coediting",
+						"meetingNotes",
+						"writing"
 					]
 				},
 				"agent": {
@@ -18282,6 +18697,18 @@
 										},
 										"update": {
 											"type": "string"
+										},
+										"agent": {
+											"type": "string"
+										},
+										"decision": {
+											"type": "string"
+										},
+										"decider": {
+											"type": "string"
+										},
+										"reason": {
+											"type": "string"
 										}
 									},
 									"required": [
@@ -18301,8 +18728,15 @@
 										"model",
 										"project",
 										"health",
-										"update"
+										"update",
+										"agent",
+										"decision",
+										"decider",
+										"reason"
 									]
+								},
+								"keepField": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -18314,7 +18748,8 @@
 								"changesTo",
 								"failed",
 								"status",
-								"fields"
+								"fields",
+								"keepField"
 							]
 						}
 					},
@@ -18416,6 +18851,9 @@
 								},
 								"create_project_update": {
 									"type": "string"
+								},
+								"draft_weekly_digest": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -18424,7 +18862,8 @@
 								"update_task_status",
 								"update_task_assignee",
 								"create_task",
-								"create_project_update"
+								"create_project_update",
+								"draft_weekly_digest"
 							]
 						},
 						"permissionNote": {
@@ -18688,6 +19127,25 @@
 										}
 									},
 									"required": ["title", "description", "action", "instructions"]
+								},
+								"digest": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"title": {
+											"type": "string"
+										},
+										"description": {
+											"type": "string"
+										},
+										"action": {
+											"type": "string"
+										},
+										"instructions": {
+											"type": "string"
+										}
+									},
+									"required": ["title", "description", "action", "instructions"]
 								}
 							},
 							"required": [
@@ -18696,7 +19154,8 @@
 								"qa",
 								"wrap",
 								"requests",
-								"priority"
+								"priority",
+								"digest"
 							]
 						}
 					},
@@ -19197,6 +19656,221 @@
 						},
 						"unmutedNotice": {
 							"type": "string"
+						},
+						"skills": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"open": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								},
+								"off": {
+									"type": "string"
+								},
+								"name": {
+									"type": "string"
+								},
+								"prompt": {
+									"type": "string"
+								},
+								"scope": {
+									"type": "string"
+								},
+								"scopeHint": {
+									"type": "string"
+								},
+								"cap": {
+									"type": "string"
+								},
+								"capValue_one": {
+									"type": "string"
+								},
+								"capValue_zero": {
+									"type": "string"
+								},
+								"capValue_two": {
+									"type": "string"
+								},
+								"capValue_few": {
+									"type": "string"
+								},
+								"capValue_many": {
+									"type": "string"
+								},
+								"capValue_other": {
+									"type": "string"
+								},
+								"save": {
+									"type": "string"
+								},
+								"saved": {
+									"type": "string"
+								},
+								"none": {
+									"type": "string"
+								},
+								"delete": {
+									"type": "string"
+								},
+								"history": {
+									"type": "string"
+								},
+								"noRuns": {
+									"type": "string"
+								},
+								"tokens_one": {
+									"type": "string"
+								},
+								"tokens_zero": {
+									"type": "string"
+								},
+								"tokens_two": {
+									"type": "string"
+								},
+								"tokens_few": {
+									"type": "string"
+								},
+								"tokens_many": {
+									"type": "string"
+								},
+								"tokens_other": {
+									"type": "string"
+								},
+								"resultTitle": {
+									"type": "string"
+								},
+								"onlyYou": {
+									"type": "string"
+								},
+								"dismiss": {
+									"type": "string"
+								},
+								"empty": {
+									"type": "string"
+								},
+								"running": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"open",
+								"title",
+								"description",
+								"off",
+								"name",
+								"prompt",
+								"scope",
+								"scopeHint",
+								"cap",
+								"save",
+								"saved",
+								"none",
+								"delete",
+								"history",
+								"noRuns",
+								"resultTitle",
+								"onlyYou",
+								"dismiss",
+								"empty",
+								"running"
+							]
+						},
+						"ai": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"exclude": {
+									"type": "string"
+								},
+								"allow": {
+									"type": "string"
+								}
+							},
+							"required": ["exclude", "allow"]
+						},
+						"typingOne": {
+							"type": "string"
+						},
+						"typingTwo": {
+							"type": "string"
+						},
+						"typingMany": {
+							"type": "string"
+						},
+						"commands": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"reminderSet": {
+									"type": "string"
+								},
+								"statusSet": {
+									"type": "string"
+								},
+								"statusCleared": {
+									"type": "string"
+								},
+								"unknown": {
+									"type": "string"
+								},
+								"dismiss": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"reminderSet",
+								"statusSet",
+								"statusCleared",
+								"unknown",
+								"dismiss"
+							]
+						},
+						"createTicketWithAi": {
+							"type": "string"
+						},
+						"aiTicket": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "description"]
+						},
+						"aiThreadLoading": {
+							"type": "string"
+						},
+						"extractDecision": {
+							"type": "string"
+						},
+						"aiDecision": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"description": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "description"]
+						},
+						"aiOff": {
+							"type": "string"
+						},
+						"aiOn": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -19290,7 +19964,20 @@
 						"mute",
 						"unmute",
 						"mutedNotice",
-						"unmutedNotice"
+						"unmutedNotice",
+						"skills",
+						"ai",
+						"typingOne",
+						"typingTwo",
+						"typingMany",
+						"commands",
+						"createTicketWithAi",
+						"aiTicket",
+						"aiThreadLoading",
+						"extractDecision",
+						"aiDecision",
+						"aiOff",
+						"aiOn"
 					]
 				},
 				"files": {
@@ -19806,6 +20493,42 @@
 								}
 							},
 							"required": ["title"]
+						},
+						"daily_brief": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"content": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "content"]
+						},
+						"chat_reminder": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								}
+							},
+							"required": ["title"]
+						},
+						"weekly_digest": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"content": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "content"]
 						}
 					},
 					"required": [
@@ -19833,7 +20556,10 @@
 						"document_question",
 						"document_inbox_waiting",
 						"chat_mention",
-						"chat_direct_message"
+						"chat_direct_message",
+						"daily_brief",
+						"chat_reminder",
+						"weekly_digest"
 					]
 				},
 				"inbox": {
@@ -19949,6 +20675,28 @@
 						"readCleared",
 						"openMessage"
 					]
+				},
+				"dailyBrief": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"dueToday": {
+							"type": "string"
+						},
+						"mentions": {
+							"type": "string"
+						},
+						"moved": {
+							"type": "string"
+						},
+						"none": {
+							"type": "string"
+						},
+						"missing": {
+							"type": "string"
+						}
+					},
+					"required": ["dueToday", "mentions", "moved", "none", "missing"]
 				}
 			},
 			"required": [
@@ -19960,7 +20708,8 @@
 				"privateTopic",
 				"reminderLeadTime",
 				"events",
-				"inbox"
+				"inbox",
+				"dailyBrief"
 			]
 		},
 		"activity": {
@@ -24877,6 +25626,81 @@
 						}
 					},
 					"required": ["open", "fetchedAt", "refresh", "refreshError"]
+				},
+				"duplicateSuggestion": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"accept": {
+							"type": "string"
+						},
+						"decline": {
+							"type": "string"
+						},
+						"accepted": {
+							"type": "string"
+						},
+						"failed": {
+							"type": "string"
+						}
+					},
+					"required": ["title", "accept", "decline", "accepted", "failed"]
+				},
+				"delegation": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"action": {
+							"type": "string"
+						},
+						"notConfigured": {
+							"type": "string"
+						},
+						"pullRequest": {
+							"type": "string"
+						},
+						"status": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"starting": {
+									"type": "string"
+								},
+								"running": {
+									"type": "string"
+								},
+								"prOpened": {
+									"type": "string"
+								},
+								"merged": {
+									"type": "string"
+								},
+								"failed": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"starting",
+								"running",
+								"prOpened",
+								"merged",
+								"failed"
+							]
+						}
+					},
+					"required": [
+						"title",
+						"action",
+						"notConfigured",
+						"pullRequest",
+						"status"
+					]
 				}
 			},
 			"required": [
@@ -24937,7 +25761,9 @@
 				"createModal",
 				"sla",
 				"designReview",
-				"figma"
+				"figma",
+				"duplicateSuggestion",
+				"delegation"
 			]
 		},
 		"invitations": {
@@ -25261,6 +26087,38 @@
 						},
 						"directMessage": {
 							"type": "string"
+						},
+						"semantic": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"ask": {
+									"type": "string"
+								},
+								"running": {
+									"type": "string"
+								},
+								"off": {
+									"type": "string"
+								},
+								"noAnswer": {
+									"type": "string"
+								},
+								"matches": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"title",
+								"ask",
+								"running",
+								"off",
+								"noAnswer",
+								"matches"
+							]
 						}
 					},
 					"required": [
@@ -25279,7 +26137,8 @@
 						"suggestionFeature",
 						"suggestionInProgress",
 						"suggestionCompleted",
-						"directMessage"
+						"directMessage",
+						"semantic"
 					]
 				},
 				"create": {
@@ -25586,6 +26445,132 @@
 								"done",
 								"items"
 							]
+						},
+						"standup": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"open": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"private": {
+									"type": "string"
+								},
+								"window": {
+									"type": "string"
+								},
+								"today": {
+									"type": "string"
+								},
+								"week": {
+									"type": "string"
+								},
+								"did": {
+									"type": "string"
+								},
+								"doing": {
+									"type": "string"
+								},
+								"blocked": {
+									"type": "string"
+								},
+								"none": {
+									"type": "string"
+								},
+								"copy": {
+									"type": "string"
+								},
+								"copied": {
+									"type": "string"
+								},
+								"copyFailed": {
+									"type": "string"
+								},
+								"loadError": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"open",
+								"title",
+								"private",
+								"window",
+								"today",
+								"week",
+								"did",
+								"doing",
+								"blocked",
+								"none",
+								"copy",
+								"copied",
+								"copyFailed",
+								"loadError"
+							]
+						},
+						"catchUp": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"open": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"private": {
+									"type": "string"
+								},
+								"off": {
+									"type": "string"
+								},
+								"window": {
+									"type": "string"
+								},
+								"hours_one": {
+									"type": "string"
+								},
+								"hours_zero": {
+									"type": "string"
+								},
+								"hours_two": {
+									"type": "string"
+								},
+								"hours_few": {
+									"type": "string"
+								},
+								"hours_many": {
+									"type": "string"
+								},
+								"hours_other": {
+									"type": "string"
+								},
+								"includeDirectMessages": {
+									"type": "string"
+								},
+								"run": {
+									"type": "string"
+								},
+								"running": {
+									"type": "string"
+								},
+								"empty": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"open",
+								"title",
+								"private",
+								"off",
+								"window",
+								"includeDirectMessages",
+								"run",
+								"running",
+								"empty"
+							]
 						}
 					},
 					"required": [
@@ -25597,7 +26582,9 @@
 						"doneThisWeek",
 						"projects",
 						"activity",
-						"checklist"
+						"checklist",
+						"standup",
+						"catchUp"
 					]
 				},
 				"myWork": {

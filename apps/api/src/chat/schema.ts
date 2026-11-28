@@ -24,6 +24,10 @@ export const updateChannelBody = z.object({
   archived: z.boolean().optional().openapi({
     description: "Archive or unarchive. Archived channels stay readable.",
   }),
+  aiDisabled: z.boolean().optional().openapi({
+    description:
+      "Keep AI features out of the channel: no ticket or decision is drafted from its threads.",
+  }),
 });
 
 export const inviteMemberBody = z.object({ userId: z.string() });
@@ -123,6 +127,9 @@ export const channelSchema = z
     }),
     isMember: z.boolean().openapi({
       description: "True when the caller has joined the channel.",
+    }),
+    aiDisabled: z.boolean().openapi({
+      description: "True when the channel's members turned AI features off.",
     }),
     isMuted: z.boolean().openapi({
       description:
@@ -269,6 +276,47 @@ export const muteChannelBody = z.object({
 export const mutedChannelSchema = z
   .object({ channelId: z.string(), muted: z.boolean() })
   .openapi("ChatChannelMute");
+
+export const chatCommandBody = z.object({
+  text: z.string().trim().min(2).max(4000).openapi({
+    description:
+      "The line as typed, starting with a slash: `/remind in 1 hour [note]`, `/status <text>` or `/status clear`, or `/ticket <title>`.",
+  }),
+});
+
+export const chatCommandResultSchema = z
+  .discriminatedUnion("command", [
+    z.object({
+      command: z.literal("remind"),
+      remindAt: z.string().openapi({
+        description: "When your Inbox gets the reminder. Nobody else sees it.",
+      }),
+    }),
+    z.object({
+      command: z.literal("status"),
+      status: z.string().nullable(),
+    }),
+    z.object({
+      command: z.literal("ticket"),
+      taskId: z.string(),
+      key: z.string(),
+      messageId: z.string().openapi({
+        description: "The message that shows the new ticket's card.",
+      }),
+    }),
+  ])
+  .openapi("ChatCommandResult");
+
+export const typingBody = z.object({
+  typing: z.boolean().openapi({
+    description:
+      "True while you type; false when you stop or send. Readers forget it after a few seconds without a new one.",
+  }),
+});
+
+export const typingSchema = z
+  .object({ channelId: z.string(), typing: z.boolean() })
+  .openapi("ChatTyping");
 
 export const callSessionSchema = z
   .object({

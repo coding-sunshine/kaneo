@@ -25,6 +25,7 @@ type PRClosedPayload = {
     state: string;
     merged: boolean;
     merged_at: string | null;
+    body?: string | null;
     head: {
       ref: string;
     };
@@ -101,6 +102,18 @@ export async function handleGiteaPullRequestClosed(
             taskId: task.id,
           }),
         );
+
+        if (pull_request.merged) {
+          afterCommit(() =>
+            publishEvent("pull_request.merged", {
+              taskId: task.id,
+              projectId: integration.projectId,
+              url: pull_request.html_url,
+              title: pull_request.title,
+              body: pull_request.body ?? null,
+            }),
+          );
+        }
 
         if (pull_request.merged) {
           const allTaskPRs = await database.query.externalLinkTable.findMany({

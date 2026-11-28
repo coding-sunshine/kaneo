@@ -47,4 +47,15 @@ describe("splitMentions", () => {
       { text: "https://x.example/a", href: "https://x.example/a" },
     ]);
   });
+
+  it("marks @channel and @here, but not inside an address", () => {
+    expect(splitMentions("@here deploy, cc @channel", [])).toEqual([
+      { broadcast: "@here" },
+      { text: " deploy, cc " },
+      { broadcast: "@channel" },
+    ]);
+    expect(splitMentions("mail ops@here.example", [])).toEqual([
+      { text: "mail ops@here.example" },
+    ]);
+  });
 });

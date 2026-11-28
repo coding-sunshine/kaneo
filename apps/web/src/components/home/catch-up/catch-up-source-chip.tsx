@@ -11,7 +11,7 @@ export function CatchUpSourceChip({
   workspaceId: string;
   source: CatchUpSource;
 }) {
-  if (source.kind !== "message")
+  if (!("channelName" in source))
     return <AgentSourceChip workspaceId={workspaceId} citation={source} />;
   return (
     <Link

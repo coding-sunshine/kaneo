@@ -1,11 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { FileText, ListTodo, Lock, MessageSquare } from "lucide-react";
+import { FileText, Hash, ListTodo, Lock, MessageSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { AgentCitation } from "@/components/agent/agent-citation";
 
 const CHIP =
   "inline-flex max-w-64 items-center gap-1 rounded-md border border-border/70 bg-muted/30 px-1.5 py-0.5 text-xs";
-const ICONS = { task: ListTodo, document: FileText, comment: MessageSquare };
+const ICONS = {
+  task: ListTodo,
+  document: FileText,
+  comment: MessageSquare,
+  message: Hash,
+};
 
 /** One source of an answer: a link to it, or a lock when the reader cannot open it. */
 export function AgentSourceChip({
@@ -40,6 +45,20 @@ export function AgentSourceChip({
       <Link
         to="/dashboard/workspace/$workspaceId/document/$documentId"
         params={{ workspaceId, documentId: citation.id }}
+        title={citation.title}
+        className={linkClass}
+      >
+        {body(citation.title)}
+      </Link>
+    );
+  }
+  if (citation.kind === "message") {
+    if (!citation.channelId) return null;
+    return (
+      <Link
+        to="/dashboard/workspace/$workspaceId/channels/$channelId"
+        params={{ workspaceId, channelId: citation.channelId }}
+        search={{ messageId: citation.id }}
         title={citation.title}
         className={linkClass}
       >

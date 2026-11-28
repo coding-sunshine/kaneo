@@ -19,6 +19,40 @@ import {
   postProjectUpdate,
   projectUpdateSchema,
 } from "./proposals/project-update-tool";
+import {
+  DIGEST_DESCRIPTION,
+  DIGEST_TOOL,
+  digestSchema,
+  POST_DIGEST_DESCRIPTION,
+  POST_DIGEST_TOOL,
+  postDigest,
+  postDigestSchema,
+  refuseDigestRun,
+} from "./digest/digest-tool";
+import {
+  DELEGATE_DESCRIPTION,
+  DELEGATE_TOOL,
+  delegateTaskSchema,
+  startDelegation,
+} from "./delegation/delegate-tool";
+import {
+  DECISION_DESCRIPTION,
+  DECISION_TOOL,
+  decisionDraftSchema,
+  fileDecisionDraft,
+} from "./decision/decision-tool";
+import {
+  applyThreadTicket,
+  THREAD_TICKET_DESCRIPTION,
+  THREAD_TICKET_TOOL,
+  threadTicketSchema,
+} from "./thread-ticket/thread-ticket-tool";
+import {
+  applyTriage,
+  TRIAGE_DESCRIPTION,
+  TRIAGE_TOOL,
+  triageTaskSchema,
+} from "./triage/triage-tool";
 
 const MAX_RESULT_CHARS = 20_000;
 
@@ -32,18 +66,38 @@ export const WRITE_TOOLS = [
   "update_task_assignee",
   "create_task_comment",
   PROJECT_UPDATE_TOOL,
+  DIGEST_TOOL,
 ] as const;
 // Writes that are only ever proposed: they run when a person accepts them.
-const ALWAYS_PROPOSED: readonly string[] = [PROJECT_UPDATE_TOOL];
+export const ALWAYS_PROPOSED: readonly string[] = [
+  PROJECT_UPDATE_TOOL,
+  DIGEST_TOOL,
+];
 // The writes offered when none are named: a project update is opt-in.
 const DEFAULT_WRITES = WRITE_TOOLS.filter(
   (name) => !ALWAYS_PROPOSED.includes(name),
 );
+// Writes only a feature proposes (never the model in a chat or loop).
+const FEATURE_WRITES: readonly string[] = [
+  TRIAGE_TOOL,
+  DELEGATE_TOOL,
+  POST_DIGEST_TOOL,
+  THREAD_TICKET_TOOL,
+  DECISION_TOOL,
+];
 // Every write a proposal can hold: change_task sets priority and labels.
-export const CHAT_WRITE_TOOLS = [...WRITE_TOOLS, "change_task"] as const;
-// The writes a chat offers: a project update is drafted by loops only.
+export const CHAT_WRITE_TOOLS = [
+  ...WRITE_TOOLS,
+  "change_task",
+  TRIAGE_TOOL,
+  DELEGATE_TOOL,
+  POST_DIGEST_TOOL,
+  THREAD_TICKET_TOOL,
+  DECISION_TOOL,
+] as const;
+// The writes a chat offers: project updates and digests are drafted by loops.
 export const CHAT_OFFERED_WRITES = CHAT_WRITE_TOOLS.filter(
-  (name) => name !== PROJECT_UPDATE_TOOL,
+  (name) => !ALWAYS_PROPOSED.includes(name) && !FEATURE_WRITES.includes(name),
 );
 
 export type ProposeRequest = {
@@ -160,11 +214,30 @@ export function buildAgentTools(
   local("change_task", CHANGE_TASK_DESCRIPTION, changeTaskSchema, (args) =>
     applyChangeTask(client, args),
   );
+  local(TRIAGE_TOOL, TRIAGE_DESCRIPTION, triageTaskSchema, (args) =>
+    applyTriage(client, args),
+  );
+  local(DELEGATE_TOOL, DELEGATE_DESCRIPTION, delegateTaskSchema, (args) =>
+    startDelegation(client, args),
+  );
   local(
     "list_work_projects",
     LIST_WORK_PROJECTS_DESCRIPTION,
     listWorkProjectsSchema,
     (args) => listWorkProjects(client, args),
+  );
+  local(
+    THREAD_TICKET_TOOL,
+    THREAD_TICKET_DESCRIPTION,
+    threadTicketSchema,
+    (args) => applyThreadTicket(client, args),
+  );
+  local(DECISION_TOOL, DECISION_DESCRIPTION, decisionDraftSchema, (args) =>
+    fileDecisionDraft(client, args),
+  );
+  local(DIGEST_TOOL, DIGEST_DESCRIPTION, digestSchema, refuseDigestRun);
+  local(POST_DIGEST_TOOL, POST_DIGEST_DESCRIPTION, postDigestSchema, (args) =>
+    postDigest(client, args),
   );
   local(
     PROJECT_UPDATE_TOOL,
