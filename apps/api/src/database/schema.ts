@@ -4722,7 +4722,7 @@ export const pushDeviceTable = pgTable(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
-    platform: text("platform").$type<"ios" | "android">().notNull(),
+    platform: text("platform").$type<"ios" | "android" | "web">().notNull(),
     token: text("token").notNull(),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)

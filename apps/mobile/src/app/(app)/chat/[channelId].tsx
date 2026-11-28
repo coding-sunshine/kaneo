@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
   AppState,
@@ -21,6 +21,7 @@ import { groupMessages } from "@/features/chat/message-groups";
 import { MessageRow } from "@/features/chat/message-row";
 import { userMessage } from "@/lib/api/client";
 import { api } from "@/lib/api/endpoints";
+import type { ChatMessage } from "@/lib/api/types";
 import { useMembers } from "@/lib/hooks";
 import { qk, useAction } from "@/lib/query";
 import { useRealtime } from "@/lib/realtime";
@@ -35,10 +36,13 @@ export default function ChatChannelScreen() {
   const toast = useToast();
   const session = useSession();
   const { run, busy } = useAction();
-  const { channelId, workspaceId } = useLocalSearchParams<{
+  const { channelId, workspaceId, messageId } = useLocalSearchParams<{
     channelId: string;
     workspaceId: string;
+    messageId?: string;
   }>();
+  const list =
+    useRef<FlatList<{ message: ChatMessage; showAuthor: boolean }>>(null);
   const channel = useQuery({
     queryKey: qk.chatChannel(channelId),
     queryFn: () => api.chatChannel(workspaceId, channelId),
@@ -91,6 +95,14 @@ export default function ChatChannelScreen() {
   // Posting changes workspace content: read-only roles can read, not post.
   const canWrite = capabilities.data?.updateTasks !== false;
   const rows = groupMessages(messages.data ?? []).reverse();
+  // A tapped push opens on its message.
+  const target = messageId
+    ? rows.findIndex((row) => row.message.id === messageId)
+    : -1;
+  useEffect(() => {
+    if (target > 0)
+      list.current?.scrollToIndex({ index: target, viewPosition: 0.5 });
+  }, [target]);
 
   const send = async (body: string) => {
     try {
@@ -161,12 +173,28 @@ export default function ChatChannelScreen() {
           </View>
         ) : (
           <FlatList
+            ref={list}
             inverted
             data={rows}
             keyExtractor={(row) => row.message.id}
             renderItem={({ item }) => (
-              <MessageRow message={item.message} showAuthor={item.showAuthor} />
+              <MessageRow
+                message={item.message}
+                showAuthor={item.showAuthor}
+                highlighted={item.message.id === messageId}
+              />
             )}
+            // Rows past the first render have no layout yet: get closer, then retry.
+            onScrollToIndexFailed={({ index, averageItemLength }) => {
+              list.current?.scrollToOffset({
+                offset: index * averageItemLength,
+                animated: false,
+              });
+              setTimeout(
+                () => list.current?.scrollToIndex({ index, viewPosition: 0.5 }),
+                100,
+              );
+            }}
             contentContainerStyle={{ paddingVertical: 12 }}
             keyboardShouldPersistTaps="handled"
           />
