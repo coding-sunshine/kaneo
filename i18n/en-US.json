@@ -6011,6 +6011,13 @@
 			"fetchedAt": "Fetched {{time}}",
 			"refresh": "Refresh Figma preview",
 			"refreshError": "Could not refresh the Figma preview."
+		},
+		"duplicateSuggestion": {
+			"title": "This ticket may duplicate:",
+			"accept": "Mark as duplicate",
+			"decline": "Not a duplicate",
+			"accepted": "Marked as duplicate",
+			"failed": "Could not update the suggestion. Try again."
 		}
 	},
 	"invitations": {

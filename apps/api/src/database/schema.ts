@@ -2578,6 +2578,36 @@ export const taskRelationTable = pgTable(
   ],
 );
 
+// A suggested duplicate someone declined. The pair is stored in id order, so
+// declining A~B also hides B~A, for everyone who opens either ticket.
+export const taskDuplicateDismissalTable = pgTable(
+  "task_duplicate_dismissal",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    lowTaskId: text("low_task_id")
+      .notNull()
+      .references(() => taskTable.id, { onDelete: "cascade" }),
+    highTaskId: text("high_task_id")
+      .notNull()
+      .references(() => taskTable.id, { onDelete: "cascade" }),
+    dismissedBy: text("dismissed_by").references(() => userTable.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("task_duplicate_dismissal_pair_idx").on(
+      table.lowTaskId,
+      table.highTaskId,
+    ),
+    index("task_duplicate_dismissal_high_idx").on(table.highTaskId),
+  ],
+);
+
 export const apikeyTable = pgTable(
   "apikey",
   {

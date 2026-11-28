@@ -8949,6 +8949,66 @@
           "relevanceScore"
         ]
       },
+      "DuplicateSuggestions": {
+        "type": "object",
+        "properties": {
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DuplicateSuggestion"
+            }
+          }
+        },
+        "required": [
+          "suggestions"
+        ]
+      },
+      "DuplicateSuggestion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "ticket": {
+            "type": "string",
+            "example": "WEB-12"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "similarity": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "ticket",
+          "projectId",
+          "status",
+          "similarity"
+        ]
+      },
+      "DeclinedDuplicate": {
+        "type": "object",
+        "properties": {
+          "declined": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "required": [
+          "declined"
+        ]
+      },
       "StandupDraft": {
         "type": "object",
         "properties": {
@@ -46397,6 +46457,168 @@
           },
           "404": {
             "description": "Workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/duplicate-suggestion/task/{taskId}": {
+      "get": {
+        "operationId": "listDuplicateSuggestions",
+        "tags": [
+          "Duplicate suggestions"
+        ],
+        "summary": "Suggest duplicates of a ticket",
+        "description": "Up to three open tickets whose titles read like this one's, in teams the caller can open. Tickets already related to it and pairs someone declined are left out. Reads only; accept a suggestion by creating a `duplicate` task relation.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "taskId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Suggested duplicates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DuplicateSuggestions"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing task:read permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/duplicate-suggestion/task/{taskId}/decline": {
+      "post": {
+        "operationId": "declineDuplicateSuggestion",
+        "tags": [
+          "Duplicate suggestions"
+        ],
+        "summary": "Decline a suggested duplicate",
+        "description": "Marks the two tickets as not duplicates, so neither suggests the other again, for anyone. Both tickets must be ones the caller can open. Declining twice is fine.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "taskId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "otherTaskId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "The suggested ticket that is not a duplicate of this one."
+                  }
+                },
+                "required": [
+                  "otherTaskId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Suggestion declined",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeclinedDuplicate"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A ticket is not a duplicate of itself",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing task:update permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
             "content": {
               "application/json": {
                 "schema": {
