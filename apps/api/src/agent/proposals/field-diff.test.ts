@@ -2,6 +2,7 @@ import { describe, expect, it } from "vite-plus/test";
 import { DELEGATE_TOOL } from "../delegation/delegate-tool";
 import { DIGEST_TOOL } from "../digest/digest-tool";
 import { buildAgentTools, CHAT_WRITE_TOOLS } from "../tools";
+import { THREAD_TICKET_TOOL } from "../thread-ticket/thread-ticket-tool";
 import { TRIAGE_TOOL } from "../triage/triage-tool";
 import { fieldDiff, shownArguments, type TaskState } from "./field-diff";
 
@@ -102,7 +103,12 @@ describe("every write argument shows on the card", () => {
     );
     // Triage, delegation and the digest draft build their own cards; a
     // drafted digest is stored as the post_weekly_digest it lays out.
-    const ownCards: string[] = [TRIAGE_TOOL, DELEGATE_TOOL, DIGEST_TOOL];
+    const ownCards: string[] = [
+      TRIAGE_TOOL,
+      DELEGATE_TOOL,
+      DIGEST_TOOL,
+      THREAD_TICKET_TOOL,
+    ];
     for (const name of CHAT_WRITE_TOOLS.filter((n) => !ownCards.includes(n))) {
       const definition = tools.definitions.find(
         (tool) => tool.function.name === name,

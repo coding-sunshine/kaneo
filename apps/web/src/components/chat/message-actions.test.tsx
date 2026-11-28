@@ -12,6 +12,7 @@ import { MessageActions } from "./message-actions";
 
 const state = vi.hoisted(() => ({
   canCreate: true,
+  hasAgent: true,
   openWithDraft: vi.fn(),
 }));
 
@@ -29,6 +30,18 @@ vi.mock("@/store/create-issue", () => ({
   useCreateIssueStore: (
     select: (store: { openWithDraft: typeof state.openWithDraft }) => unknown,
   ) => select({ openWithDraft: state.openWithDraft }),
+}));
+vi.mock("@/hooks/queries/agent/use-agent", () => ({
+  useHasAgent: () => state.hasAgent,
+}));
+vi.mock("@/components/chat/thread-ticket-dialog", () => ({
+  ThreadTicketDialog: ({
+    open,
+    messageId,
+  }: {
+    open: boolean;
+    messageId: string;
+  }) => (open ? <p>ai ticket for {messageId}</p> : null),
 }));
 vi.mock("@/components/chat/add-to-ticket-dialog", () => ({
   AddToTicketDialog: ({
@@ -66,6 +79,7 @@ const openMenu = () =>
 describe("MessageActions", () => {
   beforeEach(() => {
     state.canCreate = true;
+    state.hasAgent = true;
     state.openWithDraft.mockClear();
   });
   afterEach(cleanup);
@@ -97,5 +111,27 @@ describe("MessageActions", () => {
 
     expect(await screen.findByText("navigation:chat.addToTicket")).toBeTruthy();
     expect(screen.queryByText("navigation:chat.createTicket")).toBeNull();
+    expect(screen.queryByText("navigation:chat.createTicketWithAi")).toBeNull();
+  });
+
+  it("drafts a ticket from the thread with AI", async () => {
+    renderActions();
+    openMenu();
+    fireEvent.click(
+      await screen.findByText("navigation:chat.createTicketWithAi"),
+    );
+
+    expect(await screen.findByText("ai ticket for m1")).toBeTruthy();
+  });
+
+  it("hides Create ticket with AI when the server has no AI", async () => {
+    state.hasAgent = false;
+    renderActions();
+    openMenu();
+
+    expect(
+      await screen.findByText("navigation:chat.createTicket"),
+    ).toBeTruthy();
+    expect(screen.queryByText("navigation:chat.createTicketWithAi")).toBeNull();
   });
 });

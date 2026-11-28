@@ -24,6 +24,7 @@ export function AgentProposalCard({
   chatId,
   taskId,
   proposal,
+  onDecided,
 }: {
   workspaceId: string;
   /** The chat it came from; none for a loop's draft. */
@@ -31,6 +32,8 @@ export function AgentProposalCard({
   /** The ticket it is shown on, which is reread after a decision. */
   taskId?: string;
   proposal: AgentProposal;
+  /** Gets the decided proposal, for a card no query rereads. */
+  onDecided?: (decided: AgentProposal) => void;
 }) {
   const { t } = useTranslation();
   const decide = useDecideProposal(workspaceId, chatId, taskId);
@@ -54,6 +57,7 @@ export function AgentProposalCard({
       },
       {
         onSuccess: (decided) => {
+          onDecided?.(decided);
           if (decided.status === "failed")
             toast.error(t("navigation:agent.proposal.failed"));
         },

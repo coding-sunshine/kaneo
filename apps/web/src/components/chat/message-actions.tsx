@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AddToTicketDialog } from "@/components/chat/add-to-ticket-dialog";
 import { buildMessageIssueDraft } from "@/components/chat/message-issue-draft";
+import { ThreadTicketDialog } from "@/components/chat/thread-ticket-dialog";
 import type { ChatMessage } from "@/components/chat/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +17,7 @@ import {
   useDeleteMessage,
   usePinMessage,
 } from "@/hooks/mutations/chat/use-message-mutations";
+import { useHasAgent } from "@/hooks/queries/agent/use-agent";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { toast } from "@/lib/toast";
 import { useCreateIssueStore } from "@/store/create-issue";
@@ -47,6 +49,8 @@ export function MessageActions({
   const { canCreateTasks } = useWorkspacePermission();
   const openWithDraft = useCreateIssueStore((state) => state.openWithDraft);
   const [addingToTicket, setAddingToTicket] = useState(false);
+  const hasAgent = useHasAgent();
+  const [draftingTicket, setDraftingTicket] = useState(false);
 
   return (
     <>
@@ -90,6 +94,11 @@ export function MessageActions({
               {t("navigation:chat.createTicket")}
             </MenuItem>
           )}
+          {canCreateTasks() && hasAgent && (
+            <MenuItem onClick={() => setDraftingTicket(true)}>
+              {t("navigation:chat.createTicketWithAi")}
+            </MenuItem>
+          )}
           <MenuItem onClick={() => setAddingToTicket(true)}>
             {t("navigation:chat.addToTicket")}
           </MenuItem>
@@ -112,6 +121,13 @@ export function MessageActions({
       <AddToTicketDialog
         open={addingToTicket}
         onOpenChange={setAddingToTicket}
+        workspaceId={workspaceId}
+        channelId={channelId}
+        messageId={message.id}
+      />
+      <ThreadTicketDialog
+        open={draftingTicket}
+        onOpenChange={setDraftingTicket}
         workspaceId={workspaceId}
         channelId={channelId}
         messageId={message.id}

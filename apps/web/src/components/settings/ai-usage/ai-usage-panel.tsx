@@ -18,6 +18,7 @@ const FEATURE_LABELS: Record<string, string> = {
   triage: "settings:aiUsage.features.triage",
   writing: "settings:aiUsage.features.writing",
   "pr-summary": "settings:aiUsage.features.prSummary",
+  "thread-ticket": "settings:aiUsage.features.threadTicket",
 };
 
 /** Settings, AI usage: budgets, then tokens by feature and by day. */

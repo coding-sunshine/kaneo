@@ -36,6 +36,12 @@ import {
   startDelegation,
 } from "./delegation/delegate-tool";
 import {
+  applyThreadTicket,
+  THREAD_TICKET_DESCRIPTION,
+  THREAD_TICKET_TOOL,
+  threadTicketSchema,
+} from "./thread-ticket/thread-ticket-tool";
+import {
   applyTriage,
   TRIAGE_DESCRIPTION,
   TRIAGE_TOOL,
@@ -70,6 +76,7 @@ const FEATURE_WRITES: readonly string[] = [
   TRIAGE_TOOL,
   DELEGATE_TOOL,
   POST_DIGEST_TOOL,
+  THREAD_TICKET_TOOL,
 ];
 // Every write a proposal can hold: change_task sets priority and labels.
 export const CHAT_WRITE_TOOLS = [
@@ -78,6 +85,7 @@ export const CHAT_WRITE_TOOLS = [
   TRIAGE_TOOL,
   DELEGATE_TOOL,
   POST_DIGEST_TOOL,
+  THREAD_TICKET_TOOL,
 ] as const;
 // The writes a chat offers: project updates and digests are drafted by loops.
 export const CHAT_OFFERED_WRITES = CHAT_WRITE_TOOLS.filter(
@@ -209,6 +217,12 @@ export function buildAgentTools(
     LIST_WORK_PROJECTS_DESCRIPTION,
     listWorkProjectsSchema,
     (args) => listWorkProjects(client, args),
+  );
+  local(
+    THREAD_TICKET_TOOL,
+    THREAD_TICKET_DESCRIPTION,
+    threadTicketSchema,
+    (args) => applyThreadTicket(client, args),
   );
   local(DIGEST_TOOL, DIGEST_DESCRIPTION, digestSchema, refuseDigestRun);
   local(POST_DIGEST_TOOL, POST_DIGEST_DESCRIPTION, postDigestSchema, (args) =>

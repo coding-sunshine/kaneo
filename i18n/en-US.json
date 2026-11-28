@@ -3081,7 +3081,8 @@
 				"summary": "Ticket summaries",
 				"triage": "Triage suggestions",
 				"writing": "Writing help",
-				"prSummary": "Pull request summaries"
+				"prSummary": "Pull request summaries",
+				"threadTicket": "Tickets from threads"
 			}
 		},
 		"aiAudit": {
@@ -4738,7 +4739,13 @@
 			"replyCount_other": "{{count}} replies",
 			"thread": "Thread replies",
 			"replyLabel": "Reply in thread",
-			"replyPlaceholder": "Reply…"
+			"replyPlaceholder": "Reply…",
+			"createTicketWithAi": "Create ticket with AI",
+			"aiTicket": {
+				"title": "Create ticket with AI",
+				"description": "A ticket drafted from the whole thread. Nothing is created until you accept it.",
+				"loading": "Reading the thread…"
+			}
 		},
 		"files": {
 			"title": "Files",
