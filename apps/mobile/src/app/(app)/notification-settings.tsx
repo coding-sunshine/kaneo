@@ -214,6 +214,12 @@ export default function NotificationSettingsScreen() {
                   (v) => update({ topicUpdatesEnabled: v }),
                 )}
                 {toggleRow(
+                  t("mobile:notificationSettings.events.staleItems"),
+                  t("mobile:notificationSettings.events.staleItemsHint"),
+                  p.staleItemsEnabled !== false,
+                  (v) => update({ staleItemsEnabled: v }),
+                )}
+                {toggleRow(
                   t("mobile:notificationSettings.events.dueDate"),
                   t("mobile:notificationSettings.events.dueDateHint"),
                   !!p.dueDateReminderEnabled,

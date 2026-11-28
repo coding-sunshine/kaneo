@@ -6,7 +6,8 @@ export type EventSwitchKey =
   | "taskCommentEnabled"
   | "taskStatusChangeEnabled"
   | "dueDateReminderEnabled"
-  | "topicUpdatesEnabled";
+  | "topicUpdatesEnabled"
+  | "staleItemsEnabled";
 
 export type EventPreferences = Record<EventSwitchKey, boolean> & {
   leadTime: LeadTime;
@@ -21,6 +22,7 @@ export function toEventPreferences(
     taskStatusChangeEnabled: preferences.taskStatusChangeEnabled,
     dueDateReminderEnabled: preferences.dueDateReminderEnabled,
     topicUpdatesEnabled: preferences.topicUpdatesEnabled,
+    staleItemsEnabled: preferences.staleItemsEnabled,
     leadTime: leadTimeFromMinutes(preferences.dueDateReminderLeadTimeMinutes),
   };
 }

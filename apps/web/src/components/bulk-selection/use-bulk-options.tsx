@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getColumnIcon } from "@/lib/column";
 import { getInitials } from "@/lib/get-initials";
 import { getPriorityLabel } from "@/lib/i18n/domain";
+import { memberStatusHint } from "@/lib/people/member-status-hint";
 import { resolveLabelColor } from "@/lib/label-color";
 import { getPriorityIcon } from "@/lib/priority";
 import type { OptionMenuItem } from "@/components/common/option-menu/option-menu-item";
@@ -29,6 +30,7 @@ export function useBulkOptions(actions: BulkActions) {
     const memberOptions: OptionMenuItem[] = members.map((member) => ({
       value: member.id,
       label: member.name || t("common:people.someone"),
+      hint: memberStatusHint(member.profile, t("team:people.outOfOffice")),
       icon: (
         <Avatar className="size-4">
           <AvatarImage src={member.image ?? ""} alt="" />

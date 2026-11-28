@@ -54,6 +54,10 @@ export const notificationPreferenceSchema = z
       description:
         "Hear about new proposals, new current documents and approved decisions on followed topics.",
     }),
+    staleItemsEnabled: z.boolean().openapi({
+      description:
+        "A weekly inbox line on weekdays listing your issues that have sat in one started status for over a week.",
+    }),
     scheduleEnabled: z.boolean(),
     scheduleTimezone: z.string(),
     scheduleDays: z.array(z.number().int()),

@@ -13,6 +13,8 @@ Use the event preferences at the top of the page to control task assignments, co
 
 Due-date reminders default to one day before the deadline. Choose a whole number of hours (1–720) or days (1–30), then save. External delivery still needs a channel and workspace rule below.
 
+Stale issues is on by default as well. Once a week, on the first weekday Kaneo runs its check, you get one inbox line per workspace listing the issues assigned to you that have sat in the same in-progress or in-review status for more than seven days. The clock starts at the last status change, so a comment does not reset it. Nothing is sent on Saturday or Sunday, measured in the timezone of your delivery schedule. Only you see the line.
+
 <Frame caption="Choose notification categories and how early Kaneo should remind you about due dates.">
   <img className="block dark:hidden" src="/images/product/notifications-light.png" alt="Choose notification categories and how early Kaneo should remind you about due dates." />
   <img className="hidden dark:block" src="/images/product/notifications-dark.png" alt="Choose notification categories and how early Kaneo should remind you about due dates." />

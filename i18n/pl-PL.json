@@ -673,7 +673,8 @@
 			"views": "Views",
 			"workProjects": "Projects",
 			"workspace": "Workspace",
-			"yourTeams": "Your teams"
+			"yourTeams": "Your teams",
+			"people": "People"
 		},
 		"projectList": {
 			"viewProject": "Zobacz projekt",
@@ -2103,6 +2104,10 @@
 			"document_inbox_waiting": {
 				"content": "{{documentTitle}} has no topic yet",
 				"title": "Waiting in the Inbox for three days"
+			},
+			"stale_items": {
+				"content": "Still in the same status: {{issueList}}",
+				"title": "Issues stuck for over a week"
 			}
 		},
 		"inbox": {
@@ -3088,6 +3093,19 @@
 			"inviteHint": "Guests see only the projects and channels you pick here. They can't browse the workspace's people, documents or other channels.",
 			"inviteLabel": "Invite as a guest",
 			"noChannels": "There are no channels to add yet."
+		},
+		"people": {
+			"assignedOutOfOffice": "{{name}} is out of office from {{from}} to {{until}}.",
+			"department": "Team",
+			"empty": "No one matches this search.",
+			"jobTitle": "Job title",
+			"location": "Location",
+			"outOfOffice": "Out of office",
+			"outOfOfficeRange": "Out of office {{from}} – {{until}}",
+			"pageTitle": "People",
+			"searchLabel": "Search people",
+			"searchPlaceholder": "Search by name, job title, team, location or time zone",
+			"timeZone": "Time zone"
 		}
 	},
 	"publicProject": {
@@ -3772,7 +3790,9 @@
 			"scheduleTimezone": "Timezone",
 			"scheduleTitle": "Delivery schedule",
 			"eventTopicUpdates": "Followed topics",
-			"eventTopicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision."
+			"eventTopicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision.",
+			"eventStaleItems": "Stale issues",
+			"eventStaleItemsHint": "One weekday line a week listing your issues that have stayed in the same status for over a week."
 		},
 		"preferences": "Preferencje",
 		"preferencesPage": {
@@ -6184,6 +6204,36 @@
 			"syncNowAction": "Sync now",
 			"syncNowDescription": "Adds due dates from the past 30 days onward that aren't in your calendar yet.",
 			"title": "Calendar"
+		},
+		"peopleProfile": {
+			"department": "Team",
+			"departmentPlaceholder": "Design",
+			"jobTitle": "Job title",
+			"jobTitlePlaceholder": "Product designer",
+			"location": "Location",
+			"locationPlaceholder": "Lisbon",
+			"saveError": "Could not save your profile.",
+			"sectionDescription": "Teammates see this on People. A field you leave empty is not shown.",
+			"sectionTitle": "Work profile",
+			"timeZone": "Time zone",
+			"timeZoneNone": "Not set"
+		},
+		"peopleStatus": {
+			"clear": "Clear status",
+			"cleared": "Status cleared.",
+			"from": "First day",
+			"invalidRange": "The last day must be on or after the first day.",
+			"needsText": "Write a status or choose days away.",
+			"outOfOffice": "Out of office",
+			"outOfOfficeHint": "First and last day away. Your status clears itself after the last day.",
+			"save": "Set status",
+			"saved": "Status updated.",
+			"saveError": "Could not save your status.",
+			"sectionDescription": "Shown next to your name in chat and in assignee pickers.",
+			"sectionTitle": "Status",
+			"text": "Status",
+			"textPlaceholder": "In a meeting",
+			"until": "Last day"
 		}
 	},
 	"tasks": {
@@ -8105,7 +8155,9 @@
 				"remindBefore": "{{time}} wcześniej",
 				"remindPickerTitle": "Przypomnij z wyprzedzeniem",
 				"topicUpdates": "Followed topics",
-				"topicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision"
+				"topicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision",
+				"staleItems": "Stale issues",
+				"staleItemsHint": "One weekday line a week listing your issues that have stayed in the same status for over a week"
 			},
 			"leadTime": {
 				"minutes15": "15 minut",

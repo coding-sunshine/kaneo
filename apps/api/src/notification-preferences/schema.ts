@@ -31,6 +31,10 @@ export const updatePreferencesBody = z.object({
     description:
       "Hear about new proposals, new current documents and approved decisions on followed topics.",
   }),
+  staleItemsEnabled: z.boolean().optional().openapi({
+    description:
+      "A weekly inbox line on weekdays listing your issues that have sat in one started status for over a week.",
+  }),
   scheduleEnabled: z.boolean().optional().openapi({
     description:
       "Only send email, ntfy and Gotify notifications inside the schedule. The inbox is never affected.",

@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import type { NotificationPreferences } from "@/fetchers/notification-preferences/get-notification-preferences";
 import { useUpdateNotificationPreferences } from "@/hooks/mutations/notification-preferences/use-notification-preferences";
 import { cn } from "@/lib/cn";
+import { timeZones } from "@/lib/time-zones";
 
 type ScheduleSectionProps = {
   preferences: NotificationPreferences;
@@ -20,14 +21,6 @@ const weekdayLabel = (day: number, locale?: string) =>
     new Date(Date.UTC(2024, 0, 7 + day)),
   );
 
-const timezones = () => {
-  try {
-    return Intl.supportedValuesOf("timeZone");
-  } catch {
-    return ["UTC"];
-  }
-};
-
 export function ScheduleSection({ preferences }: ScheduleSectionProps) {
   const { t, i18n } = useTranslation();
   const { mutateAsync, isPending } = useUpdateNotificationPreferences();
@@ -37,7 +30,7 @@ export function ScheduleSection({ preferences }: ScheduleSectionProps) {
   const [start, setStart] = useState(preferences.scheduleStart);
   const [end, setEnd] = useState(preferences.scheduleEnd);
 
-  const zones = timezones();
+  const zones = timeZones();
   const options = zones.includes(timezone) ? zones : [timezone, ...zones];
   const invalid = days.length === 0 || start >= end;
   const dirty =

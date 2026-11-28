@@ -145,6 +145,7 @@ try {
             dueDateReminderEnabled: true,
             dueDateReminderLeadTimeMinutes: 1440,
             topicUpdatesEnabled: true,
+            staleItemsEnabled: true,
             workspaces: [],
             createdAt: date,
             updatedAt: date,

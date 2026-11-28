@@ -1126,6 +1126,8 @@
 			"eventStatusChanges": "Status changes",
 			"eventTopicUpdates": "Followed topics",
 			"eventTopicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision.",
+			"eventStaleItems": "Stale issues",
+			"eventStaleItemsHint": "One weekday line a week listing your issues that have stayed in the same status for over a week.",
 			"eventDueDateReminders": "Due date reminders",
 			"reminderLeadTimeLabel": "Remind me before the due date",
 			"reminderLeadTimeInvalid": "Enter a whole number between 1 and {{max}}.",
@@ -3321,6 +3323,36 @@
 			"syncNowAction": "Sync now",
 			"synced_one": "{{count}} issue is in your calendar",
 			"synced_other": "{{count}} issues are in your calendar"
+		},
+		"peopleProfile": {
+			"sectionTitle": "Work profile",
+			"sectionDescription": "Teammates see this on People. A field you leave empty is not shown.",
+			"jobTitle": "Job title",
+			"jobTitlePlaceholder": "Product designer",
+			"department": "Team",
+			"departmentPlaceholder": "Design",
+			"location": "Location",
+			"locationPlaceholder": "Lisbon",
+			"timeZone": "Time zone",
+			"timeZoneNone": "Not set",
+			"saveError": "Could not save your profile."
+		},
+		"peopleStatus": {
+			"sectionTitle": "Status",
+			"sectionDescription": "Shown next to your name in chat and in assignee pickers.",
+			"text": "Status",
+			"textPlaceholder": "In a meeting",
+			"outOfOffice": "Out of office",
+			"outOfOfficeHint": "First and last day away. Your status clears itself after the last day.",
+			"from": "First day",
+			"until": "Last day",
+			"save": "Set status",
+			"clear": "Clear status",
+			"saved": "Status updated.",
+			"cleared": "Status cleared.",
+			"invalidRange": "The last day must be on or after the first day.",
+			"needsText": "Write a status or choose days away.",
+			"saveError": "Could not save your status."
 		}
 	},
 	"navigation": {
@@ -3389,7 +3421,8 @@
 			"pulse": "Pulse",
 			"teams": "Teams",
 			"drafts": "Drafts",
-			"chat": "Chat"
+			"chat": "Chat",
+			"people": "People"
 		},
 		"projectList": {
 			"viewProject": "View Project",
@@ -4741,6 +4774,10 @@
 			"sla_breach": {
 				"title": "SLA breached",
 				"content": "{{taskTitle}} has breached its SLA"
+			},
+			"stale_items": {
+				"title": "Issues stuck for over a week",
+				"content": "Still in the same status: {{issueList}}"
 			},
 			"task_overdue": {
 				"title": "Issue overdue",
@@ -6854,6 +6891,19 @@
 			"updateError": "Failed to update project access",
 			"privateTeamsLabel": "Private teams",
 			"privateTeamsHint": "Managed in each team's settings."
+		},
+		"people": {
+			"pageTitle": "People",
+			"searchLabel": "Search people",
+			"searchPlaceholder": "Search by name, job title, team, location or time zone",
+			"empty": "No one matches this search.",
+			"outOfOffice": "Out of office",
+			"outOfOfficeRange": "Out of office {{from}} – {{until}}",
+			"assignedOutOfOffice": "{{name}} is out of office from {{from}} to {{until}}.",
+			"jobTitle": "Job title",
+			"department": "Team",
+			"location": "Location",
+			"timeZone": "Time zone"
 		}
 	},
 	"publicProject": {
@@ -7821,6 +7871,8 @@
 				"statusChangesHint": "When your issues move between columns",
 				"topicUpdates": "Followed topics",
 				"topicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision",
+				"staleItems": "Stale issues",
+				"staleItemsHint": "One weekday line a week listing your issues that have stayed in the same status for over a week",
 				"dueDate": "Due date reminders",
 				"dueDateHint": "Before an issue you’re assigned to is due",
 				"remindMe": "Remind me",

@@ -20,6 +20,7 @@ export type UpdateNotificationPreferencesRequest = {
   dueDateReminderEnabled?: boolean;
   dueDateReminderLeadTimeMinutes?: number;
   topicUpdatesEnabled?: boolean;
+  staleItemsEnabled?: boolean;
   scheduleEnabled?: boolean;
   scheduleTimezone?: string;
   scheduleDays?: number[];

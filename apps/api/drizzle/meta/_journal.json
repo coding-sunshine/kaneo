@@ -974,6 +974,20 @@
       "when": 1795820097130,
       "tag": "0138_kind_silver_centurion",
       "breakpoints": true
+    },
+    {
+      "idx": 139,
+      "version": "7",
+      "when": 1795823219677,
+      "tag": "0139_brainy_amazoness",
+      "breakpoints": true
+    },
+    {
+      "idx": 140,
+      "version": "7",
+      "when": 1795824025244,
+      "tag": "0140_confused_proemial_gods",
+      "breakpoints": true
     }
   ]
 }

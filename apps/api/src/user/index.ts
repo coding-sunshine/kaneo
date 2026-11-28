@@ -15,8 +15,10 @@ import { requireUserSession } from "../utils/require-user-session";
 import { MAX_AVATAR_BYTES, MAX_AVATAR_REQUEST_BYTES } from "./avatar";
 import deleteAvatar from "./controllers/delete-avatar";
 import getCurrentUser from "./controllers/get-current-user";
+import getOwnProfile from "./controllers/get-own-profile";
 import revokeOwnSession from "./controllers/revoke-own-session";
 import saveAvatar from "./controllers/save-avatar";
+import updateOwnProfile from "./controllers/update-own-profile";
 import {
   requireRemovableAvatar,
   requireUnmanagedAvatar,
@@ -26,6 +28,7 @@ import {
   avatarSchema,
   currentUserSchema,
 } from "./response";
+import { profileSchema, updateProfileBody } from "./profile/profile-schema";
 import { uploadAvatarBody, userSessionParam } from "./schema";
 
 const getCurrentUserRoute = createRoute({
@@ -39,6 +42,45 @@ const getCurrentUserRoute = createRoute({
     200: jsonResponse("Current user", currentUserSchema),
     401: errorResponse("Unauthorized"),
     404: errorResponse("User not found"),
+  },
+});
+
+const getOwnProfileRoute = createRoute({
+  method: "get",
+  operationId: "getOwnProfile",
+  path: "/profile",
+  tags: ["User"],
+  summary: "Get your profile",
+  description:
+    "Return the current user's profile fields, status, and out-of-office range. A status or range that has ended reads as null.",
+  responses: {
+    200: jsonResponse("Your profile", profileSchema),
+    401: errorResponse("Unauthorized"),
+  },
+});
+
+const updateOwnProfileRoute = createRoute({
+  method: "patch",
+  operationId: "updateOwnProfile",
+  path: "/profile",
+  tags: ["User"],
+  summary: "Update your profile",
+  description:
+    "Change the current user's profile fields, status, or out-of-office range. Keys left out stay as they are; null or a blank string clears one. Members of your workspaces see these on the member list. Requires a user session; API keys are rejected.",
+  middleware: [requireUserSession] as const,
+  request: {
+    body: {
+      required: true,
+      content: { "application/json": { schema: updateProfileBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("Your profile", profileSchema),
+    400: errorResponse(
+      "Unknown time zone, or a range that ends before it starts",
+    ),
+    401: errorResponse("Unauthorized"),
+    403: errorResponse("Authenticated with an API key"),
   },
 });
 
@@ -132,6 +174,12 @@ const revokeSessionRoute = createRoute({
 const user = apiRouter()
   .openapi(getCurrentUserRoute, async (c) =>
     c.json(await getCurrentUser(c.get("userId")), 200),
+  )
+  .openapi(getOwnProfileRoute, async (c) =>
+    c.json(await getOwnProfile(c.get("userId")), 200),
+  )
+  .openapi(updateOwnProfileRoute, async (c) =>
+    c.json(await updateOwnProfile(c.get("userId"), c.req.valid("json")), 200),
   )
   .openapi(uploadAvatarRoute, async (c) => {
     const { contentType, data } = c.req.valid("json");

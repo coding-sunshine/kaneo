@@ -69,6 +69,27 @@ export const userTable = pgTable("user", {
   twoFactorEnabled: boolean("two_factor_enabled").default(false).notNull(),
 });
 
+// What teammates see about a person: optional profile fields, a status and an
+// out-of-office range. The status and range are kept after they end and
+// hidden at read time, so nothing has to run to clear them.
+export const userProfileTable = pgTable("user_profile", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => userTable.id, { onDelete: "cascade" }),
+  jobTitle: text("job_title"),
+  department: text("department"),
+  location: text("location"),
+  timeZone: text("time_zone"),
+  statusText: text("status_text"),
+  statusClearsAt: timestamp("status_clears_at", { mode: "date" }),
+  outOfOfficeFrom: timestamp("out_of_office_from", { mode: "date" }),
+  outOfOfficeUntil: timestamp("out_of_office_until", { mode: "date" }),
+  updatedAt: timestamp("updated_at", { mode: "date" })
+    .default(utcNow)
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
 export const sessionTable = pgTable(
   "session",
   {
@@ -1756,6 +1777,40 @@ export const taskReminderSentTable = pgTable(
   ],
 );
 
+// One weekly stale-item line per owner and workspace; week is the owner's
+// local Monday, YYYY-MM-DD. The unique key lets one run send it.
+export const staleItemNudgeTable = pgTable(
+  "stale_item_nudge",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    week: text("week").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    unique("stale_item_nudge_user_workspace_week_unique").on(
+      table.userId,
+      table.workspaceId,
+      table.week,
+    ),
+  ],
+);
+
 export const timeEntryTable = pgTable(
   "time_entry",
   {
@@ -2139,6 +2194,7 @@ export const userNotificationPreferenceTable = pgTable(
     topicUpdatesEnabled: boolean("topic_updates_enabled")
       .default(true)
       .notNull(),
+    staleItemsEnabled: boolean("stale_items_enabled").default(true).notNull(),
     scheduleEnabled: boolean("schedule_enabled").default(false).notNull(),
     scheduleTimezone: text("schedule_timezone").default("UTC").notNull(),
     // Delivery window: weekdays 0 (Sunday) to 6, local "HH:MM" start and end.

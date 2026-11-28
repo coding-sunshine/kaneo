@@ -114,7 +114,7 @@ export function OptionMenu({
                     {option.label}
                   </span>
                   {option.hint && (
-                    <span className="shrink-0 text-muted-foreground text-xs">
+                    <span className="max-w-[50%] shrink-0 truncate text-muted-foreground text-xs">
                       {option.hint}
                     </span>
                   )}

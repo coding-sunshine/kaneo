@@ -43,6 +43,7 @@ const preferences = {
   dueDateReminderEnabled: true,
   dueDateReminderLeadTimeMinutes: 1440,
   topicUpdatesEnabled: true,
+  staleItemsEnabled: true,
   workspaces: [],
 } as unknown as NotificationPreferences;
 
@@ -97,6 +98,24 @@ describe("NotifyMeSection", () => {
     fireEvent.click(toggle);
     expect(updatePreferences).toHaveBeenLastCalledWith({
       topicUpdatesEnabled: true,
+    });
+  });
+
+  it("turns the weekly stale issue line off and on again", () => {
+    render(<NotifyMeSection preferences={preferences} />);
+    const toggle = screen.getByRole("switch", {
+      name: "settings:notificationsPage.eventStaleItems",
+    });
+
+    fireEvent.click(toggle);
+    expect(updatePreferences).toHaveBeenLastCalledWith({
+      staleItemsEnabled: false,
+    });
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+
+    fireEvent.click(toggle);
+    expect(updatePreferences).toHaveBeenLastCalledWith({
+      staleItemsEnabled: true,
     });
   });
 
