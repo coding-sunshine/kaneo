@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { chatMessageTable } from "../../database/schema";
 import { parseMentionIds } from "../../utils/parse-mentions";
@@ -17,9 +17,9 @@ const plain = (body: string) =>
   body.replace(/<kaneo-mention[^>]*>(.*?)<\/kaneo-mention>/gi, "$1");
 
 /**
- * The whole thread a message is in, for a person who can read its channel:
- * its first message, then the replies, oldest first, with the people the
- * thread mentions. A channel they cannot read answers 404; one its members
+ * The thread a message is in, for a person who can read its channel: its
+ * first message, then its newest replies, oldest first, with the people the
+ * thread mentions. A long thread loses its oldest replies, never the latest. A channel they cannot read answers 404; one its members
  * marked no AI answers 403 before anything reaches the model.
  */
 export async function readThread(
@@ -36,11 +36,11 @@ export async function readThread(
     });
   const rootId = await findThreadRoot(channelId, messageId);
   const [root] = await selectMessages().where(eq(chatMessageTable.id, rootId));
-  const replies = await selectMessages()
+  const newest = await selectMessages()
     .where(eq(threadLink.parentId, rootId))
-    .orderBy(asc(chatMessageTable.createdAt), asc(chatMessageTable.id))
+    .orderBy(desc(chatMessageTable.createdAt), desc(chatMessageTable.id))
     .limit(MAX_MESSAGES - 1);
-  const messages = [...(root ? [root] : []), ...replies];
+  const messages = [...(root ? [root] : []), ...newest.reverse()];
   return {
     rootId,
     messages: messages.map(({ id, userId: authorId, authorName }) => ({

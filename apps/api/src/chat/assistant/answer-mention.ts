@@ -5,6 +5,7 @@ import { readThread } from "../../agent/thread-ticket/read-thread";
 import { runModel } from "../../assist/run-model";
 import { findThreadRoot } from "../controllers/find-thread-root";
 import { loadChannel } from "../controllers/load-channel";
+import { takeAssistantCall } from "./assistant-call-limit";
 import { assistantReplyBody } from "./assistant-reply-body";
 import { messageLink } from "./message-link";
 import { postAssistantReply } from "./post-assistant-reply";
@@ -23,6 +24,7 @@ export type AssistantAsk = {
 
 const DECLINED = "AI is turned off in this channel, so I can't answer here.";
 const FAILED = "I couldn't answer this time. Try again later.";
+const TOO_SOON = "You asked me just now. Try again later.";
 
 const SYSTEM = [
   "You are the assistant in a team chat. A teammate asked you about the thread below. Sum it up and say what is still open: questions without an answer, decisions not made, work not done.",
@@ -70,8 +72,8 @@ async function compose(ask: AssistantAsk) {
 /**
  * Answers a mention of @assistant in the thread it was made in, from that
  * thread and the tickets it names that the asker can open. Silent unless an
- * admin turned the assistant on; a channel marked no AI gets a refusal and
- * nothing reaches the model.
+ * admin turned the assistant on; a channel marked no AI, or a person past
+ * their call limit, gets a short refusal and nothing reaches the model.
  */
 export async function answerMention(ask: AssistantAsk) {
   const { workspaceId, channelId, messageId, userId } = ask;
@@ -79,8 +81,10 @@ export async function answerMention(ask: AssistantAsk) {
   if (!(await aiFeatureOn(workspaceId, "chatAssistant"))) return;
   const channel = await loadChannel(workspaceId, channelId, userId, "read");
   const rootId = await findThreadRoot(channelId, messageId);
-  let body = DECLINED;
-  if (!channel.aiDisabled) {
+  let body: string;
+  if (channel.aiDisabled) body = DECLINED;
+  else if (!takeAssistantCall(userId)) body = TOO_SOON;
+  else {
     try {
       body = await compose(ask);
     } catch (error) {

@@ -2,6 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { setBudget } from "../../apps/api/src/agent/budget";
 import { answerMention } from "../../apps/api/src/chat/assistant/answer-mention";
 import db, { schema } from "../../apps/api/src/database";
+import {
+  chatMessageTable,
+  chatThreadReplyTable,
+} from "../../apps/api/src/database/schema";
 import { settleEvents } from "../../apps/api/src/events";
 import { createApp } from "../../apps/api/src/index";
 import { model, reply } from "./helpers/agent-model";
@@ -307,6 +311,74 @@ describe("API integration: the assistant in chat", () => {
     const [answered] = await ask();
     expect(answered?.body).toMatch(/AI is turned off in this channel/);
     expect(model.seen).toHaveLength(0);
+  });
+
+  it("answers the request in a thread of more than 100 messages", async () => {
+    await turnOn();
+    const start = Date.now() - 1_000_000;
+    for (let n = 0; n < 120; n++) {
+      const [row] = await db
+        .insert(chatMessageTable)
+        .values({
+          channelId,
+          userId: owner.id,
+          body: `Older reply ${n}`,
+          createdAt: new Date(start + n * 1000),
+        })
+        .returning({ id: chatMessageTable.id });
+      await db
+        .insert(chatThreadReplyTable)
+        .values({ messageId: row?.id ?? "", parentId: rootId });
+    }
+    model.queue.push(
+      answer([{ text: "EU card checkout fails.", sources: [rootId] }], []),
+    );
+    const [answered] = await ask("what changed in the last week?");
+    const sent = model.seen[0]?.at(-1)?.content ?? "";
+    expect(sent).toContain(
+      "<request>@assistant what changed in the last week?</request>",
+    );
+    expect(sent).toContain("Checkout fails for EU cards");
+    expect(sent).toContain("Older reply 119");
+    expect(answered?.body).toContain("EU card checkout fails.");
+  });
+
+  it("asks the model once when one person mentions it twice in a row", async () => {
+    await turnOn();
+    model.queue.push(
+      answer([{ text: "EU card checkout fails.", sources: [rootId] }], []),
+      answer([{ text: "Again.", sources: [rootId] }], []),
+    );
+    await post(member, channelId, "@assistant summarise this", rootId);
+    await post(member, channelId, "@assistant and again", rootId);
+    await settleEvents();
+    const answered = (await replies()).filter((m) => m.byAssistant);
+    expect(model.seen).toHaveLength(1);
+    expect(answered).toHaveLength(2);
+    // The refusal needs no model, so it can land before the answer.
+    expect(answered.map((m) => m.body).join("\n")).toMatch(
+      /You asked me just now/,
+    );
+    expect(answered.map((m) => m.body).join("\n")).toContain(
+      "EU card checkout fails.",
+    );
+  });
+
+  it("keeps both switches when two admins change different ones at once", async () => {
+    const put = (body: object) =>
+      as(owner).request(
+        `/api/agent/workspace/${ws}/ai-features`,
+        json("PUT", body),
+      );
+    await Promise.all([put({ triage: true }), put({ prSummary: true })]);
+    const features = await as(owner).request(
+      `/api/agent/workspace/${ws}/ai-features`,
+    );
+    expect(await features.json()).toEqual({
+      triage: true,
+      prSummary: true,
+      chatAssistant: false,
+    });
   });
 
   it("stays silent until an admin turns it on", async () => {

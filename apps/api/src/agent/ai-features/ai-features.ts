@@ -33,20 +33,20 @@ export const aiFeatureOn = async (
   feature: keyof AiFeatures,
 ) => (await readAiFeatures(workspaceId))[feature];
 
-/** Sets the switches given; a switch left out keeps its stored value. */
+/**
+ * Sets the switches given; a switch left out keeps its stored value. One
+ * upsert that writes only the given switches, so two admins changing
+ * different switches at once both keep their change.
+ */
 export async function saveAiFeatures(
   workspaceId: string,
   userId: string,
   changes: Partial<AiFeatures>,
 ): Promise<AiFeatures> {
-  const features = { ...(await readAiFeatures(workspaceId)), ...changes };
-  const values = { ...features, updatedBy: userId, updatedAt: new Date() };
+  const set = { ...changes, updatedBy: userId, updatedAt: new Date() };
   await db
     .insert(aiFeatureSettingTable)
-    .values({ workspaceId, ...values })
-    .onConflictDoUpdate({
-      target: aiFeatureSettingTable.workspaceId,
-      set: values,
-    });
-  return features;
+    .values({ workspaceId, ...OFF, ...set })
+    .onConflictDoUpdate({ target: aiFeatureSettingTable.workspaceId, set });
+  return readAiFeatures(workspaceId);
 }
