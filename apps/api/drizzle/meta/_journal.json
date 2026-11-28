@@ -1009,6 +1009,13 @@
       "when": 1795827109759,
       "tag": "0143_broken_marten_broadcloak",
       "breakpoints": true
+    },
+    {
+      "idx": 144,
+      "version": "7",
+      "when": 1795827938660,
+      "tag": "0144_shiny_red_ghost",
+      "breakpoints": true
     }
   ]
 }
