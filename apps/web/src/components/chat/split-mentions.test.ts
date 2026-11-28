@@ -14,6 +14,25 @@ const mention = (over: Partial<ChatMention>): ChatMention => ({
 });
 
 describe("splitMentions", () => {
+  it("turns the address of a chat message into a message link", () => {
+    expect(
+      splitMentions(
+        "It fails. /dashboard/workspace/w1/channels/c1?messageId=m1 again",
+        [],
+      ),
+    ).toEqual([
+      { text: "It fails. " },
+      { message: { workspaceId: "w1", channelId: "c1", messageId: "m1" } },
+      { text: " again" },
+    ]);
+  });
+
+  it("leaves a message address inside a word as text", () => {
+    expect(
+      splitMentions("x/dashboard/workspace/w1/channels/c1?messageId=m1", []),
+    ).toEqual([{ text: "x/dashboard/workspace/w1/channels/c1?messageId=m1" }]);
+  });
+
   it("turns each named thing the server resolved into a card", () => {
     const user = mention({ kind: "user", ref: "u1", id: "u1", title: "B" });
     const task = mention({ ref: "ENG-1", id: "t1", title: "Fix" });

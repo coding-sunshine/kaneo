@@ -1,5 +1,6 @@
 import { BroadcastMention } from "@/components/chat/broadcast-mention";
 import { MentionCard } from "@/components/chat/mention-card";
+import { MessageLink } from "@/components/chat/message-link";
 import type { InlineNode } from "@/components/chat/parse-message-markdown";
 import {
   type ChatMention,
@@ -8,7 +9,7 @@ import {
 
 /**
  * Inline message text: `code`, **bold**, clickable web links opening in a new
- * tab, and what it names shown as live cards.
+ * tab, links to chat messages, and what it names shown as live cards.
  */
 export function MessageInline({
   nodes,
@@ -42,6 +43,12 @@ export function MessageInline({
             // oxlint-disable-next-line react/no-array-index-key
             key={`${index}-${at}`}
             token={part.broadcast}
+          />
+        ) : "message" in part ? (
+          <MessageLink
+            // oxlint-disable-next-line react/no-array-index-key
+            key={`${index}-${at}`}
+            target={part.message}
           />
         ) : "mention" in part ? (
           <MentionCard

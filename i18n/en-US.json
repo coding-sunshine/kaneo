@@ -3104,15 +3104,18 @@
 				"writing": "Writing help",
 				"prSummary": "Pull request summaries",
 				"threadTicket": "Tickets from threads",
-				"decision": "Decisions from threads"
+				"decision": "Decisions from threads",
+				"chatAssistant": "Chat assistant"
 			},
 			"switches": {
 				"title": "Background AI",
-				"description": "Features that call the model on their own, without anyone asking. Each is off until an admin turns it on.",
+				"description": "AI features that stay off until an admin turns them on.",
 				"triage": "Suggest triage for new tickets",
 				"triageDescription": "The model suggests labels, an assignee, a project and a priority for each new triage ticket.",
 				"prSummary": "Summarize merged pull requests",
 				"prSummaryDescription": "The model writes a short summary on a ticket when a pull request linked to it merges.",
+				"chatAssistant": "Answer @assistant in chat",
+				"chatAssistantDescription": "Mention @assistant in a thread to get a summary and what is still open, posted in the thread. It reads only that thread and the tickets the asker can open, and never answers in a channel marked no AI.",
 				"saveFailed": "Could not save the AI setting."
 			}
 		},
@@ -4773,6 +4776,8 @@
 			"messages": "Messages",
 			"noMessages": "No messages yet. Say hello.",
 			"deletedUser": "Deleted user",
+			"assistant": "Assistant",
+			"messageLink": "Message",
 			"messageLabel": "Message",
 			"messagePlaceholder": "Message {{name}}",
 			"send": "Send",

@@ -120,6 +120,15 @@ describe("MessageList", () => {
     );
   });
 
+  it("names the assistant as the author of its replies", () => {
+    renderList([
+      message({ userId: null, authorName: null, byAssistant: true }),
+    ]);
+    const item = screen.getByRole("listitem");
+    expect(item).toHaveTextContent("navigation:chat.assistant");
+    expect(item).not.toHaveTextContent("navigation:chat.deletedUser");
+  });
+
   it("names a deleted author", () => {
     renderList([message({ authorName: null })]);
     expect(screen.getByRole("listitem")).toHaveTextContent(

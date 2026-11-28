@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import { activitySchema } from "../activity/response";
+import { publishEvent } from "../events";
 import { imageUploadSchema } from "../task/response";
 import {
   apiRouter,
@@ -43,6 +44,7 @@ import {
   finalizeChatFile,
 } from "./controllers/send-chat-file";
 import { saveDraft } from "./controllers/save-draft";
+import { mentionsAssistant } from "./assistant/mentions-assistant";
 import { runChatCommand } from "./commands/run-command";
 import { sendTyping } from "./controllers/send-typing";
 import { startCall } from "./controllers/start-call";
@@ -93,6 +95,7 @@ import {
   updateChannelBody,
   workspaceIdParam,
 } from "./schema";
+import "./assistant/subscribe";
 import laterRoutes from "./later/routes";
 import "./call/subscribe";
 import "./link-preview/subscribe";
@@ -330,7 +333,7 @@ const postMessageRoute = createRoute({
   tags,
   summary: "Post message",
   description:
-    "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline. One person may post 20 messages per channel in 10 seconds, replies included. `@channel` puts the message in every other member's Inbox and `@here` in those not shown away; in a channel of more than 5 members only its owner may use them.",
+    "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline. One person may post 20 messages per channel in 10 seconds, replies included. `@channel` puts the message in every other member's Inbox and `@here` in those not shown away; in a channel of more than 5 members only its owner may use them. `@assistant` asks the assistant, when an admin turned it on, to reply in the thread with a summary of it built from what you can open.",
   middleware: [...write] as const,
   request: { params: channelParam, body: body(postMessageBody) },
   responses: {
@@ -920,16 +923,23 @@ const chat = apiRouter()
   })
   .openapi(postMessageRoute, async (c) => {
     const { workspaceId, channelId } = c.req.valid("param");
-    return c.json(
-      await postMessage(
+    const userId = c.get("userId");
+    const message = await postMessage(
+      workspaceId,
+      channelId,
+      userId,
+      c.req.valid("json").body,
+      c.req.valid("json").parentId,
+    );
+    if (mentionsAssistant(message.body))
+      await publishEvent("chat.assistant_mentioned", {
         workspaceId,
         channelId,
-        c.get("userId"),
-        c.req.valid("json").body,
-        c.req.valid("json").parentId,
-      ),
-      200,
-    );
+        messageId: message.id,
+        userId,
+        mayReadTasks: await hasWorkspacePermission(c, { task: ["read"] }),
+      });
+    return c.json(message, 200);
   })
   .openapi(listRepliesRoute, async (c) => {
     const { workspaceId, channelId, messageId } = c.req.valid("param");

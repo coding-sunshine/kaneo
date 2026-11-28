@@ -3173,7 +3173,8 @@
 				"prSummary": "Pull request summaries",
 				"threadTicket": "Tickets from threads",
 				"triage": "Triage suggestions",
-				"writing": "Writing help"
+				"writing": "Writing help",
+				"chatAssistant": "Chat assistant"
 			},
 			"invalid": "Enter a whole number of tokens, or leave the field empty.",
 			"loadError": "AI usage could not be loaded.",
@@ -3195,7 +3196,9 @@
 				"saveFailed": "Could not save the AI setting.",
 				"title": "Background AI",
 				"triage": "Suggest triage for new tickets",
-				"triageDescription": "The model suggests labels, an assignee, a project and a priority for each new triage ticket."
+				"triageDescription": "The model suggests labels, an assignee, a project and a priority for each new triage ticket.",
+				"chatAssistant": "Answer @assistant in chat",
+				"chatAssistantDescription": "Mention @assistant in a thread to get a summary and what is still open, posted in the thread. It reads only that thread and the tickets the asker can open, and never answers in a channel marked no AI."
 			}
 		},
 		"adminBackups": {
@@ -4803,7 +4806,9 @@
 			"remindTomorrow": "Tomorrow at 9:00",
 			"saved": "Saved messages",
 			"saveMessage": "Save",
-			"unsaveMessage": "Remove from saved"
+			"unsaveMessage": "Remove from saved",
+			"assistant": "Assistant",
+			"messageLink": "Message"
 		},
 		"files": {
 			"deletedUser": "Deleted user",
