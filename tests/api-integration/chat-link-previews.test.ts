@@ -207,8 +207,10 @@ describe("API integration: chat link previews", () => {
   });
 
   it("limits how many previews one person's messages fetch", async () => {
-    const { pub, post } = await setup();
-    for (let i = 0; i < 31; i++) await post(pub.id, `${SITE}?page=${i}`);
+    const { pub, priv, post } = await setup();
+    // Two channels keep the posts under the per-channel post limit.
+    for (let i = 0; i < 31; i++)
+      await post(i % 2 ? priv.id : pub.id, `${SITE}?page=${i}`);
 
     expect(siteFetch).toHaveBeenCalledTimes(30);
   });

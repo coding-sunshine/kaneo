@@ -106,4 +106,33 @@ describe("MessageComposer drafts", () => {
     await act(async () => {});
     expect(box().value).toBe("");
   });
+
+  it("posts once for fast repeated submits and a held Enter", async () => {
+    renderWith(new QueryClient(), "x");
+    await act(async () => {});
+    fireEvent.change(box(), { target: { value: "once" } });
+    // Two presses and a click before the first post starts or settles.
+    fireEvent.keyDown(box(), { key: "Enter" });
+    fireEvent.keyDown(box(), { key: "Enter" });
+    fireEvent.submit(box().closest("form") as HTMLFormElement);
+    await act(async () => {});
+    expect(state.post).toHaveBeenCalledTimes(1);
+
+    // Settling lets the next message through; a held key never repeats it.
+    const [, options] = state.post.mock.calls[0] as [
+      string,
+      { onSuccess: () => void; onSettled: () => void },
+    ];
+    act(() => {
+      options.onSuccess();
+      options.onSettled();
+    });
+    fireEvent.change(box(), { target: { value: "twice" } });
+    fireEvent.keyDown(box(), { key: "Enter", repeat: true });
+    await act(async () => {});
+    expect(state.post).toHaveBeenCalledTimes(1);
+    fireEvent.keyDown(box(), { key: "Enter" });
+    await act(async () => {});
+    expect(state.post).toHaveBeenCalledTimes(2);
+  });
 });
