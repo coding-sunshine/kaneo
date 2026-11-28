@@ -31,6 +31,7 @@ vi.mock("../github-api", () => ({
       original_line: 4,
       side: "RIGHT",
       created_at: "2026-01-02T00:00:00Z",
+      in_reply_to_id: 11,
     },
   ],
   listReviewThreadResolution: mocks.resolution,
@@ -50,6 +51,11 @@ describe("listPullRequestConversation resolved flag", () => {
     expect(
       entries.map((entry) => ("resolved" in entry ? entry.resolved : "n/a")),
     ).toEqual([true, false]);
+    expect(
+      entries.map((entry) =>
+        "inReplyToId" in entry ? entry.inReplyToId : "missing",
+      ),
+    ).toEqual([null, 11]);
   });
 
   it("leaves the flag out when GitHub's thread lookup fails", async () => {

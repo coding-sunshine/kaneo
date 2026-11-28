@@ -76,7 +76,17 @@ export function usePullRequestCopy(pull: CopyablePull, workspaceId: string) {
             },
             unresolvedComments: {
               heading: t("workspace:reviews.copyMenu.promptUnresolved"),
-              items: conversation ? unresolvedCommentLines(conversation) : [],
+              items: conversation
+                ? unresolvedCommentLines(conversation, {
+                    more: (count) =>
+                      t("workspace:reviews.copyMenu.promptUnresolvedMore", {
+                        count,
+                      }),
+                    threadsUnknown: t(
+                      "workspace:reviews.copyMenu.promptThreadsUnknown",
+                    ),
+                  })
+                : [],
             },
           }),
         ),

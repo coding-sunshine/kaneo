@@ -1,12 +1,16 @@
 import { Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useReviewsStatus } from "@/hooks/queries/github-reviews/use-github-reviews";
 import { isQuickToReview } from "@/lib/reviews-quick";
 import type { ReviewItem } from "@/lib/reviews-view";
 
-export function ReviewRowQuick({ pr }: { pr: ReviewItem }) {
+export function ReviewRowQuick({
+  pr,
+  me,
+}: {
+  pr: ReviewItem;
+  me: string | null;
+}) {
   const { t } = useTranslation();
-  const me = useReviewsStatus().data?.login ?? null;
   if (!isQuickToReview(pr, me)) return null;
   const label = t("workspace:reviews.chips.quick");
   return (

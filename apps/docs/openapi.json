@@ -48595,6 +48595,12 @@
                       "resolved": {
                         "type": "boolean"
                       },
+                      "inReplyToId": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
                       "createdAt": {
                         "type": "string"
                       }

@@ -44,9 +44,9 @@ vi.mock("@/hooks/queries/github-reviews/use-github-reviews", () => ({
   }),
   useReviewerCandidates: () => ({
     data: [
-      { login: "ada", avatarUrl: "" },
-      { login: "bo", avatarUrl: "" },
-      { login: "grace", avatarUrl: "" },
+      { login: "synthetic-author", avatarUrl: "" },
+      { login: "synthetic-reviewer", avatarUrl: "" },
+      { login: "synthetic-second", avatarUrl: "" },
     ],
     isLoading: false,
   }),
@@ -72,8 +72,8 @@ vi.mock(
     useGetActiveWorkspaceUsers: () => ({
       data: {
         members: [
-          { userId: "u1", user: { name: "Ada Lovelace", image: null } },
-          { userId: "u2", user: { name: "Bo Peep", image: null } },
+          { userId: "u1", user: { name: "Synthetic Member", image: null } },
+          { userId: "u2", user: { name: "Synthetic Reviewer", image: null } },
         ],
       },
     }),
@@ -89,7 +89,7 @@ const basePr = {
   number: 7,
   title: "Add thing",
   url: "https://github.com/acme/web/pull/7",
-  author: { login: "ada", avatarUrl: "" },
+  author: { login: "synthetic-author", avatarUrl: "" },
   reviewOwner: null,
   originalAuthorUserId: null,
   status: "open",
@@ -100,7 +100,7 @@ const basePr = {
   hasConflicts: false,
   labels: [{ name: "bug", color: "d73a4a" }],
   reviewers: [
-    { login: "bo", avatarUrl: "" },
+    { login: "synthetic-reviewer", avatarUrl: "" },
     { login: "cy", avatarUrl: "" },
   ],
   approvedBy: ["cy"],
@@ -190,14 +190,16 @@ describe("ReviewRowMenu", () => {
     renderMenu({ reviewOwner: owner("u2"), originalAuthorUserId: "u1" });
     await open("Owner");
     expect(
-      await screen.findByRole("menuitemcheckbox", { name: /Bo Peep/ }),
+      await screen.findByRole("menuitemcheckbox", {
+        name: /Synthetic Reviewer/,
+      }),
     ).toBeChecked();
     expect(
-      screen.getByRole("menuitemcheckbox", { name: /Ada Lovelace/ }),
+      screen.getByRole("menuitemcheckbox", { name: /Synthetic Member/ }),
     ).not.toBeChecked();
     expect(screen.getByText("Original author")).toBeVisible();
     fireEvent.click(
-      screen.getByRole("menuitemcheckbox", { name: /Ada Lovelace/ }),
+      screen.getByRole("menuitemcheckbox", { name: /Synthetic Member/ }),
     );
     expect(mocks.setOwner.mock.calls[0][0]).toBeNull();
   });
@@ -206,7 +208,9 @@ describe("ReviewRowMenu", () => {
     renderMenu({ reviewOwner: owner("u1"), originalAuthorUserId: "u1" });
     await open("Owner");
     fireEvent.click(
-      await screen.findByRole("menuitemcheckbox", { name: /Bo Peep/ }),
+      await screen.findByRole("menuitemcheckbox", {
+        name: /Synthetic Reviewer/,
+      }),
     );
     expect(mocks.setOwner.mock.calls[0][0]).toBe("u2");
   });
@@ -223,10 +227,14 @@ describe("ReviewRowMenu", () => {
   it("requests a review, skipping the author", async () => {
     renderMenu();
     await open("Select reviewers");
-    expect(screen.queryByRole("button", { name: "ada" })).toBeNull();
-    fireEvent.click(await screen.findByRole("button", { name: /grace/ }));
+    expect(
+      screen.queryByRole("button", { name: "synthetic-author" }),
+    ).toBeNull();
+    fireEvent.click(
+      await screen.findByRole("button", { name: /synthetic-second/ }),
+    );
     expect(mocks.requestReviewers).toHaveBeenCalledWith(
-      ["grace"],
+      ["synthetic-second"],
       expect.anything(),
     );
   });

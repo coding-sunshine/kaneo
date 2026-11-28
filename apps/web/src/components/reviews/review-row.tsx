@@ -47,6 +47,7 @@ export function ReviewRow({
   selected,
   onFocus,
   onAction,
+  me,
 }: {
   pr: ReviewItem;
   workspaceId: string;
@@ -54,6 +55,8 @@ export function ReviewRow({
   selected: boolean;
   onFocus: () => void;
   onAction: (pr: ReviewItem, action: PullRequestAction) => void;
+  /** Viewer's GitHub login, from the page. Null when Reviews has none. */
+  me: string | null;
 }) {
   const { t } = useTranslation();
   const show = (property: ReviewsProperty) => properties.includes(property);
@@ -103,7 +106,7 @@ export function ReviewRow({
         <span className="min-w-0 flex-1 truncate text-foreground">
           {pr.title}
         </span>
-        {show("quickToReview") && <ReviewRowQuick pr={pr} />}
+        {show("quickToReview") && <ReviewRowQuick pr={pr} me={me} />}
         {show("risk") && <ReviewRowRisk level={pr.riskLevel} />}
         {show("sla") && <ReviewRowSla issue={pr.issue} />}
         {show("labels") && <ReviewRowLabels labels={pr.labels} />}
