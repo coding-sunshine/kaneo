@@ -5,7 +5,7 @@ import {
   chatMessageTable,
   userTable,
 } from "../../database/schema";
-import createNotification from "../../notification/controllers/create-notification";
+import { createNotifications } from "../../notification/controllers/create-notification";
 import { commentPreview } from "../../utils/comment-preview";
 import { findChatAlertRecipients } from "./alert-recipients";
 
@@ -54,8 +54,8 @@ export async function notifyChatMessage({
     isDirect: message.isDirect,
   });
 
-  for (const recipientId of recipients)
-    await createNotification({
+  await createNotifications(
+    recipients.map((recipientId) => ({
       userId: recipientId,
       type: message.isDirect ? "chat_direct_message" : "chat_mention",
       eventData: {
@@ -68,5 +68,6 @@ export async function notifyChatMessage({
       },
       resourceId: messageId,
       resourceType: "chat_message",
-    });
+    })),
+  );
 }

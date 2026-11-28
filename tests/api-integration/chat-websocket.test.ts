@@ -446,4 +446,21 @@ describe("API integration: typing over the chat socket", () => {
 
     expect(await countRows()).toEqual(before);
   });
+
+  it("answers 429 to more than one start, or one stop, per second in a channel", async () => {
+    const { a, b, channels, pub } = await setup();
+    const reader = await subscribe(b, pub.id);
+
+    expect((await sendTyping(a, channels, pub.id)).status).toBe(200);
+    expect((await sendTyping(a, channels, pub.id)).status).toBe(429);
+    // A stop right after a start still goes through, once.
+    expect((await sendTyping(a, channels, pub.id, false)).status).toBe(200);
+    expect((await sendTyping(a, channels, pub.id, false)).status).toBe(429);
+
+    await vi.waitFor(() => expect(typingIn(reader)).toHaveLength(2));
+    expect(typingIn(reader)).toEqual([
+      typing(pub.id, a.user.id, true),
+      typing(pub.id, a.user.id, false),
+    ]);
+  });
 });

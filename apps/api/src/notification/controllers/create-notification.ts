@@ -7,25 +7,21 @@ import { deliverNotification } from "../../notification-preferences/delivery";
 import { safeOutboundError } from "../../utils/outbound-request";
 import { canReceiveResourceNotification } from "../resource-access";
 
-export async function persistNotification(
-  {
-    userId,
-    title,
-    content,
-    type,
-    eventData,
-    resourceId,
-    resourceType,
-  }: {
-    userId: string;
-    title?: string | null;
-    content?: string | null;
-    type?: string;
-    eventData?: Record<string, unknown> | null;
-    resourceId?: string;
-    resourceType?: string;
-  },
-  database: Pick<typeof db, "query" | "insert" | "select"> = db,
+type NotificationInput = {
+  userId: string;
+  title?: string | null;
+  content?: string | null;
+  type?: string;
+  eventData?: Record<string, unknown> | null;
+  resourceId?: string;
+  resourceType?: string;
+};
+type Database = Pick<typeof db, "query" | "insert" | "select">;
+
+// Whether the person may see the resource and has not turned this kind off.
+async function mayReceive(
+  { userId, type, resourceId, resourceType }: NotificationInput,
+  database: Database,
 ) {
   if (
     !(await canReceiveResourceNotification(
@@ -35,7 +31,7 @@ export async function persistNotification(
       database,
     ))
   ) {
-    return null;
+    return false;
   }
 
   const preferenceKey =
@@ -65,25 +61,52 @@ export async function persistNotification(
       });
 
     if (preference?.[preferenceKey] === false) {
-      return null;
+      return false;
     }
   }
+  return true;
+}
 
+const toRow = (input: NotificationInput) => ({
+  id: createId(),
+  userId: input.userId,
+  title: input.title ?? null,
+  content: input.content ?? null,
+  type: input.type || "info",
+  eventData: input.eventData ?? null,
+  resourceId: input.resourceId || null,
+  resourceType: input.resourceType || null,
+});
+
+export async function persistNotification(
+  input: NotificationInput,
+  database: Database = db,
+) {
+  if (!(await mayReceive(input, database))) return null;
   const [notification] = await database
     .insert(notificationTable)
-    .values({
-      id: createId(),
-      userId,
-      title: title ?? null,
-      content: content ?? null,
-      type: type || "info",
-      eventData: eventData ?? null,
-      resourceId: resourceId || null,
-      resourceType: resourceType || null,
-    })
+    .values(toRow(input))
     .returning();
-
   return notification;
+}
+
+/**
+ * Many notifications at once: each recipient passes the same checks as
+ * createNotification, then the rows go in with one insert and each is
+ * dispatched on its own.
+ */
+export async function createNotifications(inputs: NotificationInput[]) {
+  const allowed: NotificationInput[] = [];
+  for (const input of inputs)
+    if (await mayReceive(input, db)) allowed.push(input);
+  if (allowed.length === 0) return [];
+  const notifications = await db
+    .insert(notificationTable)
+    .values(allowed.map(toRow))
+    .returning();
+  for (const notification of notifications)
+    await dispatchNotification(notification);
+  return notifications;
 }
 
 export async function dispatchNotification(
