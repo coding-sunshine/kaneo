@@ -41,13 +41,41 @@ function useStoreDocument(workspaceId: string) {
   };
 }
 
+/**
+ * A page that gains a child must ask before it is deleted, so its cached
+ * `hasChildren` is set now and refetched; the page it left is refetched too.
+ */
+function useRefreshParents(workspaceId: string) {
+  const queryClient = useQueryClient();
+  return (gained: string | null | undefined, lost?: string | null) => {
+    if (gained) {
+      queryClient.setQueryData<DocumentDetail>(
+        documentKey(workspaceId, gained),
+        (page) => page && { ...page, hasChildren: true },
+      );
+    }
+    for (const id of [gained, lost]) {
+      if (id) {
+        queryClient.invalidateQueries({
+          queryKey: documentKey(workspaceId, id),
+          exact: true,
+        });
+      }
+    }
+  };
+}
+
 export function useCreateDocument(workspaceId: string) {
   const store = useStoreDocument(workspaceId);
+  const refreshParents = useRefreshParents(workspaceId);
   return useMutation({
     mutationFn: (
       input: Omit<Parameters<typeof createDocument>[0], "workspaceId">,
     ) => createDocument({ workspaceId, ...input }),
-    onSuccess: store,
+    onSuccess: (document, input) => {
+      store(document);
+      refreshParents(input.parentDocumentId);
+    },
   });
 }
 
@@ -159,7 +187,9 @@ export function useDeleteDocument(workspaceId: string) {
 }
 
 export function useMoveDocumentPage(workspaceId: string) {
+  const queryClient = useQueryClient();
   const store = useStoreDocument(workspaceId);
+  const refreshParents = useRefreshParents(workspaceId);
   return useMutation({
     mutationFn: ({
       id,
@@ -168,7 +198,15 @@ export function useMoveDocumentPage(workspaceId: string) {
       id: string;
       parentDocumentId: string | null;
     }) => moveDocumentPage(workspaceId, id, parentDocumentId),
-    onSuccess: store,
+    // The parent it leaves is the last of its ancestors before the move.
+    onMutate: ({ id }) =>
+      queryClient
+        .getQueryData<DocumentDetail>(documentKey(workspaceId, id))
+        ?.ancestors.at(-1)?.id,
+    onSuccess: (document, { parentDocumentId }, oldParent) => {
+      store(document);
+      refreshParents(parentDocumentId, oldParent);
+    },
   });
 }
 
