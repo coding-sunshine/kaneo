@@ -4226,6 +4226,84 @@ export const aiBudgetTable = pgTable("ai_budget", {
     .notNull(),
 });
 
+// A saved AI prompt one person runs with /<name> in chat. Private to its
+// owner. `projectScope` "selected" reads only the projects in
+// ai_skill_project, and nothing once none of them is left.
+export const aiSkillTable = pgTable(
+  "ai_skill",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    prompt: text("prompt").notNull(),
+    projectScope: text("project_scope")
+      .$type<"all" | "selected">()
+      .default("all")
+      .notNull(),
+    // Tokens the skill may use per calendar month (UTC); null means no cap.
+    monthlyTokenCap: integer("monthly_token_cap"),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("ai_skill_owner_name_idx").on(
+      table.workspaceId,
+      table.userId,
+      table.name,
+    ),
+  ],
+);
+
+export const aiSkillProjectTable = pgTable(
+  "ai_skill_project",
+  {
+    skillId: text("skill_id")
+      .notNull()
+      .references(() => aiSkillTable.id, { onDelete: "cascade" }),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projectTable.id, { onDelete: "cascade" }),
+  },
+  (table) => [primaryKey({ columns: [table.skillId, table.projectId] })],
+);
+
+// One run of a skill: who ran it where, and its tokens. The answer itself is
+// not kept.
+export const aiSkillRunTable = pgTable(
+  "ai_skill_run",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    skillId: text("skill_id")
+      .notNull()
+      .references(() => aiSkillTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    channelId: text("channel_id").references(() => chatChannelTable.id, {
+      onDelete: "set null",
+    }),
+    promptTokens: integer("prompt_tokens").notNull(),
+    completionTokens: integer("completion_tokens").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("ai_skill_run_skill_created_idx").on(table.skillId, table.createdAt),
+    index("ai_skill_run_user_created_idx").on(table.userId, table.createdAt),
+  ],
+);
+
 // Where a workspace's AI calls send its text: each row is one change an admin
 // made, and the newest row is the setting in force. Without a row the server
 // default applies. The rows are also the AI audit's record of the setting.

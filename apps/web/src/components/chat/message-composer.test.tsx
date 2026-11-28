@@ -14,6 +14,7 @@ const state = vi.hoisted(() => ({
   drafts: [] as { channelId: string; body: string; updatedAt: string }[],
   saveDraft: vi.fn(async () => ({})),
   post: vi.fn(),
+  tryRun: vi.fn((_text: string) => false),
 }));
 
 vi.mock("react-i18next", async (importOriginal) => ({
@@ -27,6 +28,17 @@ vi.mock("@/fetchers/chat/drafts", () => ({
 }));
 vi.mock("@/hooks/mutations/chat/use-post-message", () => ({
   usePostMessage: () => ({ mutate: state.post, isPending: false }),
+}));
+vi.mock("@/components/chat/skills/use-skill-command", () => ({
+  useSkillCommand: () => ({
+    tryRun: state.tryRun,
+    isRunning: false,
+    result: undefined,
+    dismiss: () => {},
+  }),
+}));
+vi.mock("@/components/chat/skills/skills-dialog", () => ({
+  SkillsDialog: () => null,
 }));
 
 const composer = (channelId: string) => (
@@ -134,5 +146,36 @@ describe("MessageComposer drafts", () => {
     fireEvent.keyDown(box(), { key: "Enter" });
     await act(async () => {});
     expect(state.post).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("MessageComposer skills", () => {
+  afterEach(() => {
+    cleanup();
+    state.post.mockReset();
+    state.tryRun.mockReset();
+  });
+
+  it("runs /name of a saved skill instead of posting it", async () => {
+    state.tryRun.mockImplementation((text) => text === "/blockers now");
+    renderWith(new QueryClient(), "x");
+    await act(async () => {});
+    fireEvent.change(box(), { target: { value: "/blockers now" } });
+    fireEvent.keyDown(box(), { key: "Enter" });
+    await waitFor(() =>
+      expect(state.tryRun).toHaveBeenCalledWith("/blockers now"),
+    );
+    expect(state.post).not.toHaveBeenCalled();
+    await waitFor(() => expect(box().value).toBe(""));
+  });
+
+  it("posts anything that is not one of my skills", async () => {
+    state.tryRun.mockReturnValue(false);
+    renderWith(new QueryClient(), "x");
+    await act(async () => {});
+    fireEvent.change(box(), { target: { value: "/shrug" } });
+    fireEvent.keyDown(box(), { key: "Enter" });
+    await waitFor(() => expect(state.post).toHaveBeenCalled());
+    expect(state.post.mock.calls[0]?.[0]).toBe("/shrug");
   });
 });

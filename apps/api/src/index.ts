@@ -105,6 +105,7 @@ import { hideClosedTeams } from "./project-access/hide-closed-teams";
 import { getPublicProject } from "./project/controllers/get-public-project";
 import { initializeScheduler, shutdownScheduler } from "./scheduler";
 import search from "./search";
+import skill from "./skill";
 import duplicateSuggestion from "./duplicate-suggestion";
 import standup from "./standup";
 import slackIntegration from "./slack-integration";
@@ -858,6 +859,7 @@ export function createApp() {
     notificationPreferences,
   );
   const searchApi = api.route("/search", search);
+  const skillApi = api.route("/skill", skill);
   const duplicateSuggestionApi = api.route(
     "/duplicate-suggestion",
     duplicateSuggestion,
@@ -1118,6 +1120,7 @@ export function createApp() {
     calendarFeedApi,
     publicProjectApi,
     searchApi,
+    skillApi,
     duplicateSuggestionApi,
     standupApi,
     mattermostIntegrationApi,
@@ -1293,6 +1296,7 @@ const {
   calendarFeedApi,
   publicProjectApi,
   searchApi,
+  skillApi,
   duplicateSuggestionApi,
   standupApi,
   slackIntegrationApi,
@@ -1356,6 +1360,7 @@ export type AppType =
   | typeof notificationApi
   | typeof notificationPreferencesApi
   | typeof searchApi
+  | typeof skillApi
   | typeof duplicateSuggestionApi
   | typeof standupApi
   | typeof integrationSyncApi
