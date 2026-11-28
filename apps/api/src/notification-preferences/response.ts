@@ -58,6 +58,10 @@ export const notificationPreferenceSchema = z
       description:
         "A weekly inbox line on weekdays listing your issues that have sat in one started status for over a week.",
     }),
+    chatEmailEnabled: z.boolean().openapi({
+      description:
+        "Only while email is on: one email listing direct messages and mentions you left unread while away, at most one an hour and held through quiet hours.",
+    }),
     scheduleEnabled: z.boolean(),
     scheduleTimezone: z.string(),
     scheduleDays: z.array(z.number().int()),

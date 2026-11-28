@@ -811,7 +811,9 @@
 				"save": "Save",
 				"saved": "Daily brief saved",
 				"title": "Daily brief"
-			}
+			},
+			"eventChatEmail": "Email for unread chat",
+			"eventChatEmailHint": "Only while email is on: one email listing direct messages and mentions you left unread while away. At most one an hour, held during quiet hours."
 		},
 		"preferencesPage": {
 			"title": "Настройки",
@@ -5039,7 +5041,17 @@
 				"tokens_many": "{{count}} tokens",
 				"tokens_one": "{{count}} token",
 				"tokens_other": "{{count}} tokens"
-			}
+			},
+			"noSaved": "Nothing saved yet. Save a message from its menu to find it here.",
+			"openSaved": "Open message",
+			"reminderSet": "Reminder set for {{time}}",
+			"remindInOneHour": "In 1 hour",
+			"remindMe": "Remind me",
+			"remindNextWeek": "Next Monday at 9:00",
+			"remindTomorrow": "Tomorrow at 9:00",
+			"saved": "Saved messages",
+			"saveMessage": "Save",
+			"unsaveMessage": "Remove from saved"
 		},
 		"files": {
 			"deletedUser": "Deleted user",

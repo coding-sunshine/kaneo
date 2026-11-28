@@ -38,4 +38,6 @@ const subtitleText = {
   color: "#525252",
   fontSize: "14px",
   lineHeight: "22px",
+  // Keeps a message that lists several lines, one per line.
+  whiteSpace: "pre-line" as const,
 };

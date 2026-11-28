@@ -267,4 +267,17 @@ describe("notification display content", () => {
     );
     expect(getNotificationContent(reminder, say)).toBe("check the deploy");
   });
+
+  it("shows the message a Remind me reminder points at", () => {
+    const say = (key: string) => key;
+    const reminder = notification("chat_reminder", {
+      channelId: "c1",
+      note: "",
+      messageId: "m1",
+      messagePreview: "ship the release notes",
+    });
+    expect(getNotificationContent(reminder, say)).toBe(
+      "ship the release notes",
+    );
+  });
 });
