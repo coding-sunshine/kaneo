@@ -8925,7 +8925,7 @@
           },
           "chatEmailEnabled": {
             "type": "boolean",
-            "description": "One email listing direct messages and mentions you left unread while away, at most one an hour and held through quiet hours."
+            "description": "Only while email is on: one email listing direct messages and mentions you left unread while away, at most one an hour and held through quiet hours."
           },
           "scheduleEnabled": {
             "type": "boolean"
@@ -47849,7 +47849,7 @@
                   },
                   "chatEmailEnabled": {
                     "type": "boolean",
-                    "description": "One email listing direct messages and mentions you left unread while away, at most one an hour and held through quiet hours."
+                    "description": "Only while email is on: one email listing direct messages and mentions you left unread while away, at most one an hour and held through quiet hours."
                   },
                   "scheduleEnabled": {
                     "type": "boolean",

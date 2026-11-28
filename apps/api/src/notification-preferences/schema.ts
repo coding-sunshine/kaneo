@@ -37,7 +37,7 @@ export const updatePreferencesBody = z.object({
   }),
   chatEmailEnabled: z.boolean().optional().openapi({
     description:
-      "One email listing direct messages and mentions you left unread while away, at most one an hour and held through quiet hours.",
+      "Only while email is on: one email listing direct messages and mentions you left unread while away, at most one an hour and held through quiet hours.",
   }),
   scheduleEnabled: z.boolean().optional().openapi({
     description:

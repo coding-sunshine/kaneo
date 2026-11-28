@@ -779,7 +779,7 @@
 			"desktopTitle": "Desktop",
 			"desktopUnsupported": "This browser cannot show push notifications.",
 			"eventChatEmail": "Email for unread chat",
-			"eventChatEmailHint": "One email listing direct messages and mentions you left unread while away. At most one an hour, held during quiet hours."
+			"eventChatEmailHint": "Only while email is on: one email listing direct messages and mentions you left unread while away. At most one an hour, held during quiet hours."
 		},
 		"preferencesPage": {
 			"title": "Preferensi",

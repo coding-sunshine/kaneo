@@ -27,15 +27,22 @@ const CHAT_TYPES = ["chat_direct_message", "chat_mention"];
 // turning this on for an existing instance does not email old history.
 const LOOKBACK_MS = 7 * 24 * 60 * 60_000;
 export const MIN_EMAIL_GAP_MS = 60 * 60_000;
+// Rows read per run, oldest first; the rest wait for the next minute. Rows
+// held by quiet hours are read again each run, so this bounds that work.
+export const MAX_ROWS_PER_RUN = 500;
 
 /**
  * Inbox rows for direct messages and mentions that are still unread after
- * `settledAt`, for people not seen since then, who have not switched chat
- * email off, were not emailed in the last hour, and have not had this row
+ * `settledAt`, for people not seen since then, who turned email on and left
+ * chat email on, were not emailed in the last hour, and have not had this row
  * emailed already. Muted channels and messages read in the channel drop out.
  * Read access is checked by the caller, row by row.
  */
-export function findUnreadChat(now: Date, settledAt: Date) {
+export function findUnreadChat(
+  now: Date,
+  settledAt: Date,
+  limit = MAX_ROWS_PER_RUN,
+) {
   const author = userTable;
   return db
     .select({
@@ -66,7 +73,7 @@ export function findUnreadChat(now: Date, settledAt: Date) {
       chatEmailFallbackTable,
       eq(chatEmailFallbackTable.userId, notificationTable.userId),
     )
-    .leftJoin(
+    .innerJoin(
       userNotificationPreferenceTable,
       eq(userNotificationPreferenceTable.userId, notificationTable.userId),
     )
@@ -81,7 +88,8 @@ export function findUnreadChat(now: Date, settledAt: Date) {
         ),
         lte(notificationTable.createdAt, settledAt),
         gt(notificationTable.createdAt, new Date(now.getTime() - LOOKBACK_MS)),
-        sql`${userNotificationPreferenceTable.chatEmailEnabled} is not false`,
+        eq(userNotificationPreferenceTable.emailEnabled, true),
+        eq(userNotificationPreferenceTable.chatEmailEnabled, true),
         or(
           isNull(chatEmailFallbackTable.userId),
           and(
@@ -131,7 +139,8 @@ export function findUnreadChat(now: Date, settledAt: Date) {
         ),
       ),
     )
-    .orderBy(notificationTable.createdAt);
+    .orderBy(notificationTable.createdAt)
+    .limit(limit);
 }
 
 export type UnreadChat = Awaited<ReturnType<typeof findUnreadChat>>[number];

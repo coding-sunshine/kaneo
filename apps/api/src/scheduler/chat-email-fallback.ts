@@ -29,19 +29,20 @@ export function chatEmailDelayMs() {
 const clientUrl = () => process.env.KANEO_CLIENT_URL || "http://localhost:5173";
 
 /**
- * Emails each person about direct messages and mentions they left unread for
- * the configured delay while away: one email listing them, at most one an
+ * Emails each person who turned email on about direct messages and mentions
+ * they left unread for the configured delay while away: one email listing them, at most one an
  * hour, held through their quiet hours. Claimed first, so of two runs that
  * see the same person, one sends; a failed send gives the claim back.
  */
 export async function sendChatEmailFallbacks(
   now = new Date(),
+  limit?: number,
 ): Promise<{ degraded: boolean }> {
   if (!isSmtpConfigured()) return { degraded: false };
   let degraded = false;
   const settledAt = new Date(now.getTime() - chatEmailDelayMs());
   const byUser = new Map<string, UnreadChat[]>();
-  for (const row of await findUnreadChat(now, settledAt))
+  for (const row of await findUnreadChat(now, settledAt, limit))
     byUser.set(row.userId, [...(byUser.get(row.userId) ?? []), row]);
   for (const [userId, rows] of byUser) {
     try {
@@ -63,7 +64,8 @@ async function emailUser(userId: string, rows: UnreadChat[], now: Date) {
   const preference = await db.query.userNotificationPreferenceTable.findFirst({
     where: eq(userNotificationPreferenceTable.userId, userId),
   });
-  if (preference && !isWithinNotificationSchedule(preference, now)) return;
+  if (!preference?.emailEnabled || !preference.chatEmailEnabled) return;
+  if (!isWithinNotificationSchedule(preference, now)) return;
 
   const readable: UnreadChat[] = [];
   for (const row of rows) {

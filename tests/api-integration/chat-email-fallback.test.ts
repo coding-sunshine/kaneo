@@ -36,7 +36,8 @@ const start = new Date("2026-01-05T10:00:00.000Z");
 const at = (offsetMinutes: number) =>
   new Date(start.getTime() + minutes(offsetMinutes));
 
-async function setup() {
+// Email for chat goes out only to people who turned email on.
+async function setup({ emailOn = true } = {}) {
   const author = await createWorkspaceMember({
     role: "owner",
     userName: "Author",
@@ -83,6 +84,10 @@ async function setup() {
   };
   const preferences = (member: Seeded, body: Record<string, unknown>) =>
     as(member)("/api/notification-preferences", json("PUT", body));
+  if (emailOn)
+    expect((await preferences(reader, { emailEnabled: true })).status).toBe(
+      200,
+    );
   return { author, reader, ws, app, channels, as, direct, post, preferences };
 }
 
@@ -201,6 +206,40 @@ describe("API integration: email for unread chat", () => {
     await post(direct.id, "anyone?");
     await sendChatEmailFallbacks(at(30));
     expect(sent).not.toHaveBeenCalled();
+  });
+
+  it("sends none to someone who never turned email on, with or without a preference row", async () => {
+    const { reader, direct, post, preferences } = await setup({
+      emailOn: false,
+    });
+    await post(direct.id, "no row yet");
+    await sendChatEmailFallbacks(at(30));
+    expect(sent).not.toHaveBeenCalled();
+
+    // A saved row with email off, chat email left on, still sends none.
+    const saved = await preferences(reader, { chatEmailEnabled: true });
+    expect(await saved.json()).toMatchObject({
+      emailEnabled: false,
+      chatEmailEnabled: true,
+    });
+    await sendChatEmailFallbacks(at(31));
+    expect(sent).not.toHaveBeenCalled();
+    expect(emailsTo(reader)).toHaveLength(0);
+  });
+
+  it("reads at most the run's cap of rows, and leaves the rest for a later run", async () => {
+    const { reader, direct, post } = await setup();
+    await post(direct.id, "oldest first", 0);
+    await post(direct.id, "then this one", 1);
+
+    await sendChatEmailFallbacks(at(30), 1);
+    expect(emailsTo(reader)).toHaveLength(1);
+    expect(emailsTo(reader)[0]?.[2]?.message).toContain("oldest first");
+    expect(emailsTo(reader)[0]?.[2]?.message).not.toContain("then this one");
+
+    await sendChatEmailFallbacks(at(95), 1);
+    expect(emailsTo(reader)).toHaveLength(2);
+    expect(emailsTo(reader)[1]?.[2]?.message).toContain("then this one");
   });
 
   it("sends nothing about a channel the person can no longer read", async () => {
