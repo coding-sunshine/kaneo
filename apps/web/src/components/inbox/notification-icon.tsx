@@ -25,6 +25,7 @@ const icons: Record<string, LucideIcon> = {
   task_comment: MessageSquare,
   chat_mention: AtSign,
   chat_direct_message: MessageSquare,
+  chat_reminder: Timer,
   document_mention: AtSign,
   document_comment: MessageSquare,
   document_proposed: FilePlus,

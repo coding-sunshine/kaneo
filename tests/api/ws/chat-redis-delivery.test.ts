@@ -26,6 +26,7 @@ vi.mock("../../../apps/api/src/redis", () => ({
 }));
 
 import {
+  broadcastChatTyping,
   broadcastToChatChannel,
   initializeWebSocketAdapter,
   shutdownWebSocketAdapter,
@@ -118,4 +119,35 @@ it("ignores a broadcast whose Redis channel and payload disagree", async () => {
     "Chat broadcast channel and payload disagree",
   );
   error.mockRestore();
+});
+
+it("carries typing from another instance to local readers, and only to them", async () => {
+  const typing = {
+    type: "CHAT_TYPING",
+    channelId: "channel-1",
+    userId: "a",
+    typing: true,
+  };
+  receive(chatChannel("channel-1"), {
+    channelId: "channel-1",
+    message: typing,
+    origin: "other-instance",
+  });
+
+  await vi.waitFor(() =>
+    expect(ws.send).toHaveBeenCalledWith(JSON.stringify(typing)),
+  );
+  expect(m.lookup).toHaveBeenCalledWith("channel-1", ["b"]);
+});
+
+it("publishes typing to other instances with who is typing", async () => {
+  await broadcastChatTyping("channel-1", "a", false);
+
+  const published = JSON.parse(m.publish.mock.calls[0][1]);
+  expect(published.message).toEqual({
+    type: "CHAT_TYPING",
+    channelId: "channel-1",
+    userId: "a",
+    typing: false,
+  });
 });

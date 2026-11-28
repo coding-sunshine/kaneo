@@ -9,6 +9,7 @@ export const PRIORITY_TYPES = [
   "document_mention",
   "chat_mention",
   "chat_direct_message",
+  "chat_reminder",
   "document_question",
   "task_assignee_changed",
   "due_date_reminder",

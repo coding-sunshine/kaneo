@@ -43,6 +43,8 @@ import {
   finalizeChatFile,
 } from "./controllers/send-chat-file";
 import { saveDraft } from "./controllers/save-draft";
+import { runChatCommand } from "./commands/run-command";
+import { sendTyping } from "./controllers/send-typing";
 import { startCall } from "./controllers/start-call";
 import { updateChannel } from "./controllers/update-channel";
 import { listOnline } from "./presence/list-online";
@@ -58,6 +60,8 @@ import {
   channelMemberParam,
   channelParam,
   channelSchema,
+  chatCommandBody,
+  chatCommandResultSchema,
   chatFileParam,
   chatFileUploadBody,
   createChannelBody,
@@ -84,6 +88,8 @@ import {
   removedMemberSchema,
   saveDraftBody,
   ticketCommentBody,
+  typingBody,
+  typingSchema,
   updateChannelBody,
   workspaceIdParam,
 } from "./schema";
@@ -101,6 +107,9 @@ const noAccess = errorResponse("Missing permission for this workspace");
 const notFound = errorResponse("Channel not found");
 const notMember = errorResponse("Join the channel first");
 const archived = errorResponse("Channel is archived");
+const broadcastRefused = errorResponse(
+  "Join the channel first, or only the channel owner can use @channel or @here in a channel of more than 5 members",
+);
 const fixed = errorResponse(
   "Not a channel member, or a direct message, whose members are fixed",
 );
@@ -320,12 +329,12 @@ const postMessageRoute = createRoute({
   tags,
   summary: "Post message",
   description:
-    "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline. One person may post 20 messages per channel in 10 seconds, replies included.",
+    "Post to a channel you belong to. Give `parentId` to reply in a message's thread instead of the timeline. One person may post 20 messages per channel in 10 seconds, replies included. `@channel` puts the message in every other member's Inbox and `@here` in those not shown away; in a channel of more than 5 members only its owner may use them.",
   middleware: [...write] as const,
   request: { params: channelParam, body: body(postMessageBody) },
   responses: {
     200: jsonResponse("Message posted", messageSchema),
-    403: notMember,
+    403: broadcastRefused,
     404: messageNotFound,
     409: archived,
     429: errorResponse(
@@ -392,7 +401,7 @@ const finalizeFileUploadRoute = createRoute({
       "The key does not belong to this channel, the stored object does not match the name and size, or text came with a file added to a sent message",
     ),
     403: errorResponse(
-      "Not a channel member, or the message to add to is someone else's",
+      "Not a channel member, the message to add to is someone else's, or the text uses @channel or @here where only the channel owner may",
     ),
     404: errorResponse("Channel or message not found"),
     409: archived,
@@ -435,7 +444,9 @@ const editMessageRoute = createRoute({
   request: { params: messageParam, body: body(editMessageBody) },
   responses: {
     200: jsonResponse("Message edited", messageSchema),
-    403: errorResponse("Only the author can change this message"),
+    403: errorResponse(
+      "Only the author can change this message, and only the channel owner can add @channel or @here in a channel of more than 5 members",
+    ),
     404: messageNotFound,
     409: archived,
   },
@@ -553,6 +564,47 @@ const markReadRoute = createRoute({
     200: jsonResponse("Marked read", leftChannelSchema),
     403: noAccess,
     404: notFound,
+  },
+});
+
+const commandRoute = createRoute({
+  method: "post",
+  operationId: "runChatCommand",
+  path: `${channelPath}/commands`,
+  tags,
+  summary: "Run slash command",
+  description:
+    "Run a slash command in a channel you may post to. `/remind in 1 hour` sets a reminder only your Inbox gets; `/status away` sets your status (`/status clear` clears it); neither posts anything. `/ticket Fix login` files a ticket in the workspace's oldest team you can open and posts its key, which shows as its card. Status needs a user session; tickets need permission to create them.",
+  middleware: [...write] as const,
+  request: { params: channelParam, body: body(chatCommandBody) },
+  responses: {
+    200: jsonResponse("Command run", chatCommandResultSchema),
+    400: errorResponse("Unknown command, or one used the wrong way"),
+    403: errorResponse(
+      "Not a channel member, no user session for /status, or no permission to create tickets",
+    ),
+    404: notFound,
+    409: errorResponse(
+      "Channel is archived, or there is no team you can add tickets to",
+    ),
+  },
+});
+
+const typingRoute = createRoute({
+  method: "post",
+  operationId: "sendChatTyping",
+  path: `${channelPath}/typing`,
+  tags,
+  summary: "Send typing",
+  description:
+    "Tell the people who have the channel open that you started or stopped typing. Only members who may post can send it. Nothing is stored.",
+  middleware: [...write] as const,
+  request: { params: channelParam, body: body(typingBody) },
+  responses: {
+    200: jsonResponse("Typing sent", typingSchema),
+    403: notMember,
+    404: notFound,
+    409: archived,
   },
 });
 
@@ -1000,6 +1052,34 @@ const chat = apiRouter()
   .openapi(markReadRoute, async (c) => {
     const { workspaceId, channelId } = c.req.valid("param");
     return c.json(await markRead(workspaceId, channelId, c.get("userId")), 200);
+  })
+  .openapi(commandRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(
+      await runChatCommand({
+        workspaceId,
+        channelId,
+        userId: c.get("userId"),
+        text: c.req.valid("json").text,
+        canCreateTickets: await hasWorkspacePermission(c, {
+          task: ["create"],
+        }),
+        hasUserSession: !c.get("apiKey") && Boolean(c.get("session")),
+      }),
+      200,
+    );
+  })
+  .openapi(typingRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(
+      await sendTyping(
+        workspaceId,
+        channelId,
+        c.get("userId"),
+        c.req.valid("json").typing,
+      ),
+      200,
+    );
   })
   .openapi(muteRoute, async (c) => {
     const { workspaceId, channelId } = c.req.valid("param");

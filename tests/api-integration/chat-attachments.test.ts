@@ -11,6 +11,7 @@ import {
 import { S3Client } from "../../apps/api/node_modules/@aws-sdk/client-s3";
 import db, { schema } from "../../apps/api/src/database";
 import {
+  chatChannelMemberTable,
   chatMessageFileTable,
   chatMessageTable,
 } from "../../apps/api/src/database/schema";
@@ -215,6 +216,25 @@ describe("API integration: chat attachments", () => {
       );
       expect(response.status).toBe(400);
       expect(await db.select().from(chatMessageFileTable)).toHaveLength(1);
+    });
+
+    it("refuses a non-owner's @channel with a file in a channel over 5 members", async () => {
+      for (let i = 0; i < 4; i++) {
+        const extra = await createWorkspaceMember();
+        await db.insert(chatChannelMemberTable).values({
+          channelId: channels.general,
+          userId: extra.user.id,
+        });
+      }
+
+      const response = await sendFile(
+        world.as(world.open),
+        channels.general,
+        "chart.png",
+        { body: "@channel see this" },
+      );
+      expect(response.status).toBe(403);
+      expect(await db.select().from(chatMessageTable)).toHaveLength(0);
     });
   });
 

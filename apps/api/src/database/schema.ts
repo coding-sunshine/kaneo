@@ -3928,6 +3928,45 @@ export const chatChannelMuteTable = pgTable(
   ],
 );
 
+// A reminder someone set with /remind in a channel. Only its owner is told,
+// in their Inbox, once `remindAt` passes; `sentAt` marks it done.
+export const chatReminderTable = pgTable(
+  "chat_reminder",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    channelId: text("channel_id")
+      .notNull()
+      .references(() => chatChannelTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    note: text("note").notNull().default(""),
+    remindAt: timestamp("remind_at", { mode: "date" }).notNull(),
+    sentAt: timestamp("sent_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("chat_reminder_due_idx").on(table.sentAt, table.remindAt),
+    index("chat_reminder_user_idx").on(table.userId),
+  ],
+);
+
 // One row per user and emoji on a chat message, like comment_reaction.
 export const chatMessageReactionTable = pgTable(
   "chat_message_reaction",

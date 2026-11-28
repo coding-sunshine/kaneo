@@ -3,11 +3,13 @@ import type { ChatMessage } from "@/components/chat/types";
 export type ChatMention = ChatMessage["mentions"][number];
 export type MentionPart =
   | { text: string; href?: string }
-  | { mention: ChatMention };
+  | { mention: ChatMention }
+  | { broadcast: string };
 
-// A person's mention tag, a web link, or a typed ticket key, in that order.
+// A person's mention tag, a web link, @channel or @here as a word of its own
+// (as the server reads them), or a typed ticket key, in that order.
 const TOKEN =
-  /<kaneo-mention[^>]*\bid="([^"]+)"[^>]*>(?:<\/kaneo-mention>)?|\bhttps?:\/\/[^\s<>"'`]+|(?<![\p{L}\p{N}_%-])\p{L}[\p{L}\p{N}]*-\d{1,9}(?![\p{L}\p{N}_-])/gu;
+  /<kaneo-mention[^>]*\bid="([^"]+)"[^>]*>(?:<\/kaneo-mention>)?|\bhttps?:\/\/[^\s<>"'`]+|(?<![\p{L}\p{N}_.@-])@(?:channel|here)(?![\p{L}\p{N}_@-])|(?<![\p{L}\p{N}_%-])\p{L}[\p{L}\p{N}]*-\d{1,9}(?![\p{L}\p{N}_-])/gu;
 const TRAILING = /[.,;:!?)\]}]+$/;
 const ADDRESS =
   /\/workspace\/[^/\s]+\/(document|project)\/([a-z0-9]+)(?![\w-])/;
@@ -30,6 +32,8 @@ export function splitMentions(
     if (match[1] !== undefined) {
       const person = find("user", match[1]);
       part = person ? { mention: person } : { text: "@" };
+    } else if (token.startsWith("@")) {
+      part = { broadcast: token };
     } else if (/^https?:/i.test(token)) {
       token = token.replace(TRAILING, "");
       const [, kind, id] = ADDRESS.exec(token) ?? [];

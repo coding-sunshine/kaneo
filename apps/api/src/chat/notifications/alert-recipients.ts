@@ -4,11 +4,14 @@ import { chatChannelMuteTable } from "../../database/schema";
 import { parseMentionIds } from "../../utils/parse-mentions";
 import { findChannelReaders } from "../../ws/chat-channel-readers";
 import { findUnreadRecipients } from "../../ws/chat-unread-recipients";
+import { findBroadcastMention } from "../mentions/find-broadcast-mention";
+import { findAway } from "../presence/find-away";
 
 /**
  * Who a new message alerts: everyone else in a direct message, or each person
- * it mentions in a channel, never anyone for a plain channel message. Only
- * people who can read the channel and have not muted it count.
+ * it mentions in a channel, never anyone for a plain channel message.
+ * `@channel` calls on every other member and `@here` on those not shown away.
+ * Only people who can read the channel and have not muted it count, once each.
  */
 export async function findChatAlertRecipients(message: {
   channelId: string;
@@ -19,7 +22,12 @@ export async function findChatAlertRecipients(message: {
   const { channelId, authorId } = message;
   const candidates = message.isDirect
     ? await findUnreadRecipients(channelId, authorId)
-    : parseMentionIds(message.body).filter((id) => id !== authorId);
+    : [
+        ...new Set([
+          ...parseMentionIds(message.body),
+          ...(await findBroadcastRecipients(channelId, authorId, message.body)),
+        ]),
+      ].filter((id) => id !== authorId);
   if (candidates.length === 0) return [];
 
   const muted = new Set(
@@ -40,4 +48,17 @@ export async function findChatAlertRecipients(message: {
     ? await findChannelReaders(channelId, unmuted)
     : null;
   return access ? unmuted.filter((id) => access.readers.has(id)) : [];
+}
+
+async function findBroadcastRecipients(
+  channelId: string,
+  authorId: string | undefined,
+  body: string,
+) {
+  const broadcast = findBroadcastMention(body);
+  if (!broadcast) return [];
+  const members = await findUnreadRecipients(channelId, authorId);
+  if (broadcast === "channel") return members;
+  const away = await findAway(members);
+  return members.filter((id) => !away.has(id));
 }

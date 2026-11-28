@@ -243,4 +243,17 @@ describe("notification display content", () => {
     );
     expect(getNotificationContent(direct, say)).toBe("ping");
   });
+
+  it("titles a chat reminder and shows its note", () => {
+    const say = (key: string, options?: Record<string, unknown>) =>
+      `${key} ${JSON.stringify(options ?? {})}`;
+    const reminder = notification("chat_reminder", {
+      channelId: "c1",
+      note: "check the deploy",
+    });
+    expect(getNotificationTitle(reminder, say)).toContain(
+      "notifications:events.chat_reminder.title",
+    );
+    expect(getNotificationContent(reminder, say)).toBe("check the deploy");
+  });
 });

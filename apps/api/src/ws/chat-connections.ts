@@ -1,4 +1,5 @@
 import type { WSContext } from "hono/ws";
+import type { ChatBroadcastMessage } from "./broadcast-adapter";
 import { findChannelReaders } from "./chat-channel-readers";
 
 export type ChatConnection = {
@@ -66,7 +67,7 @@ export function closeChatConnections(
 // channel, or lost the workspace while a revocation was missed, gets nothing.
 export async function deliverToLocalChatConnections(
   channelId: string,
-  message: { type: string; channelId: string },
+  message: ChatBroadcastMessage,
 ) {
   const connections = chatConnections.get(channelId);
   if (!connections) return;
