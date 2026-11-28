@@ -39,10 +39,11 @@ const writingRoute = createRoute({
   tags: ["Agent"],
   summary: "Rewrite a selected passage",
   description:
-    "Rewrites the passage a person selected in the editor and returns the result to show beside the original. Nothing is saved; the editor replaces the selection only when the person accepts. Counted as writing help in AI usage.",
+    "Rewrites the passage a person selected in the editor and returns the result to show beside the original. Nothing is saved; the editor replaces the selection only when the person accepts. Needs the permission to edit documents. Counted as writing help in AI usage.",
   middleware: [
     workspaceAccess.fromParam(),
-    requireWorkspacePermission({ project: ["read"] }),
+    // The same permission as editing a document: a viewer spends no AI tokens.
+    requireWorkspacePermission({ task: ["update"] }),
   ] as const,
   request: {
     params: workspaceParam,

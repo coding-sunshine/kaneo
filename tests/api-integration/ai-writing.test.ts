@@ -113,10 +113,18 @@ describe("API integration: AI writing help", () => {
     expect(model.seen).toHaveLength(0);
   });
 
-  it("is open to any member who can read, since it only changes their own selection", async () => {
+  it("needs the permission to edit a document, so a viewer spends no AI tokens", async () => {
     const viewer = await addWorkspaceMember(ws, "viewer");
     model.queue.push(reply("Shorter."));
     const res = await rewrite(viewer, { action: "shorten", text: PARAGRAPH });
+    expect(res.status).toBe(403);
+    expect(model.seen).toHaveLength(0);
+  });
+
+  it("is open to a member who can edit documents", async () => {
+    const member = await addWorkspaceMember(ws, "member");
+    model.queue.push(reply("Shorter."));
+    const res = await rewrite(member, { action: "shorten", text: PARAGRAPH });
     expect(res.status).toBe(200);
   });
 
