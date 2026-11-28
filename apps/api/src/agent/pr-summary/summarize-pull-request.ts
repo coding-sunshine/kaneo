@@ -8,6 +8,7 @@ import {
 } from "../../database/schema";
 import { canAccessProject } from "../../project-access/can-access-project";
 import { meteredCompletion } from "../metered-completion";
+import { aiFeatureOn } from "../ai-features/ai-features";
 import { isAgentEnabled } from "../openrouter";
 import { recordProposal } from "../proposals/record-proposal";
 import { readJsonReply } from "../read-json-reply";
@@ -61,6 +62,7 @@ export async function summarizePullRequest(pull: MergedPullRequest) {
     .where(eq(taskTable.id, pull.taskId));
   const owner = task?.assigneeId ?? task?.creatorId;
   if (!task || !owner || !(await canAccessProject(owner, task.teamId))) return;
+  if (!(await aiFeatureOn(task.workspaceId, "prSummary"))) return;
 
   const prompt = promptOf(pull.url);
   const [existing] = await db

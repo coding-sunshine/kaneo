@@ -12,6 +12,7 @@ import {
 import { isWorkspaceGuest } from "../../guest/is-workspace-guest";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
 import { meteredCompletion } from "../metered-completion";
+import { aiFeatureOn } from "../ai-features/ai-features";
 import { isAgentEnabled } from "../openrouter";
 import { acceptProposalAs } from "../proposals/decide-proposal";
 import type { FieldChange } from "../proposals/field-diff";
@@ -117,6 +118,7 @@ export async function suggestTriage(taskId: string) {
     .innerJoin(projectTable, eq(projectTable.id, taskTable.projectId))
     .where(eq(taskTable.id, taskId));
   if (!task || task.status !== "triage" || !task.creatorId) return;
+  if (!(await aiFeatureOn(task.workspaceId, "triage"))) return;
   const owner = task.creatorId;
 
   const settings = await readTriageSettings(task.teamId);

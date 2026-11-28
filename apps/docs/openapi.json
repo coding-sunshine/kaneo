@@ -5180,6 +5180,24 @@
         ],
         "description": "The rewritten passage. Nothing is saved."
       },
+      "AiFeatures": {
+        "type": "object",
+        "properties": {
+          "triage": {
+            "type": "boolean",
+            "description": "Ask the model for a triage suggestion on every new ticket in triage."
+          },
+          "prSummary": {
+            "type": "boolean",
+            "description": "Ask the model for a summary comment when a linked pull request merges."
+          }
+        },
+        "required": [
+          "triage",
+          "prSummary"
+        ],
+        "description": "AI features that call the model on their own. All off until an admin turns them on."
+      },
       "Loop": {
         "type": "object",
         "properties": {
@@ -37043,6 +37061,144 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/ai-features": {
+      "get": {
+        "operationId": "getAiFeatures",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Get AI feature switches",
+        "description": "Which AI features run on their own in this workspace. Readable by every member, so settings can say whether a feature is on.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AI feature switches",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiFeatures"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "put": {
+        "operationId": "setAiFeatures",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Set AI feature switches",
+        "description": "Turn AI triage suggestions and pull request summaries on or off for the workspace. Admins and owners only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiFeatures"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AI feature switches",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiFeatures"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled or workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
           }
         }
       }

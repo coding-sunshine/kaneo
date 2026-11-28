@@ -76,12 +76,25 @@ describe("API integration: AI triage suggestions", () => {
       .values({ workspaceId: ws, name: "Web login" })
       .returning();
     workProjectId = workProject?.id ?? "";
+    // AI triage is off until a workspace admin turns it on.
+    expect(
+      (await features(owner, { triage: true, prSummary: false })).status,
+    ).toBe(200);
   });
 
   const as = (user: User) => {
     mockAuthenticatedSession(user);
     return app;
   };
+
+  const features = (
+    user: User,
+    body?: { triage: boolean; prSummary: boolean },
+  ) =>
+    as(user).request(
+      `/api/agent/workspace/${ws}/ai-features`,
+      body ? json("PUT", body) : undefined,
+    );
 
   const suggestion = (overrides: object = {}) =>
     reply(
@@ -313,6 +326,25 @@ describe("API integration: AI triage suggestions", () => {
     const id = await createTicket();
     expect(model.seen).toHaveLength(0);
     expect((await cards(owner, id)).status).toBe(404);
+  });
+
+  it("asks the model nothing while the workspace has AI triage off, the default", async () => {
+    const elsewhere = await createWorkspaceMember({ role: "owner" });
+    const fresh = await as(elsewhere.user).request(
+      `/api/agent/workspace/${elsewhere.workspace.id}/ai-features`,
+    );
+    expect(await fresh.json()).toEqual({ triage: false, prSummary: false });
+    await features(owner, { triage: false, prSummary: false });
+    model.queue.push(suggestion());
+    const id = await createTicket();
+    expect(model.seen).toHaveLength(0);
+    expect((await cards(owner, id)).body).toEqual([]);
+  });
+
+  it("lets only a workspace admin switch AI features", async () => {
+    const res = await features(teammate, { triage: false, prSummary: true });
+    expect(res.status).toBe(403);
+    expect((await features(teammate)).status).toBe(200);
   });
 
   it("still creates the ticket when the model fails", async () => {

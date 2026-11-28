@@ -4262,6 +4262,26 @@ export const aiTriageSettingTable = pgTable("ai_triage_setting", {
     .notNull(),
 });
 
+// AI features that call the model on their own, per workspace; all off until
+// an admin turns them on.
+export const aiFeatureSettingTable = pgTable("ai_feature_setting", {
+  workspaceId: text("workspace_id")
+    .primaryKey()
+    .references(() => workspaceTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  triage: boolean("triage").notNull().default(false),
+  prSummary: boolean("pr_summary").notNull().default(false),
+  updatedBy: text("updated_by").references(() => userTable.id, {
+    onDelete: "set null",
+    onUpdate: "cascade",
+  }),
+  updatedAt: timestamp("updated_at", { mode: "date" })
+    .default(utcNow)
+    .notNull(),
+});
+
 export const SLOT_TYPES = [
   "date",
   "number",

@@ -58,6 +58,14 @@ export function AiTriageCard({
           }
         />
       </SettingsRow>
+      {data.autoApply ? (
+        <p
+          role="note"
+          className="px-4 pb-3 text-amber-600 text-xs dark:text-amber-400"
+        >
+          {t("settings:projectTriage.ai.autoApplyWarning")}
+        </p>
+      ) : null}
       <SettingsRow
         stack
         title={t("settings:projectTriage.ai.guidance")}

@@ -7,6 +7,7 @@ import { SettingsSection } from "@/components/settings/settings-section";
 import { useAiUsage } from "@/hooks/queries/agent/use-ai-usage";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { AiBudgetForm } from "./ai-budget-form";
+import { AiFeaturesCard } from "./ai-features-card";
 import { UsageList } from "./usage-list";
 
 const FEATURE_LABELS: Record<string, string> = {
@@ -22,7 +23,7 @@ const FEATURE_LABELS: Record<string, string> = {
   decision: "settings:aiUsage.features.decision",
 };
 
-/** Settings, AI usage: budgets, then tokens by feature and by day. */
+/** Settings, AI usage: budgets, background AI switches, then tokens by feature and by day. */
 export default function AiUsagePanel() {
   const { t, i18n } = useTranslation();
   const { data: workspace } = useActiveWorkspace();
@@ -68,6 +69,12 @@ export default function AiUsagePanel() {
               workspaceId={workspaceId}
               budget={data.budget}
             />
+          </SettingsSection>
+          <SettingsSection
+            title={t("settings:aiUsage.switches.title")}
+            description={t("settings:aiUsage.switches.description")}
+          >
+            <AiFeaturesCard workspaceId={workspaceId} />
           </SettingsSection>
           <SettingsSection
             title={t("settings:aiUsage.byFeature")}

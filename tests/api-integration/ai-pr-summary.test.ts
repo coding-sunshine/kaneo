@@ -86,6 +86,7 @@ describe.each(["github", "gitea"] as const)(
         })
         .returning();
       integrationId = integration?.id ?? "";
+      await features({ triage: false, prSummary: true });
       const [row] = await db
         .insert(schema.taskTable)
         .values({
@@ -142,6 +143,16 @@ describe.each(["github", "gitea"] as const)(
       else await handleGiteaPullRequestClosed(closed, integrationId);
       await settleEvents();
     };
+    // Pull request summaries are off until a workspace admin turns them on.
+    async function features(body: { triage: boolean; prSummary: boolean }) {
+      mockAuthenticatedSession(owner);
+      const res = await app.request(`/api/agent/workspace/${ws}/ai-features`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      expect(res.status, await res.clone().text()).toBe(200);
+    }
     const cards = async (user: User) => {
       mockAuthenticatedSession(user);
       const res = await app.request(
@@ -243,6 +254,14 @@ describe.each(["github", "gitea"] as const)(
       expect(model.seen).toHaveLength(0);
       const all = await db.select().from(schema.agentProposalTable);
       expect(all).toEqual([]);
+    });
+
+    it("asks the model nothing while the workspace has summaries off, the default", async () => {
+      await features({ triage: false, prSummary: false });
+      await open();
+      await close();
+      expect(model.seen).toHaveLength(0);
+      expect(await db.select().from(schema.agentProposalTable)).toEqual([]);
     });
 
     it("is off without a model key", async () => {

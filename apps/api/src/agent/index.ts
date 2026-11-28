@@ -31,6 +31,7 @@ import summaryRoutes from "./summary/summary-routes";
 import triageRoutes from "./triage/triage-routes";
 import delegationRoutes from "./delegation/delegation-routes";
 import "./delegation/mention-events";
+import aiFeaturesRoutes from "./ai-features/ai-features-routes";
 import threadTicketRoutes from "./thread-ticket/thread-ticket-routes";
 import writingRoutes from "./writing/writing-routes";
 import "./pr-summary/pr-summary-events";
@@ -215,6 +216,7 @@ const routes = agent
   .route("/", triageRoutes)
   .route("/", delegationRoutes)
   .route("/", writingRoutes)
-  .route("/", threadTicketRoutes);
+  .route("/", threadTicketRoutes)
+  .route("/", aiFeaturesRoutes);
 
 export default routes;
