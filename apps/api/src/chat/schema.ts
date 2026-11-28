@@ -270,6 +270,36 @@ export const mutedChannelSchema = z
   .object({ channelId: z.string(), muted: z.boolean() })
   .openapi("ChatChannelMute");
 
+export const chatCommandBody = z.object({
+  text: z.string().trim().min(2).max(4000).openapi({
+    description:
+      "The line as typed, starting with a slash: `/remind in 1 hour [note]`, `/status <text>` or `/status clear`, or `/ticket <title>`.",
+  }),
+});
+
+export const chatCommandResultSchema = z
+  .discriminatedUnion("command", [
+    z.object({
+      command: z.literal("remind"),
+      remindAt: z.string().openapi({
+        description: "When your Inbox gets the reminder. Nobody else sees it.",
+      }),
+    }),
+    z.object({
+      command: z.literal("status"),
+      status: z.string().nullable(),
+    }),
+    z.object({
+      command: z.literal("ticket"),
+      taskId: z.string(),
+      key: z.string(),
+      messageId: z.string().openapi({
+        description: "The message that shows the new ticket's card.",
+      }),
+    }),
+  ])
+  .openapi("ChatCommandResult");
+
 export const typingBody = z.object({
   typing: z.boolean().openapi({
     description:

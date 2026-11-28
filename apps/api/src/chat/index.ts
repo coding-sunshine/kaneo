@@ -43,6 +43,7 @@ import {
   finalizeChatFile,
 } from "./controllers/send-chat-file";
 import { saveDraft } from "./controllers/save-draft";
+import { runChatCommand } from "./commands/run-command";
 import { sendTyping } from "./controllers/send-typing";
 import { startCall } from "./controllers/start-call";
 import { updateChannel } from "./controllers/update-channel";
@@ -59,6 +60,8 @@ import {
   channelMemberParam,
   channelParam,
   channelSchema,
+  chatCommandBody,
+  chatCommandResultSchema,
   chatFileParam,
   chatFileUploadBody,
   createChannelBody,
@@ -564,6 +567,29 @@ const markReadRoute = createRoute({
   },
 });
 
+const commandRoute = createRoute({
+  method: "post",
+  operationId: "runChatCommand",
+  path: `${channelPath}/commands`,
+  tags,
+  summary: "Run slash command",
+  description:
+    "Run a slash command in a channel you may post to. `/remind in 1 hour` sets a reminder only your Inbox gets; `/status away` sets your status (`/status clear` clears it); neither posts anything. `/ticket Fix login` files a ticket in the workspace's oldest team you can open and posts its key, which shows as its card. Status needs a user session; tickets need permission to create them.",
+  middleware: [...write] as const,
+  request: { params: channelParam, body: body(chatCommandBody) },
+  responses: {
+    200: jsonResponse("Command run", chatCommandResultSchema),
+    400: errorResponse("Unknown command, or one used the wrong way"),
+    403: errorResponse(
+      "Not a channel member, no user session for /status, or no permission to create tickets",
+    ),
+    404: notFound,
+    409: errorResponse(
+      "Channel is archived, or there is no team you can add tickets to",
+    ),
+  },
+});
+
 const typingRoute = createRoute({
   method: "post",
   operationId: "sendChatTyping",
@@ -1026,6 +1052,22 @@ const chat = apiRouter()
   .openapi(markReadRoute, async (c) => {
     const { workspaceId, channelId } = c.req.valid("param");
     return c.json(await markRead(workspaceId, channelId, c.get("userId")), 200);
+  })
+  .openapi(commandRoute, async (c) => {
+    const { workspaceId, channelId } = c.req.valid("param");
+    return c.json(
+      await runChatCommand({
+        workspaceId,
+        channelId,
+        userId: c.get("userId"),
+        text: c.req.valid("json").text,
+        canCreateTickets: await hasWorkspacePermission(c, {
+          task: ["create"],
+        }),
+        hasUserSession: !c.get("apiKey") && Boolean(c.get("session")),
+      }),
+      200,
+    );
   })
   .openapi(typingRoute, async (c) => {
     const { workspaceId, channelId } = c.req.valid("param");

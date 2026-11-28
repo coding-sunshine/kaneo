@@ -4737,7 +4737,14 @@
 			"unmutedNotice": "Unmuted. Mentions and direct messages here reach your Inbox again.",
 			"typingOne": "{{name}} is typing…",
 			"typingTwo": "{{first}} and {{second}} are typing…",
-			"typingMany": "Several people are typing…"
+			"typingMany": "Several people are typing…",
+			"commands": {
+				"reminderSet": "Reminder set for {{time}}. Only you can see this.",
+				"statusSet": "Your status is now “{{status}}”.",
+				"statusCleared": "Your status is cleared.",
+				"unknown": "/{{name}} is not a command. Try /remind in 1 hour, /status away or /ticket Fix login.",
+				"dismiss": "Dismiss"
+			}
 		},
 		"files": {
 			"title": "Files",
@@ -4869,6 +4876,9 @@
 			},
 			"chat_direct_message": {
 				"title": "{{actorName}} sent you a message"
+			},
+			"chat_reminder": {
+				"title": "Reminder you set in chat"
 			}
 		},
 		"inbox": {

@@ -4141,6 +4141,77 @@
           "restricted"
         ]
       },
+      "ChatCommandResult": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "enum": [
+                  "remind"
+                ]
+              },
+              "remindAt": {
+                "type": "string",
+                "description": "When your Inbox gets the reminder. Nobody else sees it."
+              }
+            },
+            "required": [
+              "command",
+              "remindAt"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "enum": [
+                  "status"
+                ]
+              },
+              "status": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "command",
+              "status"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "enum": [
+                  "ticket"
+                ]
+              },
+              "taskId": {
+                "type": "string"
+              },
+              "key": {
+                "type": "string"
+              },
+              "messageId": {
+                "type": "string",
+                "description": "The message that shows the new ticket's card."
+              }
+            },
+            "required": [
+              "command",
+              "taskId",
+              "key",
+              "messageId"
+            ]
+          }
+        ]
+      },
       "ChatTyping": {
         "type": "object",
         "properties": {
@@ -34130,6 +34201,120 @@
           },
           "404": {
             "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/commands": {
+      "post": {
+        "operationId": "runChatCommand",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Run slash command",
+        "description": "Run a slash command in a channel you may post to. `/remind in 1 hour` sets a reminder only your Inbox gets; `/status away` sets your status (`/status clear` clears it); neither posts anything. `/ticket Fix login` files a ticket in the workspace's oldest team you can open and posts its key, which shows as its card. Status needs a user session; tickets need permission to create them.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 4000,
+                    "description": "The line as typed, starting with a slash: `/remind in 1 hour [note]`, `/status <text>` or `/status clear`, or `/ticket <title>`."
+                  }
+                },
+                "required": [
+                  "text"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Command run",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatCommandResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown command, or one used the wrong way",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not a channel member, no user session for /status, or no permission to create tickets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel is archived, or there is no team you can add tickets to",
             "content": {
               "application/json": {
                 "schema": {

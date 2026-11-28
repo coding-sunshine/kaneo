@@ -133,6 +133,10 @@ export function getNotificationTitle(
           actorName: eventData.actorName || t("common:people.someone"),
           defaultValue: notification.title ?? notification.type,
         });
+      case "chat_reminder":
+        return t("notifications:events.chat_reminder.title", {
+          defaultValue: notification.title ?? notification.type,
+        });
       case "document_replaced": {
         // One notification covers every open issue of the person that links
         // to the replaced document. It names the first and counts the rest.
@@ -233,6 +237,11 @@ export function getNotificationContent(
       case "chat_direct_message":
         return typeof eventData.messagePreview === "string"
           ? eventData.messagePreview
+          : (notification.content ?? "");
+      // The note the person wrote with /remind, if any.
+      case "chat_reminder":
+        return typeof eventData.note === "string"
+          ? eventData.note
           : (notification.content ?? "");
       case "document_mention":
       case "document_comment":
