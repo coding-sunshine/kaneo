@@ -9,7 +9,6 @@ import {
 } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import {
-  chatChannelAiExclusionTable,
   chatChannelMemberTable,
   chatChannelTable,
   chatMessageTable,
@@ -116,8 +115,9 @@ async function setup() {
     })
     .returning();
   await db
-    .insert(chatChannelAiExclusionTable)
-    .values({ channelId: y.id, setBy: owner.user.id });
+    .update(chatChannelTable)
+    .set({ aiDisabled: true })
+    .where(eq(chatChannelTable.id, y.id));
   const project = await createProjectFixture({ workspaceId: ws });
   const [task] = await db
     .insert(schema.taskTable)
@@ -257,7 +257,7 @@ describe("API integration: semantic search", () => {
     );
   });
 
-  it("forgets a channel's messages once it is marked no AI, and re-embeds an edited message", async () => {
+  it("forgets a channel's messages once its AI is turned off, and re-embeds an edited message", async () => {
     const { owner, ws, x, reason } = await setup();
     await indexSemanticChunks();
     embeddingCalls.length = 0;
@@ -270,16 +270,29 @@ describe("API integration: semantic search", () => {
     await indexSemanticChunks();
     expect(JSON.stringify(embeddingCalls)).toContain("for the release");
 
+    // Turning AI off in the channel forgets what was embedded from it.
     mockAuthenticatedSession(owner);
-    const put = await app.request(
-      `/api/channel-ai/workspace/${ws}/channels/${x.id}`,
+    const off = await app.request(
+      `/api/chat/workspace/${ws}/channels/${x.id}`,
       {
-        method: "PUT",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ excluded: true }),
+        body: JSON.stringify({ aiDisabled: true }),
       },
     );
-    expect(put.status).toBe(200);
+    expect(off.status, await off.clone().text()).toBe(200);
+    // Already embedded, it still never reaches an answer.
+    model.queue.push(reply(JSON.stringify({ answer: "-", sources: [] })));
+    const answer = await (
+      await search(owner, ws, "why did we pick the new vendor")
+    ).json();
+    expect(answer.results.map((r: { id: string }) => r.id)).not.toContain(
+      reason.id,
+    );
+    expect(JSON.stringify(model.seen)).not.toContain("for the release");
+    embeddingCalls.length = 0;
+    await indexSemanticChunks();
+    expect(JSON.stringify(embeddingCalls)).not.toContain("Northwind");
     const chunks = await db
       .select()
       .from(semanticChunkTable)

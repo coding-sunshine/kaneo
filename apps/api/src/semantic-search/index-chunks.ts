@@ -1,5 +1,5 @@
-import { and, eq, isNull, ne, or, sql } from "drizzle-orm";
-import { notAiExcluded } from "../assist/ai-allowed-channel";
+import { and, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
+import { aiEnabledChannel } from "../assist/ai-allowed-channel";
 import { embed, isSemanticSearchEnabled } from "../assist/embeddings";
 import db from "../database";
 import {
@@ -48,7 +48,7 @@ async function pendingMessages() {
       and(
         // Direct messages and channels marked no AI are never embedded.
         isNull(chatChannelTable.directKey),
-        notAiExcluded(),
+        aiEnabledChannel(),
         sql`length(trim(${chatMessageTable.body})) > 0`,
         stale(hash),
       ),
@@ -116,8 +116,28 @@ async function store(column: Column, rows: Pending[]) {
  * of each kind per run; the scheduler runs it every minute, which is also the
  * one-time backfill of an existing install. Does nothing when off.
  */
+/** Forgets what was embedded from channels whose AI was turned off since. */
+async function forgetAiDisabledChannels() {
+  await db
+    .delete(semanticChunkTable)
+    .where(
+      inArray(
+        semanticChunkTable.messageId,
+        db
+          .select({ id: chatMessageTable.id })
+          .from(chatMessageTable)
+          .innerJoin(
+            chatChannelTable,
+            eq(chatChannelTable.id, chatMessageTable.channelId),
+          )
+          .where(eq(chatChannelTable.aiDisabled, true)),
+      ),
+    );
+}
+
 export async function indexSemanticChunks() {
   if (!isSemanticSearchEnabled()) return { indexed: 0 };
+  await forgetAiDisabledChannels();
   const indexed =
     (await store("messageId", await pendingMessages())) +
     (await store("taskId", await pendingTasks())) +

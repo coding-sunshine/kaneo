@@ -1,5 +1,5 @@
 import { and, desc, eq, isNotNull, isNull, or, sql } from "drizzle-orm";
-import { notAiExcluded } from "../assist/ai-allowed-channel";
+import { aiEnabledChannel } from "../assist/ai-allowed-channel";
 import { readableChannel } from "../chat/readable-channel";
 import db from "../database";
 import {
@@ -38,7 +38,7 @@ export async function findChunks(reader: Reader, vector: number[]) {
     isNotNull(semanticChunkTable.messageId),
     eq(chatChannelTable.workspaceId, workspaceId),
     readableChannel(userId, workspaceId, guest),
-    notAiExcluded(),
+    aiEnabledChannel(),
     isNull(chatChannelTable.directKey),
   );
   const task = and(

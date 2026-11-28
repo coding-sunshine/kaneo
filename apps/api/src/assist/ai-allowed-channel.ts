@@ -1,25 +1,15 @@
-import { and, eq, isNull, notExists, type SQLWrapper, sql } from "drizzle-orm";
-import db from "../database";
-import {
-  chatChannelAiExclusionTable,
-  chatChannelTable,
-} from "../database/schema";
+import { and, eq, isNull } from "drizzle-orm";
+import { chatChannelTable } from "../database/schema";
 
-/** The channel is not marked "no AI". */
-export const notAiExcluded = (channelId: SQLWrapper = chatChannelTable.id) =>
-  notExists(
-    db
-      .select({ one: sql`1` })
-      .from(chatChannelAiExclusionTable)
-      .where(eq(chatChannelAiExclusionTable.channelId, channelId)),
-  );
+/** The channel lets AI in: "Turn off AI in this channel" is not set. */
+export const aiEnabledChannel = () => eq(chatChannelTable.aiDisabled, false);
 
 /**
- * Channels an AI feature may read for a person: not marked "no AI", and no
- * direct message unless the person opted in. Callers add who may read it.
+ * Channels an AI feature may read for a person: AI not turned off there, and
+ * no direct message unless the person opted in. Callers add who may read it.
  */
 export const aiAllowedChannel = (includeDirectMessages: boolean) =>
   and(
-    notAiExcluded(),
+    aiEnabledChannel(),
     includeDirectMessages ? undefined : isNull(chatChannelTable.directKey),
   );
