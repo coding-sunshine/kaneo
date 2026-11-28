@@ -1,12 +1,16 @@
-import { MentionCard } from "@/components/chat/mention-card";
+import { MessageCodeBlock } from "@/components/chat/message-code-block";
+import { MessageInline } from "@/components/chat/message-inline";
 import {
-  type ChatMention,
-  splitMentions,
-} from "@/components/chat/split-mentions";
+  type MessageBlock,
+  parseBlocks,
+  parseInline,
+} from "@/components/chat/parse-message-markdown";
+import type { ChatMention } from "@/components/chat/split-mentions";
 
 /**
- * Message text with its web links clickable, opening in a new tab, and what
- * it names shown as live cards.
+ * Message text with its formatting: paragraphs, lists, quotes, fenced code,
+ * bold, inline code, links and mention cards. Everything renders as React
+ * elements, so markup people type shows as text.
  */
 export function MessageBody({
   body,
@@ -17,32 +21,58 @@ export function MessageBody({
   mentions?: ChatMention[];
   workspaceId: string;
 }) {
-  return (
-    <p className="whitespace-pre-wrap break-words text-sm">
-      {splitMentions(body, mentions).map((part, index) =>
-        // Parts never reorder, so the index is a stable key.
-        "mention" in part ? (
-          <MentionCard
-            // oxlint-disable-next-line react/no-array-index-key
+  const inline = (text: string) => (
+    <MessageInline
+      nodes={parseInline(text)}
+      mentions={mentions}
+      workspaceId={workspaceId}
+    />
+  );
+  // Blocks never reorder, so the index is a stable key.
+  const renderBlock = (block: MessageBlock, index: number) => {
+    switch (block.type) {
+      case "code":
+        return (
+          <MessageCodeBlock
             key={index}
-            workspaceId={workspaceId}
-            mention={part.mention}
+            code={block.code}
+            language={block.language}
           />
-        ) : part.href ? (
-          <a
-            // oxlint-disable-next-line react/no-array-index-key
+        );
+      case "list": {
+        const List = block.ordered ? "ol" : "ul";
+        return (
+          <List
             key={index}
-            href={part.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary underline underline-offset-2"
+            className={block.ordered ? "list-decimal pl-5" : "list-disc pl-5"}
           >
-            {part.text}
-          </a>
-        ) : (
-          part.text
-        ),
-      )}
-    </p>
+            {block.items.map((item, at) => (
+              // oxlint-disable-next-line react/no-array-index-key
+              <li key={at}>{inline(item)}</li>
+            ))}
+          </List>
+        );
+      }
+      case "quote":
+        return (
+          <blockquote
+            key={index}
+            className="border-l-2 pl-3 text-muted-foreground"
+          >
+            {block.blocks.map(renderBlock)}
+          </blockquote>
+        );
+      default:
+        return (
+          <p key={index} className="whitespace-pre-wrap">
+            {inline(block.text)}
+          </p>
+        );
+    }
+  };
+  return (
+    <div className="flex flex-col gap-1 break-words text-sm">
+      {parseBlocks(body).map(renderBlock)}
+    </div>
   );
 }

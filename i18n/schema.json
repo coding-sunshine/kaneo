@@ -19149,6 +19149,12 @@
 						},
 						"attachFile": {
 							"type": "string"
+						},
+						"copyCode": {
+							"type": "string"
+						},
+						"copyCodeFailed": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -19232,7 +19238,9 @@
 						"directHint",
 						"openDirect",
 						"noOneElse",
-						"attachFile"
+						"attachFile",
+						"copyCode",
+						"copyCodeFailed"
 					]
 				},
 				"files": {
