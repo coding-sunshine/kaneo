@@ -2,6 +2,7 @@ import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import db from "../../database";
 import {
   chatChannelTable,
+  chatMessageReferenceTable,
   chatMessageTable,
   documentTable,
   projectTable,
@@ -33,6 +34,19 @@ const targetCondition = (target: ReferenceTarget) =>
     : "documentId" in target
       ? eq(referenceTable.targetDocumentId, target.documentId)
       : eq(referenceTable.targetProjectId, target.projectId);
+
+const chatTargetCondition = (target: ReferenceTarget) => {
+  const [targetKind, targetId] =
+    "taskId" in target
+      ? (["task", target.taskId] as const)
+      : "documentId" in target
+        ? (["document", target.documentId] as const)
+        : (["project", target.projectId] as const);
+  return and(
+    eq(chatMessageReferenceTable.targetKind, targetKind),
+    eq(chatMessageReferenceTable.targetId, targetId),
+  );
+};
 
 // One entry per source, with every place it names the target in.
 function bySource(kind: "task" | "document", rows: Row[]) {
@@ -119,10 +133,10 @@ export async function getReferences(
         title: chatChannelTable.name,
         channelId: chatChannelTable.id,
       })
-      .from(referenceTable)
+      .from(chatMessageReferenceTable)
       .innerJoin(
         chatMessageTable,
-        eq(chatMessageTable.id, referenceTable.sourceMessageId),
+        eq(chatMessageTable.id, chatMessageReferenceTable.messageId),
       )
       .innerJoin(
         chatChannelTable,
@@ -130,7 +144,8 @@ export async function getReferences(
       )
       .where(
         and(
-          where,
+          eq(chatMessageReferenceTable.workspaceId, workspaceId),
+          chatTargetCondition(target),
           eq(chatChannelTable.workspaceId, workspaceId),
           readableChannel(userId, workspaceId, guest),
         ),

@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import db from "../../database";
 import { chatMessageTable } from "../../database/schema";
 import { publishEvent } from "../../events";
-import { syncMessageReferences } from "../../reference/sync-references";
+import { syncMessageReferences } from "../mentions/sync-message-references";
 import { withMentions } from "../mentions/with-mentions";
 import { loadChannel } from "./load-channel";
 import { deleteDraft } from "./save-draft";
@@ -20,7 +20,7 @@ export async function postMessage(
       .insert(chatMessageTable)
       .values({ channelId, userId, body })
       .returning({ id: chatMessageTable.id });
-    if (row) await syncMessageReferences(tx, row.id, body);
+    if (row) await syncMessageReferences(tx, workspaceId, row.id, body);
     return row;
   });
   const [message] = await selectMessages().where(

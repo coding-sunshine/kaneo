@@ -1,6 +1,9 @@
-import { and, eq, isNotNull } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import db from "../../database";
-import { chatMessageTable, referenceTable } from "../../database/schema";
+import {
+  chatMessageReferenceTable,
+  chatMessageTable,
+} from "../../database/schema";
 import { publishEvent, subscribeToEvent } from "../../events";
 
 /**
@@ -15,15 +18,15 @@ export async function refreshMentioningChannels({
   if (!taskId) return;
   const channels = await db
     .selectDistinct({ channelId: chatMessageTable.channelId })
-    .from(referenceTable)
+    .from(chatMessageReferenceTable)
     .innerJoin(
       chatMessageTable,
-      eq(chatMessageTable.id, referenceTable.sourceMessageId),
+      eq(chatMessageTable.id, chatMessageReferenceTable.messageId),
     )
     .where(
       and(
-        eq(referenceTable.targetTaskId, taskId),
-        isNotNull(referenceTable.sourceMessageId),
+        eq(chatMessageReferenceTable.targetKind, "task"),
+        eq(chatMessageReferenceTable.targetId, taskId),
       ),
     );
   for (const { channelId } of channels)

@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import db from "../../database";
 import { chatMessageTable } from "../../database/schema";
 import { publishEvent } from "../../events";
-import { syncMessageReferences } from "../../reference/sync-references";
+import { syncMessageReferences } from "../mentions/sync-message-references";
 import { loadMessage, loadOwnMessage } from "./load-message";
 
 export async function editMessage(
@@ -18,7 +18,7 @@ export async function editMessage(
       .update(chatMessageTable)
       .set({ body, editedAt: new Date() })
       .where(eq(chatMessageTable.id, messageId));
-    await syncMessageReferences(tx, messageId, body);
+    await syncMessageReferences(tx, workspaceId, messageId, body);
   });
   await publishEvent("chat.message_updated", {
     workspaceId,

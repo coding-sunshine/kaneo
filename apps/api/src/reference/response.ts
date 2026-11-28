@@ -22,7 +22,7 @@ const referenceSchema = z
       description:
         "The channel of a chat message. Absent for a task or a document.",
     }),
-    places: z.array(z.enum(REFERENCE_PLACES)).openapi({
+    places: z.array(z.enum([...REFERENCE_PLACES, "chat"])).openapi({
       description:
         "Where the source names the target: a task's `description` or `comment`, or a document's text (`document`), or a chat message (`chat`).",
     }),

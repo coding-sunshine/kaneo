@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
+import { referenceTable } from "../../apps/api/src/database/schema";
 import { settleEvents, subscribeToEvent } from "../../apps/api/src/events";
 import { resetTestDatabase } from "./helpers/database";
 import {
@@ -137,6 +138,18 @@ describe("API integration: chat mentions", () => {
     expect(updatedChannels).toContain(general.id);
     const [after] = (await world.messages(owner)).list;
     expect(byKind(after, "task")?.title).toBe("Alpha renamed");
+
+    // A status change does the same.
+    updatedChannels.length = 0;
+    const moved = await world.as(owner)(
+      `/task/status/${alphaTask.id}`,
+      json("PUT", { status: "done" }),
+    );
+    expect(moved.status).toBe(200);
+    await settleEvents();
+    expect(updatedChannels).toContain(general.id);
+    const [done] = (await world.messages(owner)).list;
+    expect(byKind(done, "task")?.status).toBe("done");
   });
 
   it("shows a restricted item without its title to a reader who cannot open it", async () => {
@@ -184,6 +197,8 @@ describe("API integration: chat mentions", () => {
       expect(await world.references(owner, path)).toContainEqual(expected);
       expect(await world.references(open, path)).toContainEqual(expected);
     }
+    // Chat keeps its own table: the reference table gets no rows from it.
+    expect(await db.select().from(referenceTable)).toEqual([]);
   });
 
   it("never shows a private channel's message to people outside it", async () => {

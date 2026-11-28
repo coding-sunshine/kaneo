@@ -3397,16 +3397,11 @@ export const taskDocumentTable = pgTable(
   ],
 );
 
-export const REFERENCE_PLACES = [
-  "description",
-  "comment",
-  "document",
-  "chat",
-] as const;
+export const REFERENCE_PLACES = ["description", "comment", "document"] as const;
 export type ReferencePlace = (typeof REFERENCE_PLACES)[number];
 
-// Where a ticket's, a document's or a chat message's text names a ticket, a
-// document or a team, by address or by a typed key. One row per place in the source, kept right on
+// Where a ticket's or a document's text names a ticket, a document or a team,
+// by address or by a typed key. One row per place in the source, kept right on
 // every save of that place. A row lets nobody into anything.
 export const referenceTable = pgTable(
   "reference",
@@ -3427,10 +3422,6 @@ export const referenceTable = pgTable(
     }),
     sourceDocumentId: text("source_document_id").references(
       () => documentTable.id,
-      { onDelete: "cascade", onUpdate: "cascade" },
-    ),
-    sourceMessageId: text("source_message_id").references(
-      () => chatMessageTable.id,
       { onDelete: "cascade", onUpdate: "cascade" },
     ),
     place: text("place").$type<ReferencePlace>().notNull(),
@@ -3455,7 +3446,6 @@ export const referenceTable = pgTable(
       .on(
         table.sourceTaskId,
         table.sourceDocumentId,
-        table.sourceMessageId,
         table.place,
         table.targetTaskId,
         table.targetDocumentId,
@@ -3464,7 +3454,7 @@ export const referenceTable = pgTable(
       .nullsNotDistinct(),
     check(
       "reference_one_source",
-      sql`num_nonnulls(${table.sourceTaskId}, ${table.sourceDocumentId}, ${table.sourceMessageId}) = 1`,
+      sql`num_nonnulls(${table.sourceTaskId}, ${table.sourceDocumentId}) = 1`,
     ),
     check(
       "reference_one_target",
@@ -3472,7 +3462,6 @@ export const referenceTable = pgTable(
     ),
     // The unique index above leads with the source ticket.
     index("reference_source_document_idx").on(table.sourceDocumentId),
-    index("reference_source_message_idx").on(table.sourceMessageId),
     index("reference_target_task_idx").on(table.targetTaskId),
     index("reference_target_document_idx").on(table.targetDocumentId),
     index("reference_target_project_idx").on(table.targetProjectId),
@@ -3888,6 +3877,45 @@ export const chatDraftTable = pgTable(
   (table) => [
     primaryKey({ columns: [table.channelId, table.userId] }),
     index("chat_draft_user_idx").on(table.userId),
+  ],
+);
+
+export const CHAT_REFERENCE_KINDS = ["task", "document", "project"] as const;
+export type ChatReferenceKind = (typeof CHAT_REFERENCE_KINDS)[number];
+
+// What a chat message names: a ticket, a document or a team of its own
+// workspace, kept right on every post and edit. Like reference, a row lets
+// nobody into anything; readers see it only through the message's channel.
+export const chatMessageReferenceTable = pgTable(
+  "chat_message_reference",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    messageId: text("message_id")
+      .notNull()
+      .references(() => chatMessageTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    targetKind: text("target_kind").$type<ChatReferenceKind>().notNull(),
+    targetId: text("target_id").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("chat_message_reference_message_idx").on(table.messageId),
+    index("chat_message_reference_target_idx").on(
+      table.targetKind,
+      table.targetId,
+    ),
   ],
 );
 
