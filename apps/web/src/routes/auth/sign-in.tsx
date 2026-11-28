@@ -13,7 +13,8 @@ import { AuthDivider } from "@/components/auth/auth-divider";
 import { AuthFormSkeleton } from "@/components/auth/auth-form-skeleton";
 import { authLinkClassName } from "@/components/auth/auth-link-class";
 import {
-  getEmailMethod,
+  type EmailMethod,
+  getEmailMethods,
   getProviders,
   getSafeRedirectPath,
   getSignInFooter,
@@ -75,7 +76,15 @@ function SignIn() {
     (invitationId ? `/invitation/accept/${invitationId}` : "/dashboard");
   const baseUrl = import.meta.env.VITE_CLIENT_URL;
   const providers = getProviders(config);
-  const emailMethod = getEmailMethod(config);
+  const emailMethods = getEmailMethods(config);
+  const [chosenMethod, setChosenMethod] = useState<EmailMethod | null>(null);
+  const emailMethod =
+    chosenMethod && emailMethods.includes(chosenMethod)
+      ? chosenMethod
+      : (emailMethods[0] ?? null);
+  const otherMethod = emailMethods.find((method) => method !== emailMethod);
+  // Focus the new form only after a swap, never on first load.
+  const focusForm = chosenMethod !== null;
   const getName = useProviderName(config?.customOAuthName);
   const { pending: providerPending, signIn: signInWithProvider } =
     useProviderSignIn({
@@ -183,6 +192,7 @@ function SignIn() {
             defaultEmail={search.email}
             captcha={captcha}
             disabled={busy}
+            autoFocus={focusForm}
             onSent={({ email }) =>
               history.push(
                 buildVerifyOtpPath({
@@ -200,6 +210,7 @@ function SignIn() {
             canResetPassword={config?.hasSmtp}
             captcha={captcha}
             disabled={busy}
+            autoFocus={focusForm}
             onSuccess={() => navigate({ to: destination })}
             onTwoFactor={() =>
               navigate({
@@ -208,6 +219,21 @@ function SignIn() {
               })
             }
           />
+        ) : null}
+        {otherMethod ? (
+          <p className="pt-3 text-center text-muted-foreground text-sm">
+            <button
+              type="button"
+              className={authLinkClassName}
+              onClick={() => setChosenMethod(otherMethod)}
+            >
+              {t(
+                otherMethod === "password"
+                  ? "auth:signIn.switchMethod.toPassword"
+                  : "auth:signIn.switchMethod.toCode",
+              )}
+            </button>
+          </p>
         ) : null}
         {emailMethod ? (
           <div className="pt-3">

@@ -188,6 +188,10 @@
 			"lastUsed": "Last used",
 			"guestError": "Failed to sign in as guest",
 			"passkey": "Sign in with a passkey",
+			"switchMethod": {
+				"toPassword": "Sign in with password instead",
+				"toCode": "Email me a code instead"
+			},
 			"passkeyError": "Passkey sign-in failed",
 			"errors": {
 				"account_not_linked": "This identity could not be linked to the existing account. Sign in by email to verify the account, then try SSO again. If email sign-in is unavailable, contact your administrator.",

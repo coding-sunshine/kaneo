@@ -33,6 +33,7 @@ type PasswordSignInFormProps = {
   canResetPassword?: boolean;
   captcha: AuthCaptchaState;
   disabled?: boolean;
+  autoFocus?: boolean;
   onSuccess: () => void;
   onTwoFactor: () => void;
 };
@@ -42,6 +43,7 @@ export function PasswordSignInForm({
   canResetPassword = false,
   captcha,
   disabled = false,
+  autoFocus = false,
   onSuccess,
   onTwoFactor,
 }: PasswordSignInFormProps) {
@@ -111,6 +113,7 @@ export function PasswordSignInForm({
                   size="lg"
                   type="email"
                   autoComplete="email"
+                  autoFocus={autoFocus}
                   placeholder={t("auth:forms.emailPlaceholder")}
                   {...field}
                 />

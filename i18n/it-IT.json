@@ -218,7 +218,11 @@
 				"continue": "Continua su {{provider}}"
 			},
 			"passkey": "Sign in with a passkey",
-			"passkeyError": "Passkey sign-in failed"
+			"passkeyError": "Passkey sign-in failed",
+			"switchMethod": {
+				"toCode": "Email me a code instead",
+				"toPassword": "Sign in with password instead"
+			}
 		},
 		"providers": {
 			"google": "Google",

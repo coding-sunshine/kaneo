@@ -2,6 +2,7 @@ import { describe, expect, it } from "vite-plus/test";
 import type { GetConfigResponse } from "@/fetchers/config/get-config";
 import {
   getEmailMethod,
+  getEmailMethods,
   getProviders,
   getSafeRedirectPath,
   getSignInFooter,
@@ -63,6 +64,18 @@ describe("auth methods", () => {
   ] as const)("picks the email sign-in method for %j", (overrides, method) => {
     expect(getEmailMethod(config(overrides))).toBe(method);
   });
+
+  it.each([
+    [{}, ["code", "password"]],
+    [{ hasSmtp: false }, ["password"]],
+    [{ disableEmailOtpSignIn: true }, ["password"]],
+    [{ disableLoginForm: true }, []],
+  ] as const)(
+    "offers the email sign-in methods for %j",
+    (overrides, methods) => {
+      expect(getEmailMethods(config(overrides))).toEqual(methods);
+    },
+  );
 
   it("signs up with the same method as sign-in, except during instance setup", () => {
     expect(getSignUpEmailMethod(config(), false)).toBe("code");

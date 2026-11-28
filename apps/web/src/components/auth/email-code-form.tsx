@@ -30,6 +30,7 @@ type EmailCodeFormProps = {
   defaultEmail?: string;
   captcha: AuthCaptchaState;
   disabled?: boolean;
+  autoFocus?: boolean;
   onSent: (values: { email: string; name?: string }) => void;
 };
 
@@ -38,6 +39,7 @@ export function EmailCodeForm({
   defaultEmail,
   captcha,
   disabled = false,
+  autoFocus = false,
   onSent,
 }: EmailCodeFormProps) {
   const { t } = useTranslation();
@@ -128,6 +130,7 @@ export function EmailCodeForm({
                   size="lg"
                   type="email"
                   autoComplete="email"
+                  autoFocus={autoFocus}
                   placeholder={t("auth:forms.emailPlaceholder")}
                   {...field}
                 />

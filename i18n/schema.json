@@ -742,6 +742,19 @@
 						"passkey": {
 							"type": "string"
 						},
+						"switchMethod": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"toPassword": {
+									"type": "string"
+								},
+								"toCode": {
+									"type": "string"
+								}
+							},
+							"required": ["toPassword", "toCode"]
+						},
 						"passkeyError": {
 							"type": "string"
 						},
@@ -859,6 +872,7 @@
 						"lastUsed",
 						"guestError",
 						"passkey",
+						"switchMethod",
 						"passkeyError",
 						"errors",
 						"instanceStatusError",

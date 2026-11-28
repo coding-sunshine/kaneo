@@ -22,9 +22,16 @@ export function getProviders(config: Config): AuthProvider[] {
   return providers.filter(([, enabled]) => enabled).map(([id]) => id);
 }
 
+/** Email sign-in methods on offer, the default first. */
+export function getEmailMethods(config: Config): EmailMethod[] {
+  if (!config || config.disableLoginForm) return [];
+  return config.hasSmtp && !config.disableEmailOtpSignIn
+    ? ["code", "password"]
+    : ["password"];
+}
+
 export function getEmailMethod(config: Config): EmailMethod | null {
-  if (!config || config.disableLoginForm) return null;
-  return config.hasSmtp && !config.disableEmailOtpSignIn ? "code" : "password";
+  return getEmailMethods(config)[0] ?? null;
 }
 
 export function getSignUpEmailMethod(
