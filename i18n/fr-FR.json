@@ -784,7 +784,16 @@
 			"eventTopicUpdates": "Followed topics",
 			"eventTopicUpdatesHint": "When a topic you follow gets a proposed document, a new current document, or an approved decision.",
 			"eventStaleItems": "Stale issues",
-			"eventStaleItemsHint": "One weekday line a week listing your issues that have stayed in the same status for over a week."
+			"eventStaleItemsHint": "One weekday line a week listing your issues that have stayed in the same status for over a week.",
+			"desktopDenied": "This browser blocks notifications from this site. Allow them in the browser's site settings, then try again.",
+			"desktopDescription": "Alerts from this browser when you are not looking at the tab.",
+			"desktopEnabled": "Mentions and direct messages",
+			"desktopFailed": "Could not change desktop notifications. Try again.",
+			"desktopOffHint": "Turn on to get a notification in this browser for mentions and direct messages.",
+			"desktopOnHint": "This browser shows a notification when someone mentions you or sends you a direct message.",
+			"desktopServerOff": "Desktop notifications are off on this server. An admin turns them on by setting a VAPID key pair.",
+			"desktopTitle": "Desktop",
+			"desktopUnsupported": "This browser cannot show push notifications."
 		},
 		"preferencesPage": {
 			"title": "Préférences",
@@ -3176,6 +3185,14 @@
 				"off": "Email intake is off on this instance. An administrator needs to add the intake mailbox settings on the server.",
 				"repliesOff": "This instance cannot send email yet, so replies from tickets will not be delivered until SMTP is set up.",
 				"title": "Email intake"
+			},
+			"ai": {
+				"autoApply": "Apply AI triage suggestions automatically",
+				"autoApplyDescription": "New triage tickets get the suggested labels, assignee, project and priority without anyone accepting them. Off by default.",
+				"autoApplyWarning": "Text in a ticket can steer which fields the model suggests and applies.",
+				"guidance": "AI triage guidance",
+				"guidanceDescription": "Tell the model how this team triages: which labels, people and projects handle what.",
+				"save": "Save guidance"
 			}
 		},
 		"teams": {
@@ -3245,7 +3262,12 @@
 				"loop": "Loop runs",
 				"loopDraft": "Loop drafts",
 				"filter": "Plain-English filters",
-				"summary": "Ticket summaries"
+				"summary": "Ticket summaries",
+				"decision": "Decisions from threads",
+				"prSummary": "Pull request summaries",
+				"threadTicket": "Tickets from threads",
+				"triage": "Triage suggestions",
+				"writing": "Writing help"
 			},
 			"invalid": "Enter a whole number of tokens, or leave the field empty.",
 			"loadError": "AI usage could not be loaded.",
@@ -3261,7 +3283,16 @@
 			"userDaily": "Daily budget per person",
 			"userDailyHint": "Tokens each person may use per day. Resets at 00:00 UTC. Leave empty for no limit.",
 			"workspaceMonthly": "Monthly budget for the workspace",
-			"workspaceMonthlyHint": "Tokens everyone may use together per calendar month (UTC). 0 turns AI off. Leave empty for no limit."
+			"workspaceMonthlyHint": "Tokens everyone may use together per calendar month (UTC). 0 turns AI off. Leave empty for no limit.",
+			"switches": {
+				"description": "Features that call the model on their own, without anyone asking. Each is off until an admin turns it on.",
+				"prSummary": "Summarize merged pull requests",
+				"prSummaryDescription": "The model writes a short summary on a ticket when a pull request linked to it merges.",
+				"saveFailed": "Could not save the AI setting.",
+				"title": "Background AI",
+				"triage": "Suggest triage for new tickets",
+				"triageDescription": "The model suggests labels, an assignee, a project and a priority for each new triage ticket."
+			}
 		},
 		"adminBackups": {
 			"failed": {
@@ -3748,7 +3779,11 @@
 					"provider": "Provider",
 					"health": "Health",
 					"project": "Project",
-					"update": "Update"
+					"update": "Update",
+					"agent": "Coding agent",
+					"decider": "Decided by",
+					"decision": "Decision",
+					"reason": "Reason"
 				},
 				"label": "Proposed change",
 				"reason": "Why:",
@@ -3757,7 +3792,8 @@
 					"declined": "Declined",
 					"failed": "Could not be applied",
 					"pending": "Waiting for you"
-				}
+				},
+				"keepField": "Apply {{field}}"
 			}
 		},
 		"customizeSidebar": {
@@ -4537,6 +4573,22 @@
 			"coediting": {
 				"failed": "Live editing is unavailable right now. Reload the page to try again.",
 				"loading": "Joining the live document…"
+			},
+			"writing": {
+				"accept": "Accept",
+				"actions": {
+					"fix": "Fix spelling and grammar",
+					"lengthen": "Lengthen",
+					"professional": "Make professional",
+					"shorten": "Shorten",
+					"simplify": "Simplify"
+				},
+				"changed": "The text changed while the suggestion was written, so nothing was replaced.",
+				"decline": "Decline",
+				"description": "Check the change. Accept puts it in place of your selection; one undo brings the original back.",
+				"diff": "Proposed change",
+				"menu": "Write with AI",
+				"working": "Writing…"
 			}
 		},
 		"drafts": {
@@ -4556,7 +4608,8 @@
 				"update_task": "Edit issue",
 				"update_task_assignee": "Assign",
 				"update_task_status": "Change status",
-				"create_project_update": "Draft project update"
+				"create_project_update": "Draft project update",
+				"draft_weekly_digest": "Draft weekly digest"
 			},
 			"actions": "Allowed changes",
 			"all": "All",
@@ -4650,6 +4703,12 @@
 					"description": "Summarizes the week's accomplishments for a person or team and shares the highlights.",
 					"instructions": "Summarize the issues completed in the last 7 days, grouped by project. Highlight the biggest wins and anything blocked, and post the summary as a document.",
 					"title": "Weekly wrap"
+				},
+				"digest": {
+					"action": "Draft the digest",
+					"description": "Drafts a weekly digest for leadership: what shipped, what is at risk, what needs a decision and what is blocked, with a link to every issue.",
+					"instructions": "Review the issues updated in the last 7 days. Put each one under shipped, at risk, needs decision or blocked, with a short note, and draft the weekly digest for the company-wide project. Leave out anything that fits none of them.",
+					"title": "Weekly digest"
 				}
 			},
 			"title": "Loops",
@@ -4788,7 +4847,43 @@
 			"mentionSearch": "Search people, tickets, documents and teams",
 			"noMentionMatches": "Nothing matches",
 			"restrictedItem": "Restricted item",
-			"attachFile": "Attach a file"
+			"attachFile": "Attach a file",
+			"aiDecision": {
+				"description": "The decision this thread reached, who took it and why. Nothing is filed until you accept it; then it waits on the topic for its decider to approve.",
+				"title": "Extract decision"
+			},
+			"aiOff": "Turn off AI in this channel",
+			"aiOn": "Turn on AI in this channel",
+			"aiThreadLoading": "Reading the thread…",
+			"aiTicket": {
+				"description": "A ticket drafted from the whole thread. Nothing is created until you accept it.",
+				"title": "Create ticket with AI"
+			},
+			"copyCode": "Copy code",
+			"copyCodeFailed": "Could not copy the code",
+			"createTicketWithAi": "Create ticket with AI",
+			"extractDecision": "Extract decision",
+			"reply": "Reply",
+			"replyCount_many": "{{count}} replies",
+			"replyCount_one": "{{count}} reply",
+			"replyCount_other": "{{count}} replies",
+			"replyLabel": "Reply in thread",
+			"replyPlaceholder": "Reply…",
+			"thread": "Thread replies",
+			"mute": "Mute channel",
+			"mutedNotice": "Muted. Mentions and direct messages here stay out of your Inbox.",
+			"unmute": "Unmute channel",
+			"unmutedNotice": "Unmuted. Mentions and direct messages here reach your Inbox again.",
+			"commands": {
+				"dismiss": "Dismiss",
+				"reminderSet": "Reminder set for {{time}}. Only you can see this.",
+				"statusCleared": "Your status is cleared.",
+				"statusSet": "Your status is now “{{status}}”.",
+				"unknown": "/{{name}} is not a command. Try /remind in 1 hour, /status away or /ticket Fix login."
+			},
+			"typingMany": "Several people are typing…",
+			"typingOne": "{{name}} is typing…",
+			"typingTwo": "{{first}} and {{second}} are typing…"
 		},
 		"files": {
 			"deletedUser": "Deleted user",
@@ -4906,6 +5001,19 @@
 			"stale_items": {
 				"content": "Still in the same status: {{issueList}}",
 				"title": "Issues stuck for over a week"
+			},
+			"weekly_digest": {
+				"content": "The weekly digest for {{projectName}} is ready to read.",
+				"title": "Weekly digest posted"
+			},
+			"chat_direct_message": {
+				"title": "{{actorName}} sent you a message"
+			},
+			"chat_mention": {
+				"title": "{{actorName}} mentioned you in #{{channelName}}"
+			},
+			"chat_reminder": {
+				"title": "Reminder you set in chat"
 			}
 		},
 		"reminderLeadTime": {
@@ -4945,7 +5053,8 @@
 			"openDocument": "Open document",
 			"unreadCount_many": "{{count}} unread notifications",
 			"unreadCount_one": "{{count}} unread notification",
-			"unreadCount_other": "{{count}} unread notifications"
+			"unreadCount_other": "{{count}} unread notifications",
+			"openMessage": "Open message"
 		},
 		"privateTopic": "Private topic"
 	},
@@ -6102,6 +6211,19 @@
 			"fetchedAt": "Récupéré {{time}}",
 			"refresh": "Actualiser l’aperçu Figma",
 			"refreshError": "Impossible d’actualiser l’aperçu Figma."
+		},
+		"delegation": {
+			"action": "Delegate to {{name}}",
+			"notConfigured": "No coding agent is set up on this server. An admin can add one with CODING_AGENT_URL and CODING_AGENT_API_KEY.",
+			"pullRequest": "Pull request",
+			"status": {
+				"failed": "Failed",
+				"merged": "Merged",
+				"prOpened": "Pull request open",
+				"running": "Working",
+				"starting": "Starting"
+			},
+			"title": "Coding agent"
 		}
 	},
 	"invitations": {

@@ -16,6 +16,10 @@ const KEYS: Record<string, string> = {
   project: "navigation:agent.proposal.fields.project",
   health: "navigation:agent.proposal.fields.health",
   update: "navigation:agent.proposal.fields.update",
+  agent: "navigation:agent.proposal.fields.agent",
+  decision: "navigation:agent.proposal.fields.decision",
+  decider: "navigation:agent.proposal.fields.decider",
+  reason: "navigation:agent.proposal.fields.reason",
 };
 
 /** The i18n key naming a diff field; an unknown field shows as it is. */

@@ -3709,10 +3709,20 @@ export const agentProposalTable = pgTable(
       .$type<{ id: string; name: string; arguments: string }[]>()
       .notNull(),
     sources: jsonb("sources")
-      .$type<{ kind: "task" | "document" | "comment"; id: string }[]>()
+      .$type<
+        { kind: "task" | "document" | "comment" | "message"; id: string }[]
+      >()
       .notNull(),
+    // `reason` is set on a suggestion that explains each field (AI triage).
     diff: jsonb("diff")
-      .$type<{ field: string; from: string | null; to: string | null }[]>()
+      .$type<
+        {
+          field: string;
+          from: string | null;
+          to: string | null;
+          reason?: string;
+        }[]
+      >()
       .notNull(),
     reason: text("reason").notNull(),
     status: text("status")
@@ -3762,6 +3772,8 @@ export const chatChannelTable = pgTable(
       onUpdate: "cascade",
     }),
     directKey: text("direct_key"),
+    // Members can keep AI features (thread tickets, decisions) out of it.
+    aiDisabled: boolean("ai_disabled").default(false).notNull(),
     archivedAt: timestamp("archived_at", { mode: "date" }),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
@@ -4272,6 +4284,90 @@ export const aiDestinationChangeTable = pgTable(
     ),
   ],
 );
+
+// A ticket handed to the server's coding agent after someone accepted the
+// delegation card. The agent reports back with the run's own token (kept here
+// only as a hash): a pull request it opened, the merge, or a failure. The task
+// id has no foreign key so the record outlives the ticket.
+export const codingAgentRunTable = pgTable(
+  "coding_agent_run",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    taskId: text("task_id").notNull(),
+    // The accepted delegation card; one run per card.
+    proposalId: text("proposal_id").notNull().unique(),
+    requestedBy: text("requested_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    agent: text("agent").notNull(),
+    status: text("status")
+      .$type<"starting" | "running" | "pr_opened" | "merged" | "failed">()
+      .default("starting")
+      .notNull(),
+    externalId: text("external_id"),
+    pullRequestUrl: text("pull_request_url"),
+    tokenHash: text("token_hash").notNull(),
+    error: text("error"),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("coding_agent_run_task_idx").on(table.taskId)],
+);
+
+// A team's AI triage settings: the guidance sent with each new triage ticket,
+// and whether the suggestion is applied without a person accepting it. No row
+// means no guidance and auto-apply off.
+export const aiTriageSettingTable = pgTable("ai_triage_setting", {
+  projectId: text("project_id")
+    .primaryKey()
+    .references(() => projectTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  guidance: text("guidance").notNull().default(""),
+  autoApply: boolean("auto_apply").notNull().default(false),
+  updatedBy: text("updated_by").references(() => userTable.id, {
+    onDelete: "set null",
+    onUpdate: "cascade",
+  }),
+  updatedAt: timestamp("updated_at", { mode: "date" })
+    .default(utcNow)
+    .notNull(),
+});
+
+// AI features that call the model on their own, per workspace; all off until
+// an admin turns them on.
+export const aiFeatureSettingTable = pgTable("ai_feature_setting", {
+  workspaceId: text("workspace_id")
+    .primaryKey()
+    .references(() => workspaceTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  triage: boolean("triage").notNull().default(false),
+  prSummary: boolean("pr_summary").notNull().default(false),
+  updatedBy: text("updated_by").references(() => userTable.id, {
+    onDelete: "set null",
+    onUpdate: "cascade",
+  }),
+  updatedAt: timestamp("updated_at", { mode: "date" })
+    .default(utcNow)
+    .notNull(),
+});
 
 export const SLOT_TYPES = [
   "date",

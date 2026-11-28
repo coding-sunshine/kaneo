@@ -94,6 +94,7 @@ export function getNotificationTitle(
       case "sla_warning":
       case "sla_breach":
       case "stale_items":
+      case "weekly_digest":
         return t(`notifications:events.${notification.type}.title`, {
           ...eventData,
           defaultValue: notification.title ?? notification.type,
@@ -215,6 +216,7 @@ export function getNotificationContent(
       case "sla_warning":
       case "sla_breach":
       case "stale_items":
+      case "weekly_digest":
         return t(`notifications:events.${notification.type}.content`, {
           ...eventData,
           defaultValue: notification.content ?? "",

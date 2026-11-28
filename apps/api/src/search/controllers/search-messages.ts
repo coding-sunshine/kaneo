@@ -19,8 +19,10 @@ export async function searchMessages(params: {
   userId: string;
   workspaceId: string;
   limit: number;
+  /** An AI reads the results: channels marked no AI are left out. */
+  forAi?: boolean;
 }): Promise<SearchResult[]> {
-  const { query, fts, userId, workspaceId, limit } = params;
+  const { query, fts, userId, workspaceId, limit, forAi } = params;
   const bodyFts = fts ? ftsMatch(bodyVector(chatMessageTable.body), fts) : null;
   const score = bodyFts ? bodyFts.score(2) : sql<number>`2`;
   const guest = await isWorkspaceGuest(workspaceId, userId);
@@ -47,6 +49,7 @@ export async function searchMessages(params: {
       and(
         eq(chatChannelTable.workspaceId, workspaceId),
         readableChannel(userId, workspaceId, guest),
+        forAi ? eq(chatChannelTable.aiDisabled, false) : undefined,
         bodyFts?.match ??
           ilike(chatMessageTable.body, `%${escapeLikePattern(query)}%`),
       ),

@@ -1,4 +1,5 @@
 import { Check, Sparkles, X } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentFieldDiff } from "@/components/agent/agent-field-diff";
 import { AgentSourceChip } from "@/components/agent/agent-source-chip";
@@ -21,20 +22,42 @@ const STATUS_KEYS = {
 export function AgentProposalCard({
   workspaceId,
   chatId,
+  taskId,
   proposal,
+  onDecided,
 }: {
   workspaceId: string;
   /** The chat it came from; none for a loop's draft. */
   chatId?: string;
+  /** The ticket it is shown on, which is reread after a decision. */
+  taskId?: string;
   proposal: AgentProposal;
+  /** Gets the decided proposal, for a card no query rereads. */
+  onDecided?: (decided: AgentProposal) => void;
 }) {
   const { t } = useTranslation();
-  const decide = useDecideProposal(workspaceId, chatId);
+  const decide = useDecideProposal(workspaceId, chatId, taskId);
+  const selectable = proposal.selectable && proposal.status === "pending";
+  const [kept, setKept] = useState<ReadonlySet<string>>(
+    () => new Set(proposal.diff.map((change) => change.field)),
+  );
+  const toggle = (field: string, keep: boolean) =>
+    setKept((current) => {
+      const next = new Set(current);
+      if (keep) next.add(field);
+      else next.delete(field);
+      return next;
+    });
   const submit = (decision: "accept" | "decline") =>
     decide.mutate(
-      { proposalId: proposal.id, decision },
+      {
+        proposalId: proposal.id,
+        decision,
+        fields: selectable && decision === "accept" ? [...kept] : undefined,
+      },
       {
         onSuccess: (decided) => {
+          onDecided?.(decided);
           if (decided.status === "failed")
             toast.error(t("navigation:agent.proposal.failed"));
         },
@@ -51,7 +74,11 @@ export function AgentProposalCard({
         <Sparkles className="size-3" aria-hidden="true" />
         <span>{t("navigation:agent.proposal.label")}</span>
       </header>
-      <AgentFieldDiff diff={proposal.diff} />
+      <AgentFieldDiff
+        diff={proposal.diff}
+        kept={selectable ? kept : undefined}
+        onToggle={selectable ? toggle : undefined}
+      />
       <p className="text-xs">
         <span className="text-muted-foreground">
           {t("navigation:agent.proposal.reason")}{" "}
@@ -80,7 +107,7 @@ export function AgentProposalCard({
         <div className="flex gap-2">
           <Button
             size="xs"
-            disabled={decide.isPending}
+            disabled={decide.isPending || (selectable && kept.size === 0)}
             onClick={() => submit("accept")}
           >
             <Check aria-hidden="true" />

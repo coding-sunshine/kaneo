@@ -20,6 +20,7 @@ type MergeRequestClosedPayload = {
     title: string;
     url: string;
     state: string;
+    description?: string | null;
     action?: string;
     source_branch?: string;
   };
@@ -115,6 +116,18 @@ export async function handleGitlabMergeRequestClosed(
             taskId: task.id,
           }),
         );
+
+        if (merged) {
+          afterCommit(() =>
+            publishEvent("pull_request.merged", {
+              taskId: task.id,
+              projectId: integration.projectId,
+              url: mergeRequest.url,
+              title: mergeRequest.title,
+              body: mergeRequest.description ?? null,
+            }),
+          );
+        }
 
         if (!merged) {
           return;

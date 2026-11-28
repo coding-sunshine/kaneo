@@ -31,6 +31,16 @@ vi.mock("@/components/chat/message-reactions", () => ({
 vi.mock("@/hooks/use-workspace-permission", () => ({
   useWorkspacePermission: () => ({ canCreateTasks: () => true }),
 }));
+// The AI actions in each message's menu read the server config and channel.
+vi.mock("@/hooks/queries/agent/use-agent", () => ({
+  useHasAgent: () => false,
+}));
+vi.mock("@/hooks/queries/chat/use-channel", () => ({
+  useChannel: () => ({ data: undefined }),
+}));
+vi.mock("@/components/chat/thread-proposal-dialog", () => ({
+  ThreadProposalDialog: () => null,
+}));
 vi.mock("@/components/chat/add-to-ticket-dialog", () => ({
   AddToTicketDialog: () => null,
 }));

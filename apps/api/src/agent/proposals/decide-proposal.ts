@@ -1,19 +1,13 @@
+import type { ToolClient } from "@kaneo/mcp/tools";
 import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { agentProposalTable } from "../../database/schema";
 import { createSelfClient, forwardedAuthHeaders } from "../self-client";
 import { buildAgentTools, CHAT_WRITE_TOOLS } from "../tools";
-import { workProjectName } from "./create-proposal";
-import { currentTeam } from "./current-team";
-import { PROJECT_UPDATE_TOOL } from "./project-update-tool";
-
-// A drafted project update needs its project still in the workspace.
-async function currentProject(workspaceId: string, id: string) {
-  if (!(await workProjectName(workspaceId, id)))
-    throw new HTTPException(404, { message: "Proposal not found" });
-  return id;
-}
+import { afterAccept } from "./after-accept";
+import { keepFields } from "./keep-fields";
+import { proposalPlace } from "./proposal-place";
 
 // A proposal is private to the person who asked for it, like their chat.
 const own = (userId: string, workspaceId: string, proposalId: string) =>
@@ -30,10 +24,17 @@ async function claim(
   proposalId: string,
   status: "accepted" | "declined",
   projectId?: string,
+  kept?: Pick<typeof agentProposalTable.$inferSelect, "arguments" | "diff">,
 ) {
   const [row] = await db
     .update(agentProposalTable)
-    .set({ status, decidedBy: userId, decidedAt: new Date(), projectId })
+    .set({
+      status,
+      decidedBy: userId,
+      decidedAt: new Date(),
+      projectId,
+      ...(kept ? { arguments: kept.arguments, diff: kept.diff } : {}),
+    })
     .where(
       and(
         own(userId, workspaceId, proposalId),
@@ -56,12 +57,31 @@ async function claim(
  * the API checks their permissions and the activity names them. A ticket now
  * in a team they cannot open is refused before anything runs. A refused or
  * failed write leaves the proposal `failed`, with the error as its result.
+ * `fields` keeps only those fields of a selectable proposal; the record then
+ * holds what was applied.
  */
-export async function acceptProposal(
+export const acceptProposal = (
   userId: string,
   workspaceId: string,
   proposalId: string,
   headers: Headers,
+  fields?: string[],
+) =>
+  acceptProposalAs(
+    userId,
+    workspaceId,
+    proposalId,
+    createSelfClient(forwardedAuthHeaders(headers)),
+    fields,
+  );
+
+/** Accepts as the person `client` acts for: their request, or a run as them. */
+export async function acceptProposalAs(
+  userId: string,
+  workspaceId: string,
+  proposalId: string,
+  client: ToolClient,
+  fields?: string[],
 ) {
   const [pending] = await db
     .select()
@@ -72,20 +92,19 @@ export async function acceptProposal(
   const projectId =
     pending.status !== "pending"
       ? undefined
-      : pending.tool === PROJECT_UPDATE_TOOL
-        ? await currentProject(workspaceId, pending.projectId)
-        : await currentTeam(userId, workspaceId, pending);
+      : await proposalPlace(userId, workspaceId, pending);
+  const kept = keepFields(pending, fields);
+  if (kept.diff.length === 0)
+    throw new HTTPException(400, { message: "Keep at least one field" });
   const row = await claim(
     userId,
     workspaceId,
     proposalId,
     "accepted",
     projectId,
+    kept === pending ? undefined : kept,
   );
-  const tools = buildAgentTools(
-    createSelfClient(forwardedAuthHeaders(headers)),
-    CHAT_WRITE_TOOLS,
-  );
+  const tools = buildAgentTools(client, CHAT_WRITE_TOOLS);
   const outcome = await tools
     .run(row.tool, row.arguments)
     .catch((error: unknown) => ({
@@ -102,6 +121,7 @@ export async function acceptProposal(
     })
     .where(eq(agentProposalTable.id, row.id))
     .returning();
+  if (!outcome.isError) await afterAccept(row, userId, outcome.text);
   return done ?? row;
 }
 

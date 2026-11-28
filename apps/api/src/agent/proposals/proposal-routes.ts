@@ -11,12 +11,14 @@ import { workspaceParam } from "../schema";
 import { acceptProposal, declineProposal } from "./decide-proposal";
 import { listAudit } from "./list-audit";
 import {
+  acceptQuery,
   auditListSchema,
   proposalParam,
   proposalSchema,
+  taskProposalsParam,
 } from "./proposal-schema";
 import { z } from "../../openapi";
-import { pendingDrafts, proposalView } from "./proposal-view";
+import { pendingDrafts, proposalView, taskProposals } from "./proposal-view";
 
 const tags = ["Agent"];
 const noAccess = errorResponse("Missing permission for this workspace");
@@ -33,7 +35,7 @@ const admin = [
   requireWorkspacePermission({ workspace: ["manage_settings"] }),
 ] as const;
 
-const decideRoute = (decision: "accept" | "decline") =>
+const decideRoute = <D extends "accept" | "decline">(decision: D) =>
   createRoute({
     method: "post",
     operationId:
@@ -92,20 +94,58 @@ const draftsRoute = createRoute({
   },
 });
 
+const acceptRoute = createRoute({
+  ...decideRoute("accept"),
+  request: {
+    params: proposalParam,
+    query: acceptQuery,
+  },
+  responses: {
+    ...decideRoute("accept").responses,
+    400: errorResponse("No field was kept"),
+  },
+});
+
+const taskRoute = createRoute({
+  method: "get",
+  operationId: "listTaskProposals",
+  path: "/workspace/{workspaceId}/tasks/{taskId}/proposals",
+  tags,
+  summary: "List your proposals about a ticket",
+  description:
+    "The proposals made for you about one ticket, such as an AI triage suggestion, newest first. Other people's proposals are not shown.",
+  middleware: [...read] as const,
+  request: { params: taskProposalsParam },
+  responses: {
+    200: jsonResponse("Proposals", z.array(proposalSchema)),
+    403: noAccess,
+    404: notFound,
+  },
+});
+
 const proposalRoutes = apiRouter()
+  .openapi(taskRoute, async (c) => {
+    const { workspaceId, taskId } = c.req.valid("param");
+    return c.json(
+      await taskProposals(await readerOf(c, workspaceId), taskId),
+      200,
+    );
+  })
   .openapi(draftsRoute, async (c) =>
     c.json(
       await pendingDrafts(await readerOf(c, c.req.valid("param").workspaceId)),
       200,
     ),
   )
-  .openapi(decideRoute("accept"), async (c) => {
+  .openapi(acceptRoute, async (c) => {
     const { workspaceId, proposalId } = c.req.valid("param");
+    const { fields } = c.req.valid("query");
     const row = await acceptProposal(
       c.get("userId"),
       workspaceId,
       proposalId,
       c.req.raw.headers,
+      fields?.split(",").map((field) => field.trim()),
     );
     return c.json(await proposalView(await readerOf(c, workspaceId), row), 200);
   })

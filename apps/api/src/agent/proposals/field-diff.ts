@@ -53,6 +53,11 @@ const FIELDS: Record<string, Record<string, string>> = {
     health: "health",
     body: "update",
   },
+  post_weekly_digest: {
+    workProjectId: "project",
+    health: "health",
+    body: "update",
+  },
 };
 
 /**

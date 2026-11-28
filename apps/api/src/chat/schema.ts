@@ -24,6 +24,10 @@ export const updateChannelBody = z.object({
   archived: z.boolean().optional().openapi({
     description: "Archive or unarchive. Archived channels stay readable.",
   }),
+  aiDisabled: z.boolean().optional().openapi({
+    description:
+      "Keep AI features out of the channel: no ticket or decision is drafted from its threads.",
+  }),
 });
 
 export const inviteMemberBody = z.object({ userId: z.string() });
@@ -123,6 +127,9 @@ export const channelSchema = z
     }),
     isMember: z.boolean().openapi({
       description: "True when the caller has joined the channel.",
+    }),
+    aiDisabled: z.boolean().openapi({
+      description: "True when the channel's members turned AI features off.",
     }),
     isMuted: z.boolean().openapi({
       description:

@@ -3,6 +3,7 @@ import type { Editor } from "@tiptap/core";
 import { useRef, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import CommentEditor from "@/components/activity/comment-editor";
+import type { WritingAction } from "@/fetchers/agent/writing-help";
 import useAuth from "@/components/providers/auth-provider/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -37,6 +38,9 @@ import {
 } from "./document-save";
 import { useEditingAnnouncer } from "./use-editing-announcer";
 import { useScrollToIssueLine } from "./use-scroll-to-issue-line";
+import type { TextRange } from "./writing-help/replace-selection";
+import { WritingHelpButton } from "./writing-help/writing-help-button";
+import { WritingHelpDialog } from "./writing-help/writing-help-dialog";
 
 type DocumentEditorProps = {
   document: DocumentDetail;
@@ -91,6 +95,11 @@ export function DocumentEditor({
   const [checklist, setChecklist] = useState<{
     editor: Editor;
     lines: ChecklistLine[];
+  } | null>(null);
+  const [writing, setWriting] = useState<{
+    editor: Editor;
+    action: WritingAction;
+    range: TextRange;
   } | null>(null);
   const ownerId = DOCUMENT_SAVE_OWNER;
   const failed = useSyncExternalStore(descriptionSaveQueue.subscribe, () =>
@@ -198,10 +207,18 @@ export function DocumentEditor({
     uploadAsset: readOnly ? undefined : uploadAsset,
     showBubbleMenu: !readOnly,
     bubbleMenuExtra: (editor: Editor) => (
-      <ChecklistIssuesButton
-        editor={editor}
-        onOpen={(from, lines) => setChecklist({ editor: from, lines })}
-      />
+      <>
+        <WritingHelpButton
+          editor={editor}
+          onPick={(from, action, range) =>
+            setWriting({ editor: from, action, range })
+          }
+        />
+        <ChecklistIssuesButton
+          editor={editor}
+          onOpen={(from, lines) => setChecklist({ editor: from, lines })}
+        />
+      </>
     ),
     placeholder: t("navigation:documents.bodyPlaceholder"),
     slashMenuPosition: "fixed" as const,
@@ -290,6 +307,13 @@ export function DocumentEditor({
           <CommentEditor {...bodyProps} value={seed} />
         )}
       </div>
+      {writing && (
+        <WritingHelpDialog
+          workspaceId={workspaceId}
+          {...writing}
+          onClose={() => setWriting(null)}
+        />
+      )}
       {conflict && reviewing && (
         <DocumentConflictDialog
           name={conflictName}

@@ -5,12 +5,17 @@ export async function decideProposal(
   workspaceId: string,
   proposalId: string,
   decision: "accept" | "decline",
+  /** On a selectable proposal: only these fields are applied. */
+  fields?: string[],
 ) {
   const route = client.agent.workspace[":workspaceId"].proposals[":proposalId"];
   const param = { workspaceId, proposalId };
   const response =
     decision === "accept"
-      ? await route.accept.$post({ param })
+      ? await route.accept.$post({
+          param,
+          query: fields ? { fields: fields.join(",") } : {},
+        })
       : await route.decline.$post({ param });
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
@@ -31,6 +36,14 @@ export async function getAgentDrafts(workspaceId: string) {
   const response = await client.agent.workspace[
     ":workspaceId"
   ].proposals.drafts.$get({ param: { workspaceId } });
+  if (!response.ok) throw await HttpError.fromResponse(response);
+  return response.json();
+}
+
+export async function getTaskProposals(workspaceId: string, taskId: string) {
+  const response = await client.agent.workspace[":workspaceId"].tasks[
+    ":taskId"
+  ].proposals.$get({ param: { workspaceId, taskId } });
   if (!response.ok) throw await HttpError.fromResponse(response);
   return response.json();
 }

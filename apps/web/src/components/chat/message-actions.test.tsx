@@ -12,6 +12,8 @@ import { MessageActions } from "./message-actions";
 
 const state = vi.hoisted(() => ({
   canCreate: true,
+  hasAgent: true,
+  aiDisabled: false,
   openWithDraft: vi.fn(),
 }));
 
@@ -29,6 +31,28 @@ vi.mock("@/store/create-issue", () => ({
   useCreateIssueStore: (
     select: (store: { openWithDraft: typeof state.openWithDraft }) => unknown,
   ) => select({ openWithDraft: state.openWithDraft }),
+}));
+vi.mock("@/hooks/queries/agent/use-agent", () => ({
+  useHasAgent: () => state.hasAgent,
+}));
+vi.mock("@/hooks/queries/chat/use-channel", () => ({
+  useChannel: () => ({ data: { aiDisabled: state.aiDisabled } }),
+}));
+vi.mock("@/components/chat/thread-proposal-dialog", () => ({
+  ThreadProposalDialog: ({
+    kind,
+    open,
+    messageId,
+  }: {
+    kind: string;
+    open: boolean;
+    messageId: string;
+  }) =>
+    open ? (
+      <p>
+        ai {kind} for {messageId}
+      </p>
+    ) : null,
 }));
 vi.mock("@/components/chat/add-to-ticket-dialog", () => ({
   AddToTicketDialog: ({
@@ -66,6 +90,8 @@ const openMenu = () =>
 describe("MessageActions", () => {
   beforeEach(() => {
     state.canCreate = true;
+    state.hasAgent = true;
+    state.aiDisabled = false;
     state.openWithDraft.mockClear();
   });
   afterEach(cleanup);
@@ -97,5 +123,47 @@ describe("MessageActions", () => {
 
     expect(await screen.findByText("navigation:chat.addToTicket")).toBeTruthy();
     expect(screen.queryByText("navigation:chat.createTicket")).toBeNull();
+    expect(screen.queryByText("navigation:chat.createTicketWithAi")).toBeNull();
+  });
+
+  it("drafts a ticket from the thread with AI", async () => {
+    renderActions();
+    openMenu();
+    fireEvent.click(
+      await screen.findByText("navigation:chat.createTicketWithAi"),
+    );
+
+    expect(await screen.findByText("ai ticket for m1")).toBeTruthy();
+  });
+
+  it("extracts a decision from the thread with AI", async () => {
+    renderActions();
+    openMenu();
+    fireEvent.click(await screen.findByText("navigation:chat.extractDecision"));
+
+    expect(await screen.findByText("ai decision for m1")).toBeTruthy();
+  });
+
+  it("offers no AI action in a channel marked no AI", async () => {
+    state.aiDisabled = true;
+    renderActions();
+    openMenu();
+
+    expect(
+      await screen.findByText("navigation:chat.createTicket"),
+    ).toBeTruthy();
+    expect(screen.queryByText("navigation:chat.extractDecision")).toBeNull();
+    expect(screen.queryByText("navigation:chat.createTicketWithAi")).toBeNull();
+  });
+
+  it("hides Create ticket with AI when the server has no AI", async () => {
+    state.hasAgent = false;
+    renderActions();
+    openMenu();
+
+    expect(
+      await screen.findByText("navigation:chat.createTicket"),
+    ).toBeTruthy();
+    expect(screen.queryByText("navigation:chat.createTicketWithAi")).toBeNull();
   });
 });

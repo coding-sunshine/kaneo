@@ -22,6 +22,9 @@ const t = (key: string, options?: Record<string, unknown>) => {
   if (key === "notifications:events.team_issue_closed.title") {
     return `Moved to ${options?.newStatus} in ${options?.teamName}`;
   }
+  if (key === "notifications:events.weekly_digest.content") {
+    return `Digest for ${options?.projectName}`;
+  }
   if (key === "notifications:events.stale_items.content") {
     return `Still waiting: ${options?.issueList}`;
   }
@@ -61,6 +64,14 @@ describe("notification display content", () => {
     expect(getNotificationContent(item, t)).toBe(
       "Still waiting: WEB-4 Fix login, WEB-9 Update docs",
     );
+  });
+
+  it("names the project of a posted weekly digest", () => {
+    const item = notification("weekly_digest", { projectName: "Company" });
+    expect(getNotificationTitle(item, t)).toBe(
+      "notifications:events.weekly_digest.title",
+    );
+    expect(getNotificationContent(item, t)).toBe("Digest for Company");
   });
 
   it("renders configured due-date lead times", () => {

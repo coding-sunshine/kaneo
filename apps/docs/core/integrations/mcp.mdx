@@ -115,6 +115,7 @@ Both the HTTP endpoint and stdio package expose the same tools:
 - Comments: `list_task_comments`, `create_task_comment`, `update_task_comment`, `delete_task_comment`
 - Labels: `list_workspace_labels`, `create_label`, `attach_label_to_task`, `detach_label_from_task`, `delete_label`
 - Task relations: `create_task_relation`, `get_task_relations`, `delete_task_relation`
+- Coding agent: `delegate_task_to_agent` puts a delegation card on the task; the person accepts it in the app before anything reaches the agent
 
 Use `get_task_by_ticket_id` with a key such as `KAN-12` to fetch one task directly. If the same key identifies multiple accessible tasks, pass `workspaceId` or `projectId` to select one.
 

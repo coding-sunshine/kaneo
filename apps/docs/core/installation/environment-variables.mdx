@@ -218,6 +218,17 @@ Name | Description | Default |
 | `AI_MONTHLY_USD_CAP` | Dollars all AI calls of the instance may spend in a calendar month (UTC), by the cost the provider reports. At the cap, AI pauses until the 1st of the next month. | `20` |
 | `EXTRACTION_TOTAL_USD_CAP` | No longer read. `AI_MONTHLY_USD_CAP` replaced this total cap; move any value you set to it. | Unset |
 
+### Coding agent
+
+A ticket can be handed to a coding agent once AI is on and both `CODING_AGENT_URL` and `CODING_AGENT_API_KEY` are set. Without them the Delegate button says no agent is set up, and the API logs it once. The person who delegates first accepts a card; Kaneo then sends `POST {CODING_AGENT_URL}/runs` with the ticket, a callback address and a token for that run only. The agent posts `pull_request.opened`, `pull_request.merged` or `failed` events to the callback address with that token. The pull request is linked on the ticket and its merge moves the ticket to done.
+
+Name | Description | Default |
+--- | --- | --- |
+| `CODING_AGENT_URL` | Base address of the coding agent service. | Unset |
+| `CODING_AGENT_API_KEY` | Key Kaneo sends to the service as a bearer token. | Unset |
+| `CODING_AGENT_NAME` | Name shown on the delegation card. | `Coding agent` |
+| `CODING_AGENT_HANDLE` | A comment that mentions `@` followed by this handle puts a delegation card on the ticket for its author. | `agent` |
+
 ### GitHub SSO
 
 Sign in with GitHub uses a [GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app). Set `GITHUB_OAUTH_CLIENT_ID` and `GITHUB_OAUTH_CLIENT_SECRET` (or rely on the legacy variables below).

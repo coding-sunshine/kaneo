@@ -3,7 +3,9 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AddToTicketDialog } from "@/components/chat/add-to-ticket-dialog";
 import { buildMessageIssueDraft } from "@/components/chat/message-issue-draft";
+import { ThreadProposalDialog } from "@/components/chat/thread-proposal-dialog";
 import type { ChatMessage } from "@/components/chat/types";
+import type { ThreadProposalKind } from "@/fetchers/agent/thread-proposal";
 import { Button } from "@/components/ui/button";
 import {
   Menu,
@@ -16,6 +18,8 @@ import {
   useDeleteMessage,
   usePinMessage,
 } from "@/hooks/mutations/chat/use-message-mutations";
+import { useHasAgent } from "@/hooks/queries/agent/use-agent";
+import { useChannel } from "@/hooks/queries/chat/use-channel";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { toast } from "@/lib/toast";
 import { useCreateIssueStore } from "@/store/create-issue";
@@ -47,6 +51,10 @@ export function MessageActions({
   const { canCreateTasks } = useWorkspacePermission();
   const openWithDraft = useCreateIssueStore((state) => state.openWithDraft);
   const [addingToTicket, setAddingToTicket] = useState(false);
+  // AI drafts nothing from a channel its members marked no AI.
+  const aiOff = useChannel(workspaceId, channelId).data?.aiDisabled ?? false;
+  const withAi = useHasAgent() && !aiOff && canCreateTasks();
+  const [drafting, setDrafting] = useState<ThreadProposalKind | null>(null);
 
   return (
     <>
@@ -90,6 +98,16 @@ export function MessageActions({
               {t("navigation:chat.createTicket")}
             </MenuItem>
           )}
+          {withAi && (
+            <>
+              <MenuItem onClick={() => setDrafting("ticket")}>
+                {t("navigation:chat.createTicketWithAi")}
+              </MenuItem>
+              <MenuItem onClick={() => setDrafting("decision")}>
+                {t("navigation:chat.extractDecision")}
+              </MenuItem>
+            </>
+          )}
           <MenuItem onClick={() => setAddingToTicket(true)}>
             {t("navigation:chat.addToTicket")}
           </MenuItem>
@@ -112,6 +130,14 @@ export function MessageActions({
       <AddToTicketDialog
         open={addingToTicket}
         onOpenChange={setAddingToTicket}
+        workspaceId={workspaceId}
+        channelId={channelId}
+        messageId={message.id}
+      />
+      <ThreadProposalDialog
+        kind={drafting ?? "ticket"}
+        open={drafting !== null}
+        onOpenChange={(open) => !open && setDrafting(null)}
         workspaceId={workspaceId}
         channelId={channelId}
         messageId={message.id}

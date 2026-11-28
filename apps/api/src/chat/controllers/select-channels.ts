@@ -17,6 +17,7 @@ export const selectChannels = (userId: string) =>
       isPrivate: chatChannelTable.isPrivate,
       isDirect: sql<boolean>`${chatChannelTable.directKey} is not null`,
       isMember: sql<boolean>`${chatChannelMemberTable.userId} is not null`,
+      aiDisabled: chatChannelTable.aiDisabled,
       isMuted: exists(
         db
           .select({ one: chatChannelMuteTable.userId })

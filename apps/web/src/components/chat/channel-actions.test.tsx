@@ -10,18 +10,25 @@ import {
 import type { ChatChannelDetail } from "@/components/chat/types";
 import { ChannelActions } from "./channel-actions";
 
-const state = vi.hoisted(() => ({ guest: false, admin: false }));
+const state = vi.hoisted(() => ({
+  guest: false,
+  admin: false,
+  update: vi.fn(),
+}));
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 vi.mock("@tanstack/react-router", () => ({ useNavigate: () => vi.fn() }));
 vi.mock("@/hooks/mutations/chat/use-channel-mutations", () => ({
-  useUpdateChannel: () => ({ mutate: vi.fn() }),
+  useUpdateChannel: () => ({ mutate: state.update }),
   useLeaveChannel: () => ({ mutate: vi.fn() }),
 }));
 vi.mock("@/hooks/queries/workspace-users/use-get-my-project-access", () => ({
   default: () => ({ data: { guest: state.guest } }),
+}));
+vi.mock("@/hooks/queries/agent/use-agent", () => ({
+  useHasAgent: () => true,
 }));
 vi.mock("@/hooks/use-workspace-permission", () => ({
   useWorkspacePermission: () => ({ canUpdateMembers: () => state.admin }),
@@ -53,8 +60,33 @@ describe("ChannelActions", () => {
   beforeEach(() => {
     state.guest = false;
     state.admin = false;
+    state.update.mockReset();
   });
   afterEach(cleanup);
+
+  it("lets a member turn AI off in the channel, and back on", async () => {
+    const { rerender } = render(
+      <ChannelActions workspaceId="w1" channel={channel} />,
+    );
+    openMenu();
+    fireEvent.click(await screen.findByText("navigation:chat.aiOff"));
+    expect(state.update).toHaveBeenCalledWith(
+      { aiDisabled: true },
+      expect.anything(),
+    );
+    rerender(
+      <ChannelActions
+        workspaceId="w1"
+        channel={{ ...channel, aiDisabled: true }}
+      />,
+    );
+    openMenu();
+    fireEvent.click(await screen.findByText("navigation:chat.aiOn"));
+    expect(state.update).toHaveBeenLastCalledWith(
+      { aiDisabled: false },
+      expect.anything(),
+    );
+  });
 
   it("lets a guest only leave", async () => {
     state.guest = true;
