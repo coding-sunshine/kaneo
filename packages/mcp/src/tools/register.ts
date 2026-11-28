@@ -10,7 +10,8 @@ export { SERVER_INSTRUCTIONS } from "./instructions.js";
 
 /**
  * Sent with every read an AI makes through these tools: the API then leaves
- * out chat channels whose members marked them no AI. It only narrows what
+ * out chat channels whose members marked them no AI, and direct messages
+ * unless the caller included them in Settings. It only narrows what
  * comes back, so a caller who sends it on its own gains nothing.
  */
 export const AI_READER_HEADER = "x-kaneo-ai-reader";
@@ -712,7 +713,7 @@ export function registerTools(
     "search",
     {
       description:
-        "Search across tasks, projects, workspaces, comments, activities, documents, chat messages the caller can read (direct messages included), and workspace members.",
+        "Search across tasks, projects, workspaces, comments, activities, documents, chat messages the caller can read (direct messages only if the caller included them in Settings; channels marked no AI never), and workspace members.",
       inputSchema: z.object({
         q: nonEmptyString.describe("Search query"),
         type: z

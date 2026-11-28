@@ -864,7 +864,10 @@
 			"chatPresenceDescription": "Others see a dot by your name in chat, but only people who turned this on too. Off by default.",
 			"chatTitle": "Chat",
 			"completionAnimation": "Completion animation",
-			"completionAnimationDescription": "Play a short animation when you complete an issue. Never plays when your system asks for reduced motion."
+			"completionAnimationDescription": "Play a short animation when you complete an issue. Never plays when your system asks for reduced motion.",
+			"aiDirectMessages": "Include my direct messages",
+			"aiDirectMessagesDescription": "Let AI answers for you, like catch-up and the assistant's search, read your direct messages in this workspace. Conversations marked No AI stay out. Off by default.",
+			"aiTitle": "AI"
 		},
 		"managedProfile": {
 			"note": "Gerenciado pela sua organização.",
@@ -4968,7 +4971,10 @@
 			"saveMessage": "Save",
 			"unsaveMessage": "Remove from saved",
 			"assistant": "Assistant",
-			"messageLink": "Message"
+			"messageLink": "Message",
+			"aiOffBadge": "No AI",
+			"aiOffDirect": "Turn off AI in this conversation",
+			"aiOnDirect": "Turn on AI in this conversation"
 		},
 		"files": {
 			"deletedUser": "Deleted user",

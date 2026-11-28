@@ -27,9 +27,6 @@ vi.mock("@/hooks/mutations/chat/use-channel-mutations", () => ({
 vi.mock("@/hooks/queries/workspace-users/use-get-my-project-access", () => ({
   default: () => ({ data: { guest: state.guest } }),
 }));
-vi.mock("@/hooks/queries/agent/use-agent", () => ({
-  useHasAgent: () => true,
-}));
 vi.mock("@/hooks/use-workspace-permission", () => ({
   useWorkspacePermission: () => ({ canUpdateMembers: () => state.admin }),
 }));
@@ -63,30 +60,6 @@ describe("ChannelActions", () => {
     state.update.mockReset();
   });
   afterEach(cleanup);
-
-  it("lets a member turn AI off in the channel, and back on", async () => {
-    const { rerender } = render(
-      <ChannelActions workspaceId="w1" channel={channel} />,
-    );
-    openMenu();
-    fireEvent.click(await screen.findByText("navigation:chat.aiOff"));
-    expect(state.update).toHaveBeenCalledWith(
-      { aiDisabled: true },
-      expect.anything(),
-    );
-    rerender(
-      <ChannelActions
-        workspaceId="w1"
-        channel={{ ...channel, aiDisabled: true }}
-      />,
-    );
-    openMenu();
-    fireEvent.click(await screen.findByText("navigation:chat.aiOn"));
-    expect(state.update).toHaveBeenLastCalledWith(
-      { aiDisabled: false },
-      expect.anything(),
-    );
-  });
 
   it("lets a guest only leave", async () => {
     state.guest = true;

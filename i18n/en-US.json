@@ -1294,6 +1294,9 @@
 			"chatTitle": "Chat",
 			"chatPresence": "Show when I'm online",
 			"chatPresenceDescription": "Others see a dot by your name in chat, but only people who turned this on too. Off by default.",
+			"aiTitle": "AI",
+			"aiDirectMessages": "Include my direct messages",
+			"aiDirectMessagesDescription": "Let AI answers for you, like catch-up and the assistant's search, read your direct messages in this workspace. Conversations marked No AI stay out. Off by default.",
 			"advancedTitle": "Advanced"
 		},
 		"managedProfile": {
@@ -4888,7 +4891,10 @@
 				"description": "The decision this thread reached, who took it and why. Nothing is filed until you accept it; then it waits on the topic for its decider to approve."
 			},
 			"aiOff": "Turn off AI in this channel",
-			"aiOn": "Turn on AI in this channel"
+			"aiOn": "Turn on AI in this channel",
+			"aiOffDirect": "Turn off AI in this conversation",
+			"aiOnDirect": "Turn on AI in this conversation",
+			"aiOffBadge": "No AI"
 		},
 		"files": {
 			"title": "Files",

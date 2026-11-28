@@ -188,7 +188,8 @@ const updateRoute = createRoute({
   path: channelPath,
   tags,
   summary: "Update channel",
-  description: "Rename, set the topic, or archive and unarchive. Members only.",
+  description:
+    "Rename, set the topic, archive and unarchive, or turn AI off and on. Members only; in a direct message only AI can be switched.",
   middleware: [...write] as const,
   request: { params: channelParam, body: body(updateChannelBody) },
   responses: {

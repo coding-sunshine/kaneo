@@ -36,7 +36,7 @@ export const catchUpPreferenceSchema = z
   .object({
     includeDirectMessages: z.boolean().openapi({
       description:
-        "Let your catch-up read your direct messages. Off by default.",
+        "Let AI answers for you read your direct messages: catch-up and the assistant's search. Direct messages marked no AI stay out. Off by default.",
     }),
   })
   .openapi("CatchUpPreference");

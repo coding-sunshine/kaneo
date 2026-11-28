@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { CallButton } from "@/components/chat/call-button";
 import { ChannelActions } from "@/components/chat/channel-actions";
+import { ChannelAiSwitch } from "@/components/chat/channel-ai-switch";
 import { ChannelIcon } from "@/components/chat/channel-icon";
 import { MuteChannelButton } from "@/components/chat/mute-channel-button";
 import { PinnedMessages } from "@/components/chat/pinned-messages";
@@ -49,6 +50,7 @@ export function ChannelHeader({
       <PinnedMessages workspaceId={workspaceId} channelId={channel.id} />
       <SavedMessages workspaceId={workspaceId} />
       <MuteChannelButton workspaceId={workspaceId} channel={channel} />
+      <ChannelAiSwitch workspaceId={workspaceId} channel={channel} />
       {!channel.isDirect && (
         <ChannelActions workspaceId={workspaceId} channel={channel} />
       )}

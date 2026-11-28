@@ -14,12 +14,14 @@ export type ChannelAction =
   | "join"
   | "post"
   | "manage"
+  // Turn AI on or off: the one change members of a direct message may make.
+  | "ai"
   | "invite"
   | "leave";
 
-const MEMBER_ONLY = new Set<ChannelAction>(["post", "manage", "invite"]);
+const MEMBER_ONLY = new Set<ChannelAction>(["post", "manage", "ai", "invite"]);
 const CLOSED_WHEN_ARCHIVED = new Set<ChannelAction>(["join", "post", "invite"]);
-const CLOSED_TO_GUESTS = new Set<ChannelAction>(["manage", "invite"]);
+const CLOSED_TO_GUESTS = new Set<ChannelAction>(["manage", "ai", "invite"]);
 // A direct message is one conversation per set of people, so its members,
 // name and archive state never change.
 const FIXED_WHEN_DIRECT = new Set<ChannelAction>([

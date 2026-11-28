@@ -5,6 +5,8 @@ import {
   chatMessageTable,
   userTable,
 } from "../../database/schema";
+import { aiAllowedChannel } from "../../assist/ai-allowed-channel";
+import { getCatchUpPreference } from "../../catch-up/preference";
 import { readableChannel } from "../../chat/readable-channel";
 import { isWorkspaceGuest } from "../../guest/is-workspace-guest";
 import { bodyVector, type FtsQuery, ftsMatch } from "../fts";
@@ -19,13 +21,22 @@ export async function searchMessages(params: {
   userId: string;
   workspaceId: string;
   limit: number;
-  /** An AI reads the results: channels marked no AI are left out. */
+  /**
+   * An AI reads the results: channels marked no AI are left out, and direct
+   * messages too unless the searcher opted them in.
+   */
   forAi?: boolean;
 }): Promise<SearchResult[]> {
   const { query, fts, userId, workspaceId, limit, forAi } = params;
   const bodyFts = fts ? ftsMatch(bodyVector(chatMessageTable.body), fts) : null;
   const score = bodyFts ? bodyFts.score(2) : sql<number>`2`;
   const guest = await isWorkspaceGuest(workspaceId, userId);
+  const aiFilter = forAi
+    ? aiAllowedChannel(
+        (await getCatchUpPreference({ workspaceId, userId }))
+          .includeDirectMessages,
+      )
+    : undefined;
 
   const rows = await db
     .select({
@@ -49,7 +60,7 @@ export async function searchMessages(params: {
       and(
         eq(chatChannelTable.workspaceId, workspaceId),
         readableChannel(userId, workspaceId, guest),
-        forAi ? eq(chatChannelTable.aiDisabled, false) : undefined,
+        aiFilter,
         bodyFts?.match ??
           ilike(chatMessageTable.body, `%${escapeLikePattern(query)}%`),
       ),
