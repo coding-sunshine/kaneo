@@ -1023,6 +1023,13 @@
       "when": 1795828536172,
       "tag": "0145_salty_morbius",
       "breakpoints": true
+    },
+    {
+      "idx": 146,
+      "version": "7",
+      "when": 1795829473975,
+      "tag": "0146_motionless_sprite",
+      "breakpoints": true
     }
   ]
 }
