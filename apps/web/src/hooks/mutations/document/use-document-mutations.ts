@@ -198,11 +198,12 @@ export function useMoveDocumentPage(workspaceId: string) {
       id: string;
       parentDocumentId: string | null;
     }) => moveDocumentPage(workspaceId, id, parentDocumentId),
-    // The parent it leaves is the last of its ancestors before the move.
+    // The parent it leaves is the last of its ancestors before the move. A
+    // cached page without them must not stop the move.
     onMutate: ({ id }) =>
       queryClient
         .getQueryData<DocumentDetail>(documentKey(workspaceId, id))
-        ?.ancestors.at(-1)?.id,
+        ?.ancestors?.at(-1)?.id,
     onSuccess: (document, { parentDocumentId }, oldParent) => {
       store(document);
       refreshParents(parentDocumentId, oldParent);
