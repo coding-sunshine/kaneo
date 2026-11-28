@@ -19781,19 +19781,6 @@
 								"running"
 							]
 						},
-						"ai": {
-							"type": "object",
-							"additionalProperties": false,
-							"properties": {
-								"exclude": {
-									"type": "string"
-								},
-								"allow": {
-									"type": "string"
-								}
-							},
-							"required": ["exclude", "allow"]
-						},
 						"typingOne": {
 							"type": "string"
 						},
@@ -19966,7 +19953,6 @@
 						"mutedNotice",
 						"unmutedNotice",
 						"skills",
-						"ai",
 						"typingOne",
 						"typingTwo",
 						"typingMany",

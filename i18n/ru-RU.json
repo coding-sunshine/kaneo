@@ -5005,10 +5005,6 @@
 			"typingMany": "Several people are typing…",
 			"typingOne": "{{name}} is typing…",
 			"typingTwo": "{{first}} and {{second}} are typing…",
-			"ai": {
-				"allow": "Allow AI to read this channel",
-				"exclude": "Mark as no AI"
-			},
 			"skills": {
 				"cap": "Monthly token cap (optional)",
 				"capValue_few": "Cap {{count}} tokens",

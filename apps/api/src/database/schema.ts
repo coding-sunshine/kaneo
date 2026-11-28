@@ -3945,23 +3945,6 @@ export const chatThreadReplyTable = pgTable(
   (table) => [index("chat_thread_reply_parent_idx").on(table.parentId)],
 );
 
-// A channel marked "no AI": no AI feature reads its messages. A row is the
-// mark; deleting it lifts the mark.
-export const chatChannelAiExclusionTable = pgTable(
-  "chat_channel_ai_exclusion",
-  {
-    channelId: text("channel_id")
-      .primaryKey()
-      .references(() => chatChannelTable.id, { onDelete: "cascade" }),
-    setBy: text("set_by").references(() => userTable.id, {
-      onDelete: "set null",
-    }),
-    createdAt: timestamp("created_at", { mode: "date" })
-      .default(utcNow)
-      .notNull(),
-  },
-);
-
 // What one person lets their private AI catch-up read. Direct messages stay
 // out unless they opt in.
 export const aiCatchUpPreferenceTable = pgTable(

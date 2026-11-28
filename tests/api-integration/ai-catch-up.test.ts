@@ -1,8 +1,8 @@
+import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import {
   aiCatchUpPreferenceTable,
-  chatChannelAiExclusionTable,
   chatChannelMemberTable,
   chatChannelTable,
   chatMessageTable,
@@ -116,9 +116,11 @@ describe("API integration: private catch-up", () => {
 
   it("summarises unread channels, my threads and followed tickets, each bullet linked", async () => {
     const { a, b, ws, x, y, dm, secret, post, task } = await setup();
+    // AI turned off in channel y.
     await db
-      .insert(chatChannelAiExclusionTable)
-      .values({ channelId: y.id, setBy: a.id });
+      .update(chatChannelTable)
+      .set({ aiDisabled: true })
+      .where(eq(chatChannelTable.id, y.id));
     const news = await post(
       x.id,
       "Vendor chosen: Northwind",
@@ -261,59 +263,5 @@ describe("API integration: private catch-up", () => {
       (await request(b, `/catch-up/workspace/${ws}`, "POST", { hours: 24 }))
         .status,
     ).toBe(404);
-  });
-});
-
-describe("API integration: marking a channel no AI", () => {
-  beforeEach(async () => {
-    await resetTestDatabase();
-  });
-
-  const path = (ws: string, channelId: string) =>
-    `/channel-ai/workspace/${ws}/channels/${channelId}`;
-
-  it("lets a channel member mark and unmark it", async () => {
-    const { a, ws, x } = await setup();
-    expect(await (await request(a, path(ws, x.id))).json()).toEqual({
-      excluded: false,
-    });
-    const on = await request(a, path(ws, x.id), "PUT", { excluded: true });
-    expect(on.status, await on.clone().text()).toBe(200);
-    expect(await (await request(a, path(ws, x.id))).json()).toEqual({
-      excluded: true,
-    });
-    await request(a, path(ws, x.id), "PUT", { excluded: false });
-    expect(await db.select().from(chatChannelAiExclusionTable)).toEqual([]);
-  });
-
-  it("refuses non-members, viewers and channels the caller cannot see", async () => {
-    const { b, ws, x, secret } = await setup();
-    // b is not a member of secret: it answers like a missing channel.
-    expect(
-      (await request(b, path(ws, secret.id), "PUT", { excluded: true })).status,
-    ).toBe(404);
-    const viewer = (await createWorkspaceMember()).user;
-    await db.insert(schema.workspaceUserTable).values({
-      workspaceId: ws,
-      userId: viewer.id,
-      role: "viewer",
-      joinedAt: new Date(),
-    });
-    expect(
-      (await request(viewer, path(ws, x.id), "PUT", { excluded: true })).status,
-    ).toBe(403);
-    const outsider = (await createWorkspaceMember()).user;
-    await db.insert(schema.workspaceUserTable).values({
-      workspaceId: ws,
-      userId: outsider.id,
-      role: "member",
-      joinedAt: new Date(),
-    });
-    // Not a member of x: may read it but not mark it.
-    expect(
-      (await request(outsider, path(ws, x.id), "PUT", { excluded: true }))
-        .status,
-    ).toBe(403);
-    expect(await db.select().from(chatChannelAiExclusionTable)).toEqual([]);
   });
 });

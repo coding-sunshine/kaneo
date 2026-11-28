@@ -109,7 +109,6 @@ import search from "./search";
 import dailyBrief from "./daily-brief";
 import meetingNotes from "./meeting-notes";
 import semanticSearchRoutes from "./semantic-search";
-import channelAi from "./channel-ai";
 import catchUpRoutes from "./catch-up";
 import skill from "./skill";
 import duplicateSuggestion from "./duplicate-suggestion";
@@ -871,7 +870,6 @@ export function createApp() {
   const dailyBriefApi = api.route("/daily-brief", dailyBrief);
   const meetingNotesApi = api.route("/meeting-notes", meetingNotes);
   const semanticSearchApi = api.route("/semantic-search", semanticSearchRoutes);
-  const channelAiApi = api.route("/channel-ai", channelAi);
   const catchUpApi = api.route("/catch-up", catchUpRoutes);
   const skillApi = api.route("/skill", skill);
   const duplicateSuggestionApi = api.route(
@@ -1137,7 +1135,6 @@ export function createApp() {
     dailyBriefApi,
     meetingNotesApi,
     semanticSearchApi,
-    channelAiApi,
     catchUpApi,
     skillApi,
     duplicateSuggestionApi,
@@ -1318,7 +1315,6 @@ const {
   dailyBriefApi,
   meetingNotesApi,
   semanticSearchApi,
-  channelAiApi,
   catchUpApi,
   skillApi,
   duplicateSuggestionApi,
@@ -1387,7 +1383,6 @@ export type AppType =
   | typeof dailyBriefApi
   | typeof meetingNotesApi
   | typeof semanticSearchApi
-  | typeof channelAiApi
   | typeof catchUpApi
   | typeof skillApi
   | typeof duplicateSuggestionApi

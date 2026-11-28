@@ -4844,10 +4844,6 @@
 				"empty": "Nothing found in the tickets this skill can read.",
 				"running": "Running skill…"
 			},
-			"ai": {
-				"exclude": "Mark as no AI",
-				"allow": "Allow AI to read this channel"
-			},
 			"typingOne": "{{name}} is typing…",
 			"typingTwo": "{{first}} and {{second}} are typing…",
 			"typingMany": "Several people are typing…",
