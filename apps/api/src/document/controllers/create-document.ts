@@ -1,7 +1,11 @@
 import { eq } from "drizzle-orm";
 import type { z } from "zod";
 import db from "../../database";
-import { documentSubscriberTable, documentTable } from "../../database/schema";
+import {
+  type DocumentScope,
+  documentSubscriberTable,
+  documentTable,
+} from "../../database/schema";
 import { fingerprint } from "../fingerprint";
 import { syncDocumentReferences } from "../../reference/sync-references";
 import { syncDocumentTaskLinks } from "../../task-document/sync-links";
@@ -13,9 +17,10 @@ import { loadHoldingPage } from "./move-page";
 import { recordVersion } from "./record-version";
 import { resolveParent } from "./resolve-parent";
 
+// `scope` is for server-side callers; the route places a page by its parent.
 export async function createDocument(
   userId: string,
-  body: z.infer<typeof createDocumentBody>,
+  body: z.infer<typeof createDocumentBody> & { scope?: DocumentScope },
 ) {
   // A page made under another one lives in that page's place, unless the
   // request names a place of its own.

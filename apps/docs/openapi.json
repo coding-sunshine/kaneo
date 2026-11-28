@@ -11895,6 +11895,112 @@
           "authorizeUrl"
         ]
       },
+      "WelcomeWorkspace": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "workspaceId"
+        ]
+      },
+      "OnboardingChecklist": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "workspaceId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The welcome workspace made at sign-up. Null, like the links below, once you are no longer a member of it."
+          },
+          "handbookDocumentId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "welcomeChannelId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sampleTask": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "projectId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "projectId"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "enum": [
+                    "set-status",
+                    "read-handbook",
+                    "say-hello",
+                    "open-sample-ticket",
+                    "invite-teammate"
+                  ]
+                },
+                "done": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "done"
+              ]
+            }
+          }
+        },
+        "required": [
+          "workspaceId",
+          "handbookDocumentId",
+          "welcomeChannelId",
+          "sampleTask",
+          "items"
+        ],
+        "description": "Null for people who signed up before the checklist existed, and after it is dismissed."
+      },
+      "OnboardingChecklistDismissed": {
+        "type": "object",
+        "properties": {
+          "dismissed": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "required": [
+          "dismissed"
+        ]
+      },
       "CurrentUser": {
         "type": "object",
         "properties": {
@@ -58502,6 +58608,234 @@
           },
           "404": {
             "description": "Workspace or import not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/onboarding/welcome-workspace": {
+      "post": {
+        "operationId": "createWelcomeWorkspace",
+        "tags": [
+          "Onboarding"
+        ],
+        "summary": "Make your welcome workspace",
+        "description": "Make the welcome workspace, with a Handbook page, a #welcome channel and a sample ticket, and open your onboarding checklist. Only for people who signed up with the checklist, have no workspace and no pending invitation, and may create workspaces; anyone else gets null. Runs once.",
+        "responses": {
+          "200": {
+            "description": "The welcome workspace, or null",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WelcomeWorkspace"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated with an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/onboarding/checklist": {
+      "get": {
+        "operationId": "getOnboardingChecklist",
+        "tags": [
+          "Onboarding"
+        ],
+        "summary": "Get your onboarding checklist",
+        "description": "Return the new-hire checklist made at sign-up, with links into your welcome workspace. Only ever your own. Requires a user session; API keys are rejected.",
+        "responses": {
+          "200": {
+            "description": "Your checklist, or null",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingChecklist"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated with an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/onboarding/checklist/items/{itemId}/complete": {
+      "post": {
+        "operationId": "completeOnboardingChecklistItem",
+        "tags": [
+          "Onboarding"
+        ],
+        "summary": "Tick a checklist item",
+        "description": "Mark an item of your open checklist done. Ticking a done item changes nothing.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "read-handbook",
+                "say-hello",
+                "open-sample-ticket",
+                "invite-teammate"
+              ],
+              "description": "An item ticked by following its link. 'set-status' is ticked by setting a status."
+            },
+            "required": true,
+            "description": "An item ticked by following its link. 'set-status' is ticked by setting a status.",
+            "name": "itemId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Your checklist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingChecklist"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown item, or one ticked by doing it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated with an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "You have no open checklist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/onboarding/checklist/dismiss": {
+      "post": {
+        "operationId": "dismissOnboardingChecklist",
+        "tags": [
+          "Onboarding"
+        ],
+        "summary": "Dismiss your onboarding checklist",
+        "description": "Hide your checklist for good.",
+        "responses": {
+          "200": {
+            "description": "Dismissed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingChecklistDismissed"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated with an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "You have no open checklist",
             "content": {
               "application/json": {
                 "schema": {

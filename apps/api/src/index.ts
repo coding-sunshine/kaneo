@@ -118,6 +118,7 @@ import taskRelation from "./task-relation";
 import telegramIntegration from "./telegram-integration";
 import timeEntry from "./time-entry";
 import topic from "./topic";
+import onboarding from "./onboarding-checklist";
 import user from "./user";
 import getAvatar from "./user/controllers/get-avatar";
 import { apiKeyRejection } from "./utils/api-key-rejection";
@@ -953,6 +954,7 @@ export function createApp() {
   const issueTemplateApi = api.route("/issue-template", issueTemplate);
   const emojiApi = api.route("/emoji", emoji);
   const importApi = api.route("/import", importRoutes);
+  const onboardingApi = api.route("/onboarding", onboarding);
   const userApi = api.route("/user", user);
   const adminApi = api.route("/admin", admin);
 
@@ -1159,6 +1161,7 @@ export function createApp() {
     referenceApi,
     telegramIntegrationApi,
     timeEntryApi,
+    onboardingApi,
     userApi,
     adminApi,
     workflowRuleApi,
@@ -1327,6 +1330,7 @@ const {
   referenceApi,
   telegramIntegrationApi,
   timeEntryApi,
+  onboardingApi,
   userApi,
   adminApi,
   workflowRuleApi,
@@ -1402,6 +1406,7 @@ export type AppType =
   | typeof issueTemplateApi
   | typeof emojiApi
   | typeof importApi
+  | typeof onboardingApi
   | typeof userApi
   | typeof adminApi
   | typeof publicProjectApi

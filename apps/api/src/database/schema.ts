@@ -3930,6 +3930,38 @@ export const chatPresenceTable = pgTable("chat_presence", {
     .notNull(),
 });
 
+// A new hire's checklist. The row is made at sign-up, so people who signed up
+// before it existed have none; `seededAt` is set when their welcome workspace
+// is made, and the checklist shows only from then on.
+export const onboardingChecklistTable = pgTable("onboarding_checklist", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => userTable.id, { onDelete: "cascade" }),
+  workspaceId: text("workspace_id").references(() => workspaceTable.id, {
+    onDelete: "set null",
+  }),
+  handbookDocumentId: text("handbook_document_id").references(
+    () => documentTable.id,
+    { onDelete: "set null" },
+  ),
+  welcomeChannelId: text("welcome_channel_id").references(
+    () => chatChannelTable.id,
+    { onDelete: "set null" },
+  ),
+  sampleTaskId: text("sample_task_id").references(() => taskTable.id, {
+    onDelete: "set null",
+  }),
+  completedItems: text("completed_items")
+    .array()
+    .default(sql`'{}'::text[]`)
+    .notNull(),
+  seededAt: timestamp("seeded_at", { mode: "date" }),
+  dismissedAt: timestamp("dismissed_at", { mode: "date" }),
+  createdAt: timestamp("created_at", { mode: "date" })
+    .default(utcNow)
+    .notNull(),
+});
+
 // A loop runs its instructions as the agent on a schedule, with the creator's
 // permissions at run time. Disabled loops keep their `nextRunAt` but never run.
 export const loopTable = pgTable(

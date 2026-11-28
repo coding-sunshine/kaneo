@@ -10,6 +10,7 @@ import { DoneThisWeek } from "@/components/home/done-this-week";
 import { HomeProjects } from "@/components/home/home-projects";
 import { UpNext } from "@/components/home/up-next";
 import { WeekStrip } from "@/components/home/week-strip";
+import { OnboardingChecklist } from "@/components/onboarding-checklist/onboarding-checklist";
 import PageTitle from "@/components/page-title";
 import CreateProjectModal from "@/components/shared/modals/create-project-modal";
 import CreateTaskModal from "@/components/shared/modals/create-task-modal";
@@ -84,6 +85,8 @@ function RouteComponent() {
                 </Button>
               )}
             </header>
+
+            <OnboardingChecklist />
 
             <WeekStrip
               tasks={assigned?.tasks ?? []}
