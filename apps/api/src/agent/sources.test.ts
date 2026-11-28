@@ -2,6 +2,14 @@ import { describe, expect, it } from "vite-plus/test";
 import { grounded, splitSources } from "./sources";
 
 describe("splitSources", () => {
+  it("takes the ids it names out of the answer's text", () => {
+    expect(
+      splitSources(
+        "The retry waits on legal (comment:k3j9x2m8q7w1e5r4t6y0u2i8).\n\nSources: comment:k3j9x2m8q7w1e5r4t6y0u2i8",
+      ).text,
+    ).toBe("The retry waits on legal.");
+  });
+
   it("takes the sources off the last line", () => {
     expect(
       splitSources(

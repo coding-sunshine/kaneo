@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { dropRawIds } from "../../assist/drop-raw-ids";
 import { sourceId } from "../../assist/source-id";
 
 const MAX_ITEMS = 5;
@@ -43,7 +44,7 @@ export function readAssistantAnswer(
   const keep = (list: AssistantItem[]) =>
     list
       .map((item) => ({
-        text: item.text,
+        text: dropRawIds(item.text, givenIds),
         sources: [...new Set(item.sources.map(sourceId))]
           .filter((id) => givenIds.has(id))
           .slice(0, MAX_SOURCES),

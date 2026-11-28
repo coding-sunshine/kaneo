@@ -42,4 +42,15 @@ describe("readAssistantAnswer", () => {
     expect(readAssistantAnswer("Here is a summary.", given)).toBeNull();
     expect(readAssistantAnswer('{"summary":"text"}', given)).toBeNull();
   });
+
+  it("takes the message ids the model wrote into its text out of it", () => {
+    const id = "k3j9x2m8q7w1e5r4t6y0u2i8";
+    const text = JSON.stringify({
+      summary: [{ text: `It fails, as [${id}] says.`, sources: [id] }],
+      open: [],
+    });
+    expect(readAssistantAnswer(text, new Set([id]))?.summary).toEqual([
+      { text: "It fails, as says.", sources: [id] },
+    ]);
+  });
 });

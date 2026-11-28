@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { dropRawIds } from "./drop-raw-ids";
 import { sourceId } from "./source-id";
 
 const bulletsSchema = z.object({
@@ -16,7 +17,8 @@ export type Bullet = { text: string; sources: string[] };
 /**
  * Reads `{"bullets":[{"text","sources"}]}` from the model, also inside a code
  * fence. Only ids it was given count; a bullet left with no source is dropped,
- * so every bullet links to something. Null when the answer is not bullets.
+ * so every bullet links to something, and ids written into a bullet's text
+ * are taken out. Null when the answer is not bullets.
  */
 export function readBullets(
   text: string,
@@ -32,7 +34,7 @@ export function readBullets(
   if (!parsed.success) return null;
   return parsed.data.bullets
     .map((bullet) => ({
-      text: bullet.text,
+      text: dropRawIds(bullet.text, givenIds),
       sources: [...new Set(bullet.sources.map(sourceId))].filter((id) =>
         givenIds.has(id),
       ),

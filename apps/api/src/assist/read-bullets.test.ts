@@ -31,4 +31,22 @@ describe("readBullets", () => {
     ).toEqual([{ text: "A", sources: ["m1"] }]);
     expect(readBullets("Here you go", given)).toBeNull();
   });
+
+  it("takes the ids the model wrote into a bullet's text out of it", () => {
+    expect(
+      readBullets(
+        JSON.stringify({
+          bullets: [
+            {
+              text: "Waits on the vendor (comment:k3j9x2m8q7w1e5r4t6y0u2i8)",
+              sources: ["k3j9x2m8q7w1e5r4t6y0u2i8"],
+            },
+          ],
+        }),
+        new Set(["k3j9x2m8q7w1e5r4t6y0u2i8"]),
+      ),
+    ).toEqual([
+      { text: "Waits on the vendor", sources: ["k3j9x2m8q7w1e5r4t6y0u2i8"] },
+    ]);
+  });
 });

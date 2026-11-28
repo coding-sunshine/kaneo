@@ -1,3 +1,5 @@
+import { dropRawIds } from "../assist/drop-raw-ids";
+
 export const SOURCE_KINDS = ["task", "document", "comment", "message"] as const;
 export type SourceKind = (typeof SOURCE_KINDS)[number];
 export type Cited = { kind: SourceKind; id: string };
@@ -10,13 +12,16 @@ export const SOURCES_INSTRUCTION =
 const LINE = /(?:^|\n)[ \t*_#>-]*sources[*_]*\s*:[^\n]*\s*$/i;
 const TOKEN = /\b(task|document|comment|message):\s*`?([A-Za-z0-9_-]+)/g;
 
-/** Splits an answer into its text and the sources its last line names. */
+/**
+ * Splits an answer into its text and the sources its last line names. The
+ * text loses the ids it wrote inline: the sources show under it as links.
+ */
 export function splitSources(content: string): {
   text: string;
   cited: Cited[];
 } {
   const line = content.match(LINE);
-  if (!line) return { text: content, cited: [] };
+  if (!line) return { text: dropRawIds(content, []), cited: [] };
   const seen = new Set<string>();
   const cited: Cited[] = [];
   for (const [, kind, id] of line[0].matchAll(TOKEN)) {
@@ -25,7 +30,13 @@ export function splitSources(content: string): {
     seen.add(key);
     cited.push({ kind: kind as SourceKind, id });
   }
-  return { text: content.slice(0, line.index).trimEnd(), cited };
+  return {
+    text: dropRawIds(
+      content.slice(0, line.index),
+      cited.map(({ id }) => id),
+    ),
+    cited,
+  };
 }
 
 /**
