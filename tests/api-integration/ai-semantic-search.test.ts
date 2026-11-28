@@ -12,10 +12,13 @@ import {
   chatChannelMemberTable,
   chatChannelTable,
   chatMessageTable,
+  aiDestinationChangeTable,
   documentTable,
   semanticChunkTable,
 } from "../../apps/api/src/database/schema";
 import { createApp } from "../../apps/api/src/index";
+import { setBudget } from "../../apps/api/src/agent/budget";
+import { recordUsage } from "../../apps/api/src/agent/usage";
 import { indexSemanticChunks } from "../../apps/api/src/semantic-search/index-chunks";
 import { model, reply } from "./helpers/agent-model";
 import { mockAuthenticatedSession } from "./helpers/auth";
@@ -67,6 +70,15 @@ const realFetch = globalThis.fetch;
 type User = typeof schema.userTable.$inferSelect;
 const { app } = createApp();
 
+const turn = (user: User, ws: string, enabled: boolean) => {
+  mockAuthenticatedSession(user);
+  return app.request(`/api/semantic-search/workspace/${ws}/setting`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ enabled }),
+  });
+};
+
 const search = (user: User, ws: string, query: string) => {
   mockAuthenticatedSession(user);
   return app.request(`/api/semantic-search/workspace/${ws}`, {
@@ -76,9 +88,10 @@ const search = (user: User, ws: string, query: string) => {
   });
 };
 
-async function setup() {
+async function setup({ on = true } = {}) {
   const owner = await createWorkspaceMember({ role: "owner" });
   const ws = owner.workspace.id;
+  if (on) expect((await turn(owner.user, ws, true)).status).toBe(200);
   const channel = async (name: string, extra = {}) => {
     const [row] = await db
       .insert(chatChannelTable)
@@ -265,7 +278,7 @@ describe("API integration: semantic search", () => {
     expect(embeddingCalls).toEqual([]);
     await db
       .update(chatMessageTable)
-      .set({ body: "We chose Northwind for the release" })
+      .set({ body: "We chose Northwind for the release", editedAt: new Date() })
       .where(eq(chatMessageTable.id, reason.id));
     await indexSemanticChunks();
     expect(JSON.stringify(embeddingCalls)).toContain("for the release");
@@ -298,6 +311,67 @@ describe("API integration: semantic search", () => {
       .from(semanticChunkTable)
       .where(eq(semanticChunkTable.messageId, reason.id));
     expect(chunks).toEqual([]);
+  });
+
+  it("is off for a workspace until an admin turns it on, and embeds nothing", async () => {
+    const { owner, ws } = await setup({ on: false });
+    expect(await indexSemanticChunks()).toEqual({ indexed: 0 });
+    expect(embeddingCalls).toEqual([]);
+    expect((await search(owner, ws, "vendor")).status).toBe(404);
+    mockAuthenticatedSession(owner);
+    expect(
+      await (
+        await app.request(`/api/semantic-search/workspace/${ws}/setting`)
+      ).json(),
+    ).toMatchObject({ enabled: false });
+
+    const member = (await createWorkspaceMember()).user;
+    await db.insert(schema.workspaceUserTable).values({
+      workspaceId: ws,
+      userId: member.id,
+      role: "member",
+      joinedAt: new Date(),
+    });
+    expect((await turn(member, ws, true)).status).toBe(403);
+    expect(await indexSemanticChunks()).toEqual({ indexed: 0 });
+    expect(embeddingCalls).toEqual([]);
+  });
+
+  it("sends nothing when the workspace keeps its AI text on its own server", async () => {
+    const { owner, ws } = await setup();
+    process.env.AI_SELF_HOSTED_URL = "https://llm.internal.test/v1";
+    await db.insert(aiDestinationChangeTable).values({
+      workspaceId: ws,
+      provider: "self-hosted",
+      model: null,
+      changedBy: owner.id,
+      diff: [{ field: "provider", from: "openrouter", to: "self-hosted" }],
+    });
+    try {
+      expect(await indexSemanticChunks()).toEqual({ indexed: 0 });
+      expect(embeddingCalls).toEqual([]);
+      expect((await search(owner, ws, "vendor")).status).toBe(404);
+    } finally {
+      delete process.env.AI_SELF_HOSTED_URL;
+    }
+  });
+
+  it("checks the budget before embedding the question", async () => {
+    const { owner, ws } = await setup();
+    await indexSemanticChunks();
+    embeddingCalls.length = 0;
+    await setBudget(ws, { userDailyTokens: 1, workspaceMonthlyTokens: null });
+    await recordUsage({
+      workspaceId: ws,
+      userId: owner.id,
+      purpose: "search",
+      model: "fake-model",
+      promptTokens: 5,
+      completionTokens: 0,
+      cost: null,
+    });
+    expect((await search(owner, ws, "vendor")).status).toBe(429);
+    expect(embeddingCalls).toEqual([]);
   });
 
   it("is off without an embedding key, and embeds nothing", async () => {

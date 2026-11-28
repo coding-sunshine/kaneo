@@ -15,6 +15,7 @@ import { isWorkspaceGuest } from "../guest/is-workspace-guest";
 import { projectAccessCondition } from "../project-access/project-access-condition";
 
 const MAX_RESULTS = 8;
+const MAX_CANDIDATES = 5000;
 // Below this cosine similarity a source is not about the question.
 const MIN_SCORE = 0.3;
 
@@ -61,20 +62,14 @@ export async function findChunks(reader: Reader, vector: number[]) {
       taskId: documentTable.taskId,
     }),
   );
-  const rows = await db
-    .select({
-      messageId: chatMessageTable.id,
-      body: chatMessageTable.body,
-      channelId: chatChannelTable.id,
-      channelName: chatChannelTable.name,
-      taskId: taskTable.id,
-      taskTitle: taskTable.title,
-      taskDescription: taskTable.description,
-      documentId: documentTable.id,
-      documentTitle: documentTable.title,
-      documentContent: documentTable.content,
-      score,
-    })
+  const access = and(
+    eq(semanticChunkTable.workspaceId, workspaceId),
+    mayReadTasks ? or(message, task, document) : message,
+  );
+  // Scores only the newest chunks the reader can open, so one question
+  // never ranks a whole large workspace.
+  const candidates = db
+    .select({ id: semanticChunkTable.id })
     .from(semanticChunkTable)
     .leftJoin(
       chatMessageTable,
@@ -90,11 +85,39 @@ export async function findChunks(reader: Reader, vector: number[]) {
       documentTable,
       eq(documentTable.id, semanticChunkTable.documentId),
     )
-    .where(
-      and(
-        eq(semanticChunkTable.workspaceId, workspaceId),
-        mayReadTasks ? or(message, task, document) : message,
-      ),
+    .where(access)
+    .orderBy(desc(semanticChunkTable.indexedAt))
+    .limit(MAX_CANDIDATES)
+    .as("candidates");
+  const rows = await db
+    .select({
+      messageId: chatMessageTable.id,
+      body: chatMessageTable.body,
+      channelId: chatChannelTable.id,
+      channelName: chatChannelTable.name,
+      taskId: taskTable.id,
+      taskTitle: taskTable.title,
+      taskDescription: taskTable.description,
+      documentId: documentTable.id,
+      documentTitle: documentTable.title,
+      documentContent: documentTable.content,
+      score,
+    })
+    .from(semanticChunkTable)
+    .innerJoin(candidates, eq(candidates.id, semanticChunkTable.id))
+    .leftJoin(
+      chatMessageTable,
+      eq(chatMessageTable.id, semanticChunkTable.messageId),
+    )
+    .leftJoin(
+      chatChannelTable,
+      eq(chatChannelTable.id, chatMessageTable.channelId),
+    )
+    .leftJoin(taskTable, eq(taskTable.id, semanticChunkTable.taskId))
+    .leftJoin(projectTable, eq(projectTable.id, taskTable.projectId))
+    .leftJoin(
+      documentTable,
+      eq(documentTable.id, semanticChunkTable.documentId),
     )
     .orderBy(desc(score))
     .limit(MAX_RESULTS);

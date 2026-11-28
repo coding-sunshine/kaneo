@@ -13869,6 +13869,22 @@
 						"needsText",
 						"saveError"
 					]
+				},
+				"semanticSearch": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"description": {
+							"type": "string"
+						},
+						"egressBlocked": {
+							"type": "string"
+						}
+					},
+					"required": ["title", "description", "egressBlocked"]
 				}
 			},
 			"required": [
@@ -13942,7 +13958,8 @@
 				"adminBackups",
 				"calendarSync",
 				"peopleProfile",
-				"peopleStatus"
+				"peopleStatus",
+				"semanticSearch"
 			]
 		},
 		"navigation": {

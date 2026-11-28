@@ -220,7 +220,7 @@ Name | Description | Default |
 
 ### Search by meaning
 
-The search page can answer a question by meaning, citing the messages, tickets and documents it used, when `EMBEDDING_API_KEY` is set. A job embeds new and changed content every minute, which also backfills an existing install over its first runs; that backfill sends the text of every message, ticket and document once to the embedding service, so check its cost first. Messages of channels marked no AI and direct messages are never sent. Without the key the feature is off and the API logs that at startup. Embeddings are stored as plain arrays and ranked in SQL; on a large instance switch to a Postgres image with pgvector.
+The search page can answer a question by meaning, citing the messages, tickets and documents it used, when `EMBEDDING_API_KEY` is set and a workspace admin turns it on under AI usage (off by default). A job sends what changed since its last run to the embedding service every minute; for a workspace just turned on, that first sends the text of every message, ticket and document once, so check its cost first. Channels with AI turned off and direct messages are never sent. A workspace whose AI destination is its own model server sends nothing unless `EMBEDDING_API_URL` is on that same server. Without the key the feature is off and the API logs that at startup. Embeddings are stored as plain arrays and a question scores the newest 5,000 the reader can open; on a large instance switch to a Postgres image with pgvector.
 
 Name | Description | Default |
 --- | --- | --- |

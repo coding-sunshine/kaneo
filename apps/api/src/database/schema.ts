@@ -3994,13 +3994,50 @@ export const semanticChunkTable = pgTable(
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)
       .notNull(),
+    // When the source was last embedded; a search scores the newest first.
+    indexedAt: timestamp("indexed_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
   },
   (table) => [
-    index("semantic_chunk_workspace_idx").on(table.workspaceId),
+    index("semantic_chunk_workspace_idx").on(
+      table.workspaceId,
+      table.indexedAt,
+    ),
     uniqueIndex("semantic_chunk_message_idx").on(table.messageId),
     uniqueIndex("semantic_chunk_task_idx").on(table.taskId),
     uniqueIndex("semantic_chunk_document_idx").on(table.documentId),
   ],
+);
+
+// Whether a workspace sends its content to the embedding service for search
+// by meaning. Off without a row: an admin turns it on.
+export const semanticSearchSettingTable = pgTable("semantic_search_setting", {
+  workspaceId: text("workspace_id")
+    .primaryKey()
+    .references(() => workspaceTable.id, { onDelete: "cascade" }),
+  enabled: boolean("enabled").notNull().default(false),
+  updatedBy: text("updated_by").references(() => userTable.id, {
+    onDelete: "set null",
+  }),
+  updatedAt: timestamp("updated_at", { mode: "date" })
+    .default(utcNow)
+    .notNull(),
+});
+
+// How far the indexer read a workspace's sources of one kind: the change
+// time and id of the last row it saw, kept as text to hold microseconds.
+export const semanticIndexStateTable = pgTable(
+  "semantic_index_state",
+  {
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    lastAt: text("last_at").notNull(),
+    lastId: text("last_id").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.workspaceId, table.kind] })],
 );
 
 // A meeting-notes run its author chose to keep: the transcript and the

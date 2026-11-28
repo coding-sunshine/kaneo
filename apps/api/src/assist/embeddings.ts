@@ -1,6 +1,9 @@
 const DEFAULT_URL = "https://api.openai.com/v1/embeddings";
 const DEFAULT_MODEL = "text-embedding-3-small";
 
+/** Where embedding requests go. */
+export const embeddingUrl = () => process.env.EMBEDDING_API_URL || DEFAULT_URL;
+
 /** Semantic search is on when the server has an embedding key. */
 export const isSemanticSearchEnabled = () =>
   Boolean(process.env.EMBEDDING_API_KEY?.trim());
@@ -16,7 +19,7 @@ const unit = (vector: number[]) => {
  */
 export async function embed(texts: string[]): Promise<number[][]> {
   if (texts.length === 0) return [];
-  const response = await fetch(process.env.EMBEDDING_API_URL || DEFAULT_URL, {
+  const response = await fetch(embeddingUrl(), {
     method: "POST",
     headers: {
       Authorization: `Bearer ${process.env.EMBEDDING_API_KEY}`,

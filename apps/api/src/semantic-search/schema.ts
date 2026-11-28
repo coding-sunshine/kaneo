@@ -26,3 +26,15 @@ export const semanticSearchSchema = z
     ),
   })
   .openapi("SemanticSearch");
+
+export const semanticSearchSwitchBody = z.object({ enabled: z.boolean() });
+
+export const semanticSearchSettingSchema = z
+  .object({
+    enabled: z.boolean(),
+    egressAllowed: z.boolean().openapi({
+      description:
+        "False when the workspace keeps its AI text on its own model server and the embedding service is elsewhere: nothing is sent then.",
+    }),
+  })
+  .openapi("SemanticSearchSetting");

@@ -3394,6 +3394,11 @@
 			"text": "Status",
 			"textPlaceholder": "In a meeting",
 			"until": "Last day"
+		},
+		"semanticSearch": {
+			"description": "Sends this workspace's messages, tickets and documents to the server's embedding service so search can answer by meaning. Channels with AI turned off and direct messages are never sent. Off until you turn it on.",
+			"egressBlocked": "This workspace keeps its AI text on its own model server, and the embedding service is elsewhere, so search by meaning stays off.",
+			"title": "Search by meaning"
 		}
 	},
 	"navigation": {

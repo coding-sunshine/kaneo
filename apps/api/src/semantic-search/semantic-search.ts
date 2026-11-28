@@ -1,9 +1,12 @@
+import { HTTPException } from "hono/http-exception";
+import { assertWithinBudget } from "../agent/budget";
 import { isAgentEnabled } from "../agent/openrouter";
 import { resolveCitations } from "../agent/resolve-citations";
 import { embed } from "../assist/embeddings";
 import { runModel } from "../assist/run-model";
 import { findChunks } from "./find-chunks";
 import { readAnswer } from "./read-answer";
+import { semanticSearchAllowed } from "./workspace-setting";
 
 type Reader = Parameters<typeof resolveCitations>[0];
 const MAX_CHARS = 1500;
@@ -22,6 +25,12 @@ const SYSTEM = [
  * citations. Without one the matches come back with no answer.
  */
 export async function semanticSearch(reader: Reader, question: string) {
+  if (!(await semanticSearchAllowed(reader.workspaceId)))
+    throw new HTTPException(404, {
+      message: "Search by meaning is off for this workspace",
+    });
+  // The question is sent out too, so the budget is checked first.
+  await assertWithinBudget(reader.workspaceId, reader.userId);
   const [vector] = await embed([question]);
   const found = vector ? await findChunks(reader, vector) : [];
   const cite = async (item: (typeof found)[number]) =>

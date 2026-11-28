@@ -9702,6 +9702,22 @@
           "channelName"
         ]
       },
+      "SemanticSearchSetting": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "egressAllowed": {
+            "type": "boolean",
+            "description": "False when the workspace keeps its AI text on its own model server and the embedding service is elsewhere: nothing is sent then."
+          }
+        },
+        "required": [
+          "enabled",
+          "egressAllowed"
+        ]
+      },
       "CatchUp": {
         "type": "object",
         "properties": {
@@ -49420,7 +49436,7 @@
           "Search"
         ],
         "summary": "Search by meaning",
-        "description": "Finds messages, tickets and documents close in meaning to the question, among those you can open now, and answers with citations. Channels marked no AI and direct messages are never searched. Off until the server has EMBEDDING_API_KEY.",
+        "description": "Finds messages, tickets and documents close in meaning to the question, among those you can open now, and answers with citations. Channels with AI turned off and direct messages are never searched. Off until the server has EMBEDDING_API_KEY and an admin turns it on for the workspace.",
         "parameters": [
           {
             "schema": {
@@ -49502,6 +49518,144 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/semantic-search/workspace/{workspaceId}/setting": {
+      "get": {
+        "operationId": "getSemanticSearchSetting",
+        "tags": [
+          "Search"
+        ],
+        "summary": "Search by meaning setting",
+        "description": "Whether search by meaning is on for the workspace, and whether its text may go to the embedding service at all under the workspace's AI destination.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Setting",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SemanticSearchSetting"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Off on this server, or the workspace was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      },
+      "put": {
+        "operationId": "setSemanticSearchSetting",
+        "tags": [
+          "Search"
+        ],
+        "summary": "Turn search by meaning on or off",
+        "description": "Turning it on sends the workspace's messages, tickets and documents to the embedding service in EMBEDDING_API_URL. Admins and owners only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "enabled"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Setting",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SemanticSearchSetting"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Off on this server, or the workspace was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
           }
         }
       }
