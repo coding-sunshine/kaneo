@@ -178,6 +178,34 @@ describe("API integration: AI data destination", () => {
     });
   });
 
+  it("lists a save in the AI audit only when it changes the destination", async () => {
+    const owner = await createWorkspaceMember({ role: "owner" });
+    process.env.AI_SELF_HOSTED_URL = SELF_HOSTED;
+    mockAuthenticatedSession(owner.user);
+    const ws = owner.workspace.id;
+    const put = (body: unknown) =>
+      app.request(
+        `/api/agent/workspace/${ws}/ai-destination`,
+        json("PUT", body),
+      );
+    const audit = async () =>
+      (await (
+        await app.request(`/api/agent/workspace/${ws}/audit`)
+      ).json()) as {
+        kind: string;
+      }[];
+
+    expect((await put({ provider: "openrouter" })).status).toBe(200);
+    expect(await audit()).toEqual([]);
+
+    const local = { provider: "self-hosted", model: "local-llm" };
+    expect((await put(local)).status).toBe(200);
+    expect((await put(local)).status).toBe(200);
+    const rows = await audit();
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ kind: "setting" });
+  });
+
   it("keeps a self-hosted workspace off when the server drops its URL, rather than sending its text to OpenRouter", async () => {
     const owner = await createWorkspaceMember({ role: "owner" });
     process.env.AI_SELF_HOSTED_URL = SELF_HOSTED;

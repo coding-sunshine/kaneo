@@ -32,6 +32,10 @@ export function AiDestinationForm({
   const locked = !destination.canChange;
   const selfHosted = provider === "self-hosted";
   const modelInvalid = selfHosted && !MODEL_NAME.test(model.trim());
+  // Only a change is recorded in the AI audit, so the same choice is not saved.
+  const unchanged =
+    provider === destination.provider &&
+    (!selfHosted || model.trim() === (destination.model ?? ""));
   const options = [
     {
       value: "openrouter" as const,
@@ -47,7 +51,7 @@ export function AiDestinationForm({
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (locked || modelInvalid) return;
+    if (locked || modelInvalid || unchanged) return;
     save.mutate(
       selfHosted
         ? { provider: "self-hosted", model: model.trim() }
@@ -109,7 +113,7 @@ export function AiDestinationForm({
           <Button
             type="submit"
             size="sm"
-            disabled={modelInvalid || save.isPending}
+            disabled={modelInvalid || unchanged || save.isPending}
           >
             {t("settings:aiDestination.save")}
           </Button>
