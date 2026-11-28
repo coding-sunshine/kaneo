@@ -19845,6 +19845,9 @@
 								},
 								"running": {
 									"type": "string"
+								},
+								"interrupted": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -19867,7 +19870,8 @@
 								"onlyYou",
 								"dismiss",
 								"empty",
-								"running"
+								"running",
+								"interrupted"
 							]
 						},
 						"typingOne": {

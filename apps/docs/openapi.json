@@ -50682,6 +50682,112 @@
         }
       }
     },
+    "/skill/workspace/{workspaceId}/skills/{skillId}/run/stream": {
+      "post": {
+        "operationId": "streamAiSkillRun",
+        "tags": [
+          "AI skills"
+        ],
+        "summary": "Run a skill and stream the answer",
+        "description": "Same as running a skill, for runs that take long: the checks answer at once with their status, then server-sent events follow: `ping` every 15 seconds while the model works, then `result` with the same answer as the plain route, or `error` with `status` and `message` (429 when a cap or budget is used up, 502 when the answer could not be read).",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "skillId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "channelId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "The channel the skill is run from; you must be able to read it."
+                  },
+                  "input": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "channelId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Server-sent event stream",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing project:read or task:read permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "AI is off, or the skill or workspace was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Credit cap or AI budget used up",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/skill/workspace/{workspaceId}/runs": {
       "get": {
         "operationId": "listAiSkillRuns",

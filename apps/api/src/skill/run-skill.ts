@@ -19,7 +19,19 @@ type Reader = Parameters<typeof resolveCitations>[0];
  * that the reader can open now, or every project they can open. The answer
  * goes back to the reader only; the run's tokens are kept, its text is not.
  */
-export async function runSkill(
+export const runSkill = async (
+  reader: Reader,
+  skillId: string,
+  channelId: string,
+  input?: string,
+) => (await prepareSkillRun(reader, skillId, channelId, input))();
+
+/**
+ * The quick part of a run: the skill, the channel, its sources and the
+ * credit cap are checked now, so a refusal answers at once. The model is
+ * asked when the returned function is called.
+ */
+export async function prepareSkillRun(
   reader: Reader,
   skillId: string,
   channelId: string,
@@ -40,12 +52,12 @@ export async function runSkill(
   );
   const sources = await gatherSkillSources(projects);
   if (sources.ids.size === 0)
-    return {
+    return async () => ({
       skillName: skill.name,
-      bullets: [],
+      bullets: [] as Awaited<ReturnType<typeof citedBullets>>,
       promptTokens: 0,
       completionTokens: 0,
-    };
+    });
 
   const messages: ChatMessage[] = [
     {
@@ -69,46 +81,53 @@ export async function runSkill(
     },
     estimateTokens(messages.map((message) => message.content ?? "").join("\n")),
   );
-  let result: Awaited<ReturnType<typeof runModel>>;
-  try {
-    result = await runModel(
-      { workspaceId, userId, purpose: "skill" },
-      messages,
-    );
-  } catch (error) {
-    await settle(0);
-    throw error;
-  }
-  await settle(result.promptTokens + result.completionTokens);
-  await db.insert(aiSkillRunTable).values({
-    skillId: skill.id,
-    userId,
-    channelId,
-    promptTokens: result.promptTokens,
-    completionTokens: result.completionTokens,
-  });
-  const bullets = readBullets(result.content, sources.ids);
-  if (!bullets)
-    throw new HTTPException(502, {
-      message: "The skill's answer could not be read. Try again.",
+  return async () => {
+    let result: Awaited<ReturnType<typeof runModel>>;
+    try {
+      result = await runModel(
+        { workspaceId, userId, purpose: "skill" },
+        messages,
+      );
+    } catch (error) {
+      await settle(0);
+      throw error;
+    }
+    await settle(result.promptTokens + result.completionTokens);
+    await db.insert(aiSkillRunTable).values({
+      skillId: skill.id,
+      userId,
+      channelId,
+      promptTokens: result.promptTokens,
+      completionTokens: result.completionTokens,
     });
-  return {
-    skillName: skill.name,
-    bullets: await Promise.all(
-      bullets.map(async (bullet) => ({
-        text: bullet.text,
-        sources: await resolveCitations(
-          reader,
-          bullet.sources.map((id) => ({
-            kind: sources.commentIds.has(id)
-              ? ("comment" as const)
-              : ("task" as const),
-            id,
-          })),
-        ),
-      })),
-    ),
-    promptTokens: result.promptTokens,
-    completionTokens: result.completionTokens,
+    const bullets = readBullets(result.content, sources.ids);
+    if (!bullets)
+      throw new HTTPException(502, {
+        message: "The skill's answer could not be read. Try again.",
+      });
+    return {
+      skillName: skill.name,
+      bullets: await citedBullets(reader, bullets, sources.commentIds),
+      promptTokens: result.promptTokens,
+      completionTokens: result.completionTokens,
+    };
   };
 }
+
+const citedBullets = (
+  reader: Reader,
+  bullets: { text: string; sources: string[] }[],
+  commentIds: ReadonlySet<string>,
+) =>
+  Promise.all(
+    bullets.map(async (bullet) => ({
+      text: bullet.text,
+      sources: await resolveCitations(
+        reader,
+        bullet.sources.map((id) => ({
+          kind: commentIds.has(id) ? ("comment" as const) : ("task" as const),
+          id,
+        })),
+      ),
+    })),
+  );

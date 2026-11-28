@@ -4868,7 +4868,8 @@
 				"onlyYou": "Only you can see this",
 				"dismiss": "Dismiss",
 				"empty": "Nothing found in the tickets this skill can read.",
-				"running": "Running skill…"
+				"running": "Running skill…",
+				"interrupted": "The skill run stopped before it answered. Try again."
 			},
 			"typingOne": "{{name}} is typing…",
 			"typingTwo": "{{first}} and {{second}} are typing…",

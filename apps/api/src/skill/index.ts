@@ -6,11 +6,13 @@ import {
   createRoute,
   errorResponse,
   jsonResponse,
+  z,
 } from "../openapi";
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import { listSkillRuns } from "./list-runs";
-import { runSkill } from "./run-skill";
+import { prepareSkillRun, runSkill } from "./run-skill";
+import { streamSkillRun } from "./stream-skill-run";
 import {
   createdSkillSchema,
   createSkillBody,
@@ -100,6 +102,26 @@ const runRoute = createRoute({
   },
 });
 
+const runStreamRoute = createRoute({
+  method: "post",
+  operationId: "streamAiSkillRun",
+  path: "/workspace/{workspaceId}/skills/{skillId}/run/stream",
+  tags,
+  summary: "Run a skill and stream the answer",
+  description:
+    "Same as running a skill, for runs that take long: the checks answer at once with their status, then server-sent events follow: `ping` every 15 seconds while the model works, then `result` with the same answer as the plain route, or `error` with `status` and `message` (429 when a cap or budget is used up, 502 when the answer could not be read).",
+  middleware: [...middleware] as const,
+  request: { params: skillParam, body: json(runSkillBody) },
+  responses: {
+    200: {
+      description: "Server-sent event stream",
+      content: { "text/event-stream": { schema: z.string() } },
+    },
+    429: errorResponse("Credit cap or AI budget used up"),
+    ...common,
+  },
+});
+
 const runsRoute = createRoute({
   method: "get",
   operationId: "listAiSkillRuns",
@@ -150,6 +172,17 @@ const routes = skill
       await runSkill(await readerOf(c, workspaceId), skillId, channelId, input),
       200,
     );
+  })
+  .openapi(runStreamRoute, async (c) => {
+    const { workspaceId, skillId } = c.req.valid("param");
+    const { channelId, input } = c.req.valid("json");
+    const run = await prepareSkillRun(
+      await readerOf(c, workspaceId),
+      skillId,
+      channelId,
+      input,
+    );
+    return streamSkillRun(c, run) as never;
   })
   .openapi(runsRoute, async (c) => {
     const { workspaceId } = c.req.valid("param");

@@ -1,6 +1,7 @@
 import { client } from "@kaneo/libs";
 import type { TranscriptMessage } from "@/components/agent/agent-transcript";
 import { HttpError } from "@/lib/http-error";
+import { readSseEvents } from "@/lib/read-sse-events";
 
 export async function getChats(workspaceId: string) {
   const response = await client.agent.workspace[":workspaceId"].chats.$get({
@@ -47,17 +48,5 @@ export async function streamMessage(
   });
   if (!response.ok || !response.body)
     throw await HttpError.fromResponse(response);
-  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
-  let buffer = "";
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += value;
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
-    for (const line of lines) {
-      if (line.startsWith("data:"))
-        onEvent(JSON.parse(line.slice(5)) as AgentStreamEvent);
-    }
-  }
+  await readSseEvents(response.body, onEvent);
 }

@@ -16,9 +16,14 @@ import {
   createWorkspaceMember,
 } from "./helpers/fixtures";
 import { restrictToProjects } from "./helpers/project-access/restrict-to-projects";
+import { skillStream } from "../../apps/api/src/skill/stream-skill-run";
 
 // The scripted model also reports tokens, as the provider's last chunk does.
-const usage = { tokens: { prompt: 120, completion: 30 }, report: true };
+const usage = {
+  tokens: { prompt: 120, completion: 30 },
+  report: true,
+  delayMs: 0,
+};
 vi.mock("../../apps/api/src/agent/openrouter", async (original) => ({
   ...(await original<object>()),
   createCompletion: vi.fn(
@@ -31,6 +36,8 @@ vi.mock("../../apps/api/src/agent/openrouter", async (original) => ({
       model.seen.push(messages);
       const next = model.queue.shift();
       if (!next) throw new Error("no scripted reply");
+      if (usage.delayMs)
+        await new Promise((resolve) => setTimeout(resolve, usage.delayMs));
       if (usage.report)
         onUsage?.({
           model: "fake-model",
@@ -111,6 +118,7 @@ describe("API integration: custom AI skills", () => {
     model.seen.length = 0;
     usage.tokens = { prompt: 120, completion: 30 };
     usage.report = true;
+    usage.delayMs = 0;
   });
 
   it("saves a skill, runs it in a channel with a cited summary, and lists the run with tokens", async () => {
@@ -440,6 +448,82 @@ describe("API integration: custom AI skills", () => {
     expect(run.status).toBe(403);
     expect(model.seen).toHaveLength(0);
     expect(await db.select().from(aiSkillRunTable)).toEqual([]);
+  });
+
+  it("streams a long run: pings while the model works, then the answer", async () => {
+    const { owner, ws, pTask, channel } = await setup();
+    const skill = await (
+      await createSkill(owner, ws, { name: "blockers", prompt: "List." })
+    ).json();
+    const pingMs = skillStream.pingMs;
+    skillStream.pingMs = 20;
+    usage.delayMs = 150;
+    model.queue.push(
+      reply(
+        JSON.stringify({
+          bullets: [{ text: "Payments wait", sources: [pTask.id] }],
+        }),
+      ),
+    );
+    try {
+      const run = await call(
+        owner,
+        `/workspace/${ws}/skills/${skill.id}/run/stream`,
+        "POST",
+        { channelId: channel.id },
+      );
+      expect(run.status, await run.clone().text()).toBe(200);
+      expect(run.headers.get("content-type")).toContain("text/event-stream");
+      const events = (await run.text())
+        .split("\n")
+        .filter((line) => line.startsWith("data:"))
+        .map((line) => JSON.parse(line.slice(5)));
+      expect(
+        events.filter((event) => event.type === "ping").length,
+      ).toBeGreaterThan(1);
+      expect(events.at(-1)).toMatchObject({
+        type: "result",
+        result: {
+          skillName: "blockers",
+          bullets: [
+            expect.objectContaining({
+              text: "Payments wait",
+              sources: [expect.objectContaining({ id: pTask.id })],
+            }),
+          ],
+        },
+      });
+    } finally {
+      skillStream.pingMs = pingMs;
+    }
+  });
+
+  it("streams a failed run as an error with its status, and refuses before streaming", async () => {
+    const { owner, ws, channel } = await setup();
+    const skill = await (
+      await createSkill(owner, ws, { name: "blockers", prompt: "List." })
+    ).json();
+    model.queue.push(reply("not json"));
+    const failed = await call(
+      owner,
+      `/workspace/${ws}/skills/${skill.id}/run/stream`,
+      "POST",
+      { channelId: channel.id },
+    );
+    expect(failed.status).toBe(200);
+    expect(await failed.text()).toContain('"type":"error","status":502');
+
+    await db
+      .update(chatChannelTable)
+      .set({ aiDisabled: true })
+      .where(eq(chatChannelTable.id, channel.id));
+    const refused = await call(
+      owner,
+      `/workspace/${ws}/skills/${skill.id}/run/stream`,
+      "POST",
+      { channelId: channel.id },
+    );
+    expect(refused.status).toBe(403);
   });
 
   it("is off without a model key", async () => {

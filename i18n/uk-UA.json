@@ -5039,7 +5039,8 @@
 				"tokens_few": "{{count}} tokens",
 				"tokens_many": "{{count}} tokens",
 				"tokens_one": "{{count}} token",
-				"tokens_other": "{{count}} tokens"
+				"tokens_other": "{{count}} tokens",
+				"interrupted": "The skill run stopped before it answered. Try again."
 			},
 			"noSaved": "Nothing saved yet. Save a message from its menu to find it here.",
 			"openSaved": "Open message",

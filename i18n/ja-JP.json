@@ -4799,7 +4799,8 @@
 				"scope": "Projects",
 				"scopeHint": "Pick projects to limit what the skill reads. Leave all unticked for every project you can open.",
 				"title": "My skills",
-				"tokens_other": "{{count}} tokens"
+				"tokens_other": "{{count}} tokens",
+				"interrupted": "The skill run stopped before it answered. Try again."
 			},
 			"noSaved": "Nothing saved yet. Save a message from its menu to find it here.",
 			"openSaved": "Open message",
