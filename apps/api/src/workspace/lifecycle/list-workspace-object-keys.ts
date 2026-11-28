@@ -1,8 +1,9 @@
 import { and, eq, isNotNull } from "drizzle-orm";
 import db, { schema } from "../../database";
+import { chatMessageFileTable } from "../../database/schema";
 import type { DbOrTx } from "../../project-access/db-or-tx";
 
-/** Storage objects (uploads, project backgrounds and custom emoji) owned by a workspace. */
+/** Storage objects (uploads, chat files, project backgrounds and custom emoji) owned by a workspace. */
 export async function listWorkspaceObjectKeys(
   workspaceId: string,
   database: DbOrTx = db,
@@ -25,7 +26,11 @@ export async function listWorkspaceObjectKeys(
     .select({ objectKey: schema.workspaceEmojiTable.objectKey })
     .from(schema.workspaceEmojiTable)
     .where(eq(schema.workspaceEmojiTable.workspaceId, workspaceId));
-  return [...assets, ...backgrounds, ...emoji].flatMap((row) =>
+  const chatFiles = await database
+    .select({ objectKey: chatMessageFileTable.objectKey })
+    .from(chatMessageFileTable)
+    .where(eq(chatMessageFileTable.workspaceId, workspaceId));
+  return [...assets, ...backgrounds, ...emoji, ...chatFiles].flatMap((row) =>
     row.objectKey ? [row.objectKey] : [],
   );
 }

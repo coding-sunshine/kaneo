@@ -6,6 +6,7 @@ import { chatMessageTable } from "../../database/schema";
 import { withMentions } from "../mentions/with-mentions";
 import { loadChannel } from "./load-channel";
 import { selectMessages } from "./select-messages";
+import { withFiles } from "./with-files";
 import { withReactions } from "./with-reactions";
 
 const PAGE_SIZE = 50;
@@ -36,7 +37,7 @@ async function listPage(channelId: string, before?: string) {
     )
     .orderBy(desc(chatMessageTable.createdAt), desc(chatMessageTable.id))
     .limit(PAGE_SIZE);
-  return withReactions(rows.reverse());
+  return withFiles(await withReactions(rows.reverse()));
 }
 
 // Compared in SQL, not through a JS Date, which would drop the microseconds
@@ -60,5 +61,5 @@ async function listAround(channelId: string, messageId: string) {
     .where(and(inChannel, sql`${key} >= (${targetKey})`))
     .orderBy(asc(chatMessageTable.createdAt), asc(chatMessageTable.id))
     .limit(PAGE_SIZE - OLDER_THAN_TARGET);
-  return withReactions([...older.reverse(), ...rest]);
+  return withFiles(await withReactions([...older.reverse(), ...rest]));
 }

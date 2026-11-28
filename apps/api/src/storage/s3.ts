@@ -307,6 +307,17 @@ function buildDocumentFileObjectKeyPrefix(context: DocumentFileContext) {
   ].join("/");
 }
 
+type ChatFileContext = { workspaceId: string; channelId: string };
+
+function buildChatFileObjectKeyPrefix(context: ChatFileContext) {
+  return [
+    "workspace",
+    sanitizePathSegment(context.workspaceId),
+    "chat",
+    sanitizePathSegment(context.channelId),
+  ].join("/");
+}
+
 export function buildProjectBackgroundObjectKey(
   context: Pick<ProjectBackgroundUploadContext, "workspaceId" | "projectId">,
 ) {
@@ -408,6 +419,20 @@ export async function createDocumentFileUploadUrl(
   validateTaskAssetUploadInput(context.contentType, context.size);
   return presignUpload(
     `${buildDocumentFileObjectKeyPrefix(context)}/${buildObjectFileName(context.filename)}`,
+    context,
+  );
+}
+
+export async function createChatFileUploadUrl(
+  context: ChatFileContext & {
+    filename: string;
+    contentType: string;
+    size: number;
+  },
+): Promise<TaskImageUploadUrl> {
+  validateTaskAssetUploadInput(context.contentType, context.size);
+  return presignUpload(
+    `${buildChatFileObjectKeyPrefix(context)}/${buildObjectFileName(context.filename)}`,
     context,
   );
 }
@@ -618,6 +643,11 @@ export function assertTaskImageKeyMatchesContext(
 /** True for a key issued for a file of this document, and for no other key. */
 export function isDocumentFileKey(key: string, context: DocumentFileContext) {
   return isObjectDirectlyUnder(key, buildDocumentFileObjectKeyPrefix(context));
+}
+
+/** True for a key issued for a file of this chat channel, and for no other key. */
+export function isChatFileKey(key: string, context: ChatFileContext) {
+  return isObjectDirectlyUnder(key, buildChatFileObjectKeyPrefix(context));
 }
 
 function isObjectDirectlyUnder(key: string, objectPrefix: string) {

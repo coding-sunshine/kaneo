@@ -1,8 +1,10 @@
 import { useTranslation } from "react-i18next";
+import { ChatFileButton } from "@/components/chat/chat-file-button";
 import { MentionPicker } from "@/components/chat/mention-picker";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { usePostMessage } from "@/hooks/mutations/chat/use-post-message";
+import { useSendChatFile } from "@/hooks/mutations/chat/use-send-chat-file";
 import { useChannelDraft } from "@/hooks/use-channel-draft";
 import { toast } from "@/lib/toast";
 
@@ -25,10 +27,12 @@ export function MessageComposer({
     channelId,
   );
   const post = usePostMessage(workspaceId, channelId);
+  const sendFile = useSendChatFile(workspaceId, channelId);
+  const busy = post.isPending || sendFile.isPending;
 
   const send = async () => {
     const text = body.trim();
-    if (!text || post.isPending) return;
+    if (!text || busy) return;
     await beforeSend();
     post.mutate(text, {
       onSuccess: () => {
@@ -37,6 +41,21 @@ export function MessageComposer({
       },
       onError: (error) => toast.error(error.message),
     });
+  };
+
+  // The typed text goes with the file, as its message.
+  const attach = async (file: File) => {
+    await beforeSend();
+    sendFile.mutate(
+      { file, body: body.trim() || undefined },
+      {
+        onSuccess: () => {
+          clear();
+          onPosted?.();
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
   };
 
   return (
@@ -69,7 +88,8 @@ export function MessageComposer({
           setBody(`${body}${body && !/\s$/.test(body) ? " " : ""}${token} `)
         }
       />
-      <Button type="submit" size="sm" disabled={!body.trim() || post.isPending}>
+      <ChatFileButton disabled={busy} onPick={attach} />
+      <Button type="submit" size="sm" disabled={!body.trim() || busy}>
         {t("navigation:chat.send")}
       </Button>
     </form>

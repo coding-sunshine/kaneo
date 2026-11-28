@@ -67,6 +67,7 @@ describe("sidebar items", () => {
       "projects",
       "views",
       "chat",
+      "files",
       "people",
       "members",
       "loops",

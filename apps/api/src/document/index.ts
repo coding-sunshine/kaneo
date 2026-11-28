@@ -6,7 +6,7 @@ import {
   jsonResponse,
 } from "../openapi";
 import { imageUploadSchema } from "../task/response";
-import { normalizeApiServerUrl } from "../utils/openapi-spec";
+import { apiBaseUrl } from "../utils/api-base-url";
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import {
@@ -154,11 +154,6 @@ const write = [
   requireWorkspacePermission({ task: ["update"] }),
 ] as const;
 const one = "/workspace/{workspaceId}/{id}";
-// Where a stored file is read back from.
-const apiBaseUrl = (requestUrl: string) =>
-  normalizeApiServerUrl(
-    process.env.KANEO_API_URL || new URL(requestUrl).origin,
-  );
 
 const listRoute = createRoute({
   method: "get",

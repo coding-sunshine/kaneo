@@ -5,6 +5,7 @@ import type { ChannelAction } from "../channel-access";
 import { withMentions } from "../mentions/with-mentions";
 import { loadChannel } from "./load-channel";
 import { selectMessages } from "./select-messages";
+import { withFiles } from "./with-files";
 import { withReactions } from "./with-reactions";
 
 // The channel rules run first, so a hidden channel's messages answer 404 like
@@ -27,7 +28,7 @@ export async function loadMessage(
   const [withCards] = await withMentions(
     workspaceId,
     userId,
-    await withReactions([message]),
+    await withFiles(await withReactions([message])),
   );
   return withCards as NonNullable<typeof withCards>;
 }

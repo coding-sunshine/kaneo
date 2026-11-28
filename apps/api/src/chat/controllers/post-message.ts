@@ -36,7 +36,7 @@ export async function postMessage(
     userId,
   });
   const [withCards] = await withMentions(workspaceId, userId, [
-    { ...message, reactions: [] },
+    { ...message, reactions: [], files: [] },
   ]);
   return withCards as NonNullable<typeof withCards>;
 }
