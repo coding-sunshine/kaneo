@@ -7,6 +7,7 @@ import { connectTrello, type TrelloCredentials } from "./trello/index.js";
 import type { ConnectOptions, ImportSource } from "./types.js";
 
 export { normalizeBaseUrl, SourceHttpError } from "./http.js";
+export { createHtmlToMarkdown } from "./plane/html.js";
 export { type JiraSite, parseJiraUrl } from "./jira/index.js";
 export {
   SOURCE_PROJECT_KEY_MAX,
