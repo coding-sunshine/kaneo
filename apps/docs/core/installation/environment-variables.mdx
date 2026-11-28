@@ -218,6 +218,16 @@ Name | Description | Default |
 | `EMBEDDING_API_URL` | The embeddings endpoint. | `https://api.openai.com/v1/embeddings` |
 | `EMBEDDING_MODEL` | The embedding model. | `text-embedding-3-small` |
 
+### Meeting notes from recordings
+
+A document's Notes action reads a pasted meeting transcript and proposes decisions and tickets, each with the quote it came from. It needs the AI model above. To also accept recordings, set `STT_API_KEY`: the audio (up to 25 MB) goes to the speech-to-text service once and is not stored. Without the key, recordings are off, the dialog says so and the API logs it at startup. A transcript is stored only when the person ticks "Keep the transcript".
+
+Name | Description | Default |
+--- | --- | --- |
+| `STT_API_KEY` | Key of an OpenAI-compatible transcription endpoint. Turns recordings on. | Unset |
+| `STT_API_URL` | The transcription endpoint. | `https://api.openai.com/v1/audio/transcriptions` |
+| `STT_MODEL` | The transcription model. | `whisper-1` |
+
 ### GitHub SSO
 
 Sign in with GitHub uses a [GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app). Set `GITHUB_OAUTH_CLIENT_ID` and `GITHUB_OAUTH_CLIENT_SECRET` (or rely on the legacy variables below).

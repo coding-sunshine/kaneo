@@ -4407,6 +4407,29 @@
 			"coediting": {
 				"loading": "Joining the live document…",
 				"failed": "Live editing is unavailable right now. Reload the page to try again."
+			},
+			"meetingNotes": {
+				"open": "Notes from a meeting",
+				"title": "Meeting notes",
+				"description": "Paste a transcript or add a recording. You get decisions and proposed tickets, each with the words it came from. Nothing is created until you accept.",
+				"transcript": "Transcript",
+				"audio": "Or add a recording",
+				"transcribing": "Turning the recording into text…",
+				"audioOff": "Speech to text is off on this server. Paste the transcript as text instead.",
+				"keep": "Keep the transcript with this document",
+				"run": "Notes",
+				"running": "Reading the transcript…",
+				"off": "AI is off on this server, so meeting notes are not available.",
+				"proposal": "Proposed notes",
+				"decisions": "Decisions",
+				"noDecisions": "No decisions found.",
+				"actionItems": "Proposed tickets",
+				"noActionItems": "No action items found.",
+				"project": "Choose a team",
+				"accept_one": "Accept {{count}} ticket",
+				"accept_other": "Accept {{count}} tickets",
+				"created_one": "{{count}} ticket created",
+				"created_other": "{{count}} tickets created"
 			}
 		},
 		"agent": {

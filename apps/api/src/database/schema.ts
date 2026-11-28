@@ -28,6 +28,7 @@ import type { GitHubImportState } from "../github-integration/import-state";
 import type { ImportRunProject } from "../import/import-run-project";
 import type { TaskRecurrence } from "../task/recurrence/schema";
 import type { LinkPreview } from "../chat/link-preview/link-preview-type";
+import type { MeetingNotesProposal } from "../meeting-notes/proposal-type";
 
 // Timestamp columns without a time zone hold UTC (Drizzle reads and writes
 // them as UTC). A bare now() default would be cast through the session time
@@ -4003,6 +4004,38 @@ export const semanticChunkTable = pgTable(
     uniqueIndex("semantic_chunk_message_idx").on(table.messageId),
     uniqueIndex("semantic_chunk_task_idx").on(table.taskId),
     uniqueIndex("semantic_chunk_document_idx").on(table.documentId),
+  ],
+);
+
+// A meeting-notes run its author chose to keep: the transcript and the
+// proposal made from it. A run the author did not keep is never stored.
+export const meetingNotesRunTable = pgTable(
+  "meeting_notes_run",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documentTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    transcript: text("transcript").notNull(),
+    proposal: jsonb("proposal").$type<MeetingNotesProposal>().notNull(),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    index("meeting_notes_run_document_user_idx").on(
+      table.documentId,
+      table.userId,
+      table.createdAt,
+    ),
   ],
 );
 
