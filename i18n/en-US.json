@@ -5806,7 +5806,30 @@
 			"hours_one": "{{count}} hour",
 			"hours_other": "{{count}} hours",
 			"empty": "No issues in this view",
-			"chartLabel": "{{measure}} by {{slice}}"
+			"chartLabel": "{{measure}} by {{slice}}",
+			"report": {
+				"title": "Team report",
+				"aging": {
+					"title": "Aging in progress",
+					"empty": "No in-progress issue is older than its team's median cycle time.",
+					"issue": "Issue",
+					"age": "Age",
+					"teamMedian": "Team median"
+				},
+				"throughput": {
+					"title": "Weekly throughput",
+					"completed": "Completed",
+					"rollingMedian": "4-week rolling median",
+					"week_one": "Week of {{week}}: {{count}} completed, rolling median {{median}}",
+					"week_other": "Week of {{week}}: {{count}} completed, rolling median {{median}}"
+				},
+				"reviewWait": {
+					"title": "Review wait",
+					"empty": "Nothing is waiting for review.",
+					"summary_one": "{{count}} issue in review. Median wait {{median}} days, longest {{longest}} days.",
+					"summary_other": "{{count}} issues in review. Median wait {{median}} days, longest {{longest}} days."
+				}
+			}
 		},
 		"filterBar": {
 			"label": "Active filters",

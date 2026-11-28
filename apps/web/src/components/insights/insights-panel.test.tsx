@@ -121,6 +121,15 @@ const insights = {
 
 const ids = () => [...(useInsightsSelectionStore.getState().ids ?? [])];
 
+describe("InsightsPanel report pack", () => {
+  it("shows the team report below the chart", () => {
+    render(<InsightsPanel project={project} group={group} />);
+    expect(
+      screen.getByRole("region", { name: "tasks:insights.report.title" }),
+    ).toBeInTheDocument();
+  });
+});
+
 describe("InsightsPanel selection", () => {
   it("filters the view to a clicked bar, then clears on a second click", () => {
     render(<InsightsPanel project={project} group={group} />);

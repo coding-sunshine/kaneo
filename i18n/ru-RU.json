@@ -6123,7 +6123,34 @@
 			"showArchived": "Show archived issues",
 			"slice": "Slice",
 			"title": "Insights",
-			"toggle": "Toggle insights"
+			"toggle": "Toggle insights",
+			"report": {
+				"aging": {
+					"age": "Age",
+					"empty": "No in-progress issue is older than its team's median cycle time.",
+					"issue": "Issue",
+					"teamMedian": "Team median",
+					"title": "Aging in progress"
+				},
+				"reviewWait": {
+					"empty": "Nothing is waiting for review.",
+					"summary_few": "{{count}} issues in review. Median wait {{median}} days, longest {{longest}} days.",
+					"summary_many": "{{count}} issues in review. Median wait {{median}} days, longest {{longest}} days.",
+					"summary_one": "{{count}} issue in review. Median wait {{median}} days, longest {{longest}} days.",
+					"summary_other": "{{count}} issues in review. Median wait {{median}} days, longest {{longest}} days.",
+					"title": "Review wait"
+				},
+				"throughput": {
+					"completed": "Completed",
+					"rollingMedian": "4-week rolling median",
+					"title": "Weekly throughput",
+					"week_few": "Week of {{week}}: {{count}} completed, rolling median {{median}}",
+					"week_many": "Week of {{week}}: {{count}} completed, rolling median {{median}}",
+					"week_one": "Week of {{week}}: {{count}} completed, rolling median {{median}}",
+					"week_other": "Week of {{week}}: {{count}} completed, rolling median {{median}}"
+				},
+				"title": "Team report"
+			}
 		},
 		"sla": {
 			"achieved": "Achieved",
