@@ -50,8 +50,11 @@ import { type AskedTopic, numbered } from "./task-question";
 export const PROMPT_VERSION = 2;
 /** Texts the model is asked about in one run. Files that are not read do not count. */
 const PER_TICK = 10;
-/** Questions in one run. A longer text goes on in the next run. */
-const PARTS_PER_RUN = 50;
+/**
+ * Questions in one run. A longer text goes on in the next run. Only the
+ * spending cap limits what is read in a day; runs never overlap.
+ */
+const PARTS_PER_RUN = 1000;
 // A file is held in memory whole while it is read, and the API is one
 // process. Nothing of it is written to disk.
 const MAX_FILE_BYTES = 100_000_000;

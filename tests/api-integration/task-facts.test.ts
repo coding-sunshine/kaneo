@@ -817,7 +817,7 @@ describe("API integration: facts found in issues", () => {
       expect(record).toMatchObject({ readable: true, reason: null });
     });
 
-    it("goes on with a long text in the next run where it stopped, sending no part twice", async () => {
+    it("reads a text of more than a hundred parts in one run", async () => {
       const { world } = await setup();
       const log = await attach(world, {
         filename: "server.log",
@@ -825,6 +825,32 @@ describe("API integration: facts found in issues", () => {
       });
       const long = Array.from(
         { length: 60_000 },
+        (_, i) => `Line ${i} of the log.`,
+      ).join("\n");
+      readObject.mockImplementation(async () => ({
+        body: new Response(long).body,
+      }));
+      await run();
+      const sent = prompts(fetchMock).filter((prompt) =>
+        prompt.includes("server.log"),
+      );
+      expect(sent.length).toBe(textParts(long, 12_000, 200).length);
+      expect(sent.length).toBeGreaterThan(100);
+      expect(new Set(sent).size).toBe(sent.length);
+      const [record] = (await records()).filter(
+        (row) => row.assetId === log.id,
+      );
+      expect(record).toMatchObject({ readable: true, reason: null });
+    });
+
+    it("goes on with a long text in the next run where it stopped, sending no part twice", async () => {
+      const { world } = await setup();
+      const log = await attach(world, {
+        filename: "server.log",
+        mimeType: "text/plain",
+      });
+      const long = Array.from(
+        { length: 600_000 },
         (_, i) => `Line ${i} of the log.`,
       ).join("\n");
       readObject.mockImplementation(async () => ({
@@ -859,20 +885,23 @@ describe("API integration: facts found in issues", () => {
         (_, i) => `Line ${i} of the log.`,
       ).join("\n")}`;
       const parts = textParts(long, 12_000, 200).length;
+      // Parts asked at once in task-parts.ts.
+      const AT_ONCE = 8;
       expect(parts).toBeGreaterThan(3);
       readObject.mockImplementation(async () => ({
         body: new Response(long).body,
       }));
       const ofLog = () =>
         prompts(fetchMock).filter((prompt) => prompt.includes("server.log"));
-      // The second part's request fails once.
+      // The request of the first part after the one with the fact fails once. Up to eight parts go out at
+      // once, so the parts after it in the batch were sent already.
       let failed = false;
       fetchMock.mockImplementation(
         async (_url: string, init: { body: string }) => {
           const prompt = JSON.parse(init.body).messages[1].content as string;
           if (
             prompt.includes("server.log") &&
-            ofLog().length === 2 &&
+            !prompt.includes(PRICE) &&
             !failed
           ) {
             failed = true;
@@ -886,13 +915,17 @@ describe("API integration: facts found in issues", () => {
         },
       );
       expect(await run()).toMatchObject({ degraded: true });
-      expect(ofLog()).toHaveLength(2);
+      // The run returns at the failure; the requests of the parts after it
+      // in the batch are still on their way, and they all go out.
+      const firstRun = Math.min(parts, AT_ONCE);
+      await vi.waitFor(() => expect(ofLog()).toHaveLength(firstRun));
       expect((await records()).filter((row) => row.assetId === log.id)).toEqual(
         [],
       );
 
-      // A restart: what was kept in memory is gone. The third part reaches
-      // the day's cap, and the run after the next restart sends the rest.
+      // A restart: what was kept in memory is gone. The first prompt of the
+      // next run reaches the day's cap, and the run after the next restart
+      // sends the rest.
       vi.resetModules();
       const [used] = await db
         .insert(aiUsageTable)
@@ -906,7 +939,7 @@ describe("API integration: facts found in issues", () => {
         .returning();
       vi.stubEnv("EXTRACTION_DAILY_TOKEN_CAP", "1000000");
       fetchMock.mockImplementation(async () => {
-        if (ofLog().length === 3) {
+        if (ofLog().length === firstRun + 1) {
           await db
             .update(aiUsageTable)
             .set({ promptTokens: 1_000_000 })
@@ -922,17 +955,26 @@ describe("API integration: facts found in issues", () => {
         );
       });
       await run();
-      expect(ofLog()).toHaveLength(3);
+      // Part 1 is not asked again: the run goes on from the failed part.
+      expect(ofLog().length).toBeGreaterThan(firstRun);
 
       vi.resetModules();
       await db.delete(aiUsageTable).where(eq(aiUsageTable.id, used.id));
       await run();
 
-      // Only the part whose request failed went twice.
+      // The part before the failure went once. Every part was sent, and only
+      // the failed part and those after it in its batch went again.
       const sent = ofLog();
-      expect(sent).toHaveLength(parts + 1);
-      expect(new Set(sent).size).toBe(parts);
-      expect(sent[2]).toBe(sent[1]);
+      const counts = new Map<string, number>();
+      for (const prompt of sent)
+        counts.set(prompt, (counts.get(prompt) ?? 0) + 1);
+      expect(counts.size).toBe(parts);
+      expect(
+        counts.get(sent.find((prompt) => prompt.includes(PRICE)) as string),
+      ).toBe(1);
+      const again = sent.length - parts;
+      expect(again).toBeGreaterThan(0);
+      expect(again).toBeLessThanOrEqual(AT_ONCE - 1);
       const [record] = (await records()).filter(
         (row) => row.assetId === log.id,
       );
@@ -1082,7 +1124,7 @@ describe("API integration: facts found in issues", () => {
       });
       const bytes: Record<string, string> = {
         [long.objectKey]: Array.from(
-          { length: 60_000 },
+          { length: 600_000 },
           (_, i) => `Line ${i} of the log.`,
         ).join("\n"),
         [small.objectKey]: `# Small\n\n${PRICE}`,

@@ -140,7 +140,11 @@ describe("reading a file part by part", () => {
       })
       .mockImplementationOnce(() => new Promise(() => {}));
     void first.ask(run, source, outcome(50));
-    await vi.waitFor(() => expect(store.asked).toHaveLength(2));
+    // Parts go out in batches, so later parts of the batch are asked too; the
+    // progress kept is the parts before the one that never came back.
+    await vi.waitFor(() =>
+      expect(store.asked.length).toBeGreaterThanOrEqual(2),
+    );
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     store.asked.length = 0;

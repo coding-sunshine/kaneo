@@ -19,6 +19,8 @@ import { textParts } from "./text-parts";
 
 const MAX_CHARACTERS = 12_000;
 const OVERLAP = 200;
+/** Parts of one text asked about at the same time. */
+const AT_ONCE = 8;
 // Issues are many and documents are few, so this job leaves a share of the
 // day's tokens and of the spending cap to the job that reads documents.
 export const RESERVE = 0.3;
@@ -102,33 +104,8 @@ export async function ask(run: Run, source: Source, outcome: Outcome) {
     .from(taskExtractionProgressTable)
     .where(eq(taskExtractionProgressTable.key, key));
   let { next, readable } = saved ?? { next: 0, readable: false };
-  for (; next < parts.length;) {
-    const part = parts[next] ?? "";
-    if (outcome.parts <= 0) return "stop" as const;
-    try {
-      const answer = await extractJson<unknown>({
-        purpose: "task-facts",
-        workspaceId: run.workspaceId,
-        system: TASK_SYSTEM,
-        text: taskQuestion(run.asked, source.head + part),
-        schema: taskAnswerSchema(run.asked),
-        reserve: RESERVE,
-      });
-      if (!answer) return "stop" as const;
-      const found = keptStatements(run.asked, answer, source.quotable ?? part);
-      if (found) readable = true;
-      if (found?.length) await keep(found, source);
-    } catch (error) {
-      if (!(error instanceof UnreadableAnswer)) {
-        console.error(`Reading ${source.key} for facts failed`, error);
-        return "failed" as const;
-      }
-    }
-    outcome.parts -= 1;
-    next += 1;
-    // After the facts of the part: a stop in between asks the part again,
-    // and its facts are not stored twice.
-    await db
+  const save = () =>
+    db
       .insert(taskExtractionProgressTable)
       .values({
         key,
@@ -141,6 +118,53 @@ export async function ask(run: Run, source: Source, outcome: Outcome) {
         target: taskExtractionProgressTable.key,
         set: { next, readable },
       });
+  while (next < parts.length) {
+    if (outcome.parts <= 0) return "stop" as const;
+    const batch = parts.slice(next, next + Math.min(AT_ONCE, outcome.parts));
+    // Sent together, handled in order as each one settles, so the progress
+    // of every answered part is kept even if a later part never comes back.
+    const answers = batch.map((part) =>
+      extractJson<unknown>({
+        purpose: "task-facts",
+        workspaceId: run.workspaceId,
+        system: TASK_SYSTEM,
+        text: taskQuestion(run.asked, source.head + part),
+        schema: taskAnswerSchema(run.asked),
+        reserve: RESERVE,
+      }).then(
+        (value) => ({ status: "fulfilled" as const, value }),
+        (reason: unknown) => ({ status: "rejected" as const, reason }),
+      ),
+    );
+    // A stop or a failure goes on from the first part it hit; the parts after
+    // it in the batch are asked again then.
+    for (const [index, pending] of answers.entries()) {
+      const settled = await pending;
+      const part = batch[index] ?? "";
+      if (settled.status === "rejected") {
+        if (!(settled.reason instanceof UnreadableAnswer)) {
+          console.error(
+            `Reading ${source.key} for facts failed`,
+            settled.reason,
+          );
+          return "failed" as const;
+        }
+      } else {
+        if (!settled.value) return "stop" as const;
+        const found = keptStatements(
+          run.asked,
+          settled.value,
+          source.quotable ?? part,
+        );
+        if (found) readable = true;
+        if (found?.length) await keep(found, source);
+      }
+      outcome.parts -= 1;
+      next += 1;
+      // After the facts of the part: a stop in between asks the part again,
+      // and its facts are not stored twice.
+      await save();
+    }
   }
   await db
     .delete(taskExtractionProgressTable)
