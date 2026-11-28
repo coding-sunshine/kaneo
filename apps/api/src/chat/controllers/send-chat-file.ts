@@ -18,7 +18,7 @@ import {
 import type { chatFileUploadBody, finalizeChatFileBody } from "../schema";
 import { syncMessageReferences } from "../mentions/sync-message-references";
 import { loadChannel } from "./load-channel";
-import { loadMessage } from "./load-message";
+import { loadMessage, loadOwnMessage } from "./load-message";
 import { deleteDraft } from "./save-draft";
 
 const wrongKey = "The upload key does not match the channel.";
@@ -68,7 +68,10 @@ export async function createChatFileUpload(
   }
 }
 
-/** Posts the uploaded file as a message of its own, with optional text. */
+/**
+ * Posts the uploaded file as a message of its own, with optional text, or
+ * adds it to a message the sender already posted in the channel.
+ */
 export async function finalizeChatFile(
   workspaceId: string,
   channelId: string,
@@ -80,7 +83,21 @@ export async function finalizeChatFile(
   if (!isChatFileKey(key, { workspaceId, channelId })) {
     throw new HTTPException(400, { message: wrongKey });
   }
-  const { messageId, created } = await withVerifiedStorageObject(
+  if (body.messageId) {
+    if (body.body) {
+      throw new HTTPException(400, {
+        message: "Text goes with the first file of a message.",
+      });
+    }
+    await loadOwnMessage(
+      workspaceId,
+      channelId,
+      body.messageId,
+      userId,
+      "post",
+    );
+  }
+  const { messageId, change } = await withVerifiedStorageObject(
     key,
     async () => {
       try {
@@ -111,29 +128,43 @@ export async function finalizeChatFile(
         if (stored.channelId !== channelId) {
           throw new HTTPException(400, { message: wrongKey });
         }
-        return { messageId: stored.messageId, created: false };
+        return { messageId: stored.messageId, change: null };
       }
-      const text = body.body ?? "";
-      const [message] = await tx
-        .insert(chatMessageTable)
-        .values({ channelId, userId, body: text })
-        .returning({ id: chatMessageTable.id });
-      if (!message) throw new Error("Message insert returned no row");
-      await syncMessageReferences(tx, workspaceId, message.id, text);
+      let target = body.messageId;
+      if (!target) {
+        const text = body.body ?? "";
+        const [message] = await tx
+          .insert(chatMessageTable)
+          .values({ channelId, userId, body: text })
+          .returning({ id: chatMessageTable.id });
+        if (!message) throw new Error("Message insert returned no row");
+        await syncMessageReferences(tx, workspaceId, message.id, text);
+        target = message.id;
+      }
       await tx.insert(chatMessageFileTable).values({
         workspaceId,
         channelId,
-        messageId: message.id,
+        messageId: target,
         objectKey: key,
         filename: body.filename,
         mimeType: uploaded.contentType,
         size: uploaded.size,
         uploadedBy: userId,
       });
-      return { messageId: message.id, created: true };
+      return {
+        messageId: target,
+        change: body.messageId ? ("added" as const) : ("created" as const),
+      };
     },
   );
-  if (created) {
+  if (change === "added") {
+    await publishEvent("chat.message_updated", {
+      workspaceId,
+      channelId,
+      messageId,
+    });
+  }
+  if (change === "created") {
     // The text sent with the file came from the composer, as in a post.
     await deleteDraft(channelId, userId);
     await publishEvent("chat.message_created", {

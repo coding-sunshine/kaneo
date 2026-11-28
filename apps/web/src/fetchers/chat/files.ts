@@ -17,7 +17,13 @@ export async function createChatFileUpload(
 
 export async function finalizeChatFile(
   param: ChannelParam,
-  json: { key: string; filename: string; size: number; body?: string },
+  json: {
+    key: string;
+    filename: string;
+    size: number;
+    body?: string;
+    messageId?: string;
+  },
 ) {
   const response = await upload.finalize.$post({ param, json });
   if (!response.ok) throw await HttpError.fromResponse(response);

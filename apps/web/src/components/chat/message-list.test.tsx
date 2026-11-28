@@ -131,6 +131,54 @@ describe("MessageList", () => {
     expect(file).toHaveAttribute("target", "_blank");
   });
 
+  it("shows an image inline and keeps a PDF as a download row", () => {
+    renderList([
+      message({
+        body: "",
+        files: [
+          {
+            id: "file-png",
+            filename: "chart.png",
+            mimeType: "image/png",
+            size: 4096,
+          },
+          {
+            id: "file-pdf",
+            filename: "report.pdf",
+            mimeType: "application/pdf",
+            size: 2048,
+          },
+        ],
+      }),
+    ]);
+    const image = screen.getByRole("img", { name: "chart.png" });
+    expect(image.getAttribute("src")).toMatch(
+      /\/channels\/channel-1\/files\/file-png$/,
+    );
+    expect(screen.queryByRole("img", { name: "report.pdf" })).toBeNull();
+    expect(
+      screen.getByRole("link", { name: /report\.pdf/ }).getAttribute("href"),
+    ).toMatch(/\/channels\/channel-1\/files\/file-pdf$/);
+  });
+
+  it("keeps an image type the API serves as a download in a row", () => {
+    renderList([
+      message({
+        body: "",
+        files: [
+          {
+            id: "file-svg",
+            filename: "logo.svg",
+            mimeType: "image/svg+xml",
+            size: 512,
+          },
+        ],
+      }),
+    ]);
+    expect(screen.queryByRole("img", { name: "logo.svg" })).toBeNull();
+    expect(screen.getByRole("link", { name: /logo\.svg/ })).toBeTruthy();
+  });
+
   it("shows a card for the link preview that opens the page in a new tab", () => {
     const linkPreview = {
       url: "https://example.com/",

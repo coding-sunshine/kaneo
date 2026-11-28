@@ -32730,7 +32730,7 @@
           "Chat"
         ],
         "summary": "Send an uploaded file",
-        "description": "Post an uploaded file to the channel as a message, with optional text. The file opens for whoever can read the channel, and for nobody else; it goes when the message is deleted.",
+        "description": "Post an uploaded file to the channel as a message, with optional text, or add it to a message you sent there by giving its id. The file opens for whoever can read the channel, and for nobody else; it goes when the message is deleted.",
         "parameters": [
           {
             "schema": {
@@ -32773,7 +32773,12 @@
                   "body": {
                     "type": "string",
                     "maxLength": 4000,
-                    "description": "Text sent with the file. Empty when left out."
+                    "description": "Text sent with the file. Empty when left out; refused with messageId."
+                  },
+                  "messageId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "A message of yours in this channel to add the file to, instead of posting a new one."
                   }
                 },
                 "required": [
@@ -32797,7 +32802,7 @@
             }
           },
           "400": {
-            "description": "The key does not belong to this channel, or the stored object does not match the name and size",
+            "description": "The key does not belong to this channel, the stored object does not match the name and size, or text came with a file added to a sent message",
             "content": {
               "application/json": {
                 "schema": {
@@ -32817,7 +32822,7 @@
             }
           },
           "403": {
-            "description": "Join the channel first",
+            "description": "Not a channel member, or the message to add to is someone else's",
             "content": {
               "application/json": {
                 "schema": {
@@ -32827,7 +32832,7 @@
             }
           },
           "404": {
-            "description": "Channel not found",
+            "description": "Channel or message not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -32879,7 +32884,7 @@
           "Chat"
         ],
         "summary": "Download a file",
-        "description": "Download a file sent in a channel you can read. Image types are served inline, everything else as an attachment. In a channel you cannot read it answers like a missing channel.",
+        "description": "Download a file sent in a channel you can read. Image types are served inline, everything else as an attachment. A channel you cannot read, one that does not exist, or a workspace you are not in answers 403.",
         "parameters": [
           {
             "schema": {
@@ -32929,7 +32934,7 @@
             }
           },
           "403": {
-            "description": "Missing permission for this workspace",
+            "description": "You cannot read this channel, or it does not exist",
             "content": {
               "application/json": {
                 "schema": {
@@ -32939,7 +32944,7 @@
             }
           },
           "404": {
-            "description": "Channel or file not found",
+            "description": "File not found in this channel",
             "content": {
               "application/json": {
                 "schema": {

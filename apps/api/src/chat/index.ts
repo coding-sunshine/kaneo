@@ -18,6 +18,7 @@ import { deleteMessage } from "./controllers/delete-message";
 import { editMessage } from "./controllers/edit-message";
 import { getChannel } from "./controllers/get-channel";
 import { getChatFile } from "./controllers/get-chat-file";
+import { chatFileWorkspaceAccess } from "./file-access";
 import { requireCalls } from "./call/require-calls";
 import { inviteMember } from "./controllers/invite-member";
 import { joinCall } from "./controllers/join-call";
@@ -355,16 +356,18 @@ const finalizeFileUploadRoute = createRoute({
   tags,
   summary: "Send an uploaded file",
   description:
-    "Post an uploaded file to the channel as a message, with optional text. The file opens for whoever can read the channel, and for nobody else; it goes when the message is deleted.",
+    "Post an uploaded file to the channel as a message, with optional text, or add it to a message you sent there by giving its id. The file opens for whoever can read the channel, and for nobody else; it goes when the message is deleted.",
   middleware: [...write] as const,
   request: { params: channelParam, body: body(finalizeChatFileBody) },
   responses: {
     200: jsonResponse("Message posted", messageSchema),
     400: errorResponse(
-      "The key does not belong to this channel, or the stored object does not match the name and size",
+      "The key does not belong to this channel, the stored object does not match the name and size, or text came with a file added to a sent message",
     ),
-    403: notMember,
-    404: notFound,
+    403: errorResponse(
+      "Not a channel member, or the message to add to is someone else's",
+    ),
+    404: errorResponse("Channel or message not found"),
     409: archived,
     415: fileRefused,
     503: errorResponse("The stored object could not be checked"),
@@ -378,16 +381,19 @@ const getFileRoute = createRoute({
   tags,
   summary: "Download a file",
   description:
-    "Download a file sent in a channel you can read. Image types are served inline, everything else as an attachment. In a channel you cannot read it answers like a missing channel.",
-  middleware: [...access] as const,
+    "Download a file sent in a channel you can read. Image types are served inline, everything else as an attachment. A channel you cannot read, one that does not exist, or a workspace you are not in answers 403.",
+  middleware: [
+    chatFileWorkspaceAccess,
+    requireWorkspacePermission({ workspace: ["read"] }),
+  ] as const,
   request: { params: chatFileParam },
   responses: {
     200: {
       description: "The file's bytes",
       content: { "*/*": { schema: { type: "string", format: "binary" } } },
     },
-    403: noAccess,
-    404: errorResponse("Channel or file not found"),
+    403: errorResponse("You cannot read this channel, or it does not exist"),
+    404: errorResponse("File not found in this channel"),
   },
 });
 

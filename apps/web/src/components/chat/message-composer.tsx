@@ -43,11 +43,11 @@ export function MessageComposer({
     });
   };
 
-  // The typed text goes with the file, as its message.
-  const attach = async (file: File) => {
+  // The typed text goes with the files, as their one message.
+  const attach = async (files: File[]) => {
     await beforeSend();
     sendFile.mutate(
-      { file, body: body.trim() || undefined },
+      { files, body: body.trim() || undefined },
       {
         onSuccess: () => {
           clear();

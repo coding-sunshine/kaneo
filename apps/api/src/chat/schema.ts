@@ -84,7 +84,12 @@ export const finalizeChatFileBody = chatFileUploadBody.extend({
     .string()
     .openapi({ description: "The key returned when the URL was issued." }),
   body: z.string().trim().max(4000).optional().openapi({
-    description: "Text sent with the file. Empty when left out.",
+    description:
+      "Text sent with the file. Empty when left out; refused with messageId.",
+  }),
+  messageId: z.string().min(1).optional().openapi({
+    description:
+      "A message of yours in this channel to add the file to, instead of posting a new one.",
   }),
 });
 
