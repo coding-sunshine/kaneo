@@ -66,6 +66,8 @@ export async function updateDocument(
     color?: string | null;
     generalAccess?: DocumentAccess;
     kind?: DocumentDetail["kind"];
+    /** The `contentHash` the edit started from: a newer save refuses it. */
+    baseHash?: string;
   },
 ) {
   const response = await one.$patch({ param: { workspaceId, id }, json });

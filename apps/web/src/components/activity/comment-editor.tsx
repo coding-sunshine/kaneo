@@ -15,7 +15,8 @@ import {
   shouldShowTableBubble,
 } from "@/components/editor/bubble-visibility";
 import { withoutFlushSync } from "@/components/editor/without-flush-sync";
-import type { Editor } from "@tiptap/core";
+import type { AnyExtension, Editor } from "@tiptap/core";
+import { ySyncPluginKey } from "@tiptap/y-tiptap";
 import Image from "@tiptap/extension-image";
 import { TextSelection } from "@tiptap/pm/state";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -71,7 +72,8 @@ import { uploadTaskImage } from "@/lib/upload-task-image";
 
 type CommentEditorProps = {
   value: string;
-  onChange?: (value: string) => void;
+  /** `change` comes only while co-editing. */
+  onChange?: (value: string, change?: { remote: boolean }) => void;
   placeholder?: string;
   className?: string;
   contentClassName?: string;
@@ -96,6 +98,11 @@ type CommentEditorProps = {
   onAttachActionChange?: (attach: (() => void) | null) => void;
   /** Extra buttons at the end of the selection bubble menu. */
   bubbleMenuExtra?: (editor: Editor) => React.ReactNode;
+  /**
+   * Co-editing extensions (Yjs). The shared state owns the content then, so
+   * `value` is not loaded into the editor. Fixed for the life of the editor.
+   */
+  collaboration?: AnyExtension[];
 };
 
 type SlashMenuState = {
@@ -174,6 +181,7 @@ export default function CommentEditor({
   showQuickAttachButton = true,
   onAttachActionChange,
   bubbleMenuExtra,
+  collaboration,
 }: CommentEditorProps) {
   const { t } = useTranslation();
   const resolvedPlaceholder =
@@ -563,19 +571,23 @@ export default function CommentEditor({
       immediatelyRender: false,
       autofocus: autoFocus,
       editable: !readOnly && !disabled,
-      extensions: createEditorExtensions({
-        placeholder: resolvedPlaceholder,
-        highlighter: () => shikiHighlighterRef.current,
-        resolveLanguage: toShikiLanguage,
-        image: Image,
-        mermaidErrorKey: "activity:comment.editor.mermaid.renderFailed",
-        extra: [
-          KaneoMention,
-          MentionSuggestion.configure({
-            getMembers: () => mentionMembersRef.current,
-          }),
-        ],
-      }),
+      extensions: [
+        ...createEditorExtensions({
+          placeholder: resolvedPlaceholder,
+          highlighter: () => shikiHighlighterRef.current,
+          resolveLanguage: toShikiLanguage,
+          image: Image,
+          mermaidErrorKey: "activity:comment.editor.mermaid.renderFailed",
+          extra: [
+            KaneoMention,
+            MentionSuggestion.configure({
+              getMembers: () => mentionMembersRef.current,
+            }),
+          ],
+          collaboration: Boolean(collaboration),
+        }),
+        ...(collaboration ?? []),
+      ],
       editorProps: {
         attributes: {
           class: cn(
@@ -857,7 +869,14 @@ export default function CommentEditor({
         if (activeEditor !== lastEditorRef.current) return;
         const markdown = normalizeCommentMarkdown(activeEditor.getMarkdown());
         latestValueRef.current = markdown;
-        onChange(markdown);
+        if (!collaboration) return onChange(markdown);
+        // While co-editing, a change someone else typed arrives this way too.
+        const sync = transaction.getMeta(ySyncPluginKey) as
+          | { isChangeOrigin?: boolean; isUndoRedoOperation?: boolean }
+          | undefined;
+        onChange(markdown, {
+          remote: Boolean(sync?.isChangeOrigin && !sync.isUndoRedoOperation),
+        });
       },
     },
     [handleAssetFileUpload, resolvedPlaceholder, toShikiLanguage],
@@ -1013,6 +1032,10 @@ export default function CommentEditor({
       lastEditorRef.current = editor;
     }
 
+    if (collaboration) {
+      hasHydratedRef.current = true;
+      return;
+    }
     const incoming = normalizeCommentMarkdown(value || "");
     if (!hasHydratedRef.current) {
       isSyncingRef.current = true;
@@ -1042,7 +1065,7 @@ export default function CommentEditor({
     queueMicrotask(() => {
       isSyncingRef.current = false;
     });
-  }, [editor, value]);
+  }, [editor, value, collaboration]);
 
   const [isEditingLink, setIsEditingLink] = useState(false);
 

@@ -8,6 +8,8 @@ import {
   vi,
 } from "vite-plus/test";
 import { useUserWebSocket } from "./use-user-websocket";
+import { collabRegistry } from "@/lib/document-collab/collab-registry";
+import { documentEditors } from "@/lib/document-editors";
 
 const { client, auth, navigate, evictProject } = vi.hoisted(() => ({
   client: {
@@ -424,6 +426,39 @@ describe("user WebSocket lifecycle", () => {
       queryKey: ["documents", "workspace", "one", "doc-1"],
       exact: true,
     });
+  });
+
+  it("shows who is typing in a document, and keeps no other document's name", () => {
+    renderHook(useUserWebSocket);
+    act(() =>
+      TestSocket.instances[0]?.onmessage?.({
+        data: JSON.stringify({
+          type: "DOCUMENT_EDITING",
+          workspaceId: "workspace",
+          documentId: "doc-1",
+          userId: "u-2",
+          name: "Grace",
+        }),
+      }),
+    );
+    expect(documentEditors.current("doc-1").map((e) => e.name)).toEqual([
+      "Grace",
+    ]);
+    expect(documentEditors.current("doc-2")).toEqual([]);
+    documentEditors.clear();
+  });
+
+  it("reloads open co-editing sessions after the socket comes back", async () => {
+    const resync = vi.spyOn(collabRegistry, "resync").mockResolvedValue([]);
+    renderHook(useUserWebSocket);
+    act(() => TestSocket.instances[0]?.open());
+    expect(resync).not.toHaveBeenCalled();
+    act(() => TestSocket.instances[0]?.onclose?.({ code: 1006 }));
+    await act(() => vi.advanceTimersByTimeAsync(5_000));
+    expect(TestSocket.instances).toHaveLength(2);
+    act(() => TestSocket.instances[1]?.open());
+    expect(resync).toHaveBeenCalledOnce();
+    resync.mockRestore();
   });
 
   it("evicts cached data for projects that left the refreshed list", async () => {

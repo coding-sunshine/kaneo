@@ -115,6 +115,14 @@ export function createDescriptionSaveQueue(delay = 700) {
     retry(id: string, ownerId = "") {
       if (entries.get(id)?.ownerId === ownerId) void flush(id);
     },
+    /** Drops an unsaved edit the person chose to throw away. */
+    discard(id: string, ownerId = "") {
+      const entry = entries.get(id);
+      if (entry?.ownerId !== ownerId) return;
+      if (entry.timer) clearTimeout(entry.timer);
+      entries.delete(id);
+      notify();
+    },
     get(id: string, ownerId = "") {
       const entry = entries.get(id);
       return entry?.ownerId === ownerId ? entry : undefined;

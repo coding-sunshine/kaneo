@@ -111,3 +111,18 @@ it("drains an unexpired debounce before sign-out and retains a failed drain for 
   });
   queue.clear();
 });
+
+it("discards a failed edit so nothing saves it later", async () => {
+  vi.useFakeTimers();
+  const queue = createDescriptionSaveQueue(10);
+  const save = vi.fn().mockRejectedValue(new Error("refused"));
+  queue.schedule("doc", "thrown away", save, "alice");
+  await vi.advanceTimersByTimeAsync(10);
+  queue.discard("doc", "bob");
+  expect(queue.get("doc", "alice")?.state).toBe("failed");
+  queue.discard("doc", "alice");
+  expect(queue.get("doc", "alice")).toBeUndefined();
+  queue.retry("doc", "alice");
+  await vi.advanceTimersByTimeAsync(10);
+  expect(save).toHaveBeenCalledTimes(1);
+});

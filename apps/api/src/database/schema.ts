@@ -3494,6 +3494,26 @@ export const documentSubscriberTable = pgTable(
 );
 
 // Version history. An author's edits within a few minutes fold into one row.
+// The live co-editing state of a document, as one merged Yjs update. Only
+// written while DOCUMENT_COEDITING_KEY is set. The Markdown in
+// `document.content` stays the record: this row is a cache of it, good only
+// while `seededHash` equals the document's `contentHash`. A write that does
+// not come from co-editing (restore, MCP, SQL) leaves it stale, and the next
+// opening seeds it again from the text.
+export const documentCollabStateTable = pgTable("document_collab_state", {
+  documentId: text("document_id")
+    .primaryKey()
+    .references(() => documentTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  state: bytea("state").notNull(),
+  seededHash: text("seeded_hash").notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" })
+    .default(utcNow)
+    .notNull(),
+});
+
 export const documentVersionTable = pgTable(
   "document_version",
   {
