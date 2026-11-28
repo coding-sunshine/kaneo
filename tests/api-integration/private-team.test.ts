@@ -10,8 +10,10 @@ import {
 } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import {
+  documentTable,
   projectTriageResponsibleTable,
   topicSubscriberTable,
+  topicTable,
 } from "../../apps/api/src/database/schema";
 import { publishEvent, settleEvents } from "../../apps/api/src/events";
 import { createApp } from "../../apps/api/src/index";
@@ -1282,6 +1284,14 @@ describe("private teams: moving a team", () => {
   it("keeps the person who moves a private team in it", async () => {
     const admin = await addWorkspaceMember(world.ws, "admin");
     await setPrivate(admin, world.alpha);
+    // A team that holds documents or topics cannot move, so empty it first.
+    await db.delete(topicTable).where(eq(topicTable.projectId, world.alpha.id));
+    await db
+      .delete(documentTable)
+      .where(eq(documentTable.projectId, world.alpha.id));
+    await db
+      .delete(documentTable)
+      .where(eq(documentTable.taskId, world.alphaTask.id));
     const [target] = await db
       .insert(schema.workspaceTable)
       .values({

@@ -863,6 +863,7 @@ describe("API integration: document access leaks", () => {
         conflicts: [],
         unjudged: [],
         notChecked: [],
+        suggestedTickets: [],
       },
     });
     const refused = await call(limited, unfiled, json("POST", said));

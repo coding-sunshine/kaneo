@@ -11,6 +11,7 @@ import {
   vi,
 } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
+import { aiFeatureSettingTable } from "../../apps/api/src/database/schema";
 import { settleEvents } from "../../apps/api/src/events";
 import { createApp } from "../../apps/api/src/index";
 import { model, reply } from "./helpers/agent-model";
@@ -251,6 +252,10 @@ describe("API integration: delegate a ticket to a coding agent", () => {
       merged: false,
     });
 
+    // Merge summaries are off until a workspace admin turns them on.
+    await db
+      .insert(aiFeatureSettingTable)
+      .values({ workspaceId: ws, prSummary: true });
     model.queue.push(
       reply(
         JSON.stringify({
