@@ -25,7 +25,11 @@ export async function runSkill(
 ) {
   const { workspaceId, userId } = reader;
   const skill = await loadOwnSkill(reader, skillId);
-  await loadChannel(workspaceId, channelId, userId, "read");
+  const channel = await loadChannel(workspaceId, channelId, userId, "read");
+  if (channel.aiDisabled)
+    throw new HTTPException(403, {
+      message: "AI is turned off in this channel",
+    });
   await assertSkillWithinCap(skill);
 
   const projects = await openProjectIds(

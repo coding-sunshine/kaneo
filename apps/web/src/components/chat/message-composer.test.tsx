@@ -15,6 +15,7 @@ const state = vi.hoisted(() => ({
   saveDraft: vi.fn(async () => ({})),
   post: vi.fn(),
   tryRun: vi.fn((_text: string) => false),
+  command: vi.fn(),
 }));
 
 vi.mock("react-i18next", async (importOriginal) => ({
@@ -36,6 +37,9 @@ vi.mock("@/components/chat/skills/use-skill-command", () => ({
     result: undefined,
     dismiss: () => {},
   }),
+}));
+vi.mock("@/hooks/mutations/chat/use-run-chat-command", () => ({
+  useRunChatCommand: () => ({ mutate: state.command, isPending: false }),
 }));
 vi.mock("@/components/chat/skills/skills-dialog", () => ({
   SkillsDialog: () => null,
@@ -154,6 +158,7 @@ describe("MessageComposer skills", () => {
     cleanup();
     state.post.mockReset();
     state.tryRun.mockReset();
+    state.command.mockReset();
   });
 
   it("runs /name of a saved skill instead of posting it", async () => {
@@ -169,13 +174,36 @@ describe("MessageComposer skills", () => {
     await waitFor(() => expect(box().value).toBe(""));
   });
 
-  it("posts anything that is not one of my skills", async () => {
+  it("says so for a /name that is neither a command nor one of my skills", async () => {
     state.tryRun.mockReturnValue(false);
     renderWith(new QueryClient(), "x");
     await act(async () => {});
     fireEvent.change(box(), { target: { value: "/shrug" } });
     fireEvent.keyDown(box(), { key: "Enter" });
+    await waitFor(() =>
+      expect(screen.getByText("navigation:chat.commands.unknown")).toBeTruthy(),
+    );
+    expect(state.post).not.toHaveBeenCalled();
+  });
+
+  it("lets a built-in command win over a skill of the same name", async () => {
+    state.tryRun.mockReturnValue(true);
+    renderWith(new QueryClient(), "x");
+    await act(async () => {});
+    fireEvent.change(box(), { target: { value: "/status Out today" } });
+    fireEvent.keyDown(box(), { key: "Enter" });
+    await waitFor(() => expect(state.command).toHaveBeenCalled());
+    expect(state.command.mock.calls[0]?.[0]).toBe("/status Out today");
+    expect(state.tryRun).not.toHaveBeenCalled();
+    expect(state.post).not.toHaveBeenCalled();
+  });
+
+  it("posts plain text and a path", async () => {
+    renderWith(new QueryClient(), "x");
+    await act(async () => {});
+    fireEvent.change(box(), { target: { value: "/usr/bin is fine" } });
+    fireEvent.keyDown(box(), { key: "Enter" });
     await waitFor(() => expect(state.post).toHaveBeenCalled());
-    expect(state.post.mock.calls[0]?.[0]).toBe("/shrug");
+    expect(state.post.mock.calls[0]?.[0]).toBe("/usr/bin is fine");
   });
 });

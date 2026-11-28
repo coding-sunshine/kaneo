@@ -342,6 +342,27 @@ describe("API integration: custom AI skills", () => {
     expect(model.seen).toHaveLength(0);
   });
 
+  it("refuses to run in a channel with AI turned off, before the model", async () => {
+    const { owner, ws, channel } = await setup();
+    const skill = await (
+      await createSkill(owner, ws, { name: "blockers", prompt: "List." })
+    ).json();
+    await db
+      .update(chatChannelTable)
+      .set({ aiDisabled: true })
+      .where(eq(chatChannelTable.id, channel.id));
+    model.queue.push(reply(JSON.stringify({ bullets: [] })));
+    const run = await call(
+      owner,
+      `/workspace/${ws}/skills/${skill.id}/run`,
+      "POST",
+      { channelId: channel.id },
+    );
+    expect(run.status).toBe(403);
+    expect(model.seen).toHaveLength(0);
+    expect(await db.select().from(aiSkillRunTable)).toEqual([]);
+  });
+
   it("is off without a model key", async () => {
     const { owner, ws } = await setup();
     delete process.env.OPENROUTER_API_KEY;
