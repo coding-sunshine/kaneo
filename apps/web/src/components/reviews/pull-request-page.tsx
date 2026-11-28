@@ -77,9 +77,15 @@ export function PullRequestPage({
             <span className="min-w-0 truncate font-medium">
               {pull.data.title}
             </span>
-            <span className="shrink-0 text-muted-foreground tabular-nums">
-              #{pull.data.number}
-            </span>
+            <a
+              href={pull.data.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={t("workspace:reviews.detail.openOnGithub")}
+              className="shrink-0 text-muted-foreground tabular-nums hover:text-foreground hover:underline"
+            >
+              {pull.data.owner}/{pull.data.repo} #{pull.data.number}
+            </a>
             <PullRequestLineCounts
               pullRef={pullRef}
               headSha={pull.data.headSha}

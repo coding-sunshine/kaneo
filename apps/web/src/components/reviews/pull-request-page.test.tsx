@@ -227,6 +227,16 @@ describe("PullRequestPage", () => {
     );
   });
 
+  it("names owner/repo #number in the header as a link to GitHub, with author and head → base", () => {
+    renderPage();
+    const link = screen.getByRole("link", { name: "acme/web #7" });
+    expect(link).toHaveAttribute("href", "https://github.com/acme/web/pull/7");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    expect(screen.getByText("synthetic-author")).toBeInTheDocument();
+    expect(screen.getByText("feat → main")).toBeInTheDocument();
+  });
+
   it("shows requested reviewers", () => {
     mocks.pull = {
       ...basePull,

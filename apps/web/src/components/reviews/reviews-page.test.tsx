@@ -449,8 +449,10 @@ describe("ReviewsPage", () => {
     expect(screen.queryByText("Draft blocked")).not.toBeInTheDocument();
   });
 
-  it("shows a second line with status details and repo#num when those properties are on", () => {
-    state.list.toReview = [pr(7, "Two lines", "draft")];
+  it("always shows owner/repo, author and branches under the title, with status details and #num when on", () => {
+    state.list.toReview = [
+      pr(7, "Two lines", "draft", { headRef: "feat", baseRef: "main" }),
+    ];
     const withProperties = (properties: string[]) =>
       useUserPreferencesStore.setState({
         reviewsView: {
@@ -463,11 +465,15 @@ describe("ReviewsPage", () => {
       });
     withProperties(["date"]);
     const one = render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
-    expect(screen.queryByText("Draft · web#7")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("acme/web · synthetic-author · feat → main"),
+    ).toBeInTheDocument();
     one.unmount();
-    withProperties(["date", "repository", "id", "statusDetails"]);
+    withProperties(["date", "id", "statusDetails"]);
     render(<ReviewsPage returnTo="/r" workspaceId="w1" />);
-    expect(screen.getByText("Draft · web#7")).toBeInTheDocument();
+    expect(
+      screen.getByText("Draft · acme/web#7 · synthetic-author · feat → main"),
+    ).toBeInTheDocument();
   });
 
   it("collapses and pins from the group header menu", async () => {

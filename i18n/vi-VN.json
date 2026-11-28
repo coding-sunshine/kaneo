@@ -6842,7 +6842,6 @@
 				"githubTeam": "GitHub team",
 				"id": "ID",
 				"labels": "Labels",
-				"repository": "Repository",
 				"reviewers": "Reviewers",
 				"statusDetails": "Status details",
 				"quickToReview": "Quick to review",

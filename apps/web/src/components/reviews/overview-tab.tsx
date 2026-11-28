@@ -29,7 +29,7 @@ export function OverviewTab({
           <Person author={pull.author} />
           <span aria-hidden>·</span>
           <span className="min-w-0 truncate font-mono">
-            {pull.baseRef} ← {pull.headRef}
+            {pull.headRef} → {pull.baseRef}
           </span>
         </p>
       </header>

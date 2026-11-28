@@ -27568,9 +27568,6 @@
 							"type": "object",
 							"additionalProperties": false,
 							"properties": {
-								"repository": {
-									"type": "string"
-								},
 								"id": {
 									"type": "string"
 								},
@@ -27603,7 +27600,6 @@
 								}
 							},
 							"required": [
-								"repository",
 								"id",
 								"author",
 								"date",

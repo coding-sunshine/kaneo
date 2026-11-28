@@ -43,7 +43,6 @@ export type ReviewsSortBy =
   | "updated";
 export type SortDirection = "asc" | "desc";
 export type ReviewsProperty =
-  | "repository"
   | "id"
   | "author"
   | "date"
@@ -109,7 +108,6 @@ export const REVIEWS_SORT_BYS: ReviewsSortBy[] = [
   "updated",
 ];
 export const REVIEWS_PROPERTIES: ReviewsProperty[] = [
-  "repository",
   "id",
   "author",
   "date",

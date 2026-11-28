@@ -6630,7 +6630,6 @@
 				"none": "None"
 			},
 			"property": {
-				"repository": "Repository",
 				"id": "ID",
 				"author": "Author",
 				"date": "Opened / Merged / Closed",

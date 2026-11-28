@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vite-plus/test";
-import {
-  hasSecondLine,
-  repoRef,
-  statusDetailsKey,
-} from "@/lib/review-row-details";
+import { rowContext, statusDetailsKey } from "@/lib/review-row-details";
 import type { ReviewItem } from "@/lib/reviews-view";
 
 const pr = (over: Partial<ReviewItem> = {}) =>
   ({
+    owner: "acme",
     repo: "sigmma",
+    author: { login: "octo", avatarUrl: "" },
+    headRef: "release-please--main",
+    baseRef: "main",
     number: 706,
     status: "open",
     reviewers: [],
@@ -40,19 +40,18 @@ describe("statusDetailsKey", () => {
   });
 });
 
-describe("repoRef", () => {
-  it("joins Repository and ID as the properties allow", () => {
-    expect(repoRef(pr(), ["repository", "id"])).toBe("sigmma#706");
-    expect(repoRef(pr(), ["id"])).toBe("#706");
-    expect(repoRef(pr(), ["repository"])).toBe("sigmma");
-    expect(repoRef(pr(), ["date"])).toBe("");
+describe("rowContext", () => {
+  it("names owner/repo, the author and head → base, with #number when ID is on", () => {
+    expect(rowContext(pr(), ["date"])).toBe(
+      "acme/sigmma · octo · release-please--main → main",
+    );
+    expect(rowContext(pr(), ["id"])).toBe(
+      "acme/sigmma#706 · octo · release-please--main → main",
+    );
   });
-});
-
-describe("hasSecondLine", () => {
-  it("is on for Repository, ID or Status details only", () => {
-    expect(hasSecondLine(["date", "author"])).toBe(false);
-    expect(hasSecondLine(["date", "statusDetails"])).toBe(true);
-    expect(hasSecondLine(["id"])).toBe(true);
+  it("leaves out an author GitHub no longer has", () => {
+    expect(rowContext(pr({ author: null }), [])).toBe(
+      "acme/sigmma · release-please--main → main",
+    );
   });
 });

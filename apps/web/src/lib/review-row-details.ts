@@ -19,15 +19,17 @@ export function statusDetailsKey(pr: ReviewItem) {
   return null;
 }
 
-/** "sigmma#706", "#706" or "sigmma", by which of Repository and ID are on. */
-export function repoRef(pr: ReviewItem, properties: ReviewsProperty[]) {
-  const repo = properties.includes("repository") ? pr.repo : "";
+/**
+ * "acme/sigmma#706 · octo · feat → main": where the pull request lives, who
+ * opened it and what it merges. #number only when the ID property is on.
+ */
+export function rowContext(pr: ReviewItem, properties: ReviewsProperty[]) {
   const id = properties.includes("id") ? `#${pr.number}` : "";
-  return `${repo}${id}`;
+  return [
+    `${pr.owner}/${pr.repo}${id}`,
+    pr.author?.login,
+    `${pr.headRef} → ${pr.baseRef}`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
-
-/** More than the title line: Linear adds a second line for these properties. */
-export const hasSecondLine = (properties: ReviewsProperty[]) =>
-  ["repository", "id", "statusDetails"].some((property) =>
-    properties.includes(property as ReviewsProperty),
-  );

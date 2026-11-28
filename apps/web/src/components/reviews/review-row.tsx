@@ -17,11 +17,7 @@ import {
   type ReviewsProperty,
 } from "@/lib/reviews-view";
 import { cn } from "@/lib/cn";
-import {
-  hasSecondLine,
-  repoRef,
-  statusDetailsKey,
-} from "@/lib/review-row-details";
+import { rowContext, statusDetailsKey } from "@/lib/review-row-details";
 import { formatDate } from "@/lib/format";
 import { isSnoozed } from "@/lib/reviews-snooze";
 import { shortAge } from "@/lib/short-age";
@@ -67,8 +63,7 @@ export function ReviewRow({
       : pr.reviewDecision &&
         t(`workspace:reviews.reviewStatus.${pr.reviewDecision}`)
     : null;
-  const ref = repoRef(pr, properties);
-  const secondLine = hasSecondLine(properties);
+  const context = rowContext(pr, properties);
   const entry = useReviewsSnoozeStore(
     (state) => state.entries[reviewRowKey(pr)],
   );
@@ -97,8 +92,7 @@ export function ReviewRow({
       aria-current={selected ? "page" : undefined}
       onFocus={onFocus}
       className={cn(
-        "mx-2 flex flex-col justify-center rounded-md px-2.5 text-[13px] outline-none transition-colors hover:bg-accent/60 focus-visible:bg-accent/60 aria-[current=page]:bg-accent",
-        secondLine ? "min-h-12 py-1.5" : "h-9",
+        "mx-2 flex min-h-12 flex-col justify-center rounded-md px-2.5 py-1.5 text-[13px] outline-none transition-colors hover:bg-accent/60 focus-visible:bg-accent/60 aria-[current=page]:bg-accent",
       )}
     >
       <span className="flex items-center gap-2.5">
@@ -140,11 +134,9 @@ export function ReviewRow({
           </span>
         )}
       </span>
-      {secondLine && (
-        <span className="flex items-center gap-1.5 truncate pl-6.5 text-muted-foreground text-xs">
-          {[details, ref].filter(Boolean).join(" · ")}
-        </span>
-      )}
+      <span className="truncate pl-6.5 text-muted-foreground text-xs">
+        {[details, context].filter(Boolean).join(" · ")}
+      </span>
     </Link>
   );
   return (
