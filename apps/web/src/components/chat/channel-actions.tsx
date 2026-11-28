@@ -3,6 +3,7 @@ import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AddMemberDialog } from "@/components/chat/add-member-dialog";
+import { ChannelAiMenuItem } from "@/components/chat/channel-ai/channel-ai-menu-item";
 import { ChannelMembersDialog } from "@/components/chat/channel-members-dialog";
 import { ChannelTopicDialog } from "@/components/chat/channel-topic-dialog";
 import type { ChatChannelDetail } from "@/components/chat/types";
@@ -83,6 +84,12 @@ export function ChannelActions({
                   ? t("navigation:chat.unarchive")
                   : t("navigation:chat.archive")}
               </MenuItem>
+              {!channel.isDirect && (
+                <ChannelAiMenuItem
+                  workspaceId={workspaceId}
+                  channelId={channel.id}
+                />
+              )}
               <MenuSeparator />
             </>
           )}

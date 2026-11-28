@@ -105,6 +105,8 @@ import { hideClosedTeams } from "./project-access/hide-closed-teams";
 import { getPublicProject } from "./project/controllers/get-public-project";
 import { initializeScheduler, shutdownScheduler } from "./scheduler";
 import search from "./search";
+import channelAi from "./channel-ai";
+import catchUpRoutes from "./catch-up";
 import skill from "./skill";
 import duplicateSuggestion from "./duplicate-suggestion";
 import standup from "./standup";
@@ -859,6 +861,8 @@ export function createApp() {
     notificationPreferences,
   );
   const searchApi = api.route("/search", search);
+  const channelAiApi = api.route("/channel-ai", channelAi);
+  const catchUpApi = api.route("/catch-up", catchUpRoutes);
   const skillApi = api.route("/skill", skill);
   const duplicateSuggestionApi = api.route(
     "/duplicate-suggestion",
@@ -1120,6 +1124,8 @@ export function createApp() {
     calendarFeedApi,
     publicProjectApi,
     searchApi,
+    channelAiApi,
+    catchUpApi,
     skillApi,
     duplicateSuggestionApi,
     standupApi,
@@ -1296,6 +1302,8 @@ const {
   calendarFeedApi,
   publicProjectApi,
   searchApi,
+  channelAiApi,
+  catchUpApi,
   skillApi,
   duplicateSuggestionApi,
   standupApi,
@@ -1360,6 +1368,8 @@ export type AppType =
   | typeof notificationApi
   | typeof notificationPreferencesApi
   | typeof searchApi
+  | typeof channelAiApi
+  | typeof catchUpApi
   | typeof skillApi
   | typeof duplicateSuggestionApi
   | typeof standupApi

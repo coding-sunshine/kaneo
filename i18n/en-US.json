@@ -4751,6 +4751,10 @@
 				"dismiss": "Dismiss",
 				"empty": "Nothing found in the tickets this skill can read.",
 				"running": "Running skill…"
+			},
+			"ai": {
+				"exclude": "Mark as no AI",
+				"allow": "Allow AI to read this channel"
 			}
 		},
 		"files": {
@@ -6219,6 +6223,19 @@
 				"copied": "Draft copied",
 				"copyFailed": "Could not copy the draft",
 				"loadError": "Could not load your tickets. Try again."
+			},
+			"catchUp": {
+				"open": "Catch up",
+				"title": "What did I miss",
+				"private": "A summary of your unread channels, your threads and the tickets you follow. Only you see it, and it is not saved.",
+				"off": "AI is off on this server, so catch-up is not available. An admin can turn it on with a model key.",
+				"window": "Time window",
+				"hours_one": "{{count}} hour",
+				"hours_other": "{{count}} hours",
+				"includeDirectMessages": "Include my direct messages",
+				"run": "Catch me up",
+				"running": "Catching up…",
+				"empty": "Nothing new in this window."
 			}
 		},
 		"myWork": {

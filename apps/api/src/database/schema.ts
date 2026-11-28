@@ -3930,6 +3930,44 @@ export const chatThreadReplyTable = pgTable(
   (table) => [index("chat_thread_reply_parent_idx").on(table.parentId)],
 );
 
+// A channel marked "no AI": no AI feature reads its messages. A row is the
+// mark; deleting it lifts the mark.
+export const chatChannelAiExclusionTable = pgTable(
+  "chat_channel_ai_exclusion",
+  {
+    channelId: text("channel_id")
+      .primaryKey()
+      .references(() => chatChannelTable.id, { onDelete: "cascade" }),
+    setBy: text("set_by").references(() => userTable.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+);
+
+// What one person lets their private AI catch-up read. Direct messages stay
+// out unless they opt in.
+export const aiCatchUpPreferenceTable = pgTable(
+  "ai_catch_up_preference",
+  {
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    includeDirectMessages: boolean("include_direct_messages")
+      .default(false)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.workspaceId, table.userId] })],
+);
+
 // A channel someone muted: its mentions and direct messages stop reaching
 // their Inbox. Anyone who can read the channel may mute it, joined or not.
 // Private to that user: no response shows it to anyone else.
