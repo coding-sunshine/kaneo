@@ -18,6 +18,7 @@ export function ItIntakeCard({ projectId }: { projectId: string }) {
         [
           ["projects"],
           ["tasks", projectId],
+          ["columns", projectId],
           ["custom-fields", projectId],
           ["issue-templates", projectId],
           ["views"],
