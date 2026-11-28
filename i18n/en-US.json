@@ -3079,7 +3079,8 @@
 				"loopDraft": "Loop drafts",
 				"filter": "Plain-English filters",
 				"summary": "Ticket summaries",
-				"triage": "Triage suggestions"
+				"triage": "Triage suggestions",
+				"writing": "Writing help"
 			}
 		},
 		"aiAudit": {
@@ -4397,6 +4398,22 @@
 				"selectRow": "Select {{title}}",
 				"search": "Search documents",
 				"done": "Done"
+			},
+			"writing": {
+				"menu": "Write with AI",
+				"description": "Check the change. Accept puts it in place of your selection; one undo brings the original back.",
+				"diff": "Proposed change",
+				"working": "Writing…",
+				"accept": "Accept",
+				"decline": "Decline",
+				"changed": "The text changed while the suggestion was written, so nothing was replaced.",
+				"actions": {
+					"shorten": "Shorten",
+					"simplify": "Simplify",
+					"fix": "Fix spelling and grammar",
+					"professional": "Make professional",
+					"lengthen": "Lengthen"
+				}
 			}
 		},
 		"agent": {

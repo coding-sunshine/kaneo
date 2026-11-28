@@ -16,6 +16,7 @@ const FEATURE_LABELS: Record<string, string> = {
   filter: "settings:aiUsage.features.filter",
   summary: "settings:aiUsage.features.summary",
   triage: "settings:aiUsage.features.triage",
+  writing: "settings:aiUsage.features.writing",
 };
 
 /** Settings, AI usage: budgets, then tokens by feature and by day. */

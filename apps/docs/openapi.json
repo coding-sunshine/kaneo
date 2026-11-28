@@ -5157,6 +5157,18 @@
           "createdAt"
         ]
       },
+      "WritingSuggestion": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "description": "The rewritten passage. Nothing is saved."
+      },
       "Loop": {
         "type": "object",
         "properties": {
@@ -36704,6 +36716,114 @@
           },
           "429": {
             "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/writing": {
+      "post": {
+        "operationId": "rewriteSelection",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Rewrite a selected passage",
+        "description": "Rewrites the passage a person selected in the editor and returns the result to show beside the original. Nothing is saved; the editor replaces the selection only when the person accepts. Counted as writing help in AI usage.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "shorten",
+                      "lengthen",
+                      "simplify",
+                      "fix",
+                      "professional"
+                    ],
+                    "description": "shorten, lengthen, simplify, fix (spelling and grammar) or professional."
+                  },
+                  "text": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 8000,
+                    "description": "The selected passage."
+                  }
+                },
+                "required": [
+                  "action",
+                  "text"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The rewritten passage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WritingSuggestion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "502": {
+            "description": "The model request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
