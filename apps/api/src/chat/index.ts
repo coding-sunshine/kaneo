@@ -96,6 +96,7 @@ import {
   workspaceIdParam,
 } from "./schema";
 import "./assistant/subscribe";
+import laterRoutes from "./later/routes";
 import "./call/subscribe";
 import "./link-preview/subscribe";
 import "./mentions/subscribe";
@@ -1132,6 +1133,7 @@ const chat = apiRouter()
       ),
       200,
     );
-  });
+  })
+  .route("/", laterRoutes);
 
 export default chat;

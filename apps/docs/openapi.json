@@ -4273,6 +4273,41 @@
           "token"
         ]
       },
+      "ChatMessageReminder": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "messageId": {
+            "type": "string"
+          },
+          "remindAt": {
+            "type": "string",
+            "description": "When the reminder reaches your Inbox."
+          }
+        },
+        "required": [
+          "id",
+          "messageId",
+          "remindAt"
+        ]
+      },
+      "ChatSavedMessage": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string"
+          },
+          "saved": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "messageId",
+          "saved"
+        ]
+      },
       "FileLibraryItem": {
         "type": "object",
         "properties": {
@@ -8898,6 +8933,10 @@
             "type": "boolean",
             "description": "A weekly inbox line on weekdays listing your issues that have sat in one started status for over a week."
           },
+          "chatEmailEnabled": {
+            "type": "boolean",
+            "description": "Only while email is on: one email listing direct messages and mentions you left unread while away, at most one an hour and held through quiet hours."
+          },
           "scheduleEnabled": {
             "type": "boolean"
           },
@@ -8964,6 +9003,7 @@
           "dueDateReminderLeadTimeMinutes",
           "topicUpdatesEnabled",
           "staleItemsEnabled",
+          "chatEmailEnabled",
           "scheduleEnabled",
           "scheduleTimezone",
           "scheduleDays",
@@ -35942,6 +35982,295 @@
         }
       }
     },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/messages/{messageId}/reminder": {
+      "post": {
+        "operationId": "remindChatMessage",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Remind me about a message",
+        "description": "At the time you pick, the message reaches your Inbox with a link to it, as long as you can still read its channel. Only you are told. Counts toward your waiting reminders.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "remindAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "When to remind you, as an absolute time in the future, up to a year ahead."
+                  }
+                },
+                "required": [
+                  "remindAt"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reminder set",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessageReminder"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The time is in the past or over a year ahead",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or message not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Too many reminders waiting",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/channels/{channelId}/messages/{messageId}/saved": {
+      "put": {
+        "operationId": "saveChatMessage",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Save message",
+        "description": "Add a message you can read to your saved list, or remove it. The message itself stays in its channel. Only you can see your saved list.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "saved": {
+                    "type": "boolean",
+                    "description": "True adds the message to your saved list; false removes it from the list, leaving the message itself in its channel."
+                  }
+                },
+                "required": [
+                  "saved"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatSavedMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel or message not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/chat/workspace/{workspaceId}/saved-messages": {
+      "get": {
+        "operationId": "listSavedChatMessages",
+        "tags": [
+          "Chat"
+        ],
+        "summary": "List your saved messages",
+        "description": "Messages you saved in this workspace, newest save first. A message in a channel you can no longer read is left out. Nobody else can read your list.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Saved messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatMessage"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission for this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
     "/file-library/workspace/{workspaceId}/files": {
       "get": {
         "operationId": "listLibraryFiles",
@@ -48472,6 +48801,10 @@
                   "staleItemsEnabled": {
                     "type": "boolean",
                     "description": "A weekly inbox line on weekdays listing your issues that have sat in one started status for over a week."
+                  },
+                  "chatEmailEnabled": {
+                    "type": "boolean",
+                    "description": "Only while email is on: one email listing direct messages and mentions you left unread while away, at most one an hour and held through quiet hours."
                   },
                   "scheduleEnabled": {
                     "type": "boolean",

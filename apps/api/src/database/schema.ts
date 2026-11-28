@@ -2157,7 +2157,11 @@ export const notificationTable = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => [index("notification_userId_idx").on(table.userId)],
+  (table) => [
+    index("notification_userId_idx").on(table.userId),
+    // The unread chat email scans recent chat rows every minute.
+    index("notification_type_created_idx").on(table.type, table.createdAt),
+  ],
 );
 
 export const userNotificationPreferenceTable = pgTable(
@@ -2198,6 +2202,8 @@ export const userNotificationPreferenceTable = pgTable(
       .default(true)
       .notNull(),
     staleItemsEnabled: boolean("stale_items_enabled").default(true).notNull(),
+    // One email listing chat messages left unread while the person was away.
+    chatEmailEnabled: boolean("chat_email_enabled").default(true).notNull(),
     scheduleEnabled: boolean("schedule_enabled").default(false).notNull(),
     scheduleTimezone: text("schedule_timezone").default("UTC").notNull(),
     // Delivery window: weekdays 0 (Sunday) to 6, local "HH:MM" start and end.
@@ -4192,8 +4198,10 @@ export const chatChannelMuteTable = pgTable(
   ],
 );
 
-// A reminder someone set with /remind in a channel. Only its owner is told,
-// in their Inbox, once `remindAt` passes; `sentAt` marks it done.
+// A reminder someone set with /remind in a channel, or with Remind me on one
+// message (`messageId`, no foreign key: a deleted message leaves a channel
+// reminder). Only its owner is told, in their Inbox, once `remindAt` passes;
+// `sentAt` marks it done.
 export const chatReminderTable = pgTable(
   "chat_reminder",
   {
@@ -4219,6 +4227,7 @@ export const chatReminderTable = pgTable(
         onUpdate: "cascade",
       }),
     note: text("note").notNull().default(""),
+    messageId: text("message_id"),
     remindAt: timestamp("remind_at", { mode: "date" }).notNull(),
     sentAt: timestamp("sent_at", { mode: "date" }),
     createdAt: timestamp("created_at", { mode: "date" })
@@ -4230,6 +4239,52 @@ export const chatReminderTable = pgTable(
     index("chat_reminder_user_idx").on(table.userId),
   ],
 );
+
+// A message someone saved for later. Private to that user: no response shows
+// it to anyone else, and it lists only while they can still read the channel.
+export const chatSavedMessageTable = pgTable(
+  "chat_saved_message",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    messageId: text("message_id")
+      .notNull()
+      .references(() => chatMessageTable.id, { onDelete: "cascade" }),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.userId, table.messageId] }),
+    index("chat_saved_message_user_workspace_idx").on(
+      table.userId,
+      table.workspaceId,
+      table.createdAt,
+    ),
+    index("chat_saved_message_message_idx").on(table.messageId),
+  ],
+);
+
+// When someone was last emailed about unread chat, and up to which Inbox row,
+// so each message is emailed once and nobody gets more than one an hour.
+export const chatEmailFallbackTable = pgTable("chat_email_fallback", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => userTable.id, { onDelete: "cascade" }),
+  lastSentAt: timestamp("last_sent_at", {
+    mode: "date",
+    withTimezone: true,
+  }).notNull(),
+  // The newest Inbox row emailed, in the Inbox's own time type.
+  emailedThrough: timestamp("emailed_through", {
+    mode: "date",
+    withTimezone: true,
+  }).notNull(),
+});
 
 // One row per user and emoji on a chat message, like comment_reaction.
 export const chatMessageReactionTable = pgTable(

@@ -42,6 +42,7 @@ export type NotificationPreferences = {
   dueDateReminderLeadTimeMinutes: number;
   topicUpdatesEnabled: boolean;
   staleItemsEnabled: boolean;
+  chatEmailEnabled: boolean;
   scheduleEnabled: boolean;
   scheduleTimezone: string;
   scheduleDays: number[];

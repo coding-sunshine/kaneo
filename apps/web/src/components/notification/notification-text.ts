@@ -251,10 +251,13 @@ export function getNotificationContent(
         return typeof eventData.messagePreview === "string"
           ? eventData.messagePreview
           : (notification.content ?? "");
-      // The note the person wrote with /remind, if any.
+      // The note the person wrote with /remind, or the message they asked
+      // to be reminded about.
       case "chat_reminder":
-        return typeof eventData.note === "string"
-          ? eventData.note
+        if (typeof eventData.note === "string" && eventData.note)
+          return eventData.note;
+        return typeof eventData.messagePreview === "string"
+          ? eventData.messagePreview
           : (notification.content ?? "");
       case "document_mention":
       case "document_comment":

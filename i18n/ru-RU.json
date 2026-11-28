@@ -811,7 +811,9 @@
 				"save": "Save",
 				"saved": "Daily brief saved",
 				"title": "Daily brief"
-			}
+			},
+			"eventChatEmail": "Email for unread chat",
+			"eventChatEmailHint": "Only while email is on: one email listing direct messages and mentions you left unread while away. At most one an hour, held during quiet hours."
 		},
 		"preferencesPage": {
 			"title": "Настройки",
@@ -3358,7 +3360,7 @@
 			"workspaceMonthly": "Monthly budget for the workspace",
 			"workspaceMonthlyHint": "Tokens everyone may use together per calendar month (UTC). 0 turns AI off. Leave empty for no limit.",
 			"switches": {
-				"description": "AI features that stay off until an admin turns them on.",
+				"description": "Features that call the model on their own, without anyone asking. Each is off until an admin turns it on.",
 				"prSummary": "Summarize merged pull requests",
 				"prSummaryDescription": "The model writes a short summary on a ticket when a pull request linked to it merges.",
 				"saveFailed": "Could not save the AI setting.",
@@ -5043,6 +5045,16 @@
 				"tokens_one": "{{count}} token",
 				"tokens_other": "{{count}} tokens"
 			},
+			"noSaved": "Nothing saved yet. Save a message from its menu to find it here.",
+			"openSaved": "Open message",
+			"reminderSet": "Reminder set for {{time}}",
+			"remindInOneHour": "In 1 hour",
+			"remindMe": "Remind me",
+			"remindNextWeek": "Next Monday at 9:00",
+			"remindTomorrow": "Tomorrow at 9:00",
+			"saved": "Saved messages",
+			"saveMessage": "Save",
+			"unsaveMessage": "Remove from saved",
 			"assistant": "Assistant",
 			"messageLink": "Message"
 		},

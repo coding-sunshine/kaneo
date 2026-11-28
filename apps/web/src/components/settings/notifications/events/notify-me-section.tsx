@@ -69,6 +69,12 @@ export function NotifyMeSection({ preferences }: NotifyMeSectionProps) {
           checked={state.staleItemsEnabled}
           onCheckedChange={(checked) => setSwitch("staleItemsEnabled", checked)}
         />
+        <EventSwitchRow
+          title={t("settings:notificationsPage.eventChatEmail")}
+          description={t("settings:notificationsPage.eventChatEmailHint")}
+          checked={state.chatEmailEnabled}
+          onCheckedChange={(checked) => setSwitch("chatEmailEnabled", checked)}
+        />
       </SettingsCard>
     </SettingsSection>
   );

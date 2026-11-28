@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AddToTicketDialog } from "@/components/chat/add-to-ticket-dialog";
 import { buildMessageIssueDraft } from "@/components/chat/message-issue-draft";
+import { MessageRemindMenu } from "@/components/chat/message-remind-menu";
+import { MessageSaveItem } from "@/components/chat/message-save-item";
 import { ThreadProposalDialog } from "@/components/chat/thread-proposal-dialog";
 import type { ChatMessage } from "@/components/chat/types";
 import type { ThreadProposalKind } from "@/fetchers/agent/thread-proposal";
@@ -33,7 +35,8 @@ type MessageActionsProps = {
 };
 
 /**
- * Pin and copy to a ticket for every member who can write; create a ticket
+ * Remind me and Save for every reader, just for them; pin and copy to a
+ * ticket for every member who can write; create a ticket
  * with permission to; edit and delete only on your own message.
  */
 export function MessageActions({
@@ -82,6 +85,16 @@ export function MessageActions({
           >
             {pinned ? t("navigation:chat.unpin") : t("navigation:chat.pin")}
           </MenuItem>
+          <MessageRemindMenu
+            workspaceId={workspaceId}
+            channelId={channelId}
+            messageId={message.id}
+          />
+          <MessageSaveItem
+            workspaceId={workspaceId}
+            channelId={channelId}
+            messageId={message.id}
+          />
           {canCreateTasks() && (
             <MenuItem
               onClick={() =>

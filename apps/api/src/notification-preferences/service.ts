@@ -42,6 +42,7 @@ export type NotificationPreferenceResponse = {
   dueDateReminderLeadTimeMinutes: number;
   topicUpdatesEnabled: boolean;
   staleItemsEnabled: boolean;
+  chatEmailEnabled: boolean;
   scheduleEnabled: boolean;
   scheduleTimezone: string;
   scheduleDays: number[];
@@ -84,6 +85,7 @@ export type UpdateNotificationPreferenceInput = {
   dueDateReminderLeadTimeMinutes?: number;
   topicUpdatesEnabled?: boolean;
   staleItemsEnabled?: boolean;
+  chatEmailEnabled?: boolean;
   scheduleEnabled?: boolean;
   scheduleTimezone?: string;
   scheduleDays?: number[];
@@ -247,6 +249,7 @@ export async function getNotificationPreferences(
       preference?.dueDateReminderLeadTimeMinutes ?? 1440,
     topicUpdatesEnabled: preference?.topicUpdatesEnabled ?? true,
     staleItemsEnabled: preference?.staleItemsEnabled ?? true,
+    chatEmailEnabled: preference?.chatEmailEnabled ?? true,
     scheduleEnabled: preference?.scheduleEnabled ?? false,
     scheduleTimezone: preference?.scheduleTimezone ?? "UTC",
     scheduleDays: preference?.scheduleDays ?? [1, 2, 3, 4, 5],
@@ -448,6 +451,8 @@ export async function updateNotificationPreferences(
       input.topicUpdatesEnabled ?? existing?.topicUpdatesEnabled ?? true,
     staleItemsEnabled:
       input.staleItemsEnabled ?? existing?.staleItemsEnabled ?? true,
+    chatEmailEnabled:
+      input.chatEmailEnabled ?? existing?.chatEmailEnabled ?? true,
     scheduleEnabled:
       input.scheduleEnabled ?? existing?.scheduleEnabled ?? false,
     scheduleTimezone:
