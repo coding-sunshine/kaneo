@@ -20,7 +20,8 @@ export type Meter = {
     | "triage"
     | "writing"
     | "pr-summary"
-    | "thread-ticket";
+    | "thread-ticket"
+    | "decision";
 };
 
 // A model call made for a person: refused once a budget is spent, sent only to

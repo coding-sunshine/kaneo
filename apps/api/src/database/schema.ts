@@ -3752,6 +3752,8 @@ export const chatChannelTable = pgTable(
       onUpdate: "cascade",
     }),
     directKey: text("direct_key"),
+    // Members can keep AI features (thread tickets, decisions) out of it.
+    aiDisabled: boolean("ai_disabled").default(false).notNull(),
     archivedAt: timestamp("archived_at", { mode: "date" }),
     createdAt: timestamp("created_at", { mode: "date" })
       .default(utcNow)

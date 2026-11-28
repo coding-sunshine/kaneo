@@ -1,7 +1,9 @@
 import { asc, eq } from "drizzle-orm";
+import { HTTPException } from "hono/http-exception";
 import { chatMessageTable } from "../../database/schema";
 import { parseMentionIds } from "../../utils/parse-mentions";
 import { findThreadRoot } from "../../chat/controllers/find-thread-root";
+import { loadChannel } from "../../chat/controllers/load-channel";
 import { loadMessage } from "../../chat/controllers/load-message";
 import {
   selectMessages,
@@ -17,7 +19,8 @@ const plain = (body: string) =>
 /**
  * The whole thread a message is in, for a person who can read its channel:
  * its first message, then the replies, oldest first, with the people the
- * thread mentions. A channel they cannot read answers 404.
+ * thread mentions. A channel they cannot read answers 404; one its members
+ * marked no AI answers 403 before anything reaches the model.
  */
 export async function readThread(
   workspaceId: string,
@@ -26,6 +29,11 @@ export async function readThread(
   userId: string,
 ) {
   await loadMessage(workspaceId, channelId, messageId, userId, "read");
+  const channel = await loadChannel(workspaceId, channelId, userId, "read");
+  if (channel.aiDisabled)
+    throw new HTTPException(403, {
+      message: "AI is turned off in this channel",
+    });
   const rootId = await findThreadRoot(channelId, messageId);
   const [root] = await selectMessages().where(eq(chatMessageTable.id, rootId));
   const replies = await selectMessages()
@@ -35,13 +43,21 @@ export async function readThread(
   const messages = [...(root ? [root] : []), ...replies];
   return {
     rootId,
+    messages: messages.map(({ id, userId: authorId, authorName }) => ({
+      id,
+      userId: authorId,
+      authorName,
+    })),
+    bodies: new Map(
+      messages.map((message) => [message.id, plain(message.body)]),
+    ),
     mentionedIds: [
       ...new Set(messages.flatMap((message) => parseMentionIds(message.body))),
     ],
     transcript: messages
       .map(
         (message) =>
-          `${message.authorName ?? "Someone"}: ${plain(message.body)}`,
+          `[${message.id}] ${message.authorName ?? "Someone"}: ${plain(message.body)}`,
       )
       .join("\n"),
   };

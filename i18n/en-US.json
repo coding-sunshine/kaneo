@@ -3082,7 +3082,8 @@
 				"triage": "Triage suggestions",
 				"writing": "Writing help",
 				"prSummary": "Pull request summaries",
-				"threadTicket": "Tickets from threads"
+				"threadTicket": "Tickets from threads",
+				"decision": "Decisions from threads"
 			}
 		},
 		"aiAudit": {
@@ -4493,7 +4494,10 @@
 					"project": "Project",
 					"health": "Health",
 					"update": "Update",
-					"agent": "Coding agent"
+					"agent": "Coding agent",
+					"decision": "Decision",
+					"decider": "Decided by",
+					"reason": "Reason"
 				},
 				"keepField": "Apply {{field}}"
 			}
@@ -4743,9 +4747,16 @@
 			"createTicketWithAi": "Create ticket with AI",
 			"aiTicket": {
 				"title": "Create ticket with AI",
-				"description": "A ticket drafted from the whole thread. Nothing is created until you accept it.",
-				"loading": "Reading the thread…"
-			}
+				"description": "A ticket drafted from the whole thread. Nothing is created until you accept it."
+			},
+			"aiThreadLoading": "Reading the thread…",
+			"extractDecision": "Extract decision",
+			"aiDecision": {
+				"title": "Extract decision",
+				"description": "The decision this thread reached, who took it and why. Nothing is filed until you accept it; then it waits on the topic for its decider to approve."
+			},
+			"aiOff": "Turn off AI in this channel",
+			"aiOn": "Turn on AI in this channel"
 		},
 		"files": {
 			"title": "Files",

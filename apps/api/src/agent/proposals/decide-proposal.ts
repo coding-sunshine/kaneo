@@ -5,21 +5,9 @@ import db from "../../database";
 import { agentProposalTable } from "../../database/schema";
 import { createSelfClient, forwardedAuthHeaders } from "../self-client";
 import { buildAgentTools, CHAT_WRITE_TOOLS } from "../tools";
-import { workProjectName } from "./create-proposal";
-import { currentTeam } from "./current-team";
+import { afterAccept } from "./after-accept";
 import { keepFields } from "./keep-fields";
-import { notifyDigestPosted } from "../digest/notify-digest";
-import { POST_DIGEST_TOOL } from "../digest/digest-tool";
-import { PROJECT_UPDATE_TOOL } from "./project-update-tool";
-
-const POSTS_UPDATE: readonly string[] = [PROJECT_UPDATE_TOOL, POST_DIGEST_TOOL];
-
-// A drafted project update needs its project still in the workspace.
-async function currentProject(workspaceId: string, id: string) {
-  if (!(await workProjectName(workspaceId, id)))
-    throw new HTTPException(404, { message: "Proposal not found" });
-  return id;
-}
+import { proposalPlace } from "./proposal-place";
 
 // A proposal is private to the person who asked for it, like their chat.
 const own = (userId: string, workspaceId: string, proposalId: string) =>
@@ -104,9 +92,7 @@ export async function acceptProposalAs(
   const projectId =
     pending.status !== "pending"
       ? undefined
-      : POSTS_UPDATE.includes(pending.tool)
-        ? await currentProject(workspaceId, pending.projectId)
-        : await currentTeam(userId, workspaceId, pending);
+      : await proposalPlace(userId, workspaceId, pending);
   const kept = keepFields(pending, fields);
   if (kept.diff.length === 0)
     throw new HTTPException(400, { message: "Keep at least one field" });
@@ -135,9 +121,7 @@ export async function acceptProposalAs(
     })
     .where(eq(agentProposalTable.id, row.id))
     .returning();
-  if (!outcome.isError && row.tool === POST_DIGEST_TOOL) {
-    await notifyDigestPosted(workspaceId, row.projectId, userId);
-  }
+  if (!outcome.isError) await afterAccept(row, userId, outcome.text);
   return done ?? row;
 }
 

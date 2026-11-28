@@ -18,6 +18,7 @@ import {
   useLeaveChannel,
   useUpdateChannel,
 } from "@/hooks/mutations/chat/use-channel-mutations";
+import { useHasAgent } from "@/hooks/queries/agent/use-agent";
 import useGetMyProjectAccess from "@/hooks/queries/workspace-users/use-get-my-project-access";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { toast } from "@/lib/toast";
@@ -44,6 +45,7 @@ export function ChannelActions({
   const leave = useLeaveChannel(workspaceId, channel.id);
   const onError = (error: Error) => toast.error(error.message);
   const archived = Boolean(channel.archivedAt);
+  const hasAgent = useHasAgent();
 
   // Admins manage who is in a channel they have not joined, too.
   if (!channel.isMember && !canManageMembers) return null;
@@ -83,6 +85,20 @@ export function ChannelActions({
                   ? t("navigation:chat.unarchive")
                   : t("navigation:chat.archive")}
               </MenuItem>
+              {hasAgent && !channel.isDirect && (
+                <MenuItem
+                  onClick={() =>
+                    update.mutate(
+                      { aiDisabled: !channel.aiDisabled },
+                      { onError },
+                    )
+                  }
+                >
+                  {channel.aiDisabled
+                    ? t("navigation:chat.aiOn")
+                    : t("navigation:chat.aiOff")}
+                </MenuItem>
+              )}
               <MenuSeparator />
             </>
           )}

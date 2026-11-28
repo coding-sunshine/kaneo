@@ -13,9 +13,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { AgentProposal } from "@/fetchers/agent/proposals";
-import { useThreadTicket } from "@/hooks/mutations/agent/use-thread-ticket";
+import type { ThreadProposalKind } from "@/fetchers/agent/thread-proposal";
+import { useThreadProposal } from "@/hooks/mutations/agent/use-thread-proposal";
+
+const COPY = {
+  ticket: {
+    title: "navigation:chat.aiTicket.title",
+    description: "navigation:chat.aiTicket.description",
+  },
+  decision: {
+    title: "navigation:chat.aiDecision.title",
+    description: "navigation:chat.aiDecision.description",
+  },
+} as const;
 
 type Props = {
+  kind: ThreadProposalKind;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   workspaceId: string;
@@ -24,11 +37,12 @@ type Props = {
 };
 
 /**
- * Drafts a ticket from the message's thread when opened and shows it as a
- * card: Accept creates the ticket and links it in the thread; Decline
- * creates nothing.
+ * Drafts a ticket or a decision from the message's thread when opened and
+ * shows it as a card. Accept creates the ticket, or files the decision on its
+ * topic; Decline saves nothing.
  */
-export function ThreadTicketDialog({
+export function ThreadProposalDialog({
+  kind,
   open,
   onOpenChange,
   workspaceId,
@@ -36,7 +50,7 @@ export function ThreadTicketDialog({
   messageId,
 }: Props) {
   const { t } = useTranslation();
-  const draft = useThreadTicket(workspaceId, channelId);
+  const draft = useThreadProposal(workspaceId, channelId, kind);
   const [proposal, setProposal] = useState<AgentProposal | null>(null);
   const { mutate, reset } = draft;
 
@@ -51,10 +65,8 @@ export function ThreadTicketDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPopup className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{t("navigation:chat.aiTicket.title")}</DialogTitle>
-          <DialogDescription>
-            {t("navigation:chat.aiTicket.description")}
-          </DialogDescription>
+          <DialogTitle>{t(COPY[kind].title)}</DialogTitle>
+          <DialogDescription>{t(COPY[kind].description)}</DialogDescription>
         </DialogHeader>
         <DialogPanel>
           {proposal ? (
@@ -73,7 +85,7 @@ export function ThreadTicketDialog({
               className="flex items-center gap-2 text-muted-foreground text-sm"
             >
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              {t("navigation:chat.aiTicket.loading")}
+              {t("navigation:chat.aiThreadLoading")}
             </p>
           )}
         </DialogPanel>

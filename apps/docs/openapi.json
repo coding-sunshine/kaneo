@@ -3820,6 +3820,10 @@
             "type": "boolean",
             "description": "True when the caller has joined the channel."
           },
+          "aiDisabled": {
+            "type": "boolean",
+            "description": "True when the channel's members turned AI features off."
+          },
           "archivedAt": {
             "type": [
               "string",
@@ -3840,6 +3844,7 @@
           "isPrivate",
           "isDirect",
           "isMember",
+          "aiDisabled",
           "archivedAt",
           "createdAt"
         ]
@@ -32213,6 +32218,10 @@
                   "archived": {
                     "type": "boolean",
                     "description": "Archive or unarchive. Archived channels stay readable."
+                  },
+                  "aiDisabled": {
+                    "type": "boolean",
+                    "description": "Keep AI features out of the channel: no ticket or decision is drafted from its threads."
                   }
                 }
               }
@@ -36892,7 +36901,7 @@
             }
           },
           "403": {
-            "description": "Missing permission for this workspace",
+            "description": "Missing permission, or AI is off in the channel",
             "content": {
               "application/json": {
                 "schema": {
@@ -36913,6 +36922,107 @@
           },
           "422": {
             "description": "The model suggested no usable ticket",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          },
+          "502": {
+            "description": "The model request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/workspace/{workspaceId}/channels/{channelId}/messages/{messageId}/decision-proposal": {
+      "post": {
+        "operationId": "proposeDecisionFromThread",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Propose a decision from a chat thread",
+        "description": "Finds the decision the thread the message is in reached: what was decided, who decided, the reason, the messages it rests on and a topic you can open. It is a card for you; nothing is filed until you accept it, and then the decision is filed as a draft on the topic for its decider to approve. A channel marked no AI refuses it. Counted as decisions in AI usage.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "channelId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "messageId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The decision card",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentProposal"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing permission, or AI is off in the channel",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Agent is disabled, or the message was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The model found no usable decision",
             "content": {
               "application/json": {
                 "schema": {

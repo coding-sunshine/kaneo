@@ -1,7 +1,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import type { AgentProposal } from "@/fetchers/agent/proposals";
-import { ThreadTicketDialog } from "./thread-ticket-dialog";
+import { ThreadProposalDialog } from "./thread-proposal-dialog";
 
 const m = vi.hoisted(() => ({
   mutate: vi.fn(),
@@ -13,8 +13,8 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
   initReactI18next: { type: "3rdParty", init: () => {} },
 }));
-vi.mock("@/hooks/mutations/agent/use-thread-ticket", () => ({
-  useThreadTicket: () => ({
+vi.mock("@/hooks/mutations/agent/use-thread-proposal", () => ({
+  useThreadProposal: () => ({
     mutate: m.mutate,
     reset: vi.fn(),
     isError: m.isError,
@@ -39,7 +39,8 @@ const card = {
 
 const renderDialog = () =>
   render(
-    <ThreadTicketDialog
+    <ThreadProposalDialog
+      kind="decision"
       open
       onOpenChange={vi.fn()}
       workspaceId="w1"
@@ -55,7 +56,7 @@ afterEach(() => {
   m.error = null;
 });
 
-describe("ThreadTicketDialog", () => {
+describe("ThreadProposalDialog", () => {
   it("drafts the ticket for the message and shows the card", async () => {
     m.mutate.mockImplementation(
       (_id: string, options: { onSuccess: (p: AgentProposal) => void }) =>
