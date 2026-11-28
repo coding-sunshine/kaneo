@@ -16,15 +16,13 @@ vi.mock("../../../apps/api/src/utils/workspace-permission-grants", () => ({
   workspacePermissionGrants: async () => ({ allows: () => state.canRead }),
 }));
 
-vi.mock("../../../apps/api/src/project-access/assert-project-access", () => ({
-  assertProjectAccess: async (_userId: string, projectId: string) => {
-    if (state.restrictedProjects.has(projectId)) {
-      throw new HTTPException(403, {
-        message: "You don't have access to this project",
-      });
-    }
-  },
-}));
+vi.mock(
+  "../../../apps/api/src/project-access/find-inaccessible-project-ids",
+  () => ({
+    findInaccessibleProjectIds: async (_userId: string, ids: string[]) =>
+      ids.filter((id) => state.restrictedProjects.has(id)),
+  }),
+);
 
 vi.mock("../../../apps/api/src/utils/authenticate-api-request", () => ({
   // Mirrors the real helper: every unauthenticated path throws, so it never
@@ -204,7 +202,7 @@ describe("authorizeAssetAccess", () => {
         surface,
         createdBy: "user-member",
       };
-      expect(await statusOf(authorizeAssetAccess(context, asset))).toBe(403);
+      expect(await statusOf(authorizeAssetAccess(context, asset))).toBe(404);
       expect(
         await statusOf(
           authorizeAssetAccess(context, { ...asset, projectId: "project-2" }),

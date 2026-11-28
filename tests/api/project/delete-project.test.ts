@@ -3,6 +3,7 @@ const mocks = vi.hoisted(() => ({
   findFirst: vi.fn(),
   delete: vi.fn(),
   select: vi.fn(),
+  update: vi.fn(),
   queueStorageCleanup: vi.fn(),
   retryStorageCleanup: vi.fn(),
   publishEvent: vi.fn(),
@@ -12,7 +13,11 @@ vi.mock("../../../apps/api/src/database", () => ({
   default: {
     query: { projectTable: { findFirst: mocks.findFirst } },
     transaction: (fn: (tx: unknown) => Promise<unknown>) =>
-      fn({ select: mocks.select, delete: mocks.delete }),
+      fn({
+        select: mocks.select,
+        delete: mocks.delete,
+        update: mocks.update,
+      }),
   },
 }));
 vi.mock("../../../apps/api/src/storage/cleanup-queue", () => ({
@@ -46,6 +51,9 @@ function seed(backgroundObjectKey: string | null, assets: string[] = []) {
         where: async () => assets.map((objectKey) => ({ objectKey })),
       }),
     });
+  mocks.update.mockReturnValue({
+    set: () => ({ where: async () => undefined }),
+  });
   mocks.delete.mockReturnValue({
     where: () => ({ returning: async () => [project] }),
   });

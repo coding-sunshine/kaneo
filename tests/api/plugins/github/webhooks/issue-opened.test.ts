@@ -68,6 +68,12 @@ const mocks = vi.hoisted(() => {
   };
 });
 
+// Document-link sync reads the database; its own tests cover it.
+vi.mock("../../../../../apps/api/src/task-document/sync-links", () => ({
+  syncTaskDescriptionLinks: async () => {},
+  syncTaskCommentLinks: async () => {},
+}));
+
 vi.mock("../../../../../apps/api/src/plugins/sync/eligibility", () => ({
   canSyncTask: async () => true,
 }));

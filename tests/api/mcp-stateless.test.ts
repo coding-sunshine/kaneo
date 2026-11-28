@@ -4,7 +4,10 @@ import mcpRoutes from "../../apps/api/src/mcp";
 import { createModernMcpHandler } from "../../apps/api/src/mcp/modern";
 
 const authMocks = vi.hoisted(() => ({
-  getSession: vi.fn(async () => ({ user: { id: "test-user" } })),
+  getSession: vi.fn(async () => ({
+    user: { id: "test-user" },
+    session: {},
+  })),
 }));
 
 vi.mock("../../apps/api/src/auth", () => ({

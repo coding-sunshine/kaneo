@@ -55,6 +55,12 @@ vi.mock(
 
 vi.mock("../../../../../apps/api/src/database", () => ({ default: mocks.db }));
 
+// Document-link sync reads the database; its own tests cover it.
+vi.mock("../../../../../apps/api/src/task-document/sync-links", () => ({
+  syncTaskDescriptionLinks: async () => {},
+  syncTaskCommentLinks: async () => {},
+}));
+
 vi.mock("../../../../../apps/api/src/events", () => ({
   publishEvent: (...args: unknown[]) => mocks.publishEvent(...args),
 }));

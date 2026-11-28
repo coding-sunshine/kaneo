@@ -29,6 +29,12 @@ vi.mock("../../../../apps/api/src/database", () => ({
     }),
   },
 }));
+// Document-link sync reads the database; its own tests cover it.
+vi.mock("../../../../apps/api/src/task-document/sync-links", () => ({
+  syncTaskDescriptionLinks: async () => {},
+  syncTaskCommentLinks: async () => {},
+}));
+
 vi.mock(
   "../../../../apps/api/src/plugins/github/services/integration-task-scope",
   async (original) => ({

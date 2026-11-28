@@ -4,9 +4,12 @@ import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import mcpRoutes from "../../apps/api/src/mcp/index";
 
 const authMocks = vi.hoisted(() => ({
-  getSession: vi.fn(async (): Promise<{ user: { id: string } } | null> => ({
-    user: { id: "test-user" },
-  })),
+  getSession: vi.fn(
+    async (): Promise<{ user: { id: string }; session: object } | null> => ({
+      user: { id: "test-user" },
+      session: {},
+    }),
+  ),
 }));
 
 vi.mock("../../apps/api/src/auth", () => ({
@@ -34,7 +37,7 @@ afterEach(() => {
   vi.clearAllMocks();
   authMocks.getSession
     .mockReset()
-    .mockResolvedValue({ user: { id: "test-user" } });
+    .mockResolvedValue({ user: { id: "test-user" }, session: {} });
 });
 
 describe("MCP bounded body admission", () => {
