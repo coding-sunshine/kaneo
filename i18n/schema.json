@@ -25263,22 +25263,7 @@
 										"blocked": {
 											"type": "string"
 										},
-										"hiddenBlockers_one": {
-											"type": "string"
-										},
-										"hiddenBlockers_zero": {
-											"type": "string"
-										},
-										"hiddenBlockers_two": {
-											"type": "string"
-										},
-										"hiddenBlockers_few": {
-											"type": "string"
-										},
-										"hiddenBlockers_many": {
-											"type": "string"
-										},
-										"hiddenBlockers_other": {
+										"hiddenBlocker": {
 											"type": "string"
 										},
 										"cycle": {
@@ -25296,6 +25281,7 @@
 									},
 									"required": [
 										"blocked",
+										"hiddenBlocker",
 										"cycle",
 										"priority",
 										"due",

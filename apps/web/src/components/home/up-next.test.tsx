@@ -39,6 +39,7 @@ const open = {
   position: null,
   inCycle: false,
   blockedBy: [],
+  hasHiddenBlocker: false,
 };
 
 let client: QueryClient;
@@ -110,7 +111,8 @@ it("orders rows by cycle, priority and blockers and prints each row's reason", a
         id: "b",
         title: "Blocked urgent",
         priority: "urgent",
-        blockedBy: ["web-6", null],
+        blockedBy: ["web-6"],
+        hasHiddenBlocker: true,
       },
       { ...open, id: "c", title: "Urgent", priority: "urgent" },
       { ...open, id: "d", title: "In cycle", inCycle: true },
@@ -131,8 +133,9 @@ it("orders rows by cycle, priority and blockers and prints each row's reason", a
   expect(rows[3]).toHaveTextContent("workspace:home.upNext.reasons.blocked");
   expect(rows[3]).toHaveTextContent("web-6");
   expect(rows[3]).toHaveTextContent(
-    "workspace:home.upNext.reasons.hiddenBlockers",
+    "workspace:home.upNext.reasons.hiddenBlocker",
   );
+  expect(rows[3]).not.toHaveTextContent(/count/);
   for (const row of rows)
     expect(row.querySelector("[data-up-next-reason]")).not.toBeNull();
 });

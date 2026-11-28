@@ -19,6 +19,7 @@ function task(id: string, dueDate: Date | null): AssignedTask {
     position: null,
     inCycle: false,
     blockedBy: [],
+    hasHiddenBlocker: false,
     projectName: "Web",
     projectSlug: "WEB",
     projectIcon: null,

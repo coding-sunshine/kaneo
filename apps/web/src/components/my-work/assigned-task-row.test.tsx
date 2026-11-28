@@ -35,6 +35,7 @@ const task = {
   position: null,
   inCycle: false,
   blockedBy: [],
+  hasHiddenBlocker: false,
   lastActivityAt: null,
   lastActivityType: null,
   reviewRequestedAt: hoursAgo(50),

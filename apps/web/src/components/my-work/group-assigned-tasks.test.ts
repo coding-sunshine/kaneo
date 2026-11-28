@@ -27,6 +27,7 @@ function task(
     position: null,
     inCycle: false,
     blockedBy: [],
+    hasHiddenBlocker: false,
     projectName: projectId,
     projectSlug: "WEB",
     projectIcon: null,

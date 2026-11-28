@@ -8,13 +8,16 @@ import {
 import { projectAccessCondition } from "../../project-access/project-access-condition";
 import { taskIsUnfinished } from "../task-is-unfinished";
 
+export type OpenBlockers = { blockedBy: string[]; hasHiddenBlocker: boolean };
+
 /**
  * Open tasks that block each of `taskIds` ("source blocks target"), keyed by
- * the blocked task. A blocker in a team the reader cannot open still counts,
- * but its key is null so its team and number stay hidden.
+ * the blocked task. Blockers in a team the reader cannot open are left out of
+ * `blockedBy` and reported only as one flag, so neither their keys nor their
+ * number reach the reader.
  */
 export async function loadOpenBlockers(taskIds: string[], userId: string) {
-  const out = new Map<string, Array<string | null>>();
+  const out = new Map<string, OpenBlockers>();
   if (taskIds.length === 0) return out;
   const rows = await db
     .select({
@@ -39,12 +42,16 @@ export async function loadOpenBlockers(taskIds: string[], userId: string) {
     )
     .orderBy(projectTable.slug, taskTable.number);
   for (const row of rows) {
-    const key = !row.visible
-      ? null
-      : row.number == null
-        ? row.slug
-        : `${row.slug}-${row.number}`;
-    out.set(row.blockedId, [...(out.get(row.blockedId) ?? []), key]);
+    const entry = out.get(row.blockedId) ?? {
+      blockedBy: [],
+      hasHiddenBlocker: false,
+    };
+    if (!row.visible) entry.hasHiddenBlocker = true;
+    else
+      entry.blockedBy.push(
+        row.number == null ? row.slug : `${row.slug}-${row.number}`,
+      );
+    out.set(row.blockedId, entry);
   }
   return out;
 }

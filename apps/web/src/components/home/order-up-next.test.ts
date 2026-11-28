@@ -10,6 +10,7 @@ const task = (id: string, overrides: Partial<AssignedTask> = {}) =>
     position: null,
     inCycle: false,
     blockedBy: [],
+    hasHiddenBlocker: false,
     ...overrides,
   }) as AssignedTask;
 
@@ -52,12 +53,12 @@ describe("orderUpNext", () => {
     const reasons = orderUpNext([
       task("due", { dueDate: "2030-01-01T00:00:00Z" }),
       task("manual", { position: 3 }),
-      task("hidden-blocker", { blockedBy: [null] }),
+      task("hidden-blocker", { hasHiddenBlocker: true }),
     ]).map((row) => row.reason);
     expect(reasons).toEqual([
       { kind: "due" },
       { kind: "position" },
-      { kind: "blocked", blockers: [null] },
+      { kind: "blocked", blockers: [], hidden: true },
     ]);
   });
 });

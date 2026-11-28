@@ -6075,8 +6075,7 @@
 				"viewAll": "View all",
 				"reasons": {
 					"blocked": "Blocked by {{issues}}",
-					"hiddenBlockers_one": "{{count}} issue you can't open",
-					"hiddenBlockers_other": "{{count}} issues you can't open",
+					"hiddenBlocker": "an issue you can't open",
 					"cycle": "In the current cycle",
 					"priority": "{{priority}} priority",
 					"due": "Due soonest",

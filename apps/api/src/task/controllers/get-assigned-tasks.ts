@@ -25,7 +25,9 @@ import {
 import { designReviewSlaDueAt } from "../../design-review/sla";
 import { projectAccessCondition } from "../../project-access/project-access-condition";
 import { taskIsUnfinished } from "../task-is-unfinished";
-import { loadOpenBlockers } from "./load-open-blockers";
+import { loadOpenBlockers, type OpenBlockers } from "./load-open-blockers";
+
+const noBlockers: OpenBlockers = { blockedBy: [], hasHiddenBlocker: false };
 
 // Home and My tasks render this list whole, so it stays one bounded page.
 export const ASSIGNED_TASKS_LIMIT = 100;
@@ -199,7 +201,7 @@ async function getAssignedTasks(
     labelsByTask.set(taskId, taskLabels);
   }
 
-  const blockedBy = await loadOpenBlockers(
+  const blockers = await loadOpenBlockers(
     tasks.map((task) => task.id),
     userId,
   );
@@ -219,7 +221,7 @@ async function getAssignedTasks(
           ? designReviewSlaDueAt(reviewRequestedAt)
           : null,
         labels: labelsByTask.get(task.id) ?? [],
-        blockedBy: blockedBy.get(task.id) ?? [],
+        ...(blockers.get(task.id) ?? noBlockers),
       };
     }),
     total: Number(totals?.total ?? 0),

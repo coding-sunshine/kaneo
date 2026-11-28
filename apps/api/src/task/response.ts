@@ -400,9 +400,13 @@ export const assignedTasksSchema = z
           projectSlug: z.string(),
           projectIcon: z.string().nullable(),
           labels: z.array(taskLabelSchema),
-          blockedBy: z.array(z.string().nullable()).openapi({
+          blockedBy: z.array(z.string()).openapi({
             description:
-              "Open tasks that block this one, as keys such as ENG-12. A blocker in a team you cannot open is null.",
+              "Open tasks that block this one, as keys such as ENG-12. Blockers in teams you cannot open are left out.",
+          }),
+          hasHiddenBlocker: z.boolean().openapi({
+            description:
+              "Whether an open task in a team you cannot open blocks this one. It says nothing about how many.",
           }),
         })
         .openapi("AssignedTask"),

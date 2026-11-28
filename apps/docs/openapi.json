@@ -1496,12 +1496,13 @@
           "blockedBy": {
             "type": "array",
             "items": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             },
-            "description": "Open tasks that block this one, as keys such as ENG-12. A blocker in a team you cannot open is null."
+            "description": "Open tasks that block this one, as keys such as ENG-12. Blockers in teams you cannot open are left out."
+          },
+          "hasHiddenBlocker": {
+            "type": "boolean",
+            "description": "Whether an open task in a team you cannot open blocks this one. It says nothing about how many."
           }
         },
         "required": [
@@ -1526,7 +1527,8 @@
           "projectSlug",
           "projectIcon",
           "labels",
-          "blockedBy"
+          "blockedBy",
+          "hasHiddenBlocker"
         ]
       },
       "DoneTasks": {

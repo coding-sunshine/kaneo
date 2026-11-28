@@ -17,7 +17,8 @@ type UpNextTask = {
   title: string;
   position: number | null;
   inCycle: boolean;
-  blockedBy: Array<string | null>;
+  blockedBy: string[];
+  hasHiddenBlocker: boolean;
 };
 
 describe("API integration: assigned tasks carry Up next signals", () => {
@@ -58,7 +59,14 @@ describe("API integration: assigned tasks carry Up next signals", () => {
       columnId: web.columns.todo.id,
       userId: member.id,
     };
-    const [inCycle, oldCycle, blocked, hiddenBlocked, doneBlocked] = await db
+    const [
+      inCycle,
+      oldCycle,
+      blocked,
+      hiddenBlocked,
+      doneBlocked,
+      twiceHidden,
+    ] = await db
       .insert(schema.taskTable)
       .values([
         { ...mine, number: 1, title: "In cycle", cycleId: current.id },
@@ -66,9 +74,10 @@ describe("API integration: assigned tasks carry Up next signals", () => {
         { ...mine, number: 3, title: "Blocked", position: 7 },
         { ...mine, number: 4, title: "Blocked by ops" },
         { ...mine, number: 5, title: "Blocker is done" },
+        { ...mine, number: 8, title: "Blocked by two ops tasks" },
       ])
       .returning();
-    const [webBlocker, opsBlocker, doneBlocker] = await db
+    const [webBlocker, opsBlocker, doneBlocker, opsBlocker2] = await db
       .insert(schema.taskTable)
       .values([
         {
@@ -92,6 +101,13 @@ describe("API integration: assigned tasks carry Up next signals", () => {
           status: "done",
           columnId: web.columns.done.id,
         },
+        {
+          projectId: ops.project.id,
+          number: 2,
+          title: "More ops work",
+          status: "to-do",
+          columnId: ops.columns.todo.id,
+        },
       ])
       .returning();
     await db.insert(schema.taskRelationTable).values([
@@ -103,6 +119,16 @@ describe("API integration: assigned tasks carry Up next signals", () => {
       {
         sourceTaskId: opsBlocker.id,
         targetTaskId: hiddenBlocked.id,
+        relationType: "blocks",
+      },
+      {
+        sourceTaskId: opsBlocker.id,
+        targetTaskId: twiceHidden.id,
+        relationType: "blocks",
+      },
+      {
+        sourceTaskId: opsBlocker2.id,
+        targetTaskId: twiceHidden.id,
         relationType: "blocks",
       },
       {
@@ -129,17 +155,39 @@ describe("API integration: assigned tasks carry Up next signals", () => {
     expect(byId.get(inCycle.id)).toMatchObject({
       inCycle: true,
       blockedBy: [],
+      hasHiddenBlocker: false,
     });
     expect(byId.get(oldCycle.id)?.inCycle).toBe(false);
     expect(byId.get(blocked.id)).toMatchObject({
       position: 7,
       inCycle: false,
       blockedBy: ["web-6"],
+      hasHiddenBlocker: false,
     });
-    // The reader cannot open ops: the blocker counts but is not named.
-    expect(byId.get(hiddenBlocked.id)?.blockedBy).toEqual([null]);
+    // The reader cannot open ops: the blocker is flagged, never named or counted.
+    for (const task of body.tasks)
+      expect(task.blockedBy.every((key) => typeof key === "string")).toBe(true);
+    const hiddenSignal = (id: string) => {
+      const task = byId.get(id);
+      return {
+        blockedBy: task?.blockedBy,
+        hasHiddenBlocker: task?.hasHiddenBlocker,
+      };
+    };
+    expect(hiddenSignal(hiddenBlocked.id)).toEqual({
+      blockedBy: [],
+      hasHiddenBlocker: true,
+    });
+    // Two hidden blockers look the same as one.
+    expect(hiddenSignal(twiceHidden.id)).toEqual(
+      hiddenSignal(hiddenBlocked.id),
+    );
     expect(JSON.stringify(body)).not.toContain("Secret ops work");
     expect(JSON.stringify(body)).not.toContain("ops-1");
-    expect(byId.get(doneBlocked.id)?.blockedBy).toEqual([]);
+    expect(JSON.stringify(body)).not.toContain("ops-2");
+    expect(hiddenSignal(doneBlocked.id)).toEqual({
+      blockedBy: [],
+      hasHiddenBlocker: false,
+    });
   });
 });

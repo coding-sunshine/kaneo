@@ -1,7 +1,7 @@
 import type { AssignedTask } from "@/fetchers/task/get-assigned-tasks";
 
 export type UpNextReason =
-  | { kind: "blocked"; blockers: Array<string | null> }
+  | { kind: "blocked"; blockers: string[]; hidden: boolean }
   | { kind: "cycle" }
   | { kind: "priority"; priority: string }
   | { kind: "due" }
@@ -21,7 +21,8 @@ const dueTime = (task: AssignedTask) =>
   task.dueDate ? Date.parse(task.dueDate) : Number.POSITIVE_INFINITY;
 const position = (task: AssignedTask) =>
   task.position ?? Number.POSITIVE_INFINITY;
-const isBlocked = (task: AssignedTask) => task.blockedBy.length > 0;
+const isBlocked = (task: AssignedTask) =>
+  task.blockedBy.length > 0 || task.hasHiddenBlocker;
 
 // Each key decides only when every key before it ties: unblocked work first,
 // then the running cycle, priority, due date, and manual position last.
@@ -34,7 +35,12 @@ const KEYS: Array<(task: AssignedTask) => number> = [
 ];
 
 function reasonFor(task: AssignedTask): UpNextReason {
-  if (isBlocked(task)) return { kind: "blocked", blockers: task.blockedBy };
+  if (isBlocked(task))
+    return {
+      kind: "blocked",
+      blockers: task.blockedBy,
+      hidden: task.hasHiddenBlocker,
+    };
   if (task.inCycle) return { kind: "cycle" };
   if (rank(task) > 0) return { kind: "priority", priority: task.priority };
   if (task.dueDate) return { kind: "due" };

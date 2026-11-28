@@ -7,12 +7,11 @@ export function UpNextReason({ reason }: { reason: Reason }) {
   const { t } = useTranslation();
 
   if (reason.kind === "blocked") {
-    const named = reason.blockers.filter((key) => key !== null);
-    const hidden = reason.blockers.length - named.length;
+    // Blockers in teams the reader cannot open are one phrase, never a count.
     const issues = [
-      ...named,
-      ...(hidden
-        ? [t("workspace:home.upNext.reasons.hiddenBlockers", { count: hidden })]
+      ...reason.blockers,
+      ...(reason.hidden
+        ? [t("workspace:home.upNext.reasons.hiddenBlocker")]
         : []),
     ].join(", ");
     return (
