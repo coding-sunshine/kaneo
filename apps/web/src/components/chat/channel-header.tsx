@@ -4,6 +4,7 @@ import { ChannelActions } from "@/components/chat/channel-actions";
 import { ChannelIcon } from "@/components/chat/channel-icon";
 import { MuteChannelButton } from "@/components/chat/mute-channel-button";
 import { PinnedMessages } from "@/components/chat/pinned-messages";
+import { SavedMessages } from "@/components/chat/saved-messages";
 import type { ChatChannelDetail } from "@/components/chat/types";
 import { Badge } from "@/components/ui/badge";
 
@@ -46,6 +47,7 @@ export function ChannelHeader({
         channel={{ ...channel, name: title }}
       />
       <PinnedMessages workspaceId={workspaceId} channelId={channel.id} />
+      <SavedMessages workspaceId={workspaceId} />
       <MuteChannelButton workspaceId={workspaceId} channel={channel} />
       {!channel.isDirect && (
         <ChannelActions workspaceId={workspaceId} channel={channel} />

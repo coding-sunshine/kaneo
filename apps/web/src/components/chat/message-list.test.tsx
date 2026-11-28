@@ -21,6 +21,13 @@ vi.mock("@/hooks/mutations/chat/use-message-mutations", () => ({
   usePinMessage: () => ({ mutate: pinMessage }),
   useReactToMessage: () => ({ mutate: vi.fn() }),
 }));
+vi.mock("@/hooks/mutations/chat/use-later-mutations", () => ({
+  useRemindMessage: () => ({ mutate: vi.fn() }),
+  useSaveMessage: () => ({ mutate: vi.fn() }),
+}));
+vi.mock("@/hooks/queries/chat/use-saved-messages", () => ({
+  useSavedMessages: () => ({ data: [] }),
+}));
 vi.mock("@/components/chat/message-reactions", () => ({
   MessageReactions: () => null,
 }));

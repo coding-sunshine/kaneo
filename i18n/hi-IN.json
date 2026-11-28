@@ -4809,7 +4809,17 @@
 			},
 			"typingMany": "Several people are typing…",
 			"typingOne": "{{name}} is typing…",
-			"typingTwo": "{{first}} and {{second}} are typing…"
+			"typingTwo": "{{first}} and {{second}} are typing…",
+			"noSaved": "Nothing saved yet. Save a message from its menu to find it here.",
+			"openSaved": "Open message",
+			"reminderSet": "Reminder set for {{time}}",
+			"remindInOneHour": "In 1 hour",
+			"remindMe": "Remind me",
+			"remindNextWeek": "Next Monday at 9:00",
+			"remindTomorrow": "Tomorrow at 9:00",
+			"saved": "Saved messages",
+			"saveMessage": "Save",
+			"unsaveMessage": "Remove from saved"
 		},
 		"files": {
 			"deletedUser": "Deleted user",

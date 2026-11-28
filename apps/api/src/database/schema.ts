@@ -3946,8 +3946,10 @@ export const chatChannelMuteTable = pgTable(
   ],
 );
 
-// A reminder someone set with /remind in a channel. Only its owner is told,
-// in their Inbox, once `remindAt` passes; `sentAt` marks it done.
+// A reminder someone set with /remind in a channel, or with Remind me on one
+// message (`messageId`, no foreign key: a deleted message leaves a channel
+// reminder). Only its owner is told, in their Inbox, once `remindAt` passes;
+// `sentAt` marks it done.
 export const chatReminderTable = pgTable(
   "chat_reminder",
   {
@@ -3973,6 +3975,7 @@ export const chatReminderTable = pgTable(
         onUpdate: "cascade",
       }),
     note: text("note").notNull().default(""),
+    messageId: text("message_id"),
     remindAt: timestamp("remind_at", { mode: "date" }).notNull(),
     sentAt: timestamp("sent_at", { mode: "date" }),
     createdAt: timestamp("created_at", { mode: "date" })
@@ -3982,6 +3985,35 @@ export const chatReminderTable = pgTable(
   (table) => [
     index("chat_reminder_due_idx").on(table.sentAt, table.remindAt),
     index("chat_reminder_user_idx").on(table.userId),
+  ],
+);
+
+// A message someone saved for later. Private to that user: no response shows
+// it to anyone else, and it lists only while they can still read the channel.
+export const chatSavedMessageTable = pgTable(
+  "chat_saved_message",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, { onDelete: "cascade" }),
+    messageId: text("message_id")
+      .notNull()
+      .references(() => chatMessageTable.id, { onDelete: "cascade" }),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .default(utcNow)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.userId, table.messageId] }),
+    index("chat_saved_message_user_workspace_idx").on(
+      table.userId,
+      table.workspaceId,
+      table.createdAt,
+    ),
+    index("chat_saved_message_message_idx").on(table.messageId),
   ],
 );
 

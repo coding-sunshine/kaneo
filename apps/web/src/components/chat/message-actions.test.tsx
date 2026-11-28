@@ -54,6 +54,12 @@ vi.mock("@/components/chat/thread-proposal-dialog", () => ({
       </p>
     ) : null,
 }));
+vi.mock("@/components/chat/message-remind-menu", () => ({
+  MessageRemindMenu: () => null,
+}));
+vi.mock("@/components/chat/message-save-item", () => ({
+  MessageSaveItem: () => null,
+}));
 vi.mock("@/components/chat/add-to-ticket-dialog", () => ({
   AddToTicketDialog: ({
     open,

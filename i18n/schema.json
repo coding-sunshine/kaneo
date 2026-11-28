@@ -19391,6 +19391,36 @@
 						"noPins": {
 							"type": "string"
 						},
+						"remindMe": {
+							"type": "string"
+						},
+						"remindInOneHour": {
+							"type": "string"
+						},
+						"remindTomorrow": {
+							"type": "string"
+						},
+						"remindNextWeek": {
+							"type": "string"
+						},
+						"reminderSet": {
+							"type": "string"
+						},
+						"saveMessage": {
+							"type": "string"
+						},
+						"unsaveMessage": {
+							"type": "string"
+						},
+						"saved": {
+							"type": "string"
+						},
+						"noSaved": {
+							"type": "string"
+						},
+						"openSaved": {
+							"type": "string"
+						},
 						"online": {
 							"type": "string"
 						},
@@ -19654,6 +19684,16 @@
 						"openInChat",
 						"pinned",
 						"noPins",
+						"remindMe",
+						"remindInOneHour",
+						"remindTomorrow",
+						"remindNextWeek",
+						"reminderSet",
+						"saveMessage",
+						"unsaveMessage",
+						"saved",
+						"noSaved",
+						"openSaved",
 						"online",
 						"removePreview",
 						"startCall",
