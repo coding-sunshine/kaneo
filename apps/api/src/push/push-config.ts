@@ -74,17 +74,18 @@ export function readFcmConfig(): FcmConfig | null {
 
 const told = new Set<string>();
 
-function logOnce(key: string, line: string) {
+export function logOnce(key: string, line: string) {
   if (told.has(key)) return;
   told.add(key);
   console.info(line);
 }
 
-export function logPushOffOnce(platform: "ios" | "android") {
-  logOnce(
-    `off-${platform}`,
-    platform === "ios"
-      ? "iOS push is off: set APNS_KEY_ID, APNS_TEAM_ID and APNS_PRIVATE_KEY to turn it on."
-      : "Android push is off: set FCM_SERVICE_ACCOUNT to turn it on.",
-  );
+const OFF = {
+  ios: "iOS push is off: set APNS_KEY_ID, APNS_TEAM_ID and APNS_PRIVATE_KEY to turn it on.",
+  android: "Android push is off: set FCM_SERVICE_ACCOUNT to turn it on.",
+  web: "Desktop push is off: set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY to turn it on.",
+};
+
+export function logPushOffOnce(platform: keyof typeof OFF) {
+  logOnce(`off-${platform}`, OFF[platform]);
 }

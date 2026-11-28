@@ -54,7 +54,12 @@ const message: PushMessage = {
   title: "#general",
   body: "Writer: hello",
   threadId: "channel-1",
-  data: { kind: "chat", workspaceId: "ws-1", chatChannelId: "channel-1" },
+  data: {
+    kind: "chat",
+    workspaceId: "ws-1",
+    chatChannelId: "channel-1",
+    messageId: "message-1",
+  },
 };
 
 describe("APNs sender", () => {
@@ -74,7 +79,7 @@ describe("APNs sender", () => {
         sound: "default",
         "thread-id": "channel-1",
       },
-      body: { kind: "chat", workspaceId: "ws-1", chatChannelId: "channel-1" },
+      body: message.data,
     });
 
     const jwt = request?.headers.authorization?.replace(/^bearer /, "") ?? "";

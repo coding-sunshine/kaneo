@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import db from "../database";
 import { pushDeviceTable } from "../database/schema";
 
-export type PushPlatform = "ios" | "android";
+export type PushPlatform = "ios" | "android" | "web";
 
 // One row per token. A token registered again, by anyone, moves to that
 // sign-in: a phone gets the pushes of whoever signed in on it last.

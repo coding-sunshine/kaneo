@@ -8,6 +8,7 @@ import {
   sessionTable,
   userTable,
 } from "../database/schema";
+import { findChatAlertRecipients } from "../chat/notifications/alert-recipients";
 import { findUnreadRecipients } from "../ws/chat-unread-recipients";
 import type { PushMessage } from "./push-message";
 import { chatPushText } from "./push-text";
@@ -15,8 +16,9 @@ import { pushSender } from "./senders";
 
 /**
  * Pushes a new chat message to the phones of the channel members who may
- * read it, except the author, on sessions that are still live. Tokens the
- * provider calls dead are forgotten.
+ * read it, except the author, and to the browsers of the people it alerts,
+ * on sessions that are still live. Tokens the provider calls dead are
+ * forgotten.
  */
 export async function sendChatPush(event: {
   workspaceId: string;
@@ -24,24 +26,6 @@ export async function sendChatPush(event: {
   messageId: string;
   userId?: string;
 }) {
-  const recipients = await findUnreadRecipients(event.channelId, event.userId);
-  if (recipients.length === 0) return;
-  const devices = await db
-    .select({
-      id: pushDeviceTable.id,
-      platform: pushDeviceTable.platform,
-      token: pushDeviceTable.token,
-    })
-    .from(pushDeviceTable)
-    .innerJoin(sessionTable, eq(sessionTable.id, pushDeviceTable.sessionId))
-    .where(
-      and(
-        inArray(pushDeviceTable.userId, recipients),
-        gt(sessionTable.expiresAt, new Date()),
-      ),
-    );
-  if (devices.length === 0) return;
-
   const [row] = await db
     .select({
       body: chatMessageTable.body,
@@ -62,6 +46,42 @@ export async function sendChatPush(event: {
       ),
     );
   if (!row) return;
+
+  // Phones hear every message; browsers only mentions and direct messages.
+  const phones = new Set(
+    await findUnreadRecipients(event.channelId, event.userId),
+  );
+  const browsers = new Set(
+    await findChatAlertRecipients({
+      channelId: event.channelId,
+      authorId: event.userId,
+      body: row.body,
+      isDirect: row.isDirect,
+    }),
+  );
+  const recipients = [...new Set([...phones, ...browsers])];
+  if (recipients.length === 0) return;
+  const devices = (
+    await db
+      .select({
+        id: pushDeviceTable.id,
+        userId: pushDeviceTable.userId,
+        platform: pushDeviceTable.platform,
+        token: pushDeviceTable.token,
+      })
+      .from(pushDeviceTable)
+      .innerJoin(sessionTable, eq(sessionTable.id, pushDeviceTable.sessionId))
+      .where(
+        and(
+          inArray(pushDeviceTable.userId, recipients),
+          gt(sessionTable.expiresAt, new Date()),
+        ),
+      )
+  ).filter((device) =>
+    (device.platform === "web" ? browsers : phones).has(device.userId),
+  );
+  if (devices.length === 0) return;
+
   const [file] = await db
     .select({ filename: chatMessageFileTable.filename })
     .from(chatMessageFileTable)
@@ -75,6 +95,7 @@ export async function sendChatPush(event: {
       kind: "chat",
       workspaceId: event.workspaceId,
       chatChannelId: event.channelId,
+      messageId: event.messageId,
     },
   };
   const dead: string[] = [];

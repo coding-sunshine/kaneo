@@ -3,6 +3,7 @@ export type PushData = {
   kind: "chat";
   workspaceId: string;
   chatChannelId: string;
+  messageId: string;
 };
 
 export type PushMessage = {

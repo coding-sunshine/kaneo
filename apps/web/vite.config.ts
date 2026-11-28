@@ -13,12 +13,17 @@ const manifest = JSON.stringify(
   {
     name: brand.name,
     short_name: brand.name,
-    icons: [192, 512].map((size) => ({
-      src: `/web-app-manifest-${size}x${size}.png`,
-      sizes: `${size}x${size}`,
-      type: "image/png",
-      purpose: "maskable",
-    })),
+    id: "/",
+    start_url: "/",
+    scope: "/",
+    icons: (["any", "maskable"] as const).flatMap((purpose) =>
+      [192, 512].map((size) => ({
+        src: `/web-app-manifest-${size}x${size}.png`,
+        sizes: `${size}x${size}`,
+        type: "image/png",
+        purpose,
+      })),
+    ),
     theme_color: brand.themeColor,
     background_color: brand.backgroundColor,
     display: "standalone",

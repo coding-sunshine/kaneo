@@ -12294,7 +12294,7 @@
         "properties": {
           "delivering": {
             "type": "boolean",
-            "description": "Whether this server can push to the platform now. False until the operator sets the APNs or FCM key; the device stays registered."
+            "description": "Whether this server can push to the platform now. False until the operator sets the APNs, FCM or VAPID key; the device stays registered."
           }
         },
         "required": [
@@ -12311,6 +12311,21 @@
         },
         "required": [
           "removed"
+        ]
+      },
+      "WebPushKey": {
+        "type": "object",
+        "properties": {
+          "publicKey": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The VAPID public key a browser subscribes with. Null while the operator has not set a key pair, so desktop push is off."
+          }
+        },
+        "required": [
+          "publicKey"
         ]
       },
       "CurrentUser": {
@@ -60422,32 +60437,83 @@
         "tags": [
           "Push"
         ],
-        "summary": "Register a phone for chat pushes",
-        "description": "Store this app install's native push token for your sign-in, so new chat messages reach the phone. Signing out or revoking the session drops it. Requires a user session; API keys are rejected.",
+        "summary": "Register a phone or browser for chat pushes",
+        "description": "Store this app install's native push token, or this browser's push subscription, for your sign-in, so chat messages reach the device. Signing out or revoking the session drops it. Requires a user session; API keys are rejected.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "platform": {
-                    "type": "string",
-                    "enum": [
-                      "ios",
-                      "android"
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "platform": {
+                        "type": "string",
+                        "enum": [
+                          "ios",
+                          "android"
+                        ]
+                      },
+                      "token": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 4096,
+                        "description": "The native APNs device token or FCM registration token."
+                      }
+                    },
+                    "required": [
+                      "platform",
+                      "token"
                     ]
                   },
-                  "token": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 4096,
-                    "description": "The native APNs device token or FCM registration token."
+                  {
+                    "type": "object",
+                    "properties": {
+                      "platform": {
+                        "type": "string",
+                        "enum": [
+                          "web"
+                        ]
+                      },
+                      "subscription": {
+                        "type": "object",
+                        "properties": {
+                          "endpoint": {
+                            "type": "string",
+                            "maxLength": 2048,
+                            "format": "uri"
+                          },
+                          "keys": {
+                            "type": "object",
+                            "properties": {
+                              "p256dh": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z0-9_-]+=*$"
+                              },
+                              "auth": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z0-9_-]+=*$"
+                              }
+                            },
+                            "required": [
+                              "p256dh",
+                              "auth"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "endpoint",
+                          "keys"
+                        ],
+                        "description": "The browser's PushSubscription, as its toJSON() gives it."
+                      }
+                    },
+                    "required": [
+                      "platform",
+                      "subscription"
+                    ]
                   }
-                },
-                "required": [
-                  "platform",
-                  "token"
                 ]
               }
             }
@@ -60494,23 +60560,66 @@
         "tags": [
           "Push"
         ],
-        "summary": "Stop chat pushes to a phone",
-        "description": "Forget one of your push tokens. Another person's token is left alone.",
+        "summary": "Stop chat pushes to a phone or browser",
+        "description": "Forget one of your push tokens or browser subscriptions. Another person's is left alone.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "token": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 4096
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "token": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 4096
+                      }
+                    },
+                    "required": [
+                      "token"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "subscription": {
+                        "type": "object",
+                        "properties": {
+                          "endpoint": {
+                            "type": "string",
+                            "maxLength": 2048
+                          },
+                          "keys": {
+                            "type": "object",
+                            "properties": {
+                              "p256dh": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z0-9_-]+=*$"
+                              },
+                              "auth": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z0-9_-]+=*$"
+                              }
+                            },
+                            "required": [
+                              "p256dh",
+                              "auth"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "endpoint",
+                          "keys"
+                        ],
+                        "description": "The browser's PushSubscription, as its toJSON() gives it."
+                      }
+                    },
+                    "required": [
+                      "subscription"
+                    ]
                   }
-                },
-                "required": [
-                  "token"
                 ]
               }
             }
@@ -60523,6 +60632,51 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PushDeviceRemoval"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated with an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ApiKeyRateLimited"
+          }
+        }
+      }
+    },
+    "/push/web-key": {
+      "get": {
+        "operationId": "getWebPushKey",
+        "tags": [
+          "Push"
+        ],
+        "summary": "Get the key a browser subscribes to desktop pushes with",
+        "description": "The server's VAPID public key, or null while desktop push is off. Requires a user session.",
+        "responses": {
+          "200": {
+            "description": "The key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebPushKey"
                 }
               }
             }
